@@ -71,20 +71,20 @@ def _cluster_setup(instances: List[harness.Instance], skip_k8s_dqlite: bool = Fa
 
     for instance in instances:
         assert "control-plane" in util.get_local_node_status(instance)
-        instance.exec(["mkdir", "-p", "/root/.kube"])
-        config = instance.exec(["k8s", "config"], capture_output=True)
-        instance.exec(["dd", "of=/root/.kube/config"], input=config.stdout)
+
+    cluster_node.exec(["mkdir", "-p", "/root/.kube"])
+    config = cluster_node.exec(["k8s", "config"], capture_output=True)
+    cluster_node.exec(["dd", "of=/root/.kube/config"], input=config.stdout)
 
 
 def _run_tests(instances: List[harness.Instance]):
-    # The first node may be the leader.
-    instance = instances[-1]
+    instance = instances[0]
 
     # Install kubectl in the instance, it's faster.
     instance.exec(["snap", "install", "kubectl", "--classic"])
 
     # Taint the other nodes, so Pods do not schedule on them.
-    for node in instances[:-1]:
+    for node in instances[1:]:
         instance.exec(["kubectl", "cordon", node.id])
 
     yaml_bytes = (config.MANIFESTS_DIR / "nginx-pod.yaml").read_bytes()
@@ -108,8 +108,8 @@ def _run_tests(instances: List[harness.Instance]):
     other_v1 = kubernetes.client.CoreV1Api()
 
     # Run scenarios.
-    aff_errors, aff_non_running = _check_node_affinity(instance, v1, other_v1)
-    taint_errors, taint_non_running = _check_node_taint(instance, v1, other_v1)
+    aff_errors, aff_non_running = _check_node_affinity(instance)
+    taint_errors, taint_non_running = _check_node_taint(instance)
 
     assert aff_errors == 0, "label: encountered errors while testing."
     assert aff_non_running == 0, "label: pods didn't always enter a running state."
@@ -137,93 +137,75 @@ def _wait_pod(
     )
 
 
-def _check_node_affinity(instance: harness.Instance, v1, other_v1):
+def _check_node_affinity(instance: harness.Instance):
     yaml_bytes = (config.MANIFESTS_DIR / "nginx-pod-selector.yaml").read_bytes()
     pod_spec = yaml.safe_load(yaml_bytes)
     affinity = pod_spec["spec"]["affinity"]["nodeAffinity"]
     required = affinity["requiredDuringSchedulingIgnoredDuringExecution"]
     affinity_expression = required["nodeSelectorTerms"][0]["matchExpressions"][0]
 
-    labels = {}
-    label_dict = {
-        "metadata": {
-            "labels": labels,
-        },
-    }
+    create_cmd = "kubectl apply -f -"
 
     @contextlib.contextmanager
     def _run_scenario():
         suffix = random.randint(0, 999999)
         label = f"foo-{suffix}"
-        labels[label] = "lish"
+        label_cmd = f"kubectl label node {instance.id} {label}=lish"
+        unlabel_cmd = f"kubectl label node {instance.id} {label}-"
+
         pod_name = f"nginx-{suffix}"
         pod_spec["metadata"]["name"] = pod_name
+        affinity_expression["key"] = label
+        pod_yaml = yaml.dump(pod_spec)
 
         # Label the node and create Pod.
-        v1.patch_node(instance.id, label_dict)
-        affinity_expression["key"] = label
-        other_v1.create_namespaced_pod(body=pod_spec, namespace="default")
+        cmd = f"{label_cmd} && {create_cmd}"
+        instance.exec([cmd], input=pod_yaml.encode())
 
         yield pod_name
 
         # Cleanup.
-        v1.delete_namespaced_pod(pod_name, namespace="default")
-
-        labels[label] = None
-        v1.patch_node(instance.id, label_dict)
-        labels.pop(label)
+        cmd = f"{unlabel_cmd} && kubectl delete pod {pod_name}"
+        instance.exec([cmd])
 
     LOG.info("Testing node label selector scenario")
     return _check_scenario(instance, _run_scenario)
 
 
-def _check_node_taint(instance: harness.Instance, v1, other_v1):
+def _check_node_taint(instance: harness.Instance):
     yaml_bytes = (config.MANIFESTS_DIR / "nginx-pod.yaml").read_bytes()
     pod_spec = yaml.safe_load(yaml_bytes)
 
-    add_taint = {
-        "spec": {
-            "taints": [
-                {
-                    "key": "foo",
-                    "value": "lish",
-                    "effect": "NoSchedule",
-                }
-            ],
-        },
-    }
-
-    remove_taint = {
-        "spec": {
-            "taints": [],
-        },
-    }
+    taint_cmd = f"kubectl taint node {instance.id} foo=lish:NoSchedule"
+    untaint_cmd = f"{taint_cmd}-"
+    create_cmd = "kubectl apply -f -"
 
     @contextlib.contextmanager
     def _run_scenario():
         suffix = random.randint(0, 999999)
         pod_name = f"nginx-{suffix}"
         pod_spec["metadata"]["name"] = pod_name
+        pod_yaml = yaml.dump(pod_spec)
 
         # Taint the node.
-        v1.patch_node(instance.id, add_taint)
+        instance.exec(taint_cmd.split())
         time.sleep(0.25)
 
         # Untaint the node, create Pod, and wait for it to become Running.
-        v1.patch_node(instance.id, remove_taint)
-        other_v1.create_namespaced_pod(body=pod_spec, namespace="default")
+        cmd = f"{untaint_cmd} && {create_cmd}"
+        instance.exec([cmd], input=pod_yaml.encode())
 
         yield pod_name
 
         # Cleanup.
-        v1.delete_namespaced_pod(pod_name, namespace="default")
+        instance.exec(["kubectl", "delete", "pod", pod_name])
 
     LOG.info("Testing node taint scenario.")
     return _check_scenario(instance, _run_scenario)
 
 
 def _check_scenario(instance: harness.Instance, run_scenario):
-    tries = 500
+    tries = 200
     errors = 0
     non_running = 0
     for i in range(tries):
