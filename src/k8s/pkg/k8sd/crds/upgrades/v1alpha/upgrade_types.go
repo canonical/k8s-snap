@@ -1,5 +1,3 @@
-// +kubebuilder:validation:Required
-
 package v1alpha
 
 import (
@@ -7,11 +5,9 @@ import (
 )
 
 // +kubebuilder:validation:Enum=NodeUpgrade;FeatureUpgrade;Completed;Failed
-// +kubebuilder:validation:MinLength=1
 type UpgradePhase string
 
 // +kubebuilder:validation:Enum=RollingUpgrade;RollingDowngrade;InPlace
-// +kubebuilder:validation:MinLength=1
 type UpgradeStrategy string
 
 // NOTE(Hue): Make sure to keep these up to date with the UpgradePhase type
@@ -30,8 +26,10 @@ const (
 // UpgradeStatus defines the observed state of Upgrade.
 type UpgradeStatus struct {
 	// Phase indicates the current phase of the upgrade process.
+	// +required
 	Phase UpgradePhase `json:"phase,omitempty"`
 	// Strategy indicates the strategy used for the upgrade.
+	// +required
 	Strategy UpgradeStrategy `json:"strategy,omitempty"`
 	// UpgradedNodes is a list of nodes that have been successfully upgraded.
 	// +optional
@@ -46,9 +44,11 @@ type UpgradeStatus struct {
 
 // Upgrade is the Schema for the upgrades API.
 type Upgrade struct {
-	metav1.TypeMeta   `json:",inline"`
+	metav1.TypeMeta `json:",inline"`
+	// +optional
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
+	// +optional
 	Status UpgradeStatus `json:"status,omitempty"`
 }
 
@@ -66,6 +66,7 @@ func NewUpgrade(name string) *Upgrade {
 // UpgradeList contains a list of Upgrade.
 type UpgradeList struct {
 	metav1.TypeMeta `json:",inline"`
+	// +optional
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []Upgrade `json:"items"`
 }

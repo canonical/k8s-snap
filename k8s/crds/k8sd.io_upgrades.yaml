@@ -53,7 +53,6 @@ spec:
                 - FeatureUpgrade
                 - Completed
                 - Failed
-                minLength: 1
                 type: string
               strategy:
                 description: Strategy indicates the strategy used for the upgrade.
@@ -61,7 +60,6 @@ spec:
                 - RollingUpgrade
                 - RollingDowngrade
                 - InPlace
-                minLength: 1
                 type: string
               upgradedNodes:
                 description: UpgradedNodes is a list of nodes that have been successfully
@@ -69,6 +67,9 @@ spec:
                 items:
                   type: string
                 type: array
+            required:
+            - phase
+            - strategy
             type: object
         type: object
     served: true
