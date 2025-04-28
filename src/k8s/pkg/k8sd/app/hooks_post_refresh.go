@@ -6,7 +6,7 @@ import (
 	"slices"
 
 	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations"
-	"github.com/canonical/k8s/pkg/client/kubernetes"
+	upgradesv1alpha "github.com/canonical/k8s/pkg/k8sd/crds/upgrades/v1alpha"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/log"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
@@ -86,7 +86,7 @@ func (a *App) performPostUpgrade(ctx context.Context, s state.State) error {
 		}
 		// TODO(ben): Add more metadata to the upgrade.
 		// e.g. initial revision, target revision, name of the node that started the upgrade, etc.
-		upgrade = kubernetes.NewUpgrade(fmt.Sprintf("cluster-upgrade-to-rev-%s", rev), kubernetes.UpgradeStrategyInPlace)
+		upgrade = upgradesv1alpha.NewUpgrade(fmt.Sprintf("cluster-upgrade-to-rev-%s", rev))
 		if err := k8sClient.Create(ctx, upgrade); err != nil {
 			return fmt.Errorf("failed to create upgrade: %w", err)
 		}
@@ -101,10 +101,10 @@ func (a *App) performPostUpgrade(ctx context.Context, s state.State) error {
 	if !slices.Contains(upgradedNodes, s.Name()) {
 		upgradedNodes = append(upgradedNodes, s.Name())
 	}
-	status := kubernetes.UpgradeStatus{
+	status := upgradesv1alpha.UpgradeStatus{
 		UpgradedNodes: upgradedNodes,
-		Phase:         kubernetes.UpgradePhaseNodeUpgrade,
-		Strategy:      kubernetes.UpgradeStrategyInPlace,
+		Phase:         upgradesv1alpha.UpgradePhaseNodeUpgrade,
+		Strategy:      upgradesv1alpha.UpgradeStrategyInPlace,
 	}
 
 	if err := k8sClient.PatchUpgradeStatus(ctx, upgrade, status); err != nil {

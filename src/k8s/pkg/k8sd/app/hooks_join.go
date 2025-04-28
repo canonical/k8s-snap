@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/canonical/k8s/pkg/client/kubernetes"
+	upgradesv1alpha "github.com/canonical/k8s/pkg/k8sd/crds/upgrades/v1alpha"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
@@ -405,23 +406,23 @@ func initiateRollingUpgrade(ctx context.Context, snap snap.Snap, s state.State, 
 		return fmt.Errorf("failed to get snap revision: %w", err)
 	}
 
-	var strategy kubernetes.UpgradeStrategy
+	var strategy upgradesv1alpha.UpgradeStrategy
 	if thisNodeVersion.GreaterThan(clusterK8sVersion) {
 		log.Info("Joining node has a greater version - rolling upgrade")
-		strategy = kubernetes.UpgradeStrategyRollingUpgrade
+		strategy = upgradesv1alpha.UpgradeStrategyRollingUpgrade
 	} else {
 		log.Info("Joining node has a lower version - downgrade")
-		strategy = kubernetes.UpgradeStrategyRollingDowngrade
+		strategy = upgradesv1alpha.UpgradeStrategyRollingDowngrade
 	}
 
-	newUpgrade := kubernetes.NewUpgrade(fmt.Sprintf("cluster-upgrade-to-rev-%s", rev), strategy)
+	newUpgrade := upgradesv1alpha.NewUpgrade(fmt.Sprintf("cluster-upgrade-to-rev-%s", rev))
 	if err := k8sClient.Create(ctx, newUpgrade); err != nil {
 		return fmt.Errorf("failed to create upgrade: %w", err)
 	}
 
-	status := kubernetes.UpgradeStatus{
+	status := upgradesv1alpha.UpgradeStatus{
 		UpgradedNodes: []string{s.Name()},
-		Phase:         kubernetes.UpgradePhaseNodeUpgrade,
+		Phase:         upgradesv1alpha.UpgradePhaseNodeUpgrade,
 		Strategy:      strategy,
 	}
 	if err := k8sClient.PatchUpgradeStatus(ctx, newUpgrade, status); err != nil {
@@ -431,34 +432,39 @@ func initiateRollingUpgrade(ctx context.Context, snap snap.Snap, s state.State, 
 	return nil
 }
 
-func handleUpgradeInProgress(ctx context.Context, s state.State, k8sClient *kubernetes.Client, upgrade *kubernetes.Upgrade, thisNodeVersion *versionutil.Version, nodeVersions map[string]*versionutil.Version) error {
+func handleUpgradeInProgress(ctx context.Context, s state.State, k8sClient *kubernetes.Client, upgrade *upgradesv1alpha.Upgrade, thisNodeVersion *versionutil.Version, nodeVersions map[string]*versionutil.Version) error {
 	log := log.FromContext(ctx)
 	nodeName := s.Name()
 	lowest, highest := lowestHighestK8sVersions(nodeVersions)
 
 	switch upgrade.Status.Strategy {
-	case kubernetes.UpgradeStrategyRollingUpgrade:
+	case upgradesv1alpha.UpgradeStrategyRollingUpgrade:
 		log.Info("Rolling upgrade in progress")
 		if !thisNodeVersion.EqualTo(highest) {
 			return fmt.Errorf("joining node version %q needs to match highest version %q", thisNodeVersion, highest)
 		}
-	case kubernetes.UpgradeStrategyRollingDowngrade:
+	case upgradesv1alpha.UpgradeStrategyRollingDowngrade:
 		log.Info("Rolling downgrade in progress")
 		if !thisNodeVersion.EqualTo(lowest) {
 			return fmt.Errorf("joining node version %q needs to match lowest version %q", thisNodeVersion, lowest)
 		}
-	case kubernetes.UpgradeStrategyInPlace:
+	case upgradesv1alpha.UpgradeStrategyInPlace:
 		return fmt.Errorf("can not join a new node while an in-place upgrade is in progress")
 	default:
 		return fmt.Errorf("unknown upgrade strategy in progress: %q", upgrade.Status.Strategy)
 	}
 
 	log.Info("Marking node as upgraded", "node", nodeName)
+
 	upgradedNodes := upgrade.Status.UpgradedNodes
 	if !slices.Contains(upgradedNodes, nodeName) {
 		upgradedNodes = append(upgradedNodes, nodeName)
 	}
-	return k8sClient.PatchUpgradeStatus(ctx, upgrade, kubernetes.UpgradeStatus{UpgradedNodes: upgradedNodes})
+	status := upgradesv1alpha.UpgradeStatus{
+		UpgradedNodes: append(upgrade.Status.UpgradedNodes, nodeName),
+	}
+
+	return k8sClient.PatchUpgradeStatus(ctx, upgrade, status)
 }
 
 // lowestHighestK8sVersions returns the lowest and highest Kubernetes versions from the given map.
