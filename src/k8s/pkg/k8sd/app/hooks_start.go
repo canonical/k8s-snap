@@ -29,6 +29,7 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 		return fmt.Errorf("failed to retrieve microcluster status: %w", err)
 	}
 	nodeName := serverStatus.Name
+	log.FromContext(ctx).Info(">>> Starting controllers", "nodeName", nodeName)
 
 	// start node config controller
 	if a.nodeConfigController != nil {

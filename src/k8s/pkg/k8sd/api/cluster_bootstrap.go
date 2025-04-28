@@ -9,6 +9,7 @@ import (
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	"github.com/canonical/k8s/pkg/utils"
+	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/v2/state"
 )
@@ -55,6 +56,8 @@ func (e *Endpoints) postClusterBootstrap(_ state.State, r *http.Request) respons
 	config = utils.MicroclusterMapWithTimeout(config, req.Timeout)
 
 	// Bootstrap the cluster
+	log := log.FromContext(ctx).WithValues("name", req.Name)
+	log.Info(">>> cluster bootstrap", "req.Name", req.Name, "hostname", hostname)
 	if err := e.provider.MicroCluster().NewCluster(ctx, hostname, req.Address, config); err != nil {
 		return response.BadRequest(fmt.Errorf("failed to bootstrap new cluster: %w", err))
 	}
