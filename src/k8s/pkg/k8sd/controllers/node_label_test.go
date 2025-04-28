@@ -107,9 +107,9 @@ func TestAvailabilityZoneLabel(t *testing.T) {
 	g.Expect(os.MkdirAll(k8sdDbDir, 0o700)).To(Succeed())
 
 	nodeName := "test-node-name"
-	ctrl := controllers.NewNodeLabelController(s, func() {})
+	ctrl := controllers.NewNodeLabelController(s, func() {}, func(context.Context) (string, error) { return nodeName, nil })
 
-	go ctrl.Run(ctx, nodeName)
+	go ctrl.Run(ctx)
 	defer watcher.Stop()
 
 	for _, tc := range tests {

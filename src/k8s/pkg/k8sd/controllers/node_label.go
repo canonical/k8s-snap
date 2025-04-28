@@ -17,23 +17,30 @@ type NodeLabelController struct {
 	waitReady func()
 	// reconciledCh is used to notify that the controller has finished its reconciliation loop.
 	reconciledCh chan struct{}
+	getNodeName  func(ctx context.Context) (string, error)
 }
 
-func NewNodeLabelController(snap snap.Snap, waitReady func()) *NodeLabelController {
+func NewNodeLabelController(snap snap.Snap, waitReady func(), getNodeName func(ctx context.Context) (string, error)) *NodeLabelController {
 	return &NodeLabelController{
 		snap:         snap,
 		waitReady:    waitReady,
 		reconciledCh: make(chan struct{}, 1),
+		getNodeName:  getNodeName,
 	}
 }
 
-func (c *NodeLabelController) Run(ctx context.Context, nodeName string) {
+func (c *NodeLabelController) Run(ctx context.Context) {
 	ctx = log.NewContext(ctx, log.FromContext(ctx).WithValues("controller", "node-configuration"))
 	log := log.FromContext(ctx)
 
 	log.Info("Waiting for node to be ready")
 	// wait for microcluster node to be ready
 	c.waitReady()
+
+	nodeName, err := c.getNodeName(ctx)
+	if err != nil {
+		log.Error(err, "Could not obtain node name")
+	}
 
 	log.Info("Starting node label controller", "nodeName", nodeName)
 
