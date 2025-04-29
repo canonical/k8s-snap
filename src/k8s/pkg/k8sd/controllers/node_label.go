@@ -17,13 +17,15 @@ type NodeLabelController struct {
 	waitReady func()
 	// reconciledCh is used to notify that the controller has finished its reconciliation loop.
 	reconciledCh chan struct{}
+	getNodeName  func(ctx context.Context) (string, error)
 }
 
-func NewNodeLabelController(snap snap.Snap, waitReady func()) *NodeLabelController {
+func NewNodeLabelController(snap snap.Snap, waitReady func(), getNodeName func(ctx context.Context) (string, error)) *NodeLabelController {
 	return &NodeLabelController{
 		snap:         snap,
 		waitReady:    waitReady,
 		reconciledCh: make(chan struct{}, 1),
+		getNodeName:  getNodeName,
 	}
 }
 
@@ -35,8 +37,12 @@ func (c *NodeLabelController) Run(ctx context.Context) {
 	// wait for microcluster node to be ready
 	c.waitReady()
 
-	hostname := c.snap.Hostname()
-	log.Info("Starting node label controller", "hostname", hostname)
+	nodeName, err := c.getNodeName(ctx)
+	if err != nil {
+		log.Error(err, "Could not obtain node name")
+	}
+
+	log.Info("Starting node label controller", "nodeName", nodeName)
 
 	for {
 		client, err := getNewK8sClientWithRetries(ctx, c.snap, false)
@@ -45,13 +51,13 @@ func (c *NodeLabelController) Run(ctx context.Context) {
 		}
 
 		if err := client.WatchNode(
-			ctx, hostname, func(node *v1.Node) error {
+			ctx, nodeName, func(node *v1.Node) error {
 				err := c.reconcile(ctx, node)
 				c.notifyReconciled()
 				return err
 			}); err != nil {
 			// The watch may fail during bootstrap or service start-up.
-			log.WithValues("node name", hostname).Error(err, "Failed to watch node")
+			log.WithValues("node name", nodeName).Error(err, "Failed to watch node")
 		}
 
 		select {
