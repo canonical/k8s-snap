@@ -122,6 +122,13 @@ func New(cfg Config) (*App, error) {
 		app.nodeLabelController = controllers.NewNodeLabelController(
 			cfg.Snap,
 			app.readyWg.Wait,
+			func(ctx context.Context) (string, error) {
+				serverStatus, err := cluster.Status(ctx)
+				if err != nil {
+					return "", fmt.Errorf("failed to retrieve microcluster status: %w", err)
+				}
+				return serverStatus.Name, nil
+			},
 		)
 	} else {
 		log.L().Info("node-label-controller disabled via config")
