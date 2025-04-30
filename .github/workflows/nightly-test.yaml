@@ -32,7 +32,7 @@ jobs:
           TEST_SUBSTRATE: lxd
           TEST_LXD_IMAGE: ${{ matrix.os }}
         run: |
-          tox -e integration -- --tags performance \
+          cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- --tags performance \
             --benchmark-storage tests/integration/tests/performance/baselines \
             --benchmark-compare ${{ matrix.os }}-${{ matrix.arch }}.json
             --benchmark-compare-fail mean:10%

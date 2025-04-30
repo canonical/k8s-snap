@@ -36,7 +36,7 @@ jobs:
         run: sudo apt-get install -y tox
       - name: Create performance baselines
         run: |
-          tox -e integration -- --tags performance \
+          cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- --tags performance \
             --benchmark-storage baselines \
             --benchmark-name ${{ matrix.os }}-${{ matrix.arch }}
       - name: Prepare baseline results
