@@ -19,7 +19,7 @@ jobs:
       matrix:
         os: ["ubuntu:22.04", "ubuntu:24.04"]
         arch: ["amd64", "arm64"]
-    runs-on: ${{ matrix.arch == 'arm64' && 'self-hosted-linux-arm64-noble-medium' || 'self-hosted-linux-amd64-noble-medium' }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'self-hosted-linux-arm64-noble-large' || 'self-hosted-linux-amd64-noble-large' }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
