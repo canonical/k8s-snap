@@ -1,0 +1,64 @@
+name: Create Performance Baselines
+description: |
+  This workflow creates performance baselines on the specified runner tags
+  and creates a baseline for future comparisons. It uses pytest-benchmark to run the tests
+  and save the results.
+  It also creates a pull request with the results
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/create-perf-baselines.yaml
+      - tests/integration/tests/performance/*.py
+
+jobs:
+  baselines:
+    name: Create Baselines for ${{ matrix.os }}-${{ matrix.arch }}
+    strategy:
+      matrix:
+        os: ["ubuntu:22.04", "ubuntu:24.04"]
+        arch: ["amd64", "arm64"]
+    runs-on: ${{ inputs.arch == 'arm64' && 'self-hosted-linux-arm64-noble-medium' || 'self-hosted-linux-amd64-noble-medium' }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Create performance baselines
+        run: |
+          tox -e integration -- --tags performance \
+            --benchmark-storage baselines \
+            --benchmark-name ${ matrix.os }-${{ matrix.arch }}
+      - name: Prepare baseline results
+        run: |
+          echo "artifact_name=${{ inputs.os }}-${{ inputs.arch }}.json" | sed 's/:/-/g' >> $GITHUB_ENV
+      - name: Upload baseline results
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.artifact_name }}
+          path: baselines/**/*.json
+
+  create_pr:
+    name: Create PR with baseline results
+    runs-on: ubuntu-latest
+    needs: baselines
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          path: tests/integration/tests/performance/baselines
+      - name: Commit and create PR
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "test: Update performance baseline results"
+          title: "test: Automatic Performance Baselines update"
+          body: "Update performance baselines because of changed performance tests"
+          branch: performance/baseline-updates
+          base: ${{ github.head_ref || github.ref_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}

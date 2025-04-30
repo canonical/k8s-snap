@@ -14,7 +14,7 @@ from test_util.registry import Registry
 
 LOG = logging.getLogger(__name__)
 
-pytest_plugins = ("pytest_tagging",)
+pytest_plugins = ("pytest_tagging", "pytest_benchmark")
 
 
 def pytest_itemcollected(item):
@@ -23,12 +23,10 @@ def pytest_itemcollected(item):
     """
     # Check for tags in the pytest.mark attributes
     marked_tags = [mark for mark in item.iter_markers(name="tags")]
-    if not marked_tags or not any(
-        tag.args[0] in tags.TEST_LEVELS for tag in marked_tags
-    ):
+    if not marked_tags or not any(tag.args[0] in tags.TEST_TAGS for tag in marked_tags):
         pytest.fail(
             f"The test {item.nodeid} does not have one of the test level tags."
-            f"Please add at least one test-level tag using @pytest.mark.tags ({tags.TEST_LEVELS})."
+            f"Please add at least one test tag using @pytest.mark.tags ({tags.TEST_TAGS})."
         )
 
 

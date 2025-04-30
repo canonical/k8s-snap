@@ -13,78 +13,30 @@ permissions:
   contents: read
 
 jobs:
-  test-integration:
-    name: Integration
+  test-performance:
+    name: Run performance tests for ${{ matrix.os }}-${{ matrix.arch }}
     strategy:
       matrix:
         os: ["ubuntu:22.04", "ubuntu:24.04"]
         arch: ["amd64", "arm64"]
-        channel: ["latest/edge"]
-      fail-fast: false # TODO: remove once we no longer have flaky tests.
-    uses: ./.github/workflows/e2e-tests.yaml
-    with:
-      arch: ${{ matrix.arch }}
-      os: ${{ matrix.os }}
-      channel: ${{ matrix.channel }}
-      test-tags: 'up_to_nightly conformance_tests'
-
-  Trivy:
-    permissions:
-      contents: read # for actions/checkout to fetch code
-      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
-    strategy:
-      matrix:
-        include:
-          # Latest branches
-          - { branch: main, channel: latest/edge }
-          # Stable branches
-          # Add branches to test here
-          # TODO: automatically retrieve the list of channels.
-          - { branch: release-1.30, channel: 1.30-classic/edge }
-          - { branch: release-1.31, channel: 1.31-classic/edge }
-          - { branch: release-1.32, channel: 1.32-classic/edge }
-    uses: ./.github/workflows/security-scan.yaml
-    with:
-      channel: ${{ matrix.channel }}
-      checkout-ref: ${{ matrix.branch }}
-      upload-reports-to-jira: true
-    secrets: inherit
-
-  TICS:
-    if: ${{ always() && github.event_name == 'schedule' }}
-    permissions:
-      contents: read
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - { branch: main }
+    runs-on: ${{ matrix.arch == 'arm64' && 'self-hosted-linux-arm64-noble-medium' || 'self-hosted-linux-amd64-noble-medium' }}
     steps:
-      - name: Checking out repo
+      - name: Checkout repo
         uses: actions/checkout@v4
-      - name: Save tics-scan.sh script
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run Performance Tests
+        env:
+          TEST_SUBSTRATE: lxd
+          TEST_LXD_IMAGE: ${{ matrix.os }}
         run: |
-          # We'll need to scan other branches, let's create a copy of
-          # the TICS scan script.
-          cp tests/tics-scan.sh /tmp/tics-scan.sh
-      - name: Checking out tested repo branch
-        uses: actions/checkout@v4
-        with:
-          ref: ${{matrix.branch}}
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Install Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: './src/k8s/go.mod'
-      - name: go mod download
-        working-directory: src/k8s
-        run: go mod download
-      - name: TICS scan
-        run: |
-          export TICSAUTHTOKEN=${{ secrets.TICSAUTHTOKEN }}
-          /tmp/tics-scan.sh `pwd`
+          tox -e integration -- --tags performance \
+            --benchmark-storage tests/integration/tests/performance/baselines \
+            --benchmark-compare ${ matrix.os }-${{ matrix.arch }}.json
+            --benchmark-compare-fail mean:10%
+
 
   Mattermost:
     name: Notify Mattermost
