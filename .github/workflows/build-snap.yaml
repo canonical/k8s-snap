@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Checking out repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Apply flavor-specific patches
         if: inputs.flavor != ''
         run: |
