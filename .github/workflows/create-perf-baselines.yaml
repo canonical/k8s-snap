@@ -77,7 +77,7 @@ jobs:
         with:
           commit-message: "test: Update performance baseline results"
           title: "test: Automatic Performance Baselines update"
-          body: "Update performance baselines because of changed performance tests"
+          body: "Update performance baselines because of changed performance tests in [PR #${{ github.event.pull_request.number }}](${{ github.event.pull_request.html_url }})"
           branch: performance/baseline-updates
           base: ${{ github.head_ref || github.ref_name }}
           token: ${{ secrets.GITHUB_TOKEN }}
