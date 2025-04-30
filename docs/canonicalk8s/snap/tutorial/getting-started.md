@@ -5,15 +5,14 @@ explains how to install the snap package and some typical operations.
 
 ## Prerequisites
 
-- An Ubuntu environment to run the commands (or
+- System Requirements: Your machine should have at least **40G disk space**
+  and **4G of memory**
+- An **Ubuntu** environment to run the commands (or
   another operating system which supports snapd - see the
   [snapd documentation](https://snapcraft.io/docs/installing-snapd))
-- System Requirements: Your machine should have at least 40G disk space
-  and 4G of memory
-- A system without any previous installations of containerd/docker. Installing
-either with {{product}} will cause conflicts. If a containerization solution is
-required on your system, consider [using LXD][LXD] to isolate your
-installation.
+- A system with **no previous installations of containerd/docker** as this may
+cause conflicts. Consider using a [LXD virtual machine] if you would like an
+isolated working environment.
 
 ### 1. Install {{product}}
 
@@ -26,8 +25,10 @@ Install the {{product}} snap with:
 
 ### 2. Bootstrap a Kubernetes cluster
 
-The bootstrap command initialises your cluster and configures your host system
-as a Kubernetes node. If you would like to bootstrap a Kubernetes cluster with
+The bootstrap command initializes your cluster and configures your host system
+as a Kubernetes node. Bootstrapping the cluster can only be done once.
+
+If you would like to bootstrap a Kubernetes cluster with
 default configuration run:
 
 ```
@@ -40,31 +41,23 @@ For custom configurations, you can explore additional options using:
 sudo k8s bootstrap --help
 ```
 
-Bootstrapping the cluster can only be done once.
-
 ### 3. Check cluster status
 
-To confirm the installation was successful and your node is ready you
-should run:
-
-```
-sudo k8s status
-```
-
-```{important}
-By default, the command waits a few minutes before timing out.
-On a very slow network connection, this default timeout might be insufficient,
-resulting in a "Context cancelled" error. In that case, you can either increase
-the timeout using the  `--timeout` flag or re-run the command to
-continue waiting until the cluster is ready.
-```
-
-It may take a few moments for the cluster to be ready. Use `k8s status` to wait
-for {{product}} to get to a `cluster status ready` state by running:
+It may take a few minutes for the cluster to be ready. To confirm the
+installation was successful, use `k8s status` with the `wait-ready` flag
+to wait for {{product}} to bring up the cluster:
 
 
 ```
 sudo k8s status --wait-ready
+```
+
+```{important}
+This command waits a few minutes before timing out.
+On a very slow network connection, or a system with very limited resources,
+this default timeout might be insufficient resulting in a "Context cancelled"
+error. In that case, you can either increase the timeout using the  `--timeout`
+flag or re-run the command to continue waiting until the cluster is ready.
 ```
 
 ### 5. Access Kubernetes
@@ -92,12 +85,20 @@ namespace:
 sudo k8s kubectl get pods -n kube-system
 ```
 
-You will observe at least three pods running. The functions of these three pods
-are:
+You will observe at least four pods running. The status of the pods may be in
+`ContainerCreating` while they are being initialized. They should turn to
+`Running` after a few seconds.
 
-- **CoreDNS**: Provides DNS resolution services.
-- **Network operator**: Manages the life-cycle of the networking solution.
-- **Network agent**: Facilitates network management.
+The functions of these pods are:
+
+- **CoreDNS (coredns)**: Provides DNS resolution services.
+- **Network operator (cilium-operator)**: Manages the life-cycle of the
+networking solution.
+- **Network agent (cilium)**: Facilitates network management.
+- **Storage controller (ck-storage-rawfile-csi-controller)**: Manages the
+life-cycle of the local storage solution.
+- **Storage agent (ck-storage-rawfile-csi-node)** : Facilitates local storage
+management.
 
 
 ### 6. Deploy an app
@@ -169,7 +170,8 @@ sudo k8s kubectl apply -f https://raw.githubusercontent.com/canonical/k8s-snap/m
 ```
 
 This command deploys a pod based on the YAML configuration of a
-storage writer pod and a persistent volume claim with a capacity of 1G.
+storage writer pod and a persistent volume claim called `myclaim` with a
+capacity of 1G.
 
 To confirm that the persistent volume is up and running:
 
@@ -188,8 +190,8 @@ sudo k8s kubectl describe pod storage-writer-pod
 Begin by removing the pod along with the persistent volume claim:
 
 ```
-sudo k8s kubectl delete pvc myclaim
 sudo k8s kubectl delete pod storage-writer-pod
+sudo k8s kubectl delete pvc myclaim
 ```
 
 Next, disable the local storage:
@@ -200,29 +202,28 @@ sudo k8s disable local-storage
 
 ### 10. Remove {{product}} (Optional)
 
-To uninstall the {{product}} snap, execute:
-
-```
-sudo snap remove k8s
-```
-
-This command removes the `k8s` snap and automatically creates a snapshot of all
-data for future restoration.
-
-If you wish to remove the snap without saving a snapshot of its data, add
-`--purge` to the command:
+If you wish to remove the snap without saving a snapshot of its data execute:
 
 ```
 sudo snap remove k8s --purge
 ```
 
-This option ensures complete removal of the snap and its associated data.
+The `--purge` flag ensures complete removal of the snap and its associated data.
+If you would like to maintain a snapshot of the `k8s` snap for future
+restoration, simply run :
+
+```
+sudo snap remove k8s
+```
+
+The snapshot is a copy of the user, system and configuration data stored by
+snapd for the `k8s` snap. This data can be found in `/var/snap/k8s`.
 
 ## Next steps
 
 - Learn more about {{product}} with kubectl: [How to use kubectl]
-- Explore Kubernetes commands with our [Command Reference Guide]
-- Learn how to set up a multi-node environment by [Adding and Removing Nodes]
+- Explore Kubernetes commands with our [command reference guide]
+- Learn how to set up a multi-node environment by [adding and removing nodes]
 - Configure storage options: [Storage]
 - Discover Kubernetes networking concepts: [Networking]
 - Learn how to enable and configure Ingress resources: [Ingress]
@@ -230,9 +231,9 @@ This option ensures complete removal of the snap and its associated data.
 <!-- LINKS -->
 
 [How to use kubectl]: kubectl
-[Command Reference Guide]: ../reference/commands
-[Adding and Removing Nodes]: add-remove-nodes
-[Storage]: ../howto/storage/index
-[Networking]: ../howto/networking/index.md
-[Ingress]: ../howto/networking/default-ingress.md
-[LXD]: ../howto/install/lxd.md
+[command reference guide]: /snap/reference/commands
+[adding and removing nodes]: add-remove-nodes
+[Storage]: /snap/howto/storage/index
+[Networking]: /snap/howto/networking/index.md
+[Ingress]: /snap/howto/networking/default-ingress.md
+[LXD virtual machine]: /snap/howto/install/lxd.md
