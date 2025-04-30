@@ -1,0 +1,157 @@
+name: Compare Performance of two k8s-snap versions
+
+permissions:
+  contents: read  # Needed to check out code
+  actions: read   # Needed to download artifacts
+
+on:
+  workflow_call:
+    inputs:
+      arch:
+        description: Job runner architecture (amd64 or arm64)
+        default: amd64
+        type: string
+      os:
+        description: LXD image to use when running performance tests
+        default: ubuntu:24.04
+        type: string
+      artifact-1:
+        description: First snap artifact path to compare
+        type: string
+      artifact-2:
+        description: Second snap artifact path to compare
+        type: string
+      channel-1:
+        description: Channel to download the first snap from
+        type: string
+        default: ""
+      channel-2:
+        description: Channel to download the second snap from
+        type: string
+        default: ""
+  workflow_dispatch:
+    inputs:
+      arch:
+        description: Job runner architecture (amd64 or arm64)
+        default: amd64
+        type: string
+      os:
+        description: LXD image to use when running performance tests
+        default: ubuntu:24.04
+        type: string
+      artifact-1:
+        description: First snap artifact path to compare
+        type: string
+      artifact-2:
+        description: Second snap artifact path to compare
+        type: string
+      channel-1:
+        description: Channel to download the first snap from
+        type: string
+        default: ""
+      channel-2:
+        description: Channel to download the second snap from
+        type: string
+        default: ""
+
+jobs:
+  performance-test-1:
+    name: Run performance test with first snap
+    uses: ./.github/workflows/e2e-tests.yaml
+    with:
+      arch: ${{ inputs.arch }}
+      os: ${{ inputs.os }}
+      artifact: ${{ inputs.artifact-1 }}
+      channel: ${{ inputs.channel-1 }}
+      test-tags: performance
+      # All performance tests run in one job to collect results in one report.
+      parallel: false
+  performance-test-2:
+    name: Run performance test with second snap
+    uses: ./.github/workflows/e2e-tests.yaml
+    with:
+      arch: ${{ inputs.arch }}
+      os: ${{ inputs.os }}
+      artifact: ${{ inputs.artifact-2 }}
+      channel: ${{ inputs.channel-2 }}
+      test-tags: performance
+      # All performance tests run in one job to collect results in one report.
+      parallel: false
+  compare-performance:
+    name: Compare Performance Results
+    runs-on: ubuntu-latest
+    needs:
+      - performance-test-1
+      - performance-test-2
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install tox
+        run: sudo apt-get install -y tox
+      - name: Generate test prefix
+        run: echo "test_prefix=${{ inputs.os }}-${{ inputs.arch }}" | sed 's/[:\.\]/-/g' >> $GITHUB_ENV
+      - name: Download performance results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: performance-test-results-${{ env.test_prefix }}-*
+          path: ./performance-test-results
+      - name: Organize performance artifacts
+        run: |
+          echo "Downloaded artifacts:"
+          find ./performance-test-results -type f -name "*.json" | sort
+
+          # Create directories for the two test runs
+          mkdir -p ./performance-test-results/run1
+          mkdir -p ./performance-test-results/run2
+
+          # Find all unique directories containing JSON files (each directory = one test run)
+          ARTIFACT_DIRS=$(find ./performance-test-results -type f -name "*.json" | xargs -n1 dirname | sort -u)
+
+          # Count the number of unique directories
+          DIR_COUNT=$(echo "$ARTIFACT_DIRS" | wc -l)
+
+          if [ "$DIR_COUNT" -ne 2 ]; then
+            echo "ERROR: Expected exactly 2 test result directories, found $DIR_COUNT"
+            echo "Found directories:"
+            echo "$ARTIFACT_DIRS"
+            exit 1
+          fi
+
+          # Get the first two directories
+          DIR1=$(echo "$ARTIFACT_DIRS" | head -n1)
+          DIR2=$(echo "$ARTIFACT_DIRS" | tail -n1)
+
+          echo "Found two test runs: $DIR1 and $DIR2"
+          mkdir -p ./performance-test-results/run1 ./performance-test-results/run2
+          cp -v "$DIR1"/*.json ./performance-test-results/run1/
+          cp -v "$DIR2"/*.json ./performance-test-results/run2/
+
+      - name: Compare performance test results
+        run: |
+          # Get paths to the organized JSON files
+          RUN1_FILES=$(find ./performance-test-results/run1 -type f -name "*.json")
+          RUN2_FILES=$(find ./performance-test-results/run2 -type f -name "*.json")
+
+          echo "Comparing performance between runs:"
+          echo "Run 1: $RUN1_FILES"
+          echo "Run 2: $RUN2_FILES"
+
+          # Run the comparison
+          tox -e pytest-benchmark -- compare \
+            --csv="./performance-test-results/comparison.csv" \
+            --histogram="./performance-test-results/histogram" \
+            --group-by="name" \
+            --columns="min,max,mean,median,iqr,stddev,ops" \
+            --sort="name" \
+            $RUN1_FILES $RUN2_FILES
+
+      - name: Upload comparison summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-comparison-${{ env.test_prefix }}
+          path: ./performance-test-results
