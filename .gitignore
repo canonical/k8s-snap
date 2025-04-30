@@ -30,3 +30,5 @@ squashfs-root
 
 subunit.html
 subunit.out
+
+.benchmark
