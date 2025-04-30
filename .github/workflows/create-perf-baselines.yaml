@@ -37,7 +37,16 @@ jobs:
       - name: Prepare baseline name
         run: |
           echo "baseline_name=${{ matrix.os }}-${{ matrix.arch }}.json" | sed 's/[:]/-/g' >> $GITHUB_ENV
+      - name: Download k8s-snap
+        id: download-snap
+        uses: ./.github/actions/download-k8s-snap
+        with:
+          channel: latest/edge
       - name: Create performance baselines
+        env:
+          TEST_SNAP: ${{ steps.download-snap.outputs.snap-path }}
+          TEST_SUBSTRATE: lxd
+          TEST_LXD_IMAGE: ${{ matrix.os }}
         run: |
           cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- --tags performance \
             --benchmark-storage baselines \
