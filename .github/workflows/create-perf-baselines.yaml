@@ -55,7 +55,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.baseline_name }}
-          path: baselines/**/*.json
+          path: test/integration/baselines/**/*.json
 
   create_pr:
     name: Create PR with baseline results
