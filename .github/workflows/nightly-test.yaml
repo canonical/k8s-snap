@@ -34,7 +34,7 @@ jobs:
         run: |
           tox -e integration -- --tags performance \
             --benchmark-storage tests/integration/tests/performance/baselines \
-            --benchmark-compare ${ matrix.os }-${{ matrix.arch }}.json
+            --benchmark-compare ${{ matrix.os }}-${{ matrix.arch }}.json
             --benchmark-compare-fail mean:10%
 
 
