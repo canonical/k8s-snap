@@ -36,7 +36,7 @@ jobs:
         run: sudo apt-get install -y tox
       - name: Prepare baseline name
         run: |
-          echo "baseline_name=${{ matrix.os }}-${{ matrix.arch }}.json" | sed 's/:/-/g' >> $GITHUB_ENV
+          echo "baseline_name=${{ matrix.os }}-${{ matrix.arch }}.json" | sed 's/[:.]/-/g' >> $GITHUB_ENV
       - name: Create performance baselines
         run: |
           cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- --tags performance \
