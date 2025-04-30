@@ -30,6 +30,10 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Install lxd
+        uses: ./.github/actions/install-lxd
+      - name: Install tox
+        run: sudo apt-get install -y tox
       - name: Create performance baselines
         run: |
           tox -e integration -- --tags performance \
