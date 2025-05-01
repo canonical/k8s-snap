@@ -157,5 +157,35 @@ Verify the Cilium pod has restarted and is now in the running state:
 sudo k8s kubectl get pods -n kube-system
 ```
 
+## Cilium pod fails to start as address is already in use
+
+### Problem 
+
+When deploying {{product}} on a cloud provider such as Openstack, the Cilium pods fail to start and reports the error:
+
+```
+failed to start: daemon creation failed: error while initializing daemon: failed 
+while reinitializing datapath: failed to setup vxlan tunnel device: setting up 
+vxlan device: creating vxlan device: setting up device cilium_vxlan: address 
+already in use
+```
+
+### Explanation 
+
+Fan networking is automatically enabled in some substrates. This causes conflicts with some CNIs such as Cilium. This conflict of `address already in use` causes Cilium to be unable to set up it's VXLAN tunneling network. 
+
+### Solution 
+
+Either disable the fan config and apply the following configuration to the Juju model:
+
+```
+juju model-config container-networking-method=local fan-config=
+```
+
+or change the default port for Cilium by running:
+
+```
+
+```
 <!-- LINKS -->
 [reported here]: https://github.com/cilium/cilium/issues/30889

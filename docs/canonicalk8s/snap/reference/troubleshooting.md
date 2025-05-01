@@ -123,16 +123,16 @@ memory usage over time. This was particularly evident in smaller clusters.
 
 ### Explanation
 
-This issue was caused due to an inefficient resource configuration of 
-Dqlite for smaller clusters. The threshold and trailing parameters are 
-related to Dqlite transactions and must be adjusted. The threshold is 
-the number of transactions we allow before a snapshot is taken of the 
-leader. The trailing is the number of transactions we allow the follower 
-node to lag behind the leader before it consumes the updated snapshot of the 
+This issue was caused due to an inefficient resource configuration of
+Dqlite for smaller clusters. The threshold and trailing parameters are
+related to Dqlite transactions and must be adjusted. The threshold is
+the number of transactions we allow before a snapshot is taken of the
+leader. The trailing is the number of transactions we allow the follower
+node to lag behind the leader before it consumes the updated snapshot of the
 leader. Currently, the default snapshot configuration is 1024 for the
 threshold and 8192 for trailing which is too large for small clusters. Only
 setting the trailing parameter in a configuration yaml automatically sets the
-threshold to 0. This leads to a snapshot being taken every transaction and 
+threshold to 0. This leads to a snapshot being taken every transaction and
 increased CPU usage.
 
 ### Solution
@@ -176,6 +176,75 @@ conflicts and cause networking issues.
 
 Adjust the custom defined `ip rule` to have a
 priority value that is greater than `100`.
+
+## Cilium pod fails to start as `cilum_vxlan: address is already in use`
+
+### Problem
+
+When deploying {{product}} the Cilium pods fail to start and reports the error:
+
+```
+failed to start: daemon creation failed: error while initializing daemon: failed
+while reinitializing datapath: failed to setup vxlan tunnel device: setting up
+vxlan device: creating vxlan device: setting up device cilium_vxlan: address
+already in use
+```
+
+### Explanation
+
+Fan networking is automatically enabled in some substrates. This causes
+conflicts with some CNIs such as Cilium. This conflict of
+`address already in use` causes Cilium to be unable to set up it's VXLAN
+tunneling network. There may also be other networking components on the system
+attempting to use the default port for their own VXLAN interface that will
+cause the same error.
+
+### Solution
+
+Configure Cilium to use another tunnel port.
+
+<!-- Can we disable fan on the snap level? -->
+<!-- Do we need to do this on all nodes or just one? -->
+<!-- Get onto node -->
+Identify the interface that was created by Cilium for the VXLAN interface
+
+```
+ip link list type vxlan
+```
+
+It should be named `cillium_vxlan` or something similar.
+
+Set the annotation `tunnel-port` to an appropriate value (the default is 8472).
+
+```
+sudo k8s set annotation="k8sd/v1alpha1/cilium/tunnel-port=<PORT-NUMBER>"
+```
+
+Now delete the {{product}} Cilium VXLAN interface that we previously identified.
+
+```
+ip link delete cillium_vxlan
+```
+
+To trigger the recreation of the interface, delete the Cilium pod on the node.
+Get the pod ID and delete the pod:
+<!-- Do we need to delete the operator pod too -->
+```
+sudo k8s kubectl get pods -A
+sudo k8s kubectl delete -n kube-system pod/cilium-d7spv
+```
+
+Verify the VXLAN interface has come back up:
+
+```
+ip link list type vxlan
+```
+
+Verify that Cilium is now in a running state:
+
+```
+sudo k8s kubectl get pods -n kube-system
+```
 
 <!-- LINKS -->
 
