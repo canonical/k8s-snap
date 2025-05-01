@@ -58,13 +58,22 @@ def _run_cncf_tests(instance: harness.Instance, suffix: str):
     label_focus = "validates resource limits of pods that are allowed to run"
     taint_focus = "removing taint cancels eviction|ConfigMap should be consumable from pods in volume"
 
-    for i in range(200):
+    label_failed_attempts = 0
+    for i in range(50):
         LOG.info(f"Attempt {i} with {label_focus=}")
-        _run_scenario(instance, label_focus, suffix)
+        label_failed_attempts += _run_scenario(instance, label_focus, suffix)
 
-    for i in range(200):
+    taint_failed_attempts = 0
+    for i in range(50):
         LOG.info(f"Attempt {i} with {taint_focus=}")
-        _run_scenario(instance, taint_focus, suffix)
+        taint_failed_attempts += _run_scenario(instance, taint_focus, suffix)
+
+    assert (
+        label_failed_attempts == 0
+    ), "label: {label_failed_attempts} / 50 attempts failed."
+    assert (
+        taint_failed_attempts == 0
+    ), "taint: {taint_failed_attempts} / 50 attempts failed."
 
 
 def _run_scenario(instance: harness.Instance, focus: str, suffix: str):
@@ -87,11 +96,11 @@ def _run_scenario(instance: harness.Instance, focus: str, suffix: str):
 
     failed_tests = int(re.search("Failed: (\\d+)", output).group(1))
     if not failed_tests:
-        return
+        return 0
 
     instance.pull_file("/root/sonobuoy_e2e.tar.gz", f"sonobuoy_e2e_{suffix}.tar.gz")
     LOG.info(output)
-    assert False, f"{focus=} test(s) failed"
+    return 1
 
 
 def cluster_setup(

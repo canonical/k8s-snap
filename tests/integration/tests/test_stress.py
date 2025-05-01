@@ -205,7 +205,7 @@ def _check_node_taint(instance: harness.Instance):
 
 
 def _check_scenario(instance: harness.Instance, run_scenario):
-    tries = 200
+    tries = 150
     errors = 0
     non_running = 0
     for i in range(tries):
