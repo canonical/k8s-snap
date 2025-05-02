@@ -21,6 +21,13 @@ argument with a YAML-formatted file. For a complete list of available
 certificate keys, see the
 [certificates refresh configuration file reference page][reference page].
 
+```{note} If your cluster uses a mixed certificate management approach where
+some certificates are managed externally and others internally, you must
+explicitly specify the internally managed certificates to refresh on worker
+nodes using the `--certificates` flag. Externally managed certificates should
+continue to be provided through the `--external-certificates` argument.
+```
+
 Refer to the {{ product }}
 [cluster certificates and configuration directories][certificates]
 documentation to determine which
