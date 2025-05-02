@@ -157,35 +157,86 @@ Verify the Cilium pod has restarted and is now in the running state:
 sudo k8s kubectl get pods -n kube-system
 ```
 
-## Cilium pod fails to start as address is already in use
+## Cilium pod fails to start as `cilum_vxlan: address is already in use`
 
-### Problem 
+### Problem
 
-When deploying {{product}} on a cloud provider such as Openstack, the Cilium pods fail to start and reports the error:
+When deploying {{product}} on a cloud provider such as Openstack, the Cilium
+pods fail to start and reports the error:
 
 ```
-failed to start: daemon creation failed: error while initializing daemon: failed 
-while reinitializing datapath: failed to setup vxlan tunnel device: setting up 
-vxlan device: creating vxlan device: setting up device cilium_vxlan: address 
+failed to start: daemon creation failed: error while initializing daemon: failed
+while reinitializing datapath: failed to setup vxlan tunnel device: setting up
+vxlan device: creating vxlan device: setting up device cilium_vxlan: address
 already in use
 ```
 
-### Explanation 
+### Explanation
 
-Fan networking is automatically enabled in some substrates. This causes conflicts with some CNIs such as Cilium. This conflict of `address already in use` causes Cilium to be unable to set up it's VXLAN tunneling network. 
+Fan networking is automatically enabled in some substrates. This causes
+conflicts with some CNIs such as Cilium. This conflict of
+`address already in use` causes Cilium to be unable to set up it's VXLAN
+tunneling network. There may also be other networking components on the system
+attempting to use the default port for their own VXLAN interface that will
+cause the same error.
 
-### Solution 
+### Solution
 
-Either disable the fan config and apply the following configuration to the Juju model:
+You can either disable fan networking or configure Cilium to use another tunnel
+port.
+
+#### Disable fan networking
+
+Apply the following configuration to the Juju model:
 
 ```
 juju model-config container-networking-method=local fan-config=
 ```
 
-or change the default port for Cilium by running:
+<!-- Do we need to restart Cilium after this disable? -->
+
+### Change Cilium tunnel-port
+
+<!-- Do we need to do this on all nodes or just one? -->
+<!-- Get onto node -->
+Identify the interface that was created by Cilium for the VXLAN interface
 
 ```
+ip link list type vxlan
+```
 
+It should be named `cillium_vxlan` or something similar.
+
+Set the annotation `tunnel-port` to an appropriate value (the default is 8472).
+
+```
+sudo k8s set annotation="k8sd/v1alpha1/cilium/tunnel-port=<PORT-NUMBER>"
+```
+
+Now delete the {{product}} Cilium VXLAN interface that we previously identified.
+
+```
+ip link delete cillium_vxlan
+```
+
+To trigger the recreation of the interface, delete the Cilium pod on the node.
+Get the pod ID and delete the pod:
+<!-- Do we need to delete the operator pod too -->
+```
+sudo k8s kubectl get pods -A
+sudo k8s kubectl delete -n kube-system pod/cilium-d7spv
+```
+
+Verify the VXLAN interface has come back up:
+
+```
+ip link list type vxlan
+```
+
+Verify that Cilium is now in a running state:
+
+```
+sudo k8s kubectl get pods -n kube-system
 ```
 <!-- LINKS -->
 [reported here]: https://github.com/cilium/cilium/issues/30889
