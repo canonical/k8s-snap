@@ -51,8 +51,9 @@ jobs:
         shell: bash
         run: |
           mkdir -p tests/integration/tests/performance/baselines
-          mv tests/integration/baselines/performance/baselines/*/*.json \
-            tests/integration/baselines/performance/baselines/
+          ls tests/integration/baselines/performance/baselines/
+          ls tests/integration/baselines/performance/baselines/*/*.json
+          mv tests/integration/baselines/performance/baselines/*/*.json tests/integration/baselines/performance/baselines/
       - name: Commit and create PR
         uses: peter-evans/create-pull-request@v6
         with:
