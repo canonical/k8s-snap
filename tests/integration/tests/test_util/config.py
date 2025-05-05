@@ -188,6 +188,3 @@ GH_BASE_REF = os.getenv("TEST_GH_BASE_REF")
 
 # SONOBUOY_VERSION is the version of sonobuoy to use for CNCF conformance tests.
 SONOBUOY_VERSION = os.getenv("TEST_SONOBUOY_VERSION") or "v0.57.3"
-
-# PERF_DEFAULT_ROUNDS is the number of rounds to run for performance tests.
-PERF_DEFAULT_ROUNDS = int(os.getenv("TEST_PERF_DEFAULT_ROUNDS") or 5)

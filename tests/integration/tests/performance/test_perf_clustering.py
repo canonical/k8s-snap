@@ -4,7 +4,7 @@
 from typing import List
 
 import pytest
-from test_util import config, harness, tags, util
+from test_util import harness, tags, util
 
 
 @pytest.mark.node_count(1)
@@ -25,4 +25,4 @@ def test_perf_clustering_bootstrap_cli(
     def run():
         node.exec(["k8s", "bootstrap"])
 
-    benchmark.pedantic(run, setup=setup, rounds=1)
+    benchmark.pedantic(run, setup=setup, rounds=20, iterations=10)

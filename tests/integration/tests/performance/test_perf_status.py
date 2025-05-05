@@ -15,4 +15,4 @@ def test_perf_status_single_node_cli(instances: List[harness.Instance], benchmar
     def run():
         node.exec(["k8s", "status"])
 
-    benchmark.pedantic(run, rounds=1)
+    benchmark.pedantic(run, rounds=40, iterations=10)
