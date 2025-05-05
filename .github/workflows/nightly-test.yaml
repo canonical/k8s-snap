@@ -27,9 +27,7 @@ jobs:
       os: ${{ matrix.os }}
       channel: ${{ matrix.channel }}
       test-tags: 'performance'
-      extra-test-args: '--benchmark-storage="tests/integration/tests/performance/baselines" \
-            --benchmark-compare="${{ matrix.os }}-${{ matrix.arch }}.json" \
-            --benchmark-compare-fail="mean:10%"'
+      extra-test-args: '--benchmark-storage="tests/integration/tests/performance/baselines" --benchmark-compare="${{ matrix.os }}-${{ matrix.arch }}.json" --benchmark-compare-fail="mean:10%"'
 
 
   Mattermost:
