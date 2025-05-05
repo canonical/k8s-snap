@@ -55,7 +55,7 @@ def test_cncf_conformance_etcd(
 def _run_cncf_tests(instance: harness.Instance, suffix: str):
     install_sonobuoy(instance)
 
-    label_focus = "validates resource limits of pods that are allowed to run"
+    label_focus = "[sig-scheduling] SchedulerPredicates [Serial] validates resource limits of pods that are allowed to run [Conformance]"
     taint_focus = "removing taint cancels eviction|ConfigMap should be consumable from pods in volume"
 
     label_failed_attempts = 0
