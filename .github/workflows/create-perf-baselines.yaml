@@ -48,6 +48,7 @@ jobs:
         with:
           path: tests/integration/tests/performance/baselines
       - name: Flatten results
+        shell: bash
         run: |
           mkdir -p tests/integration/tests/performance/baselines
           mv tests/integration/baselines/performance/baselines/*/*.json \
