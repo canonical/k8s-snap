@@ -136,7 +136,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: baseline-${{ inputs.os }}-${{ inputs.arch }}
-          path: baselines/**/0001_*.json
+          path: tests/integration/baselines/**/0001_*.json
       - name: Upload html test report
         if: always()
         uses: actions/upload-artifact@v4
