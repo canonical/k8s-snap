@@ -22,40 +22,16 @@ jobs:
       matrix:
         os: ["ubuntu:22.04", "ubuntu:24.04"]
         arch: ["amd64", "arm64"]
-    runs-on: ${{ inputs.arch == 'arm64' && 'self-hosted-linux-arm64-noble-large' || 'self-hosted-linux-amd64-noble-large' }}
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install lxd
-        uses: ./.github/actions/install-lxd
-      - name: Install tox
-        run: sudo apt-get install -y tox
-      - name: Prepare baseline name
-        run: |
-          echo "baseline_name=${{ matrix.os }}-${{ matrix.arch }}.json" | sed 's/[:]/-/g' >> $GITHUB_ENV
-      - name: Download k8s-snap
-        id: download-snap
-        uses: ./.github/actions/download-k8s-snap
-        with:
-          channel: latest/edge
-      - name: Create performance baselines
-        env:
-          TEST_SNAP: ${{ steps.download-snap.outputs.snap-path }}
-          TEST_SUBSTRATE: lxd
-          TEST_LXD_IMAGE: ${{ matrix.os }}
-        run: |
-          cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- --tags performance \
-            --benchmark-storage baselines \
-            --benchmark-save "${{ env.baseline_name }}"
-      - name: Upload baseline results
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.baseline_name }}
-          path: tests/integration/baselines/**/*.json
+        channel: ["latest/edge"]
+      #fail-fast: false # TODO: remove once we no longer have flaky tests.
+    uses: ./.github/workflows/e2e-tests.yaml
+    with:
+      arch: ${{ matrix.arch }}
+      os: ${{ matrix.os }}
+      channel: ${{ matrix.channel }}
+      test-tags: 'performance'
+      performance-baseline-name: ${{ env.baseline_name }}
+      extra-test-args: '--benchmark-storage="baselines" --benchmark-autosave'
 
   create_pr:
     name: Create PR with baseline results
