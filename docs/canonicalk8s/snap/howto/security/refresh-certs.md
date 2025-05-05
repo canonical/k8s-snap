@@ -43,6 +43,11 @@ The `--expires-in` flag sets the certificate's validity duration, which can
 be specified in years, months, days, or any other unit accepted by the
 [ParseDuration][] function in Go.
 
+```{note} You can selectively refresh certificates using the
+`--certificates` flag. By default, all are refreshed, but you can target
+specific ones. Run `k8s refresh-certs -h` to see available options.
+```
+
 The cluster will automatically update the certificates in the control plane
 node and restart the necessary services. The new expiration date will be
 displayed in the command output:
@@ -64,6 +69,11 @@ This command refreshes the certificates for the worker node. The `--expires-in`
 flag specifies the certificate's validity period, which can be set using any
 units accepted by the [ParseDuration][] function in Go, such as years, months,
 or days.
+
+```{note} Worker nodes support selective certificate renewal too. Use the
+`--certificates` flag to choose which ones to refresh. For details, see
+`k8s refresh-certs -h`.
+```
 
 2. During the certificate refresh, multiple Certificate Signing Requests (CSRs)
 are created. Follow the instructions in the command output to approve the CSRs
