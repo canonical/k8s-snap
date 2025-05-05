@@ -47,6 +47,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: tests/integration/tests/performance/baselines
+      - name: Flatten results
+        run: |
+          mkdir -p tests/integration/tests/performance/baselines
+          mv tests/integration/baselines/performance/baselines/*/*.json \
+            tests/integration/baselines/performance/baselines/
       - name: Commit and create PR
         uses: peter-evans/create-pull-request@v6
         with:

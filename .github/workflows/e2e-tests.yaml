@@ -145,7 +145,6 @@ jobs:
           mkdir -p baselines
           mv tests/integration/baselines/*/0001_*.json \
             baselines/${{ env.sanitized_name }}.json
-          ls -l baselines
       - name: Upload performance test results
         if: ${{ contains(inputs.test-tags, 'performance') }}
         uses: actions/upload-artifact@v4
