@@ -25,6 +25,8 @@ steps on each control plane node in your cluster:
 sudo k8s refresh-certs --expires-in 1y --extra-sans mynode.local
 ```
 
+**`--extra-sans`**
+
 This command refreshes the certificates for the control plane node, adding an
 extra [Subject Alternative Name][] (SAN) to the certificate. Check the
 current SANs on your node by running the following command:
@@ -33,22 +35,26 @@ current SANs on your node by running the following command:
 openssl x509 -in /etc/kubernetes/pki/apiserver.crt -noout -text | grep -A 1 "Subject Alternative Name"
 ```
 
-```{note} If your node setup includes additional SANs, be sure to provide the
+If your node setup includes additional SANs, be sure to provide the
 specific SANs for each node as needed using the `--extra-sans` flag. While this
 is not required, omitting them could impact your node's ability to communicate
 with other components in the cluster.
-```
+
+**`--expires-in`**
 
 The `--expires-in` flag sets the certificate's validity duration, which can
 be specified in years, months, days, or any other unit accepted by the
 [ParseDuration][] function in Go.
 
-```{note} You can selectively refresh certificates using the
-`--certificates` flag. By default, all are refreshed, but you can target
-specific ones. Run `k8s refresh-certs -h` to see available options.
-```
+**`--certificates`**
 
-The cluster will automatically update the certificates in the control plane
+By default, all internal certificates are refreshed on the control plane node
+when you run `refresh-certs`.
+You can however selectively refresh certificates using the `--certificates` flag
+and specify the certificates to be refreshed. Run `k8s refresh-certs -h` to
+see available options.
+
+2. The cluster will automatically update the certificates in the control plane
 node and restart the necessary services. The new expiration date will be
 displayed in the command output:
 
@@ -65,15 +71,18 @@ each worker node in your cluster:
 sudo k8s refresh-certs --expires-in 10y --timeout 10m
 ```
 
+**`--expires-in`**
+
 This command refreshes the certificates for the worker node. The `--expires-in`
 flag specifies the certificate's validity period, which can be set using any
 units accepted by the [ParseDuration][] function in Go, such as years, months,
 or days.
 
-```{note} Worker nodes support selective certificate renewal too. Use the
-`--certificates` flag to choose which ones to refresh. For details, see
+**`--certificates`**
+
+Worker nodes support selective certificate renewal too. Use the
+`--certificates` flag to choose which certificates to refresh. For details, see
 `k8s refresh-certs -h`.
-```
 
 2. During the certificate refresh, multiple Certificate Signing Requests (CSRs)
 are created. Follow the instructions in the command output to approve the CSRs
