@@ -53,7 +53,7 @@ jobs:
           ls ../artifacts
           ls
           mkdir -p tests/integration/tests/performance/baselines
-          find ../artifacts -name "performance-baseline.json" -exec mv {} tests/integration/tests/performance/baselines/${{ matrix.os }}-${{ matrix.arch }}.json \;
+          find ../artifacts -name "performance-baseline-*.json" -exec mv {} tests/integration/tests/performance/baselines/${{ matrix.os }}-${{ matrix.arch }}.json \;
 
       - name: Commit and create PR
         uses: peter-evans/create-pull-request@v6
