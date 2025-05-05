@@ -144,11 +144,11 @@ jobs:
         run: |
           mkdir -p baselines
           mv tests/integration/baselines/*/0001_*.json \
-            baselines/${{ inputs.os }}-${{ inputs.arch }}.json
+            baselines/${{ env.sanitized_name }}.json
           ls -l baselines
       - name: Upload performance test results
         if: ${{ contains(inputs.test-tags, 'performance') }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.sanitized_name}}
-          path: baselines/${{ inputs.os }}-${{ inputs.arch }}.json
+          path: baselines/${{ env.sanitized_name }}.json
