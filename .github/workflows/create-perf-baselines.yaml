@@ -46,14 +46,15 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          path: tests/integration/tests/performance/baselines
+          path: ../artifacts
       - name: Flatten results
         shell: bash
         run: |
+          ls ../artifacts
+          ls
           mkdir -p tests/integration/tests/performance/baselines
-          ls tests/integration/baselines/performance/baselines/
-          ls tests/integration/baselines/performance/baselines/*/*.json
-          mv tests/integration/baselines/performance/baselines/*/*.json tests/integration/baselines/performance/baselines/
+          find ../artifacts -name "performance-baseline.json" -exec mv {} tests/integration/tests/performance/baselines/${{ matrix.os }}-${{ matrix.arch }}.json \;
+
       - name: Commit and create PR
         uses: peter-evans/create-pull-request@v6
         with:
