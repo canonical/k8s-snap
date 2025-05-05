@@ -16,27 +16,25 @@ on a control plane node.
 ### Assemble certificates data
 
 To simplify the process and avoid complex CLI commands, the `refresh-certs`
-command accepts new node certificates via the `--external-certificates`
+command accepts new node external certificates via the `--external-certificates`
 argument with a YAML-formatted file. For a complete list of available
 certificate keys, see the
 [certificates refresh configuration file reference page][reference page].
 
-```{note} If your cluster uses a mixed certificate management approach where
+If your cluster uses a mixed certificate management approach where
 some certificates are managed externally and others internally, you must
 explicitly specify the internally managed certificates to refresh on worker
 nodes using the `--certificates` flag. Externally managed certificates should
 continue to be provided through the `--external-certificates` argument.
-```
 
 Refer to the {{ product }}
 [cluster certificates and configuration directories][certificates]
 documentation to determine which
 certificates are required for each node.
 
-```{note} If you are managing some of the Certificate Authorities (CAs)
+If you are managing some of the Certificate Authorities (CAs)
 externally, provide only the certificates that require updates. Identify the
 externally managed CAs by running `k8s certs-status` on a control plane node.
-```
 
 ### Refresh Control Plane node certificates
 
@@ -47,12 +45,11 @@ node:
 sudo k8s refresh-certs --external-certificates ./certificates.yaml
 ```
 
-```{note} If your node setup includes additional SANs, be sure to include the
+If your node setup includes additional SANs, be sure to include the
 specific SANs for each node when requesting new certificates from your
 certificates authority. Check your provider's documentation for instructions on
 requesting certificates with the required SANs.
 
-```
 
 The node will validate the certificates, update them automatically, and restart
 the necessary services. Upon successful completion, you will see:
