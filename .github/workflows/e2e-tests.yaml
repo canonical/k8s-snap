@@ -118,24 +118,24 @@ jobs:
         if: failure()
         run: |
           tar -czvf inspection-reports.tar.gz -C ${{ github.workspace }} inspection-reports
-          echo "artifact_name=inspection-reports-${{ inputs.os }}-${{ inputs.arch }}" | sed 's/:/-/g' >> $GITHUB_ENV
+          echo "sanitized_name=${{ inputs.os }}-${{ inputs.arch }}" | sed 's/:/-/g' >> $GITHUB_ENV
       - name: Upload inspection report artifact
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.artifact_name }}
+          name: inspection-reports-${{ env.sanitized_name }}
           path: ${{ github.workspace }}/inspection-reports.tar.gz
       - name: Upload CNCF conformance report artifact
         if: ${{ failure() && contains(inputs.test-tags, 'conformance_tests') }}
         uses: actions/upload-artifact@v4
         with:
-         name: sonobuoy-e2e-${{ env.artifact_name }}
+         name: sonobuoy-e2e-${{ env.sanitized_name }}
          path: tests/integration/sonobuoy_e2e.tar.gz
       - name: Upload performance test results
         if: ${{ contains(inputs.test-tags, 'performance') }}
         uses: actions/upload-artifact@v4
         with:
-          name: baseline-${{ inputs.os }}-${{ inputs.arch }}
+          name: ${{ env.sanitized_name }}
           path: tests/integration/baselines/**/0001_*.json
       - name: Upload html test report
         if: always()
