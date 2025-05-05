@@ -44,25 +44,19 @@ def test_version_upgrades(instances: List[harness.Instance], tmp_path):
                 f"Need at least 2 channels to upgrade, got {len(channels)} for flavour {flavour}"
             )
         current_channel = channels[0]
-
     LOG.info(
         f"Bootstrap node on {current_channel} and upgrade through channels: {channels[1:]}"
     )
-
     # Setup the k8s snap from the bootstrap channel and setup basic configuration.
     util.setup_k8s_snap(cp, tmp_path, current_channel)
     cp.exec(["k8s", "bootstrap"])
-
     util.wait_until_k8s_ready(cp, instances)
     LOG.info(f"Installed {cp.id} on channel {current_channel}")
-
     for channel in channels[1:]:
         LOG.info(f"Upgrading {cp.id} from {current_channel} to channel {channel}")
-
         # Log the current snap version on the node.
         out = cp.exec(["snap", "list", config.SNAP_NAME], capture_output=True)
         LOG.info(f"Current snap version: {out.stdout.decode().strip()}")
-
         # note: the `--classic` flag will be ignored by snapd for strict snaps.
         cp.exec(
             ["snap", "refresh", config.SNAP_NAME, "--channel", channel, "--classic"]
@@ -86,7 +80,9 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
     after the last node is upgraded.
     The test will also verify that the feature version is not upgraded until all nodes are upgraded.
     """
-    assert config.SNAP is not None, "SNAP must be set to run this test"
+    if not config.SNAP:
+        # TODO(Adam): use TEST_VERSION_UPGRADE_CHANNELS if not set
+        pytest.skip("Feature upgrades currently require a local snap file")
 
     start_branch = util.previous_track(config.SNAP)
     main = instances[0]
