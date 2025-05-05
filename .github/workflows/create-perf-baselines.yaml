@@ -50,10 +50,9 @@ jobs:
       - name: Flatten results
         shell: bash
         run: |
-          ls ../artifacts
-          ls
           mkdir -p tests/integration/tests/performance/baselines
-          find ../artifacts -name "performance-baseline-*.json" -exec mv {} tests/integration/tests/performance/baselines/${{ matrix.os }}-${{ matrix.arch }}.json \;
+          # Move the performance baseline files to the correct location and remove the prefix.
+          find ../artifacts -name "performance-baseline-*.json" -exec bash -c 'f="{}"; mv "$f" tests/integration/tests/performance/baselines/${f##*/performance-baseline-}' \;
 
       - name: Commit and create PR
         uses: peter-evans/create-pull-request@v6
