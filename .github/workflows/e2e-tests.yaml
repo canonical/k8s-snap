@@ -114,11 +114,13 @@ jobs:
           TEST_GH_BASE_REF: ${{ github.base_ref }}
         run: |
           cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- --tags ${{ inputs.test-tags }} ${{ inputs.extra-test-args }}
+      - name: Sanitize upload name
+        run: |
+          echo "sanitized_name=${{ inputs.os }}-${{ inputs.arch }}" | sed 's/:/-/g' >> $GITHUB_ENV
       - name: Prepare inspection reports
         if: failure()
         run: |
           tar -czvf inspection-reports.tar.gz -C ${{ github.workspace }} inspection-reports
-          echo "sanitized_name=${{ inputs.os }}-${{ inputs.arch }}" | sed 's/:/-/g' >> $GITHUB_ENV
       - name: Upload inspection report artifact
         if: failure()
         uses: actions/upload-artifact@v4
@@ -135,7 +137,7 @@ jobs:
         if: ${{ contains(inputs.test-tags, 'performance') }}
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.sanitized_name }}
+          name: ${{ env.sanitized_name}}
           path: tests/integration/baselines/**/0001_*.json
       - name: Upload html test report
         if: always()
