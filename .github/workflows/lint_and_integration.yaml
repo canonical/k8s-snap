@@ -23,7 +23,8 @@ jobs:
     uses: ./.github/workflows/build-snap.yaml
     strategy:
       matrix:
-        patch: ["", "moonray"]
+        # e.g. moonray, strict - right now we only support the classic flavor
+        patch: [""]
     with:
       flavor: ${{ matrix.patch }}
 
