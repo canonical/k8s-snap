@@ -30,7 +30,7 @@ jobs:
       os: ${{ matrix.os }}
       channel: ${{ matrix.channel }}
       test-tags: 'performance'
-      extra-test-args: '--benchmark-storage="baselines" --benchmark-autosave'
+      extra-test-args: '--benchmark-storage="baselines" --benchmark-save="tests/performance/baselines/${{ matrix.os }}-${{ matrix.arch }}"'
 
   create_pr:
     name: Create PR with baseline results
