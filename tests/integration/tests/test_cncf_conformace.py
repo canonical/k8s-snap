@@ -20,7 +20,8 @@ def test_cncf_conformance(instances: List[harness.Instance]):
     # TODO: Remove the test skip once the following issue has been resolved,
     # and if sonobuoy version has been updated if the test was changed:
     # https://github.com/kubernetes/kubernetes/issues/131150
-    skipped = "validates resource limits of pods that are allowed to run"
+    # We're also adding the default --e2e-skip value.
+    skipped = "validates resource limits of pods that are allowed to run|\\[Disruptive\\]|NoExecuteTaintManager"
     cluster_node.exec(
         ["./sonobuoy", "run", "--plugin", "e2e", "--e2e-skip", skipped, "--wait"],
     )
