@@ -29,6 +29,14 @@ on:
         description: Test flavor (e.g. moonray or strict), leave empty for classic
         default: ""
         type: string
+      benchmark-compare-fail:
+        description: |
+          If set, the test will fail if the benchmark results are worse than this value.
+          See https://pytest-benchmark.readthedocs.io/en/latest/usage.html#commandline-options for available options.
+          The benchmark file will automatically be selected based on the current OS and architecture.
+          If empty, no comparison will be done.
+        default: ""
+        type: string
       extra-test-args:
         description: |
           Additional pytest arguments, use "-k <test_name>" to run a specific test
@@ -54,6 +62,14 @@ on:
         type: string
       flavor:
         description: Test flavor (e.g. moonray or strict). Leave empty for classic
+        default: ""
+        type: string
+      benchmark-compare-fail:
+        description: |
+          If set, the test will fail if the benchmark results are worse than this value.
+          See https://pytest-benchmark.readthedocs.io/en/latest/usage.html#commandline-options for available options.
+          The benchmark file will automatically be selected based on the current OS and architecture.
+          If empty, no comparison will be done.
         default: ""
         type: string
       extra-test-args:
@@ -97,6 +113,13 @@ jobs:
       - name: Setup tmate session
         uses: canonical/action-tmate@main
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.tmate_enabled }}
+      - name: Performance benchmark flags
+        if: ${{ contains(inputs.test-tags, 'performance') }}
+        run: |
+          echo "BENCHMARK_DEFAULT_FLAGS='--benchmark-storage=baselines --benchmark-autosave' >> $GITHUB_ENV
+          if [ -n "${{ inputs.benchmark-compare-fail }}" ]; then
+            echo "BENCHMARK_COMPARE_FLAGS='--benchmark-compare='tests/integration/tests/performance/baselines/${{ "sanitized_name }}.json" --benchmark-compare-fail='${{ inputs.benchmark-compare-fail }}'>> $GITHUB_ENV
+          fi
       - name: Run e2e tests
         env:
           TEST_SNAP: ${{ steps.download-snap.outputs.snap-path }}
@@ -113,7 +136,7 @@ jobs:
           TEST_GH_REF: ${{ github.ref_name }}
           TEST_GH_BASE_REF: ${{ github.base_ref }}
         run: |
-          cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- --tags ${{ inputs.test-tags }} ${{ inputs.extra-test-args }}
+          cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- --tags ${{ inputs.test-tags }} ${{ env.BENCHMARK_DEFAULT_FLAGS }} ${{ env.BENCHMARK_COMPARE_FLAGS }} ${{ inputs.extra-test-args }}
       - name: Sanitize upload name
         run: |
           echo "sanitized_name=${{ inputs.os }}-${{ inputs.arch }}" | sed 's/:/-/g' >> $GITHUB_ENV
