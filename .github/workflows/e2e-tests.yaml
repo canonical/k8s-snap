@@ -119,9 +119,9 @@ jobs:
       - name: Performance benchmark flags
         if: ${{ contains(inputs.test-tags, 'performance') }}
         run: |
-          echo "BENCHMARK_DEFAULT_FLAGS='--benchmark-storage=baselines --benchmark-autosave' >> $GITHUB_ENV
-          if [ -n "${{ inputs.benchmark-compare-fail }}" ]; then
-            echo "BENCHMARK_COMPARE_FLAGS='--benchmark-compare="tests/integration/tests/performance/baselines/${{ env.sanitized_name }}.json" --benchmark-compare-fail="${{ inputs.benchmark-compare-fail }}"'>> $GITHUB_ENV
+          echo "BENCHMARK_DEFAULT_FLAGS='--benchmark-storage=baselines --benchmark-autosave'" >> $GITHUB_ENV
+          if [ -n '${{ inputs.benchmark-compare-fail }}' ]; then
+            echo "BENCHMARK_COMPARE_FLAGS='--benchmark-compare=tests/integration/tests/performance/baselines/${{ env.sanitized_name }}.json --benchmark-compare-fail=${{ inputs.benchmark-compare-fail }}'" >> $GITHUB_ENV
           fi
       - name: Run e2e tests
         env:
