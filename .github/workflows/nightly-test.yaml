@@ -27,7 +27,7 @@ jobs:
       os: ${{ matrix.os }}
       channel: ${{ matrix.channel }}
       test-tags: 'performance'
-      benchmark-compare-fail: "mean:100%"
+      benchmark-compare-fail: "mean:99%"
 
   Mattermost:
     name: Notify Mattermost
