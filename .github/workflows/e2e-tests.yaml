@@ -120,8 +120,9 @@ jobs:
         if: ${{ contains(inputs.test-tags, 'performance') }}
         run: |
           echo "BENCHMARK_DEFAULT_FLAGS='--benchmark-storage=baselines --benchmark-autosave'" >> $GITHUB_ENV
-          if [ -n '${{ inputs.benchmark-compare-fail }}' ]; then
-            echo "BENCHMARK_COMPARE_FLAGS='--benchmark-compare=tests/integration/tests/performance/baselines/${{ env.sanitized_name }}.json --benchmark-compare-fail=${{ inputs.benchmark-compare-fail }}'" >> $GITHUB_ENV
+          COMPARE_FAIL="${{ inputs.benchmark-compare-fail }}"
+          if [ -n "$COMPARE_FAIL" ]; then
+            echo "BENCHMARK_COMPARE_FLAGS='--benchmark-compare=tests/integration/tests/performance/baselines/${{ env.sanitized_name }}.json --benchmark-compare-fail=$COMPARE_FAIL'" >> $GITHUB_ENV
           fi
       - name: Run e2e tests
         env:
