@@ -113,6 +113,9 @@ jobs:
       - name: Setup tmate session
         uses: canonical/action-tmate@main
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.tmate_enabled }}
+      - name: Sanitize test name
+        run: |
+          echo "sanitized_name=${{ inputs.os }}-${{ inputs.arch }}" | sed 's/:/-/g' >> $GITHUB_ENV
       - name: Performance benchmark flags
         if: ${{ contains(inputs.test-tags, 'performance') }}
         run: |
@@ -137,9 +140,6 @@ jobs:
           TEST_GH_BASE_REF: ${{ github.base_ref }}
         run: |
           cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- --tags ${{ inputs.test-tags }} ${{ env.BENCHMARK_DEFAULT_FLAGS }} ${{ env.BENCHMARK_COMPARE_FLAGS }} ${{ inputs.extra-test-args }}
-      - name: Sanitize upload name
-        run: |
-          echo "sanitized_name=${{ inputs.os }}-${{ inputs.arch }}" | sed 's/:/-/g' >> $GITHUB_ENV
       - name: Prepare inspection reports
         if: failure()
         run: |
