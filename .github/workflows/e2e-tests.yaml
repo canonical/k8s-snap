@@ -119,7 +119,7 @@ jobs:
       - name: Performance benchmark flags
         if: ${{ contains(inputs.test-tags, 'performance') }}
         run: |
-          echo "BENCHMARK_DEFAULT_FLAGS='--benchmark-storage=baselines --benchmark-autosave'" >> $GITHUB_ENV
+          echo "BENCHMARK_DEFAULT_FLAGS='--benchmark-storage=\"baselines\" --benchmark-autosave'" >> $GITHUB_ENV
           COMPARE_FAIL="${{ inputs.benchmark-compare-fail }}"
           if [ -n "$COMPARE_FAIL" ]; then
             echo "BENCHMARK_COMPARE_FLAGS=\"--benchmark-compare=tests/performance/baselines/${{ env.sanitized_name }}.json\" \"--benchmark-compare-fail=$COMPARE_FAIL\"" >> $GITHUB_ENV
@@ -167,6 +167,12 @@ jobs:
         if: ${{ contains(inputs.test-tags, 'performance') }}
         run: |
           mkdir -p baselines
+          ls
+          echo "------"
+          ls tests/integration/baselines
+          echo "------"
+          ls tests/integration/baselines/*/
+          echo "------"
           mv tests/integration/baselines/*/0001_*.json \
             baselines/performance-baseline-${{ env.sanitized_name }}.json
       - name: Upload performance test results
