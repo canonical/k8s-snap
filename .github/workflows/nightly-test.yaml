@@ -21,19 +21,16 @@ jobs:
         arch: ["amd64", "arm64"]
         channel: ["latest/edge"]
       #fail-fast: false # TODO: remove once we no longer have flaky tests.
-    runs-on: ubuntu-latest
-    steps:
-      - name: Prepare baseline name
-        run: |
-          echo "baseline_name=${{ matrix.os }}-${{ matrix.arch }}" | sed 's/:/-/g' >> $GITHUB_ENV
-      - name: Run tests
-        uses: ./.github/workflows/e2e-tests.yaml
-        with:
-          arch: ${{ matrix.arch }}
-          os: ${{ matrix.os }}
-          channel: ${{ matrix.channel }}
-          test-tags: 'performance'
-          extra-test-args: '--benchmark-storage="tests/integration/tests/performance/baselines" --benchmark-compare="${{ env.baseline_name }}.json" --benchmark-compare-fail="mean:10%"'
+    uses: ./.github/workflows/e2e-tests.yaml
+    with:
+      arch: ${{ matrix.arch }}
+      os: ${{ matrix.os }}
+      channel: ${{ matrix.channel }}
+      test-tags: 'performance'
+      extra-test-args: >-
+        --benchmark-storage="tests/integration/tests/performance/baselines"
+        --benchmark-compare="${{ fromJSON(toJSON(matrix.os)).replace(':', '-') }}-${{ matrix.arch }}.json"
+        --benchmark-compare-fail="mean:10%"
 
 
   Mattermost:
