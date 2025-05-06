@@ -169,7 +169,7 @@ jobs:
           mkdir -p baselines
           ls
           echo "------"
-          ls tests/integration/baselines
+          ls tests/integration/
           echo "------"
           ls tests/integration/baselines/*/
           echo "------"
