@@ -25,4 +25,4 @@ def test_perf_clustering_bootstrap_cli(
     def run():
         node.exec(["k8s", "bootstrap"])
 
-    benchmark.pedantic(run, setup=setup, rounds=1)
+    benchmark.pedantic(run, setup=setup, rounds=20)
