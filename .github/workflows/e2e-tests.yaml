@@ -122,7 +122,7 @@ jobs:
           echo "BENCHMARK_DEFAULT_FLAGS='--benchmark-storage=baselines --benchmark-autosave'" >> $GITHUB_ENV
           COMPARE_FAIL="${{ inputs.benchmark-compare-fail }}"
           if [ -n "$COMPARE_FAIL" ]; then
-            echo "BENCHMARK_COMPARE_FLAGS=\"--benchmark-compare=tests/integration/tests/performance/baselines/${{ env.sanitized_name }}.json\" \"--benchmark-compare-fail=$COMPARE_FAIL\"" >> $GITHUB_ENV
+            echo "BENCHMARK_COMPARE_FLAGS=\"--benchmark-compare=tests/performance/baselines/${{ env.sanitized_name }}.json\" \"--benchmark-compare-fail=$COMPARE_FAIL\"" >> $GITHUB_ENV
           fi
       - name: Run e2e tests
         env:
