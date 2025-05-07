@@ -167,12 +167,6 @@ jobs:
         if: ${{ contains(inputs.test-tags, 'performance') }}
         run: |
           mkdir -p baselines
-          ls
-          echo "------"
-          ls tests/integration/
-          echo "------"
-          ls tests/integration/baselines/*/
-          echo "------"
           mv tests/integration/baselines/*/0001_*.json \
             baselines/performance-baseline-${{ env.sanitized_name }}.json
       - name: Upload performance test results

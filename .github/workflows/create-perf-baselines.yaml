@@ -11,7 +11,6 @@ on:
     paths:
       - .github/workflows/create-perf-baselines.yaml
       - tests/integration/tests/performance/*.py
-      - '!tests/integration/tests/performance/baselines/**'
 
 permissions:
   contents: read
