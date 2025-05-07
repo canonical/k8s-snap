@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
@@ -18,27 +17,15 @@ import (
 type NodeConfigurationController struct {
 	snap      snap.Snap
 	waitReady func()
+	// reconciledCh is used to notify that the controller has finished its reconciliation loop.
+	reconciledCh chan struct{}
 }
 
 func NewNodeConfigurationController(snap snap.Snap, waitReady func()) *NodeConfigurationController {
 	return &NodeConfigurationController{
-		snap:      snap,
-		waitReady: waitReady,
-	}
-}
-
-func (c *NodeConfigurationController) retryNewK8sClient(ctx context.Context) (*kubernetes.Client, error) {
-	for {
-		client, err := c.snap.KubernetesNodeClient("kube-system")
-		if err == nil {
-			return client, nil
-		}
-
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		case <-time.After(3 * time.Second):
-		}
+		snap:         snap,
+		waitReady:    waitReady,
+		reconciledCh: make(chan struct{}, 1),
 	}
 }
 
@@ -53,15 +40,24 @@ func (c *NodeConfigurationController) Run(ctx context.Context, getRSAKey func(co
 	log.Info("Starting node configuration controller")
 
 	for {
-		client, err := c.retryNewK8sClient(ctx)
+		client, err := getNewK8sClientWithRetries(ctx, c.snap, false)
 		if err != nil {
 			log.Error(err, "Failed to create a Kubernetes client")
 		}
 
-		if err := client.WatchConfigMap(ctx, "kube-system", "k8sd-config", func(configMap *v1.ConfigMap) error { return c.reconcile(ctx, configMap, getRSAKey) }); err != nil {
+		if err := client.WatchConfigMap(ctx, "kube-system", "k8sd-config", func(configMap *v1.ConfigMap) error {
+			err := c.reconcile(ctx, configMap, getRSAKey)
+			c.notifyReconciled()
+			return err
+		}); err != nil {
 			// This also can fail during bootstrapping/start up when api-server is not ready
 			// So the watch requests get connection refused replies
 			log.WithValues("name", "k8sd-config", "namespace", "kube-system").Error(err, "Failed to watch configmap")
+		}
+
+		select {
+		case c.reconciledCh <- struct{}{}:
+		default:
 		}
 
 		select {
@@ -123,4 +119,16 @@ func (c *NodeConfigurationController) reconcile(ctx context.Context, configMap *
 	}
 
 	return nil
+}
+
+// ReconciledCh returns the channel where the controller pushes when a reconciliation loop is finished.
+func (c *NodeConfigurationController) ReconciledCh() <-chan struct{} {
+	return c.reconciledCh
+}
+
+func (c *NodeConfigurationController) notifyReconciled() {
+	select {
+	case c.reconciledCh <- struct{}{}:
+	default:
+	}
 }

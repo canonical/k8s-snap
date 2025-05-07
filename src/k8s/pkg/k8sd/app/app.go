@@ -36,6 +36,8 @@ type Config struct {
 	PprofAddress string
 	// DisableNodeConfigController is a bool flag to disable node config controller
 	DisableNodeConfigController bool
+	// DisableNodeLabelController is a bool flag to disable node label controller
+	DisableNodeLabelController bool
 	// DisableControlPlaneConfigController is a bool flag to disable control-plane config controller
 	DisableControlPlaneConfigController bool
 	// DisableUpdateNodeConfigController is a bool flag to disable update node config controller
@@ -62,6 +64,7 @@ type App struct {
 	readyWg sync.WaitGroup
 
 	nodeConfigController         *controllers.NodeConfigurationController
+	nodeLabelController          *controllers.NodeLabelController
 	controlPlaneConfigController *controllers.ControlPlaneConfigurationController
 	csrsigningController         *csrsigning.Controller
 	upgradeController            *upgrade.Controller
@@ -113,6 +116,22 @@ func New(cfg Config) (*App, error) {
 		)
 	} else {
 		log.L().Info("node-config-controller disabled via config")
+	}
+
+	if !cfg.DisableNodeLabelController {
+		app.nodeLabelController = controllers.NewNodeLabelController(
+			cfg.Snap,
+			app.readyWg.Wait,
+			func(ctx context.Context) (string, error) {
+				serverStatus, err := cluster.Status(ctx)
+				if err != nil {
+					return "", fmt.Errorf("failed to retrieve microcluster status: %w", err)
+				}
+				return serverStatus.Name, nil
+			},
+		)
+	} else {
+		log.L().Info("node-label-controller disabled via config")
 	}
 
 	if !cfg.DisableControlPlaneConfigController {

@@ -17,7 +17,7 @@ import (
 )
 
 // channelSendTimeout is the timeout for pushing to channels for TestControlPlaneConfigController.
-const channelSendTimeout = 100 * time.Millisecond
+const channelSendTimeout = 500 * time.Millisecond
 
 type configProvider struct {
 	config types.ClusterConfig
@@ -186,8 +186,11 @@ func TestControlPlaneConfigController(t *testing.T) {
 					g.Fail("Timed out while attempting to trigger controller reconcile loop")
 				}
 
-				// TODO: this should be changed to call g.Eventually()
-				<-time.After(50 * time.Millisecond)
+				select {
+				case <-ctrl.ReconciledCh():
+				case <-time.After(channelSendTimeout):
+					g.Fail("Time out while waiting for the reconcile to complete")
+				}
 				if tc.expectServiceRestarts != nil {
 					var flat []string
 					for _, sub := range s.RestartServicesCalledWith {
