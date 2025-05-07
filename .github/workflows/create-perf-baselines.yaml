@@ -23,8 +23,12 @@ jobs:
       skip: ${{ steps.check.outputs.skip }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # fetch full history so we can diff
+          ref: ${{ github.head_ref }} # checkout the PR branch
       - id: check
         run: |
+          git fetch origin ${{ github.base_ref }} # fetch base branch if not present
           if git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -q '^tests/integration/tests/performance/baselines/'; then
             echo "skip=true" >> $GITHUB_OUTPUT
           else
