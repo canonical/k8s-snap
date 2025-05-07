@@ -157,7 +157,7 @@ Verify the Cilium pod has restarted and is now in the running state:
 sudo k8s kubectl get pods -n kube-system
 ```
 
-## Cilium pod fails to start as `cilum_vxlan: address is already in use`
+## Cilium pod fails to start as `cilum_vxlan: address already in use`
 
 ### Problem
 
@@ -187,25 +187,21 @@ port.
 
 #### Disable fan networking
 
+```{note}
+Only disable fan networking if it is not in use. Disabling fan networking may
+have implications on your cluster where assets such as LXD VMs, are not
+reachable if they rely on fan networking for communication.
+```
+
 Apply the following configuration to the Juju model:
 
 ```
 juju model-config container-networking-method=local fan-config=
 ```
 
-<!-- Do we need to restart Cilium after this disable? -->
-
-### Change Cilium tunnel-port
+#### Change Cilium tunnel-port
 
 <!-- Do we need to do this on all nodes or just one? -->
-<!-- Get onto node -->
-Identify the interface that was created by Cilium for the VXLAN interface
-
-```
-ip link list type vxlan
-```
-
-It should be named `cillium_vxlan` or something similar.
 
 Set the annotation `tunnel-port` to an appropriate value (the default is 8472).
 
@@ -213,30 +209,20 @@ Set the annotation `tunnel-port` to an appropriate value (the default is 8472).
 sudo k8s set annotation="k8sd/v1alpha1/cilium/tunnel-port=<PORT-NUMBER>"
 ```
 
-Now delete the {{product}} Cilium VXLAN interface that we previously identified.
-
-```
-ip link delete cillium_vxlan
-```
-
-To trigger the recreation of the interface, delete the Cilium pod on the node.
-Get the pod ID and delete the pod:
-<!-- Do we need to delete the operator pod too -->
-```
-sudo k8s kubectl get pods -A
-sudo k8s kubectl delete -n kube-system pod/cilium-d7spv
-```
-
-Verify the VXLAN interface has come back up:
+Since the Cillium pods are in a failing state, the recreation of the VXLAN
+interface is automatically triggered. Verify the VXLAN interface has come up:
 
 ```
 ip link list type vxlan
 ```
+
+It should be named `cillium_vxlan` or something similar.
 
 Verify that Cilium is now in a running state:
 
 ```
 sudo k8s kubectl get pods -n kube-system
 ```
+
 <!-- LINKS -->
 [reported here]: https://github.com/cilium/cilium/issues/30889

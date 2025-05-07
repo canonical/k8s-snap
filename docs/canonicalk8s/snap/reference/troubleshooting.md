@@ -177,7 +177,7 @@ conflicts and cause networking issues.
 Adjust the custom defined `ip rule` to have a
 priority value that is greater than `100`.
 
-## Cilium pod fails to start as `cilum_vxlan: address is already in use`
+## Cilium pod fails to start as `cilum_vxlan: address already in use`
 
 ### Problem
 
@@ -201,44 +201,25 @@ cause the same error.
 
 ### Solution
 
-Configure Cilium to use another tunnel port.
-
 <!-- Can we disable fan on the snap level? -->
 <!-- Do we need to do this on all nodes or just one? -->
-<!-- Get onto node -->
-Identify the interface that was created by Cilium for the VXLAN interface
+
+Configure Cilium to use another tunnel port. Set the annotation `tunnel-port`
+to an appropriate value (the default is 8472).
+
+```
+sudo k8s set annotation="k8sd/v1alpha1/cilium/tunnel-port=<PORT-NUMBER>"
+```
+
+Since the Cillium pods are in a failing state, the recreation of the VXLAN
+interface is automatically triggered. Verify the VXLAN interface has come
+up:
 
 ```
 ip link list type vxlan
 ```
 
 It should be named `cillium_vxlan` or something similar.
-
-Set the annotation `tunnel-port` to an appropriate value (the default is 8472).
-
-```
-sudo k8s set annotation="k8sd/v1alpha1/cilium/tunnel-port=<PORT-NUMBER>"
-```
-
-Now delete the {{product}} Cilium VXLAN interface that we previously identified.
-
-```
-ip link delete cillium_vxlan
-```
-
-To trigger the recreation of the interface, delete the Cilium pod on the node.
-Get the pod ID and delete the pod:
-<!-- Do we need to delete the operator pod too -->
-```
-sudo k8s kubectl get pods -A
-sudo k8s kubectl delete -n kube-system pod/cilium-d7spv
-```
-
-Verify the VXLAN interface has come back up:
-
-```
-ip link list type vxlan
-```
 
 Verify that Cilium is now in a running state:
 
