@@ -111,15 +111,15 @@ spec:
   bootstrapConfig:
     content: |
       cluster-config:
-      network:
-          enabled: true
-      dns:
-          enabled: true
-          cluster-domain: cluster.local
-      ingress:
-          enabled: true
-      load-balancer:
-          enabled: true
+        network:
+            enabled: true
+        dns:
+            enabled: true
+            cluster-domain: cluster.local
+        ingress:
+            enabled: true
+        load-balancer:
+            enabled: true
 ```
 
 - Using `contentFrom`:
