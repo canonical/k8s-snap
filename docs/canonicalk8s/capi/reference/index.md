@@ -47,16 +47,6 @@ Ports and services <ports-and-services>
 
 ```
 
-## Providers configurations
-
-{{product}} bootstrap and control plane providers can be configured to reach
-the desired state for the workload cluster.
-
-```{toctree}
-:titlesonly:
-configs
-```
-
 ## Contributing
 
 ```{toctree}
