@@ -209,14 +209,14 @@ Set the annotation `tunnel-port` to an appropriate value (the default is 8472).
 sudo k8s set annotation="k8sd/v1alpha1/cilium/tunnel-port=<PORT-NUMBER>"
 ```
 
-Since the Cillium pods are in a failing state, the recreation of the VXLAN
+Since the Cilium pods are in a failing state, the recreation of the VXLAN
 interface is automatically triggered. Verify the VXLAN interface has come up:
 
 ```
 ip link list type vxlan
 ```
 
-It should be named `cillium_vxlan` or something similar.
+It should be named `cilium_vxlan` or something similar.
 
 Verify that Cilium is now in a running state:
 
