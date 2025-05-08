@@ -130,7 +130,9 @@ jobs:
           channel: ${{ inputs.channel }}
           artifact: ${{ inputs.artifact }}
       - name: Setup LXD
-        uses: canonical/setup-lxd@v0.1.2
+        uses: bschimke95/setup-lxd@65e8821d853d13a46f5fd6d9ef540515aef394f3
+        with:
+          bridges: "lxdbr0,dualstack-br0,ipv6-br0"
       - name: Install tox
         run: sudo apt-get install -y tox
       - name: Setup tmate session
