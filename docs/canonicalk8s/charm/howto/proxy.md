@@ -18,7 +18,7 @@ Juju:
 juju model-config \
     juju-http-proxy=http://squid.internal:3128 \
     juju-https-proxy=http://squid.internal:3128 \
-    juju-no-proxy=10.0.8.0/24,192.168.0.0/16,127.0.0.1,10.152.183.0/24
+    juju-no-proxy=10.0.0.0/8,192.168.0.0/16,127.0.0.1,10.152.183.0/24
 ```
 
 ```{note} The **10.152.183.0/24** CIDR needs to be covered in the juju-no-proxy
