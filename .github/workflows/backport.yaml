@@ -55,7 +55,7 @@ jobs:
             # Description
             Backport of #${pull_number} to `${target_branch}`.
           pull_title: >-
-            [Backport ${target_branch}] ${pull_title}
+            ${pull_title} [Backport ${target_branch}]
 
       - name: Label backports with automerge and approve
         env:
