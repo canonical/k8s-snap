@@ -101,6 +101,12 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				joinClusterConfig = string(b)
 			}
 
+			if err := verifyJoinConfig(joinClusterConfig, token); err != nil {
+				cmd.PrintErrf("Join cluster config verification failed: %v", err)
+				env.Exit(1)
+				return
+			}
+
 			cmd.PrintErrln("Joining the cluster. This may take a few seconds, please wait.")
 			if err := client.JoinCluster(cmd.Context(), apiv1.JoinClusterRequest{
 				Name:    opts.name,
