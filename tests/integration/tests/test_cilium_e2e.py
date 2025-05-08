@@ -28,14 +28,12 @@ CILIUM_CLI_TAR_GZ = f"https://github.com/cilium/cilium-cli/releases/download/{CI
 def test_cilium_e2e(instances: List[harness.Instance]):
     instance = instances[0]
     instance.exec(["bash", "-c", "mkdir -p ~/.kube"])
-    instance.exec(["bash", "-c", "k8s config > ~/.kube/config"])
+    instance.exec(["k8s config > ~/.kube/config"])
 
     # Download cilium-cli
     instance.exec(["curl", "-L", CILIUM_CLI_TAR_GZ, "-o", "cilium.tar.gz"])
     instance.exec(["tar", "xvzf", "cilium.tar.gz"])
     instance.exec(["./cilium", "version", "--client"])
-
-    instance.exec(["k8s", "status", "--wait-ready"])
 
     util.wait_for_dns(instance)
     util.wait_for_network(instance)
