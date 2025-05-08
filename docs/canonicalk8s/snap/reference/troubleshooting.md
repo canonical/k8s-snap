@@ -201,9 +201,6 @@ cause the same error.
 
 ### Solution
 
-<!-- Can we disable fan on the snap level? -->
-<!-- Do we need to do this on all nodes or just one? -->
-
 Configure Cilium to use another tunnel port. Set the annotation `tunnel-port`
 to an appropriate value (the default is 8472).
 

@@ -201,9 +201,8 @@ juju model-config container-networking-method=local fan-config=
 
 #### Change Cilium tunnel-port
 
-<!-- Do we need to do this on all nodes or just one? -->
-
-Set the annotation `tunnel-port` to an appropriate value (the default is 8472).
+Connect to the node and set the annotation `tunnel-port` to an appropriate value
+(the default is 8472).
 
 ```
 sudo k8s set annotation="k8sd/v1alpha1/cilium/tunnel-port=<PORT-NUMBER>"
