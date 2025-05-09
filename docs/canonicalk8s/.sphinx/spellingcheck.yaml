@@ -2,10 +2,9 @@ matrix:
   - name: rST files
     aspell:
       lang: en
-      d: en_GB
+      d: en_US
     dictionary:
       wordlists:
-        - .sphinx/.wordlist.txt
         - .custom_wordlist.txt
       output: .sphinx/.wordlist.dic
     sources:

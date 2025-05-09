@@ -30,7 +30,7 @@ This will take some time as the build process fetches dependencies, stages the
 ‘parts’ of the snap and creates the snap package itself. The snap itself will
 be fetched from the build environment and placed in the local project
 directory. Note that the LXD container used for building will be stopped, but
-not deleted. This is in case there were any errors or artefacts you may wish to
+not deleted. This is in case there were any errors or artifacts you may wish to
 inspect.
 
 ### Install the snap

@@ -1,4 +1,4 @@
-# Provisioning a {{product}} cluster with CAPI 
+# Provisioning a {{product}} cluster with CAPI
 
 This guide covers how to deploy a {{product}} multi-node cluster
 using Cluster API (CAPI).
@@ -7,7 +7,7 @@ using Cluster API (CAPI).
 
 This guide assumes the following:
 
-- A CAPI management cluster initialised with the infrastructure, bootstrap and
+- A CAPI management cluster initialized with the infrastructure, bootstrap and
   control plane providers of your choice. Please refer to the
   [getting-started guide] for instructions.
 
