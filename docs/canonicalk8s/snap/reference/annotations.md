@@ -3,7 +3,7 @@
 This page outlines the annotations that can be configured during cluster
 [bootstrap] or when setting cluster configuration later on.
 
-To specify annotations during the bootstrap process, set the 
+To specify annotations during the bootstrap process, set the
 `cluster-config.annotations` parameter in the bootstrap configuration:
 
 ```yaml
@@ -14,7 +14,7 @@ cluster-config:
         k8sd/v1alpha/lifecycle/skip-stop-services-on-remove: true
 ```
 
-You can also set annotations after the bootstrap. For example to change 
+You can also set annotations after the bootstrap. For example to change
 Cilium's VXLAN port you can run the following command:
 
 ```bash
@@ -86,9 +86,7 @@ v1alpha annotations are experimental and subject to change or removal in future 
 |   |   |
 |---|---|
 |**Values**| integer value port number|
-|**Description**|The port number cilium will for its VXLAN encapsulation protocol 
-destination port.|
-
+|**Description**|The port number cilium will for its VXLAN encapsulation protocol destination port.|
 
 ## `k8sd/v1alpha1/metrics-server/image-repo`
 
@@ -114,5 +112,4 @@ for(var i=0;i<el.length;i++){
 
 <!-- Links -->
 
-[Kubernetes website]:https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
 [bootstrap]: /snap/reference/config-files/bootstrap-config.md
