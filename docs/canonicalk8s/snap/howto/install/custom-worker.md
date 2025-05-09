@@ -25,8 +25,7 @@ sudo k8s join-cluster --help
 In this example, the name of the new worker node joining the cluster is
 specified through command line arguments.
 
-When creating a worker join token on the control plane node, if we do not
-specify the node name, the worker node will appear in the cluster with
+If we do not specify the node name upon creating a worker join token on the control plane node the worker node will appear in the cluster with
 the default hostname. Specify the join token is for a `--worker` node. Also
 include the name of the worker node, for example `custom-worker`.
 
