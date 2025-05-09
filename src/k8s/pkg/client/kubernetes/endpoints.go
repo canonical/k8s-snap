@@ -3,7 +3,6 @@ package kubernetes
 import (
 	"context"
 	"fmt"
-	"sort"
 
 	"github.com/canonical/k8s/pkg/utils"
 	v1 "k8s.io/api/core/v1"
@@ -30,31 +29,10 @@ func (c *Client) GetKubeAPIServerEndpoints(ctx context.Context) ([]string, error
 		return nil, fmt.Errorf("endpoints for kubernetes service not found")
 	}
 
-	addresses := make([]string, 0, len(endpoints.Subsets))
-	for _, subset := range endpoints.Subsets {
-		portNumber := 6443
-		for _, port := range subset.Ports {
-			if port.Name == "https" {
-				portNumber = int(port.Port)
-				break
-			}
-		}
-		for _, addr := range subset.Addresses {
-			if addr.IP != "" {
-				var address string
-				if utils.IsIPv4(addr.IP) {
-					address = addr.IP
-				} else {
-					address = fmt.Sprintf("[%s]", addr.IP)
-				}
-				addresses = append(addresses, fmt.Sprintf("%s:%d", address, portNumber))
-			}
-		}
-	}
+	addresses := utils.ParseEndpoints(endpoints)
 	if len(addresses) == 0 {
 		return nil, fmt.Errorf("empty list of endpoints for the kubernetes service")
 	}
 
-	sort.Strings(addresses)
 	return addresses, nil
 }
