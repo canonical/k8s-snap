@@ -6,6 +6,7 @@ matrix:
     dictionary:
       wordlists:
         - .custom_wordlist.txt
+        - .sphinx/.wordlist.txt
       output: .sphinx/.wordlist.dic
     sources:
       - _build/**/*.html

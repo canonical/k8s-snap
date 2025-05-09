@@ -21,7 +21,7 @@ controller. Choose one of the options outlined in the
 
 The Terraform deployment is done using a root module that specifies the
 Juju model to deploy the submodules to. The root module also references
-the k8s-bundle module which helps to build the Juju model. 
+the k8s-bundle module which helps to build the Juju model.
 
 ### Root module
 <!-- TODO replace this section once we have a Juju ground up module -->
@@ -44,7 +44,7 @@ module "k8s" {
 }
 ```
 
-Define your `manifest.yaml` based on the requirements for your deployment. 
+Define your `manifest.yaml` based on the requirements for your deployment.
 Specific charm configuration options can be found on charmhub.io for charms
 [k8s] and [k8s-worker].
 
@@ -84,7 +84,7 @@ terraform {
 The base modules support various cloud integration charms to integrate
 {{ product }} with the underlying cloud substrate. Rather than presume a cloud
 integration, the main terraform module requires one to select the cloud
-integration desired. See [k8s-bundles] to see how to integrate with Openstack or
+integration desired. See [k8s-bundles] to see how to integrate with OpenStack or
 other cloud-providers.
 
 ### CSI Integrations
