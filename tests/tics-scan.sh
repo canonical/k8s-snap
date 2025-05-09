@@ -37,7 +37,6 @@ go install honnef.co/go/tools/cmd/staticcheck@v0.5.1
 # We need to have our project built
 # We load the dqlite libs here instead of doing through make because TICS
 # will try to build parts of the project itself
-#
 # NOTE: Running add-apt-repository -y ppa:dqlite/dev may flake with a 504 Gateway Time-out from Launchpad.
 # Avoid this by adding the apt source lists manually.
 # GPG signing key from: https://launchpad.net/~dqlite/+archive/ubuntu/dev
