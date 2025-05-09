@@ -55,7 +55,7 @@ func kubelet(snap snap.Snap, hostname string, nodeIPs []net.IP, clusterDNS strin
 		"--containerd":                   snap.ContainerdSocketPath(),
 		"--container-runtime-endpoint":   snap.ContainerdSocketPath(),
 		"--cgroup-driver":                "systemd",
-		"--eviction-hard":                "'memory.available<100Mi,nodefs.available<1Gi,imagefs.available<1Gi'",
+		"--eviction-hard":                "memory.available<100Mi,nodefs.available<1Gi,imagefs.available<1Gi",
 		"--fail-swap-on":                 "false",
 		"--kubeconfig":                   filepath.Join(snap.KubernetesConfigDir(), "kubelet.conf"),
 		"--node-labels":                  strings.Join(labels, ","),
