@@ -37,5 +37,7 @@ profile cri-containerd.apparmor.d flags=(attach_disconnected,mediate_deleted) {
 
   signal (receive) peer=snap.k8s.containerd,
   signal (receive) peer=snap.k8s.kubelet,
+  signal (receive) peer=snap.k8s.k8sd,
+  signal (receive) peer=snap.k8s.k8s,
   signal (receive) peer=snap.k8s.hook.remove,
 }
