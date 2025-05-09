@@ -270,6 +270,7 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 	}
 
 	if err := handleRollOutUpgrade(ctx, a.snap, s, k8sClient); err != nil {
+		log.Error(err, "Failed to handle rollout-upgrade")
 		return fmt.Errorf("failed to handle rollout-upgrade: %w", err)
 	}
 
