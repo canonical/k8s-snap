@@ -51,8 +51,13 @@ function log_warning_red {
   printf -- '\033[31m WARNING: \033[0m %s\n' "$1"
 }
 
-function is_control_plane_node {
-  k8s local-node-status | grep -q "control-plane"
+function is_bootstrapped {
+  # If the node is not bootstrapped, the following command will have an exit code 1.
+  k8s local-node-status > /dev/null
+}
+
+function is_worker_node {
+  k8s local-node-status --output-format yaml | grep -q "cluster-role: worker"
 }
 
 # Run a command with a timeout. If the command times out, log the command to the
@@ -288,21 +293,22 @@ mkdir -p "$INSPECT_DUMP"
 
 printf -- 'Collecting service information\n'
 
-if is_control_plane_node; then
-  printf -- 'Running inspection on a control-plane node\n'
-  printf -- 'Inspection ran on a control plane node.' >"$INSPECT_DUMP/is-control-plane-node"
-else
-  printf -- 'Running inspection on a worker node\n'
-  printf -- 'Inspection ran on a worker node.' >"$INSPECT_DUMP/is-worker-node"
-fi
-
 control_plane_services=("k8s.containerd" "k8s.kube-proxy" "k8s.k8s-dqlite" "k8s.k8sd" "k8s.kube-apiserver" "k8s.kube-controller-manager" "k8s.kube-scheduler" "k8s.kubelet")
 worker_services=("k8s.containerd" "k8s.k8s-apiserver-proxy" "k8s.kubelet" "k8s.k8sd" "k8s.kube-proxy")
 
-if is_control_plane_node; then
-  check_expected_services "${control_plane_services[@]}"
-else
+if is_worker_node; then
+  printf -- 'Running inspection on a worker node\n'
+  printf -- 'Inspection ran on a worker node.' >"$INSPECT_DUMP/is-worker-node"
   check_expected_services "${worker_services[@]}"
+else
+  if is_bootstrapped; then
+    printf -- 'Running inspection on a control-plane node\n'
+    printf -- 'Inspection ran on a control plane node.' >"$INSPECT_DUMP/is-control-plane-node"
+  else
+    printf -- 'Running inspection on a node that is not bootstrapped.\n'
+    printf -- 'Inspection ran on a node that is not bootstrapped.' >"$INSPECT_DUMP/is-not-bootstrapped-node"
+  fi
+  check_expected_services "${control_plane_services[@]}"
 fi
 
 printf -- 'Collecting registry mirror logs\n'
