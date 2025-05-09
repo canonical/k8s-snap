@@ -55,7 +55,7 @@ sudo k8s status --wait-ready
 ```{important}
 This command waits a few minutes before timing out.
 On a very slow network connection, or a system with very limited resources,
-this default timeout might be insufficient resulting in a "Context cancelled"
+this default timeout might be insufficient resulting in a "Context canceled"
 error. In that case, you can either increase the timeout using the  `--timeout`
 flag or re-run the command to continue waiting until the cluster is ready.
 ```
