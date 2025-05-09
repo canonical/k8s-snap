@@ -120,7 +120,7 @@ state. For more detail on Juju's concepts, see the [Juju docs][].
 The administrator may choose any supported cloud-types (OpenStack, MAAS, AWS,
 GCP, Azure...) on which to manage the machines making up the Kubernetes
 cluster. Juju selects a single leader unit per application to act as a
-centralised figure with the model. The `k8s` leader oversees Kubernetes
+centralized figure with the model. The `k8s` leader oversees Kubernetes
 bootstrapping and enlistment of new nodes. Follower `k8s` units will join the
 cluster using secrets shared through relation data from the leader. The entire
 lifecycle of the deployment is orchestrated by the `k8s` charm, with tokens and

@@ -5,7 +5,7 @@ posture. From a high-level, {{product}} uses industry-standard cryptographic
 algorithms to ensure authentication between components, secure data transfer,
 and data encryption at rest.
 
-### TLS certificates
+## TLS certificates
 
 All communications between core components, such as the API server and
 kubelets, are encrypted with TLS 1.3 (Transport Layer Security), providing
@@ -13,12 +13,12 @@ robust protection for sensitive data in transit. By default, {{product}} uses
 self-signed certificates, but users are able to use an intermediate CA or
 provide their own certificates instead.
 
-### Dqlite encryption at rest
+## Dqlite encryption at rest
 
 {{product}} uses AES-256-GCM (Advanced Encryption Standard - Galois/Counter
 Mode) to encrypt cluster data at rest.
 
-### Digital signatures
+## Digital signatures
 
 To securely authenticate API clients, Canonical Kubernetes uses X.509
 certificates with support for both RSA-2048 and ECDSA (Elliptic Curve Digital
