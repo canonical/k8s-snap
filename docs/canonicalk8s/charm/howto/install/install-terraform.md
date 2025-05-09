@@ -21,7 +21,7 @@ controller. Choose one of the options outlined in the
 
 The Terraform deployment is done using a root module that specifies the
 Juju model to deploy the submodules to. The root module also references
-the k8s-bundle module which helps to build the Juju model. 
+the k8s-bundle module which helps to build the Juju model.
 
 ### Root module
 <!-- TODO replace this section once we have a Juju ground up module -->
@@ -44,7 +44,8 @@ module "k8s" {
 }
 ```
 
-Define your `manifest.yaml` based on the requirements for your deployment. 
+Define your `manifest.yaml` based on the requirements for your deployment. We
+ recommend at least 16GB of root-disk storage, 4GB of memory and 2 cores.
 Specific charm configuration options can be found on charmhub.io for charms
 [k8s] and [k8s-worker].
 
