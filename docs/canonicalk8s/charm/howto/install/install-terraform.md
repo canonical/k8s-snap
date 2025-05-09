@@ -21,8 +21,12 @@ controller. Choose one of the options outlined in the
 
 The Terraform deployment is done using a root module that specifies the
 Juju model to deploy the submodules to. The root module also references
+<<<<<<< HEAD
 the k8s charm and the k8s-worker charm that each live in a separate child
 module.
+=======
+the k8s-bundle module which helps to build the Juju model.
+>>>>>>> 25f944dd (docs: Update troubleshooting with cilium tunnel port fix  (#1381))
 
 ### Root module
 <!-- TODO replace this section once we have a Juju ground up module -->
@@ -56,7 +60,14 @@ module "k8s-worker" {
 }
 ```
 
+<<<<<<< HEAD
 Example `variables.tf`:
+=======
+Define your `manifest.yaml` based on the requirements for your deployment. We
+ recommend at least 16GB of root-disk storage, 4GB of memory and 2 cores.
+Specific charm configuration options can be found on charmhub.io for charms
+[k8s] and [k8s-worker].
+>>>>>>> 25f944dd (docs: Update troubleshooting with cilium tunnel port fix  (#1381))
 
 ```hcl
 variable "channel" {
@@ -177,3 +188,6 @@ juju status --watch 5s
 [auth]: https://registry.terraform.io/providers/juju/juju/latest/docs#authentication
 [channel]: ../../explanation/channels.md
 [terraform]: https://snapcraft.io/terraform
+[k8s]: https://charmhub.io/k8s/configurations
+[k8s-worker]: https://charmhub.io/k8s-worker/configurations
+[k8s-bundles]: https://github.com/canonical/k8s-bundles/tree/main/terraform
