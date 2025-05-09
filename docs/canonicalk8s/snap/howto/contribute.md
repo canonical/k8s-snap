@@ -63,7 +63,7 @@ sudo snap remove k8s --purge
 ```
 
 The `purge` option is recommended when iterating over code changes, as it also
-removes all the installed artefacts which may be associated with the snap.
+removes all the installed artifacts which may be associated with the snap.
 
 Now you can iterate over changes to the snap, rebuild and test.
 
