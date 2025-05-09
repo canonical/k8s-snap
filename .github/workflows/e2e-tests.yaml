@@ -29,6 +29,14 @@ on:
         description: Test flavor (e.g. moonray or strict), leave empty for classic
         default: ""
         type: string
+      benchmark-compare-fail:
+        description: |
+          If set, the test will fail if the benchmark results are worse than this value.
+          See https://pytest-benchmark.readthedocs.io/en/latest/usage.html#commandline-options for available options.
+          The benchmark file will automatically be selected based on the current OS and architecture.
+          If empty, no comparison will be done.
+        default: ""
+        type: string
       extra-test-args:
         description: |
           Additional pytest arguments, use "-k <test_name>" to run a specific test
@@ -54,6 +62,14 @@ on:
         type: string
       flavor:
         description: Test flavor (e.g. moonray or strict). Leave empty for classic
+        default: ""
+        type: string
+      benchmark-compare-fail:
+        description: |
+          If set, the test will fail if the benchmark results are worse than this value.
+          See https://pytest-benchmark.readthedocs.io/en/latest/usage.html#commandline-options for available options.
+          The benchmark file will automatically be selected based on the current OS and architecture.
+          If empty, no comparison will be done.
         default: ""
         type: string
       extra-test-args:
@@ -97,6 +113,17 @@ jobs:
       - name: Setup tmate session
         uses: canonical/action-tmate@main
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.tmate_enabled }}
+      - name: Sanitize test name
+        run: |
+          echo "sanitized_name=${{ inputs.os }}-${{ inputs.arch }}" | sed 's/:/-/g' >> $GITHUB_ENV
+      - name: Performance benchmark flags
+        if: ${{ contains(inputs.test-tags, 'performance') }}
+        run: |
+            echo "BENCHMARK_DEFAULT_FLAGS=--benchmark-storage=baselines --benchmark-autosave" >> $GITHUB_ENV
+            COMPARE_FAIL="${{ inputs.benchmark-compare-fail }}"
+            if [ -n "$COMPARE_FAIL" ]; then
+              echo "BENCHMARK_COMPARE_FLAGS=--benchmark-compare=tests/performance/baselines/${{ env.sanitized_name }}.json --benchmark-compare-fail=$COMPARE_FAIL" >> $GITHUB_ENV
+            fi
       - name: Run e2e tests
         env:
           TEST_SNAP: ${{ steps.download-snap.outputs.snap-path }}
@@ -113,23 +140,22 @@ jobs:
           TEST_GH_REF: ${{ github.ref_name }}
           TEST_GH_BASE_REF: ${{ github.base_ref }}
         run: |
-          cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- --tags ${{ inputs.test-tags }} ${{ inputs.extra-test-args }}
+          cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- --tags ${{ inputs.test-tags }} ${{ env.BENCHMARK_DEFAULT_FLAGS }} ${{ env.BENCHMARK_COMPARE_FLAGS }} ${{ inputs.extra-test-args }}
       - name: Prepare inspection reports
         if: failure()
         run: |
           tar -czvf inspection-reports.tar.gz -C ${{ github.workspace }} inspection-reports
-          echo "artifact_name=inspection-reports-${{ inputs.os }}-${{ inputs.arch }}" | sed 's/:/-/g' >> $GITHUB_ENV
       - name: Upload inspection report artifact
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.artifact_name }}
+          name: inspection-reports-${{ env.sanitized_name }}
           path: ${{ github.workspace }}/inspection-reports.tar.gz
       - name: Upload CNCF conformance report artifact
         if: ${{ failure() && contains(inputs.test-tags, 'conformance_tests') }}
         uses: actions/upload-artifact@v4
         with:
-         name: sonobuoy-e2e-${{ env.artifact_name }}
+         name: sonobuoy-e2e-${{ env.sanitized_name }}
          path: tests/integration/sonobuoy_e2e.tar.gz
       - name: Upload html test report
         if: always()
@@ -137,3 +163,15 @@ jobs:
         with:
          name: subunit-${{ env.UUID }}.html
          path: tests/integration/subunit.html
+      - name: Prepare performance test results
+        if: ${{ contains(inputs.test-tags, 'performance') }}
+        run: |
+          mkdir -p baselines
+          mv tests/integration/baselines/*/0001_*.json \
+            baselines/performance-baseline-${{ env.sanitized_name }}.json
+      - name: Upload performance test results
+        if: ${{ contains(inputs.test-tags, 'performance') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-baseline-${{ env.sanitized_name}}
+          path: baselines/performance-baseline-${{ env.sanitized_name }}.json

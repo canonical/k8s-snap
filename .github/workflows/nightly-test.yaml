@@ -28,6 +28,22 @@ jobs:
       channel: ${{ matrix.channel }}
       test-tags: 'up_to_nightly conformance_tests'
 
+  test-performance:
+    name: Run performance tests for ${{ matrix.os }}-${{ matrix.arch }}
+    strategy:
+      matrix:
+        os: ["ubuntu:22.04", "ubuntu:24.04"]
+        arch: ["amd64", "arm64"]
+        channel: ["latest/edge"]
+      fail-fast: false # TODO: remove once we no longer have flaky tests.
+    uses: ./.github/workflows/e2e-tests.yaml
+    with:
+      arch: ${{ matrix.arch }}
+      os: ${{ matrix.os }}
+      channel: ${{ matrix.channel }}
+      test-tags: 'performance'
+      benchmark-compare-fail: "mean:20%"
+
   Trivy:
     permissions:
       contents: read # for actions/checkout to fetch code
@@ -92,7 +108,7 @@ jobs:
     # We don't want to ping people of failed PRs.
     if: ${{ always() && github.event_name == 'schedule' }}
     # Note: Update results check below if you change the "needs" list.
-    needs: [test-integration, Trivy, TICS]
+    needs: [test-integration, test-performance, Trivy, TICS]
     runs-on: ubuntu-latest
     steps:
       - name: Set current formatted date as env variable

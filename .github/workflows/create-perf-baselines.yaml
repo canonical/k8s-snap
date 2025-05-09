@@ -1,0 +1,83 @@
+name: Create Performance Baselines
+description: |
+  This workflow creates performance baselines on the specified runner tags
+  and creates a baseline for future comparisons. It uses pytest-benchmark to run the tests
+  and save the results.
+  It also creates a pull request with the results
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/create-perf-baselines.yaml
+      - tests/integration/tests/performance/*.py
+
+permissions:
+  contents: read
+
+jobs:
+  check-if-baselines-changed:
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.check.outputs.skip }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # fetch full history so we can diff
+          ref: ${{ github.head_ref }} # checkout the PR branch
+      - id: check
+        run: |
+          git fetch origin ${{ github.base_ref }} # fetch base branch if not present
+          if git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -q '^tests/integration/tests/performance/baselines/'; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+  create-performance-baselines:
+    needs: check-if-baselines-changed
+    if: needs.check-if-baselines-changed.outputs.skip == 'false'
+    name: Create Baselines for ${{ matrix.os }}-${{ matrix.arch }}
+    strategy:
+      matrix:
+        os: ["ubuntu:22.04", "ubuntu:24.04"]
+        arch: ["amd64", "arm64"]
+        channel: ["latest/edge"]
+      #fail-fast: false # TODO: remove once we no longer have flaky tests.
+    uses: ./.github/workflows/e2e-tests.yaml
+    with:
+      arch: ${{ matrix.arch }}
+      os: ${{ matrix.os }}
+      channel: ${{ matrix.channel }}
+      test-tags: "performance"
+
+  create_pr:
+    name: Create PR with baseline results
+    permissions:
+      contents: write # for peter-evans/create-pull-request to create branch
+      pull-requests: write # for peter-evans/create-pull-request to create a PR
+    runs-on: ubuntu-latest
+    needs: create-performance-baselines
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          path: ../artifacts
+      - name: Flatten results
+        shell: bash
+        run: |
+          mkdir -p tests/integration/tests/performance/baselines
+          # Move the performance baseline files to the correct location and remove the prefix.
+          find ../artifacts -name "performance-baseline-*.json" -exec bash -c 'f="{}"; mv "$f" tests/integration/tests/performance/baselines/${f##*/performance-baseline-}' \;
+      - name: Commit and create PR
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "test: Update performance baseline results"
+          title: "test: Automatic Performance Baselines update"
+          body: "Update performance baselines because of changed performance tests in [PR #${{ github.event.pull_request.number }}](${{ github.event.pull_request.html_url }})"
+          branch: performance/baseline-updates
+          base: ${{ github.head_ref || github.ref_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
