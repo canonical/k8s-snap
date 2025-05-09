@@ -85,7 +85,7 @@ terraform {
 The base modules support various cloud integration charms to integrate
 {{ product }} with the underlying cloud substrate. Rather than presume a cloud
 integration, the main terraform module requires one to select the cloud
-integration desired. See [k8s-bundles] to see how to integrate with Openstack or
+integration desired. See [k8s-bundles] to see how to integrate with OpenStack or
 other cloud-providers.
 
 ### CSI Integrations

@@ -164,9 +164,9 @@ html_context = {
 # - https://launchpad.net/example
 # - https://git.launchpad.net/example
 #
-# html_theme_options = {
-# 'source_edit_link': 'https://github.com/canonical/sphinx-docs-starter-pack',
-# }
+html_theme_options = {
+'source_edit_link': 'https://github.com/canonical/k8s-snap',
+}
 
 # Project slug; see https://meta.discourse.org/t/what-is-category-slug/87897
 #
@@ -222,7 +222,14 @@ linkcheck_ignore = [
 # A regex list of URLs where anchors are ignored by 'make linkcheck'
 
 linkcheck_anchors_ignore_for_url = [
-    r'https://github\.com/.*'
+    r'https://github\.com/.*',
+    'https://github.com/kubernetes/kubernetes/issues',
+    'https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG',
+    'https://github.com/canonical/k8s-operator',
+    'https://github.com/canonical/k8s-dqlite/issues',
+    'https://github.com/vmware-tanzu/velero-plugin-for-aws?tab=readme-ov-file',
+    'https://juju.is/docs/juju/relation',
+    'https://github.com/kubernetes/kubernetes/blob/master/cmd/kube-apiserver/app/options/validation_test.go',
     'https://matrix.to',
     'https://ubuntu.com/about/release-cycle',
     'https://canonical.com/multipass/docs/tutorial',

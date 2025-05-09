@@ -54,7 +54,7 @@ sudo snap remove k8s --purge
 ```
 
 The `purge` option is recommended when iterating over code changes, as it also
-removes all the installed artefacts which may be associated with the snap.
+removes all the installed artifacts which may be associated with the snap.
 
 Now you can iterate over changes to the snap, rebuild and test.
 
@@ -85,7 +85,7 @@ the [main repository for the {{product}} snap][code repo].
 
 This documentation has adopted the Diátaxis framework. You can read more about
 it on the [Diátaxis website]. In essence though, this guides the way we
-categorise and write our documentation. You can see there are four main
+categorize and write our documentation. You can see there are four main
 categories of documentation:
 
 - **Tutorials** for guided walk-throughs

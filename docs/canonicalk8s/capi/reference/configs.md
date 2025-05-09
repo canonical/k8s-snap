@@ -219,13 +219,13 @@ spec:
 
 **Required:** no
 
-`initConfig` is configuration for the initialising the cluster features
+`initConfig` is configuration for the initializing the cluster features
 
 **Fields:**
 
 | Name                         | Type                | Description                                                   | Default |
 |------------------------------|---------------------|---------------------------------------------------------------|---------|
-| `annotations`                | `map[string]string` | Are used to configure the behaviour of the built-in features. | `nil`   |
+| `annotations`                | `map[string]string` | Are used to configure the behavior of the built-in features. | `nil`   |
 | `enableDefaultDNS`           | `bool`              | Specifies whether to enable the default DNS configuration.    | `true`  |
 | `enableDefaultLocalStorage`  | `bool`              | Specifies whether to enable the default local storage.        | `true`  |
 | `enableDefaultMetricsServer` | `bool`              | Specifies whether to enable the default metrics server.       | `true`  |
