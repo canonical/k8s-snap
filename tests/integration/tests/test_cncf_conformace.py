@@ -39,7 +39,7 @@ def test_cncf_conformance(instances: List[harness.Instance]):
     cluster_node.pull_file("/root/sonobuoy_e2e.tar.gz", "sonobuoy_e2e.tar.gz")
 
     output = resp.stdout.decode()
-    LOG.info(output)
+    LOG.debug(output)
     failed_tests = int(re.search("Failed: (\\d+)", output).group(1))
     assert failed_tests == 0, f"{failed_tests} tests failed"
 

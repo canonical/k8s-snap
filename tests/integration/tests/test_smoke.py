@@ -65,7 +65,6 @@ def test_smoke(instances: List[harness.Instance]):
         )
         assert value in args.stdout.decode()
 
-    LOG.info("Verify the functionality of the CAPI endpoints.")
     instance.exec("k8s x-capi set-auth-token my-secret-token".split())
     instance.exec("k8s x-capi set-node-token my-node-token".split())
 
@@ -125,7 +124,7 @@ def test_smoke(instances: List[harness.Instance]):
     def status_output_matches(p: subprocess.CompletedProcess) -> bool:
         result_lines = p.stdout.decode().strip().split("\n")
         if len(result_lines) != len(STATUS_PATTERNS):
-            LOG.info(
+            LOG.warning(
                 f"wrong number of results lines, expected {len(STATUS_PATTERNS)}, got {len(result_lines)}"
             )
             return False
@@ -133,12 +132,12 @@ def test_smoke(instances: List[harness.Instance]):
         for i in range(len(result_lines)):
             line, pattern = result_lines[i], STATUS_PATTERNS[i]
             if not re.search(pattern, line):
-                LOG.info(f"could not match `{line.strip()}` with `{pattern}`")
+                LOG.debug(f"could not match `{line.strip()}` with `{pattern}`")
                 return False
 
         return True
 
-    LOG.info("Verifying the output of `k8s status`")
+    LOG.debug("Verifying the output of `k8s status`")
     util.stubbornly(retries=15, delay_s=10).on(instance).until(
         condition=status_output_matches,
     ).exec(["k8s", "status", "--wait-ready"])
