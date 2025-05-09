@@ -121,6 +121,49 @@ func TestDeleteNode(t *testing.T) {
 		err := client.DeleteNode(context.Background(), nodeName)
 		g.Expect(err).To(MatchError(fmt.Errorf("failed to delete node: %w", expectedErr)))
 	})
+
+	t.Run("node deletion fails with internal server error", func(t *testing.T) {
+		clientset := fake.NewSimpleClientset()
+		client := &Client{Interface: clientset}
+		nodeName := "test-node"
+		client.CoreV1().Nodes().Create(context.TODO(), &v1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: nodeName,
+			},
+		}, metav1.CreateOptions{})
+
+		expectedErr := apierrors.NewInternalError(errors.New("database is locked"))
+		clientset.PrependReactor("delete", "nodes", func(action k8stesting.Action) (bool, runtime.Object, error) {
+			return true, nil, expectedErr
+		})
+
+		err := client.DeleteNode(context.Background(), nodeName)
+		g.Expect(err).To(MatchError(fmt.Errorf("failed to delete node: %w", expectedErr)))
+	})
+
+	t.Run("node deletion succeeds with internal server error", func(t *testing.T) {
+		clientset := fake.NewSimpleClientset()
+		client := &Client{Interface: clientset}
+		nodeName := "test-node"
+		client.CoreV1().Nodes().Create(context.TODO(), &v1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: nodeName,
+			},
+		}, metav1.CreateOptions{})
+
+		expectedErr := apierrors.NewInternalError(errors.New("database is locked"))
+		tries := 0
+		clientset.PrependReactor("delete", "nodes", func(action k8stesting.Action) (bool, runtime.Object, error) {
+			if tries == 3 {
+				return true, nil, nil
+			}
+			tries++
+			return true, nil, expectedErr
+		})
+
+		err := client.DeleteNode(context.Background(), nodeName)
+		g.Expect(err).To(Not(HaveOccurred()))
+	})
 }
 
 func TestNodeVersions(t *testing.T) {
