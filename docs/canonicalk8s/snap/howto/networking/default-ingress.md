@@ -1,6 +1,6 @@
 # How to use default Ingress
 
-{{product}} enables you to configure Ingress for your cluster. When enabled, it
+{{product}} enables you to configure Ingress for your cluster, which is based on [Cilium ingress]([url](https://docs.cilium.io/en/stable/network/servicemesh/ingress/)). When enabled, it
 directs external HTTP and HTTPS traffic to the appropriate services within the
 cluster.
 
