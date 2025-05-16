@@ -227,8 +227,6 @@ class LXDHarness(Harness):
         if instance_id not in self.instances:
             raise HarnessError(f"unknown instance {instance_id}")
 
-        LOG.debug("Execute command %s in instance %s", command, instance_id)
-
         if ">" in " ".join(command) or "&&" in " ".join(command):
             command_str = " ".join(command)
         else:
@@ -263,13 +261,13 @@ class LXDHarness(Harness):
         This allows us to identify leaked resources.
         """
         try:
-            LOG.info("LXC containers:")
+            LOG.debug("LXC containers:")
             result = run(["lxc", "list"], capture_output=True)
-            LOG.info("\n%s", result.stdout.decode().strip())
+            LOG.debug("\n%s", result.stdout.decode().strip())
 
-            LOG.info("Disk usage:")
+            LOG.debug("Disk usage:")
             result = run(["df", "-h"], capture_output=True)
-            LOG.info("\n%s", result.stdout.decode().strip())
+            LOG.debug("\n%s", result.stdout.decode().strip())
 
             if config.INSPECTION_REPORTS_DIR and os.path.exists(
                 config.INSPECTION_REPORTS_DIR
@@ -278,7 +276,7 @@ class LXDHarness(Harness):
                 result = run(
                     ["du", "-sh", config.INSPECTION_REPORTS_DIR], capture_output=True
                 )
-                LOG.info("\n%s", result.stdout.decode().strip())
+                LOG.debug("\n%s", result.stdout.decode().strip())
         except Exception:
             # Suppress any (unlikely) error.
             LOG.exception("Failed to obtain environment info")
