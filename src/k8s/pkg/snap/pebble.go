@@ -2,7 +2,9 @@ package snap
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"time"
@@ -111,8 +113,29 @@ func (s *pebble) RefreshStatus(ctx context.Context, changeID string) (*types.Ref
 	}, nil
 }
 
+// Revision returns the k8s revision from the bom.json file.
 func (s *pebble) Revision(ctx context.Context) (string, error) {
-	return "", nil
+	bomPath := filepath.Join(s.snapDir, "bom.json")
+	data, err := os.ReadFile(bomPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to read bom.json: %w", err)
+	}
+
+	var bom struct {
+		K8s struct {
+			Revision string `json:"revision"`
+		} `json:"k8s"`
+	}
+
+	if err := json.Unmarshal(data, &bom); err != nil {
+		return "", fmt.Errorf("failed to unmarshal bom.json: %w", err)
+	}
+
+	if bom.K8s.Revision == "" {
+		return "", fmt.Errorf("k8s revision not found in bom.json")
+	}
+
+	return bom.K8s.Revision, nil
 }
 
 func (s *pebble) Strict() bool {
