@@ -82,13 +82,22 @@ the desired version.
 
 ## Configure the machine count during the control plane upgrade
 
-When a control plane upgrade is performed, a new CK8sContrplPlane machine is deployed with the new configuration. Only after that machine is Ready, the old machine is deprovisioned.
+When a control plane upgrade is performed, a new CK8sContrplPlane
+machine is deployed with the new configuration. Only after that machine is
+Ready, the old machine is deprovisioned.
 
-This behaviour is controlled by the spec value `spec.strategy.rollingUpdate.maxSurge`, with the default value being set on 1.
+This behaviour is controlled by the spec value
+`spec.strategy.rollingUpdate.maxSurge`, with the default value being set on 1.
 
-If `spec.strategy.rollingUpdate.maxSurge` is set to the value `0` when a control plane upgrade is performed, the old CK8sContrplPlane machine is deprovisioned first. Then a new machine is deployed with the new configuration only after the old machine has been removed.
+If `spec.strategy.rollingUpdate.maxSurge` is set to the value `0` when a
+control plane upgrade is performed, the old CK8sContrplPlane machine is
+deprovisioned first.
+Then a new machine is deployed with the new configuration only after the
+old machine has been removed.
 
-`spec.strategy.rollingUpdate.maxSurge` set to the value `0` is preferable in hardware constrained environments, where an extra machine might not be available.
+`spec.strategy.rollingUpdate.maxSurge` set to the value `0` is preferable in
+hardware constrained environments, where an extra machine might not be
+available.
 
 ## Update the worker nodes
 
