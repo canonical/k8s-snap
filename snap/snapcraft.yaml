@@ -8,7 +8,7 @@ description: |-
 license: GPL-3.0
 grade: stable
 confinement: classic
-base: core20
+base: core22
 environment:
   REAL_PATH: $PATH
   REAL_LD_LIBRARY_PATH: $LD_LIBRARY_PATH
