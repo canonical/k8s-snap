@@ -35,7 +35,7 @@ REGISTRY_URL = (
 REGISTRY_VERSION = os.getenv("REGISTRY_VERSION") or "v2.8.3"
 
 # FLAVOR is the flavor of the snap to use.
-FLAVOR = os.getenv("TEST_FLAVOR") or ""
+FLAVOR = os.getenv("TEST_FLAVOR") or "classic"
 
 # SNAP is the absolute path to the snap against which we run the integration tests.
 SNAP = os.getenv("TEST_SNAP")
