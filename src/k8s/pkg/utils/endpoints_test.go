@@ -1,4 +1,4 @@
-package proxy
+package utils
 
 import (
 	"reflect"
@@ -7,15 +7,12 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-func TestParseAddresses(t *testing.T) {
+func TestParseEndpoints(t *testing.T) {
 	for _, tc := range []struct {
 		name      string
 		endpoints *v1.Endpoints
 		addresses []string
 	}{
-		{
-			name: "nil",
-		},
 		{
 			name: "one",
 			endpoints: &v1.Endpoints{
@@ -33,6 +30,15 @@ func TestParseAddresses(t *testing.T) {
 				},
 			},
 			addresses: []string{"1.1.1.1:6443", "2.2.2.2:6443"},
+		},
+		{
+			name: "IPv6",
+			endpoints: &v1.Endpoints{
+				Subsets: []v1.EndpointSubset{
+					{Addresses: []v1.EndpointAddress{{IP: "fe80::e0b9:bfff:fe90:8d37"}}},
+				},
+			},
+			addresses: []string{"[fe80::e0b9:bfff:fe90:8d37]:6443"},
 		},
 		{
 			name: "multiple-subsets",
@@ -66,7 +72,7 @@ func TestParseAddresses(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			if parsed := parseAddresses(tc.endpoints); !reflect.DeepEqual(parsed, tc.addresses) {
+			if parsed := ParseEndpoints(tc.endpoints); !reflect.DeepEqual(parsed, tc.addresses) {
 				t.Fatalf("expected addresses to be %v but they were %v instead", tc.addresses, parsed)
 			}
 		})
