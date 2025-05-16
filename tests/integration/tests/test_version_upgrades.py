@@ -273,6 +273,11 @@ def test_version_downgrades_with_rollback(
 @pytest.mark.node_count(3)
 @pytest.mark.no_setup()
 @pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.skipif(
+    # TODO(Adam): use TEST_VERSION_UPGRADE_CHANNELS if not set
+    not config.SNAP,
+    reason="Feature upgrades require a local snap file",
+)
 def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: Path):
     """Verify that feature upgrades function correctly.
 
@@ -284,9 +289,6 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
     after the last node is upgraded.
     The test will also verify that the feature version is not upgraded until all nodes are upgraded.
     """
-    if not config.SNAP:
-        # TODO(Adam): use TEST_VERSION_UPGRADE_CHANNELS if not set
-        pytest.skip("Feature upgrades currently require a local snap file")
 
     start_branch = util.previous_track(config.SNAP)
     main = instances[0]
