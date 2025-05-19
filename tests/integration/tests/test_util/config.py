@@ -152,13 +152,13 @@ STRICT_INTERFACE_CHANNELS = (
     os.environ.get("TEST_STRICT_INTERFACE_CHANNELS", "").strip().split()
 )
 
-# Cache and preload certain snaps such as snapd and core20 to avoid fetching them
-# for every test instance. Note that k8s-snap is currently based on core20.
+# Cache and preload certain snaps such as snapd and core22 to avoid fetching them
+# for every test instance. Note that k8s-snap is currently based on core22.
 PRELOAD_SNAPS = (os.getenv("TEST_PRELOAD_SNAPS") or "1") == "1"
 
 # The following snaps will be downloaded once per test run and preloaded
 # into the harness instances to reduce the number of downloads.
-DEFAULT_PRELOADED_SNAPS = ["snapd", "core20"]
+DEFAULT_PRELOADED_SNAPS = ["snapd", "core22"]
 PRELOADED_SNAPS = (
     os.getenv("TEST_PRELOADED_SNAPS", "").strip().split() or DEFAULT_PRELOADED_SNAPS
 )

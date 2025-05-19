@@ -16,12 +16,12 @@ workloads and {{product}} features.
 ### Download the {{product}} snap
 
 From a machine with access to the internet download the
-`k8s` and `core20` snap with:
+`k8s` and `core22` snap with:
 
 ```{literalinclude} ../../../_parts/install.md
 :start-after: <!-- offline start -->
 :end-before: <!-- offline end -->
-:append: sudo snap download core20 --basename core20
+:append: sudo snap download core22 --basename core22
 ```
 
 Besides the snaps, this will also download the corresponding assert files which
@@ -229,13 +229,13 @@ Transfer the following files to the target node:
 
 - `k8s.snap`
 - `k8s.assert`
-- `core20.snap`
-- `core20.assert`
+- `core22.snap`
+- `core22.assert`
 
 On the target node, run the following command to install the Kubernetes snap:
 
 ```
-sudo snap ack core20.assert && sudo snap install ./core20.snap
+sudo snap ack core22.assert && sudo snap install ./core22.snap
 sudo snap ack k8s.assert && sudo snap install ./k8s.snap --classic
 ```
 
@@ -311,7 +311,6 @@ After a while, confirm that all the cluster nodes show up in the output of the
 
 <!-- LINKS -->
 
-[Core20]: https://canonical.com/blog/ubuntu-core-20-secures-linux-for-iot
 [proxy]: ../networking/proxy.md
 [regsync]: https://github.com/regclient/regclient/blob/main/docs/regsync.md
 [regctl]: https://github.com/regclient/regclient/blob/main/docs/regctl.md
