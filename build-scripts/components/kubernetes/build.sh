@@ -10,7 +10,7 @@ for app in kubernetes; do
   # be led to think their system is compliant when the binaries have actually fallen back to non-FIPS compliant crypto.
   # We do this because we want to have a single branch/track for FIPS and non-FIPS deployments. In this scenario,
   # we don't have a choice to allow fallback.
-  make GOEXPERIMENT=opensslcrypto WHAT="cmd/${app}" KUBE_CGO_OVERRIDES="${app}" GOFLAGS="-tags=providerless,goexperiment.systemcrypto,linux,cgo,allowcryptofallback"
+  make GOTOOLCHAIN=local GOEXPERIMENT=opensslcrypto WHAT="cmd/${app}" KUBE_CGO_OVERRIDES="${app}" GOFLAGS="-tags=providerless,goexperiment.systemcrypto,linux,cgo,allowcryptofallback"
   cp _output/bin/"${app}" "${INSTALL}/${app}"
 done
 

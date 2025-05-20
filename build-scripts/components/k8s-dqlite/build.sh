@@ -7,8 +7,7 @@ if [ -d "${SNAPCRAFT_STAGE}/dynamic-dqlite-deps" ]; then
   export DQLITE_BUILD_SCRIPTS_DIR="${SNAPCRAFT_STAGE}/dynamic-dqlite-deps"
 fi
 
-export GOEXPERIMENT=opensslcrypto
-make dynamic -j
+GOEXPERIMENT=opensslcrypto,allowcryptofallback make dynamic -j
 
 mkdir -p "${INSTALL}"
 for binary in k8s-dqlite dqlite; do
