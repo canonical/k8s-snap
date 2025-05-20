@@ -26,7 +26,22 @@ jobs:
       arch: ${{ matrix.arch }}
       os: ${{ matrix.os }}
       channel: ${{ matrix.channel }}
-      test-tags: 'up_to_nightly conformance_tests'
+      test-tags: 'up_to_nightly'
+
+  test-conformance:
+    name: CNCF Conformance
+    strategy:
+      matrix:
+        os: ["ubuntu:22.04", "ubuntu:24.04"]
+        arch: ["amd64", "arm64"]
+        channel: ["latest/edge"]
+      fail-fast: false # TODO: remove once we no longer have flaky tests.
+    uses: ./.github/workflows/e2e-tests.yaml
+    with:
+      arch: ${{ matrix.arch }}
+      os: ${{ matrix.os }}
+      channel: ${{ matrix.channel }}
+      test-tags: 'conformance_tests'
 
   Trivy:
     permissions:
