@@ -130,7 +130,7 @@ jobs:
           channel: ${{ inputs.channel }}
           artifact: ${{ inputs.artifact }}
       - name: Setup LXD
-        uses: bschimke95/setup-lxd@65e8821d853d13a46f5fd6d9ef540515aef394f3
+        uses: canonical/setup-lxd@51c1b877e874962f7b73faf17db6ec5f44e57888
         with:
           bridges: "lxdbr0,dualstack-br0,ipv6-br0"
       - name: Install tox
