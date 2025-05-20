@@ -194,23 +194,25 @@ def preload_snaps(instance: harness.Instance):
         LOG.info("Snap preloading disabled.")
         return
 
+    preload_dir, remote_dir = Path("/tmp"), Path("/tmp")
     for preloaded_snap in config.PRELOADED_SNAPS:
-        ack_file = f"{preloaded_snap}.assert"
-        remote_path = os.path.join("/tmp", ack_file)
-        instance.send_file(
-            source=f"/tmp/{ack_file}",
-            destination=remote_path,
-        )
-        instance.exec(["snap", "ack", remote_path])
+        ack = preload_dir / f"{preloaded_snap}.assert"
+        snap = preload_dir / f"{preloaded_snap}.snap"
 
-        snap_file = f"{preloaded_snap}.snap"
-        remote_path = os.path.join("/tmp", snap_file)
-        instance.send_file(
-            source=f"/tmp/{snap_file}",
-            destination=remote_path,
-        )
+        LOG.info("Acknowledge snap file %s.", preloaded_snap)
+        remote = remote_dir / ack.name
+        instance.send_file(source=ack.as_posix(), destination=remote.as_posix())
+
+        LOG.info("Wait for snap changes to finish...")
+        stubbornly(retries=20, delay_s=5).on(instance).until(
+            lambda p: "Doing" not in p.stdout.decode()
+        ).exec(["snap", "changes"])
+
+        LOG.info("Install snap file %s.", preloaded_snap)
+        remote = remote_dir / snap.name
+        instance.send_file(source=snap.as_posix(), destination=remote.as_posix())
         stubbornly(retries=3, delay_s=5).on(instance).exec(
-            ["snap", "install", remote_path]
+            ["snap", "install", remote.as_posix()]
         )
 
 
