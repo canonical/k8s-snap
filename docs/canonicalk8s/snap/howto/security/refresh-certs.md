@@ -16,6 +16,12 @@ nodes in your {{product}} cluster.
 initially set up with self-signed certificates during the bootstrap process.
 ```
 
+```{warning}
+This command only refreshes Kubernetes component certificates. The certificates for k8s-dqlite and microcluster are not
+refreshed by this command and are currently not supported for manual renewal. These certificates are valid for 20 years,
+so renewal is typically not necessary.
+```
+
 ### Refresh Control Plane node certificates
 
 1. To refresh the certificates on control plane nodes, perform the following
