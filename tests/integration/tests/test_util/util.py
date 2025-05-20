@@ -209,7 +209,9 @@ def preload_snaps(instance: harness.Instance):
             source=f"/tmp/{snap_file}",
             destination=remote_path,
         )
-        stubbornly(retries=3, delay_s=5).on(instance).exec(["snap", "install", remote_path])
+        stubbornly(retries=3, delay_s=5).on(instance).exec(
+            ["snap", "install", remote_path]
+        )
 
 
 def setup_core_dumps(instance: harness.Instance):
