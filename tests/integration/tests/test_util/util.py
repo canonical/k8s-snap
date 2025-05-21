@@ -204,7 +204,9 @@ def preload_snaps(instance: harness.Instance):
         instance.send_file(source=ack.as_posix(), destination=remote.as_posix())
 
         LOG.info("Running snap ack for %s", remote.as_posix())
-        stubbornly(retries=3, delay_s=2).on(instance).exec(["snap", "ack", remote.as_posix()])
+        stubbornly(retries=3, delay_s=2).on(instance).exec(
+            ["snap", "ack", remote.as_posix()]
+        )
 
         LOG.info("Wait for snap changes to finish...")
         stubbornly(retries=20, delay_s=5).on(instance).until(
