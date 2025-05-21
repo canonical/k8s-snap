@@ -153,7 +153,7 @@ Multipass can also be used to run the tests on Ubuntu Core:
 ```bash
 export TEST_SNAP=$PWD/k8s.snap
 export TEST_SUBSTRATE=multipass
-export TEST_MULTIPASS_IMAGE=core20
+export TEST_MULTIPASS_IMAGE=core22
 
 cd tests/integration && tox -e integration
 ```

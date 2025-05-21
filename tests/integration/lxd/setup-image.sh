@@ -36,7 +36,7 @@ BASE_IMAGE="${BASE_IMAGE:=ubuntu:22.04}"                      # base image
 BASE_DISTRO="${BASE_DISTRO:=ubuntu}"                          # base distro of the image
 
 TEST_SNAP="${TEST_SNAP:=}"                                    # path to './k8s.snap' to test
-BASE_SNAP="${BASE_SNAP:=core20}"                              # base snap to install on the image, e.g. 'core20'
+BASE_SNAP="${BASE_SNAP:=core22}"                              # base snap to install on the image, e.g. 'core22'
 IMAGES=""                                                     # list of images to fetch for side-loading
 
 OUT_IMAGES_DIR="${OUT_IMAGES_DIR:=${DIR}/k8s-e2e-images}"     # directory where OCI images will be fetched
