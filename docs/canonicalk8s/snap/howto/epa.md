@@ -106,7 +106,7 @@ reboot
 
 ```{dropdown} Explanation of boot options
 
--  `intel_iommu=on`: Enables Intel's Input-Output Memory Management Unit (IOMMU), which is used for device virtualisation and Direct Memory Access (DMA) remapping.
+-  `intel_iommu=on`: Enables Intel's Input-Output Memory Management Unit (IOMMU), which is used for device virtualization and Direct Memory Access (DMA) remapping.
 -  `iommu=pt`: Sets the IOMMU to passthrough mode, allowing devices to directly access physical memory without translation.
 -  `usbcore.autosuspend=-1`: Disables USB autosuspend, preventing USB devices from being automatically suspended to save power.
 -  `selinux=0`: Disables Security-Enhanced Linux (SELinux), a security module that provides mandatory access control.
@@ -404,7 +404,7 @@ pc6b-rb4-n3   Ready    worker                 22h   v1.31.0
 ### Multus and SR-IOV setup
 
 Apply the 'thick' Multus plugin (in case of resource scarcity we can consider
-deploying the thin flavour)
+deploying the thin flavor)
 
 ```
 sudo k8s kubectl apply -f https://raw.githubusercontent.com/k8snetworkplumbingwg/multus-cni/master/deployments/multus-daemonset-thick.yml
@@ -559,7 +559,7 @@ pc6b-rb4-n3   Ready    worker                 22h   v1.30.2
 ```
 
 So this example has 1000 huge pages of 1Gi size each and we have a worker node
-labelled properly. Then you can create a Pod that explicitly requests one 1G
+labeled properly. Then you can create a Pod that explicitly requests one 1G
 Huge Page in its resource limits:
 
 ```
@@ -719,7 +719,7 @@ root        9139       1  1 Jul17 ?        00:20:03 /snap/k8s/678/bin/kubelet --
       - `CPU Manager`:  This is a component of Kubelet that manages how CPU resources are allocated to pods running on a node.
       - `Static Policy`:  This policy is designed to provide stricter control over CPU allocation. With the static policy, you can request integer CPUs for your containers (e.g., 1, 2, etc.), and {{product}} will try to assign them to dedicated CPU cores on the node, providing a greater degree of isolation and predictability.
    - `--reserved-cpus=0-31`: This line indicates that no CPUs are reserved for the Kubelet or system processes. This implies that all CPUs might be available for pod scheduling, depending on the cluster's overall resource allocation strategy.
-   - `--topology-manager-policy=best-effort`: This flag sets the topology manager policy to "best-effort." The topology manager helps optimise pod placement on nodes by considering factors like NUMA nodes, CPU cores, and devices. The "best-effort" policy tries to place pods optimally, but it doesn't enforce strict requirements.
+   - `--topology-manager-policy=best-effort`: This flag sets the topology manager policy to "best-effort." The topology manager helps optimize pod placement on nodes by considering factors like NUMA nodes, CPU cores, and devices. The "best-effort" policy tries to place pods optimally, but it doesn't enforce strict requirements.
 ```
 
 You can also confirm the total number of NUMA CPUs available in the worker node.
@@ -1026,7 +1026,7 @@ the correct PCI address:
 
 - [How to enable real-time Ubuntu](https://canonical-ubuntu-pro-client.readthedocs-hosted.com/en/latest/howtoguides/enable\_realtime\_kernel/\#how-to-enable-real-time-ubuntu)
 - [Manage HugePages](https://kubernetes.io/docs/tasks/manage-hugepages/scheduling-hugepages/)
-- [Utilising the NUMA-aware Memory Manager](https://kubernetes.io/docs/tasks/administer-cluster/memory-manager/)
+- [Utilizing the NUMA-aware Memory Manager](https://kubernetes.io/docs/tasks/administer-cluster/memory-manager/)
 - [SR-IOV Network Device Plugin for Kubernetes](https://github.com/k8snetworkplumbingwg/sriov-network-device-plugin)
 - [VMware Telco Cloud Automation \- EPA](https://docs.vmware.com/en/VMware-Telco-Cloud-Automation/3.1.1/com-vmware-tca-userguide/GUID-3F4BA111-D344-4022-A635-7D5774385EF8.html)
 

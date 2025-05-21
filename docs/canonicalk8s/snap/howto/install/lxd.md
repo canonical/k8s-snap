@@ -73,7 +73,7 @@ and use this to access services running inside the VM.
 ### Expose services to the VM
 
 You’ll need to expose the deployment or service to the VM itself before
-you can access it via the LXD VM’s IP address. This can be done using
+you can access it via the LXD VM's IP address. This can be done using
 `k8s kubectl expose`. This example will expose the deployment’s port 80 to a
 port assigned by Kubernetes.
 
@@ -141,7 +141,7 @@ NAME               TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
 microbot-service   NodePort   10.152.183.188   <none>        80:32750/TCP   27m
 ```
 
-With this, access Microbot from our host but using the VM’s address that we
+With this, access Microbot from our host but using the VM's address that we
 noted earlier.
 
 ```

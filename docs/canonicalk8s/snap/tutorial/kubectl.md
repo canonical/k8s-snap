@@ -116,7 +116,7 @@ Now, go back to your original terminal and run:
 sudo k8s kubectl delete pods -l app=nginx
 ```
 
-The above command deletes all pods in the cluster that are labelled with
+The above command deletes all pods in the cluster that are labeled with
 `app=nginx`.
 
 You'll notice the original 3 pods will have a status of `Terminating` and 3 new

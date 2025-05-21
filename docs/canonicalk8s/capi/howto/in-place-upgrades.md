@@ -76,7 +76,7 @@ On a successful upgrade:
 
 The upgrade is retried periodically if the operation was unsuccessful.
 
-The upgrade can be cancelled by running the following commands
+The upgrade can be canceled by running the following commands
 that remove the annotations:
 
 ```
