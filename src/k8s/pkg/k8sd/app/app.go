@@ -11,9 +11,10 @@ import (
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	"github.com/canonical/k8s/pkg/k8sd/api"
 	"github.com/canonical/k8s/pkg/k8sd/controllers"
-	"github.com/canonical/k8s/pkg/k8sd/controllers/csrsigning"
 	"github.com/canonical/k8s/pkg/k8sd/controllers/upgrade"
 	"github.com/canonical/k8s/pkg/k8sd/database"
+	"github.com/canonical/k8s/pkg/k8sd/features"
+	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils/control"
@@ -68,8 +69,7 @@ type App struct {
 	nodeConfigController         *controllers.NodeConfigurationController
 	nodeLabelController          *controllers.NodeLabelController
 	controlPlaneConfigController *controllers.ControlPlaneConfigurationController
-	csrsigningController         *csrsigning.Controller
-	upgradeController            *upgrade.Controller
+	controllerCoordinator        *controllers.Coordinator
 
 	// updateNodeConfigController
 	triggerUpdateNodeConfigControllerCh chan struct{}
@@ -182,37 +182,27 @@ func New(cfg Config) (*App, error) {
 		log.L().Info("feature-controller disabled via config")
 	}
 
-	if !cfg.DisableCSRSigningController {
-		app.csrsigningController = csrsigning.New(csrsigning.Options{
-			Snap:           cfg.Snap,
-			WaitReady:      app.readyWg.Wait,
-			LeaderElection: true,
-		})
-	} else {
-		log.L().Info("csrsigning-controller disabled via config")
-	}
-
-	if !cfg.DisableUpgradeController {
-		app.upgradeController = upgrade.NewController(upgrade.ControllerOptions{
-			Snap:                     cfg.Snap,
-			WaitReady:                app.readyWg.Wait,
+	app.controllerCoordinator = controllers.NewCoordinator(
+		cfg.Snap,
+		app.readyWg.Wait,
+		cfg.DisableUpgradeController,
+		upgrade.ControllerOptions{
 			FeatureControllerReadyCh: app.featureController.ReadyCh(),
 			NotifyFeatureController:  app.NotifyFeatureController,
-			FeatureToReconciledCh: map[string]<-chan struct{}{
-				"network":        app.featureController.ReconciledNetworkCh(),
-				"gateway":        app.featureController.ReconciledGatewayCh(),
-				"ingress":        app.featureController.ReconciledIngressCh(),
-				"dns":            app.featureController.ReconciledDNSCh(),
-				"load-balancer":  app.featureController.ReconciledLoadBalancerCh(),
-				"local-storage":  app.featureController.ReconciledLocalStorageCh(),
-				"metrics-server": app.featureController.ReconciledMetricsServerCh(),
+			FeatureToReconciledCh: map[types.FeatureName]<-chan struct{}{
+				features.Network:       app.featureController.ReconciledNetworkCh(),
+				features.Gateway:       app.featureController.ReconciledGatewayCh(),
+				features.Ingress:       app.featureController.ReconciledIngressCh(),
+				features.DNS:           app.featureController.ReconciledDNSCh(),
+				features.LoadBalancer:  app.featureController.ReconciledLoadBalancerCh(),
+				features.LocalStorage:  app.featureController.ReconciledLocalStorageCh(),
+				features.MetricsServer: app.featureController.ReconciledMetricsServerCh(),
 			},
 			FeatureControllerReadyTimeout:     10 * time.Minute,
 			FeatureControllerReconcileTimeout: 10 * time.Minute,
-		})
-	} else {
-		log.L().Info("upgrade-controller disabled via config")
-	}
+		},
+		cfg.DisableCSRSigningController,
+	)
 
 	return app, nil
 }
