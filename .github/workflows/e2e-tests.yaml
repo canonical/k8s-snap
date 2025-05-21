@@ -65,6 +65,18 @@ on:
         description: Start a tmate session before running the tests
         required: false
         default: false
+      log-file-level:
+        description: Log file logging level
+        default: "DEBUG"
+        type: string
+      log-cli:
+        description: Enable logs to the console
+        default: true
+        type: boolean
+      log-cli-level:
+        description: Log CLI logging level
+        default: "INFO"
+        type: string
 
 jobs:
   test-integration:
@@ -99,6 +111,10 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.tmate_enabled }}
       - name: Run e2e tests
         env:
+          TEST_LOG_CLI: ${{ inputs.log-cli }}
+          TEST_LOG_CLI_LEVEL: ${{ inputs.log-cli-level }}
+          TEST_LOG_FILE_PATH: ${{ github.workspace }}/e2e.log
+          TEST_LOG_FILE_LEVEL: ${{ inputs.log-file-level }}
           TEST_SNAP: ${{ steps.download-snap.outputs.snap-path }}
           TEST_SUBSTRATE: lxd
           TEST_LXD_IMAGE: ${{ inputs.os }}
@@ -114,17 +130,25 @@ jobs:
           TEST_GH_BASE_REF: ${{ github.base_ref }}
         run: |
           cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- --tags ${{ inputs.test-tags }} ${{ inputs.extra-test-args }}
-      - name: Prepare inspection reports
+      - name: Prepare debug suffix
         if: failure()
         run: |
           tar -czvf inspection-reports.tar.gz -C ${{ github.workspace }} inspection-reports
-          echo "artifact_name=inspection-reports-${{ inputs.os }}-${{ inputs.arch }}" | sed 's/:/-/g' >> $GITHUB_ENV
+          RANDOM_SUFFIX=$(printf "%04X" $((RANDOM % 65536)))  # Generate a 4-character hex string
+          echo "artifact_suffix=${{ inputs.os }}-${{ inputs.arch }}-${{ inputs.flavor }}-${RANDOM_SUFFIX}" | sed 's/:/-/g' >> $GITHUB_ENV
+
       - name: Upload inspection report artifact
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.artifact_name }}
+          name: inspection-reports-${{ env.artifact_suffix }}
           path: ${{ github.workspace }}/inspection-reports.tar.gz
+      - name: Upload debug logs artifact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-logs-${{ env.artifact_suffix }}
+          path: ${{ github.workspace }}/e2e.log
       - name: Upload CNCF conformance report artifact
         if: ${{ failure() && contains(inputs.test-tags, 'conformance_tests') }}
         uses: actions/upload-artifact@v4

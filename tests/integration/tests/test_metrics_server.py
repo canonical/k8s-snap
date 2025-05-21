@@ -18,11 +18,11 @@ def test_metrics_server(instances: List[harness.Instance]):
     util.wait_for_network(instance)
     util.wait_for_dns(instance)
 
-    LOG.info("Waiting for metrics-server pod to show up...")
+    LOG.debug("Waiting for metrics-server pod to show up...")
     util.stubbornly(retries=15, delay_s=5).on(instance).until(
         lambda p: "metrics-server" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "pod", "-n", "kube-system", "-o", "json"])
-    LOG.info("Metrics-server pod showed up.")
+    LOG.debug("Metrics-server pod showed up.")
 
     util.stubbornly(retries=3, delay_s=1).on(instance).exec(
         [

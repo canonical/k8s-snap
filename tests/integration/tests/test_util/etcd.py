@@ -51,7 +51,7 @@ class EtcdCluster:
         Add a new node to the etcd cluster.
         If this is the first cluster node, the required certificates will be generated.
         """
-        LOG.info("Setup etcd node")
+        LOG.debug("Setup etcd node")
         join_existing = len(self.instances) > 0
 
         instance = self.harness.new_instance()
