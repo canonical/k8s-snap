@@ -73,7 +73,7 @@ jobs:
     runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-latest-arm64' || 'ubuntu-latest' }}
     outputs:
       snap-path: ${{ steps.download-snap.outputs.snap-path }}
-      test-files: ${{ steps.find-test-files.outputs.test-files }}
+      tests: ${{ steps.find-test-files.outputs.tests }}
       uuid: ${{ env.UUID }}
     steps:
       - name: Check out code
@@ -97,22 +97,33 @@ jobs:
         id: find-test-files
         run: |
           cd tests/integration
-          TEST_FILES=$(tox -e collect-tests -- --collect-only tests/ --tags "${{ inputs.test-tags }}" \
+          # Split the input tags into an array and pass them as individual args
+          IFS=' ' read -ra TAGS <<< "${{ inputs.test-tags }}"
+          TAGS_ARGS=""
+          for tag in "${TAGS[@]}"; do
+            TAGS_ARGS="$TAGS_ARGS --tags $tag"
+          done
+
+          # Collect test names and convert to JSON array for GitHub Actions
+          TEST_FILES=$(tox -e collect-tests -- --collect-only tests/ $TAGS_ARGS \
             | grep -E "tests/test_.*\.py" \
             | sed -E 's/.*::([a-zA-Z0-9_]+).*/\1/' \
             | sort -u)
-          echo "test-files=$TEST_FILES" >> $GITHUB_OUTPUT
+          
+          # Convert to JSON array for GitHub Actions
+          JSON_ARRAY=$(echo "$TEST_FILES" | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "tests=$JSON_ARRAY" >> $GITHUB_OUTPUT
           echo "Found test files: $TEST_FILES"
 
   # Second job: Run each test in a separate runner
   run-tests:
-    name: Run ${{ matrix.test-file }} - ${{ inputs.os }}-${{ inputs.arch }}
+    name: Run ${{ matrix.test }} - ${{ inputs.os }}-${{ inputs.arch }}
     needs: prepare
     runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-latest-arm64' || 'ubuntu-latest' }}
     strategy:
       fail-fast: false
       matrix:
-        test-file: ${{ fromJson(needs.prepare.outputs.test-files) }}
+        test: ${{ fromJson(needs.prepare.outputs.tests) }}
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -133,13 +144,13 @@ jobs:
       - name: Setup tmate session
         uses: canonical/action-tmate@main
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.tmate_enabled }}
-      - name: Run ${{ matrix.test-file }} test
+      - name: Run ${{ matrix.test }} test
         env:
           TEST_SNAP: ${{ needs.prepare.outputs.snap-path }}
           TEST_SUBSTRATE: lxd
           TEST_LXD_IMAGE: ${{ inputs.os }}
           TEST_FLAVOR: ${{ inputs.flavor }}
-          TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports/${{ matrix.test-file }}
+          TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports/${{ matrix.test }}
           TEST_VERSION_UPGRADE_CHANNELS: "recent 6"
           # TODO(etienne): change to "recent" when 1.33 is stable
           TEST_VERSION_DOWNGRADE_CHANNELS: "1.32-classic/stable 1.32-classic/beta 1.31-classic/stable 1.31-classic/beta"
@@ -149,27 +160,27 @@ jobs:
           TEST_GH_REF: ${{ github.ref_name }}
           TEST_GH_BASE_REF: ${{ github.base_ref }}
         run: |
-          cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- -xvs tests/${{ matrix.test-file }} --tags ${{ inputs.test-tags }} ${{ inputs.extra-test-args }}
+          cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- -k ${{ matrix.test }} ${{ inputs.extra-test-args }}
       - name: Prepare inspection reports
         if: failure()
         run: |
           mkdir -p inspection-report-archives
-          tar -czvf inspection-report-archives/${{ matrix.test-file }}.tar.gz -C ${{ github.workspace }} inspection-reports/${{ matrix.test-file }} || true
+          tar -czvf inspection-report-archives/${{ matrix.test }}.tar.gz -C ${{ github.workspace }} inspection-reports/${{ matrix.test }} || true
       - name: Upload inspection report artifact
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: inspection-reports-${{ matrix.test-file }}-${{ inputs.os }}-${{ inputs.arch }}
-          path: ${{ github.workspace }}/inspection-report-archives/${{ matrix.test-file }}.tar.gz
+          name: inspection-reports-${{ matrix.test }}-${{ inputs.os }}-${{ inputs.arch }}
+          path: ${{ github.workspace }}/inspection-report-archives/${{ matrix.test }}.tar.gz
       - name: Upload CNCF conformance report artifact
         if: ${{ failure() && contains(inputs.test-tags, 'conformance_tests') }}
         uses: actions/upload-artifact@v4
         with:
-          name: sonobuoy-e2e-${{ matrix.test-file }}-${{ inputs.os }}-${{ inputs.arch }}
+          name: sonobuoy-e2e-${{ matrix.test }}-${{ inputs.os }}-${{ inputs.arch }}
           path: tests/integration/sonobuoy_e2e.tar.gz
       - name: Upload html test report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: subunit-${{ matrix.test-file }}-${{ env.UUID }}.html
+          name: subunit-${{ matrix.test }}-${{ env.UUID }}.html
           path: tests/integration/subunit.html
