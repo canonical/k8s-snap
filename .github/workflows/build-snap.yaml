@@ -28,7 +28,7 @@ jobs:
         run: |
           ./build-scripts/patches/${{ inputs.flavor }}/apply
       - name: Setup LXD
-        uses: canonical/setup-lxd@51c1b877e874962f7b73faf17db6ec5f44e57888
+        uses: canonical/setup-lxd@v0.1.3
       - name: Install snapcraft
         run: |
           sudo snap install snapcraft --classic
