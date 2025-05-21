@@ -138,7 +138,7 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.tmate_enabled }}
       - name: Run ${{ matrix.test }} test
         env:
-          TEST_SNAP: ${{ download-snap.outputs.snap-path }}
+          TEST_SNAP: ${{ steps.download-snap.outputs.snap-path }}
           TEST_SUBSTRATE: lxd
           TEST_LXD_IMAGE: ${{ inputs.os }}
           TEST_FLAVOR: ${{ inputs.flavor }}
