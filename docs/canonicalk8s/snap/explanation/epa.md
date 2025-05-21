@@ -5,7 +5,7 @@ across various layers of the orchestration stack.
 
 EPA focuses on discovering, scheduling and isolating server hardware
 capabilities. This document provides a detailed guide of how EPA applies to
-{{product}}, which centre around the following technologies:
+{{product}}, which center around the following technologies:
 
 -  **HugePage support**: In GA from Kubernetes v1.14, this feature enables the
    discovery, scheduling and allocation of HugePages as a first-class
@@ -14,16 +14,16 @@ capabilities. This document provides a detailed guide of how EPA applies to
    predictable time frame, providing the low latency and high determinism
    essential for time-sensitive applications.
 -  **CPU pinning** (CPU Manager for Kubernetes (CMK)): In GA from Kubernetes
-   v1.26, provides mechanisms for CPU pinning and isolation of containerised
+   v1.26, provides mechanisms for CPU pinning and isolation of containerized
    workloads.
 -  **NUMA topology awareness**: Ensures that CPU and memory allocation are
    aligned according to the NUMA architecture, reducing memory latency and
    increasing performance for memory-intensive applications.
--  **Single Root I/O Virtualisation (SR-IOV)**: Enhances networking by enabling
-   virtualisation of a single physical network device into multiple virtual
+-  **Single Root I/O Virtualization (SR-IOV)**: Enhances networking by enabling
+   virtualization of a single physical network device into multiple virtual
    devices.
 -  **DPDK (Data Plane Development Kit)**: A set of libraries and drivers for
-   fast packet processing, designed to run in user space, optimising network
+   fast packet processing, designed to run in user space, optimizing network
    performance and reducing latency.
 
 This document provides relevant links to detailed instructions for setting up
@@ -72,7 +72,7 @@ are the key architectural components and their roles:
    HugePages. This involves setting the number of HugePages in the node's
    kernel boot parameters.
 -  **Kubelet configuration**: The `kubelet` on each node must be configured to
-   recognise and manage HugePages. This is typically done through the `kubelet`
+   recognize and manage HugePages. This is typically done through the `kubelet`
    configuration file, specifying the size and number of HugePages.
 -  **Pod specification**: HugePages are requested and allocated at the pod
    level through resource requests and limits in the pod specification. Pods
@@ -81,7 +81,7 @@ are the key architectural components and their roles:
    resource and schedules pods onto nodes that have sufficient HugePages
    available. This ensures that pods with HugePages requirements are placed
    appropriately. Scheduler configurations and policies can be adjusted to
-   optimise HugePages allocation and utilisation.
+   optimize HugePages allocation and utilization.
 -  **Node Feature Discovery (NFD)**: Node Feature Discovery can be used to
    label nodes with their HugePages capabilities. This enables scheduling
    decisions to be based on the available HugePages resources.
@@ -89,10 +89,10 @@ are the key architectural components and their roles:
    quotas and limits to control the allocation of HugePages across namespaces.
    This helps in managing and isolating resource usage effectively.
 -  **Monitoring and metrics**: Kubernetes provides tools and integrations
-   (e.g., Prometheus, Grafana) to monitor and visualise HugePages usage across
-   the cluster. This helps in tracking resource utilisation and performance.
+   (e.g., Prometheus, Grafana) to monitor and visualize HugePages usage across
+   the cluster. This helps in tracking resource utilization and performance.
    Metrics can include HugePages allocation, usage and availability on each
-   node, aiding in capacity planning and optimisation.
+   node, aiding in capacity planning and optimization.
 
 ## Real-time kernel
 
@@ -106,7 +106,7 @@ designed with these considerations.
 -  **Predictable task execution**: A real-time kernel ensures that
    high-priority tasks are run within a predictable and bounded time frame,
    reducing the variability in task execution time.
--  **Low latency**: The kernel is optimised to minimise the time it takes to
+-  **Low latency**: The kernel is optimized to minimize the time it takes to
    respond to high-priority tasks, which is crucial for applications that
    require immediate processing.
 -  **Priority-based scheduling**: Tasks are scheduled based on their priority
@@ -121,7 +121,7 @@ designed with these considerations.
 -  **Resource reservation**: System resources (such as CPU and memory) can be
    reserved by the kernel for real-time tasks, ensuring that these resources
    are available when needed.
--  **Enhanced interrupt handling**: Interrupt handling is optimised to ensure
+-  **Enhanced interrupt handling**: Interrupt handling is optimized to ensure
    minimal latency and jitter, which is critical for maintaining the
    performance of real-time applications.
 -  **Real-time scheduling policies**: The kernel includes specific scheduling
@@ -142,10 +142,10 @@ key architectural components and their roles:
    kernel. This involves installing a real-time kernel package and configuring
    the system to use it.
 -  **Kernel boot parameters**: The kernel boot parameters must be configured to
-   optimise for real-time performance. This includes isolating CPU cores and
+   optimize for real-time performance. This includes isolating CPU cores and
    configuring other kernel parameters for real-time behavior.
 -  **Kubelet configuration**: The `kubelet` on each node must be configured to
-   recognise and manage real-time workloads. This can involve setting specific
+   recognize and manage real-time workloads. This can involve setting specific
    `kubelet` flags and configurations.
 -  **Pod specification**: Real-time workloads are specified at the pod level
    through resource requests and limits. Pods can request dedicated CPU cores
@@ -155,7 +155,7 @@ key architectural components and their roles:
    containers, ensuring that specific CPU cores are dedicated to particular
    workloads.
 -  **Scheduler awareness**: The Kubernetes scheduler must be aware of real-time
-   requirements and prioritise scheduling pods onto nodes with available
+   requirements and prioritize scheduling pods onto nodes with available
    real-time resources.
 -  **Priority and preemption**: Kubernetes supports priority and preemption to
    ensure that critical real-time pods are scheduled and run as needed. This
@@ -165,9 +165,9 @@ key architectural components and their roles:
    and limits to control the allocation of resources for real-time workloads
    across namespaces. This helps manage and isolate resource usage effectively.
 -  **Monitoring and metrics**: Monitoring tools such as Prometheus and Grafana
-   can be used to track the performance and resource utilisation of real-time
+   can be used to track the performance and resource utilization of real-time
    workloads. Metrics include CPU usage, latency and task scheduling times,
-   which help in optimising and troubleshooting real-time applications.
+   which help in optimizing and troubleshooting real-time applications.
 -  **Security and isolation**: Security contexts and isolation mechanisms
    ensure that real-time workloads are protected and run in a controlled
    environment. This includes setting privileged containers and configuring
@@ -184,9 +184,9 @@ time, which reduces context switching and cache invalidation.
 -  **Dedicated CPU Cores**: CPU pinning allocates specific CPU cores to a
    process or container, ensuring consistent and predictable CPU usage.
 -  **Reduced context switching**: By running a process or container on the same
-   CPU core(s), CPU pinning minimises the overhead associated with context
+   CPU core(s), CPU pinning minimizes the overhead associated with context
    switching, leading to better performance.
--  **Improved cache utilisation**: When a process runs on a dedicated CPU core,
+-  **Improved cache utilization**: When a process runs on a dedicated CPU core,
    it can take full advantage of the CPU cache, reducing the need to fetch data
    from main memory and improving overall performance.
 -  **Enhanced application performance**: Applications that require low latency
@@ -241,9 +241,9 @@ are the key architectural components and their roles:
    and limits to control the allocation of CPU resources across namespaces.
    This helps in managing and isolating resource usage effectively.
 -  **Monitoring and metrics**: Monitoring tools such as Prometheus and Grafana
-   can be used to track the performance and resource utilisation of CPU-pinned
+   can be used to track the performance and resource utilization of CPU-pinned
    workloads. Metrics include CPU usage, core allocation and task scheduling
-   times, which help in optimising and troubleshooting performance-sensitive
+   times, which help in optimizing and troubleshooting performance-sensitive
    applications.
 -  **Isolation and security**: Security contexts and isolation mechanisms
    ensure that CPU-pinned workloads are protected and run in a controlled
@@ -251,7 +251,7 @@ are the key architectural components and their roles:
    namespaces to avoid resource contention.
 -  **Performance Tuning**: Additional performance tuning can be achieved by
    isolating CPU cores at the OS level and configuring kernel parameters to
-   minimise interference from other processes. This includes setting CPU
+   minimize interference from other processes. This includes setting CPU
    isolation and `nohz_full` parameters (reduces the number of scheduling-clock
    interrupts, improving energy efficiency and [reducing OS jitter][no_hz]).
 
@@ -278,26 +278,26 @@ allocated from a minimum number of NUMA nodes.
 
 -  **Aligned CPU and memory allocation**: NUMA topology awareness ensures that
    CPUs and memory are allocated in alignment with the NUMA architecture,
-   minimising cross-node memory access latency.
+   minimizing cross-node memory access latency.
 -  **Reduced memory latency**: By ensuring that memory is accessed from the
    same NUMA node as the CPU, NUMA topology awareness reduces memory latency,
    leading to improved performance for memory-intensive applications.
 -  **Increased performance**: Applications benefit from increased performance
-   due to optimised memory access patterns, which is especially critical for
+   due to optimized memory access patterns, which is especially critical for
    high-performance computing and data-intensive tasks.
 -  **Kubernetes Memory Manager**: The Kubernetes Memory Manager supports
    guaranteed memory allocation for pods in the Guaranteed QoS (Quality of
    Service) class, ensuring predictable performance.
 -  **Hint generation protocol**: The Memory Manager uses a hint generation
    protocol to determine the most suitable NUMA affinity for a pod, helping to
-   optimise resource allocation based on NUMA topology.
+   optimize resource allocation based on NUMA topology.
 -  **Integration with Topology Manager**: The Memory Manager provides NUMA
    affinity hints to the Topology Manager. The Topology Manager then decides
    whether to admit or reject the pod based on these hints and the configured
    policy.
--  **Optimised resource allocation**: The Memory Manager ensures that the
+-  **Optimized resource allocation**: The Memory Manager ensures that the
    memory requested by a pod is allocated from the minimum number of NUMA
-   nodes, thereby optimising resource usage and performance.
+   nodes, thereby optimizing resource usage and performance.
 -  **Enhanced scheduling decisions**: The Kubernetes scheduler, in conjunction
    with the Topology Manager, makes informed decisions about pod placement to
    ensure optimal NUMA alignment, improving overall cluster efficiency.
@@ -317,7 +317,7 @@ allocated from a minimum number of NUMA nodes.
 
 The architecture for NUMA topology awareness in Kubernetes involves several
 components and configurations to ensure that CPU and memory allocations are
-optimised according to the NUMA architecture. This setup reduces memory latency
+optimized according to the NUMA architecture. This setup reduces memory latency
 and enhances performance for memory intensive applications. Here are the key
 architectural components and their roles:
 
@@ -342,7 +342,7 @@ architectural components and their roles:
 -  **Scheduler awareness**: The Kubernetes scheduler works in conjunction with
    the Topology Manager to place pods on nodes that meet their NUMA affinity
    requirements. The scheduler considers NUMA topology during the scheduling
-   process to optimise performance.
+   process to optimize performance.
 -  **Node Feature Discovery (NFD)**: Node Feature Discovery can be used to
    label nodes with their NUMA capabilities, providing the scheduler with
    information to make more informed placement decisions.
@@ -350,9 +350,9 @@ architectural components and their roles:
    and limits to control the allocation of NUMA-aware resources across
    namespaces. This helps in managing and isolating resource usage effectively.
 -  **Monitoring and metrics**: Monitoring tools such as Prometheus and Grafana
-   can be used to track the performance and resource utilisation of NUMA-aware
+   can be used to track the performance and resource utilization of NUMA-aware
    workloads. Metrics include CPU and memory usage per NUMA node, helping in
-   optimising and troubleshooting performance-sensitive applications.
+   optimizing and troubleshooting performance-sensitive applications.
 -  **Isolation and security**: Security contexts and isolation mechanisms
    ensure that NUMA-aware workloads are protected and run in a controlled
    environment. This includes setting privileged containers and configuring
@@ -361,7 +361,7 @@ architectural components and their roles:
    configuring kernel parameters and using tools like `numactl` to bind
    processes to specific NUMA nodes.
 
-## SR-IOV (Single Root I/O Virtualisation)
+## SR-IOV (Single Root I/O Virtualization)
 
 SR-IOV enables a single physical network device to appear as multiple separate
 virtual devices. This can be beneficial for network-intensive applications that
@@ -379,7 +379,7 @@ require direct access to the network hardware.
 -  **Improved network throughput**: Applications can achieve higher network
    throughput as SR-IOV enables high-speed data transfer directly
    between the network device and the application.
--  **Reduced CPU utilisation**: Offloading network processing to the hardware
+-  **Reduced CPU utilization**: Offloading network processing to the hardware
    reduces the CPU load on the host system, freeing up CPU resources for other
    tasks and improving overall system performance.
 -  **Isolation and security**: Each virtual function (VF) is isolated from
@@ -388,13 +388,13 @@ require direct access to the network hardware.
 -  **Dynamic resource allocation**: SR-IOV supports dynamic allocation of
    virtual functions, enabling resources to be adjusted based on application
    demands without requiring changes to the physical hardware setup.
--  **Enhanced virtualisation support**: SR-IOV is particularly beneficial in
+-  **Enhanced virtualization support**: SR-IOV is particularly beneficial in
    virtualised environments, enabling better network performance for virtual
    machines and containers by providing them with dedicated network interfaces.
 -  **Kubernetes integration**: Kubernetes supports SR-IOV through the use of
    network device plugins, enabling the automatic discovery, allocation,
    and management of virtual functions.
--  **Compatibility with Network Functions Virtualisation (NFV)**: SR-IOV is
+-  **Compatibility with Network Functions Virtualization (NFV)**: SR-IOV is
    widely used in NFV deployments to meet the high-performance networking
    requirements of virtual network functions (VNFs), such as firewalls,
    routers and load balancers.
@@ -404,7 +404,7 @@ require direct access to the network hardware.
 
 ### Application to Kubernetes
 
-The architecture for SR-IOV (Single Root I/O Virtualisation) in Kubernetes
+The architecture for SR-IOV (Single Root I/O Virtualization) in Kubernetes
 involves several components and configurations to ensure that virtual functions
 (VFs) from a single physical network device can be managed and allocated
 efficiently. This setup enhances network performance and provides direct access
@@ -435,9 +435,9 @@ Here are the key architectural components and their roles:
    resource quotas and limits to control the allocation of SR-IOV resources
    across namespaces. This helps manage and isolate resource usage effectively.
 -  **Monitoring and metrics**: Monitoring tools such as Prometheus and Grafana
-   can be used to track the performance and resource utilisation of
+   can be used to track the performance and resource utilization of
    SR-IOV-enabled workloads. Metrics include VF allocation, network throughput,
-   and latency, helping optimise and troubleshoot performance-sensitive
+   and latency, helping optimize and troubleshoot performance-sensitive
    applications.
 -  **Isolation and security**: SR-IOV provides isolation between VFs, ensuring
    that each VF operates independently and securely. This isolation is critical
@@ -453,10 +453,10 @@ Here are the key architectural components and their roles:
 The Data Plane Development Kit (DPDK) is a set of libraries and drivers for
 fast packet processing. It is designed to run in user space, so that
 applications can achieve high-speed packet processing by bypassing the kernel.
-DPDK is used to optimise network performance and reduce latency, making it
+DPDK is used to optimize network performance and reduce latency, making it
 ideal for applications that require high-throughput and low-latency networking,
-such as telecommunications, cloud data centres and network functions
-virtualisation (NFV).
+such as telecommunications, cloud data centers and network functions
+virtualization (NFV).
 
 ### Key features
 

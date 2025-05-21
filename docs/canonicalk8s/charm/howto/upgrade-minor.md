@@ -117,7 +117,7 @@ Otherwise, complete the [Upgrade Patch](upgrade-patch) instructions first.
 
 ```{caution} Only update the charm to the next minor version.
 If the current `charm-channel` is `1.31/stable`, it's critical
-to refresh to the `1.32/stable`. Skipping channels (eg 1.31 -> 1.33)
+to refresh to the `1.32/stable`. Skipping channels (e.g. 1.31 -> 1.33)
 will result in the units blocking and indicating they cannot upgrade.
 
 See Kubernetes' [Version Skew Policy][version-skew-policy]

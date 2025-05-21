@@ -142,7 +142,7 @@ the [main repository for the {{product}} snap][code repo].
 
 This documentation has adopted the Diátaxis framework. You can read more about
 it on the [Diátaxis website]. In essence though, this guides the way we
-categorise and write our documentation. You can see there are four main
+categorize and write our documentation. You can see there are four main
 categories of documentation:
 
 - **Tutorials** for guided walk-throughs

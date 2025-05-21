@@ -91,13 +91,13 @@ You will observe at least four pods running. The status of the pods may be in
 
 The functions of these pods are:
 
-- **CoreDNS (coredns)**: Provides DNS resolution services.
-- **Network operator (cilium-operator)**: Manages the life-cycle of the
+- **CoreDNS (`coredns`)**: Provides DNS resolution services.
+- **Network operator (`cilium-operator`)**: Manages the life-cycle of the
 networking solution.
-- **Network agent (cilium)**: Facilitates network management.
-- **Storage controller (ck-storage-rawfile-csi-controller)**: Manages the
+- **Network agent (`cilium`)**: Facilitates network management.
+- **Storage controller (`ck-storage-rawfile-csi-controller`)**: Manages the
 life-cycle of the local storage solution.
-- **Storage agent (ck-storage-rawfile-csi-node)** : Facilitates local storage
+- **Storage agent (`ck-storage-rawfile-csi-node`)** : Facilitates local storage
 management.
 
 

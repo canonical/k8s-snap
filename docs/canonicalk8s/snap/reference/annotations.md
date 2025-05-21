@@ -30,7 +30,7 @@ v1alpha annotations are experimental and subject to change or removal in future 
 |                 |                                                                                                                                                                                                                                                   |
 |-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **Values**      | "true"\|"false"                                                                                                                                                                                                                                   |
-| **Description** | If set, only MicroCluster and file cleanup are performed.  This is helpful when an external controller (e.g., CAPI) manages the Kubernetes node lifecycle. By default,  k8sd will remove the Kubernetes node when it is removed from the cluster. |
+| **Description** | If set, only Microcluster and file cleanup are performed.  This is helpful when an external controller (e.g., CAPI) manages the Kubernetes node lifecycle. By default,  k8sd will remove the Kubernetes node when it is removed from the cluster. |
 
 ## `k8sd/v1alpha/lifecycle/skip-stop-services-on-remove`
 
