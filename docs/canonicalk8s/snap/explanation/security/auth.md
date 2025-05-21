@@ -22,13 +22,13 @@ permissions). By default, {{product}} includes:
 Authentication in {{product}} ensures that users and components are who they
 claim to be. The following methods are included by default:
 
-#### Client certificates
+### Client certificates
 
 - The Kubernetes API server is configured to trust specific client certificates.
 - Certificates are issued to admin users during cluster creation.
 - These can be seen by running `k8s config` on a control plane node.
 
-#### Service accounts
+### Service accounts
 
 - Every pod in Kubernetes is automatically assigned a service account, unless
   specified otherwise.
@@ -53,7 +53,7 @@ After authentication, Kubernetes checks whether the user or service account is
 authorized to perform a requested action. In {{product}}, this is done through
 Role-Based Access Control.
 
-#### Role-Based Access Control (RBAC)
+### Role-Based Access Control (RBAC)
 
 RBAC Authorization in {{product}} is done through the following types of
 Kubernetes objects:
