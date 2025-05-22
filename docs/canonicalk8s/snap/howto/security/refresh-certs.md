@@ -8,21 +8,17 @@ security risks. This how-to will walk you through
 the steps to refresh the certificates for both control plane and worker
 nodes in your {{product}} cluster.
 
+```{warning}
+Only Kubernetes component certificates refreshes are supported with the `k8s refresh-certs` command. Microcluster and k8s-dqlite certificates' expiration is set to 20 years, so renewal is not typically necessary. They are not automatically renewed by the command and currently cannot be refreshed manually.
+Additionally, like upstream Kubernetes, rotating the Certificate Authority (CA) is not supported.
+```
+
 ## Prerequisites
 
-- A running {{product}} cluster
+- A running {{product}} cluster that has self-signed certificates enabled. This would have been set during the bootstrap process.
 
 ```{note} To refresh the certificates in your cluster, make sure it was
 initially set up with self-signed certificates during the bootstrap process.
-## Prerequisites
-- A running {{product}} cluster that has self-signed certificates enabled. This would have been set during the bootstrap process.
-
-```{warning}
-Only Kubernetes component certificates refreshes are supported with the `k8s refresh-certs` command. Microcluster and k8s-dqlite certificates' expiration is set to 20 years, so renewal is not typically necessary. They are not automatically renewed by the command and currently cannot be refreshed manually.
-
-Additionally, like upstream Kubernetes, rotating the Certificate Authority (CA) is not supported.
-refreshed by this command and are currently not supported for manual renewal. These certificates are valid for 20 years,
-so renewal is typically not necessary. Additionally, rotating the Certificate Authority (CA) is not supported.
 ```
 
 ### Refresh Control Plane node certificates
