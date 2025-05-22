@@ -18,7 +18,9 @@ initially set up with self-signed certificates during the bootstrap process.
 - A running {{product}} cluster that has self-signed certificates enabled. This would have been set during the bootstrap process.
 
 ```{warning}
-This command only refreshes Kubernetes component certificates. The certificates for k8s-dqlite and microcluster are not
+Only Kubernetes component certificates refreshes are supported with the `k8s refresh-certs` command. Microcluster and k8s-dqlite certificates' expiration is set to 20 years, so renewal is not typically necessary. They are not automatically renewed by the command and currently cannot be refreshed manually.
+
+Additionally, like upstream Kubernetes, rotating the Certificate Authority (CA) is not supported.
 refreshed by this command and are currently not supported for manual renewal. These certificates are valid for 20 years,
 so renewal is typically not necessary. Additionally, rotating the Certificate Authority (CA) is not supported.
 ```
