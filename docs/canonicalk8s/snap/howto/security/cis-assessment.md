@@ -789,7 +789,8 @@ Ensure that the `--DenyServiceExternalIPs` is not set
 
 **Remediation:**
 
-Edit the API server configuration file `/var/snap/k8s/common/args/kube-apiserver`
+Edit the API server configuration file
+`/var/snap/k8s/common/args/kube-apiserver`
 on the control plane node and remove the
 `DenyServiceExternalIPs`
 from enabled admission plugins.
@@ -946,7 +947,8 @@ Ensure that the `--authorization-mode` argument includes RBAC
 
 **Remediation:**
 
-Edit the API server configuration file `/var/snap/k8s/common/args/kube-apiserver`
+Edit the API server configuration file
+`/var/snap/k8s/common/args/kube-apiserver`
 on the control plane node and set the `--authorization-mode`
 parameter to a value that includes RBAC,
 
@@ -1072,7 +1074,8 @@ is set if `PodSecurityPolicy` is not used
 
 **Remediation:**
 
-Edit the API server configuration file `/var/snap/k8s/common/args/kube-apiserver`
+Edit the API server configuration file
+`/var/snap/k8s/common/args/kube-apiserver`
 on the control plane node and set the `--enable-admission-plugins`
 parameter to include
 `SecurityContextDeny`, unless PodSecurityPolicy is already in
@@ -1220,7 +1223,8 @@ Ensure that the `--profiling` argument is set to false
 
 **Remediation:**
 
-Edit the API server configuration file `/var/snap/k8s/common/args/kube-apiserver`
+Edit the API server configuration file
+`/var/snap/k8s/common/args/kube-apiserver`
 on the control plane node and set the following argument.
 
 `--profiling=false`

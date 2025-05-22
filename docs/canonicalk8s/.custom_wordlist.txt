@@ -16,6 +16,7 @@ _Example
 _How
 _parts
 _Read
+aab
 ACLs
 adapter's
 adapters
@@ -165,6 +166,7 @@ EAL
 EasyRSA
 eaudetcobello
 eBPF
+ec
 ECDSA
 endfor
 endif
@@ -195,8 +197,10 @@ ghcr
 Gi
 github
 GitPython
+golang
 gops
 gp
+gpu
 GPLv
 Graber
 Graber's
