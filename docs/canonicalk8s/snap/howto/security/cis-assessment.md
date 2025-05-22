@@ -2887,7 +2887,7 @@ required
 
 **Remediation:**
 
-Identify all clusterrolebindings to the cluster-admin role.
+Identify all ClusterRoleBindings to the cluster-admin role.
 Check if they are used and
 if they need this role or if they could use a role with
 fewer privileges.

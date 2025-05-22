@@ -80,7 +80,7 @@ port assigned by Kubernetes.
 We will use [Microbot] as it provides a simple HTTP endpoint
 to expose. These steps can be applied to any other deployment.
 
-First, initialise the k8s cluster with
+First, initialize the k8s cluster with
 
 ```
 lxc exec k8s-vm -- sudo k8s bootstrap

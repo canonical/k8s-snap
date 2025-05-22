@@ -190,7 +190,7 @@ Now that you have an appropriate host name, policies, and a {{product}}
 cluster, you have everything you need to deploy the cloud controller manager.
 
 Here is a YAML definition file that sets appropriate defaults for you, it
-configures the necessary service accounts, roles, and daemonsets:
+configures the necessary service accounts, roles, and DaemonSets:
 
 ```{dropdown} CCM deployment manifest
 ```yaml

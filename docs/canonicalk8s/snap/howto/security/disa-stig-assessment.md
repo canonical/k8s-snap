@@ -1,6 +1,5 @@
 # How to assess DISA STIG for {{product}}
 
-<!-- vale off -->
 Security Technical Implementation Guides (STIGs) are developed by the Defense
 Information System Agency (DISA) for the U.S. Department of Defense (DoD).
 
@@ -6451,5 +6450,3 @@ The final line of the output will be `PASS`.
 [V-242466]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242466
 [V-242467]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242467
 [V-245541]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-245541
-
-<!-- vale on -->

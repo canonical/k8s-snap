@@ -46,7 +46,7 @@ module "k8s" {
 
 Define your `manifest.yaml` based on the requirements for your deployment. We
  recommend at least 16GB of root-disk storage, 4GB of memory and 2 cores.
-Specific charm configuration options can be found on charmhub.io for charms
+Specific charm configuration options can be found on Charmhub.io for charms
 [k8s] and [k8s-worker].
 
 Example `manifest.yaml`:

@@ -252,7 +252,7 @@ spec:
 
 **Required:** no
 
-The snap store proxy domain's scheme, e.g. "http" or "https" without "://".
+The snap store proxy domain's scheme, e.g. `http` or `https` without "://".
 Defaults to `http`.
 
 **Example usage:**
