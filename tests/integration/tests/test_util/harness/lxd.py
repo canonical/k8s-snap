@@ -221,7 +221,7 @@ class LXDHarness(Harness):
                 stdout=subprocess.DEVNULL,
             )
         except subprocess.CalledProcessError as e:
-            raise HarnessError("lxc file push command failed") from e
+            raise HarnessError("lxc file pull command failed") from e
 
     def exec(self, instance_id: str, command: list, **kwargs):
         if instance_id not in self.instances:

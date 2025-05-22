@@ -32,9 +32,6 @@ RISKS = ["stable", "candidate", "beta", "edge"]
 TRACK_RE = re.compile(r"^v?(\d+)\.(\d+)(.\d+)?(\S*)$")
 MAIN_BRANCH = "main"
 
-# SONOBUOY_VERSION is the version of sonobuoy to use for CNCF conformance tests.
-SONOBUOY_VERSION = os.getenv("TEST_SONOBUOY_VERSION") or "v0.57.3"
-
 
 def run(command: list, **kwargs) -> subprocess.CompletedProcess:
     """Log and run command."""
@@ -165,6 +162,56 @@ def _as_int(value: Optional[str]) -> Optional[int]:
         return int(value)
     except (TypeError, ValueError):
         return None
+
+
+def download_preloaded_snaps():
+    if not config.PRELOAD_SNAPS:
+        LOG.info("Snap preloading disabled, skipping...")
+        return
+
+    LOG.info(f"Downloading snaps for preloading: {config.PRELOADED_SNAPS}")
+    for snap in config.PRELOADED_SNAPS:
+        run(
+            [
+                "snap",
+                "download",
+                snap,
+                f"--basename={snap}",
+                "--target-directory=/tmp",
+            ]
+        )
+
+
+def preload_snaps(instance: harness.Instance):
+    if not config.PRELOAD_SNAPS:
+        LOG.info("Snap preloading disabled.")
+        return
+
+    preload_dir, remote_dir = Path("/tmp"), Path("/tmp")
+    for preloaded_snap in config.PRELOADED_SNAPS:
+        ack = preload_dir / f"{preloaded_snap}.assert"
+        snap = preload_dir / f"{preloaded_snap}.snap"
+
+        LOG.info("Acknowledge snap file %s.", preloaded_snap)
+        remote = remote_dir / ack.name
+        instance.send_file(source=ack.as_posix(), destination=remote.as_posix())
+
+        LOG.info("Running snap ack for %s", remote.as_posix())
+        stubbornly(retries=3, delay_s=2).on(instance).exec(
+            ["snap", "ack", remote.as_posix()]
+        )
+
+        LOG.info("Wait for snap changes to finish...")
+        stubbornly(retries=20, delay_s=5).on(instance).until(
+            lambda p: "Doing" not in p.stdout.decode()
+        ).exec(["snap", "changes"])
+
+        LOG.info("Install snap file %s.", preloaded_snap)
+        remote = remote_dir / snap.name
+        instance.send_file(source=snap.as_posix(), destination=remote.as_posix())
+        stubbornly(retries=3, delay_s=5).on(instance).exec(
+            ["snap", "install", remote.as_posix()]
+        )
 
 
 def setup_core_dumps(instance: harness.Instance):
@@ -781,7 +828,8 @@ def wait_for_daemonset(
 
 # sonobuoy_tar_gz returns the download URL of sonobuoy.
 def sonobuoy_tar_gz(architecture: str) -> str:
-    return f"https://github.com/vmware-tanzu/sonobuoy/releases/download/{SONOBUOY_VERSION}/sonobuoy_{SONOBUOY_VERSION[1:]}_linux_{architecture}.tar.gz"  # noqa
+    version = config.SONOBUOY_VERSION
+    return f"https://github.com/vmware-tanzu/sonobuoy/releases/download/{version}/sonobuoy_{version[1:]}_linux_{architecture}.tar.gz"  # noqa
 
 
 def check_snap_services_ready(
