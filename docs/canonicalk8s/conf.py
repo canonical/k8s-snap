@@ -216,6 +216,7 @@ linkcheck_ignore = [
     'http://slack.kubernetes.io/',
     r'https://www\.stigviewer\.com/.*',
     'https://www.squid-cache.org/',
+    'https://www.esd.whs.mil/portals/54/documents/dd/issuances/dodi/855101p.pdf',
     ]
 
 
