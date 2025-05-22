@@ -14,7 +14,8 @@ nodes in your {{product}} cluster.
 
 ```{note} To refresh the certificates in your cluster, make sure it was
 initially set up with self-signed certificates during the bootstrap process.
-```
+## Prerequisites
+- A running {{product}} cluster that has self-signed certificates enabled. This would have been set during the bootstrap process.
 
 ```{warning}
 This command only refreshes Kubernetes component certificates. The certificates for k8s-dqlite and microcluster are not
