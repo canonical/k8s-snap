@@ -29,6 +29,7 @@ allocator
 allowPrivilegeEscalation
 AlwaysAllow
 AlwaysPullImages
+analytics
 Anbox
 Anbox Cloud
 api
@@ -443,6 +444,7 @@ RPC
 rsa
 ru
 runc
+runtime
 Runtime
 runtimes
 rw
@@ -451,6 +453,7 @@ sandboxed
 SANs
 SBOM
 scalable
+scalability
 SCHED
 sControlPlane
 SCTP
