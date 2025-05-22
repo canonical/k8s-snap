@@ -26,6 +26,7 @@ Alertmanager
 allocatable
 allocator
 allowPrivilegeEscalation
+AlwaysAllow
 AlwaysPullImages
 Anbox
 Anbox Cloud
@@ -37,6 +38,8 @@ args
 ARP
 asbalderson
 asn
+auth
+autocompletion
 automountServiceAccountToken
 autostart
 autosuspend
@@ -57,6 +60,7 @@ bschimke
 BusyBox
 CABPCK
 CACPCK
+cafile
 Canonical Observability Stack
 capi
 CAs
@@ -74,6 +78,7 @@ Charmed Kubeflow
 Charmhub
 cidr
 cidrs
+CIDRs
 CIS
 CK8sControlPlane
 claudiubelu
@@ -106,6 +111,7 @@ containerd
 containerd's
 containerd_base
 contribs
+ControlPlaneJoinConfig
 CoreDNS
 Corosync
 COS
@@ -123,11 +129,12 @@ csi
 CSR
 CSRs
 CTOs
+cve
 cybersecurity
 cyclictest
 cypher
-daemonset
-daemonsets
+DaemonSet
+DaemonSets
 Data Integrator
 databags
 datastore
@@ -152,6 +159,7 @@ DRBD
 drv
 DTMs
 dulmandakh
+DynamicAuditing
 DynamicKubeletConfig
 EAL
 EasyRSA
@@ -204,9 +212,11 @@ hostnames
 HostPath
 HostPorts
 HostProcess
+howto
 HPC
 html
 http
+https
 http_proxy
 HTTPRoute
 HTTPs
@@ -221,6 +231,7 @@ IAVMs
 ImagePolicyWebhook
 init
 initialise
+initialisation
 integrations
 InternalIP
 io
@@ -260,10 +271,12 @@ kube-scheduler
 kube-system
 kubeadm
 KubeConfig
+kubeconfig
 kubectl
 kubectl's
 Kubeflow
 kubelet
+KubeletConfiguration
 Kubelet's
 kubelets
 kubepods
@@ -277,11 +290,12 @@ Launchpad
 LDAP
 libcontainer
 lifecycle
-lightkube
+LightKube
 linux
 Lite's
 literalinclude
 LoadBalancer
+LocalHarness
 localhost
 logfile
 Lookaside
@@ -300,6 +314,7 @@ marshalled
 Maskable
 mateoflorido
 Mattermost
+mattermost
 MCE
 MetalLB
 Microbot
@@ -357,6 +372,7 @@ OpenID
 openssl
 OpenSSL's
 OpenStack
+openstack
 orchestrator
 OSD
 OSDs
@@ -376,6 +392,7 @@ PKI
 PKIs
 PMD
 PMDs
+PodSecurity
 PodSecurityPolicy
 poller
 PostgreSQL
@@ -385,6 +402,7 @@ PPA
 PPSM
 PPSs
 pre
+PreInitChecks
 prev
 proc
 programmatically
@@ -407,9 +425,11 @@ RBD
 rc
 RCU
 README
+readOnlyPort
 regctl
 regsync
 reources
+RequestResponse
 Requirer
 roadmap
 Rockcraft
@@ -455,6 +475,7 @@ sshd
 SSL
 SSLv
 stackexchange
+staticPodPath
 stderr
 stdout
 stgraber
@@ -462,6 +483,7 @@ STIG
 STIGs
 STONITH
 StorageClass
+streamingConnectionIdleTimeout
 submodules
 sudo
 sys
@@ -475,6 +497,7 @@ Terraform's
 test_ingress
 test_mixed_versions_join
 ThanosRuler
+th
 throughs
 tickless
 TICs
@@ -482,6 +505,8 @@ Tiobe
 tj
 TLB
 tls
+tlsCertFile
+tlsPrivateKeyFile
 TokenReviews
 toml
 Traefik
@@ -504,6 +529,9 @@ upgrader
 url
 uuid
 UV
+ValidatingAdmissionWebhook
+ValidateCAPIAuthTokenAccessHandler
+ValidateNodeTokenAccessHandler
 Velero
 vf
 vfio

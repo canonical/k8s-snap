@@ -29,7 +29,7 @@ this demonstration will have less than 5 OSDs. (See [placement groups])
 ceph osd pool create kubernetes 128
 ```
 
-Initialise the pool as a Ceph block device pool.
+Initialize the pool as a Ceph block device pool.
 
 ```
 rbd pool init kubernetes

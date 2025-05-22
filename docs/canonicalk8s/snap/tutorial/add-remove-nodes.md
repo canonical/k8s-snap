@@ -59,7 +59,7 @@ Install {{product}} on both VMs with the following command:
 <!-- markdownlint-restore -->
 
 {{product}} allows you to create two types of nodes: control plane and
-worker nodes. In this example, we just initialise a control plane node.
+worker nodes. In this example, we just initialize a control plane node.
 
 Bootstrap the control plane node with default configuration:
 

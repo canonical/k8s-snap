@@ -41,10 +41,8 @@ controller, and cinder-csi charm.
 
 ### OpenStack overlay configurations:
 
-<!-- vale off -->
 Refer to the base overlay [openstack-overlay.yaml][openstack-overlay] and
 modify it as needed.
-<!-- vale on -->
 
 ```yaml
 applications:

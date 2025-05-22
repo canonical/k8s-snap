@@ -468,7 +468,7 @@ sudo k8s kubectl apply -f https://raw.githubusercontent.com/k8snetworkplumbingwg
 
 #### SR-IOV CNI
 
-Install the SR-IOV CNI daemonset:
+Install the SR-IOV CNI DaemonSet:
 
 ```
 sudo k8s kubectl apply -f https://raw.githubusercontent.com/k8snetworkplumbingwg/sriov-cni/master/images/sriov-cni-daemonset.yaml
