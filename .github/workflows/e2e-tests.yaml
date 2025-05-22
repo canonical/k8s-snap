@@ -70,7 +70,7 @@ jobs:
   # First job: Prepare the snap and find test files
   prepare:
     name: Prepare Environment
-    runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-latest-arm64' || 'ubuntu-latest' }}
+    runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-24.04-arm64' || 'ubuntu-24.04' }}
     outputs:
       tests: ${{ steps.collect-tests.outputs.tests }}
     steps:
@@ -108,7 +108,7 @@ jobs:
   run-tests:
     name: Run ${{ matrix.test }} - ${{ inputs.os }}-${{ inputs.arch }}
     needs: prepare
-    runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-latest-arm64' || 'ubuntu-latest' }}
+    runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-24.04-arm64' || 'ubuntu-24.04' }}
     strategy:
       fail-fast: false
       matrix:
@@ -171,7 +171,7 @@ jobs:
           name: sonobuoy-e2e-${{ matrix.test }}-${{ inputs.os }}-${{ inputs.arch }}
           path: tests/integration/sonobuoy_e2e.tar.gz
       - name: Upload html test report
-        if: always()
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: subunit-${{ matrix.test }}-${{ env.UUID }}.html
