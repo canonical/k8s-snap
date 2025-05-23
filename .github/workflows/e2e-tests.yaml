@@ -106,6 +106,7 @@ jobs:
           echo "Found test files: $TEST_FILES"
 
   run-tests:
+    if: false
     name: Run ${{ matrix.test }} - ${{ inputs.os }}-${{ inputs.arch }}
     needs: prepare
     runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}

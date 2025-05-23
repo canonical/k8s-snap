@@ -6,10 +6,13 @@ import logging
 import os
 import re
 import subprocess
-from typing import List, Optional, Dict
+import datetime
+import json
+from typing import List, Optional, Dict, Any, Union
+from dateutil.relativedelta import relativedelta
 
 import requests
-from packaging.version import Version
+from packaging.version import Version, InvalidVersion
 
 K8S_TAGS_URL = "https://api.github.com/repos/kubernetes/kubernetes/tags"
 EXEC_TIMEOUT = 60
@@ -241,11 +244,235 @@ def clean_obsolete_git_branches(project_basedir: str, remote="origin"):
         else:
             LOG.debug("Obsolete branch not found, skipping: %s", branch)
 
+def fetch_kubernetes_releases() -> List[Dict]:
+    """
+    Fetches Kubernetes release information from endoflife.date API.
+
+    Returns:
+        List of release dictionaries containing version info and support status.
+    """
+    url = "https://endoflife.date/api/v1/products/kubernetes"
+
+    try:
+        response = requests.get(url, headers={"Accept": "application/json"}, timeout=10)
+        response.raise_for_status()
+    except requests.RequestException as e:
+        LOG.error("Failed to fetch Kubernetes EOL data: %s", e)
+        raise RuntimeError(f"Failed to fetch Kubernetes EOL data: {e}")
+
+    try:
+        data = response.json()
+    except ValueError as e:
+        LOG.error("Failed to decode JSON response: %s", e)
+        raise RuntimeError(f"Failed to decode JSON response: {e}")
+
+    # The API returns a dictionary with 'result' containing the data
+    if not isinstance(data, dict):
+        LOG.error("Expected a dictionary from the API, got %s", type(data))
+        raise RuntimeError("Unexpected API response format")
+
+    # Get the releases list from the result
+    releases = data.get('result', {}).get('releases', [])
+    if not releases:
+        LOG.warning("No releases found in the API response")
+        return []
+
+    LOG.debug("Found %d releases in API response", len(releases))
+    return releases
+
+
+def supported_upstream_releases() -> List[str]:
+    """
+    Returns a list of currently supported Kubernetes minor versions as strings.
+    Uses data from https://endoflife.date/api/v1/products/kubernetes.
+    """
+    releases = fetch_kubernetes_releases()
+    now = datetime.datetime.now(datetime.timezone.utc).date()
+    supported = []
+
+    for release in releases:
+        if not isinstance(release, dict):
+            LOG.warning("Expected dictionary for release, got %s", type(release))
+            continue
+
+        # Get the version name (e.g., '1.33')
+        version = release.get('name')
+
+        # Check if the version is EOL
+        is_eol = release.get('isEol', True)  # Default to True if missing
+        eol_date_str = release.get('eolFrom')
+
+        if not version or not eol_date_str:
+            LOG.debug("Skipping release with missing version or EOL date: %s", release)
+            continue
+
+        try:
+            eol_date = datetime.datetime.strptime(eol_date_str, "%Y-%m-%d").date()
+        except ValueError as e:
+            LOG.warning("Invalid EOL date format for %s: %s", version, e)
+            continue
+
+        # Consider a version supported if it's not EOL and its EOL date is in the future
+        if not is_eol and eol_date > now:
+            LOG.info("Kubernetes %s is supported until %s", version, eol_date_str)
+            supported.append(version)
+
+    # Sort versions in ascending order (oldest first)
+    supported.sort()
+
+    if supported:
+        LOG.info("Found %d supported Kubernetes versions: %s", len(supported), ", ".join(supported))
+    else:
+        LOG.warning("No supported Kubernetes versions found!")
+
+    return supported
+
+def is_lts_release(version_str: str) -> bool:
+    """
+    Determines if a Kubernetes version is an LTS release.
+    The first LTS is 1.32. Then we align with the Ubuntu LTS releases.
+    Hence, the initial LTS with the "normal" release cadence is 1.36,
+    then every 6th minor release (every 2years - 1.42, 1.48, etc.)
+
+    Args:
+        version_str: Kubernetes version string (e.g., "1.36")
+
+    Returns:
+        True if the version is an LTS release, False otherwise
+    """
+    version = Version(version_str)
+    if version < Version("1.32"):
+        return False
+
+    if version == Version("1.32"):
+        return True
+
+    # Check if it's 1.36 or a later version that's every 6th release after 1.36
+    first_lts = 36
+    if version.minor >= first_lts and (version.minor - first_lts) % 6 == 0:
+        return True
+
+    return False
+
+def supported_canonical_k8s_releases(as_channel: bool = False) -> List[str]:
+    """
+    Returns a list of Canonical Kubernetes versions that are still supported.
+    Support is based on a 12-year cycle for LTS releases and a 2-year cycle
+    for intermediate releases, calculated from their actual release date.
+    Only versions 1.32 and newer are considered.
+
+    Note that the support duration for intermediate releases is not entirely
+    accurate, since intermediate releases are supported until one year after
+    the next LTS release. This means that releases right before an LTS release
+    only have 1 year of support, while releases right after an LTS release have
+    2 years of support. This is a simplification that is good enough for our
+    purposes.
+
+    Args:
+        as_channel: If True, returns versions in channel format (e.g., "1.33-classic/stable")
+                    instead of just the version number.
+    """
+    min_version = Version("1.32")
+    support_durations = {
+        "LTS": 12,  # 12 years for LTS
+        "INTERMEDIATE": 2,  # 2 years for Intermediate (not entirely accurate but good enough)
+    }
+
+    all_releases_data = fetch_kubernetes_releases()
+    now = datetime.datetime.now(datetime.timezone.utc).date()
+    candidate_versions = []
+
+    if all_releases_data:
+        for release_info in all_releases_data:
+            version_str = release_info.get('name')
+            release_date_str = release_info.get('releaseDate')
+
+            if not version_str or not release_date_str:
+                LOG.debug("Skipping release with missing version or release date: %s", release_info)
+                continue
+
+            try:
+                current_version = Version(version_str)
+                parsed_release_date = datetime.datetime.strptime(release_date_str, "%Y-%m-%d").date()
+            except InvalidVersion:
+                LOG.warning("Skipping invalid version format from API: %s", version_str)
+                continue
+            except ValueError:
+                LOG.warning("Skipping release with invalid date format: %s for version %s", release_date_str, version_str)
+                continue
+
+            if current_version.major != 1 or current_version < min_version:
+                continue # Skip versions before 1.32 or not in 1.x series
+
+            is_lts = is_lts_release(version_str)
+            duration_years = support_durations["LTS"] if is_lts else support_durations["INTERMEDIATE"]
+
+            # Calculate Canonical EOL
+            canonical_eol_date = parsed_release_date + relativedelta(years=duration_years)
+
+            if canonical_eol_date > now:
+                candidate_versions.append(version_str)
+                LOG.debug(
+                    "Version %s (LTS: %s) released on %s, supported by Canonical until %s (for %d years)",
+                    version_str, is_lts, parsed_release_date, canonical_eol_date, duration_years
+                )
+            else:
+                LOG.debug(
+                    "Version %s (LTS: %s) released on %s, Canonical EOL was %s (after %d years), no longer supported.",
+                    version_str, is_lts, parsed_release_date, canonical_eol_date, duration_years
+                )
+
+    final_versions = sorted(list(set(candidate_versions)), key=Version)
+
+    if final_versions:
+        LOG.info(
+            "Supported Canonical Kubernetes versions (based on calculated EOL): %s",
+            ", ".join(final_versions)
+        )
+    else:
+        LOG.warning("No actively supported Canonical Kubernetes versions found based on calculated EOL!")
+
+    if as_channel:
+        # TODO(ben): This will break if we have flavors in the future again.
+        # The current channel format is hardcoded to "-classic/stable".
+        channel_versions = [f"{v}-classic/stable" for v in final_versions]
+        return channel_versions
+
+    return final_versions
+
+def format_output(result: Any, output_format: str) -> str:
+    """
+    Format the result according to the specified output format.
+
+    Args:
+        result: The result to format
+        output_format: The output format, either "plain" or "json"
+
+    Returns:
+        The formatted result as a string
+    """
+    if output_format == "json":
+        return json.dumps(result)
+    else:  # plain format
+        if isinstance(result, list):
+            return "\n".join(str(item) for item in result)
+        return str(result)
 
 if __name__ == "__main__":
     logging.basicConfig(format="%(asctime)s %(message)s", level=logging.DEBUG)
 
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--output",
+        choices=["plain", "json"],
+        default="plain",
+        help="Output format (plain text or JSON)"
+    )
+    parser.add_argument(
+        "--as-channel",
+        action="store_true",
+        help="Format versions as channels (e.g., '1.33-classic/stable' instead of just '1.33')"
+    )
     subparsers = parser.add_subparsers(dest="subparser", required=True)
 
     cmd = subparsers.add_parser("clean_obsolete_git_branches")
@@ -269,12 +496,24 @@ if __name__ == "__main__":
     subparsers.add_parser("get_outstanding_prereleases")
     subparsers.add_parser("get_obsolete_prereleases")
     subparsers.add_parser("remove_obsolete_prereleases")
+    subparsers.add_parser("supported_upstream_releases")
+    subparsers.add_parser("supported_canonical_k8s_releases")
 
     kwargs = vars(parser.parse_args())
-    f = locals()[kwargs.pop("subparser")]
+    output_format = kwargs.pop("output")
+    as_channel = kwargs.pop("as_channel", False)
+    subparser_name = kwargs.pop("subparser")
+
+    # Add as_channel parameter only to canonical releases function
+    if subparser_name == "supported_canonical_k8s_releases":
+        kwargs["as_channel"] = as_channel
+    f = locals()[subparser_name]
+
     out = f(**kwargs)
-    if isinstance(out, (list, tuple)):
-        for item in out:
-            print(item)
+
+    if out is not None:
+        # Format the output according to the specified format
+        formatted_output = format_output(out, output_format)
+        print(formatted_output)
     else:
-        print(out or "")
+        print("")

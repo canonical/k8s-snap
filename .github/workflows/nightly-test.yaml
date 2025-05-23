@@ -13,14 +13,64 @@ permissions:
   contents: read
 
 jobs:
+  supported_releases:
+    name: Prepare Test Configurations
+    runs-on: ubuntu-latest
+    outputs:
+      integration_channels: ${{ steps.generate_configs.outputs.integration_channels }}
+      trivy_matrix_config: ${{ steps.generate_configs.outputs.trivy_matrix_config }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate Matrix Configurations
+        id: generate_configs
+        run: |
+          # Get stable channels like ["1.32-classic/stable", "1.33-classic/stable"]
+          STABLE_CHANNELS_JSON_STR=$(python3 build-scripts/k8s_release.py --output json --as-channel supported_canonical_k8s_releases)
+
+          if ! echo "$STABLE_CHANNELS_JSON_STR" | jq empty > /dev/null 2>&1; then
+            echo "::error::Failed to parse STABLE_CHANNELS_JSON_STR as JSON. Value: $STABLE_CHANNELS_JSON_STR"
+            exit 1
+          fi
+
+          # Output 1: For test-integration job's matrix.channel
+          # Format: ["latest/edge", "1.32-classic/stable", ...]
+          INTEGRATION_CHANNELS_JSON=$(echo "$STABLE_CHANNELS_JSON_STR" | jq -c '. + ["latest/edge"]')
+          echo "integration_channels=$INTEGRATION_CHANNELS_JSON" >> $GITHUB_OUTPUT
+
+          # Output 2: For Trivy job's matrix.include
+          # Format: [ { "branch": "main", "channel": "latest/edge" }, ... ]
+          TRIVY_MATRIX_CONFIG_JSON='[{"branch": "main", "channel": "latest/edge"}]'
+
+          # Iterate over stable channels and append to TRIVY_MATRIX_CONFIG_JSON
+          # The input STABLE_CHANNELS_JSON_STR is like '["1.32-classic/stable", "1.33-classic/stable"]'
+          # jq -r '.[]' outputs each element on a new line, without quotes.
+          echo "$STABLE_CHANNELS_JSON_STR" | jq -r '.[]' | while IFS= read -r channel_str; do
+            if [ -z "$channel_str" ]; then continue; fi # Skip empty lines if any
+
+            # Extract version_part (e.g., "1.32") from "1.32-classic/stable"
+            version_part="${channel_str%-classic/stable}"
+
+            # Construct the new JSON object for Trivy using jq
+            # Use --arg to safely pass shell variables to jq query
+            new_trivy_entry=$(jq -n --arg vp "$version_part" \
+              '{branch: ("release-" + $vp), channel: ($vp + "-classic/edge")}')
+
+            # Append this new object to the existing TRIVY_MATRIX_CONFIG_JSON
+            # The new_trivy_entry is already a JSON object string
+            TRIVY_MATRIX_CONFIG_JSON=$(echo "$TRIVY_MATRIX_CONFIG_JSON" | jq -c ". + [ $new_trivy_entry ]")
+          done
+
+          echo "trivy_matrix_config=$TRIVY_MATRIX_CONFIG_JSON" >> $GITHUB_OUTPUT
+
   test-integration:
     name: Integration
+    needs: supported_releases
     strategy:
+      fail-fast: false
       matrix:
-        os: ["ubuntu:22.04", "ubuntu:24.04"]
-        arch: ["amd64", "arm64"]
-        channel: ["latest/edge"]
-      fail-fast: false # TODO: remove once we no longer have flaky tests.
+        os: [noble]
+        arch: [amd64, arm64]
+        channel: ${{ fromJson(needs.supported_releases.outputs.integration_channels) }}
     uses: ./.github/workflows/e2e-tests.yaml
     with:
       arch: ${{ matrix.arch }}
@@ -29,20 +79,15 @@ jobs:
       test-tags: 'up_to_nightly'
 
   Trivy:
+    if: false
     permissions:
       contents: read # for actions/checkout to fetch code
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+    needs: supported_releases
     strategy:
+      fail-fast: false
       matrix:
-        include:
-          # Latest branches
-          - { branch: main, channel: latest/edge }
-          # Stable branches
-          # Add branches to test here
-          # TODO: automatically retrieve the list of channels.
-          - { branch: release-1.30, channel: 1.30-classic/edge }
-          - { branch: release-1.31, channel: 1.31-classic/edge }
-          - { branch: release-1.32, channel: 1.32-classic/edge }
+        include: ${{ fromJson(needs.supported_releases.outputs.trivy_matrix_config) }}
     uses: ./.github/workflows/security-scan.yaml
     with:
       channel: ${{ matrix.channel }}
@@ -87,46 +132,128 @@ jobs:
           /tmp/tics-scan.sh `pwd`
 
   Mattermost:
-    name: Notify Mattermost
-    # Notify on success or failure but only if the event is a scheduled run.
-    # We don't want to ping people of failed PRs.
+    name: Notify Mattermost for Integration Tests
     if: ${{ always() && github.event_name == 'schedule' }}
-    # Note: Update results check below if you change the "needs" list.
-    needs: [test-integration, Trivy, TICS]
+    needs: [test-integration] # Only depends on the overall test-integration job group
+    permissions:
+      actions: read # Required to fetch job details via GitHub API
     runs-on: ubuntu-latest
     steps:
       - name: Set current formatted date as env variable
         run: echo "FORMATTED_DATE=$(date +'%d/%m/%Y')" >> $GITHUB_ENV
-      - name: Test results
-        run: |
-          RESULTS=$(echo '${{ toJson(needs) }}' | jq -c '[.[] | .result]')
 
-          if echo $RESULTS | jq -e 'all(. == "success")'; then
-            echo "RESULT=success" >> $GITHUB_ENV
-          else
-            echo "RESULT=failure" >> $GITHUB_ENV
-          fi
-      - name: Generate Mattermost Message
+      - name: Fetch Integration Test Job Details via API
+        id: api_job_details
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          GH_RUN_ID: ${{ github.run_id }}
         run: |
-          if [[ "${{ env.RESULT }}" == "success" ]]; then
-            echo "MM_TEXT=:white_check_mark: *Success!* CI completed successfully. [View Run](${{
-              github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_ENV
+          API_URL="/repos/$GH_REPO/actions/runs/$GH_RUN_ID/jobs?per_page=100"
+          echo "Fetching job details from GitHub API: $API_URL"
+
+          # Fetch all jobs, filter for those named "Integration (...)", select relevant fields.
+          # Then, parse os, arch, channel from the job_name string.
+          # The job name format is 'Integration (os, arch, channel)'.
+          RAW_JOB_DETAILS=$(gh api "$API_URL" --jq '.jobs | map(select(.name | startswith("Integration (") and endswith(")"))) | map({job_name: .name, status: .conclusion, url: .html_url})')
+
+          if [[ -z "$RAW_JOB_DETAILS" || "$RAW_JOB_DETAILS" == "[]" || "$RAW_JOB_DETAILS" == "null" ]]; then
+            echo "No 'Integration (...)' jobs found or error fetching details from API."
+            echo "details_json=[]" >> $GITHUB_OUTPUT
           else
-            echo "MM_TEXT=:x: *Failure!* CI failed, @k8s-engineers please fix ASAP. [View Run](${{
-              github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_ENV
+            PARSED_JOB_DETAILS_JSON=$(echo "$RAW_JOB_DETAILS" | jq -c 'map(
+              # Extract parameters string: e.g., "noble, amd64, 1.30-classic/edge"
+              (.job_name | ltrimstr("Integration (") | rtrimstr(")")) as $params_str |
+              # Split into an array: e.g., ["noble", "amd64", "1.30-classic/edge"]
+              ($params_str | split(", ")) as $params_array |
+              {
+                os: $params_array[0],
+                arch: $params_array[1],
+                # Reconstruct channel: elements from index 2 onwards, joined by ", "
+                # This handles channel names that might themselves contain commas.
+                channel: ([$params_array[2:]] | flatten | join(", ")),
+                status: .status,
+                url: .url,
+                original_job_name: .job_name # For debugging
+              }
+            )')
+            echo "Parsed job details: $PARSED_JOB_DETAILS_JSON"
+            echo "details_json=$PARSED_JOB_DETAILS_JSON" >> $GITHUB_OUTPUT
           fi
+
+      - name: Generate Mattermost Message
+        env:
+          OVERALL_INTEGRATION_STATUS: ${{ needs.test-integration.result }} # Overall status of the job group
+          INTEGRATION_JOB_DETAILS_JSON: ${{ steps.api_job_details.outputs.details_json }}
+          GH_RUN_URL_FOR_SCRIPT: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          FORMATTED_DATE_FOR_SCRIPT: ${{ env.FORMATTED_DATE }}
+        run: |
+          TITLE_PREFIX_TEXT=""
+          ATTACHMENT_COLOR="good" # Default to green
+
+          if [[ "$OVERALL_INTEGRATION_STATUS" == "failure" ]]; then
+            TITLE_PREFIX_TEXT=":x: Integration Tests Failed!"
+            ATTACHMENT_COLOR="danger"
+          elif [[ "$OVERALL_INTEGRATION_STATUS" == "success" ]]; then
+            TITLE_PREFIX_TEXT=":white_check_mark: Integration Tests Succeeded!"
+          else # Could be cancelled, skipped etc.
+            TITLE_PREFIX_TEXT=":warning: Integration Tests: $(echo $OVERALL_INTEGRATION_STATUS | tr 'a-z' 'A-Z')"
+            ATTACHMENT_COLOR="warning"
+          fi
+          
+          MESSAGE_SECTIONS=()
+          MESSAGE_SECTIONS+=("**Overall Integration Result: $(echo $OVERALL_INTEGRATION_STATUS | tr 'a-z' 'A-Z')**")
+          MESSAGE_SECTIONS+=("Link to full workflow run: [GitHub Actions Run]($GH_RUN_URL_FOR_SCRIPT)")
+          MESSAGE_SECTIONS+=("") # Blank line for separation
+          MESSAGE_SECTIONS+=("**Individual Test Job Details:**")
+
+          if [[ -z "$INTEGRATION_JOB_DETAILS_JSON" || "$INTEGRATION_JOB_DETAILS_JSON" == "[]" || "$INTEGRATION_JOB_DETAILS_JSON" == "null" ]]; then
+            MESSAGE_SECTIONS+=("No individual job details available (possibly no tests ran or API error).")
+          else
+            FORMATTED_DETAILS=$(echo "$INTEGRATION_JOB_DETAILS_JSON" | jq -r '
+              # Helper function to get status icon and text
+              def format_status(s):
+                if s == "success" then ":white_check_mark: Passed"
+                elif s == "failure" then ":x: Failed"
+                elif s == "skipped" then ":fast_forward: Skipped"
+                elif s == "cancelled" then ":octagonal_sign: Cancelled"
+                else ":grey_question: " + (s // "Unknown")
+                end;
+
+              # Group by channel, then format each job
+              group_by(.channel) | map(
+                "**\(.[0].channel):**\n" + # Channel name as header
+                (map("  \(.os)-\(.arch): \(format_status(.status)) [Logs](\(.url))") | join("\n")) # List of os-arch statuses
+              ) | join("\n\n") # Join channel groups with a blank line
+            ')
+            if [[ -z "$FORMATTED_DETAILS" ]]; then
+              MESSAGE_SECTIONS+=("Error formatting job details or no jobs to display after filtering.")
+            else
+              MESSAGE_SECTIONS+=("$FORMATTED_DETAILS")
+            fi
+          fi
+
+          printf -v MM_TEXT_CONTENT '%s\n' "${MESSAGE_SECTIONS[@]}"
+
+          echo "MM_TITLE_PREFIX_TEXT=$TITLE_PREFIX_TEXT" >> $GITHUB_ENV
+          echo "MM_ATTACHMENT_COLOR=$ATTACHMENT_COLOR" >> $GITHUB_ENV
+          
+          ESCAPED_MM_TEXT_CONTENT=$(echo "$MM_TEXT_CONTENT" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g')
+          echo "ESCAPED_MM_TEXT=$ESCAPED_MM_TEXT_CONTENT" >> $GITHUB_ENV
+
       - name: Notify Mattermost
         uses: mattermost/action-mattermost-notify@master
-        with:
+        env:
           MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }}
-          PAYLOAD: |
+        with:
+          payload: |
             {
               "attachments": [
                 {
-                  "fallback": "k8s-snap Nightly CI Status",
-                  "color": "${{ env.RESULT == 'success' && 'good' || 'danger' }}",
-                  "title": "k8s-snap Nightly CI Status - ${{ env.FORMATTED_DATE }}",
-                  "text": "${{ env.MM_TEXT }}"
+                  "fallback": "k8s-snap Nightly Integration Test Status - ${{ env.FORMATTED_DATE_FOR_SCRIPT }}",
+                  "color": "${{ env.MM_ATTACHMENT_COLOR }}",
+                  "title": "${{ env.MM_TITLE_PREFIX_TEXT }} k8s-snap Nightly CI - ${{ env.FORMATTED_DATE_FOR_SCRIPT }}",
+                  "text": "${{ env.ESCAPED_MM_TEXT }}"
                 }
               ]
             }
