@@ -17,34 +17,65 @@ jobs:
     name: Prepare Test Configurations
     runs-on: ubuntu-latest
     outputs:
-      integration_channels: ${{ steps.generate_configs.outputs.integration_channels }}
-      trivy_matrix_config: ${{ steps.generate_configs.outputs.trivy_matrix_config }}
+      integration_test_matrix: ${{ steps.generate_json.outputs.integration_matrix_config }}
+      trivy_matrix: ${{ steps.generate_json.outputs.trivy_matrix }}
     steps:
       - uses: actions/checkout@v4
       - name: Generate Matrix Configurations
-        id: generate_configs
+        id: generate_json
         run: |
           # Get stable channels like ["1.32-classic/stable", "1.33-classic/stable"]
           STABLE_CHANNELS_JSON_STR=$(python3 build-scripts/k8s_release.py --output json --as-channel supported_canonical_k8s_releases)
 
-          if ! echo "$STABLE_CHANNELS_JSON_STR" | jq empty > /dev/null 2>&1; then
-            echo "::error::Failed to parse STABLE_CHANNELS_JSON_STR as JSON. Value: $STABLE_CHANNELS_JSON_STR"
-            exit 1
-          fi
+          # This includes stable channels + latest/edge
+          ALL_CHANNELS=$(echo "$STABLE_CHANNELS_JSON_STR" | jq -c '. + ["latest/edge"]')
 
-          # Output 1: For test-integration job's matrix.channel
-          # Format: ["latest/edge", "1.32-classic/stable", ...]
-          INTEGRATION_CHANNELS_JSON=$(echo "$STABLE_CHANNELS_JSON_STR" | jq -c '. + ["latest/edge"]')
-          echo "integration_channels=$INTEGRATION_CHANNELS_JSON" >> $GITHUB_OUTPUT
+          OS_LIST='["ubuntu:22.04", "ubuntu:24.04"]'
+          ARCH_LIST='["amd64", "arm64"]'
+          INTEGRATION_MATRIX_CONFIG='[]'
+
+          echo "Processing channels for integration matrix: $ALL_CHANNELS"
+          # Iterate over ALL_CHANNELS to include latest/edge
+          echo "$ALL_CHANNELS" | jq -r '.[]' | while IFS= read -r channel_str; do
+            if [ -z "$channel_str" ]; then continue; fi
+
+            checkout_ref_val=""
+            if [[ "$channel_str" == latest/* ]]; then
+              checkout_ref_val="main"
+            else
+              # Extracts VERSION from 'VERSION-track/risk' or 'VERSION/risk'
+              temp_val=$(echo "$channel_str" | cut -d'/' -f1) # e.g., "1.30-classic" or "1.32"
+              version_part=$(echo "$temp_val" | cut -d'-' -f1) # e.g., "1.30" or "1.32"
+              checkout_ref_val="release-$version_part"
+            fi
+
+            echo "$OS_LIST" | jq -r '.[]' | while IFS= read -r os_val; do
+              if [ -z "$os_val" ]; then continue; fi
+              echo "$ARCH_LIST" | jq -r '.[]' | while IFS= read -r arch_val; do
+                if [ -z "$arch_val" ]; then continue; fi
+
+                new_entry=$(jq -n \
+                  --arg os "$os_val" \
+                  --arg arch "$arch_val" \
+                  --arg ch "$channel_str" \
+                  --arg cr "$checkout_ref_val" \
+                  '{os: $os, arch: $arch, channel: $ch, checkout_ref: $cr}')
+
+                INTEGRATION_MATRIX_CONFIG=$(echo "$INTEGRATION_MATRIX_CONFIG" | jq -c ". + [ $new_entry ]")
+              done
+            done
+          done
+          echo "Generated integration_matrix_config: $INTEGRATION_MATRIX_CONFIG"
+          echo "integration_matrix_config=$INTEGRATION_MATRIX_CONFIG" >> $GITHUB_OUTPUT
 
           # Output 2: For Trivy job's matrix.include
           # Format: [ { "branch": "main", "channel": "latest/edge" }, ... ]
-          TRIVY_MATRIX_CONFIG_JSON='[{"branch": "main", "channel": "latest/edge"}]'
+          TRIVY_MATRIX='[{"branch": "main", "channel": "latest/edge"}]'
 
-          # Iterate over stable channels and append to TRIVY_MATRIX_CONFIG_JSON
-          # The input STABLE_CHANNELS_JSON_STR is like '["1.32-classic/stable", "1.33-classic/stable"]'
+          # Iterate over stable channels and append to TRIVY_MATRIX
+          # The input STABLE_CHANNELS is like '["1.32-classic/stable", "1.33-classic/stable"]'
           # jq -r '.[]' outputs each element on a new line, without quotes.
-          echo "$STABLE_CHANNELS_JSON_STR" | jq -r '.[]' | while IFS= read -r channel_str; do
+          echo "$STABLE_CHANNELS" | jq -r '.[]' | while IFS= read -r channel_str; do
             if [ -z "$channel_str" ]; then continue; fi # Skip empty lines if any
 
             # Extract version_part (e.g., "1.32") from "1.32-classic/stable"
@@ -55,12 +86,12 @@ jobs:
             new_trivy_entry=$(jq -n --arg vp "$version_part" \
               '{branch: ("release-" + $vp), channel: ($vp + "-classic/edge")}')
 
-            # Append this new object to the existing TRIVY_MATRIX_CONFIG_JSON
+            # Append this new object to the existing TRIVY_MATRIX
             # The new_trivy_entry is already a JSON object string
-            TRIVY_MATRIX_CONFIG_JSON=$(echo "$TRIVY_MATRIX_CONFIG_JSON" | jq -c ". + [ $new_trivy_entry ]")
+            TRIVY_MATRIX=$(echo "$TRIVY_MATRIX" | jq -c ". + [ $new_trivy_entry ]")
           done
 
-          echo "trivy_matrix_config=$TRIVY_MATRIX_CONFIG_JSON" >> $GITHUB_OUTPUT
+          echo "trivy_matrix=$TRIVY_MATRIX" >> $GITHUB_OUTPUT
 
   test-integration:
     name: Integration
@@ -68,16 +99,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [noble]
-        arch: [amd64, arm64]
-        channel: ${{ fromJson(needs.supported_releases.outputs.integration_channels) }}
+        include: ${{ fromJson(needs.supported_releases.outputs.integration_test_matrix) }}
     uses: ./.github/workflows/e2e-tests.yaml
     with:
       arch: ${{ matrix.arch }}
       os: ${{ matrix.os }}
       channel: ${{ matrix.channel }}
       test-tags: 'up_to_nightly'
-      checkout-ref: ${{ startsWith(matrix.channel, 'latest/') && 'main' || format('release-{0}', matrix.channel.split('-')[0].split('/')[0]) }}
+      checkout-ref: ${{ matrix.checkout_ref }}
 
   Trivy:
     if: false
@@ -88,7 +117,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJson(needs.supported_releases.outputs.trivy_matrix_config) }}
+        include: ${{ fromJson(needs.supported_releases.outputs.trivy_matrix) }}
     uses: ./.github/workflows/security-scan.yaml
     with:
       channel: ${{ matrix.channel }}
@@ -201,7 +230,7 @@ jobs:
             TITLE_PREFIX_TEXT=":warning: Integration Tests: $(echo $OVERALL_INTEGRATION_STATUS | tr 'a-z' 'A-Z')"
             ATTACHMENT_COLOR="warning"
           fi
-          
+
           MESSAGE_SECTIONS=()
           MESSAGE_SECTIONS+=("**Overall Integration Result: $(echo $OVERALL_INTEGRATION_STATUS | tr 'a-z' 'A-Z')**")
           MESSAGE_SECTIONS+=("Link to full workflow run: [GitHub Actions Run]($GH_RUN_URL_FOR_SCRIPT)")
@@ -238,7 +267,7 @@ jobs:
 
           echo "MM_TITLE_PREFIX_TEXT=$TITLE_PREFIX_TEXT" >> $GITHUB_ENV
           echo "MM_ATTACHMENT_COLOR=$ATTACHMENT_COLOR" >> $GITHUB_ENV
-          
+
           ESCAPED_MM_TEXT_CONTENT=$(echo "$MM_TEXT_CONTENT" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g')
           echo "ESCAPED_MM_TEXT=$ESCAPED_MM_TEXT_CONTENT" >> $GITHUB_ENV
 
