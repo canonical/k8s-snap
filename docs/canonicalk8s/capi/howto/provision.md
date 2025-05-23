@@ -86,7 +86,13 @@ clusterctl get kubeconfig ${CLUSTER_NAME} > ./${CLUSTER_NAME}-kubeconfig
 You can then see the workload nodes using:
 
 ```
-KUBECONFIG=./${CLUSTER_NAME}-kubeconfig sudo k8s kubectl get node
+KUBECONFIG=./${CLUSTER_NAME}-kubeconfig kubectl get node
+```
+
+```{note}
+To communicate with the workload cluster, you need to use the `kubectl`
+command, since `k8s kubectl` will get executed with the `KUBECONFIG`
+of the management cluster.
 ```
 
 ## Delete the cluster
