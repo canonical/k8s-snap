@@ -340,6 +340,10 @@ func (s *snap) K8sScriptsDir() string {
 	return filepath.Join(s.snapDir, "k8s", "scripts")
 }
 
+func (s *snap) K8sBinDir() string {
+	return filepath.Join(s.snapDir, "bin")
+}
+
 func (s *snap) K8sInspectScriptPath() string {
 	return filepath.Join(s.K8sScriptsDir(), "inspect.sh")
 }

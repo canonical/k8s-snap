@@ -53,6 +53,7 @@ type Snap interface {
 
 	K8sCRDDir() string            //  /snap/k8s/current/k8s/crds
 	K8sScriptsDir() string        //  /snap/k8s/current/k8s/scripts
+	K8sBinDir() string            //  /snap/k8s/current/bin
 	K8sInspectScriptPath() string //  /snap/k8s/current/k8s/scripts/inspect.sh
 
 	K8sdStateDir() string      // /var/snap/k8s/common/var/lib/k8sd/state
