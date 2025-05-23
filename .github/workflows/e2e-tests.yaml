@@ -94,9 +94,11 @@ jobs:
           done
 
           # Collect test names and convert to JSON array for GitHub Actions
-          TEST_FILES=$(tox -e collect-tests -- --collect-only tests/ $TAGS_ARGS \
-            | grep -E "tests/test_.*\.py" \
-            | sed -E 's/.*::([a-zA-Z0-9_]+).*/\1/' \
+          # There is no easy way to get the test names from pytest, so we use the --collect-only flag
+          # and parse the output to extract the test names.
+          TEST_FILES=$(tox -e integration -- --collect-only tests/ $TAGS_ARGS --quiet --no-header \
+            | grep -E "<Function test_[a-zA-Z0-9_]+>" \
+            | sed -E 's/<Function (test_[a-zA-Z0-9_]+)>.*/\1/' \
             | sort -u)
 
           # Convert to JSON array for GitHub Actions
