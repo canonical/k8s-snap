@@ -3521,7 +3521,7 @@ The final line of the output will be `PASS`.
 
 ## [V-242424]
 
-**Guideline:** Kubernetes Kubelet must enable `tlsPrivateKeyFile` for client
+**Guideline:** Kubernetes Kubelet must enable tlsPrivateKeyFile for client
 authentication to secure service
 
 **Severity:** Medium
@@ -3596,7 +3596,7 @@ The final line of the output will be `PASS`.
 
 ## [V-242425]
 
-**Guideline:** Kubernetes Kubelet must enable `tlsCertFile` for client
+**Guideline:** Kubernetes Kubelet must enable tlsCertFile for client
 authentication to secure service
 
 **Severity:** Medium
@@ -4062,7 +4062,7 @@ The final line of the output will be `PASS`.
 > protocols, such as TLS. TLS provides the Kubernetes API Server and etcd with
 > a means to be able to authenticate sessions and encrypt traffic.
 >
-> To enable encrypted communication for etcd, the parameter --etcd-cafile
+> To enable encrypted communication for etcd, the parameter "--etcd-cafile"
 > must be set. This parameter gives the location of the SSL Certificate
 > Authority file used to secure etcd communication.
 
@@ -4200,7 +4200,7 @@ The final line of the output will be `PASS`.
 > protocols, such as TLS. TLS provides the Kubernetes API Server and etcd with
 > a means to be able to authenticate sessions and encrypt traffic.
 >
-> To enable encrypted communication for etcd, the parameter `--etcd-certfile`
+> To enable encrypted communication for etcd, the parameter "--etcd-certfile"
 > must be set. This parameter gives the location of the SSL certification file
 > used to secure etcd communication.
 
@@ -4344,7 +4344,7 @@ The final line of the output will be `PASS`.
 > protocols, such as TLS. TLS provides the Kubernetes API Server and etcd with
 > a means to be able to authenticate sessions and encrypt traffic.
 >
-> To enable encrypted communication for etcd, the parameter `--etcd-keyfile`
+> To enable encrypted communication for etcd, the parameter "--etcd-keyfile"
 > must be set. This parameter gives the location of the key file used to secure
 > etcd communication.
 
