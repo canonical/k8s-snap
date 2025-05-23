@@ -5,7 +5,7 @@
   {% if meta %}
     {% if 'sequential_nav' in meta %}
       {% set sequential_nav = meta.sequential_nav %}
-    {% endif %}  
+    {% endif %}
   {% endif %}
   {# mod: Conditional wrappers to control page navigation buttons #}
   {% if sequential_nav != "none" -%}
@@ -71,8 +71,8 @@
     {%- endif %}
   </div>
   <div>
-    {% if github_url and github_folder and pagename and page_source_suffix and display_contributors %}
-        {% set contributors = get_contribs(github_url, github_folder, pagename, page_source_suffix, display_contributors_since) %}
+    {% if github_url and repo_folder and pagename and page_source_suffix and display_contributors %}
+        {% set contributors = get_contribs(github_url, repo_folder, pagename, page_source_suffix, display_contributors_since) %}
         {% if contributors %}
           {% if contributors | length > 1 %}
               <a class="display-contributors">Thanks to the {{ contributors |length }} contributors!</a>
@@ -118,7 +118,7 @@
     </div>
     {% endif %}
 
-    {% if github_url and github_version and github_folder %}
+    {% if github_url and repo_default_branch and repo_folder %}
 
     {% if github_issues %}
     <div class="issue-github">
@@ -127,7 +127,7 @@
     {% endif %}
 
     <div class="edit-github">
-      <a class="muted-link" href="{{ github_url }}/edit/{{ github_version }}{{ github_folder }}{{ pagename }}{{ page_source_suffix }}">Edit this page on GitHub</a>
+      <a class="muted-link" href="{{ github_url }}/edit/{{ repo_default_branch }}{{ repo_folder }}{{ pagename }}{{ page_source_suffix }}">Edit this page on GitHub</a>
     </div>
     {% endif %}
 

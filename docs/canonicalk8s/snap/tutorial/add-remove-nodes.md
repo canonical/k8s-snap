@@ -1,6 +1,6 @@
 # Add and remove nodes
 
-Typical production clusters are hosted across multiple data centres and cloud
+Typical production clusters are hosted across multiple data centers and cloud
 environments, enabling them to leverage geographical distribution for improved
 availability and resilience.
 
@@ -59,7 +59,7 @@ Install {{product}} on both VMs with the following command:
 <!-- markdownlint-restore -->
 
 {{product}} allows you to create two types of nodes: control plane and
-worker nodes. In this example, we just initialise a control plane node.
+worker nodes. In this example, we just initialize a control plane node.
 
 Bootstrap the control plane node with default configuration:
 
@@ -125,7 +125,7 @@ It is important to clean-up your nodes before tearing down the VMs.
 Keep in mind the consequences of removing nodes:
 
 ```{warning} If you have less than 3 control plane nodes the cluster
-is not in high availability mode. In such a setup the first node, ie the node you called
+is not in high availability mode. In such a setup the first node, i.e. the node you called
 `k8s bootstrap` on, plays the role of the leader. If you remove the leader
 you will lose availability of your cluster.
 ```

@@ -34,6 +34,6 @@ The following annotations can be set on CAPI `Machine` resources.
 
 | Name                                                      | Description                                                   | Values      | Set by user |
 |-----------------------------------------------------------|---------------------------------------------------------------|-------------|-------------|
-| `controlplane.cluster.x-k8s.io/ck8s-server-configuration` | Stores the json-marshalled string of KCP ClusterConfiguration | JSON string | no          |
+| `controlplane.cluster.x-k8s.io/ck8s-server-configuration` | Stores the JSON-marshalled string of KCP ClusterConfiguration | JSON string | no          |
 | `controlplane.cluster.x-k8s.io/remediation-in-progress`   | Keeps track that a KCP remediation is in progress             | JSON string | no          |
 | `controlplane.cluster.x-k8s.io/remediation-for`           | Links a new machine to the unhealthy machine it is replacing  | JSON string | no          |
