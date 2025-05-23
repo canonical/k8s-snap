@@ -34,6 +34,11 @@ on:
           Additional pytest arguments, use "-k <test_name>" to run a specific test
         default: ""
         type: string
+      checkout-ref:
+        description: The branch, tag, or SHA to checkout for running tests. Defaults to main.
+        required: false
+        type: string
+        default: main
   workflow_dispatch:
     inputs:
       arch:
@@ -75,6 +80,8 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.checkout-ref }}
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -117,6 +124,8 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.checkout-ref }}
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
