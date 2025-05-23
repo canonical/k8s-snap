@@ -124,7 +124,6 @@ linkcheck_anchors_ignore_for_url = [
 ]
 linkcheck_anchors_ignore_for_url.extend(custom_linkcheck_anchors_ignore_for_url)
 linkcheck_retries = 5
-linkcheck_timeout = 10
 
 # Tags cannot be added directly in custom_conf.py, so add them here
 for tag in custom_tags:
