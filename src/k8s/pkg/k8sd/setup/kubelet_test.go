@@ -49,7 +49,7 @@ func TestKubelet(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeletMock)
 
 		// Call the kubelet control plane setup function
-		g.Expect(setup.KubeletControlPlane(s, "dev", []net.IP{net.ParseIP("192.168.0.1")}, "10.152.1.1", "test-cluster.local", "provider", nil, nil)).To(Succeed())
+		g.Expect(setup.KubeletControlPlane(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider", nil, nil)).To(Succeed())
 
 		// Ensure the kubelet arguments file has the expected arguments and values
 		tests := []struct {
@@ -107,7 +107,7 @@ func TestKubelet(t *testing.T) {
 			"--my-extra-arg":   utils.Pointer("my-extra-val"),
 		}
 		// Call the kubelet control plane setup function
-		g.Expect(setup.KubeletControlPlane(s, "dev", []net.IP{net.ParseIP("192.168.0.1")}, "10.152.1.1", "test-cluster.local", "provider", nil, extraArgs)).To(Succeed())
+		g.Expect(setup.KubeletControlPlane(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider", nil, extraArgs)).To(Succeed())
 
 		// Ensure the kubelet arguments file has the expected arguments and values
 		tests := []struct {
@@ -166,7 +166,7 @@ func TestKubelet(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeletMock)
 
 		// Call the kubelet control plane setup function
-		g.Expect(setup.KubeletControlPlane(s, "dev", []net.IP{}, "", "", "", nil, nil)).To(Succeed())
+		g.Expect(setup.KubeletControlPlane(s, "dev", nil, "", "", "", nil, nil)).To(Succeed())
 
 		tests := []struct {
 			key         string
@@ -214,7 +214,7 @@ func TestKubelet(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeletMock)
 
 		// Call the kubelet worker setup function
-		g.Expect(setup.KubeletWorker(s, "dev", []net.IP{net.ParseIP("192.168.0.1")}, "10.152.1.1", "test-cluster.local", "provider", nil)).To(Succeed())
+		g.Expect(setup.KubeletWorker(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider", nil)).To(Succeed())
 
 		// Ensure the kubelet arguments file has the expected arguments and values
 		tests := []struct {
@@ -272,7 +272,7 @@ func TestKubelet(t *testing.T) {
 		}
 
 		// Call the kubelet worker setup function
-		g.Expect(setup.KubeletWorker(s, "dev", []net.IP{net.ParseIP("192.168.0.1")}, "10.152.1.1", "test-cluster.local", "provider", extraArgs)).To(Succeed())
+		g.Expect(setup.KubeletWorker(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider", extraArgs)).To(Succeed())
 
 		// Ensure the kubelet arguments file has the expected arguments and values
 		tests := []struct {
@@ -329,7 +329,7 @@ func TestKubelet(t *testing.T) {
 		s := mustSetupSnapAndDirectories(t, setKubeletMock)
 
 		// Call the kubelet worker setup function
-		g.Expect(setup.KubeletWorker(s, "dev", []net.IP{}, "", "", "", nil)).To(Succeed())
+		g.Expect(setup.KubeletWorker(s, "dev", nil, "", "", "", nil)).To(Succeed())
 
 		// Ensure the kubelet arguments file has the expected arguments and values
 		tests := []struct {
@@ -377,7 +377,7 @@ func TestKubelet(t *testing.T) {
 
 		s.Mock.ServiceArgumentsDir = "nonexistent"
 
-		g.Expect(setup.KubeletControlPlane(s, "dev", []net.IP{net.ParseIP("192.168.0.1")}, "10.152.1.1", "test-cluster.local", "provider", nil, nil)).ToNot(Succeed())
+		g.Expect(setup.KubeletControlPlane(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider", nil, nil)).ToNot(Succeed())
 	})
 
 	t.Run("WorkerNoArgsDir", func(t *testing.T) {
@@ -386,7 +386,7 @@ func TestKubelet(t *testing.T) {
 
 		s.Mock.ServiceArgumentsDir = "nonexistent"
 
-		g.Expect(setup.KubeletWorker(s, "dev", []net.IP{net.ParseIP("192.168.0.1")}, "10.152.1.1", "test-cluster.local", "provider", nil)).ToNot(Succeed())
+		g.Expect(setup.KubeletWorker(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider", nil)).ToNot(Succeed())
 	})
 
 	t.Run("HostnameOverride", func(t *testing.T) {
@@ -397,7 +397,7 @@ func TestKubelet(t *testing.T) {
 		s.Mock.Hostname = "dev"
 
 		// Call the kubelet control plane setup function
-		g.Expect(setup.KubeletControlPlane(s, "dev", []net.IP{net.ParseIP("192.168.0.1")}, "10.152.1.1", "test-cluster.local", "provider", nil, nil)).To(Succeed())
+		g.Expect(setup.KubeletControlPlane(s, "dev", net.ParseIP("192.168.0.1"), "10.152.1.1", "test-cluster.local", "provider", nil, nil)).To(Succeed())
 
 		val, err := snaputil.GetServiceArgument(s, "kubelet", "--hostname-override")
 		g.Expect(err).To(Not(HaveOccurred()))
@@ -412,7 +412,7 @@ func TestKubelet(t *testing.T) {
 		s.Mock.Hostname = "dev"
 
 		// Call the kubelet control plane setup function
-		g.Expect(setup.KubeletControlPlane(s, "dev", []net.IP{net.ParseIP("2001:db8::")}, "2001:db8::1", "test-cluster.local", "provider", nil, nil)).To(Succeed())
+		g.Expect(setup.KubeletControlPlane(s, "dev", net.ParseIP("2001:db8::"), "2001:db8::1", "test-cluster.local", "provider", nil, nil)).To(Succeed())
 
 		tests := []struct {
 			key         string
