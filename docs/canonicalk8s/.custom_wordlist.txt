@@ -72,6 +72,7 @@ ceph
 cephcsi
 CephFS
 cephx
+certfile
 cgroup
 cgroups
 Charmcraft
@@ -264,6 +265,7 @@ Juju's
 K8s
 Kafka
 KCP
+keyfile
 keystore
 KMS
 Kratos

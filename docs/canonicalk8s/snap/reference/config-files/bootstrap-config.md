@@ -5,10 +5,9 @@ customize the cluster. This reference section provides the format of this file
 by listing all available options and their details. See below for an example.
 
 ## Configuration options
-<!-- vale off -->
+
 ```{include} /_parts/bootstrap_config.md
 ```
-<!-- vale on -->
 
 ## Example
 

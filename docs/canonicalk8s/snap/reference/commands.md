@@ -1,7 +1,6 @@
 # Commands
 
 These are the commands provided by the k8s snap:
-<!-- vale off -->
 
 ```{include} /_parts/commands/k8s.md
    :end-before: '### SEE ALSO'
@@ -62,4 +61,4 @@ These are the commands provided by the k8s snap:
 ```{include} /_parts/commands/k8s_completion.md
    :end-before: '### SEE ALSO'
 ```
-<!-- vale on  -->
+
