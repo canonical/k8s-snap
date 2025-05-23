@@ -12,7 +12,6 @@ Overview <self>
 
 ```{toctree}
 :titlesonly:
-
 architecture
 dqlite
 ```
@@ -76,8 +75,7 @@ Common issues faced by users and their solutions.
 
 ```{toctree}
 :titlesonly:
-troubleshooting
-inspection-reports
+troubleshooting/index
 ```
 
 ## Contributing
