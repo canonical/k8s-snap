@@ -2,105 +2,53 @@ package csrsigning
 
 import (
 	"context"
-	"fmt"
-	"time"
+	"crypto/rsa"
 
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
-	"github.com/canonical/k8s/pkg/snap"
-	"github.com/canonical/k8s/pkg/utils"
-	"k8s.io/client-go/rest"
-	"sigs.k8s.io/controller-runtime/pkg/cache"
-	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
-	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
+	"github.com/go-logr/logr"
+	certv1 "k8s.io/api/certificates/v1"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
 type Controller struct {
-	snap      snap.Snap
-	waitReady func()
-
-	leaderElection bool
+	logger               logr.Logger
+	client               client.Client
+	managedSignerNames   map[string]struct{}
+	getClusterConfig     func(context.Context) (types.ClusterConfig, error)
+	reconcileAutoApprove func(context.Context, log.Logger, *certv1.CertificateSigningRequest, *rsa.PrivateKey, client.Client) (ctrl.Result, error)
 }
 
-type Options struct {
-	Snap      snap.Snap
-	WaitReady func()
-
-	LeaderElection bool
-}
-
-func New(opts Options) *Controller {
+func NewController(
+	logger logr.Logger,
+	client client.Client,
+	getClusterConfig func(context.Context) (types.ClusterConfig, error),
+) *Controller {
 	return &Controller{
-		snap:      opts.Snap,
-		waitReady: opts.WaitReady,
-
-		leaderElection: opts.LeaderElection,
-	}
-}
-
-func (c *Controller) getRESTConfig(ctx context.Context) (*rest.Config, error) {
-	for {
-		client, err := c.snap.KubernetesClient("")
-		if err == nil {
-			return client.RESTConfig(), nil
-		}
-
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		case <-time.After(3 * time.Second):
-		}
-	}
-}
-
-func (c *Controller) Run(ctx context.Context, getClusterConfig func(context.Context) (types.ClusterConfig, error)) error {
-	ctx = log.NewContext(ctx, log.FromContext(ctx).WithName("csrsigning"))
-
-	// TODO(neoaggelos): This should be moved to init() or some other initialization step
-	ctrllog.SetLogger(log.FromContext(ctx))
-
-	c.waitReady()
-
-	config, err := c.getRESTConfig(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get Kubernetes REST config: %w", err)
-	}
-
-	// TODO(neoaggelos): In case of more controllers, a single manager object should be created
-	// and passed here as configuration.
-	mgr, err := manager.New(config, manager.Options{
-		Logger:                  log.FromContext(ctx),
-		LeaderElection:          c.leaderElection,
-		LeaderElectionID:        "a27980c4.k8sd-csrsigning-controller",
-		LeaderElectionNamespace: "kube-system",
-		BaseContext:             func() context.Context { return ctx },
-		Cache: cache.Options{
-			SyncPeriod: utils.Pointer(10 * time.Minute),
+		logger: logger,
+		client: client,
+		managedSignerNames: map[string]struct{}{
+			"k8sd.io/kubelet-serving":   {},
+			"k8sd.io/kubelet-client":    {},
+			"k8sd.io/kube-proxy-client": {},
 		},
-		Metrics: server.Options{
-			BindAddress: "0",
-		},
-	})
-	if err != nil {
-		return fmt.Errorf("failed to create controller manager: %w", err)
-	}
-
-	if err := (&csrSigningReconciler{
-		Manager:            mgr,
-		Logger:             mgr.GetLogger(),
-		Client:             mgr.GetClient(),
-		managedSignerNames: managedSignerNames,
-
 		getClusterConfig:     getClusterConfig,
 		reconcileAutoApprove: reconcileAutoApprove,
-	}).SetupWithManager(mgr); err != nil {
-		return fmt.Errorf("failed to setup csrsigning controller: %w", err)
 	}
+}
 
-	if err := mgr.Start(ctx); err != nil {
-		return fmt.Errorf("controller manager failed: %w", err)
-	}
-
-	return nil
+func (r *Controller) SetupWithManager(mgr ctrl.Manager) error {
+	return ctrl.NewControllerManagedBy(mgr).
+		For(&certv1.CertificateSigningRequest{}).
+		WithEventFilter(predicate.NewPredicateFuncs(func(object client.Object) bool {
+			if csr, ok := object.(*certv1.CertificateSigningRequest); !ok {
+				return false
+			} else if _, ok := r.managedSignerNames[csr.Spec.SignerName]; !ok {
+				return false
+			}
+			return true
+		})).
+		Complete(r)
 }

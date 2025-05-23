@@ -18,11 +18,11 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func (r *csrSigningReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := r.Logger.WithValues("csr", req.Name)
+func (r *Controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	log := r.logger.WithValues("csr", req.Name)
 
 	obj := &certv1.CertificateSigningRequest{}
-	if err := r.Client.Get(ctx, req.NamespacedName, obj); err != nil {
+	if err := r.client.Get(ctx, req.NamespacedName, obj); err != nil {
 		if apierrors.IsNotFound(err) {
 			return ctrl.Result{}, nil
 		}
@@ -79,7 +79,7 @@ func (r *csrSigningReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 			if err != nil {
 				return ctrl.Result{}, fmt.Errorf("failed to load cluster RSA key: %w", err)
 			}
-			return r.reconcileAutoApprove(ctx, log, obj, priv, r.Client)
+			return r.reconcileAutoApprove(ctx, log, obj, priv, r.client)
 		}
 
 		log.Info("Requeue while waiting for CSR to be approved")
@@ -119,7 +119,7 @@ func (r *csrSigningReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		if caKey == nil {
 			log.Error(err, "Cannot sign certificate as CA private key is not available")
 			setFailedCSR(obj, missingKeyFailedReason, missingKeyFailedMessage)
-			if err := r.Client.Status().Update(ctx, obj); err != nil {
+			if err := r.client.Status().Update(ctx, obj); err != nil {
 				log.Error(err, "Failed to update failed CSR")
 				return ctrl.Result{}, err
 			}
@@ -159,7 +159,7 @@ func (r *csrSigningReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		if caKey == nil {
 			log.Error(err, "Cannot sign certificate as client CA private key is not available")
 			setFailedCSR(obj, missingKeyFailedReason, missingKeyFailedMessage)
-			if err := r.Client.Status().Update(ctx, obj); err != nil {
+			if err := r.client.Status().Update(ctx, obj); err != nil {
 				log.Error(err, "Failed to update failed CSR")
 				return ctrl.Result{}, err
 			}
@@ -197,7 +197,7 @@ func (r *csrSigningReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		if caKey == nil {
 			log.Error(err, "Cannot sign certificate as client CA private key is not available")
 			setFailedCSR(obj, missingKeyFailedReason, missingKeyFailedMessage)
-			if err := r.Client.Status().Update(ctx, obj); err != nil {
+			if err := r.client.Status().Update(ctx, obj); err != nil {
 				log.Error(err, "Failed to update failed CSR")
 				return ctrl.Result{}, err
 			}
@@ -232,7 +232,7 @@ func (r *csrSigningReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 
 	obj.Status.Certificate = crtPEM
-	if err := r.Client.Status().Update(ctx, obj); err != nil {
+	if err := r.client.Status().Update(ctx, obj); err != nil {
 		log.Error(err, "Failed to update CSR with signed certificate")
 		return ctrl.Result{}, err
 	}
