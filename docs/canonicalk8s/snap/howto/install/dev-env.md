@@ -3,17 +3,22 @@
 We recommend testing {{product}} in an isolated environment such as a clean
 virtual machine or LXD container.
 
-If you choose to install {{product}} directly on your development machine,
-please take note of the following considerations.
+You **can** install {{product}} directly on your development machine. But if
+you choose to do so, please take note of the following considerations.
 
 ## Containerd conflicts
 
-{{product}} uses the default containerd paths, which means that a {{product}}
-installation will conflict with any existing system configuration where
-containerd is already installed. For example, if you have Docker installed,
-or another Kubernetes distribution that uses containerd.
+{{product}} runs its own containerd service, which will use the standard
+containerd-related paths by default (`/run/containerd`, `/var/lib/containerd`,
+`/etc/containerd`). Note that these default paths are important for various
+upstream projects and operators (e.g.: GPU Operator).
 
-You may specify a custom containerd path like so:
+If you already have Docker installed, or another Kubernetes instance that uses
+containerd directly installed on the host, this can cause various conflicts
+with {{product}}.
+
+But, if necessary, {{product}} can be configured to use a custom containerd
+path, like so:
 
 ```bash
 cat <<EOF | sudo k8s bootstrap --file -
@@ -27,6 +32,11 @@ cluster-config:
     enabled: true
 EOF
 ```
+
+Any non-temporary directory can be chosen for `containerd-base-dir`
+(e.g.: `/ck8s`). {{product}} will then use this base directory for the
+containerd-related files (e.g.: `/ck8s/etc/containerd`,
+`/ck8s/var/run/containerd/containerd.sock`, etc.).
 
 ## Changing IP addresses
 
