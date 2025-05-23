@@ -20,6 +20,7 @@ var rootCmdOpts struct {
 	disableUpdateNodeConfigController   bool
 	disableCSRSigningController         bool
 	featureControllerMaxRetryAttempts   int
+	disableUpgradeController            bool
 }
 
 func addCommands(root *cobra.Command, group *cobra.Group, commands ...*cobra.Command) {
@@ -57,6 +58,7 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				DisableFeatureController:            rootCmdOpts.disableFeatureController,
 				DisableCSRSigningController:         rootCmdOpts.disableCSRSigningController,
 				FeatureControllerMaxRetryAttempts:   rootCmdOpts.featureControllerMaxRetryAttempts,
+				DisableUpgradeController:            rootCmdOpts.disableUpgradeController,
 			})
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to initialize k8sd: %v", err)
@@ -87,6 +89,7 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd.PersistentFlags().BoolVar(&rootCmdOpts.disableUpdateNodeConfigController, "disable-update-node-config-controller", false, "Disable the Update Node Config Controller")
 	cmd.PersistentFlags().BoolVar(&rootCmdOpts.disableFeatureController, "disable-feature-controller", false, "Disable the Feature Controller")
 	cmd.PersistentFlags().BoolVar(&rootCmdOpts.disableCSRSigningController, "disable-csrsigning-controller", false, "Disable the CSR signing controller")
+	cmd.PersistentFlags().BoolVar(&rootCmdOpts.disableUpgradeController, "disable-upgrade-controller", false, "Disable the upgrade controller")
 
 	cmd.Flags().Uint("port", 0, "Default port for the HTTP API")
 	cmd.Flags().MarkDeprecated("port", "this flag does not have any effect, and will be removed in a future version")
