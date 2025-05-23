@@ -73,17 +73,11 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 	}
 	// TODO(neoaggelos): figure out how to use the microcluster client instead
 
-	// nodeIPs will be passed to kubelet as the --node-ip parameter, allowing it to have multiple node IPs,
-	// including IPv4 and IPv6 addresses for dualstacks.
-	nodeIPs, err := utils.GetIPv46Addresses(nodeIP)
-	if err != nil {
-		return fmt.Errorf("failed to get local node IPs for kubelet: %w", err)
-	}
-
 	// Get remote certificate from the cluster member. We only need one node to be reachable for this.
 	// One might fail because the node is not part of the cluster anymore but was at the time the token was created.
 	var cert *x509.Certificate
 	var address string
+	var err error
 	for _, address = range token.JoinAddresses {
 		cert, err = utils.GetRemoteCertificate(address)
 		if err == nil {
@@ -260,7 +254,7 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 	if err := setup.Containerd(snap, joinConfig.ExtraNodeContainerdConfig, joinConfig.ExtraNodeContainerdArgs); err != nil {
 		return fmt.Errorf("failed to configure containerd: %w", err)
 	}
-	if err := setup.KubeletWorker(snap, s.Name(), nodeIPs, response.ClusterDNS, response.ClusterDomain, response.CloudProvider, joinConfig.ExtraNodeKubeletArgs); err != nil {
+	if err := setup.KubeletWorker(snap, s.Name(), nodeIP, response.ClusterDNS, response.ClusterDomain, response.CloudProvider, joinConfig.ExtraNodeKubeletArgs); err != nil {
 		return fmt.Errorf("failed to configure kubelet: %w", err)
 	}
 	if err := setup.KubeProxy(ctx, snap, s.Name(), response.PodCIDR, localhostAddress, joinConfig.ExtraNodeKubeProxyArgs); err != nil {
@@ -309,13 +303,6 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 	nodeIP := net.ParseIP(s.Address().Hostname())
 	if nodeIP == nil {
 		return fmt.Errorf("failed to parse node IP address %q", s.Address().Hostname())
-	}
-
-	// nodeIPs will be passed to kubelet as the --node-ip parameter, allowing it to have multiple node IPs,
-	// including IPv4 and IPv6 addresses for dualstacks.
-	nodeIPs, err := utils.GetIPv46Addresses(nodeIP)
-	if err != nil {
-		return fmt.Errorf("failed to get local node IPs for kubelet: %w", err)
 	}
 
 	var localhostAddress string
@@ -470,7 +457,7 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 	if err := setup.Containerd(snap, bootstrapConfig.ExtraNodeContainerdConfig, bootstrapConfig.ExtraNodeContainerdArgs); err != nil {
 		return fmt.Errorf("failed to configure containerd: %w", err)
 	}
-	if err := setup.KubeletControlPlane(snap, s.Name(), nodeIPs, cfg.Kubelet.GetClusterDNS(), cfg.Kubelet.GetClusterDomain(), cfg.Kubelet.GetCloudProvider(), cfg.Kubelet.GetControlPlaneTaints(), bootstrapConfig.ExtraNodeKubeletArgs); err != nil {
+	if err := setup.KubeletControlPlane(snap, s.Name(), nodeIP, cfg.Kubelet.GetClusterDNS(), cfg.Kubelet.GetClusterDomain(), cfg.Kubelet.GetCloudProvider(), cfg.Kubelet.GetControlPlaneTaints(), bootstrapConfig.ExtraNodeKubeletArgs); err != nil {
 		return fmt.Errorf("failed to configure kubelet: %w", err)
 	}
 	if err := setup.KubeProxy(ctx, snap, s.Name(), cfg.Network.GetPodCIDR(), localhostAddress, bootstrapConfig.ExtraNodeKubeProxyArgs); err != nil {
