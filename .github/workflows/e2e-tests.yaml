@@ -67,7 +67,6 @@ on:
         default: false
 
 jobs:
-  # First job: Prepare the snap and find test files
   prepare:
     name: Prepare Environment
     runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
@@ -106,7 +105,6 @@ jobs:
           echo "tests=$JSON_ARRAY" >> $GITHUB_OUTPUT
           echo "Found test files: $TEST_FILES"
 
-  # Second job: Run each test in a separate runner
   run-tests:
     name: Run ${{ matrix.test }} - ${{ inputs.os }}-${{ inputs.arch }}
     needs: prepare
