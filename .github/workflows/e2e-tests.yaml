@@ -103,7 +103,7 @@ jobs:
           echo "Found test files: $TEST_FILES"
 
   run-tests:
-    name: Run ${{ matrix.test }} - ${{ inputs.os }}-${{ inputs.arch }}
+    name: ${{ matrix.test }}
     needs: prepare
     runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     strategy:
@@ -130,16 +130,24 @@ jobs:
       - name: Setup tmate session
         uses: canonical/action-tmate@main
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.tmate_enabled }}
-      - name: Generate unique test name
+      - name: Generate names for step and artifacts
         run: |
-          echo "test_name=${{ inputs.os }}-${{ inputs.arch }}-${{ matrix.test }}-$(uuidgen)" | sed 's/[\/:\.\]/-/g' | sed 's/\s//g' >> $GITHUB_ENV
-      - name: Run ${{ matrix.test }} test
+          FULL_TEST_NODE_ID="${{ matrix.test }}"
+          # Extract short test name (part after '::') for the step display name
+          SHORT_TEST_NAME="${FULL_TEST_NODE_ID##*::}"
+          echo "short_test_name=${SHORT_TEST_NAME}" >> $GITHUB_ENV
+
+          # Generate long, unique, sanitized name for artifacts and directories (existing logic)
+          RAW_ARTIFACT_NAME_BASE="${{ inputs.os }}-${{ inputs.arch }}-${FULL_TEST_NODE_ID}-$(uuidgen)"
+          SANITIZED_ARTIFACT_NAME=$(echo "$RAW_ARTIFACT_NAME_BASE" | sed 's/[\/:\.\]/-/g' | sed 's/\s//g')
+          echo "test_name=${SANITIZED_ARTIFACT_NAME}" >> $GITHUB_ENV
+      - name: ${{ env.short_test_name }}
         env:
           TEST_SNAP: ${{ steps.download-snap.outputs.snap-path }}
           TEST_SUBSTRATE: lxd
           TEST_LXD_IMAGE: ${{ inputs.os }}
           TEST_FLAVOR: ${{ inputs.flavor }}
-          TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports/${{ matrix.test }}
+          TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports/${{ env.test_name }}
           TEST_VERSION_UPGRADE_CHANNELS: "recent 6"
           # TODO(etienne): change to "recent" when 1.33 is stable
           TEST_VERSION_DOWNGRADE_CHANNELS: "1.32-classic/stable 1.32-classic/beta 1.31-classic/stable 1.31-classic/beta"
@@ -154,13 +162,13 @@ jobs:
         if: failure()
         run: |
           mkdir -p inspection-report-archives
-          tar -czvf inspection-report-archives/${{ matrix.test }}.tar.gz -C ${{ github.workspace }} inspection-reports/${{ matrix.test }} || true
+          tar -czvf inspection-report-archives/${{ env.test_name }}.tar.gz -C ${{ github.workspace }} inspection-reports/${{ env.test_name }} || true
       - name: Upload inspection report artifact
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: inspection-reports-${{ env.test_name }}
-          path: ${{ github.workspace }}/inspection-report-archives/${{ matrix.test }}.tar.gz
+          path: ${{ github.workspace }}/inspection-report-archives/${{ env.test_name }}.tar.gz
       - name: Upload CNCF conformance report artifact
         if: ${{ failure() && contains(inputs.test-tags, 'conformance_tests') }}
         uses: actions/upload-artifact@v4
