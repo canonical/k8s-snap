@@ -38,6 +38,7 @@ failed-initialize
 path-exists
 increased-memory-usage
 bootstrap-issues
+address-in-use
 ```
 
 <!-- Links -->
