@@ -8,12 +8,31 @@ import sys
 import yaml
 
 DIR = Path(__file__).absolute().parent
+BUILD_DIRECTORY = DIR / ".build"
+INSTALL_DIRECTORY = DIR / ".install"
 
-SNAPCRAFT_PART_BUILD = Path(os.getenv("SNAPCRAFT_PART_BUILD", ""))
-SNAPCRAFT_PART_INSTALL = Path(os.getenv("SNAPCRAFT_PART_INSTALL", ""))
 
-BUILD_DIRECTORY = SNAPCRAFT_PART_BUILD.exists() and SNAPCRAFT_PART_BUILD or DIR / ".build"
-INSTALL_DIRECTORY = SNAPCRAFT_PART_INSTALL.exists() and SNAPCRAFT_PART_INSTALL or DIR / ".install"
+def _get_component_path_regular(component: str):
+    return BUILD_DIRECTORY / component
+
+
+def _get_component_path_snap(component: str):
+    return BUILD_DIRECTORY / ".." / ".." / component / "build" / component
+
+
+_get_component_path = _get_component_path_regular
+
+SNAPCRAFT_PART_BUILD = os.getenv("SNAPCRAFT_PART_BUILD")
+if SNAPCRAFT_PART_BUILD and Path(SNAPCRAFT_PART_BUILD).exists():
+    BUILD_DIRECTORY = Path(SNAPCRAFT_PART_BUILD)
+    _get_component_path = _get_component_path_snap
+
+
+SNAPCRAFT_PART_INSTALL = os.getenv("SNAPCRAFT_PART_INSTALL")
+if SNAPCRAFT_PART_INSTALL and Path(SNAPCRAFT_PART_INSTALL).exists():
+    INSTALL_DIRECTORY = Path(SNAPCRAFT_PART_INSTALL)
+
+
 
 # List of tools used to build or bundled in the snap
 TOOLS = {
@@ -62,7 +81,7 @@ if __name__ == "__main__":
                 "version": version,
                 "revision": _parse_output(
                     ["git", "rev-parse", f"HEAD~{len(clean_patches)}"],
-                    cwd=BUILD_DIRECTORY / ".." / ".." / component / "build" / component,
+                    cwd=_get_component_path(component),
                 ),
                 "patches": clean_patches,
             }

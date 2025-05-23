@@ -23,7 +23,8 @@ jobs:
     uses: ./.github/workflows/build-snap.yaml
     strategy:
       matrix:
-        patch: ["", "moonray"]
+        # e.g. moonray, strict - right now we only support the classic flavor
+        patch: [""]
     with:
       flavor: ${{ matrix.patch }}
 
@@ -115,23 +116,6 @@ jobs:
       os: ${{ matrix.os }}
       test-tags: ${{ needs.get-e2e-tags.outputs.test-tags}}
       artifact: k8s.snap
-
-  test-integration-informing:
-    name: Informing
-    strategy:
-      fail-fast: false
-      matrix:
-        os: ["ubuntu:24.04"]
-        patch: ["moonray"]
-    needs: [build-snap, get-e2e-tags, go-lint-and-unit, python-lint]
-    if: success() && github.event_name == 'pull_request'
-    uses: ./.github/workflows/e2e-tests.yaml
-    with:
-      arch: amd64
-      os: ${{ matrix.os }}
-      test-tags: ${{ needs.get-e2e-tags.outputs.test-tags}}
-      artifact: k8s-${{ matrix.patch }}.snap
-      flavor: ${{ matrix.patch }}
 
   security-scan:
     name: Security scan

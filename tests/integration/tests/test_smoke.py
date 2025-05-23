@@ -52,13 +52,13 @@ def test_smoke(instances: List[harness.Instance]):
 
     # For each service, verify that the extra arg was written to the args file.
     for service, value in {
-        "kube-apiserver": "--request-timeout=2m",
-        "kube-controller-manager": "--leader-elect-retry-period=3s",
-        "kube-scheduler": "--authorization-webhook-cache-authorized-ttl=11s",
-        "kube-proxy": "--config-sync-period=14m",
-        "kubelet": "--authentication-token-webhook-cache-ttl=3m",
-        "containerd": "--log-level=debug",
-        "k8s-dqlite": "--watch-storage-available-size-interval=6s",
+        "kube-apiserver": '--request-timeout="2m"',
+        "kube-controller-manager": '--leader-elect-retry-period="3s"',
+        "kube-scheduler": '--authorization-webhook-cache-authorized-ttl="11s"',
+        "kube-proxy": '--config-sync-period="14m"',
+        "kubelet": '--authentication-token-webhook-cache-ttl="3m"',
+        "containerd": '--log-level="debug"',
+        "k8s-dqlite": '--watch-storage-available-size-interval="6s"',
     }.items():
         args = instance.exec(
             ["cat", f"/var/snap/k8s/common/args/{service}"], capture_output=True

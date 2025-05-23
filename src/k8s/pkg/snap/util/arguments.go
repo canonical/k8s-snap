@@ -79,7 +79,7 @@ func UpdateServiceArguments(snap snap.Snap, serviceName string, updateMap map[st
 		existingArguments[key] = struct{}{}
 		if newValue, ok := updateMap[key]; ok {
 			// update argument with new value
-			newArguments = append(newArguments, fmt.Sprintf("%s=%s", key, newValue))
+			newArguments = append(newArguments, fmt.Sprintf(`%s="%s"`, key, newValue))
 			if oldValue != newValue {
 				changed = true
 			}
@@ -96,7 +96,7 @@ func UpdateServiceArguments(snap snap.Snap, serviceName string, updateMap map[st
 	for key, value := range updateMap {
 		if _, argExists := existingArguments[key]; !argExists {
 			changed = true
-			newArguments = append(newArguments, fmt.Sprintf("%s=%s", key, value))
+			newArguments = append(newArguments, fmt.Sprintf(`%s="%s"`, key, value))
 		}
 	}
 
