@@ -35,8 +35,8 @@ func TestCSRNotFound(t *testing.T) {
 		},
 	)
 
-	reconciler := &csrSigningReconciler{
-		Client: k8sM,
+	reconciler := &Controller{
+		client: k8sM,
 	}
 
 	g := NewWithT(t)
@@ -60,8 +60,8 @@ func TestFailedToGetCSR(t *testing.T) {
 		getErr,
 	)
 
-	reconciler := &csrSigningReconciler{
-		Client: k8sM,
+	reconciler := &Controller{
+		client: k8sM,
 	}
 
 	g := NewWithT(t)
@@ -84,8 +84,8 @@ func TestHasSignedCertificate(t *testing.T) {
 		nil,
 	)
 
-	reconciler := &csrSigningReconciler{
-		Client: k8sM,
+	reconciler := &Controller{
+		client: k8sM,
 	}
 
 	g := NewWithT(t)
@@ -118,8 +118,8 @@ func TestSkipUnmanagedSignerName(t *testing.T) {
 	// just to make sure the test is correct
 	g.Expect(managedSigners).ToNot(HaveKey(unmanagedSignerName))
 
-	reconciler := &csrSigningReconciler{
-		Client:             k8sM,
+	reconciler := &Controller{
+		client:             k8sM,
 		managedSignerNames: managedSigners,
 	}
 
@@ -149,8 +149,8 @@ func TestCertificateDenied(t *testing.T) {
 		nil,
 	)
 
-	reconciler := &csrSigningReconciler{
-		Client: k8sM,
+	reconciler := &Controller{
+		client: k8sM,
 		managedSignerNames: map[string]struct{}{
 			managedSigner: {},
 		},
@@ -184,8 +184,8 @@ func TestCertificateFailed(t *testing.T) {
 		nil,
 	)
 
-	reconciler := &csrSigningReconciler{
-		Client: k8sM,
+	reconciler := &Controller{
+		client: k8sM,
 		managedSignerNames: map[string]struct{}{
 			managedSigner: {},
 		},
@@ -221,8 +221,8 @@ func TestFailedToGetClusterConfig(t *testing.T) {
 
 	getCCErr := errors.New("failed to get cluster config")
 
-	reconciler := &csrSigningReconciler{
-		Client: k8sM,
+	reconciler := &Controller{
+		client: k8sM,
 		managedSignerNames: map[string]struct{}{
 			managedSigner: {},
 		},
@@ -253,8 +253,8 @@ func TestNotApprovedCSR(t *testing.T) {
 			nil,
 		)
 
-		reconciler := &csrSigningReconciler{
-			Client: k8sM,
+		reconciler := &Controller{
+			client: k8sM,
 			managedSignerNames: map[string]struct{}{
 				managedSigner: {},
 			},
@@ -290,8 +290,8 @@ func TestNotApprovedCSR(t *testing.T) {
 		g.Expect(err).ToNot(HaveOccurred())
 
 		var called bool
-		reconciler := &csrSigningReconciler{
-			Client: k8sM,
+		reconciler := &Controller{
+			client: k8sM,
 			managedSignerNames: map[string]struct{}{
 				managedSigner: {},
 			},
@@ -339,8 +339,8 @@ func TestInvalidCSR(t *testing.T) {
 		csr,
 		nil,
 	)
-	reconciler := &csrSigningReconciler{
-		Client: k8sM,
+	reconciler := &Controller{
+		client: k8sM,
 		managedSignerNames: map[string]struct{}{
 			managedSigner: {},
 		},
@@ -393,8 +393,8 @@ func TestInvalidCACertificate(t *testing.T) {
 		csr,
 		nil,
 	)
-	reconciler := &csrSigningReconciler{
-		Client: k8sM,
+	reconciler := &Controller{
+		client: k8sM,
 		managedSignerNames: map[string]struct{}{
 			managedSigner: {},
 		},
@@ -456,8 +456,8 @@ func TestUpdateCSRFailed(t *testing.T) {
 	caCert, caKey, err := pkiutil.GenerateSelfSignedCA(pkix.Name{CommonName: "kubernetes-ca"}, time.Now(), time.Now().AddDate(10, 0, 0), 2048)
 	g.Expect(err).ToNot(HaveOccurred())
 
-	reconciler := &csrSigningReconciler{
-		Client: k8sM,
+	reconciler := &Controller{
+		client: k8sM,
 		managedSignerNames: map[string]struct{}{
 			managedSigner: {},
 		},
@@ -517,8 +517,8 @@ func TestUpdateCSRSucceed(t *testing.T) {
 	caCert, caKey, err := pkiutil.GenerateSelfSignedCA(pkix.Name{CommonName: "kubernetes-ca"}, time.Now(), time.Now().AddDate(10, 0, 0), 2048)
 	g.Expect(err).ToNot(HaveOccurred())
 
-	reconciler := &csrSigningReconciler{
-		Client: k8sM,
+	reconciler := &Controller{
+		client: k8sM,
 		managedSignerNames: map[string]struct{}{
 			managedSigner: {},
 		},
