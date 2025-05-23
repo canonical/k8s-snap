@@ -132,7 +132,7 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.tmate_enabled }}
       - name: Generate unique test name
         run: |
-          echo "test_name=${{ inputs.os }}-${{ inputs.arch }}-${{ matrix.test }}-$(uuidgen)" | sed 's/[:\.\]/-/g' | sed 's/\s//g' >> $GITHUB_ENV
+          echo "test_name=${{ inputs.os }}-${{ inputs.arch }}-${{ matrix.test }}-$(uuidgen)" | sed 's/[\/:\.\]/-/g' | sed 's/\s//g' >> $GITHUB_ENV
       - name: Run ${{ matrix.test }} test
         env:
           TEST_SNAP: ${{ steps.download-snap.outputs.snap-path }}
