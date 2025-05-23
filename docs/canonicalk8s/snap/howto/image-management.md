@@ -40,7 +40,7 @@ sudo /snap/k8s/current/bin/ctr --address /run/containerd/containerd.sock --names
 You should see:
 
 ```
-ghcr.io/canonical/cilium-operator-generic:1.17.1-ck0
+ghcr.io/canonical/cilium-operator-generic:1.16.3-ck0
 ghcr.io/canonical/cilium-operator-generic@sha256:e02dcce1e175312bf4dc2da6a97df49456a8eef6b2a1a9f2d68d4342dc0d3664
 ghcr.io/canonical/k8s-snap/pause:3.10
 ghcr.io/canonical/k8s-snap/pause@sha256:ee6521f290b2168b6e0935a181d4cff9be1ac3f505666ef0e3c98fae8199917a
