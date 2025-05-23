@@ -77,7 +77,7 @@ jobs:
       os: ${{ matrix.os }}
       channel: ${{ matrix.channel }}
       test-tags: 'up_to_nightly'
-      checkout-ref: ${{ startsWith(matrix.channel, 'latest/') && 'main' || 'release-' + matrix.channel.split('-')[0].split('/')[0] }}
+      checkout-ref: ${{ startsWith(matrix.channel, 'latest/') && 'main' || format('release-{0}', matrix.channel.split('-')[0].split('/')[0]) }}
 
   Trivy:
     if: false
