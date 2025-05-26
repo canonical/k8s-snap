@@ -175,6 +175,14 @@ jobs:
         with:
           name: sonobuoy-e2e-${{ env.test_name }}
           path: tests/integration/sonobuoy_e2e.tar.gz
+      - name: Generate HTML test report
+        if: ${{ contains(inputs.extra-test-args, '--subunit-path') }}
+        run: |
+          cd tests/integration
+          if [ -f subunit.out ]; then
+            subunit2html subunit.out subunit.html
+          fi
+
       - name: Upload html test report
         if: ${{ failure() && contains(inputs.extra-test-args, '--subunit-path') }}
         uses: actions/upload-artifact@v4
