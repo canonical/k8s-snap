@@ -155,9 +155,10 @@ jobs:
           TEST_VERSION_DOWNGRADE_CHANNELS: "1.32-classic/stable 1.32-classic/beta 1.31-classic/stable 1.31-classic/beta"
           TEST_VERSION_UPGRADE_MIN_RELEASE: "1.32"
           TEST_STRICT_INTERFACE_CHANNELS: "recent 6 strict"
-          TEST_MIRROR_LIST: '[{"name": "ghcr.io", "port": 5000, "remote": "https://ghcr.io", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}, {"name": "docker.io", "port": 5001, "remote": "https://registry-1.docker.io", "username": "", "password": ""}, {"name": "rocks.canonical.com", "port": 5002, "remote": "https://rocks.canonical.com/cdk"}]'
           TEST_GH_REF: ${{ github.ref_name }}
           TEST_GH_BASE_REF: ${{ github.base_ref }}
+          TEST_USE_LOCAL_MIRROR: "0"
+          TEST_PRELOAD_SNAPS: "0"
         run: |
           cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- ${{ inputs.extra-test-args }} ${{ matrix.test }}
       - name: Prepare inspection reports
