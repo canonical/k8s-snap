@@ -95,10 +95,7 @@ jobs:
           # Collect test names and convert to JSON array for GitHub Actions
           # There is no easy way to get the test names from pytest, so we use the --collect-only flag
           # and parse the output to extract the test names.
-          TEST_FILES=$(tox -e integration -- --collect-only tests/ $TAGS_ARGS --quiet --no-header \
-            | grep -E "<Function test_[a-zA-Z0-9_]+>" \
-            | sed -E 's/<Function (test_[a-zA-Z0-9_]+)>.*/\1/' \
-            | sort -u)
+          TEST_FILES=$(tox -e integration -- --collect-only $TAGS_ARGS --quiet --no-header tests/ | grep ::)
 
           # Convert to JSON array for GitHub Actions
           JSON_ARRAY=$(echo "$TEST_FILES" | jq -R -s -c 'split("\n") | map(select(length > 0))')
@@ -106,7 +103,7 @@ jobs:
           echo "Found test files: $TEST_FILES"
 
   run-tests:
-    name: Run ${{ matrix.test }} - ${{ inputs.os }}-${{ inputs.arch }}
+    name: ${{ matrix.test }}
     needs: prepare
     runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     strategy:
@@ -120,9 +117,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Generate job UUID
-        # Use this UUID to ensure that the artifact names are unique.
-        run: echo UUID=$(uuidgen) >> $GITHUB_ENV
       - name: Download k8s-snap
         id: download-snap
         uses: ./.github/actions/download-k8s-snap
@@ -138,13 +132,24 @@ jobs:
       - name: Setup tmate session
         uses: canonical/action-tmate@main
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.tmate_enabled }}
-      - name: Run ${{ matrix.test }} test
+      - name: Generate names for step and artifacts
+        run: |
+          FULL_TEST_NODE_ID="${{ matrix.test }}"
+          # Extract short test name (part after '::') for the step display name
+          SHORT_TEST_NAME="${FULL_TEST_NODE_ID##*::}"
+          echo "short_test_name=${SHORT_TEST_NAME}" >> $GITHUB_ENV
+
+          # Generate long, unique, sanitized name for artifacts and directories (existing logic)
+          RAW_ARTIFACT_NAME_BASE="${{ inputs.os }}-${{ inputs.arch }}-${FULL_TEST_NODE_ID}-$(uuidgen)"
+          SANITIZED_ARTIFACT_NAME=$(echo "$RAW_ARTIFACT_NAME_BASE" | sed 's/[\/:\.\]/-/g' | sed 's/\s//g')
+          echo "test_name=${SANITIZED_ARTIFACT_NAME}" >> $GITHUB_ENV
+      - name: ${{ env.short_test_name }}
         env:
           TEST_SNAP: ${{ steps.download-snap.outputs.snap-path }}
           TEST_SUBSTRATE: lxd
           TEST_LXD_IMAGE: ${{ inputs.os }}
           TEST_FLAVOR: ${{ inputs.flavor }}
-          TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports/${{ matrix.test }}
+          TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports/${{ env.test_name }}
           TEST_VERSION_UPGRADE_CHANNELS: "recent 6"
           # TODO(etienne): change to "recent" when 1.33 is stable
           TEST_VERSION_DOWNGRADE_CHANNELS: "1.32-classic/stable 1.32-classic/beta 1.31-classic/stable 1.31-classic/beta"
@@ -154,27 +159,35 @@ jobs:
           TEST_GH_REF: ${{ github.ref_name }}
           TEST_GH_BASE_REF: ${{ github.base_ref }}
         run: |
-          cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- -k ${{ matrix.test }} ${{ inputs.extra-test-args }}
+          cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- ${{ inputs.extra-test-args }} ${{ matrix.test }}
       - name: Prepare inspection reports
         if: failure()
         run: |
           mkdir -p inspection-report-archives
-          tar -czvf inspection-report-archives/${{ matrix.test }}.tar.gz -C ${{ github.workspace }} inspection-reports/${{ matrix.test }} || true
+          tar -czvf inspection-report-archives/${{ env.test_name }}.tar.gz -C ${{ github.workspace }} inspection-reports/${{ env.test_name }} || true
       - name: Upload inspection report artifact
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: inspection-reports-${{ matrix.test }}-${{ inputs.os }}-${{ inputs.arch }}
-          path: ${{ github.workspace }}/inspection-report-archives/${{ matrix.test }}.tar.gz
+          name: inspection-reports-${{ env.test_name }}
+          path: ${{ github.workspace }}/inspection-report-archives/${{ env.test_name }}.tar.gz
       - name: Upload CNCF conformance report artifact
         if: ${{ failure() && contains(inputs.test-tags, 'conformance_tests') }}
         uses: actions/upload-artifact@v4
         with:
-          name: sonobuoy-e2e-${{ matrix.test }}-${{ inputs.os }}-${{ inputs.arch }}
+          name: sonobuoy-e2e-${{ env.test_name }}
           path: tests/integration/sonobuoy_e2e.tar.gz
+      - name: Generate HTML test report
+        if: ${{ contains(inputs.extra-test-args, '--subunit-path') }}
+        run: |
+          cd tests/integration
+          if [ -f subunit.out ]; then
+            subunit2html subunit.out subunit.html
+          fi
+
       - name: Upload html test report
-        if: failure()
+        if: ${{ failure() && contains(inputs.extra-test-args, '--subunit-path') }}
         uses: actions/upload-artifact@v4
         with:
-          name: subunit-${{ matrix.test }}-${{ env.UUID }}.html
+          name: subunit-${{ env.test_name }}.html
           path: tests/integration/subunit.html
