@@ -27,8 +27,8 @@ jobs:
         if: inputs.flavor != ''
         run: |
           ./build-scripts/patches/${{ inputs.flavor }}/apply
-      - name: Install lxd
-        uses: ./.github/actions/install-lxd
+      - name: Setup LXD
+        uses: canonical/setup-lxd@v0.1.3
       - name: Install snapcraft
         run: |
           sudo snap install snapcraft --classic
