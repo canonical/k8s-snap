@@ -1,6 +1,10 @@
 # Getting started
 
-Installing {{product}} should only take a few minutes. This tutorial
+{{product}} is a distribution of Kubernetes which includes all
+the necessary tools and services needed to easily deploy and manage a cluster.
+As the upstream Kubernetes does not come with all that is required
+for a fully functional cluster by default, we have bundled everything into a
+snap that should only take a few minutes to install. This tutorial
 explains how to install the snap package and some typical operations.
 
 ## Prerequisites
@@ -14,19 +18,23 @@ explains how to install the snap package and some typical operations.
 cause conflicts. Consider using a [LXD virtual machine] if you would like an
 isolated working environment.
 
-### 1. Install {{product}}
+### Install {{product}}
 
-Install the {{product}} snap with:
+Install the {{product}} `k8s` snap with:
 
 ```{literalinclude} ../../_parts/install.md
 :start-after: <!-- snap start -->
 :end-before: <!-- snap end -->
 ```
 
-### 2. Bootstrap a Kubernetes cluster
+This may take a few moments as the snap installs all the necessary Kubernetes
+components for a fully functioning cluster such as the networking, storage, etc.
+
+### Bootstrap a Kubernetes cluster
 
 The bootstrap command initializes your cluster and configures your host system
-as a Kubernetes node. Bootstrapping the cluster can only be done once.
+as a Kubernetes node. Bootstrapping the cluster is only done once at cluster
+creation.
 
 If you would like to bootstrap a Kubernetes cluster with
 default configuration run:
@@ -41,7 +49,10 @@ For custom configurations, you can explore additional options using:
 sudo k8s bootstrap --help
 ```
 
-### 3. Check cluster status
+Once the bootstrap command has been successfully ran, the output should list the
+node address and confirm the CNI is being deployed.
+
+### Check cluster status
 
 It may take a few minutes for the cluster to be ready. To confirm the
 installation was successful, use `k8s status` with the `wait-ready` flag
@@ -55,12 +66,12 @@ sudo k8s status --wait-ready
 ```{important}
 This command waits a few minutes before timing out.
 On a very slow network connection, or a system with very limited resources,
-this default timeout might be insufficient resulting in a "Context canceled"
-error. In that case, you can either increase the timeout using the  `--timeout`
+this default timeout might be insufficient resulting in a "Context cancelled"
+error. Please first ensure that your machine meets the system requirements to run a Kubernetes cluster. Then, you can either increase the timeout using the  `--timeout`
 flag or re-run the command to continue waiting until the cluster is ready.
 ```
 
-### 5. Access Kubernetes
+### Access Kubernetes
 
 The standard tool for deploying and managing workloads on Kubernetes
 is [kubectl](https://kubernetes.io/docs/reference/kubectl/).
@@ -101,7 +112,7 @@ life-cycle of the local storage solution.
 management.
 
 
-### 6. Deploy an app
+### Deploy an app
 
 Kubernetes is meant for deploying apps and services.
 You can use the `kubectl`
@@ -127,7 +138,7 @@ sudo k8s kubectl get pods
 This command shows all pods in the default namespace.
 It may take a moment for the pod to be ready and running.
 
-### 7. Remove an app
+### Remove an app
 
 To remove the NGINX workload, execute the following command:
 
@@ -142,7 +153,7 @@ running:
 sudo k8s kubectl get pods
 ```
 
-### 8. Enable local storage
+### Enable local storage
 
 In scenarios where you need to preserve application data beyond the
 life-cycle of the pod, Kubernetes provides persistent volumes.
@@ -185,7 +196,7 @@ You can inspect the storage-writer-pod with:
 sudo k8s kubectl describe pod storage-writer-pod
 ```
 
-### 9. Disable local storage
+### Disable local storage
 
 Begin by removing the pod along with the persistent volume claim:
 
@@ -200,7 +211,7 @@ Next, disable the local storage:
 sudo k8s disable local-storage
 ```
 
-### 10. Remove {{product}} (Optional)
+### Remove {{product}} (Optional)
 
 If you wish to remove the snap without saving a snapshot of its data execute:
 
@@ -221,19 +232,13 @@ snapd for the `k8s` snap. This data can be found in `/var/snap/k8s`.
 
 ## Next steps
 
-- Learn more about {{product}} with kubectl: [How to use kubectl]
-- Explore Kubernetes commands with our [command reference guide]
+- Learn more about {{product}} with kubectl in our [How to use kubectl] tutorial
 - Learn how to set up a multi-node environment by [adding and removing nodes]
-- Configure storage options: [Storage]
-- Discover Kubernetes networking concepts: [Networking]
-- Learn how to enable and configure Ingress resources: [Ingress]
+- Explore Kubernetes commands with our [command reference guide]
 
 <!-- LINKS -->
 
 [How to use kubectl]: kubectl
 [command reference guide]: /snap/reference/commands
 [adding and removing nodes]: add-remove-nodes
-[Storage]: /snap/howto/storage/index
-[Networking]: /snap/howto/networking/index.md
-[Ingress]: /snap/howto/networking/default-ingress.md
 [LXD virtual machine]: /snap/howto/install/lxd.md
