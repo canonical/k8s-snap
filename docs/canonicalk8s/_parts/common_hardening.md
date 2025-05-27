@@ -31,7 +31,7 @@ apiserver.
 ```
 sudo sh -c '
 cat >>/var/snap/k8s/common/args/kube-apiserver <<EOL
---encyrption-provider-config=/var/snap/k8s/common/etc/enc.yaml
+--encryption-provider-config=/var/snap/k8s/common/etc/enc.yaml
 EOL'
 ```
 
@@ -52,7 +52,7 @@ sudo grep authorization-mode /var/snap/k8s/common/args/kube-apiserver | \
 ```
 
 By default, the value is `Node,RBAC`
-* `Node`: 
+* `Node`:
   A special-purpose authorization mode that grants permissions
   to kubelets based on the pods they are scheduled to run.
 
@@ -68,7 +68,7 @@ may incur performance penalties in the form of disk I/O.
 ```
 
 Create an audit-policy.yaml file under `/var/snap/k8s/common/etc/` and specify
-the level of auditing you desire based on the [upstream instructions][].
+the level of auditing you desire based on the [upstream instructions].
 Here is a minimal example of such a policy file.
 
 ```
@@ -108,7 +108,7 @@ in assessing the hardware and workload specifications/requirements.
 ```
 
 
-Create a configuration file with the [rate limits][] and place it under
+Create a configuration file with the [rate limits] and place it under
 `/var/snap/k8s/common/etc/`.
 For example:
 

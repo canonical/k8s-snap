@@ -37,4 +37,4 @@ sphinx:
 # Optionally declare the Python requirements required to build your docs
 python:
    install:
-   - requirements: docs/canonicalk8s/.sphinx/requirements.txt
+   - requirements: docs/canonicalk8s/requirements.txt

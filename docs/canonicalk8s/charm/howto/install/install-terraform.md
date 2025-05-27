@@ -9,7 +9,7 @@ This guide requires the following:
 
 - A Juju controller
 <!-- TODO remove Juju prerequisites once ground up module is available -->
-- The Terraform cli, which can be installed via the [snap store][terraform]
+- The Terraform CLI, which can be installed via the [snap store][Terraform]
 
 ## Authentication
 
@@ -46,7 +46,7 @@ module "k8s" {
 
 Define your `manifest.yaml` based on the requirements for your deployment. We
  recommend at least 16GB of root-disk storage, 4GB of memory and 2 cores.
-Specific charm configuration options can be found on charmhub.io for charms
+Specific charm configuration options can be found on Charmhub.io for charms
 [k8s] and [k8s-worker].
 
 Example `manifest.yaml`:
@@ -84,8 +84,8 @@ terraform {
 
 The base modules support various cloud integration charms to integrate
 {{ product }} with the underlying cloud substrate. Rather than presume a cloud
-integration, the main terraform module requires one to select the cloud
-integration desired. See [k8s-bundles] to see how to integrate with Openstack or
+integration, the main Terraform module requires one to select the cloud
+integration desired. See [k8s-bundles] to see how to integrate with OpenStack or
 other cloud-providers.
 
 ### CSI Integrations
@@ -149,7 +149,7 @@ juju status --watch 5s
 [juju-provider-tf]: https://github.com/juju/terraform-provider-juju/
 [auth]: https://registry.terraform.io/providers/juju/juju/latest/docs#authentication
 [channel]: ../../explanation/channels.md
-[terraform]: https://snapcraft.io/terraform
+[Terraform]: https://snapcraft.io/terraform
 [k8s]: https://charmhub.io/k8s/configurations
 [k8s-worker]: https://charmhub.io/k8s-worker/configurations
 [k8s-bundles]: https://github.com/canonical/k8s-bundles/tree/main/terraform

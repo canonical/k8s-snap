@@ -72,11 +72,11 @@ On a successful upgrade:
 * Value of the `v1beta2.k8sd.io/in-place-upgrade-release` annotation
   will be changed to the `<upgrade-option>` used to perform the upgrade.
 
-## Cancelling a failing upgrade
+## Cancel a failing upgrade
 
 The upgrade is retried periodically if the operation was unsuccessful.
 
-The upgrade can be cancelled by running the following commands
+The upgrade can be canceled by running the following commands
 that remove the annotations:
 
 ```

@@ -34,7 +34,5 @@ To assess compliance to the CIS hardening guidelines, please see the [CIS
 assessment page].
 
 <!-- Links -->
-[upstream instructions]:https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
-[rate limits]:https://kubernetes.io/docs/reference/config-api/apiserver-eventratelimit.v1alpha1
 [DISA STIG assessment page]: disa-stig-assessment.md
 [CIS assessment page]: cis-assessment.md

@@ -107,5 +107,5 @@ connectivity is set up correctly.
 **Service and Pod CIDR sizing**
 
 Use `/108` as the maximum size for Service CIDRs. Larger ranges (e.g., `/64`)
-may lead to allocation errors or Kubernetes failing to initialise the IPv6
+may lead to allocation errors or Kubernetes failing to initialize the IPv6
 address allocator.
