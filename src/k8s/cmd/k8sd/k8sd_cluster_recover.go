@@ -13,9 +13,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/canonical/go-dqlite/v2"
-	"github.com/canonical/go-dqlite/v2/app"
-	"github.com/canonical/go-dqlite/v2/client"
+	"github.com/canonical/go-dqlite"
+	"github.com/canonical/go-dqlite/app"
+	"github.com/canonical/go-dqlite/client"
 	cmdutil "github.com/canonical/k8s/cmd/util"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/utils"

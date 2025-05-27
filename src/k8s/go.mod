@@ -6,7 +6,7 @@ toolchain go1.23.4
 
 require (
 	dario.cat/mergo v1.0.0
-	github.com/canonical/go-dqlite/v2 v2.0.0
+	github.com/canonical/go-dqlite v1.22.0
 	github.com/canonical/k8s-snap-api v1.0.25
 	github.com/canonical/lxd v0.0.0-20250113143058-52441d41dab7
 	github.com/canonical/microcluster/v2 v2.1.1-0.20250127104725-631889214b18
@@ -31,7 +31,10 @@ require (
 	sigs.k8s.io/controller-runtime v0.19.3
 )
 
-require go.opentelemetry.io/auto/sdk v1.1.0 // indirect
+require (
+	github.com/canonical/go-dqlite/v2 v2.0.0 // indirect
+	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
+)
 
 require (
 	github.com/AdaLogics/go-fuzz-headers v0.0.0-20230811130428-ced1acdcaa24 // indirect
