@@ -153,6 +153,7 @@ dbus
 de
 deallocation
 deployable
+deprovisioned
 discoverable
 DMA
 dmesg
