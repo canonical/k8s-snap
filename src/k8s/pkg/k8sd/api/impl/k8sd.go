@@ -3,6 +3,7 @@ package impl
 import (
 	"context"
 	"fmt"
+	"log"
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	"github.com/canonical/k8s/pkg/snap"
@@ -46,9 +47,12 @@ func GetLocalNodeStatus(ctx context.Context, s state.State, snap snap.Snap) (api
 		return apiv1.NodeStatus{}, fmt.Errorf("failed to check if node is a worker: %w", err)
 	}
 
+	log.Println("HUE - k8sd.go/GetLocalNodeStatus - isWorker:", isWorker)
+
 	if isWorker {
 		clusterRole = apiv1.ClusterRoleWorker
 	} else if node, err := nodeutil.GetControlPlaneNode(ctx, s, s.Name()); err != nil {
+		log.Println("HUE - k8sd.go/GetLocalNodeStatus - error getting control plane node:", err)
 		clusterRole = apiv1.ClusterRoleUnknown
 	} else if node != nil {
 		return *node, nil

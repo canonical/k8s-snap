@@ -51,8 +51,8 @@ github.com/DATA-DOG/go-sqlmock v1.5.2 h1:OcvFkGmslmlZibjAjaHm3L//6LiuBgolP7Oputl
 github.com/DATA-DOG/go-sqlmock v1.5.2/go.mod h1:88MAG/4G7SMwSE3CeA0ZKzrT5CiOU3OJ+JlNzwDqpNU=
 github.com/HomayoonAlimohammadi/lxd v0.0.0-20250527073459-f905a165c7b9 h1:HOZ+wEIfTCjrCHdxekg2ATbjLrDOrt9qVZHJ8lNeUDw=
 github.com/HomayoonAlimohammadi/lxd v0.0.0-20250527073459-f905a165c7b9/go.mod h1:xVHZbfdxWgwXTI9hZ2qbiinsgxzvOfz4pFM1IDypkBs=
-github.com/HomayoonAlimohammadi/microcluster/v2 v2.1.1-0.20250527095440-97feeb1b80d4 h1:CJDYZGlmiLXlO0O8skVCjVZca7Ru0gxJuN04i+UG9ZA=
-github.com/HomayoonAlimohammadi/microcluster/v2 v2.1.1-0.20250527095440-97feeb1b80d4/go.mod h1:gFv7pugG/IoQMntEjOEcTIKLgEwggVs7biAg8/zftqA=
+github.com/HomayoonAlimohammadi/microcluster/v2 v2.1.1-0.20250527140049-385283791c07 h1:gRYXu5ItNZN5TquqEhfrf4AnVJjZWxqyTMlOB+Udh2E=
+github.com/HomayoonAlimohammadi/microcluster/v2 v2.1.1-0.20250527140049-385283791c07/go.mod h1:gFv7pugG/IoQMntEjOEcTIKLgEwggVs7biAg8/zftqA=
 github.com/MakeNowJust/heredoc v1.0.0 h1:cXCdzVdstXyiTqTvfqk9SDHpKNjxuom+DOlyEeQ4pzQ=
 github.com/MakeNowJust/heredoc v1.0.0/go.mod h1:mG5amYoWBHf8vpLOuehzbGGw0EHxpZZ6lCpQ4fNJ8LE=
 github.com/Masterminds/goutils v1.1.1 h1:5nUrii3FMTL5diU80unEVvNevw1nH4+ZV4DSLVJLSYI=
