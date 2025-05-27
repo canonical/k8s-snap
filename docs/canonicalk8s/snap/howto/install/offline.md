@@ -10,7 +10,7 @@ deployments, as well the steps that are needed to successfully deploy
 ## Prepare for deployment
 
 In preparation for the offline deployment download the {{product}} snap,
-fulfil the networking requirements based on your scenario and handle images for
+fulfill the networking requirements based on your scenario and handle images for
 workloads and {{product}} features.
 
 ### Download the {{product}} snap
@@ -42,7 +42,7 @@ snap.
 
 Air-gap deployments are typically associated with a number of constraints and
 restrictions when it comes to the networking connectivity of the machines.
-Below we discuss the requirements that the deployment needs to fulfil.
+Below we discuss the requirements that the deployment needs to fulfill.
 
 #### Cluster node communication
 

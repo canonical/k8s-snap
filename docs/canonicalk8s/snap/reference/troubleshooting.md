@@ -159,7 +159,7 @@ sudo snap restart snap.k8s.k8s-dqlite
 ### Problem
 
 {{product}} bootstrap process might fail or face networking issues when
-custom routing policy rules are defined, such as rules in a netplan file.
+custom routing policy rules are defined, such as rules in a Netplan file.
 
 ### Explanation
 

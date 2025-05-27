@@ -53,7 +53,7 @@ juju status --watch 1s
 
 This command will output a message confirming the charm is deployed and the
 cluster is bootstrapped. It is recommended to ensure that the cluster
-initialises properly and is running with no issues.
+initializes properly and is running with no issues.
 
 Once the unit is active/idle, You'll know the cluster is installed.
 

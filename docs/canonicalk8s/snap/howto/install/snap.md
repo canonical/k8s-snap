@@ -68,7 +68,7 @@ in the [bootstrap reference documentation][bootstrap].
 
 ## Confirm the cluster is ready
 
-It is recommended to ensure that the cluster initialises properly and is
+It is recommended to ensure that the cluster initializes properly and is
 running with no issues. Run the command:
 
 ```

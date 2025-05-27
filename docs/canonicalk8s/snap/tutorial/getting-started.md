@@ -67,6 +67,14 @@ for {{product}} to get to a `cluster status ready` state by running:
 sudo k8s status --wait-ready
 ```
 
+```{important}
+This command waits a few minutes before timing out.
+On a very slow network connection, or a system with very limited resources,
+this default timeout might be insufficient resulting in a "Context canceled"
+error. In that case, you can either increase the timeout using the  `--timeout`
+flag or re-run the command to continue waiting until the cluster is ready.
+```
+
 ### 5. Access Kubernetes
 
 The standard tool for deploying and managing workloads on Kubernetes
@@ -95,10 +103,16 @@ sudo k8s kubectl get pods -n kube-system
 You will observe at least three pods running. The functions of these three pods
 are:
 
-- **CoreDNS**: Provides DNS resolution services.
-- **Network operator**: Manages the life-cycle of the networking solution.
-- **Network agent**: Facilitates network management.
+The functions of these pods are:
 
+- **CoreDNS (`coredns`)**: Provides DNS resolution services.
+- **Network operator (`cilium-operator`)**: Manages the life-cycle of the
+networking solution.
+- **Network agent (`cilium`)**: Facilitates network management.
+- **Storage controller (`ck-storage-rawfile-csi-controller`)**: Manages the
+life-cycle of the local storage solution.
+- **Storage agent (`ck-storage-rawfile-csi-node`)** : Facilitates local storage
+management.
 
 ### 6. Deploy an app
 
