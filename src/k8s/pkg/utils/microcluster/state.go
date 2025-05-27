@@ -47,6 +47,8 @@ func WithState(t *testing.T, f func(context.Context, state.State)) {
 
 	app, err := app.New(app.Config{
 		StateDir: t.TempDir(),
+		Debug:    true,
+		Verbose:  true,
 	})
 	if err != nil {
 		t.Fatalf("failed to create microcluster app: %v", err)

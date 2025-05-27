@@ -74,8 +74,8 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd.SetOut(env.Stdout)
 	cmd.SetErr(env.Stderr)
 
-	cmd.PersistentFlags().IntVarP(&rootCmdOpts.logLevel, "log-level", "l", 0, "k8sd log level")
-	cmd.PersistentFlags().BoolVarP(&rootCmdOpts.logDebug, "debug", "d", false, "Show all debug messages")
+	cmd.PersistentFlags().IntVarP(&rootCmdOpts.logLevel, "log-level", "l", 5, "k8sd log level")
+	cmd.PersistentFlags().BoolVarP(&rootCmdOpts.logDebug, "debug", "d", true, "Show all debug messages")
 	cmd.PersistentFlags().BoolVarP(&rootCmdOpts.logVerbose, "verbose", "v", true, "Show all information messages")
 	cmd.PersistentFlags().StringVar(&rootCmdOpts.stateDir, "state-dir", "", "Directory with the dqlite datastore")
 	cmd.PersistentFlags().StringVar(&rootCmdOpts.pprofAddress, "pprof-address", "", "Listen address for pprof endpoints, e.g. \"127.0.0.1:4217\"")

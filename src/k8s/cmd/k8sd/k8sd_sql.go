@@ -16,6 +16,8 @@ func newSqlCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			app, err := app.New(app.Config{
 				StateDir: rootCmdOpts.stateDir,
 				Snap:     env.Snap,
+				Debug:    true,
+				Verbose:  true,
 			})
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to initialize k8sd app.\n\nThe error was: %v\n", err)
