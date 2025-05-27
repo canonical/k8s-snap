@@ -5561,7 +5561,7 @@ The final line of the output will be `PASS`.
 
 **Upstream finding description:**
 
-> The Kubernetes kubeeadm.conf contains sensitive information regarding the
+> The Kubernetes kubeadm.conf contains sensitive information regarding the
 cluster nodes configuration. If this file can be modified, the Kubernetes
 Platform Plane would be degraded or compromised for malicious intent. Many of
 the security settings within the document are implemented through this file.

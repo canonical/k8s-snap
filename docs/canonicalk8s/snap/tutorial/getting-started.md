@@ -55,7 +55,7 @@ sudo k8s status --wait-ready
 ```{important}
 This command waits a few minutes before timing out.
 On a very slow network connection, or a system with very limited resources,
-this default timeout might be insufficient resulting in a "Context cancelled"
+this default timeout might be insufficient resulting in a "Context canceled"
 error. In that case, you can either increase the timeout using the  `--timeout`
 flag or re-run the command to continue waiting until the cluster is ready.
 ```
@@ -91,13 +91,13 @@ You will observe at least four pods running. The status of the pods may be in
 
 The functions of these pods are:
 
-- **CoreDNS (coredns)**: Provides DNS resolution services.
-- **Network operator (cilium-operator)**: Manages the life-cycle of the
+- **CoreDNS (`coredns`)**: Provides DNS resolution services.
+- **Network operator (`cilium-operator`)**: Manages the life-cycle of the
 networking solution.
-- **Network agent (cilium)**: Facilitates network management.
-- **Storage controller (ck-storage-rawfile-csi-controller)**: Manages the
+- **Network agent (`cilium`)**: Facilitates network management.
+- **Storage controller (`ck-storage-rawfile-csi-controller`)**: Manages the
 life-cycle of the local storage solution.
-- **Storage agent (ck-storage-rawfile-csi-node)** : Facilitates local storage
+- **Storage agent (`ck-storage-rawfile-csi-node`)** : Facilitates local storage
 management.
 
 

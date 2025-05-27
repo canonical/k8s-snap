@@ -192,7 +192,7 @@ juju run ceph-csi-alt/leader list-resources
 
 #### Namespace collisions
 
-Many of the Kubernetes Resources managed by the `ceph-csi` charm have an 
+Many of the Kubernetes Resources managed by the `ceph-csi` charm have an
 associated namespace. Ensure the configuration for the `ceph-csi-alt`
 application doesn't collide with `ceph-csi`.
 
@@ -217,7 +217,7 @@ For each of the supported StorageClass types, there is an independent formatter.
 
 * `ext4`, see [ceph-ext4-storage-class-name-formatter]
 * `xfs`, see [ceph-xfs-storage-class-name-formatter]
-* `cephfs`, see [cephfs-storage-class-name-formatter]
+* `cephfs`, see [CephFS-storage-class-name-formatter]
 
 Each formatter has similar, but distinct formatting rules, so take care to plan
 the storage-class names accordingly.
@@ -250,4 +250,4 @@ juju config ceph-csi-alt ceph-rbac-name-formatter="{name}-{app}"
 [ceph-rbac-name-formatter]: https://charmhub.io/ceph-csi/configurations?channel=latest/edge#ceph-rbac-name-formatter
 [ceph-ext4-storage-class-name-formatter]: https://charmhub.io/ceph-csi/configurations?channel=latest/edge#ceph-ext4-storage-class-name-formatter
 [ceph-xfs-storage-class-name-formatter]: https://charmhub.io/ceph-csi/configurations?channel=latest/edge#ceph-xfs-storage-class-name-formatter
-[cephfs-storage-class-name-formatter]: https://charmhub.io/ceph-csi/configurations?channel=latest/edge#cephfs-storage-class-name-formatter
+[CephFS-storage-class-name-formatter]: https://charmhub.io/ceph-csi/configurations?channel=latest/edge#cephfs-storage-class-name-formatter

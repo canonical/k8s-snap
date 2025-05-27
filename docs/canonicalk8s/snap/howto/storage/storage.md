@@ -29,7 +29,7 @@ sudo k8s enable local-storage
 
 ## Configure local storage
 
-While the storage option comes with sensible defaults, you can customise it to
+While the storage option comes with sensible defaults, you can customize it to
 meet your requirements. Obtain the current configuration by running:
 
 ```

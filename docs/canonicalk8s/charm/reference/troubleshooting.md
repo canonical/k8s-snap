@@ -161,7 +161,7 @@ sudo k8s kubectl get pods -n kube-system
 
 ### Problem
 
-When deploying {{product}} on a cloud provider such as Openstack, the Cilium
+When deploying {{product}} on a cloud provider such as OpenStack, the Cilium
 pods fail to start and reports the error:
 
 ```

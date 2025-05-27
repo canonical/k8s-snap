@@ -36,8 +36,8 @@ example an observability stack.
 If you are looking to deploy {{ product }} in a public/private cloud
 environment, on metal, in VMs or on your local machine you can take advantage of
 Juju's powerful lifecycle management. Get started with a simple deployment of
-the {{ product }}'s charms using the [juju-cli guide] or leverage
-[Terraform's Juju provider] by following the [installing-with-terraform]
+the {{ product }}'s charms using the [Juju-CLI guide] or leverage
+[Terraform's Juju provider] by following the [installing-with-Terraform]
 guide.
 
 ## Cluster API (CAPI)
@@ -58,11 +58,11 @@ the help of the CAPI providers.
 [Multipass]: https://canonical.com/multipass
 [LXD]: https://canonical.com/lxd
 [Juju]: https://juju.is
-[juju-cli guide]: /charm/tutorial/getting-started.md
+[Juju-CLI guide]: /charm/tutorial/getting-started.md
 [control plane charm]: https://charmhub.io/k8s
 [worker charm]: https://charmhub.io/k8s-worker
 [getting-started guide]: /snap/tutorial/getting-started.md
 [Terraform's Juju provider]: https://github.com/juju/terraform-provider-juju/
-[installing-with-terraform]: /charm/howto/install/install-terraform
+[installing-with-Terraform]: /charm/howto/install/install-terraform
 [CAPI guide]: /capi/tutorial/getting-started.md
 [Cluster API]: https://cluster-api.sigs.k8s.io/

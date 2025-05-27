@@ -41,7 +41,7 @@ containerd-related files (e.g.: `/ck8s/etc/containerd`,
 ## Changing IP addresses
 
 The local IP addresses of your development machine are likely to change,
-for example after joining a different wi-fi network.
+for example after joining a different Wi-Fi network.
 
 In this case, you may configure {{product}} to use the ``localhost`` address:
 
@@ -54,8 +54,8 @@ sudo k8s bootstrap --address=127.0.0.1
 Docker can interfere with LXD and Multipass installations, setting the global
 ``FORWARD`` policy to drop.
 
-See the [lxd network troubleshooting guide] for more details and possible
+See the [LXD network troubleshooting guide] for more details and possible
 workarounds.
 
 <!--LINKS -->
-[lxd network troubleshooting guide]: https://documentation.ubuntu.com/lxd/en/latest/howto/network_bridge_firewalld/#prevent-connectivity-issues-with-lxd-and-docker
+[LXD network troubleshooting guide]: https://documentation.ubuntu.com/lxd/en/latest/howto/network_bridge_firewalld/#prevent-connectivity-issues-with-lxd-and-docker

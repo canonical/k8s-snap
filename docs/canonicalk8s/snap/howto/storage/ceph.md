@@ -29,7 +29,7 @@ this demonstration will have less than 5 OSDs. (See [placement groups])
 ceph osd pool create kubernetes 128
 ```
 
-Initialise the pool as a Ceph block device pool.
+Initialize the pool as a Ceph block device pool.
 
 ```
 rbd pool init kubernetes
@@ -49,7 +49,7 @@ ceph auth get-or-create client.kubernetes mon 'profile rbd' osd 'profile rbd poo
 ```
 
 For more information on user capabilities in Ceph, see the
-[authorisation capabilities page][]
+[authorization capabilities page][]
 
 ```
 [client.kubernetes]
@@ -334,5 +334,5 @@ Ceph documentation: [Intro to Ceph].
 [block-devices-and-kubernetes]: https://docs.ceph.com/en/latest/rbd/rbd-kubernetes/
 [placement groups]: https://docs.ceph.com/en/mimic/rados/operations/placement-groups/
 [Intro to Ceph]: https://docs.ceph.com/en/reef/start/
-[authorisation capabilities page]:[https://docs.ceph.com/en/latest/rados/operations/user-management/#authorization-capabilities]
+[authorization capabilities page]:[https://docs.ceph.com/en/latest/rados/operations/user-management/#authorization-capabilities]
 [example ConfigMap]:https://github.com/ceph/ceph-csi/blob/devel/examples/kms/vault/kms-config.yaml
