@@ -77,29 +77,27 @@ parts:
     after: [dqlite]
     source: src/k8s
     build-attributes: [enable-patchelf]
-    build-packages:
-      - patchelf
     plugin: nil
     override-build: |
       INSTALL="${SNAPCRAFT_PART_INSTALL}"
-      
+
       # Build the project first to generate the dynamic libraries
+      export DQLITE_BUILD_SCRIPTS_DIR="${SNAPCRAFT_STAGE}/dynamic-dqlite-deps"
       make dynamic -j
-      
+
       # Create necessary directories
       mkdir -p "${INSTALL}/bin" "${INSTALL}/lib"
-      
+
       # Copy the built binaries
       for binary in k8s k8sd k8s-apiserver-proxy; do
         cp -P "bin/dynamic/${binary}" "${INSTALL}/bin/${binary}"
-        patchelf --set-rpath '$ORIGIN/../lib' "${INSTALL}/bin/${binary}"
       done
-      
+
       # Copy the required libraries from the build directory
-      cp -a "${SNAPCRAFT_PART_BUILD}/.deps/dynamic/lib/"* "${INSTALL}/lib/"
-      
+      cp -av "${DQLITE_BUILD_SCRIPTS_DIR}/.deps/dynamic/lib/"* "${INSTALL}/lib/"
+
       # Run list-images with the correct library path
-      LD_LIBRARY_PATH="${INSTALL}/lib" "${INSTALL}/bin/k8s" list-images > "${INSTALL}/images.txt"
+      #LD_LIBRARY_PATH="${INSTALL}/lib" "${INSTALL}/bin/k8s" list-images > "${INSTALL}/images.txt"
 
   cni:
     after: [build-deps]
@@ -118,7 +116,7 @@ parts:
   kubernetes-version:
     plugin: nil
     source: build-scripts/components/kubernetes
-    override-build: snapcraftctl set-version "$(cat ./version)"
+    override-build: craftctl set version="$(cat ./version)"
 
   helm:
     after: [build-deps]
