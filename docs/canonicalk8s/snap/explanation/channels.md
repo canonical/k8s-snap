@@ -43,10 +43,10 @@ More information can be found in the [Snapcraft documentation][]
 ## Updates and switching channels
 
 Updates for upstream patch releases will happen automatically by default. For
-example, if you have selected the channel `1.32-classic/stable`, your snap will refresh
-itself regularly keeping your cluster up-to-date with the latest patches.
-For deployments where this behavior is undesirable you are given the option to
-postpone, schedule or even block automatic updates.
+example, if you have selected the channel `1.32-classic/stable`, your snap will
+refresh itself regularly keeping your cluster up-to-date with the latest
+patches. For deployments where this behavior is undesirable you are given the
+option to postpone, schedule or even block automatic updates.
 The [Snap refreshes documentation] page outlines how to configure these options.
 
 To change the channel of an already installed snap, the `refresh` command can
