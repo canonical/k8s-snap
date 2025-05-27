@@ -98,19 +98,19 @@ jobs:
       - name: Download performance results
         uses: actions/download-artifact@v4
         with:
-          pattern: performance-test-results-${{ env.test_prefix }}-*
-          path: ./performance-test-results
+          pattern: performance-test-results-${{ env.test_prefix }}-
+          path: tests/integration/performance-test-results
       - name: Organize performance artifacts
         run: |
           echo "Downloaded artifacts:"
-          find ./performance-test-results -type f -name "*.json" | sort
+          find tests/integration/performance-test-results -type f -name "*.json" | sort
 
           # Create directories for the two test runs
-          mkdir -p ./performance-test-results/run1
-          mkdir -p ./performance-test-results/run2
+          mkdir -p tests/integration/performance-test-results/run1
+          mkdir -p tests/integration/performance-test-results/run2
 
           # Find all unique directories containing JSON files (each directory = one test run)
-          ARTIFACT_DIRS=$(find ./performance-test-results -type f -name "*.json" | xargs -n1 dirname | sort -u)
+          ARTIFACT_DIRS=$(find tests/integration/performance-test-results -type f -name "*.json" | xargs -n1 dirname | sort -u)
 
           # Count the number of unique directories
           DIR_COUNT=$(echo "$ARTIFACT_DIRS" | wc -l)
@@ -127,15 +127,14 @@ jobs:
           DIR2=$(echo "$ARTIFACT_DIRS" | tail -n1)
 
           echo "Found two test runs: $DIR1 and $DIR2"
-          mkdir -p ./performance-test-results/run1 ./performance-test-results/run2
-          cp -v "$DIR1"/*.json ./performance-test-results/run1/
-          cp -v "$DIR2"/*.json ./performance-test-results/run2/
+          cp -v "$DIR1"/*.json tests/integration/performance-test-results/run1/
+          cp -v "$DIR2"/*.json tests/integration/performance-test-results/run2/
 
       - name: Compare performance test results
         run: |
           # Get paths to the organized JSON files
-          RUN1_FILES=$(find ./performance-test-results/run1 -type f -name "*.json")
-          RUN2_FILES=$(find ./performance-test-results/run2 -type f -name "*.json")
+          RUN1_FILES=$(find performance-test-results/run1 -type f -name "*.json")
+          RUN2_FILES=$(find performance-test-results/run2 -type f -name "*.json")
 
           echo "Comparing performance between runs:"
           echo "Run 1: $RUN1_FILES"
@@ -143,12 +142,13 @@ jobs:
 
           # Run the comparison
           tox -e pytest-benchmark -- compare \
-            --csv="./performance-test-results/comparison.csv" \
-            --histogram="./performance-test-results/histogram" \
+            --csv="performance-test-results/comparison.csv" \
+            --histogram="performance-test-results/histogram" \
             --group-by="name" \
             --columns="min,max,mean,median,iqr,stddev,ops" \
             --sort="name" \
             $RUN1_FILES $RUN2_FILES
+        working-directory: tests/integration
 
       - name: Upload comparison summary
         uses: actions/upload-artifact@v4
