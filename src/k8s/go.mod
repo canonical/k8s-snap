@@ -31,10 +31,7 @@ require (
 	sigs.k8s.io/controller-runtime v0.19.3
 )
 
-require (
-	github.com/canonical/go-dqlite/v2 v2.0.0 // indirect
-	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
-)
+require go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 
 require (
 	github.com/AdaLogics/go-fuzz-headers v0.0.0-20230811130428-ced1acdcaa24 // indirect
@@ -188,3 +185,7 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
+
+replace github.com/canonical/microcluster/v2 v2.1.1-0.20250127104725-631889214b18 => github.com/HomayoonAlimohammadi/microcluster/v2 v2.1.1-0.20250527074707-6c446d42e0cc
+
+replace github.com/canonical/lxd v0.0.0-20250113143058-52441d41dab7 => github.com/HomayoonAlimohammadi/lxd v0.0.0-20250527073459-f905a165c7b9
