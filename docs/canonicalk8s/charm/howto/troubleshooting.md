@@ -62,7 +62,7 @@ juju run k8s/leader get-kubeconfig | yq .kubeconfig > cluster-kubeconfig.yaml
 ```
 
 ```{warning}
-When running `juju run k8s/leader get-kubeconfig` you retrieve the kubeconfig file that uses one of the unit's  public IP addresses in the kubernetes endpoint. This endpoint ip can be overriden by providing a `server` argument if the api is exposed through a load-balancer.
+When running `juju run k8s/leader get-kubeconfig` you retrieve the kubeconfig file that uses one of the unit's  public IP addresses in the kubernetes endpoint. This endpoint ip can be overridden by providing a `server` argument if the api is exposed through a load-balancer.
 ```
 
 Verify that the API server is healthy and reachable by running:

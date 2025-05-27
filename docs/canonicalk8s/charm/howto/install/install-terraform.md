@@ -7,9 +7,9 @@ the [Terraform Juju Provider][juju-provider-tf].
 
 This guide requires the following:
 
-- A Juju controller and model
+- A Juju controller
 <!-- TODO remove Juju prerequisites once ground up module is available -->
-- The Terraform cli, which can be installed via the [snap store][terraform]
+- The Terraform CLI, which can be installed via the [snap store][Terraform]
 
 ## Authentication
 
@@ -21,113 +21,78 @@ controller. Choose one of the options outlined in the
 
 The Terraform deployment is done using a root module that specifies the
 Juju model to deploy the submodules to. The root module also references
-<<<<<<< HEAD
-the k8s charm and the k8s-worker charm that each live in a separate child
-module.
-=======
 the k8s-bundle module which helps to build the Juju model.
->>>>>>> 25f944dd (docs: Update troubleshooting with cilium tunnel port fix  (#1381))
 
 ### Root module
 <!-- TODO replace this section once we have a Juju ground up module -->
 
 The root module ensures that Terraform is aware of the `juju_model`
-dependency of the charm module. Additionally, it contains the path to the k8s
-and k8s-worker child modules:
+dependency of the charm module. Additionally, it contains the path to the
+k8s-bundle child modules:
 
 Example `main.tf`:
 
-```hcl
-provider "juju" {}
-
-resource "juju_model" "my_model" {
-  name = "juju-myk8s"
-}
-
+```
 module "k8s" {
-  source  = "git::https://github.com/canonical/k8s-operator//charms/worker/k8s/terraform?ref=main"
-
-  model   = juju_model.my_model.name
-  channel = var.channel
-  units = 3
-}
-
-module "k8s-worker" {
-  source  = "git::https://github.com/canonical/k8s-operator//charms/worker/terraform?ref=main"
-  model   = juju_model.my_model.name
-  channel = var.channel
-  units = 2
+  source  = "git::https://github.com/canonical/k8s-bundles//terraform?ref=main"
+  model   = {
+    name  = "my-canonical-k8s-model"
+    cloud = "prod-k8s-openstack"
+  }
+  cloud_integration = "openstack"
+  manifest_yaml = "/path/to/manifest.yaml"
 }
 ```
 
-<<<<<<< HEAD
-Example `variables.tf`:
-=======
 Define your `manifest.yaml` based on the requirements for your deployment. We
  recommend at least 16GB of root-disk storage, 4GB of memory and 2 cores.
-Specific charm configuration options can be found on charmhub.io for charms
+Specific charm configuration options can be found on Charmhub.io for charms
 [k8s] and [k8s-worker].
->>>>>>> 25f944dd (docs: Update troubleshooting with cilium tunnel port fix  (#1381))
 
-```hcl
-variable "channel" {
-  description = "K8s deployment channel"
-  type        = string
-}
+Example `manifest.yaml`:
+
 ```
-
-Example `integrations.tf`:
-
-```hcl
-resource "juju_integration" "k8s_cluster_integration" {
-  model = juju_model.my_model.name
-  application {
-    name      = module.k8s.app_name
-    endpoint  = module.k8s.provides.k8s_cluster
-  }
-  application {
-    name      = module.k8s-worker.app_name
-    endpoint  = module.k8s-worker.requires.cluster
-  }
-}
-
-resource "juju_integration" "k8s_containerd" {
-  model = juju_model.my_model.name
-  application {
-    name      = module.k8s.app_name
-    endpoint  = module.k8s.provides.containerd
-  }
-  application {
-    name      = module.k8s-worker.app_name
-    endpoint  = module.k8s-worker.requires.containerd
-  }
-}
-
-resource "juju_integration" "k8s_cos_worker_tokens" {
-  model = juju_model.my_model.name
-  application {
-    name      = module.k8s.app_name
-    endpoint  = module.k8s.provides.cos_worker_tokens
-  }
-  application {
-    name      = module.k8s-worker.app_name
-    endpoint  = module.k8s-worker.requires.cos_tokens
-  }
-}
+k8s:
+  units: 3
+  base: ubuntu@24.04
+  constraints: arch=amd64 cores=2 mem=4096M root-disk=16384M
+  channel: 1.32/stable
+  config: {}
+k8s-worker:
+  units: 2
+  base: ubuntu@24.04
+  constraints: arch=amd64 cores=2 mem=8192M root-disk=16384M
+  channel: 1.32/stable
+  config: {}
+```
 
 Example `versions.tf`:
 
-```hcl
+```
 terraform {
   required_version = ">= 1.6"
   required_providers {
     juju = {
       source  = "juju/juju"
-      version = "~> 0.14.0"
+      version = ">= 0.14.0, < 1.0.0"
     }
   }
 }
 ```
+
+### Cloud Integrations
+
+The base modules support various cloud integration charms to integrate
+{{ product }} with the underlying cloud substrate. Rather than presume a cloud
+integration, the main Terraform module requires one to select the cloud
+integration desired. See [k8s-bundles] to see how to integrate with OpenStack or
+other cloud-providers.
+
+### CSI Integrations
+
+The base modules default to a local node CSI, but come with charm support for
+multiple CSI options. See [k8s-bundles] for details on how to configure to
+integrate with Ceph or another CSI.
 
 ### Charm modules
 
@@ -157,22 +122,19 @@ Upon application, the module exports the following outputs:
 | `provides`|  Map of `provides` endpoints |
 | `requires`|  Map of `requires` endpoints |
 
-## Deploying the charms
+## Deploying the charm model
 
 Please navigate to the root module's directory and run the following
 commands:
 
 ```bash
-terraform init
-export TF_VAR_channel=<charm channel>
+terraform init --upgrade
 terraform plan
 terraform apply
 ```
 
 ```{note}
-Make sure the deployment [channel] is set with:
-
-&ensp;export TF_VAR_channel={{channel}}
+Make sure the deployment [channel] is set within the `manifest.yaml`
 ```
 
 
@@ -187,7 +149,8 @@ juju status --watch 5s
 [juju-provider-tf]: https://github.com/juju/terraform-provider-juju/
 [auth]: https://registry.terraform.io/providers/juju/juju/latest/docs#authentication
 [channel]: ../../explanation/channels.md
-[terraform]: https://snapcraft.io/terraform
+[Terraform]: https://snapcraft.io/terraform
 [k8s]: https://charmhub.io/k8s/configurations
 [k8s-worker]: https://charmhub.io/k8s-worker/configurations
 [k8s-bundles]: https://github.com/canonical/k8s-bundles/tree/main/terraform
+

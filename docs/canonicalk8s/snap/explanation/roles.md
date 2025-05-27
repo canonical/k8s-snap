@@ -13,7 +13,7 @@ When bootstrapping a cluster, {{product}} assigns the following roles to nodes:
 
 ## Rationale
 
-Most kubernetes implementations (like kubeadm) set a NoSchedule taint on
+Most kubernetes implementations (like kubeadm) set a `NoSchedule` taint on
 control plane nodes as a security measure to isolate control planes from
 workloads.
 

@@ -10,7 +10,7 @@ with an external etcd.
 To follow this guide, you will need:
 
 - [clusterctl][clusterctl] installed
-- A CAPI management cluster initialised with the infrastructure, bootstrap and
+- A CAPI management cluster initialized with the infrastructure, bootstrap and
   control plane providers of your choice. Please refer to the
   [getting-started guide][getting-started] for instructions.
 - Secured 3-node etcd deployment

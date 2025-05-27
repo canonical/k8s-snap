@@ -12,7 +12,7 @@ known to protect against common vulnerabilities and threats.
 
 Kubernetes, by its nature, is a complex system with many components interacting
 in a distributed environment. This complexity can introduce numerous security
-risks if not properly managed such as unauthorised access, data breaches and
+risks if not properly managed such as unauthorized access, data breaches and
 service disruption. CIS hardening for Kubernetes focuses on configuring various
 components of a Kubernetes cluster to meet the security standards specified in
 the [CIS Kubernetes Benchmark].
