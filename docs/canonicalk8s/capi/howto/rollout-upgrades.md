@@ -82,7 +82,7 @@ the desired version.
 
 ## Configure the machine count during the control plane upgrade
 
-When a control plane upgrade is performed, a new CK8sContrplPlane
+When a control plane upgrade is performed, a new CK8sControlPlane
 machine is deployed with the new configuration. Only after that machine is
 Ready, the old machine is deprovisioned.
 
