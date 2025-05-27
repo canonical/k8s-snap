@@ -90,7 +90,7 @@ This behaviour is controlled by the spec value
 `spec.strategy.rollingUpdate.maxSurge`, with the default value being set on 1.
 
 If `spec.strategy.rollingUpdate.maxSurge` is set to the value `0` when a
-control plane upgrade is performed, the old CK8sContrplPlane machine is
+control plane upgrade is performed, the old CK8sControlPlane machine is
 deprovisioned first.
 Then a new machine is deployed with the new configuration only after the
 old machine has been removed.
