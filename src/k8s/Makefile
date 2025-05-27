@@ -89,6 +89,7 @@ bin/dynamic/lib/libdqlite.so:
 
 bin/dynamic/k8s: bin/dynamic/lib/libdqlite.so
 	mkdir -p bin/dynamic
+	pwd
 	$(DQLITE_BUILD_SCRIPTS_DIR)/dynamic-go-build.sh -o bin/dynamic/k8s ./cmd/main.go
 
 bin/dynamic/k8s-apiserver-proxy: bin/dynamic/k8s
