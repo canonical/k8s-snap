@@ -147,6 +147,7 @@ de
 deallocation
 deployable
 deprecations
+deprovisioned
 dir
 DISA
 discoverable
