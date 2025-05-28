@@ -8,5 +8,8 @@ mkdir -p "${INSTALL}"
 # Ensure `runc --version` prints the right commit hash from upstream
 export COMMIT="$(git describe --long --always "${VERSION}")"
 
-make BUILDTAGS="seccomp apparmor" EXTRA_LDFLAGS="-s -w" static
+export GOTOOLCHAIN=local
+export CGO_ENABLED=1
+export GOEXPERIMENT=opensslcrypto
+make EXTRA_BUILDTAGS="linux cgo apparmor" EXTRA_LDFLAGS="-s -w"
 cp runc "${INSTALL}/runc"

@@ -53,7 +53,7 @@ parts:
     after: [build-deps]
     plugin: nil
     source: src/k8s/hack
-    build-attributes: [enable-patchelf]
+    build-attributes: [no-patchelf]
     override-prime: ""
     override-build: |
       DQLITE_STAGING_DIR="${SNAPCRAFT_STAGE}/dynamic-dqlite-deps"
@@ -71,7 +71,9 @@ parts:
     plugin: nil
     source: build-scripts/components/k8s-dqlite
     build-attributes: [enable-patchelf]
-    override-build: $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh k8s-dqlite
+    override-build: |
+      $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh k8s-dqlite
+      #patchelf --set-rpath "$ORIGIN/../../lib:/snap/core22/current/lib/x86_64-linux-gnu" "${SNAPCRAFT_PART_INSTALL}/bin/k8s-dqlite"
 
   k8s-binaries:
     after: [dqlite]
@@ -81,35 +83,35 @@ parts:
     override-build: |
       INSTALL="${SNAPCRAFT_PART_INSTALL}"
 
-      # Build the project first to generate the dynamic libraries
       export DQLITE_BUILD_SCRIPTS_DIR="${SNAPCRAFT_STAGE}/dynamic-dqlite-deps"
+      export CGO_ENABLED=1
+      export GOTOOLCHAIN=local
+      export GOEXPERIMENT=opensslcrypto
       make dynamic -j
 
-      # Create necessary directories
       mkdir -p "${INSTALL}/bin" "${INSTALL}/lib"
 
-      # Copy the built binaries
       for binary in k8s k8sd k8s-apiserver-proxy; do
         cp -P "bin/dynamic/${binary}" "${INSTALL}/bin/${binary}"
+        #patchelf --set-rpath '$ORIGIN/../../lib:/snap/core22/current/lib/x86_64-linux-gnu' "${INSTALL}/bin/${binary}"
       done
 
-      # Copy the required libraries from the build directory
       cp -av "${DQLITE_BUILD_SCRIPTS_DIR}/.deps/dynamic/lib/"* "${INSTALL}/lib/"
 
-      # Run list-images with the correct library path
-      #LD_LIBRARY_PATH="${INSTALL}/lib" "${INSTALL}/bin/k8s" list-images > "${INSTALL}/images.txt"
+      "${INSTALL}/bin/k8s" list-images > "${INSTALL}/images.txt"
 
   cni:
     after: [build-deps]
     plugin: nil
     source: build-scripts/components/cni
     build-attributes: [enable-patchelf]
-    override-build: $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh cni
+    override-build: |
+      $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh cni
 
   kubernetes:
     after: [build-deps]
     plugin: nil
-    build-attributes: [no-patchelf]
+    build-attributes: [enable-patchelf]
     source: build-scripts
     override-build: $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh kubernetes
 
@@ -120,7 +122,7 @@ parts:
 
   helm:
     after: [build-deps]
-    build-attributes: [no-patchelf]
+    build-attributes: [enable-patchelf]
     plugin: nil
     source: build-scripts/components/helm
     override-build: $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh helm
@@ -154,8 +156,8 @@ parts:
     autotools-configure-parameters:
       - "--prefix=/usr"
       - "--exec-prefix=/"
-      - "--disable-shared"
-      - "--enable-static"
+      - "--enable-shared"
+      - "--disable-static"
     stage:
       - -usr
       - -lib/pkgconfig
@@ -164,14 +166,14 @@ parts:
   containerd:
     after: [runc]
     plugin: nil
-    build-attributes: [no-patchelf]
+    build-attributes: [enable-patchelf]
     source: build-scripts/components/containerd
     override-build: $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh containerd
 
   runc:
     after: [iptables, build-deps]
     plugin: nil
-    build-attributes: [no-patchelf]
+    build-attributes: [enable-patchelf]
     source: build-scripts/components/runc
     override-build: $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh runc
 
