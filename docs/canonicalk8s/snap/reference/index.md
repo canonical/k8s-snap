@@ -75,7 +75,8 @@ Common issues faced by users and their solutions.
 
 ```{toctree}
 :titlesonly:
-troubleshooting/index
+troubleshooting
+inspection-reports
 ```
 
 ## Contributing
