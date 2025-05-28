@@ -151,8 +151,7 @@ jobs:
           TEST_FLAVOR: ${{ inputs.flavor }}
           TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports/${{ env.test_name }}
           TEST_VERSION_UPGRADE_CHANNELS: "recent 6"
-          # TODO(etienne): change to "recent" when 1.33 is stable
-          TEST_VERSION_DOWNGRADE_CHANNELS: "1.32-classic/stable 1.32-classic/beta 1.31-classic/stable 1.31-classic/beta"
+          TEST_VERSION_DOWNGRADE_CHANNELS: "recent 6"
           TEST_VERSION_UPGRADE_MIN_RELEASE: "1.32"
           TEST_STRICT_INTERFACE_CHANNELS: "recent 6 strict"
           TEST_MIRROR_LIST: '[{"name": "ghcr.io", "port": 5000, "remote": "https://ghcr.io", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}, {"name": "docker.io", "port": 5001, "remote": "https://registry-1.docker.io", "username": "", "password": ""}, {"name": "rocks.canonical.com", "port": 5002, "remote": "https://rocks.canonical.com/cdk"}]'
