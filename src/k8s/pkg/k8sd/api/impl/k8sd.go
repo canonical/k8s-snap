@@ -14,15 +14,21 @@ import (
 
 // GetClusterMembers retrieves information about the members of the cluster.
 func GetClusterMembers(ctx context.Context, s state.State) ([]apiv1.NodeStatus, error) {
+	log.Println("HUE - k8s-snap - k8sd.go/GetClusterMembers - getting leader")
+
 	c, err := s.Leader()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get leader client: %w", err)
 	}
 
+	log.Println("HUE - k8s-snap - k8sd.go/GetClusterMembers - getting cluster members")
+
 	clusterMembers, err := c.GetClusterMembers(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cluster members: %w", err)
 	}
+
+	log.Println("HUE - k8s-snap - k8sd.go/GetClusterMembers - got cluster members:", clusterMembers)
 
 	members := make([]apiv1.NodeStatus, len(clusterMembers))
 	for i, clusterMember := range clusterMembers {

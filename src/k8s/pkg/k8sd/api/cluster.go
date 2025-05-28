@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"net/http"
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
@@ -18,32 +19,48 @@ import (
 
 func (e *Endpoints) getClusterStatus(s state.State, r *http.Request) response.Response {
 	// fail if node is not initialized yet
+
+	log.Println("HUE - k8s-snap - cluster.go/getClusterStatus - checking if database is open")
+
 	if err := s.Database().IsOpen(r.Context()); err != nil {
 		return response.Unavailable(fmt.Errorf("daemon not yet initialized"))
 	}
+
+	log.Println("HUE - k8s-snap - cluster.go/getClusterStatus - database is open, proceeding to get cluster status")
 
 	members, err := impl.GetClusterMembers(r.Context(), s)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to get cluster members: %w", err))
 	}
+
+	log.Println("HUE - k8s-snap - cluster.go/getClusterStatus - got cluster members:", members)
+	log.Println("HUE - k8s-snap - cluster.go/getClusterStatus - getting cluster config")
+
 	config, err := databaseutil.GetClusterConfig(r.Context(), s)
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to get cluster config: %w", err))
 	}
+
+	log.Println("HUE - k8s-snap - cluster.go/getClusterStatus - got cluster config")
 
 	client, err := e.provider.Snap().KubernetesClient("")
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to create k8s client: %w", err))
 	}
 
+	log.Println("HUE - k8s-snap - cluster.go/getClusterStatus - created k8s client")
+
 	ready, err := client.HasReadyNodes(r.Context())
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to check if cluster has ready nodes: %w", err))
 	}
 
+	log.Println("HUE - k8s-snap - cluster.go/getClusterStatus - checked if cluster has ready nodes:", ready)
+
 	var statuses map[types.FeatureName]types.FeatureStatus
 	if err := s.Database().Transaction(r.Context(), func(ctx context.Context, tx *sql.Tx) error {
 		var err error
+		log.Println("HUE - k8s-snap - cluster.go/getClusterStatus - getting feature statuses from database")
 		statuses, err = database.GetFeatureStatuses(r.Context(), tx)
 		if err != nil {
 			return fmt.Errorf("failed to get feature statuses: %w", err)
@@ -52,6 +69,8 @@ func (e *Endpoints) getClusterStatus(s state.State, r *http.Request) response.Re
 	}); err != nil {
 		return response.InternalError(fmt.Errorf("database transaction failed: %w", err))
 	}
+
+	log.Println("HUE - k8s-snap - cluster.go/getClusterStatus - got feature statuses:", statuses)
 
 	return response.SyncResponse(true, &apiv1.ClusterStatusResponse{
 		ClusterStatus: apiv1.ClusterStatus{
