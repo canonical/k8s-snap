@@ -38,6 +38,26 @@ Any non-temporary directory can be chosen for `containerd-base-dir`
 containerd-related files (e.g.: `/ck8s/etc/containerd`,
 `/ck8s/var/run/containerd/containerd.sock`, etc.).
 
+## Containerd State Directory on tmpfs — Disk Pressure & ErrImagePull
+When using a custom containerd, if it is configured to use a state directory on `tmpfs` (e.g., `/run/containerd`), ensure that the `tmpfs` mount has sufficient space for operations like image layer unpacking. Insufficient space can cause:
+
+- Pod failures with `ErrImagePull`
+- Node taints such as `node.kubernetes.io/disk-pressure`
+
+To check the available space on the tmpfs:
+```bash
+df -h /run
+```
+
+If the space is low and you're experiencing these issues, you can temporarily increase the size of the tmpfs mount to see if it resolves the problem:
+```bash
+sudo mount -o remount,size=10G /run
+```
+
+```{note}
+This change is not persistent and will reset on reboot.
+```
+
 ## Changing IP addresses
 
 The local IP addresses of your development machine are likely to change,
