@@ -186,6 +186,6 @@ require (
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
 
-replace github.com/canonical/microcluster/v2 v2.1.1-0.20250127104725-631889214b18 => github.com/HomayoonAlimohammadi/microcluster/v2 v2.1.1-0.20250527140049-385283791c07
+replace github.com/canonical/microcluster/v2 v2.1.1-0.20250127104725-631889214b18 => github.com/HomayoonAlimohammadi/microcluster/v2 v2.1.1-0.20250528074257-367c933d23d1
 
 replace github.com/canonical/lxd v0.0.0-20250113143058-52441d41dab7 => github.com/HomayoonAlimohammadi/lxd v0.0.0-20250527073459-f905a165c7b9
