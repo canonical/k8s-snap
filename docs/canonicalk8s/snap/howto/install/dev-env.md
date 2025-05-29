@@ -6,7 +6,9 @@ virtual machine.
 You **can** install {{product}} directly on your development machine. But if
 you choose to do so, please take note of the following considerations.
 
-## Containerd conflicts
+## Containerd 
+
+### Conflicts
 
 {{product}} runs its own containerd service, which will use the standard
 containerd-related paths by default (`/run/containerd`, `/var/lib/containerd`,
@@ -38,7 +40,7 @@ Any non-temporary directory can be chosen for `containerd-base-dir`
 containerd-related files (e.g.: `/ck8s/etc/containerd`,
 `/ck8s/var/run/containerd/containerd.sock`, etc.).
 
-## Containerd State Directory on tmpfs — Disk Pressure & ErrImagePull
+### State Directory on tmpfs — Disk Pressure & ErrImagePull
 
 When using a custom containerd, if it is configured to use a state directory on
 `tmpfs` (e.g., `/run/containerd`), ensure that the `tmpfs` mount has sufficient 
