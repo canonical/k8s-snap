@@ -572,5 +572,5 @@ YAMLs
 YanisaHS
 ZooKeeper
 zsh
-tmpfs 
-ErrImagePull 
+tmpfs
+ErrImagePull
