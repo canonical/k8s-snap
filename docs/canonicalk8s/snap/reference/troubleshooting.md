@@ -234,7 +234,7 @@ sudo k8s kubectl get pods -n kube-system
 ````
 
 <!-- markdownlint-disable -->
-## Cilium pod `fails to detect devices: unable to determine direct routing devices`
+## Cilium pod `unable to determine direct routing device`
 <!-- markdownlint-restore -->
 
 When deploying {{product}}, the Cilium pods fail to start and reports
