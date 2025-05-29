@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/canonical/go-dqlite/v2/app"
+	"github.com/canonical/go-dqlite/app"
 )
 
 // nextDqlitePort is used in withDqliteCluster() to pick unique port numbers for the dqlite nodes.

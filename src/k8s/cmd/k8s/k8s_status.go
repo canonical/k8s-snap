@@ -36,7 +36,7 @@ func newStatusCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
 			cobra.OnFinalize(cancel)
 
-			if _, initialized, err := client.NodeStatus(cmd.Context()); err != nil {
+			if _, initialized, err := client.NodeStatus(ctx); err != nil {
 				cmd.PrintErrf("Error: Failed to check the current node status.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
