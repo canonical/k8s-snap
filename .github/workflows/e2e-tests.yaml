@@ -171,7 +171,7 @@ jobs:
           TEST_GH_REF: ${{ github.ref_name }}
           TEST_GH_BASE_REF: ${{ github.base_ref }}
         run: |
-          cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- ${{ env.PERFORMANCE_FLAGS }} --tags ${{ inputs.test-tags }} ${{ inputs.extra-test-args }} ${{ inputs.parallel && matrix.test || '' }}
+          cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- ${{ inputs.parallel && matrix.test || '' }} ${{ env.PERFORMANCE_FLAGS }} --tags ${{ inputs.test-tags }} ${{ inputs.extra-test-args }}
       - name: Prepare inspection reports
         if: failure()
         run: |
