@@ -8,7 +8,7 @@ from test_util import harness, tags
 
 
 @pytest.mark.node_count(1)
-@pytest.mark.tags(tags.PULL_REQUEST, tags.PERFORMANCE)
+@pytest.mark.tags(tags.PERFORMANCE)
 def test_perf_status_single_node_cli(instances: List[harness.Instance], benchmark):
     node = instances[0]
 
