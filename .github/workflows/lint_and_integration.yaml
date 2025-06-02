@@ -114,7 +114,7 @@ jobs:
       os: ubuntu:24.04
       test-tags: ${{ needs.get-e2e-tags.outputs.test-tags}}
       artifact: k8s.snap
-      parallel: false
+      parallel: true
 
   security-scan:
     name: Security scan
