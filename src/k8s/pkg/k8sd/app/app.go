@@ -46,8 +46,6 @@ type Config struct {
 	DisableFeatureController bool
 	// DisableCSRSigningController is a bool flag to disable csrsigning controller.
 	DisableCSRSigningController bool
-	// DisableUpgradeController is a bool flag to disable upgrade controller.
-	DisableUpgradeController bool
 	// DrainConnectionsTimeout is the amount of time to allow for all connections to drain when shutting down.
 	DrainConnectionsTimeout time.Duration
 }
@@ -192,7 +190,7 @@ func New(cfg Config) (*App, error) {
 		log.L().Info("csrsigning-controller disabled via config")
 	}
 
-	if !cfg.DisableUpgradeController {
+	if !cfg.DisableFeatureController {
 		app.upgradeController = upgrade.NewController(upgrade.ControllerOptions{
 			Snap:                     cfg.Snap,
 			WaitReady:                app.readyWg.Wait,
