@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"time"
 
 	"github.com/canonical/k8s/pkg/log"
 	"helm.sh/helm/v3/pkg/action"
@@ -19,16 +20,22 @@ import (
 type client struct {
 	restClientGetter func(string) genericclioptions.RESTClientGetter
 	manifestsBaseDir string
+	//applyTimeout is the timeout for apply operations.
+	applyTimeout time.Duration
 }
 
 // ensure *client implements Client.
 var _ Client = &client{}
 
 // NewClient creates a new client.
-func NewClient(manifestsBaseDir string, restClientGetter func(string) genericclioptions.RESTClientGetter) *client {
+func NewClient(manifestsBaseDir string,
+	restClientGetter func(string) genericclioptions.RESTClientGetter,
+	applyTimeout time.Duration,
+) *client {
 	return &client{
 		restClientGetter: restClientGetter,
 		manifestsBaseDir: manifestsBaseDir,
+		applyTimeout:     applyTimeout,
 	}
 }
 
@@ -47,8 +54,10 @@ func (h *client) newActionConfiguration(ctx context.Context, namespace string) (
 // Apply implements the Client interface.
 func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, values map[string]any) (bool, error) {
 	log := log.FromContext(ctx).WithName("helm").WithValues("chart", c.Name, "desired", desired)
+	applyCtx, cancel := context.WithTimeout(ctx, h.applyTimeout)
+	defer cancel()
 
-	cfg, err := h.newActionConfiguration(ctx, c.Namespace)
+	cfg, err := h.newActionConfiguration(applyCtx, c.Namespace)
 	if err != nil {
 		return false, fmt.Errorf("failed to create action configuration: %w", err)
 	}
@@ -88,7 +97,7 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 			return false, fmt.Errorf("failed to load manifest for %s: %w", c.Name, err)
 		}
 
-		if _, err := install.RunWithContext(ctx, chart, values); err != nil {
+		if _, err := install.RunWithContext(applyCtx, chart, values); err != nil {
 			return false, fmt.Errorf("failed to install %s: %w", c.Name, err)
 		}
 		return true, nil
@@ -116,7 +125,7 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 		upgrade.Namespace = c.Namespace
 		upgrade.ResetThenReuseValues = true
 
-		release, err := upgrade.RunWithContext(ctx, c.Name, chart, values)
+		release, err := upgrade.RunWithContext(applyCtx, c.Name, chart, values)
 		if err != nil {
 			return false, fmt.Errorf("failed to upgrade %s: %w", c.Name, err)
 		}
