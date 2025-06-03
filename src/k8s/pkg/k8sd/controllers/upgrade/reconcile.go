@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/canonical/k8s/pkg/client/kubernetes"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/go-logr/logr"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -93,9 +94,6 @@ func (c *Controller) reconcileFeatureUpgrade(ctx context.Context, upgrade *kuber
 		return ctrl.Result{}, fmt.Errorf("timed out waiting for feature controllers to be ready")
 	}
 
-	log.Info("Triggering feature controller.")
-	c.notifyFeatureController(true, true, true, true, true, true, true)
-
 	log.Info("Waiting for feature controllers to reconcile.")
 	if err := c.waitForFeatureReconciliations(ctx, log); err != nil {
 		return ctrl.Result{}, fmt.Errorf("failed to wait for feature reconciliations: %w", err)
@@ -148,8 +146,13 @@ func (c *Controller) allNodesUpgraded(ctx context.Context, upgradedNodes []strin
 }
 
 func (c *Controller) waitForFeatureReconciliations(ctx context.Context, log logr.Logger) error {
-	timeout := time.After(c.featureControllerReconcileTimeout)
 	for name, ch := range c.featureToReconciledCh {
+		if err := c.triggerFeature(name); err != nil {
+			return fmt.Errorf("failed to trigger feature %q: %w", name, err)
+		}
+
+		timeout := time.After(c.featureControllerReconcileTimeout)
+
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -170,5 +173,32 @@ func (c *Controller) transitionTo(ctx context.Context, upgrade *kubernetes.Upgra
 	if err := c.client.Status().Patch(ctx, upgrade, p); err != nil {
 		return fmt.Errorf("failed to patch: %w", err)
 	}
+	return nil
+}
+
+func (c *Controller) triggerFeature(name string) error {
+	if c.notifyFeatureController == nil {
+		return fmt.Errorf("notifyFeatureController is not set, cannot trigger feature %q", name)
+	}
+
+	switch name {
+	case string(features.Network):
+		c.notifyFeatureController(true, false, false, false, false, false, false)
+	case string(features.Gateway):
+		c.notifyFeatureController(false, true, false, false, false, false, false)
+	case string(features.Ingress):
+		c.notifyFeatureController(false, false, true, false, false, false, false)
+	case string(features.LoadBalancer):
+		c.notifyFeatureController(false, false, false, true, false, false, false)
+	case string(features.LocalStorage):
+		c.notifyFeatureController(false, false, false, false, true, false, false)
+	case string(features.MetricsServer):
+		c.notifyFeatureController(false, false, false, false, false, true, false)
+	case string(features.DNS):
+		c.notifyFeatureController(false, false, false, false, false, false, true)
+	default:
+		return fmt.Errorf("unknown feature %q", name)
+	}
+
 	return nil
 }
