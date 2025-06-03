@@ -107,7 +107,13 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 			return false, fmt.Errorf("failed to load manifest for %s: %w", c.Name, err)
 		}
 
+		// NOTE(Angelos): oldConfig and values are the previous and current values. they are compared by checking their respective JSON, as that is good enough for our needs of comparing unstructured map[string]any data.
+		// NOTE(Hue) (KU-3592): We are ignoring the values that are overwritten by the user.
+		// The user can change some values in the chart, but we will revert them back upon an upgrade.
 		sameValues := jsonEqual(oldConfig, values)
+		// NOTE(Hue): For the charts that we manage (e.g. ck-loadbalancer), we need to make
+		// sure we bump the version manually. Otherwise, they'll not be applied unless
+		// we're lucky and providing different extra values.
 		sameVersions := release.Chart.Metadata.Version == chart.Metadata.Version
 		switch {
 		case sameValues && sameVersions:
@@ -126,17 +132,11 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 		upgrade.Namespace = c.Namespace
 		upgrade.ResetThenReuseValues = true
 
-		release, err := upgrade.RunWithContext(applyCtx, c.Name, chart, values)
-		if err != nil {
+		if _, err := upgrade.RunWithContext(applyCtx, c.Name, chart, values); err != nil {
 			return false, fmt.Errorf("failed to upgrade %s: %w", c.Name, err)
 		}
 
-		if !jsonEqual(values, release.Config) {
-			log.Info("provided values does not match release.Config after upgrade, this is unexpected", "values", values, "newValues", release.Config)
-		}
-
-		// oldConfig and release.Config are the previous and current values. they are compared by checking their respective JSON, as that is good enough for our needs of comparing unstructured map[string]any data.
-		return sameValues, nil
+		return true, nil
 	case isInstalled && desired == StateDeleted:
 		// run an uninstall action
 		uninstall := action.NewUninstall(cfg)
