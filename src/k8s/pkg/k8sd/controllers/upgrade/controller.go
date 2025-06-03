@@ -18,7 +18,7 @@ type Controller struct {
 	logger                            logr.Logger
 	client                            client.Client
 	featureControllerReadyCh          <-chan struct{}
-	notifyFeatureController           func(network, gateway, ingress, dns, loadBalancer, localStorage, metricsServer bool)
+	notifyFeatureController           func(network, gateway, ingress, loadBalancer, localStorage, metricsServer, dns bool)
 	featureToReconciledCh             map[types.FeatureName]<-chan struct{}
 	featureControllerReadyTimeout     time.Duration
 	featureControllerReconcileTimeout time.Duration
@@ -28,13 +28,13 @@ type ControllerOptions struct {
 	// FeatureControllerReadyCh is a channel that is closed when the feature controller is ready.
 	FeatureControllerReadyCh <-chan struct{}
 	// NotifyFeatureController is a function that notifies the feature controller to reconcile.
-	NotifyFeatureController func(network, gateway, ingress, dns, loadBalancer, localStorage, metricsServer bool)
+	NotifyFeatureController func(network, gateway, ingress, loadBalancer, localStorage, metricsServer, dns bool)
 	// FeatureToReconciledCh is a map of feature names to channels that are full
 	// when the feature controller has reconciled the feature.
 	FeatureToReconciledCh map[types.FeatureName]<-chan struct{}
 	// FeatureControllerReadyTimeout is the timeout for the feature controller to be ready.
 	FeatureControllerReadyTimeout time.Duration
-	// FeatureControllerReconcileTimeout is the timeout for the feature controller to reconcile.
+	// FeatureControllerReconcileTimeout is the timeout for each feature to get reconciled by the feature controller.
 	FeatureControllerReconcileTimeout time.Duration
 }
 

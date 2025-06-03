@@ -203,7 +203,7 @@ func New(cfg Config) (*App, error) {
 				features.MetricsServer: app.featureController.ReconciledMetricsServerCh(),
 			},
 			FeatureControllerReadyTimeout:     10 * time.Minute,
-			FeatureControllerReconcileTimeout: 10 * time.Minute,
+			FeatureControllerReconcileTimeout: 2 * time.Minute,
 		},
 		cfg.DisableCSRSigningController,
 	)
