@@ -196,10 +196,16 @@ func New(cfg Config) (*App, error) {
 
 	if !cfg.DisableFeatureController {
 		app.upgradeController = upgrade.NewController(upgrade.ControllerOptions{
-			Snap:                     cfg.Snap,
-			WaitReady:                app.readyWg.Wait,
-			FeatureControllerReadyCh: app.featureController.ReadyCh(),
-			NotifyFeatureController:  app.NotifyFeatureController,
+			Snap:                       cfg.Snap,
+			WaitReady:                  app.readyWg.Wait,
+			FeatureControllerReadyCh:   app.featureController.ReadyCh(),
+			NotifyNetworkFeature:       app.NotifyNetwork,
+			NotifyGatewayFeature:       app.NotifyGateway,
+			NotifyIngressFeature:       app.NotifyIngress,
+			NotifyLoadBalancerFeature:  app.NotifyLoadBalancer,
+			NotifyLocalStorageFeature:  app.NotifyLocalStorage,
+			NotifyMetricsServerFeature: app.NotifyMetricsServer,
+			NotifyDNSFeature:           app.NotifyDNS,
 			FeatureToReconciledCh: map[string]<-chan struct{}{
 				"network":        app.featureController.ReconciledNetworkCh(),
 				"gateway":        app.featureController.ReconciledGatewayCh(),
