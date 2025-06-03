@@ -103,19 +103,19 @@ func (c *Controller) reconcileFeatureUpgrade(ctx context.Context, client *kubern
 
 		switch name {
 		case string(features.Network):
-			c.notifyFeatureController(true, false, false, false, false, false, false)
+			c.notifyNetworkFeature()
 		case string(features.Gateway):
-			c.notifyFeatureController(false, true, false, false, false, false, false)
+			c.notifyGatewayFeature()
 		case string(features.Ingress):
-			c.notifyFeatureController(false, false, true, false, false, false, false)
+			c.notifyIngressFeature()
 		case string(features.LoadBalancer):
-			c.notifyFeatureController(false, false, false, true, false, false, false)
+			c.notifyLoadBalancerFeature()
 		case string(features.LocalStorage):
-			c.notifyFeatureController(false, false, false, false, true, false, false)
+			c.notifyLocalStorageFeature()
 		case string(features.MetricsServer):
-			c.notifyFeatureController(false, false, false, false, false, true, false)
+			c.notifyMetricsServerFeature()
 		case string(features.DNS):
-			c.notifyFeatureController(false, false, false, false, false, false, true)
+			c.notifyDNSFeature()
 		default:
 			return ctrl.Result{}, fmt.Errorf("trying to reconcile unknown feature %q", name)
 		}
