@@ -4,7 +4,7 @@ If you find any issue while working with {{product}} it is highly
 likely that someone from the community has already faced the same problem.
 In this page you'll find a list of common issues and solutions for them.
 
-Make sure to also check the [troubleshooting how-to guide] for 
+Make sure to also check the [troubleshooting how-to guide] for
 more details on how to verify the status of {{product}} services.
 
 ## Kubectl error: `dial tcp 127.0.0.1:6443: connect: connection refused`
@@ -233,6 +233,79 @@ sudo k8s kubectl get pods -n kube-system
 
 ````
 
+<!-- markdownlint-disable -->
+## Cilium pod `unable to determine direct routing device`
+<!-- markdownlint-restore -->
+
+When deploying {{product}}, the Cilium pods fail to start and reports
+the error:
+
+```
+level=error msg="Start failed" error="daemon creation failed: unable to determine direct routing device. Use --direct-routing-device to specify it"
+```
+
+````{dropdown} Explanation
+This issue was introduced in Cilium 1.15 and has been [reported here]. Both
+`devices` and `direct-routing-device` lists must now be set in direct routing
+mode. Direct routing mode is used by BPF, NodePort and BPF host routing.
+
+If `direct-routing-device` is left undefined, it is automatically set to the
+device with the k8s InternalIP/ExternalIP or the device with a default route.
+However, bridge type devices are ignored in this automatic selection. In this
+case, a bridge interface is used as the default route and
+therefore Cilium enters a failed state being unable to find the direct routing
+device. The bridge interface must be added to the list of `devices` using
+cluster annotations so that `direct-routing-device` will not skip the bridge
+interface.
+````
+
+````{dropdown} Solution
+Identify the default route used for the cluster. The `route` command is part
+of the net-tools Debian package.
+
+```
+route
+```
+
+In this example of deploying {{product}}, the output is as follows:
+
+```
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+default         _gateway        0.0.0.0         UG    0      0        0 br-ex
+172.27.20.0     0.0.0.0         255.255.254.0   U     0      0        0 br-ex
+```
+
+The `br-ex` interface is the default interface used for this cluster. Apply
+the annotation to the node adding bridge interfaces `br+` to the `devices` list:
+
+```
+sudo k8s set annotations="k8sd/v1alpha1/cilium/devices=br+"
+```
+
+The `+` acts as a wildcard operator to allow all bridge interfaces to be picked
+up by Cilium.
+
+Restart the Cilium pod so it is recreated with the updated annotation and
+devices. Get the pod name which will be in the form `cilium-XXXX` where XXXX
+is unique to each pod:
+
+```
+sudo k8s kubectl get pods -n kube-system
+```
+
+Delete the pod:
+
+```
+sudo k8s kubectl delete pod cilium-XXXX -n kube-system
+```
+
+Verify the Cilium pod has restarted and is now in the running state:
+
+```
+sudo k8s kubectl get pods -n kube-system
+````
+
 <!-- Links -->
 
 [troubleshooting how-to guide]: ../howto/troubleshooting.md
@@ -243,3 +316,4 @@ sudo k8s kubectl get pods -n kube-system
 [@haircommander]: https://github.com/haircommander
 [lxd-install]: /snap/howto/install/lxd.md
 [issue #196]: https://github.com/canonical/k8s-dqlite/issues/196#issuecomment-2621527026
+[reported here]: https://github.com/cilium/cilium/issues/30889
