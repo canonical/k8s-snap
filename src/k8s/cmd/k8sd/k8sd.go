@@ -22,6 +22,7 @@ var rootCmdOpts struct {
 	disableUpdateNodeConfigController   bool
 	disableCSRSigningController         bool
 	drainConnectionsTimeout             time.Duration
+	featureControllerMaxRetryAttempts   int
 }
 
 func addCommands(root *cobra.Command, group *cobra.Group, commands ...*cobra.Command) {
@@ -59,6 +60,7 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				DisableFeatureController:            rootCmdOpts.disableFeatureController,
 				DisableCSRSigningController:         rootCmdOpts.disableCSRSigningController,
 				DrainConnectionsTimeout:             rootCmdOpts.drainConnectionsTimeout,
+				FeatureControllerMaxRetryAttempts:   rootCmdOpts.featureControllerMaxRetryAttempts,
 			})
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to initialize k8sd: %v", err)
@@ -93,6 +95,7 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd.Flags().Uint("port", 0, "Default port for the HTTP API")
 	cmd.Flags().MarkDeprecated("port", "this flag does not have any effect, and will be removed in a future version")
 	cmd.Flags().DurationVar(&rootCmdOpts.drainConnectionsTimeout, "drain-connection-timeout", 10*time.Second, "amount of time to allow for all connections to drain when shutting down")
+	cmd.Flags().IntVar(&rootCmdOpts.featureControllerMaxRetryAttempts, "feature-controller-max-retry-attempts", 15, "Maximum number of retry attempts for the feature controller before giving up. Zero or negative values mean no limit.")
 
 	cmd.AddCommand(newSqlCmd(env))
 
