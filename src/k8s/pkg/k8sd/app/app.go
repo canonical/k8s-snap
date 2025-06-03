@@ -191,8 +191,14 @@ func New(cfg Config) (*App, error) {
 		app.readyWg.Wait,
 		cfg.DisableUpgradeController,
 		upgrade.ControllerOptions{
-			FeatureControllerReadyCh: app.featureController.ReadyCh(),
-			NotifyFeatureController:  app.NotifyFeatureController,
+			FeatureControllerReadyCh:   app.featureController.ReadyCh(),
+			NotifyNetworkFeature:       app.NotifyNetwork,
+			NotifyGatewayFeature:       app.NotifyGateway,
+			NotifyIngressFeature:       app.NotifyIngress,
+			NotifyLoadBalancerFeature:  app.NotifyLoadBalancer,
+			NotifyLocalStorageFeature:  app.NotifyLocalStorage,
+			NotifyMetricsServerFeature: app.NotifyMetricsServer,
+			NotifyDNSFeature:           app.NotifyDNS,
 			FeatureToReconciledCh: map[types.FeatureName]<-chan struct{}{
 				features.Network:       app.featureController.ReconciledNetworkCh(),
 				features.Gateway:       app.featureController.ReconciledGatewayCh(),

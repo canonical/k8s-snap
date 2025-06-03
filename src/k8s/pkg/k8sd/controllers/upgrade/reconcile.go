@@ -173,25 +173,21 @@ func (c *Controller) transitionTo(ctx context.Context, upgrade *upgradesv1alpha.
 }
 
 func (c *Controller) triggerFeature(name types.FeatureName) error {
-	if c.notifyFeatureController == nil {
-		return fmt.Errorf("notifyFeatureController is not set, cannot trigger feature %q", name)
-	}
-
 	switch name {
 	case features.Network:
-		c.notifyFeatureController(true, false, false, false, false, false, false)
+		c.notifyNetworkFeature()
 	case features.Gateway:
-		c.notifyFeatureController(false, true, false, false, false, false, false)
+		c.notifyGatewayFeature()
 	case features.Ingress:
-		c.notifyFeatureController(false, false, true, false, false, false, false)
+		c.notifyIngressFeature()
 	case features.LoadBalancer:
-		c.notifyFeatureController(false, false, false, true, false, false, false)
+		c.notifyLoadBalancerFeature()
 	case features.LocalStorage:
-		c.notifyFeatureController(false, false, false, false, true, false, false)
+		c.notifyLocalStorageFeature()
 	case features.MetricsServer:
-		c.notifyFeatureController(false, false, false, false, false, true, false)
+		c.notifyMetricsServerFeature()
 	case features.DNS:
-		c.notifyFeatureController(false, false, false, false, false, false, true)
+		c.notifyDNSFeature()
 	default:
 		return fmt.Errorf("unknown feature %q", name)
 	}
