@@ -20,7 +20,7 @@ import (
 type client struct {
 	restClientGetter func(string) genericclioptions.RESTClientGetter
 	manifestsBaseDir string
-	//applyTimeout is the timeout for apply operations.
+	// applyTimeout is the timeout for apply operations.
 	applyTimeout time.Duration
 }
 
@@ -109,14 +109,15 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 
 		sameValues := jsonEqual(oldConfig, values)
 		sameVersions := release.Chart.Metadata.Version == chart.Metadata.Version
-		if sameValues && sameVersions {
+		switch {
+		case sameValues && sameVersions:
 			log.Info("no changes detected, skipping upgrade")
 			return false, nil
-		} else if sameValues {
+		case sameValues && !sameVersions:
 			log.Info("chart version changed, upgrading", "oldVersion", release.Chart.Metadata.Version, "newVersion", chart.Metadata.Version)
-		} else if sameVersions {
+		case sameVersions && !sameValues:
 			log.Info("values changed, upgrading")
-		} else {
+		default:
 			log.Info("both chart version and values changed, upgrading", "oldVersion", release.Chart.Metadata.Version, "newVersion", chart.Metadata.Version)
 		}
 
