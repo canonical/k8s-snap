@@ -7,8 +7,10 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/microcluster/v2/state"
 	"github.com/go-logr/logr"
+	"k8s.io/client-go/util/workqueue"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 )
 
 type Controller struct {
@@ -58,5 +60,11 @@ func NewController(
 func (c *Controller) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&upgradesv1alpha1.Upgrade{}).
+		WithOptions(controller.Options{
+			RateLimiter: workqueue.NewTypedItemExponentialFailureRateLimiter[ctrl.Request](
+				time.Second,
+				5*time.Minute,
+			),
+		}).
 		Complete(c)
 }
