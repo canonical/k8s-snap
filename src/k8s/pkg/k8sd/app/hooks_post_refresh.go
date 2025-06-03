@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
@@ -96,8 +97,13 @@ func (a *App) performPostUpgrade(ctx context.Context, s state.State) error {
 
 	log.Info("Marking node as upgraded.", "node", s.Name())
 
+	upgradedNodes := upgrade.Status.UpgradedNodes
+	if !slices.Contains(upgradedNodes, s.Name()) {
+		upgradedNodes = append(upgradedNodes, s.Name())
+	}
+
 	status := kubernetes.UpgradeStatus{
-		UpgradedNodes: append(upgrade.Status.UpgradedNodes, s.Name()),
+		UpgradedNodes: upgradedNodes,
 		Phase:         kubernetes.UpgradePhaseNodeUpgrade,
 		Strategy:      kubernetes.UpgradeStrategyInPlace,
 	}
