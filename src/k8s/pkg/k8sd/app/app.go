@@ -48,6 +48,9 @@ type Config struct {
 	DisableCSRSigningController bool
 	// DisableUpgradeController is a bool flag to disable upgrade controller.
 	DisableUpgradeController bool
+	// FeatureControllerMaxRetryAttempts is the maximum number of retry attempts for the reconcile loop
+	// of the feature controller. Zero or negative values mean no limit.
+	FeatureControllerMaxRetryAttempts int
 }
 
 // App is the k8sd microcluster instance.
@@ -166,15 +169,16 @@ func New(cfg Config) (*App, error) {
 
 	if !cfg.DisableFeatureController {
 		app.featureController = controllers.NewFeatureController(controllers.FeatureControllerOpts{
-			Snap:                   cfg.Snap,
-			WaitReady:              app.readyWg.Wait,
-			TriggerNetworkCh:       app.triggerFeatureControllerNetworkCh,
-			TriggerGatewayCh:       app.triggerFeatureControllerGatewayCh,
-			TriggerIngressCh:       app.triggerFeatureControllerIngressCh,
-			TriggerLoadBalancerCh:  app.triggerFeatureControllerLoadBalancerCh,
-			TriggerDNSCh:           app.triggerFeatureControllerDNSCh,
-			TriggerLocalStorageCh:  app.triggerFeatureControllerLocalStorageCh,
-			TriggerMetricsServerCh: app.triggerFeatureControllerMetricsServerCh,
+			Snap:                          cfg.Snap,
+			WaitReady:                     app.readyWg.Wait,
+			TriggerNetworkCh:              app.triggerFeatureControllerNetworkCh,
+			TriggerGatewayCh:              app.triggerFeatureControllerGatewayCh,
+			TriggerIngressCh:              app.triggerFeatureControllerIngressCh,
+			TriggerLoadBalancerCh:         app.triggerFeatureControllerLoadBalancerCh,
+			TriggerDNSCh:                  app.triggerFeatureControllerDNSCh,
+			TriggerLocalStorageCh:         app.triggerFeatureControllerLocalStorageCh,
+			TriggerMetricsServerCh:        app.triggerFeatureControllerMetricsServerCh,
+			ReconcileLoopMaxRetryAttempts: cfg.FeatureControllerMaxRetryAttempts,
 		})
 	} else {
 		log.L().Info("feature-controller disabled via config")
