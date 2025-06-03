@@ -46,6 +46,8 @@ func (h *client) newActionConfiguration(ctx context.Context, namespace string) (
 
 // Apply implements the Client interface.
 func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, values map[string]any) (bool, error) {
+	log := log.FromContext(ctx).WithName("helm").WithValues("chart", c.Name, "desired", desired)
+
 	cfg, err := h.newActionConfiguration(ctx, c.Namespace)
 	if err != nil {
 		return false, fmt.Errorf("failed to create action configuration: %w", err)
@@ -91,23 +93,40 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 		}
 		return true, nil
 	case isInstalled && desired != StateDeleted:
-		// there is already a release installed, so we must run an upgrade action
-		upgrade := action.NewUpgrade(cfg)
-		upgrade.Namespace = c.Namespace
-		upgrade.ResetThenReuseValues = true
-
 		chart, err := loader.Load(filepath.Join(h.manifestsBaseDir, c.ManifestPath))
 		if err != nil {
 			return false, fmt.Errorf("failed to load manifest for %s: %w", c.Name, err)
 		}
+
+		sameValues := jsonEqual(oldConfig, values)
+		sameVersions := release.Chart.Metadata.Version == chart.Metadata.Version
+		if sameValues && sameVersions {
+			log.Info("no changes detected, skipping upgrade")
+			return false, nil
+		} else if sameValues {
+			log.Info("chart version changed, upgrading", "oldVersion", release.Chart.Metadata.Version, "newVersion", chart.Metadata.Version)
+		} else if sameVersions {
+			log.Info("values changed, upgrading")
+		} else {
+			log.Info("both chart version and values changed, upgrading", "oldVersion", release.Chart.Metadata.Version, "newVersion", chart.Metadata.Version)
+		}
+
+		// there is already a release installed, so we must run an upgrade action
+		upgrade := action.NewUpgrade(cfg)
+		upgrade.Namespace = c.Namespace
+		upgrade.ResetThenReuseValues = true
 
 		release, err := upgrade.RunWithContext(ctx, c.Name, chart, values)
 		if err != nil {
 			return false, fmt.Errorf("failed to upgrade %s: %w", c.Name, err)
 		}
 
+		if !jsonEqual(values, release.Config) {
+			log.Info("provided values does not match release.Config after upgrade, this is unexpected", "values", values, "newValues", release.Config)
+		}
+
 		// oldConfig and release.Config are the previous and current values. they are compared by checking their respective JSON, as that is good enough for our needs of comparing unstructured map[string]any data.
-		return !jsonEqual(oldConfig, release.Config), nil
+		return sameValues, nil
 	case isInstalled && desired == StateDeleted:
 		// run an uninstall action
 		uninstall := action.NewUninstall(cfg)
