@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"slices"
 	"time"
 
 	"github.com/canonical/k8s/pkg/client/kubernetes"
@@ -408,7 +409,9 @@ func handleUpgradeInProgress(ctx context.Context, s state.State, k8sClient *kube
 
 	log.Info("Marking node as upgraded", "node", nodeName)
 	status := upgrade.Status
-	status.UpgradedNodes = append(status.UpgradedNodes, nodeName)
+	if !slices.Contains(upgrade.Status.UpgradedNodes, nodeName) {
+		upgrade.Status.UpgradedNodes = append(upgrade.Status.UpgradedNodes, nodeName)
+	}
 	return k8sClient.PatchUpgradeStatus(ctx, upgrade, status)
 }
 
