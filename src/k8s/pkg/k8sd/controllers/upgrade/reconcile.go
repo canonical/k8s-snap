@@ -31,11 +31,6 @@ func (c *Controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 		res = ctrl.Result{RequeueAfter: 5 * time.Minute}
 	}
 
-	if res.RequeueAfter > 0 {
-		log.Info(fmt.Sprintf("Requeuing after %f seconds.", res.RequeueAfter.Seconds()))
-	} else if res.Requeue {
-		log.Info("Requeuing.")
-	}
 	return res, nil
 }
 
@@ -45,6 +40,8 @@ func (c *Controller) reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 	if err := c.client.Get(ctx, req.NamespacedName, &upgrade); err != nil {
 		return ctrl.Result{}, fmt.Errorf("failed to get upgrade %q: %w", req.NamespacedName, err)
 	}
+
+	c.logger.WithValues("upgrade", upgrade.Name, "phase", upgrade.Status.Phase).Info("Reconciling upgrade.")
 
 	switch {
 	case upgrade.Status.Phase == upgradesv1alpha.UpgradePhaseNodeUpgrade:
