@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/canonical/k8s/pkg/client/kubernetes"
+	"github.com/canonical/k8s/pkg/k8sd/features"
 	"github.com/canonical/k8s/pkg/log"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
@@ -95,13 +96,30 @@ func (c *Controller) reconcileFeatureUpgrade(ctx context.Context, client *kubern
 		return ctrl.Result{}, fmt.Errorf("timed out waiting for feature controllers to be ready")
 	}
 
-	c.notifyFeatureController(true, true, true, true, true, true, true)
-
 	log.Info("Waiting for feature controllers to reconcile.")
 
-	timeout := time.After(c.featureControllerReconcileTimeout)
-
 	for name, ch := range c.featureToReconciledCh {
+		timeout := time.After(c.featureControllerReconcileTimeout)
+
+		switch name {
+		case string(features.Network):
+			c.notifyFeatureController(true, false, false, false, false, false, false)
+		case string(features.Gateway):
+			c.notifyFeatureController(false, true, false, false, false, false, false)
+		case string(features.Ingress):
+			c.notifyFeatureController(false, false, true, false, false, false, false)
+		case string(features.LoadBalancer):
+			c.notifyFeatureController(false, false, false, true, false, false, false)
+		case string(features.LocalStorage):
+			c.notifyFeatureController(false, false, false, false, true, false, false)
+		case string(features.MetricsServer):
+			c.notifyFeatureController(false, false, false, false, false, true, false)
+		case string(features.DNS):
+			c.notifyFeatureController(false, false, false, false, false, false, true)
+		default:
+			return ctrl.Result{}, fmt.Errorf("trying to reconcile unknown feature %q", name)
+		}
+
 		select {
 		case <-ctx.Done():
 			return ctrl.Result{}, fmt.Errorf("context done while waiting for features to get reconciled: %w", ctx.Err())

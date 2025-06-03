@@ -210,7 +210,7 @@ func New(cfg Config) (*App, error) {
 				"metrics-server": app.featureController.ReconciledMetricsServerCh(),
 			},
 			FeatureControllerReadyTimeout:     10 * time.Minute,
-			FeatureControllerReconcileTimeout: 10 * time.Minute,
+			FeatureControllerReconcileTimeout: 2 * time.Minute,
 		})
 	} else {
 		log.L().Info("upgrade-controller disabled via config")
