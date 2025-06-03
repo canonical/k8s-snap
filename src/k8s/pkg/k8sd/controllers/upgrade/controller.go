@@ -32,7 +32,13 @@ type Controller struct {
 	snap                              snap.Snap
 	waitReady                         func()
 	featureControllerReadyCh          <-chan struct{}
-	notifyFeatureController           func(network, gateway, ingress, loadBalancer, localStorage, metricsServer, dns bool)
+	notifyNetworkFeature              func()
+	notifyGatewayFeature              func()
+	notifyIngressFeature              func()
+	notifyLoadBalancerFeature         func()
+	notifyLocalStorageFeature         func()
+	notifyMetricsServerFeature        func()
+	notifyDNSFeature                  func()
 	featureToReconciledCh             map[string]<-chan struct{}
 	featureControllerReadyTimeout     time.Duration
 	featureControllerReconcileTimeout time.Duration
@@ -49,8 +55,20 @@ type ControllerOptions struct {
 	WaitReady func()
 	// FeatureControllerReadyCh is a channel that is closed when the feature controller is ready.
 	FeatureControllerReadyCh <-chan struct{}
-	// NotifyFeatureController is a function that notifies the feature controller to reconcile.
-	NotifyFeatureController func(network, gateway, ingress, loadBalancer, localStorage, metricsServer, dns bool)
+	// NotifyNetworkFeature is a function that notifies the network feature to reconcile.
+	NotifyNetworkFeature func()
+	// NotifyGatewayFeature is a function that notifies the gateway feature to reconcile.
+	NotifyGatewayFeature func()
+	// NotifyIngressFeature is a function that notifies the ingress feature to reconcile.
+	NotifyIngressFeature func()
+	// NotifyLoadBalancerFeature is a function that notifies the load balancer feature to reconcile.
+	NotifyLoadBalancerFeature func()
+	// NotifyLocalStorageFeature is a function that notifies the local storage feature to reconcile.
+	NotifyLocalStorageFeature func()
+	// NotifyMetricsServerFeature is a function that notifies the metrics server feature to reconcile.
+	NotifyMetricsServerFeature func()
+	// NotifyDNSFeature is a function that notifies the DNS feature to reconcile.
+	NotifyDNSFeature func()
 	// FeatureToReconciledCh is a map of feature names to channels that are full
 	// when the feature controller has reconciled the feature.
 	FeatureToReconciledCh map[string]<-chan struct{}
@@ -65,7 +83,13 @@ func NewController(opts ControllerOptions) *Controller {
 		snap:                              opts.Snap,
 		waitReady:                         opts.WaitReady,
 		featureControllerReadyCh:          opts.FeatureControllerReadyCh,
-		notifyFeatureController:           opts.NotifyFeatureController,
+		notifyNetworkFeature:              opts.NotifyNetworkFeature,
+		notifyGatewayFeature:              opts.NotifyGatewayFeature,
+		notifyIngressFeature:              opts.NotifyIngressFeature,
+		notifyLoadBalancerFeature:         opts.NotifyLoadBalancerFeature,
+		notifyLocalStorageFeature:         opts.NotifyLocalStorageFeature,
+		notifyMetricsServerFeature:        opts.NotifyMetricsServerFeature,
+		notifyDNSFeature:                  opts.NotifyDNSFeature,
 		featureToReconciledCh:             opts.FeatureToReconciledCh,
 		featureControllerReadyTimeout:     opts.FeatureControllerReadyTimeout,
 		featureControllerReconcileTimeout: opts.FeatureControllerReconcileTimeout,
@@ -141,6 +165,8 @@ func (c *Controller) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&kubernetes.Upgrade{}).
 		WithOptions(controller.Options{
+			// NOTE(Hue): We use a custom rate limiter to reduce the load on the API server,
+			// as the default rate limiter is too aggressive for our use case (baseDelay is 5 Milliseconds).
 			RateLimiter: workqueue.NewTypedItemExponentialFailureRateLimiter[ctrl.Request](
 				time.Second,
 				5*time.Minute,
