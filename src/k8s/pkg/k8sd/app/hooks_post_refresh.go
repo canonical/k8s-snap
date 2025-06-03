@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations"
 	upgradesv1alpha "github.com/canonical/k8s/pkg/k8sd/crds/upgrades/v1alpha"
@@ -96,8 +97,13 @@ func (a *App) performPostUpgrade(ctx context.Context, s state.State) error {
 
 	log.Info("Marking node as upgraded.", "node", s.Name())
 
+	upgradedNodes := upgrade.Status.UpgradedNodes
+	if !slices.Contains(upgradedNodes, s.Name()) {
+		upgradedNodes = append(upgradedNodes, s.Name())
+	}
+
 	status := upgradesv1alpha.UpgradeStatus{
-		UpgradedNodes: append(upgrade.Status.UpgradedNodes, s.Name()),
+		UpgradedNodes: upgradedNodes,
 		Phase:         upgradesv1alpha.UpgradePhaseNodeUpgrade,
 		Strategy:      upgradesv1alpha.UpgradeStrategyInPlace,
 	}
