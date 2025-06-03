@@ -46,6 +46,8 @@ func (c *Controller) reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 		return ctrl.Result{}, fmt.Errorf("failed to get upgrade %q: %w", req.NamespacedName, err)
 	}
 
+	c.logger.WithValues("upgrade", upgrade.Name, "phase", upgrade.Status.Phase).Info("Reconciling upgrade.")
+
 	switch {
 	case upgrade.Status.Phase == kubernetes.UpgradePhaseNodeUpgrade:
 		return c.reconcileNodeUpgrade(ctx, &upgrade)
