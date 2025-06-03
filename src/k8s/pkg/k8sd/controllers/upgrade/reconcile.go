@@ -45,6 +45,8 @@ func (c *Controller) reconcile(ctx context.Context) (ctrl.Result, error) {
 		return ctrl.Result{}, nil
 	}
 
+	c.logger.WithValues("upgrade", upgrade.Name, "phase", upgrade.Status.Phase).Info("Reconciling upgrade.")
+
 	switch {
 	case upgrade.Status.Phase == kubernetes.UpgradePhaseNodeUpgrade:
 		return c.reconcileNodeUpgrade(ctx, k8sClient, upgrade)
