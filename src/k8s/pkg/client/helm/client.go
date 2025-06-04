@@ -22,6 +22,10 @@ type client struct {
 	manifestsBaseDir string
 	// applyTimeout is the timeout for apply operations.
 	applyTimeout time.Duration
+	// maxHistory specifies the maximum number of historical releases that will
+	// be retained, including the most recent release. Values of 0 or less are
+	// ignored (meaning no limits are imposed).
+	maxHistory int
 }
 
 // ensure *client implements Client.
@@ -31,11 +35,13 @@ var _ Client = &client{}
 func NewClient(manifestsBaseDir string,
 	restClientGetter func(string) genericclioptions.RESTClientGetter,
 	applyTimeout time.Duration,
+	maxHistory int,
 ) *client {
 	return &client{
 		restClientGetter: restClientGetter,
 		manifestsBaseDir: manifestsBaseDir,
 		applyTimeout:     applyTimeout,
+		maxHistory:       maxHistory,
 	}
 }
 
@@ -131,6 +137,9 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 		upgrade := action.NewUpgrade(cfg)
 		upgrade.Namespace = c.Namespace
 		upgrade.ResetThenReuseValues = true
+		// NOTE(Hue): We need to set the upgrade.MaxHistory here since it overwrites the
+		// cfg.Releases.MaxHistory value.
+		upgrade.MaxHistory = h.maxHistory
 
 		if _, err := upgrade.RunWithContext(applyCtx, c.Name, chart, values); err != nil {
 			return false, fmt.Errorf("failed to upgrade %s: %w", c.Name, err)
