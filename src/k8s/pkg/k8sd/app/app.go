@@ -48,6 +48,9 @@ type Config struct {
 	DisableCSRSigningController bool
 	// DisableUpgradeController is a bool flag to disable upgrade controller.
 	DisableUpgradeController bool
+	// FeatureControllerMaxRetryAttempts is the maximum number of retry attempts for the reconcile loop
+	// of the feature controller. Zero or negative values mean no limit.
+	FeatureControllerMaxRetryAttempts int
 }
 
 // App is the k8sd microcluster instance.
@@ -166,15 +169,16 @@ func New(cfg Config) (*App, error) {
 
 	if !cfg.DisableFeatureController {
 		app.featureController = controllers.NewFeatureController(controllers.FeatureControllerOpts{
-			Snap:                   cfg.Snap,
-			WaitReady:              app.readyWg.Wait,
-			TriggerNetworkCh:       app.triggerFeatureControllerNetworkCh,
-			TriggerGatewayCh:       app.triggerFeatureControllerGatewayCh,
-			TriggerIngressCh:       app.triggerFeatureControllerIngressCh,
-			TriggerLoadBalancerCh:  app.triggerFeatureControllerLoadBalancerCh,
-			TriggerDNSCh:           app.triggerFeatureControllerDNSCh,
-			TriggerLocalStorageCh:  app.triggerFeatureControllerLocalStorageCh,
-			TriggerMetricsServerCh: app.triggerFeatureControllerMetricsServerCh,
+			Snap:                          cfg.Snap,
+			WaitReady:                     app.readyWg.Wait,
+			TriggerNetworkCh:              app.triggerFeatureControllerNetworkCh,
+			TriggerGatewayCh:              app.triggerFeatureControllerGatewayCh,
+			TriggerIngressCh:              app.triggerFeatureControllerIngressCh,
+			TriggerLoadBalancerCh:         app.triggerFeatureControllerLoadBalancerCh,
+			TriggerDNSCh:                  app.triggerFeatureControllerDNSCh,
+			TriggerLocalStorageCh:         app.triggerFeatureControllerLocalStorageCh,
+			TriggerMetricsServerCh:        app.triggerFeatureControllerMetricsServerCh,
+			ReconcileLoopMaxRetryAttempts: cfg.FeatureControllerMaxRetryAttempts,
 		})
 	} else {
 		log.L().Info("feature-controller disabled via config")
@@ -192,10 +196,16 @@ func New(cfg Config) (*App, error) {
 
 	if !cfg.DisableUpgradeController {
 		app.upgradeController = upgrade.NewController(upgrade.ControllerOptions{
-			Snap:                     cfg.Snap,
-			WaitReady:                app.readyWg.Wait,
-			FeatureControllerReadyCh: app.featureController.ReadyCh(),
-			NotifyFeatureController:  app.NotifyFeatureController,
+			Snap:                       cfg.Snap,
+			WaitReady:                  app.readyWg.Wait,
+			FeatureControllerReadyCh:   app.featureController.ReadyCh(),
+			NotifyNetworkFeature:       app.NotifyNetwork,
+			NotifyGatewayFeature:       app.NotifyGateway,
+			NotifyIngressFeature:       app.NotifyIngress,
+			NotifyLoadBalancerFeature:  app.NotifyLoadBalancer,
+			NotifyLocalStorageFeature:  app.NotifyLocalStorage,
+			NotifyMetricsServerFeature: app.NotifyMetricsServer,
+			NotifyDNSFeature:           app.NotifyDNS,
 			FeatureToReconciledCh: map[string]<-chan struct{}{
 				"network":        app.featureController.ReconciledNetworkCh(),
 				"gateway":        app.featureController.ReconciledGatewayCh(),
@@ -206,7 +216,7 @@ func New(cfg Config) (*App, error) {
 				"metrics-server": app.featureController.ReconciledMetricsServerCh(),
 			},
 			FeatureControllerReadyTimeout:     10 * time.Minute,
-			FeatureControllerReconcileTimeout: 10 * time.Minute,
+			FeatureControllerReconcileTimeout: 2 * time.Minute,
 		})
 	} else {
 		log.L().Info("upgrade-controller disabled via config")

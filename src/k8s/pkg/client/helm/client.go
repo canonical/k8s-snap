@@ -7,10 +7,12 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"time"
 
 	"github.com/canonical/k8s/pkg/log"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart/loader"
+	releasepkg "helm.sh/helm/v3/pkg/release"
 	"helm.sh/helm/v3/pkg/storage/driver"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
@@ -19,16 +21,28 @@ import (
 type client struct {
 	restClientGetter func(string) genericclioptions.RESTClientGetter
 	manifestsBaseDir string
+	// applyTimeout is the timeout for apply operations.
+	applyTimeout time.Duration
+	// maxHistory specifies the maximum number of historical releases that will
+	// be retained, including the most recent release. Values of 0 or less are
+	// ignored (meaning no limits are imposed).
+	maxHistory int
 }
 
 // ensure *client implements Client.
 var _ Client = &client{}
 
 // NewClient creates a new client.
-func NewClient(manifestsBaseDir string, restClientGetter func(string) genericclioptions.RESTClientGetter) *client {
+func NewClient(manifestsBaseDir string,
+	restClientGetter func(string) genericclioptions.RESTClientGetter,
+	applyTimeout time.Duration,
+	maxHistory int,
+) *client {
 	return &client{
 		restClientGetter: restClientGetter,
 		manifestsBaseDir: manifestsBaseDir,
+		applyTimeout:     applyTimeout,
+		maxHistory:       maxHistory,
 	}
 }
 
@@ -46,7 +60,11 @@ func (h *client) newActionConfiguration(ctx context.Context, namespace string) (
 
 // Apply implements the Client interface.
 func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, values map[string]any) (bool, error) {
-	cfg, err := h.newActionConfiguration(ctx, c.Namespace)
+	log := log.FromContext(ctx).WithName("helm").WithValues("chart", c.Name, "desired", desired)
+	applyCtx, cancel := context.WithTimeout(ctx, h.applyTimeout)
+	defer cancel()
+
+	cfg, err := h.newActionConfiguration(applyCtx, c.Namespace)
 	if err != nil {
 		return false, fmt.Errorf("failed to create action configuration: %w", err)
 	}
@@ -86,28 +104,52 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 			return false, fmt.Errorf("failed to load manifest for %s: %w", c.Name, err)
 		}
 
-		if _, err := install.RunWithContext(ctx, chart, values); err != nil {
+		if _, err := install.RunWithContext(applyCtx, chart, values); err != nil {
 			return false, fmt.Errorf("failed to install %s: %w", c.Name, err)
 		}
 		return true, nil
 	case isInstalled && desired != StateDeleted:
-		// there is already a release installed, so we must run an upgrade action
-		upgrade := action.NewUpgrade(cfg)
-		upgrade.Namespace = c.Namespace
-		upgrade.ResetThenReuseValues = true
-
 		chart, err := loader.Load(filepath.Join(h.manifestsBaseDir, c.ManifestPath))
 		if err != nil {
 			return false, fmt.Errorf("failed to load manifest for %s: %w", c.Name, err)
 		}
 
-		release, err := upgrade.RunWithContext(ctx, c.Name, chart, values)
-		if err != nil {
+		// NOTE(Angelos): oldConfig and values are the previous and current values. they are compared by checking their respective JSON, as that is good enough for our needs of comparing unstructured map[string]any data.
+		// NOTE(Hue) (KU-3592): We are ignoring the values that are overwritten by the user.
+		// The user can change some values in the chart, but we will revert them back upon an upgrade.
+		sameValues := jsonEqual(oldConfig, values)
+		// NOTE(Hue): For the charts that we manage (e.g. ck-loadbalancer), we need to make
+		// sure we bump the version manually. Otherwise, they'll not be applied unless
+		// we're lucky and providing different extra values.
+		sameVersions := release.Chart.Metadata.Version == chart.Metadata.Version
+		switch {
+		case sameValues && sameVersions:
+			if release.Info.Status == releasepkg.StatusDeployed || release.Info.Status == releasepkg.StatusSuperseded {
+				log.Info("no changes detected, skipping upgrade", "status", release.Info.Status)
+				return false, nil
+			}
+			log.Info(fmt.Sprintf("no changes detected, but release status is %q, proceeding with upgrade", release.Info.Status))
+		case sameValues && !sameVersions:
+			log.Info("chart version changed, upgrading", "oldVersion", release.Chart.Metadata.Version, "newVersion", chart.Metadata.Version)
+		case sameVersions && !sameValues:
+			log.Info("values changed, upgrading")
+		default:
+			log.Info("both chart version and values changed, upgrading", "oldVersion", release.Chart.Metadata.Version, "newVersion", chart.Metadata.Version)
+		}
+
+		// there is already a release installed, so we must run an upgrade action
+		upgrade := action.NewUpgrade(cfg)
+		upgrade.Namespace = c.Namespace
+		upgrade.ResetThenReuseValues = true
+		// NOTE(Hue): We need to set the upgrade.MaxHistory here since it overwrites the
+		// cfg.Releases.MaxHistory value.
+		upgrade.MaxHistory = h.maxHistory
+
+		if _, err := upgrade.RunWithContext(applyCtx, c.Name, chart, values); err != nil {
 			return false, fmt.Errorf("failed to upgrade %s: %w", c.Name, err)
 		}
 
-		// oldConfig and release.Config are the previous and current values. they are compared by checking their respective JSON, as that is good enough for our needs of comparing unstructured map[string]any data.
-		return !jsonEqual(oldConfig, release.Config), nil
+		return true, nil
 	case isInstalled && desired == StateDeleted:
 		// run an uninstall action
 		uninstall := action.NewUninstall(cfg)
