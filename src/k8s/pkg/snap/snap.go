@@ -374,6 +374,7 @@ func (s *snap) HelmClient() helm.Client {
 			return s.restClientGetter(filepath.Join(s.KubernetesConfigDir(), "admin.conf"), namespace)
 		},
 		5*time.Minute,
+		10,
 	)
 }
 
