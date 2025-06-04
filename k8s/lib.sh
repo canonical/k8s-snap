@@ -138,22 +138,46 @@ k8s::util::wait_kube_apiserver() {
   done
 }
 
-# Execute a "$SNAP/bin/$service" with arguments from "$SNAP_DATA/args/$service"
-# Example: 'k8s::common::execute_service kubelet'
+# Execute a "$SNAP/bin/$service" with arguments from "$SNAP_DATA/args/$service" and optional additional args
+# Environment variables are loaded from "$SNAP_DATA/args/$service-env" and "$SNAP_DATA/args/snap-env"
+# Example: 'k8s::common::execute_service kubelet' or 'k8s::common::execute_service k8s status'
 k8s::common::execute_service() {
-  service_name="$1"
+  local service_name="$1"
+  shift  # Remove the first argument (service_name), leaving any additional args
 
   k8s::common::setup_env
 
   # Source arguments and substitute environment variables. Will fail if we cannot read the file.
   declare -a args="($(cat "${SNAP_COMMON}/args/${service_name}"))"
+  # Append any additional arguments passed to the function
+  args+=("$@")
+  declare -a all_env_vars=()
+
+  # Load global environment variables if the file exists
+  if [[ -f "${SNAP_COMMON}/args/snap-env" ]]; then
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      # Skip empty lines and comments
+      [[ -z "${line// }" || "$line" =~ ^# ]] && continue
+      all_env_vars+=("$line")
+    done < "${SNAP_COMMON}/args/snap-env"
+  fi
+
+  # Load service-specific environment variables if the file exists
+  # Service-specific environment variables take precedence over global environment variables.
+  if [[ -f "${SNAP_COMMON}/args/${service_name}-env" ]]; then
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      # Skip empty lines and comments
+      [[ -z "${line// }" || "$line" =~ ^# ]] && continue
+      all_env_vars+=("$line")
+    done < "${SNAP_COMMON}/args/${service_name}-env"
+  fi
 
   set -xe
   ulimit -c unlimited
   export GOTRACEBACK="crash"
-  if [[ -f "${SNAP_COMMON}/args/${service_name}-env" ]]; then
-    mapfile -t env_vars < "${SNAP_COMMON}/args/${service_name}-env"
-    exec env -S "${env_vars[@]}" "${SNAP}/bin/${service_name}" "${args[@]}"
+
+  if (( ${#all_env_vars[@]} > 0 )); then
+    exec env -S "${all_env_vars[@]}" "${SNAP}/bin/${service_name}" "${args[@]}"
   else
     exec "${SNAP}/bin/${service_name}" "${args[@]}"
   fi
