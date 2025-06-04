@@ -2,4 +2,4 @@
 
 . "$SNAP/k8s/lib.sh"
 
-k8s::cmd::k8s "${@}"
+k8s::common::execute_service k8s "${@}"
