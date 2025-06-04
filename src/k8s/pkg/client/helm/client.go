@@ -12,6 +12,7 @@ import (
 	"github.com/canonical/k8s/pkg/log"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart/loader"
+	releasepkg "helm.sh/helm/v3/pkg/release"
 	"helm.sh/helm/v3/pkg/storage/driver"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
@@ -123,8 +124,11 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 		sameVersions := release.Chart.Metadata.Version == chart.Metadata.Version
 		switch {
 		case sameValues && sameVersions:
-			log.Info("no changes detected, skipping upgrade")
-			return false, nil
+			if release.Info.Status == releasepkg.StatusDeployed || release.Info.Status == releasepkg.StatusSuperseded {
+				log.Info("no changes detected, skipping upgrade", "status", release.Info.Status)
+				return false, nil
+			}
+			log.Info(fmt.Sprintf("no changes detected, but release status is %q, proceeding with upgrade", release.Info.Status))
 		case sameValues && !sameVersions:
 			log.Info("chart version changed, upgrading", "oldVersion", release.Chart.Metadata.Version, "newVersion", chart.Metadata.Version)
 		case sameVersions && !sameValues:
