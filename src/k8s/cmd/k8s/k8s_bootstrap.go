@@ -143,6 +143,12 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				}
 			}
 
+			if err := verifyBootstrapConfig(bootstrapConfig); err != nil {
+				cmd.PrintErrf("Bootstrap config verification failed: %v", err)
+				env.Exit(1)
+				return
+			}
+
 			cmd.PrintErrln("Bootstrapping the cluster. This may take a few seconds, please wait.")
 
 			response, err := client.BootstrapCluster(cmd.Context(), apiv1.BootstrapClusterRequest{
