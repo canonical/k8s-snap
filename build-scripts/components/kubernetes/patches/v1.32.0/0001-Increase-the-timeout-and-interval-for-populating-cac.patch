@@ -1,0 +1,25 @@
+From 2f429ac64387401da0e99fde8542db06292c5195 Mon Sep 17 00:00:00 2001
+From: Konstantinos Tsakalozos <konstantinos.tsakalozos@canonical.com>
+Date: Wed, 4 Jun 2025 15:20:11 +0300
+Subject: [PATCH] Increase the timeout and interval for populating caches
+
+---
+ pkg/kubelet/util/manager/watch_based_manager.go | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/pkg/kubelet/util/manager/watch_based_manager.go b/pkg/kubelet/util/manager/watch_based_manager.go
+index cbc42fa6bf1..428b3b44176 100644
+--- a/pkg/kubelet/util/manager/watch_based_manager.go
++++ b/pkg/kubelet/util/manager/watch_based_manager.go
+@@ -319,7 +319,7 @@ func (c *objectCache) Get(namespace, name string) (runtime.Object, error) {
+ 	if !c.isStopped() {
+ 		item.restartReflectorIfNeeded()
+ 	}
+-	if err := wait.PollImmediate(10*time.Millisecond, time.Second, item.hasSynced); err != nil {
++	if err := wait.PollImmediate(50*time.Millisecond, 5*time.Second, item.hasSynced); err != nil {
+ 		return nil, fmt.Errorf("failed to sync %s cache: %v", c.groupResource.String(), err)
+ 	}
+ 	obj, exists, err := item.store.GetByKey(c.key(namespace, name))
+-- 
+2.43.0
+
