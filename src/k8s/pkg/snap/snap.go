@@ -418,6 +418,10 @@ func (s *snap) Revision(ctx context.Context) (string, error) {
 		return "", fmt.Errorf("failed to get snap info: snapd returned with error code %d", snap.StatusCode)
 	}
 
+	if snap.Result.Revision == "" {
+		return "", fmt.Errorf("failed to get snap revision: got empty string")
+	}
+
 	return snap.Result.Revision, nil
 }
 
