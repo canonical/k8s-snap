@@ -102,6 +102,7 @@ if [ ! -f "${BUILD_DIR}/dqlite/libdqlite.la" ]; then
       SQLITE_CFLAGS="-I${BUILD_DIR}/sqlite" \
       LZ4_CFLAGS="-I${BUILD_DIR}/lz4/lib" \
       LZ4_LIBS="-L${BUILD_DIR}/lz4/lib" \
+      SQLITE_LIBS="-L${BUILD_DIR}/sqlite/.lib" \
       > /dev/null
 
     make -j > /dev/null
