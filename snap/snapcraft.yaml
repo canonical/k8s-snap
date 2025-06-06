@@ -28,7 +28,7 @@ parts:
   build-deps:
     plugin: nil
     build-snaps:
-      - go/1.24/stable
+      - go/1.23-fips/stable
     build-attributes: [enable-patchelf]
     build-packages:
       - sudo
@@ -125,7 +125,7 @@ parts:
       export DQLITE_BUILD_SCRIPTS_DIR="${CRAFT_STAGE}/static-dqlite-deps"
       export CGO_ENABLED=1
       export GOTOOLCHAIN=local
-      # export GOEXPERIMENT=opensslcrypto
+      export GOEXPERIMENT=opensslcrypto
 
       make dynamic -j
 
