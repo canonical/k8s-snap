@@ -105,12 +105,11 @@ if [ ! -f "${BUILD_DIR}/sqlite/libsqlite3.la" ]; then
   (
     cd "${BUILD_DIR}"
     rm -rf sqlite
-    git clone "${REPO_SQLITE}" --depth 1 --branch "${TAG_SQLITE}" > /dev/null
+    git clone "${REPO_SQLITE}" --depth 1 --branch "${TAG_SQLITE}"
     cd sqlite
     ./configure --disable-shared --disable-readline \
-      CFLAGS="${CFLAGS} -DSQLITE_ENABLE_DBSTAT_VTAB=1" \
-      > /dev/null
-    make libsqlite3.la -j BCC="${CC} -g -O2 ${CFLAGS} ${LDFLAGS}" > /dev/null
+      CFLAGS="${CFLAGS} -DSQLITE_ENABLE_DBSTAT_VTAB=1"
+    make libsqlite3.la -j BCC="${CC} -g -O2 ${CFLAGS} ${LDFLAGS}"
   )
 fi
 
@@ -119,9 +118,9 @@ if [ ! -f "${BUILD_DIR}/dqlite/libdqlite.la" ]; then
   (
     cd "${BUILD_DIR}"
     rm -rf dqlite
-    git clone "${REPO_DQLITE}" --depth 1 --branch "${TAG_DQLITE}" > /dev/null
+    git clone "${REPO_DQLITE}" --depth 1 --branch "${TAG_DQLITE}"
     cd dqlite
-    autoreconf -i > /dev/null
+    autoreconf -i
     ./configure --disable-shared --enable-build-raft \
       CFLAGS="${CFLAGS} -g -I${BUILD_DIR}/sqlite -I${BUILD_DIR}/libuv/include -I${BUILD_DIR}/lz4/lib -I${INSTALL_DIR}/musl/include -Werror=implicit-function-declaration" \
       LDFLAGS="${LDFLAGS} -L${BUILD_DIR}/libuv/.libs -L${BUILD_DIR}/lz4/lib -L${BUILD_DIR}/libnsl/src" \
@@ -130,9 +129,9 @@ if [ ! -f "${BUILD_DIR}/dqlite/libdqlite.la" ]; then
       SQLITE_CFLAGS="-I${BUILD_DIR}/sqlite" \
       LZ4_CFLAGS="-I${BUILD_DIR}/lz4/lib" \
       LZ4_LIBS="-L${BUILD_DIR}/lz4/lib" \
-      > /dev/null
+      SQLITE_LIBS="-L${BUILD_DIR}/sqlite/lib"
 
-    make -j > /dev/null
+    make -j
   )
 fi
 
