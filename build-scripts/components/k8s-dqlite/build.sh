@@ -8,7 +8,7 @@ if [ -d "${SNAPCRAFT_STAGE}/dynamic-dqlite-deps" ]; then
 fi
 
 export GOTOOLCHAIN=local
-# # export GOEXPERIMENT=opensslcrypto
+export GOEXPERIMENT=opensslcrypto
 export CGO_ENABLED=1
 make dynamic -j
 
