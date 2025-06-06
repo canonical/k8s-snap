@@ -43,6 +43,10 @@ type FeatureController struct {
 	reconciledDNSCh           chan struct{}
 	reconciledLocalStorageCh  chan struct{}
 	reconciledMetricsServerCh chan struct{}
+
+	// reconcileLoopMaxRetryAttempts is the maximum number of retry attempts for the reconcile loop.
+	// Zero or negative values mean unlimited retries.
+	reconcileLoopMaxRetryAttempts int
 }
 
 // ReadyCh returns a channel that is closed when the controller is ready.
@@ -90,27 +94,32 @@ type FeatureControllerOpts struct {
 	TriggerDNSCh           chan struct{}
 	TriggerLocalStorageCh  chan struct{}
 	TriggerMetricsServerCh chan struct{}
+
+	// ReconcileLoopMaxRetryAttempts is the maximum number of retry attempts for the reconcile loop.
+	// Zero or negative values mean unlimited retries.
+	ReconcileLoopMaxRetryAttempts int
 }
 
 func NewFeatureController(opts FeatureControllerOpts) *FeatureController {
 	return &FeatureController{
-		snap:                      opts.Snap,
-		waitReady:                 opts.WaitReady,
-		readyCh:                   make(chan struct{}),
-		triggerNetworkCh:          opts.TriggerNetworkCh,
-		triggerGatewayCh:          opts.TriggerGatewayCh,
-		triggerIngressCh:          opts.TriggerIngressCh,
-		triggerLoadBalancerCh:     opts.TriggerLoadBalancerCh,
-		triggerDNSCh:              opts.TriggerDNSCh,
-		triggerLocalStorageCh:     opts.TriggerLocalStorageCh,
-		triggerMetricsServerCh:    opts.TriggerMetricsServerCh,
-		reconciledNetworkCh:       make(chan struct{}, 1),
-		reconciledGatewayCh:       make(chan struct{}, 1),
-		reconciledIngressCh:       make(chan struct{}, 1),
-		reconciledLoadBalancerCh:  make(chan struct{}, 1),
-		reconciledDNSCh:           make(chan struct{}, 1),
-		reconciledLocalStorageCh:  make(chan struct{}, 1),
-		reconciledMetricsServerCh: make(chan struct{}, 1),
+		snap:                          opts.Snap,
+		waitReady:                     opts.WaitReady,
+		readyCh:                       make(chan struct{}),
+		triggerNetworkCh:              opts.TriggerNetworkCh,
+		triggerGatewayCh:              opts.TriggerGatewayCh,
+		triggerIngressCh:              opts.TriggerIngressCh,
+		triggerLoadBalancerCh:         opts.TriggerLoadBalancerCh,
+		triggerDNSCh:                  opts.TriggerDNSCh,
+		triggerLocalStorageCh:         opts.TriggerLocalStorageCh,
+		triggerMetricsServerCh:        opts.TriggerMetricsServerCh,
+		reconciledNetworkCh:           make(chan struct{}, 1),
+		reconciledGatewayCh:           make(chan struct{}, 1),
+		reconciledIngressCh:           make(chan struct{}, 1),
+		reconciledLoadBalancerCh:      make(chan struct{}, 1),
+		reconciledDNSCh:               make(chan struct{}, 1),
+		reconciledLocalStorageCh:      make(chan struct{}, 1),
+		reconciledMetricsServerCh:     make(chan struct{}, 1),
+		reconcileLoopMaxRetryAttempts: opts.ReconcileLoopMaxRetryAttempts,
 	}
 }
 
@@ -206,6 +215,8 @@ func (c *FeatureController) reconcileLoop(
 	reconciledCh chan struct{},
 	apply func(cfg types.ClusterConfig) (types.FeatureStatus, error),
 ) {
+	var attempts int
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -232,11 +243,28 @@ func (c *FeatureController) reconcileLoop(
 				return setFeatureStatus(ctx, featureName, status)
 			}); err != nil {
 				log.Error(err, "Failed to apply feature configuration")
+				attempts++
 
+				maxAttempts := fmt.Sprintf("%d", c.reconcileLoopMaxRetryAttempts)
+				if c.reconcileLoopMaxRetryAttempts <= 0 {
+					maxAttempts = "unlimited"
+				}
+
+				if attempts >= c.reconcileLoopMaxRetryAttempts && c.reconcileLoopMaxRetryAttempts > 0 {
+					log.Error(err, "Failed to apply feature configuration after maximum retry attempts", "attempts", fmt.Sprintf("%d/%s", attempts, maxAttempts))
+					// NOTE(Hue): we don't notify the triggerCh here, because we want to stop retrying
+					// We also set the attempts to 0, so that the next time we receive a trigger,
+					// we start from 0 again.
+					attempts = 0
+					continue
+				}
+
+				log.Info("Retrying feature reconciliation", "attempts", fmt.Sprintf("%d/%s", attempts, maxAttempts))
 				// notify triggerCh after 5 seconds to retry
 				time.AfterFunc(5*time.Second, func() { utils.MaybeNotify(triggerCh) })
 			} else {
 				utils.MaybeNotify(reconciledCh)
+				attempts = 0
 			}
 
 		}

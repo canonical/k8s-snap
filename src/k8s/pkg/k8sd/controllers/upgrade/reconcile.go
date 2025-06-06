@@ -6,6 +6,8 @@ import (
 	"time"
 
 	upgradesv1alpha "github.com/canonical/k8s/pkg/k8sd/crds/upgrades/v1alpha"
+	"github.com/canonical/k8s/pkg/k8sd/features"
+	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/go-logr/logr"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -31,11 +33,6 @@ func (c *Controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 		res = ctrl.Result{RequeueAfter: 5 * time.Minute}
 	}
 
-	if res.RequeueAfter > 0 {
-		log.Info(fmt.Sprintf("Requeuing after %f seconds.", res.RequeueAfter.Seconds()))
-	} else if res.Requeue {
-		log.Info("Requeuing.")
-	}
 	return res, nil
 }
 
@@ -45,6 +42,8 @@ func (c *Controller) reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 	if err := c.client.Get(ctx, req.NamespacedName, &upgrade); err != nil {
 		return ctrl.Result{}, fmt.Errorf("failed to get upgrade %q: %w", req.NamespacedName, err)
 	}
+
+	c.logger.WithValues("upgrade", upgrade.Name, "phase", upgrade.Status.Phase).Info("Reconciling upgrade.")
 
 	switch {
 	case upgrade.Status.Phase == upgradesv1alpha.UpgradePhaseNodeUpgrade:
@@ -90,9 +89,6 @@ func (c *Controller) reconcileFeatureUpgrade(ctx context.Context, upgrade *upgra
 	case <-time.After(c.featureControllerReadyTimeout):
 		return ctrl.Result{}, fmt.Errorf("timed out waiting for feature controllers to be ready")
 	}
-
-	log.Info("Triggering feature controller.")
-	c.notifyFeatureController(true, true, true, true, true, true, true)
 
 	log.Info("Waiting for feature controllers to reconcile.")
 	if err := c.waitForFeatureReconciliations(ctx, log); err != nil {
@@ -146,8 +142,13 @@ func (c *Controller) allNodesUpgraded(ctx context.Context, upgradedNodes []strin
 }
 
 func (c *Controller) waitForFeatureReconciliations(ctx context.Context, log logr.Logger) error {
-	timeout := time.After(c.featureControllerReconcileTimeout)
 	for name, ch := range c.featureToReconciledCh {
+		if err := c.triggerFeature(name); err != nil {
+			return fmt.Errorf("failed to trigger feature %q: %w", name, err)
+		}
+
+		timeout := time.After(c.featureControllerReconcileTimeout)
+
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -168,5 +169,28 @@ func (c *Controller) transitionTo(ctx context.Context, upgrade *upgradesv1alpha.
 	if err := c.client.Status().Patch(ctx, upgrade, p); err != nil {
 		return fmt.Errorf("failed to patch: %w", err)
 	}
+	return nil
+}
+
+func (c *Controller) triggerFeature(name types.FeatureName) error {
+	switch name {
+	case features.Network:
+		c.notifyNetworkFeature()
+	case features.Gateway:
+		c.notifyGatewayFeature()
+	case features.Ingress:
+		c.notifyIngressFeature()
+	case features.LoadBalancer:
+		c.notifyLoadBalancerFeature()
+	case features.LocalStorage:
+		c.notifyLocalStorageFeature()
+	case features.MetricsServer:
+		c.notifyMetricsServerFeature()
+	case features.DNS:
+		c.notifyDNSFeature()
+	default:
+		return fmt.Errorf("unknown feature %q", name)
+	}
+
 	return nil
 }

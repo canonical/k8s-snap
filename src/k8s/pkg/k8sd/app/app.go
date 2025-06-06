@@ -51,6 +51,9 @@ type Config struct {
 	DisableUpgradeController bool
 	// DrainConnectionsTimeout is the amount of time to allow for all connections to drain when shutting down.
 	DrainConnectionsTimeout time.Duration
+	// FeatureControllerMaxRetryAttempts is the maximum number of retry attempts for the reconcile loop
+	// of the feature controller. Zero or negative values mean no limit.
+	FeatureControllerMaxRetryAttempts int
 }
 
 // App is the k8sd microcluster instance.
@@ -168,15 +171,16 @@ func New(cfg Config) (*App, error) {
 
 	if !cfg.DisableFeatureController {
 		app.featureController = controllers.NewFeatureController(controllers.FeatureControllerOpts{
-			Snap:                   cfg.Snap,
-			WaitReady:              app.readyWg.Wait,
-			TriggerNetworkCh:       app.triggerFeatureControllerNetworkCh,
-			TriggerGatewayCh:       app.triggerFeatureControllerGatewayCh,
-			TriggerIngressCh:       app.triggerFeatureControllerIngressCh,
-			TriggerLoadBalancerCh:  app.triggerFeatureControllerLoadBalancerCh,
-			TriggerDNSCh:           app.triggerFeatureControllerDNSCh,
-			TriggerLocalStorageCh:  app.triggerFeatureControllerLocalStorageCh,
-			TriggerMetricsServerCh: app.triggerFeatureControllerMetricsServerCh,
+			Snap:                          cfg.Snap,
+			WaitReady:                     app.readyWg.Wait,
+			TriggerNetworkCh:              app.triggerFeatureControllerNetworkCh,
+			TriggerGatewayCh:              app.triggerFeatureControllerGatewayCh,
+			TriggerIngressCh:              app.triggerFeatureControllerIngressCh,
+			TriggerLoadBalancerCh:         app.triggerFeatureControllerLoadBalancerCh,
+			TriggerDNSCh:                  app.triggerFeatureControllerDNSCh,
+			TriggerLocalStorageCh:         app.triggerFeatureControllerLocalStorageCh,
+			TriggerMetricsServerCh:        app.triggerFeatureControllerMetricsServerCh,
+			ReconcileLoopMaxRetryAttempts: cfg.FeatureControllerMaxRetryAttempts,
 		})
 	} else {
 		log.L().Info("feature-controller disabled via config")
@@ -187,8 +191,14 @@ func New(cfg Config) (*App, error) {
 		app.readyWg.Wait,
 		cfg.DisableUpgradeController,
 		upgrade.ControllerOptions{
-			FeatureControllerReadyCh: app.featureController.ReadyCh(),
-			NotifyFeatureController:  app.NotifyFeatureController,
+			FeatureControllerReadyCh:   app.featureController.ReadyCh(),
+			NotifyNetworkFeature:       app.NotifyNetwork,
+			NotifyGatewayFeature:       app.NotifyGateway,
+			NotifyIngressFeature:       app.NotifyIngress,
+			NotifyLoadBalancerFeature:  app.NotifyLoadBalancer,
+			NotifyLocalStorageFeature:  app.NotifyLocalStorage,
+			NotifyMetricsServerFeature: app.NotifyMetricsServer,
+			NotifyDNSFeature:           app.NotifyDNS,
 			FeatureToReconciledCh: map[types.FeatureName]<-chan struct{}{
 				features.Network:       app.featureController.ReconciledNetworkCh(),
 				features.Gateway:       app.featureController.ReconciledGatewayCh(),
@@ -199,7 +209,7 @@ func New(cfg Config) (*App, error) {
 				features.MetricsServer: app.featureController.ReconciledMetricsServerCh(),
 			},
 			FeatureControllerReadyTimeout:     10 * time.Minute,
-			FeatureControllerReconcileTimeout: 10 * time.Minute,
+			FeatureControllerReconcileTimeout: 2 * time.Minute,
 		},
 		cfg.DisableCSRSigningController,
 	)
