@@ -148,7 +148,6 @@ fi
   cp lz4/lib/*.so* "${INSTALL_DIR}/lib"
   cp sqlite/.libs/*.a "${INSTALL_DIR}/lib"
   cp dqlite/.libs/*.a "${INSTALL_DIR}/lib"
-
 )
 
 # collect headers
