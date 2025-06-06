@@ -386,9 +386,9 @@ func handleUpgradeInProgress(ctx context.Context, s state.State, k8sClient *kube
 	}
 
 	log.Info("Marking node as upgraded", "node", nodeName)
-	upgradedNodes := upgrade.Status.UpgradedNodes
-	upgradedNodes = append(upgradedNodes, nodeName)
-	return k8sClient.PatchUpgradeStatus(ctx, upgrade.Name, kubernetes.UpgradeStatus{UpgradedNodes: upgradedNodes})
+	status := upgrade.Status
+	status.UpgradedNodes = append(status.UpgradedNodes, nodeName)
+	return k8sClient.PatchUpgradeStatus(ctx, upgrade.Name, status)
 }
 
 // lowestHighestK8sVersions returns the lowest and highest Kubernetes versions from the given map.
