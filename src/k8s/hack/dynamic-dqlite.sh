@@ -98,10 +98,11 @@ if [ ! -f "${BUILD_DIR}/dqlite/libdqlite.la" ]; then
       CFLAGS=" -g -I${BUILD_DIR}/sqlite -I${BUILD_DIR}/libuv/include -I${BUILD_DIR}/lz4/lib -Werror=implicit-function-declaration" \
       LDFLAGS=" -L${BUILD_DIR}/libuv/.libs -L${BUILD_DIR}/lz4/lib -L${BUILD_DIR}/libnsl/src" \
       UV_CFLAGS="-I${BUILD_DIR}/libuv/include" \
-      UV_LIBS="-L${BUILD_DIR}/libuv/.libs" \
+      UV_LIBS="-L${BUILD_DIR}/libuv/.libs -luv" \
       SQLITE_CFLAGS="-I${BUILD_DIR}/sqlite" \
+      SQLITE_LIBS="-L${BUILD_DIR}/sqlite/.libs -lsqlite3" \
       LZ4_CFLAGS="-I${BUILD_DIR}/lz4/lib" \
-      LZ4_LIBS="-L${BUILD_DIR}/lz4/lib" \
+      LZ4_LIBS="-L${BUILD_DIR}/lz4/lib -llz4" \
       > /dev/null
 
     make -j > /dev/null

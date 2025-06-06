@@ -44,6 +44,7 @@ parts:
       - libnfnetlink-dev
       - libseccomp-dev
       - libtool
+      - libssl-dev
       - pkg-config
       - rsync
       - tcl
@@ -55,7 +56,7 @@ parts:
     build-attributes: [enable-patchelf]
     override-prime: ""
     override-build: |
-      DQLITE_STAGING_DIR="${SNAPCRAFT_STAGE}/static-dqlite-deps"
+      DQLITE_STAGING_DIR="${CRAFT_STAGE}/static-dqlite-deps"
       if [ -d "${DQLITE_STAGING_DIR}" ]; then
         rm -rf "${DQLITE_STAGING_DIR}"
       fi
@@ -70,7 +71,8 @@ parts:
     plugin: nil
     source: build-scripts/components/k8s-dqlite
     build-attributes: [enable-patchelf]
-    override-build: $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh k8s-dqlite
+    override-build: $CRAFT_PROJECT_DIR/build-scripts/build-component.sh k8s-dqlite
+
 
   k8s-binaries:
     after: [dqlite]
@@ -78,42 +80,50 @@ parts:
     build-attributes: [enable-patchelf]
     plugin: nil
     override-build: |
-      INSTALL="${SNAPCRAFT_PART_INSTALL}"
+      INSTALL="${CRAFT_PART_INSTALL}"
 
-      export DQLITE_BUILD_SCRIPTS_DIR="${SNAPCRAFT_STAGE}/static-dqlite-deps"
-      make static -j
+      export DQLITE_BUILD_SCRIPTS_DIR="${CRAFT_STAGE}/static-dqlite-deps"
+      export CGO_ENABLED=1
+      export GOTOOLCHAIN=local
+      # export GOEXPERIMENT=opensslcrypto
+
+      make dynamic -j
 
       mkdir -p "${INSTALL}/bin"
+      mkdir -p "${INSTALL}/lib"
       for binary in k8s k8sd k8s-apiserver-proxy; do
-        cp -P "bin/static/${binary}" "${INSTALL}/bin/${binary}"
+        cp -P "bin/dynamic/${binary}" "${INSTALL}/bin/${binary}"
       done
-      ./bin/static/k8s list-images > "${INSTALL}/images.txt"
+      cp -P bin/dynamic/lib/*.so* "${INSTALL}/lib/"
+
+      LD_LIBRARY_PATH="${DQLITE_BUILD_SCRIPTS_DIR}/.deps/dynamic/lib" "${INSTALL}/bin/k8s" list-images > "${INSTALL}/images.txt"
+
 
   cni:
     after: [build-deps]
     plugin: nil
     source: build-scripts/components/cni
     build-attributes: [enable-patchelf]
-    override-build: $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh cni
+    override-build: $CRAFT_PROJECT_DIR/build-scripts/build-component.sh cni
 
   kubernetes:
     after: [build-deps]
     plugin: nil
     source: build-scripts
     build-attributes: [enable-patchelf]
-    override-build: $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh kubernetes
+    override-build: $CRAFT_PROJECT_DIR/build-scripts/build-component.sh kubernetes
 
   kubernetes-version:
     plugin: nil
     source: build-scripts/components/kubernetes
-    override-build: snapcraftctl set-version "$(cat ./version)"
+    override-build: craftctl set version="$(cat ./version)"
 
   helm:
     after: [build-deps]
-    build-attributes: [no-patchelf]
+    build-attributes: [enable-patchelf]
     plugin: nil
     source: build-scripts/components/helm
-    override-build: $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh helm
+    override-build: $CRAFT_PROJECT_DIR/build-scripts/build-component.sh helm
 
   libmnl:
     after: [build-deps]
@@ -129,7 +139,7 @@ parts:
     source: https://www.netfilter.org/projects/libnftnl/files/libnftnl-1.1.8.tar.bz2
     build-attributes: [enable-patchelf]
     build-environment:
-      - LIBMNL_LIBS: $SNAPCRAFT_STAGE/usr/lib
+      - LIBMNL_LIBS: $CRAFT_STAGE/usr/lib
     prime:
       - -usr/local/include
 
@@ -139,8 +149,8 @@ parts:
     plugin: autotools
     build-attributes: [enable-patchelf]
     build-environment:
-      - LIBMNL_LIBS: $SNAPCRAFT_STAGE/usr/lib
-      - LIBNFTNL_LIBS: $SNAPCRAFT_STAGE/usr/lib
+      - LIBMNL_LIBS: $CRAFT_STAGE/usr/lib
+      - LIBNFTNL_LIBS: $CRAFT_STAGE/usr/lib
     autotools-configure-parameters:
       - "--prefix=/usr"
       - "--exec-prefix=/"
@@ -154,16 +164,16 @@ parts:
   containerd:
     after: [runc]
     plugin: nil
-    build-attributes: [no-patchelf]
+    build-attributes: [enable-patchelf]
     source: build-scripts/components/containerd
-    override-build: $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh containerd
+    override-build: $CRAFT_PROJECT_DIR/build-scripts/build-component.sh containerd
 
   runc:
     after: [iptables, build-deps]
     plugin: nil
-    build-attributes: [no-patchelf]
+    build-attributes: [enable-patchelf]
     source: build-scripts/components/runc
-    override-build: $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh runc
+    override-build: $CRAFT_PROJECT_DIR/build-scripts/build-component.sh runc
 
   bash-utils:
     plugin: nil
@@ -209,8 +219,8 @@ parts:
     source: k8s
     build-attributes: [enable-patchelf]
     override-build: |
-      rm $SNAPCRAFT_PART_INSTALL/k8s -rf
-      cp --archive --link --no-dereference . $SNAPCRAFT_PART_INSTALL/k8s
+      rm $CRAFT_PART_INSTALL/k8s -rf
+      cp --archive --link --no-dereference . $CRAFT_PART_INSTALL/k8s
 
   bom:
     after:
@@ -225,7 +235,7 @@ parts:
     build-packages:
       - python3-yaml
     override-build: |
-      ./build-scripts/generate-bom.py > "${SNAPCRAFT_PART_INSTALL}/bom.json"
+      ./build-scripts/generate-bom.py > "${CRAFT_PART_INSTALL}/bom.json"
 
 apps:
   k8s:
