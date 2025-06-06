@@ -45,8 +45,8 @@ k8s::common::is_strict() {
 
 # Check if FIPS is enabled on the system
 # Returns 0 (success) if FIPS is enabled, 1 (failure) otherwise
-# Example: 'k8s::common::is_fips_enabled && echo "FIPS is enabled"'
-k8s::common::is_fips_enabled() {
+# Example: 'k8s::common::on_fips_host && echo "FIPS is enabled"'
+k8s::common::on_fips_host() {
   if [ -f "/proc/sys/crypto/fips_enabled" ] &&
      [ "$(cat /proc/sys/crypto/fips_enabled 2>/dev/null)" = "1" ]; then
     return 0
@@ -138,6 +138,32 @@ k8s::util::wait_kube_apiserver() {
   done
 }
 
+k8s::common::validate_env() {
+  local env_vars=("$@")
+
+  # Export the variables temporarily for validation
+  local env_var
+  for env_var in "${env_vars[@]}"; do
+    export "$env_var"
+  done
+
+  # Run the actual validation
+  k8s::common::setup_env
+
+  # Check if FIPS mode is requested but host is not FIPS-enabled
+  if { [ "${GOFIPS:-}" = "1" ] || [[ "${GODEBUG:-}" == *"fips140=on"* ]]; } && \
+      ! k8s::common::on_fips_host; then
+    echo "FIPS mode is requested (GOFIPS=1 or GODEBUG contains fips140=on) but the host system is not FIPS-enabled."
+    echo "Please run this service on a FIPS-enabled host to use FIPS mode."
+    exit 1
+  fi
+
+  # Unexport the variables
+  for env_var in "${env_vars[@]}"; do
+    unset "${env_var%%=*}" 2>/dev/null || true
+  done
+}
+
 # Execute a "$SNAP/bin/$service" with arguments from "$SNAP_DATA/args/$service" and optional additional args
 # Environment variables are loaded from "$SNAP_DATA/args/$service-env" and "$SNAP_DATA/args/snap-env"
 # Example: 'k8s::common::execute kubelet' or 'k8s::common::execute k8s status'
@@ -165,6 +191,9 @@ k8s::common::execute() {
     mapfile -t service_vars < <(grep -vE '^[[:space:]]*($|#)' "${SNAP_COMMON}/args/${service_name}-env")
     all_env_vars+=("${service_vars[@]}")
   fi
+
+  # Validate environment with all variables
+  k8s::common::validate_env "${all_env_vars[@]}"
 
   set -xe
   ulimit -c unlimited
