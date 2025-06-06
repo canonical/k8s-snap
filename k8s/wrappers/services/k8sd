@@ -5,4 +5,16 @@
 # required to open unix-socket in the snap
 export DQLITE_SOCKET="@snap.${SNAP_INSTANCE_NAME}.k8sd"
 
+if k8s::common::is_fips_enabled; then
+  # The Microsoft/go toolchain 1.23 TLS implementation contains a bug
+  # that causes TLS connections to fail when FIPS is enabled.
+  # This is fixed in 1.24 but won't be backported to 1.23.
+  # See https://github.com/microsoft/go/issues/1626
+  # and https://github.com/golang-fips/openssl/pull/272
+  #
+  # As a workaround for 1.23, we set the minTLSVersion to 1.2.
+  # See https://github.com/canonical/lxd/blob/9f30d5799ec0dc45364b95d9e609ab09508d337e/shared/network.go#L65
+  export LXD_INSECURE_TLS=1
+fi
+
 k8s::common::execute_service k8sd
