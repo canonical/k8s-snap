@@ -43,6 +43,17 @@ k8s::common::is_strict() {
   fi
 }
 
+# Check if FIPS is enabled on the system
+# Returns 0 (success) if FIPS is enabled, 1 (failure) otherwise
+# Example: 'k8s::common::is_fips_enabled && echo "FIPS is enabled"'
+k8s::common::is_fips_enabled() {
+  if [ -f "/proc/sys/crypto/fips_enabled" ] &&
+     [ "$(cat /proc/sys/crypto/fips_enabled 2>/dev/null)" = "1" ]; then
+    return 0
+  fi
+  return 1
+}
+
 # Cleanup configuration left by the network feature
 k8s::remove::network() {
   k8s::common::setup_env
@@ -185,5 +196,4 @@ k8s::containerd::ensure_systemd_defaults() {
     mkdir -p "$override_dir"
     cp "$override_file" "$override_dir/"
   fi
-
 }
