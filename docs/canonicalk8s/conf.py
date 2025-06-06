@@ -183,8 +183,6 @@ slug = 'canonical-kubernetes'
 
 html_baseurl = 'https://documentation.ubuntu.com/canonical-kubernetes/'
 
-# URL scheme. Add language and version scheme elements manually e.g. '{0}/{1}/{{link}}'.format(os.environ['READTHEDOCS_LANGUAGE'], os.environ['READTHEDOCS_VERSION'])
-
 # When configured with RTD variables, check for RTD environment so manual runs succeed:
 
 if 'READTHEDOCS_VERSION' in os.environ:
