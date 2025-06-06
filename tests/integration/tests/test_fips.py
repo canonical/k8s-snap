@@ -29,11 +29,11 @@ def test_fips(instances: List[harness.Instance]):
         "kubectl",
         "k8s-apiserver-proxy",
         "containerd",
-        "ctr",
     ]
 
     # These components should be statically built as they do not contain any crypto functions
     static_components = [
+        "ctr",
         "runc",
         "cni",
         "containerd-shim",
