@@ -7,6 +7,6 @@ mkdir -p "${INSTALL}"
 
 export GOTOOLCHAIN=local
 export CGO_ENABLED=1
-# # export GOEXPERIMENT=opensslcrypto
+export GOEXPERIMENT=opensslcrypto
 make VERSION="${VERSION}" TAGS="linux,cgo"
 cp bin/helm "${INSTALL}/helm"
