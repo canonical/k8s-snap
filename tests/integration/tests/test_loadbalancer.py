@@ -26,10 +26,6 @@ def test_loadbalancer_ipv4(instances: List[harness.Instance]):
     _test_loadbalancer(instances, k8s_net_type=K8sNetType.ipv4)
 
 
-@pytest.mark.xfail(
-    run=False,
-    reason="Cilium ipv6 only unsupported: https://github.com/cilium/cilium/issues/15082",
-)
 @pytest.mark.node_count(2)
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.tags(tags.PULL_REQUEST)
@@ -85,6 +81,11 @@ def _test_loadbalancer(instances: List[harness.Instance], k8s_net_type: K8sNetTy
         lb_cidrs.append(get_lb_cidr(ipv6_cidr=True))
     lb_cidr_str = ",".join(lb_cidrs)
 
+    util.wait_for_network(instance)
+    util.wait_for_dns(instance)
+
+    instance.exec(["k8s", "enable", "load-balancer"])
+    util.wait_for_load_balancer(instance)
     instance.exec(
         [
             "k8s",
@@ -93,10 +94,6 @@ def _test_loadbalancer(instances: List[harness.Instance], k8s_net_type: K8sNetTy
             "load-balancer.l2-mode=true",
         ]
     )
-    instance.exec(["k8s", "enable", "load-balancer"])
-
-    util.wait_for_network(instance)
-    util.wait_for_dns(instance)
 
     manifest = MANIFESTS_DIR / "loadbalancer-test.yaml"
     instance.exec(
@@ -110,7 +107,7 @@ def _test_loadbalancer(instances: List[harness.Instance], k8s_net_type: K8sNetTy
     ).exec(["k8s", "kubectl", "get", "pod", "-o", "json"])
     LOG.info("Nginx pod showed up.")
 
-    util.stubbornly(retries=3, delay_s=1).on(instance).exec(
+    util.stubbornly(retries=3, delay_s=5).on(instance).exec(
         [
             "k8s",
             "kubectl",
@@ -124,12 +121,12 @@ def _test_loadbalancer(instances: List[harness.Instance], k8s_net_type: K8sNetTy
         ]
     )
 
-    util.stubbornly(retries=10, delay_s=2).on(instance).until(
+    util.stubbornly(retries=10, delay_s=5).on(instance).until(
         lambda p: "my-nginx" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "service", "-o", "json"])
 
     p = (
-        util.stubbornly(retries=10, delay_s=3)
+        util.stubbornly(retries=10, delay_s=5)
         .on(instance)
         .until(lambda p: len(p.stdout.decode().replace("'", "")) > 0)
         .exec(
@@ -144,7 +141,10 @@ def _test_loadbalancer(instances: List[harness.Instance], k8s_net_type: K8sNetTy
         )
     )
     service_ip = p.stdout.decode().replace("'", "")
+    if ':' in service_ip:
+        service_ip = "[" + service_ip + "]"
 
-    util.stubbornly(retries=20, delay_s=3).on(tester_instance).until(
+    LOG.info(f"Reaching out to service with service_ip = {service_ip}")
+    util.stubbornly(retries=40, delay_s=5).on(tester_instance).until(
         lambda p: "Welcome to nginx!" in p.stdout.decode()
     ).exec(["curl", service_ip])
