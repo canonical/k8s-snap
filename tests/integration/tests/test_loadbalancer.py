@@ -141,7 +141,7 @@ def _test_loadbalancer(instances: List[harness.Instance], k8s_net_type: K8sNetTy
         )
     )
     service_ip = p.stdout.decode().replace("'", "")
-    if ':' in service_ip:
+    if ":" in service_ip:
         service_ip = "[" + service_ip + "]"
 
     LOG.info(f"Reaching out to service with service_ip = {service_ip}")

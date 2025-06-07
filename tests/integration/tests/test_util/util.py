@@ -408,12 +408,23 @@ def wait_for_network(instance: harness.Instance):
     LOG.info("Waiting for network to be ready")
     instance.exec(["k8s", "x-wait-for", "network", "--timeout", "20m"])
 
+
 def wait_for_load_balancer(instance: harness.Instance):
     """Wait for the load balancer to be ready."""
     LOG.info("Waiting for load balancer to be ready")
-    instance.exec(["k8s", "kubectl", "wait", "--for=condition=available", "-n",
-                   "metallb-system", "deployment.apps/metallb-controller",
-                    "--timeout=20m"])
+    instance.exec(
+        [
+            "k8s",
+            "kubectl",
+            "wait",
+            "--for=condition=available",
+            "-n",
+            "metallb-system",
+            "deployment.apps/metallb-controller",
+            "--timeout=20m",
+        ]
+    )
+
 
 def hostname(instance: harness.Instance) -> str:
     """Return the hostname for a given instance."""
