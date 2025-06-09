@@ -31,7 +31,7 @@ sudo nano /var/snap/k8s/common/args/kubelet
 ```bash
 sudo systemctl restart snap.k8s.kubelet.service
 ```
-- Restart the Cilium daemonset:
+- Restart the Cilium DaemonSet:
 ```bash
 sudo k8s kubectl rollout restart daemonset cilium -n kube-system
 ```
