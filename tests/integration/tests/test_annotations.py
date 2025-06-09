@@ -116,8 +116,12 @@ def test_disable_separate_feature_upgrades(
         ),
     )
 
+    util.wait_until_k8s_ready(cluster_node, [cluster_node])
+
     join_token = util.get_join_token(cluster_node, joining_cp)
     util.join_cluster(joining_cp, join_token)
+
+    util.wait_until_k8s_ready(cluster_node, instances)
 
     # Refresh first node, no upgrade CRD should be created.
     util.setup_k8s_snap(cluster_node, tmp_path, config.SNAP)
