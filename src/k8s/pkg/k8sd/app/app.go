@@ -264,6 +264,14 @@ func (a *App) Run(ctx context.Context, customHooks *state.Hooks) error {
 		ExtensionServers:        api.New(ctx, a, a.config.DrainConnectionsTimeout),
 		ExtensionsSchema:        database.SchemaExtensions,
 		DrainConnectionsTimeout: a.config.DrainConnectionsTimeout,
+		// NOTE(Hue): 2 * heartbeat interval is used as the timeout for the SendHeartbeat
+		// method. In that method, we're waiting on responses from all members of the cluster.
+		// Those responses can take up to 30 seconds to timeout, in which case the SendHeartbeat as a
+		// whole will timeout. Default heartbeat interval is 10 seconds, so we set it to 30 seconds
+		// to allow 60 seconds for the SendHeartbeat to complete.
+		// A proper fix is being discussed in https://github.com/canonical/microcluster/pull/412.
+		// This is a temporary workaround to avoid the SendHeartbeat timeout.
+		HeartbeatInterval: 30 * time.Second,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to run microcluster: %w", err)
