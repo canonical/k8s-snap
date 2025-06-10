@@ -43,7 +43,8 @@ Now you can run the snap `refresh` command to perform the upgrade.
 
 ### Verify the upgrade 
 
-Check the `k8s` snap version has been updated and the cluster is back in the `Ready` state.
+Check the `k8s` snap version has been updated and the cluster is back in the 
+`Ready` state.
 
 ```
 snap info k8s
