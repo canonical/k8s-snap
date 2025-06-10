@@ -119,8 +119,12 @@ def test_disable_separate_feature_upgrades(
 
     join_token = util.get_join_token(cluster_node, joining_cp)
     util.join_cluster(joining_cp, join_token)
-    cluster_node.exec("cat /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml".split())
-    joining_cp.exec("cat /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml".split())
+    cluster_node.exec(
+        "cat /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml".split()
+    )
+    joining_cp.exec(
+        "cat /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml".split()
+    )
     cluster_node.exec("k8s kubectl get nodes -A".split())
     joining_cp.exec("k8s kubectl get nodes -A".split())
 
@@ -129,8 +133,12 @@ def test_disable_separate_feature_upgrades(
     # TODO(ben): Remove me after test
     time.sleep(10)
 
-    cluster_node.exec("cat /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml".split())
-    joining_cp.exec("cat /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml".split())
+    cluster_node.exec(
+        "cat /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml".split()
+    )
+    joining_cp.exec(
+        "cat /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml".split()
+    )
     cluster_node.exec("k8s kubectl get nodes -A".split())
     joining_cp.exec("k8s kubectl get nodes -A".split())
 
