@@ -11,6 +11,15 @@ and backwards-incompatible changes.
 :titlesonly:
 :maxdepth: 2
 /snap/reference/versions/1.32
+```
+
+## Upgrade notes
+
+Instructions on how to upgrade between versions on {{product}}
+
+```{toctree}
+:titlesonly:
+:maxdepth: 2
 /snap/reference/upgrading.md
 ```
 
