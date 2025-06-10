@@ -119,28 +119,60 @@ def test_disable_separate_feature_upgrades(
 
     join_token = util.get_join_token(cluster_node, joining_cp)
     util.join_cluster(joining_cp, join_token)
-    cluster_node.exec(
-        "cat /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml".split()
+    result = cluster_node.exec(
+        "cat /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml".split(),
+        capture_output=True,
+        text=True,
     )
-    joining_cp.exec(
-        "cat /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml".split()
+    LOG.info(result.stdout)
+    result = joining_cp.exec(
+        "cat /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml".split(),
+        capture_output=True,
+        text=True,
     )
-    cluster_node.exec("k8s kubectl get nodes -A".split())
-    joining_cp.exec("k8s kubectl get nodes -A".split())
+    LOG.info(result.stdout)
+    result = cluster_node.exec(
+        "k8s kubectl get nodes -A".split(),
+        capture_output=True,
+        text=True,
+    )
+    LOG.info(result.stdout)
+    result = joining_cp.exec(
+        "k8s kubectl get nodes -A".split(),
+        capture_output=True,
+        text=True,
+    )
+    LOG.info(result.stdout)
 
     util.wait_until_k8s_ready(cluster_node, instances)
 
     # TODO(ben): Remove me after test
     time.sleep(10)
 
-    cluster_node.exec(
-        "cat /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml".split()
+    result = cluster_node.exec(
+        "cat /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml".split(),
+        capture_output=True,
+        text=True,
     )
-    joining_cp.exec(
-        "cat /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml".split()
+    LOG.info(result.stdout)
+    result = joining_cp.exec(
+        "cat /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml".split(),
+        capture_output=True,
+        text=True,
     )
-    cluster_node.exec("k8s kubectl get nodes -A".split())
-    joining_cp.exec("k8s kubectl get nodes -A".split())
+    LOG.info(result.stdout)
+    result = cluster_node.exec(
+        "k8s kubectl get nodes -A".split(),
+        capture_output=True,
+        text=True,
+    )
+    LOG.info(result.stdout)
+    result = joining_cp.exec(
+        "k8s kubectl get nodes -A".split(),
+        capture_output=True,
+        text=True,
+    )
+    LOG.info(result.stdout)
 
     # Refresh first node, no upgrade CRD should be created.
     util.setup_k8s_snap(cluster_node, tmp_path, config.SNAP)
