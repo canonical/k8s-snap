@@ -121,6 +121,9 @@ def test_disable_separate_feature_upgrades(
 
     util.wait_until_k8s_ready(cluster_node, instances)
 
+    # TODO(ben): Remove me after test
+    time.sleep(10)
+
     # Refresh first node, no upgrade CRD should be created.
     util.setup_k8s_snap(cluster_node, tmp_path, config.SNAP)
     util.wait_until_k8s_ready(cluster_node, instances)
