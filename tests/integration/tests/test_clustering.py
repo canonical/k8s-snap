@@ -22,6 +22,8 @@ def test_control_plane_nodes(instances: List[harness.Instance]):
     cluster_node = instances[0]
     joining_node = instances[1]
 
+    util.wait_until_k8s_ready(cluster_node, [cluster_node])
+
     join_token = util.get_join_token(cluster_node, joining_node)
     util.join_cluster(joining_node, join_token)
 
@@ -46,6 +48,8 @@ def test_worker_nodes(instances: List[harness.Instance]):
     cluster_node = instances[0]
     joining_node = instances[1]
     other_joining_node = instances[2]
+
+    util.wait_until_k8s_ready(cluster_node, [cluster_node])
 
     join_token = util.get_join_token(cluster_node, joining_node, "--worker")
     join_token_2 = util.get_join_token(cluster_node, other_joining_node, "--worker")
@@ -80,6 +84,8 @@ def test_join_with_custom_token_name(instances: List[harness.Instance]):
     cluster_node = instances[0]
     joining_cp = instances[1]
     joining_cp_with_hostname = instances[2]
+
+    util.wait_until_k8s_ready(cluster_node, [cluster_node])
 
     out = cluster_node.exec(
         ["k8s", "get-join-token", "my-token"],
@@ -138,6 +144,8 @@ extra-sans:
 def test_cert_refresh(instances: List[harness.Instance]):
     cluster_node = instances[0]
     joining_worker = instances[1]
+
+    util.wait_until_k8s_ready(cluster_node, [cluster_node])
 
     join_token_worker = util.get_join_token(cluster_node, joining_worker, "--worker")
     util.join_cluster(joining_worker, join_token_worker)
