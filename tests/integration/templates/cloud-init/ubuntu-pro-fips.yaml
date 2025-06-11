@@ -1,0 +1,9 @@
+# ubuntu-pro.yaml
+package_update: true
+package_upgrade: true
+packages:
+  - ubuntu-advantage-tools
+runcmd:
+  - pro attach <redacted> --no-auto-enable
+  - pro enable fips-updates --assume-yes
+  - reboot

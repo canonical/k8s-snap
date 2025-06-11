@@ -14,6 +14,10 @@ on:
         description: LXD image to use when running e2e tests
         default: ubuntu:24.04
         type: string
+      substrate:
+        description: Substrate to use when running e2e tests
+        default: lxd
+        type: string
       # Download k8s-snap using either a GH action artifact or a snap channel.
       artifact:
         description: The name of a GH action artifact
@@ -34,6 +38,11 @@ on:
           Additional pytest arguments, use "-k <test_name>" to run a specific test
         default: ""
         type: string
+      extra-test-env:
+        description: 'Additional environment variables in KEY1=VALUE1,KEY2=VALUE2 format'
+        type: string
+        required: false
+        default: ''
       parallel:
         description: Run tests in parallel using GitHub Actions matrix
         type: boolean
@@ -48,6 +57,10 @@ on:
       os:
         description: LXD image to use when running e2e tests
         default: ubuntu:24.04
+        type: string
+      substrate:
+        description: Substrate to use when running e2e tests
+        default: lxd
         type: string
       channel:
         description: k8s snap channel
@@ -65,6 +78,11 @@ on:
         description: Additional pytest arguments
         default: ""
         type: string
+      extra-test-env:
+        description: 'Additional environment variables in KEY1=VALUE1,KEY2=VALUE2 format'
+        type: string
+        required: false
+        default: ''
       tmate_enabled:
         type: boolean
         description: Start a tmate session before running the tests
@@ -159,8 +177,9 @@ jobs:
       - name: Run ${{ inputs.parallel && env.short_test_name || 'all tests' }}
         env:
           TEST_SNAP: ${{ steps.download-snap.outputs.snap-path }}
-          TEST_SUBSTRATE: lxd
+          TEST_SUBSTRATE: ${{ inputs.substrate }}
           TEST_LXD_IMAGE: ${{ inputs.os }}
+          TEST_MULTIPASS_IMAGE: ${{ inputs.os }}
           TEST_FLAVOR: ${{ inputs.flavor }}
           TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports/${{ inputs.parallel && env.test_name || '' }}
           TEST_VERSION_UPGRADE_CHANNELS: "recent 6"
@@ -171,6 +190,15 @@ jobs:
           TEST_GH_REF: ${{ github.ref_name }}
           TEST_GH_BASE_REF: ${{ github.base_ref }}
         run: |
+          # Parse extra-test-env and export each KEY=VALUE pair
+          if [ -n "${{ inputs.extra-test-env }}" ]; then
+            IFS=',' read -ra ENV_VARS <<< "${{ inputs.extra-test-env }}"
+            for kv in "${ENV_VARS[@]}"; do
+              echo "Exporting $kv"
+              export "$kv"
+            done
+          fi
+
           cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- ${{ inputs.parallel && matrix.test || '' }} ${{ env.PERFORMANCE_FLAGS }} --tags ${{ inputs.test-tags }} ${{ inputs.extra-test-args }}
       - name: Prepare inspection reports
         if: failure()
