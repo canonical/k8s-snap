@@ -140,8 +140,8 @@ k8s::util::wait_kube_apiserver() {
 
 # Execute a "$SNAP/bin/$service" with arguments from "$SNAP_DATA/args/$service" and optional additional args
 # Environment variables are loaded from "$SNAP_DATA/args/$service-env" and "$SNAP_DATA/args/snap-env"
-# Example: 'k8s::common::execute_service kubelet' or 'k8s::common::execute_service k8s status'
-k8s::common::execute_service() {
+# Example: 'k8s::common::execute kubelet' or 'k8s::common::execute k8s status'
+k8s::common::execute() {
   local service_name="$1"
   shift  # Remove the first argument (service_name), leaving any additional args
 

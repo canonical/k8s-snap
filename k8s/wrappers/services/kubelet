@@ -9,4 +9,4 @@ k8s::common::is_strict && k8s::kubelet::ensure_shared_root_dir
 k8s::util::wait_containerd_socket
 k8s::util::wait_kube_apiserver
 
-k8s::common::execute_service kubelet
+k8s::common::execute kubelet

@@ -16,7 +16,7 @@ index a0b57c7..d53b528 100755
 +++ b/k8s/hack/init.sh
 @@ -1,3 +1,7 @@
  #!/usr/bin/env bash
- 
+
 -# no-op for classic confinement
 +DIR=`realpath $(dirname "${0}")`
 +
@@ -30,13 +30,13 @@ index c3f71a0..a82e1c0 100755
 @@ -21,9 +21,4 @@ You can try to apply the profile manually by running:
  "
  fi
- 
+
 -# Re-exec outside of apparmor confinement
 -if [ -d /sys/kernel/security/apparmor ] && [ "$(cat /proc/self/attr/current)" != "unconfined" ]; then
 -    exec aa-exec -p unconfined -- "$0" "$@"
 -fi
 -
- k8s::common::execute_service containerd
+ k8s::common::execute containerd
 diff --git a/snap/snapcraft.yaml b/snap/snapcraft.yaml
 index 9d21e55..26f49ad 100644
 --- a/snap/snapcraft.yaml
@@ -277,7 +277,7 @@ index 3e54d68..295c458 100644
 @@ -191,21 +191,29 @@ def remove_k8s_snap(instance: harness.Instance):
          ["snap", "remove", config.SNAP_NAME, "--purge"]
      )
- 
+
 -    LOG.info("Waiting for shims to go away...")
 -    stubbornly(retries=20, delay_s=5).on(instance).until(
 -        lambda p: all(
@@ -316,9 +316,8 @@ index 3e54d68..295c458 100644
 +    #         for x in ["/var/lib/kubelet/pods", "/run/containerd/io.containerd"]
 +    #     )
 +    # ).exec(["mount"])
- 
+
      # NOTE(neoaggelos): Temporarily disable this as it fails on strict.
      # For details, `snap changes` then `snap change $remove_k8s_snap_change`.
--- 
+--
 2.43.0
-

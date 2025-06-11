@@ -17,4 +17,4 @@ if k8s::common::is_fips_enabled; then
   export LXD_INSECURE_TLS=1
 fi
 
-k8s::common::execute_service k8sd
+k8s::common::execute k8sd
