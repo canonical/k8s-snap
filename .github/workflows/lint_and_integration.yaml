@@ -19,14 +19,16 @@ permissions:
 
 jobs:
   build-snap:
-    name: Build k8s-snap ${{ matrix.patch }}
+    name: Build k8s-snap ${{ matrix.patch }} ${{ matrix.arch }}
     uses: ./.github/workflows/build-snap.yaml
     strategy:
       matrix:
         # e.g. moonray, strict - right now we only support the classic flavor
         patch: [""]
+        arch: ["amd64"]
     with:
       flavor: ${{ matrix.patch }}
+      arch: ${{ matrix.arch }}
 
   test-branches:
     name: Test Branch Management
@@ -107,13 +109,15 @@ jobs:
     name: Integration
     strategy:
       fail-fast: false
+      matrix:
+        arch: [amd64]
     needs: [build-snap, get-e2e-tags, go-lint-and-unit, python-lint]
     uses: ./.github/workflows/e2e-tests.yaml
     with:
-      arch: amd64
+      arch: ${{ matrix.arch }}
       os: ubuntu:24.04
       test-tags: ${{ needs.get-e2e-tags.outputs.test-tags }}
-      artifact: k8s.snap
+      artifact: k8s-${{ matrix.arch }}.snap
       parallel: true
 
   security-scan:
@@ -149,12 +153,14 @@ jobs:
           echo "charm-channel=$channel" >> "$GITHUB_OUTPUT"
 
   charm-e2e-tests:
-    name: Charm e2e tests
+    name: Charm e2e tests - ${{ matrix.arch }}
     strategy:
+      matrix:
+        arch: [amd64]
       fail-fast: false
     needs: [build-snap, go-lint-and-unit, python-lint, get-charm-channel]
     uses: ./.github/workflows/charm-e2e-tests.yaml
     with:
-      arch: amd64
-      artifact: k8s.snap
+      arch: ${{ matrix.arch }}
+      artifact: k8s-${{ matrix.arch }}.snap
       charm-channel: ${{ needs.get-charm-channel.outputs.charm-channel }}
