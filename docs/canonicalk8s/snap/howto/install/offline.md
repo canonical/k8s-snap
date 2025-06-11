@@ -288,8 +288,8 @@ ca = "/var/snap/k8s/common/etc/containerd/hosts.d/ghcr.io/ca.crt"
 
 ##### Nested Path registry
 
-If the registry mirrors the images at a nested or namespaced path, configure
-the hosts.toml with an `override_path = true`
+If the registry mirrors the images at a nested path, configure the hosts.toml
+with an `override_path = true`.
 
 ```
 # /etc/containerd/hosts.d/ghcr.io/hosts.toml
