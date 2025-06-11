@@ -112,10 +112,9 @@ jobs:
     with:
       arch: amd64
       os: ubuntu:24.04
-      test-tags: up_to_weekly
+      test-tags: ${{ needs.get-e2e-tags.outputs.test-tags }}
       artifact: k8s.snap
       parallel: true
-      extra-test-args: "-k test_disable_separate_feature_upgrades"
 
   security-scan:
     name: Security scan
