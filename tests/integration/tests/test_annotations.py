@@ -3,7 +3,6 @@
 #
 import json
 import logging
-import time
 from pathlib import Path
 from typing import List
 
@@ -119,60 +118,8 @@ def test_disable_separate_feature_upgrades(
 
     join_token = util.get_join_token(cluster_node, joining_cp)
     util.join_cluster(joining_cp, join_token)
-    result = cluster_node.exec(
-        "cat /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml".split(),
-        capture_output=True,
-        text=True,
-    )
-    LOG.info(result.stdout)
-    result = joining_cp.exec(
-        "cat /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml".split(),
-        capture_output=True,
-        text=True,
-    )
-    LOG.info(result.stdout)
-    result = cluster_node.exec(
-        "k8s kubectl get nodes -A".split(),
-        capture_output=True,
-        text=True,
-    )
-    LOG.info(result.stdout)
-    result = joining_cp.exec(
-        "k8s kubectl get nodes -A".split(),
-        capture_output=True,
-        text=True,
-    )
-    LOG.info(result.stdout)
 
-    util.wait_until_k8s_ready(cluster_node, instances)
-
-    # TODO(ben): Remove me after test
-    time.sleep(10)
-
-    result = cluster_node.exec(
-        "cat /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml".split(),
-        capture_output=True,
-        text=True,
-    )
-    LOG.info(result.stdout)
-    result = joining_cp.exec(
-        "cat /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml".split(),
-        capture_output=True,
-        text=True,
-    )
-    LOG.info(result.stdout)
-    result = cluster_node.exec(
-        "k8s kubectl get nodes -A".split(),
-        capture_output=True,
-        text=True,
-    )
-    LOG.info(result.stdout)
-    result = joining_cp.exec(
-        "k8s kubectl get nodes -A".split(),
-        capture_output=True,
-        text=True,
-    )
-    LOG.info(result.stdout)
+    util.wait_until_k8s_ready(joining_cp, instances)
 
     # Refresh first node, no upgrade CRD should be created.
     util.setup_k8s_snap(cluster_node, tmp_path, config.SNAP)
