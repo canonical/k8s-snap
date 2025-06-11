@@ -34,6 +34,7 @@ cluster and provide additional functionality.
 Integrate with OpenStack <openstack>
 Integrate with etcd <etcd>
 Integrate with ceph-csi <ceph-csi>
+Integrate with multiple Rawfile LocalPV pools <local-storage-pools>
 ```
 
 ## Networking

@@ -305,6 +305,8 @@ literalinclude
 LoadBalancer
 LocalHarness
 localhost
+localpv
+LocalPV
 logfile
 Lookaside
 lookups
