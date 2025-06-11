@@ -286,6 +286,24 @@ capabilities = ["pull", "resolve"]
 ca = "/var/snap/k8s/common/etc/containerd/hosts.d/ghcr.io/ca.crt"
 ```
 
+##### Nested Path registry
+
+If the registry mirrors the images at a nested or namespaced path, configure
+the hosts.toml with an `override_path = true`
+
+```
+# /etc/containerd/hosts.d/ghcr.io/hosts.toml
+server = https://10.10.10.10:5050/v2/my/own/ghcr.io
+
+[host."https://10.10.10.10:5050/v2/my/own/ghcr.io"]
+capabilities = ["pull", "resolve"]
+ca = "/var/snap/k8s/common/etc/containerd/hosts.d/ghcr.io/ca.crt"
+override_path = true
+```
+
+The image `ghcr.io/canonical/coredns:1.12.0-ck1` would be fetched via https
+from `my.mirror.io/my/own/ghcr.io/canonical/coredns:1.12.0-ck1`.
+
 #### Container runtime option C: Side-load images
 
 This is only required if choosing to [side-load images](#side-load). Make sure

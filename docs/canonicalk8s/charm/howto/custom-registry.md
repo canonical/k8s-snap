@@ -43,6 +43,50 @@ progress by running:
 juju status --watch 2s
 ```
 
+### Registry mirror
+
+To configure the charm to use a registry mirror, you need to add to the
+`containerd-custom-registries` configuration option.
+
+to add `ghcr.io`:
+
+```
+juju config k8s containerd-custom-registries='[{
+    "url": "http://myregistry.example.com:5000",
+    "host": "myregistry.example.com:5000",
+    "username": "myuser",
+    "password": "mypassword"
+},{
+    "url": "http://myregistry.example.com:5000",
+    "host": "ghcr.io",
+    "username": "myuser",
+    "password": "mypassword"
+}]'
+```
+
+### Nested Path registry mirror
+
+To configure the charm to use a registry mirror where the path to the images is
+nested deeper, you need to add set the `override_path` flag to true
+`containerd-custom-registries` configuration option.
+
+to add `ghcr.io`:
+
+```
+juju config k8s containerd-custom-registries='[{
+    "url": "http://myregistry.example.com:5000",
+    "host": "myregistry.example.com:5000",
+    "username": "myuser",
+    "password": "mypassword"
+},{
+    "url": "http://myregistry.example.com:5000/v2/my/own/ghcr.io",
+    "host": "ghcr.io",
+    "username": "myuser",
+    "password": "mypassword",
+    "override_path": true
+}]'
+```
+
 ## Verify the configuration
 
 Once the charm is configured and active, verify that the custom registry is
@@ -54,14 +98,14 @@ have previously pushed to the `myregistry.example.com:5000` registry, run the
 following command:
 
 ```
-kubectl run nginx --image=myregistry.example.com:5000/nginx:latest
+k8s kubectl run nginx --image=myregistry.example.com:5000/nginx:latest
 ```
 
 To confirm that the image has been pulled from the custom registry and that the
 workload is running, use the following command:
 
 ```
-kubectl get pod nginx -o jsonpath='{.spec.containers[*].image}{"->"}{.status.containerStatuses[*].ready}'
+k8s kubectl get pod nginx -o jsonpath='{.spec.containers[*].image}{"->"}{.status.containerStatuses[*].ready}'
 ```
 
 The output should indicate that the image was pulled from the custom registry
