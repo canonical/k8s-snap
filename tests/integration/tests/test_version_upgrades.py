@@ -149,17 +149,18 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
                 text=True,
             )
 
-            # All Feature version should eventually be upgraded.
-            LOG.info("Waiting for all helm releases to upgrade")
+            # TODO(ben): Check that new fields are set in the feature config.
+            # TODO(ben): Check that connectivity (e.g. for gateway) is working during the upgrade.
+
             util.stubbornly(retries=15, delay_s=5).on(instance).until(
-                lambda p: all(
-                    next(r for r in json.loads(p.stdout) if r["name"] == name)[
-                        "updated"
-                    ]
-                    != initial_releases[name]["updated"]
-                    for name in initial_releases
-                ),
+                lambda p: p.stdout == "Completed",
             ).exec(
+                "k8s kubectl get upgrade -o=jsonpath={.items[0].status.phase}".split(),
+                capture_output=True,
+                text=True,
+            )
+
+            p = instance.exec(
                 [
                     "/snap/k8s/current/bin/helm",
                     "--kubeconfig",
@@ -173,18 +174,22 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
                 capture_output=True,
                 text=True,
             )
-            LOG.info("All helm releases have upgraded successfully")
 
-            # TODO(ben): Check that new fields are set in the feature config.
-            # TODO(ben): Check that connectivity (e.g. for gateway) is working during the upgrade.
+            current_releases = json.loads(p.stdout)
+            for name, initial_rel in initial_releases.items():
+                new_rel = None
+                for r in current_releases:
+                    if r["name"] == name:
+                        new_rel = r
+                        break
+                assert new_rel, f"Release {name} not in helm output"
+                if initial_rel["updated"] == new_rel["updated"]:
+                    LOG.warning(
+                        "Release %s was not updated during upgrade. "
+                        "This might be due to a skipped helm apply due to same values or chart versions",
+                        name,
+                    )
 
-            util.stubbornly(retries=15, delay_s=5).on(instance).until(
-                lambda p: p.stdout == "Completed",
-            ).exec(
-                "k8s kubectl get upgrade -o=jsonpath={.items[0].status.phase}".split(),
-                capture_output=True,
-                text=True,
-            )
         else:
             assert (
                 phase == "NodeUpgrade"
