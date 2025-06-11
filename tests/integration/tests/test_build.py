@@ -13,7 +13,7 @@ LOG = logging.getLogger(__name__)
 @pytest.mark.node_count(1)
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.tags(tags.NIGHTLY)
-def test_fips(instances: List[harness.Instance]):
+def test_build(instances: List[harness.Instance]):
     """
     Test that all snap components that contain crypto functions are built dynamically.
     """
