@@ -15,4 +15,4 @@ else
         || echo "WARN: Failed to 'modprobe nf_conntrack' before kube-proxy startup."
 fi
 
-k8s::common::execute_service kube-proxy
+k8s::common::execute kube-proxy

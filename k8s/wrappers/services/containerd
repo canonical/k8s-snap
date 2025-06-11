@@ -26,4 +26,4 @@ if [ -d /sys/kernel/security/apparmor ] && [ "$(cat /proc/self/attr/current)" !=
     exec aa-exec -p unconfined -- "$0" "$@"
 fi
 
-k8s::common::execute_service containerd
+k8s::common::execute containerd
