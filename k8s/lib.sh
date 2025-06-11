@@ -155,21 +155,15 @@ k8s::common::execute() {
 
   # Load global environment variables if the file exists
   if [[ -f "${SNAP_COMMON}/args/snap-env" ]]; then
-    while IFS= read -r line || [[ -n "$line" ]]; do
-      # Skip empty lines and comments
-      [[ -z "${line// }" || "$line" =~ ^# ]] && continue
-      all_env_vars+=("$line")
-    done < "${SNAP_COMMON}/args/snap-env"
+    mapfile -t global_vars < <(grep -vE '^[[:space:]]*($|#)' "${SNAP_COMMON}/args/snap-env")
+    all_env_vars+=("${global_vars[@]}")
   fi
 
   # Load service-specific environment variables if the file exists
   # Service-specific environment variables take precedence over global environment variables.
   if [[ -f "${SNAP_COMMON}/args/${service_name}-env" ]]; then
-    while IFS= read -r line || [[ -n "$line" ]]; do
-      # Skip empty lines and comments
-      [[ -z "${line// }" || "$line" =~ ^# ]] && continue
-      all_env_vars+=("$line")
-    done < "${SNAP_COMMON}/args/${service_name}-env"
+    mapfile -t service_vars < <(grep -vE '^[[:space:]]*($|#)' "${SNAP_COMMON}/args/${service_name}-env")
+    all_env_vars+=("${service_vars[@]}")
   fi
 
   set -xe
