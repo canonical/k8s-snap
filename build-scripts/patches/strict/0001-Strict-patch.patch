@@ -47,7 +47,7 @@ index 9d21e55..26f49ad 100644
  grade: stable
 -confinement: classic
 +confinement: strict
- base: core20
+ base: core22
  environment:
    REAL_PATH: $PATH
 @@ -217,6 +217,20 @@ parts:
