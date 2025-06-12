@@ -1,8 +1,11 @@
 # How to deploy multiple local storage pools using the Rawfile LocalPV charm
 
 This guide will walk you through deploying the [Rawfile LocalPV] charm in your
-{{ product }} cluster to create multiple storage pools across your
-nodes.
+{{ product }} cluster to create and manage multiple tiered storage pools,
+enabling flexible and optimized storage for your workloads. By leveraging node
+selectors and different storage classes managed by the Rawfile LocalPV charm,
+you can efficiently allocate storage based on data access patterns and
+performance requirements.
 
 ## Prerequisites
 
