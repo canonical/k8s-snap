@@ -45,8 +45,8 @@ k8s::common::is_strict() {
 
 # Check if FIPS is enabled on the system
 # Returns 0 (success) if FIPS is enabled, 1 (failure) otherwise
-# Example: 'k8s::common::is_fips_enabled && echo "FIPS is enabled"'
-k8s::common::is_fips_enabled() {
+# Example: 'k8s::common::on_fips_host && echo "FIPS is enabled"'
+k8s::common::on_fips_host() {
   if [ -f "/proc/sys/crypto/fips_enabled" ] &&
      [ "$(cat /proc/sys/crypto/fips_enabled 2>/dev/null)" = "1" ]; then
     return 0
@@ -138,6 +138,39 @@ k8s::util::wait_kube_apiserver() {
   done
 }
 
+# k8s::common::validate_env
+#
+# Validates a list of environment variables by temporarily exporting them
+# with a `K8SD_` prefix and invoking environment setup and validation logic.
+# This ensures the user's environment remains untouched after validation.
+#
+# Exits with status 1 if FIPS mode is requested but the host is not FIPS-enabled.
+k8s::common::validate_env() {
+  local env_vars=("$@")
+
+  # Export the variables with a K8SD_ prefix
+  local env_var key value
+  for env_var in "${env_vars[@]}"; do
+    key="${env_var%%=*}"
+    value="${env_var#*=}"
+    export "K8SD_${key}=${value}"
+  done
+
+  # Check if FIPS mode is requested (from prefixed vars or fallback to env)
+  if { [ "${K8SD_GOFIPS:-${GOFIPS:-}}" = "1" ] || [[ "${K8SD_GODEBUG:-${GODEBUG:-}}" == *"fips140=on"* ]]; } && \
+      ! k8s::common::on_fips_host; then
+    echo "FIPS mode is requested (GOFIPS=1 or GODEBUG contains fips140=on) but the host system is not FIPS-enabled."
+    echo "Please run this service on a FIPS-enabled host to use FIPS mode."
+    exit 1
+  fi
+
+  # Clean up the K8SD_ variables
+  for env_var in "${env_vars[@]}"; do
+    key="${env_var%%=*}"
+    unset "K8SD_${key}" 2>/dev/null || true
+  done
+}
+
 # Execute a "$SNAP/bin/$service" with arguments from "$SNAP_DATA/args/$service" and optional additional args
 # Environment variables are loaded from "$SNAP_DATA/args/$service-env" and "$SNAP_DATA/args/snap-env"
 # Example: 'k8s::common::execute kubelet' or 'k8s::common::execute k8s status'
@@ -147,10 +180,15 @@ k8s::common::execute() {
 
   k8s::common::setup_env
 
-  # Source arguments and substitute environment variables. Will fail if we cannot read the file.
-  declare -a args="($(cat "${SNAP_COMMON}/args/${service_name}"))"
-  # Append any additional arguments passed to the function
+  declare -a args=()
+
+  if [[ -f "${SNAP_COMMON}/args/${service_name}" ]]; then
+    declare -a file_args="($(cat "${SNAP_COMMON}/args/${service_name}"))"
+    args+=("${file_args[@]}")
+  fi
+
   args+=("$@")
+
   declare -a all_env_vars=()
 
   # Load global environment variables if the file exists
@@ -166,7 +204,10 @@ k8s::common::execute() {
     all_env_vars+=("${service_vars[@]}")
   fi
 
-  set -xe
+  # Validate environment with all variables
+  k8s::common::validate_env "${all_env_vars[@]}"
+
+  set -e
   ulimit -c unlimited
   export GOTRACEBACK="crash"
 

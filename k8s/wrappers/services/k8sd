@@ -5,7 +5,7 @@
 # required to open unix-socket in the snap
 export DQLITE_SOCKET="@snap.${SNAP_INSTANCE_NAME}.k8sd"
 
-if k8s::common::is_fips_enabled; then
+if k8s::common::on_fips_host; then
   # The Microsoft/go toolchain 1.23 TLS implementation contains a bug
   # that causes TLS connections to fail when FIPS is enabled.
   # This is fixed in 1.24 but won't be backported to 1.23.

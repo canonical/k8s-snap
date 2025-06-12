@@ -945,3 +945,15 @@ def check_snap_services_ready(
             assert (
                 status == "inactive"
             ), f"Unexpected service {service} is {status} but should be inactive"
+
+
+def host_is_fips_enabled():
+    """
+    Returns True if the host is running with FIPS enabled, False otherwise.
+    """
+    fips_path = "/proc/sys/crypto/fips_enabled"
+    try:
+        with open(fips_path) as f:
+            return f.read().strip() == "1"
+    except (FileNotFoundError, PermissionError):
+        return False
