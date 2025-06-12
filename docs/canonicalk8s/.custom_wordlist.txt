@@ -48,6 +48,7 @@ clusterctl
 ClusterRole
 ClusterRoleBinding
 CMK
+CNCF
 CNI
 Commenter
 config
