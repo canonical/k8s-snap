@@ -99,6 +99,7 @@ ClusterRoleBinding
 ClusterRoleBindings
 ClusterRoles
 CMK
+CNCF
 CNI
 CNI's
 CNIs
