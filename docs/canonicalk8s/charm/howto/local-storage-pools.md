@@ -1,6 +1,6 @@
-# How to deploy multiple local storage pools with Rawfile LocalPV
+# How to deploy multiple local storage pools using the Rawfile LocalPV charm
 
-This guide will walk you through deploying [Rawfile LocalPV] in your
+This guide will walk you through deploying the [Rawfile LocalPV] charm in your
 {{ product }} cluster to create multiple storage pools across your
 nodes.
 
@@ -9,18 +9,6 @@ nodes.
 This guide assumes an existing {{product}} cluster. See the
 [charm installation] guide for setup details.
 
-```{important}
-This deployment uses [node selectors] to schedule the CSI workloads on nodes
-with the required storage. You'll need to label your nodes appropriately to
-ensure correct scheduling of workloads using persistent volumes. Check the
-[k8s] and [k8s-worker] charm configuration options for node labeling
-instructions.
-```
-
-The examples below demonstrate the deployment pattern. Adjust node
-configurations, labels and parameters based on your infrastructure needs.
-Review the [k8s], [k8s-worker], and [rawfile-localpv][Rawfile LocalPV] pages
-for all available customization options.
 
 ## Deploy multiple storage pools using `rawfile-localpv`
 
@@ -32,6 +20,12 @@ at `/mnt/fast` backed by high-performance disks.
 
 The **cold tier** targets nodes labeled `storagePool=cold` with storage mounted
 at `/mnt/cold` for infrequently accessed data.
+
+This deployment uses [node selectors] to schedule the CSI workloads on nodes
+with the required storage. You'll need to label your nodes appropriately to
+ensure correct scheduling of workloads using persistent volumes. Check the
+[k8s][k8s node labels] and [k8s-worker][k8s-worker node labels] charm
+configuration options for node labeling instructions.
 
 1. Fast storage pool (`fast-storage.yaml`):
 
@@ -110,9 +104,36 @@ spec:
         claimName: fast-pvc
 ```
 
+To check if your PVC is bound, run:
+
+```
+kubectl get pvc fast-pvc -o jsonpath='{.status.phase}'
+```
+
+If everything is set up correctly, this command should return `Bound`, meaning
+the PVC has successfully attached to the provisioner.
+
+Next, confirm that the pod has attached the volume by running:
+
+```
+kubectl get pod fast-pod
+```
+
+If the pod is running as expected, you'll see output similar to:
+
+```
+NAME       READY   STATUS    RESTARTS   AGE
+fast-pod   1/1     Running   0          2m47s
+```
+
+To test other storage pools, like the cold storage pool, just repeat these
+steps using the appropriate node selectors and storage classes for each pool.
+
 <!-- LINKS -->
 [charm installation]: ./charm
 [k8s]: https://charmhub.io/k8s
+[k8s node labels]: https://charmhub.io/k8s/configurations#node-labels
 [k8s-worker]: https://charmhub.io/k8s-worker
+[k8s-worker node labels]: https://charmhub.io/k8s-worker/configurations#node-labels
 [Rawfile LocalPV]: https://charmhub.io/rawfile-localpv
 [node selectors]: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#nodeselector
