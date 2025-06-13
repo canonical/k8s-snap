@@ -110,10 +110,10 @@ MULTIPASS_IMAGE = os.getenv("TEST_MULTIPASS_IMAGE") or "22.04"
 MULTIPASS_CPUS = os.getenv("TEST_MULTIPASS_CPUS") or "2"
 
 # MULTIPASS_MEMORY is the memory for Multipass VMs.
-MULTIPASS_MEMORY = os.getenv("TEST_MULTIPASS_MEMORY") or "2G"
+MULTIPASS_MEMORY = os.getenv("TEST_MULTIPASS_MEMORY") or "4G"
 
 # MULTIPASS_DISK is the disk size for Multipass VMs.
-MULTIPASS_DISK = os.getenv("TEST_MULTIPASS_DISK") or "10G"
+MULTIPASS_DISK = os.getenv("TEST_MULTIPASS_DISK") or "20G"
 
 # MULTIPASS_CLOUD_INIT is the cloud-init script to use for Multipass VMs.
 # This is the actual content of the cloud-init script, not a path.
