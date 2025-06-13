@@ -58,8 +58,13 @@ k8s::common::on_fips_host() {
 k8s::remove::cleanup_systemd_overrides() {
   if ! k8s::common::is_strict; then
     # remove custom sysctl parameters
-    rm -f /etc/sysctl.d/10-k8s.conf
-    sysctl --system
+    if [ -f /etc/sysctl.d/10-k8s.conf ]; then
+      echo "Removing custom sysctl parameters from /etc/sysctl.d/10-k8s.conf"
+      sudo rm -f /etc/sysctl.d/10-k8s.conf
+      if ! sudo sysctl --system; then
+        echo "Could not refresh system parameters via sysctl"
+      fi
+    fi
   fi
 }
 
