@@ -30,7 +30,7 @@ ensure correct scheduling of workloads using persistent volumes. Check the
 [k8s][k8s node labels] and [k8s-worker][k8s-worker node labels] charm
 configuration options for node labeling instructions.
 
-1. Fast storage pool (`fast-storage.yaml`):
+Fast storage pool (`fast-storage.yaml`):
 
 ```yaml
 fast-localpv:
@@ -40,7 +40,7 @@ fast-localpv:
   node-storage-path: /mnt/fast
 ```
 
-2. Storage pool for cold storage (`cold-storage.yaml`):
+Cold storage pool (`cold-storage.yaml`):
 
 ```yaml
 cold-localpv:
