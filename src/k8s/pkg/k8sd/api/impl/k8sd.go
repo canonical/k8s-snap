@@ -3,6 +3,7 @@ package impl
 import (
 	"context"
 	"fmt"
+	"log"
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	"github.com/canonical/k8s/pkg/snap"
@@ -13,15 +14,21 @@ import (
 
 // GetClusterMembers retrieves information about the members of the cluster.
 func GetClusterMembers(ctx context.Context, s state.State) ([]apiv1.NodeStatus, error) {
+	log.Println("HUE - k8s-snap - k8sd.go/GetClusterMembers - getting leader")
+
 	c, err := s.Leader()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get leader client: %w", err)
 	}
 
+	log.Println("HUE - k8s-snap - k8sd.go/GetClusterMembers - getting cluster members")
+
 	clusterMembers, err := c.GetClusterMembers(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cluster members: %w", err)
 	}
+
+	log.Println("HUE - k8s-snap - k8sd.go/GetClusterMembers - got cluster members:", clusterMembers)
 
 	members := make([]apiv1.NodeStatus, len(clusterMembers))
 	for i, clusterMember := range clusterMembers {
@@ -46,9 +53,12 @@ func GetLocalNodeStatus(ctx context.Context, s state.State, snap snap.Snap) (api
 		return apiv1.NodeStatus{}, fmt.Errorf("failed to check if node is a worker: %w", err)
 	}
 
+	log.Println("HUE - k8sd.go/GetLocalNodeStatus - isWorker:", isWorker)
+
 	if isWorker {
 		clusterRole = apiv1.ClusterRoleWorker
 	} else if node, err := nodeutil.GetControlPlaneNode(ctx, s, s.Name()); err != nil {
+		log.Println("HUE - k8sd.go/GetLocalNodeStatus - error getting control plane node:", err)
 		clusterRole = apiv1.ClusterRoleUnknown
 	} else if node != nil {
 		return *node, nil
