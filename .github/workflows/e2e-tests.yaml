@@ -151,9 +151,13 @@ jobs:
           channel: ${{ inputs.channel }}
           artifact: ${{ inputs.artifact }}
       - name: Setup LXD
+        if: ${{ inputs.substrate == 'lxd' }}
         uses: canonical/setup-lxd@v0.1.3
         with:
           bridges: "lxdbr0,dualstack-br0,ipv6-br0"
+      - name: Setup Multipass
+        if: ${{ inputs.substrate == 'multipass' }}
+        run: sudo snap install multipass
       - name: Install tox
         run: sudo apt-get install -y tox
       - name: Setup tmate session
