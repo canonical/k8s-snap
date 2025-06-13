@@ -6,7 +6,6 @@ on:
   pull_request:
     paths:
       - .github/workflows/security-scan.yaml
-      - .github/workflows/nightly-test.yaml
 
 permissions:
   contents: read

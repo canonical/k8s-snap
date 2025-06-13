@@ -24,16 +24,22 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install tox
-        run: sudo apt-get install -y tox
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tox jq
       - name: Generate cloud-init
         id: cloud-init
         env:
           UBUNTU_PRO_TOKEN: ${{ secrets.UBUNTU_PRO_TOKEN }}
         run: |
           cd tests/integration/templates/cloud-init
-          sed "s/UBUNTU_PRO_TOKEN/$UBUNTU_PRO_TOKEN/g" ubuntu-pro-fips.yaml > ubuntu-pro-fips-processed.yaml
-          echo "cloud-init=\"$(cat ubuntu-pro-fips-processed.yaml)\"" >> $GITHUB_OUTPUT
+          # Replace token and escape the content properly for JSON
+          sed "s/UBUNTU_PRO_TOKEN/$UBUNTU_PRO_TOKEN/g" ubuntu-pro-fips.yaml | \
+            jq -Rs . | \
+            jq -r '{cloud_init: .}' > cloud-init.json
+          # Output the JSON content to GITHUB_OUTPUT
+          echo "cloud_init=$(cat cloud-init.json | jq -r '.cloud_init' | jq -sR .)" >> $GITHUB_OUTPUT
 
   test-on-fips:
     name: Integration tests on FIPS machine
