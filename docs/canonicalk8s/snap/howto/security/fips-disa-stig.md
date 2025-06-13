@@ -18,7 +18,8 @@ sudo snap install k8s --classic --channel=1.33-classic/stable
 
 extra FIPS steps
 
-Make sure that nodes are joined with their default hostname to comply with V-242404
+Make sure that nodes are joined with their default hostname to
+comply with V-242404
 
 ## DISA STIG
 
@@ -63,17 +64,23 @@ Not having this argument set by default offers greater compatibility.
 
 #### [V-254800]
 
-**Guideline:** Kubernetes must have a Pod Security Admission control file configured
+**Guideline:** Kubernetes must have a Pod Security Admission control
+file configured
 
 To comply with this guideline, you must configure a Pod Security Admission
 control file for your Kubernetes cluster. This file defines the Pod Security
 Standards (PSS) that are enforced at the namespace level.
 
-Create a file named `pod-security-admission.yaml` under 
-`/var/snap/k8s/common/etc/` with your desired policy.
+Create a file named `pod-security-admission.yaml`
+ under `/var/snap/k8s/common/etc/` with your desired policy.
 You need to adjust the policy and exemptions as needed for your environment.
-For more details, see the [Kubernetes Pod Security Admission documentation](https://kubernetes.io/docs/concepts/security/pod-security-admission/), which provides an overview of Pod Security Standards (PSS), their enforcement levels, and configuration options for securing Kubernetes namespaces.
-For example, to enforce the "restricted" policy by default and allow "privileged" only in specific namespaces:
+For more details, see the 
+[Kubernetes Pod Security Admission documentation](https://kubernetes.io/docs/concepts/security/pod-security-admission/), 
+which provides an overview of Pod Security Standards (PSS),
+their enforcement levels, and configuration options for securing
+Kubernetes namespaces. For example, to enforce the "restricted"
+policy by default and allow "privileged" only in specific
+namespaces:
 
 ```
 sudo mkdir -p /var/snap/k8s/common/etc/
@@ -121,7 +128,8 @@ and therefore {{product}} is not setting any.
 
 #### [V-242384] and [V-242385]
 
-**Guideline:** The Kubernetes Scheduler and Controller Manager must have secure binding
+**Guideline:** The Kubernetes Scheduler and Controller Manager must
+have secure binding
 
 To comply with these two guidelines edit the Kubernetes scheduler
 arguments file `/var/snap/k8s/common/args/kube-scheduler`
@@ -165,8 +173,9 @@ sudo systemctl restart snap.k8s.kube-apiserver
 This change needs to be applied on all control plane nodes.
 
 
-{{product}} by default does not disable any APIs as this may cause certain
-workloads to fail and therefore harm workload compatibility.
+{{product}} by default does not disable any APIs as this may
+cause certain workloads to fail and therefore harm workload
+compatibility.
 
 
 #### [V-242402] [V-242403] [V-242461] [V-242462] [V-242463] [V-242464] [V-242465]
@@ -182,7 +191,8 @@ the event
 
 **Guideline:** The Kubernetes API Server must be set to audit log max size
 
-**Guideline:** The Kubernetes API Server must be set to audit log maximum backup
+**Guideline:** The Kubernetes API Server must be set to audit log
+maximum backup
 
 **Guideline:** The Kubernetes API Server audit log retention must be set
 
@@ -190,9 +200,10 @@ the event
 
 
 On every control plane node
-create an `audit-policy.yaml` file under `/var/snap/k8s/common/etc/` and specify
-the level of auditing you desire based on the [upstream instructions].
-Here is a minimal example of such a policy file.
+create an `audit-policy.yaml` file under `/var/snap/k8s/common/etc/` and
+specify the level of auditing you desire based on
+the [upstream instructions]. Here is a minimal example of such
+a policy file.
 
 ```
 sudo mkdir -p /var/snap/k8s/common/etc/
@@ -224,9 +235,10 @@ sudo systemctl restart snap.k8s.kube-apiserver
 ```
 
 
-{{product}} does not enable audit logging by default as it may incur performance penalties in the form of increased disk I/O, which can lead to slower response times and reduced overall cluster efficiency, especially under heavy workloads.
-this requires the cluster administrator's input and
-may incur performance penalties in the form of disk I/O.
+{{product}} does not enable audit logging by default as it may
+incur performance penalties in the form of increased disk I/O,
+which can lead to slower response times and reduced overall
+cluster efficiency, especially under heavy workloads.
 
 #### [V-245541]
 
@@ -257,7 +269,8 @@ practices any way they see fit.
 
 #### [V-242415]
 
-**Guideline:** Secrets in Kubernetes must not be stored as environment variables
+**Guideline:** Secrets in Kubernetes must not be stored as environment
+variables
 
 > The Kubernetes System Administrator must manually inspect the Environment of
 > each user-created Pod to ensure there are no Pods passing information which
@@ -365,7 +378,12 @@ kubectl -n kube-node-lease get all | grep -v "^(service|NAME)"
 
 ## Full DISA STIG audit
 
-If you would like to manually audit any of the other DISA (Defense Information Systems Agency) STIG (Security Technical Implementation Guides) recommendations, visit our [DISA STIG assessment page], where you will find detailed instructions and tools to evaluate your Kubernetes cluster against DISA STIG compliance requirements.
+If you would like to manually audit any of the other
+DISA (Defense Information Systems Agency)
+STIG (Security Technical Implementation Guides) recommendations,
+visit our [DISA STIG assessment page], where you will find detailed
+instructions and tools to evaluate your Kubernetes cluster against
+DISA STIG compliance requirements.
 
 
 <!-- Links -->
