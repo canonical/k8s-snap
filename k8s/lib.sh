@@ -54,6 +54,15 @@ k8s::common::on_fips_host() {
   return 1
 }
 
+# Cleanup systemd overrides
+k8s::common::cleanup_systemd_overrides() {
+  if ! k8s::common::is_strict; then
+    # remove custom sysctl parameters
+    rm -f /etc/sysctl.d/10-k8s.conf
+    sysctl --system
+  fi
+}
+
 # Cleanup configuration left by the network feature
 k8s::remove::network() {
   k8s::common::setup_env
@@ -136,6 +145,38 @@ k8s::util::wait_kube_apiserver() {
     echo Waiting for kube-apiserver to start
     sleep 3
   done
+}
+
+k8s::util::increase_sysctl_parameter() {
+  declare -a conf_locs=("/etc/sysctl.d/" "/run/sysctl.d/" "/usr/local/lib/sysctl.d/" "/usr/lib/sysctl.d/" "/lib/sysctl.d/" "/etc/sysctl.conf")
+
+  local param_key=$1
+  local new_val=$2
+
+  val_max="0"
+
+  if ! k8s::common::is_strict; then
+    if [ -f "/etc/sysctl.d/10-k8s.conf" ]; then
+      sudo $SNAP/usr/bin/sort -u /etc/sysctl.d/10-k8s.conf -o /etc/sysctl.d/10-k8s.conf
+    fi
+
+    for loc in "${conf_locs[@]}"; do
+      if sudo $SNAP/bin/grep -qr "^$param_key=" $loc; then
+        for val in $(sudo $SNAP/bin/grep -r "^$param_key=" $loc | $SNAP/bin/sed 's/^.*=//'); do
+          if [ "$val" -ge "$val_max" ]; then
+            val_max=$val
+          fi
+        done
+      fi
+    done
+
+    if [ "$val_max" -lt "$new_val" ]; then
+      echo "$param_key=$new_val" | sudo $SNAP/usr/bin/tee -a /etc/sysctl.d/10-k8s.conf
+      if ! sudo sysctl --system; then
+        echo "Could not refresh system parameters via sysctl"
+      fi
+    fi
+  fi
 }
 
 # k8s::common::validate_env
@@ -255,4 +296,9 @@ k8s::containerd::ensure_systemd_defaults() {
     mkdir -p "$override_dir"
     cp "$override_file" "$override_dir/"
   fi
+}
+
+k8s::k8d_dqlite::ensure_systemd_defaults() {
+  k8s::util::increase_sysctl_parameter "fs.inotify.max_user_instances" "1024"
+  k8s::util::increase_sysctl_parameter "fs.inotify.max_user_watches" "1048576"
 }
