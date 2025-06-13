@@ -75,7 +75,7 @@ Create a file named `pod-security-admission.yaml`
  under `/var/snap/k8s/common/etc/` with your desired policy.
 You need to adjust the policy and exemptions as needed for your environment.
 For more details, see the 
-[Kubernetes Pod Security Admission documentation](https://kubernetes.io/docs/concepts/security/pod-security-admission/), 
+[Kubernetes Pod Security Admission documentation], 
 which provides an overview of Pod Security Standards (PSS),
 their enforcement levels, and configuration options for securing
 Kubernetes namespaces. For example, to enforce the "restricted"
@@ -178,7 +178,7 @@ cause certain workloads to fail and therefore harm workload
 compatibility.
 
 
-#### [V-242402] [V-242403] [V-242461] [V-242462] [V-242463] [V-242464] [V-242465]
+#### [V-242402][V-242403][V-242461][V-242462][V-242463][V-242464][V-242465]
 
 **Guideline:** The Kubernetes API Server must have an audit log path set
 
@@ -394,3 +394,4 @@ DISA STIG compliance requirements.
 [access_authn_authz]: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
 [encryption_at_rest]: https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/
 [authorization_mode]: https://kubernetes.io/docs/reference/access-authn-authz/authorization/#authorization-modules
+[Kubernetes Pod Security Admission documentation]: (https://kubernetes.io/docs/concepts/security/pod-security-admission/), 
