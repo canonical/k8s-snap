@@ -33,7 +33,7 @@ jobs:
         run: |
           cd tests/integration/templates/cloud-init
           sed "s/UBUNTU_PRO_TOKEN/$UBUNTU_PRO_TOKEN/g" ubuntu-pro-fips.yaml > ubuntu-pro-fips-processed.yaml
-          echo "cloud-init=$(cat ubuntu-pro-fips-processed.yaml)" >> $GITHUB_OUTPUT
+          echo "cloud-init=\"$(cat ubuntu-pro-fips-processed.yaml)\"" >> $GITHUB_OUTPUT
 
   test-on-fips:
     name: Integration tests on FIPS machine
