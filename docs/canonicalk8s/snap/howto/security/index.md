@@ -10,6 +10,7 @@ to harden their clusters in accordance with DISA STIG and CIS recommendations.
 Hardening guide <hardening.md>
 CIS assessment <cis-assessment.md>
 DISA STIG assessment <disa-stig-assessment.md>
+FIPS and DISA STIG setup <fips-disa-stig.md>
 Report a security issue<report-security-issue.md>
 Refresh external certificates <refresh-external-certs>
 Refresh Kubernetes certificates <refresh-certs>
