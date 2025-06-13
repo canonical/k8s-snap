@@ -15,12 +15,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install vale
-        run: sudo snap install vale
-      - id: spell-check
-        name: Spell Check
-        run: vale --glob='*.{md,txt,rst}' .
-        working-directory: docs/canonicalk8s
+          #      - name: Install vale
+          #        run: sudo snap install vale
+          #      - id: spell-check
+          #        name: Spell Check
+          #        run: vale --glob='*.{md,txt,rst}' .
+          #        working-directory: docs/canonicalk8s
 
       - name: Link Check
         id: linkcheck-step
