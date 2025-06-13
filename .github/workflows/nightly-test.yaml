@@ -5,7 +5,6 @@ on:
     - cron: "0 0 * * *" # Runs every midnight
   pull_request:
     paths:
-      - .github/workflows/e2e-tests.yaml
       - .github/workflows/security-scan.yaml
       - .github/workflows/nightly-test.yaml
 
