@@ -55,7 +55,7 @@ k8s::common::on_fips_host() {
 }
 
 # Cleanup systemd overrides
-k8s::common::cleanup_systemd_overrides() {
+k8s::remove::cleanup_systemd_overrides() {
   if ! k8s::common::is_strict; then
     # remove custom sysctl parameters
     rm -f /etc/sysctl.d/10-k8s.conf
@@ -299,6 +299,8 @@ k8s::containerd::ensure_systemd_defaults() {
 }
 
 k8s::k8d_dqlite::ensure_systemd_defaults() {
+  k8s::common::setup_env
+  
   k8s::util::increase_sysctl_parameter "fs.inotify.max_user_instances" "1024"
   k8s::util::increase_sysctl_parameter "fs.inotify.max_user_watches" "1048576"
 }

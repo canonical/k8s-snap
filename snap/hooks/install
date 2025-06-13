@@ -12,3 +12,6 @@ k8s::cmd::k8s x-snapd-config disable || true
 # In order to interact with the REST API the k8sd service
 # needs to be started and configured in the installation step.
 k8s::init::k8sd || true
+
+# Ensure systemd limits are sufficient
+k8s::k8d_dqlite::ensure_systemd_defaults
