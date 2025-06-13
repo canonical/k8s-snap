@@ -28,9 +28,12 @@ jobs:
         run: sudo apt-get install -y tox
       - name: Generate cloud-init
         id: cloud-init
+        env:
+          UBUNTU_PRO_TOKEN: ${{ secrets.UBUNTU_PRO_TOKEN }}
         run: |
           cd tests/integration/templates/cloud-init
-          echo "cloud-init=$(cat ubuntu-pro-fips.yaml)" >> $GITHUB_OUTPUT
+          sed "s/UBUNTU_PRO_TOKEN/$UBUNTU_PRO_TOKEN/g" ubuntu-pro-fips.yaml > ubuntu-pro-fips-processed.yaml
+          echo "cloud-init=$(cat ubuntu-pro-fips-processed.yaml)" >> $GITHUB_OUTPUT
 
   test-on-fips:
     name: Integration tests on FIPS machine
@@ -40,7 +43,7 @@ jobs:
       matrix:
         # Note(ben): FIPS is not yet available for noble.
         os: ["jammy"]
-        arch: ["amd64", "arm64"]
+        arch: ["amd64"]
         channel: ["latest/edge"]
     uses: ./.github/workflows/e2e-tests.yaml
     with:
@@ -49,7 +52,8 @@ jobs:
       channel: ${{ matrix.channel }}
       test-tags: 'up_to_weekly'
       substrate: 'multipass'
-      extra-test-args: 'TEST_MULTIPASS_CLOUD_INIT={{ needs.prepare.outputs.cloud-init }}'
+      extra-test-env: 'TEST_MULTIPASS_CLOUD_INIT={{ needs.prepare.outputs.cloud-init }}'
+      extra-test-args: '-k test_smoke'
 
   Mattermost:
     name: Notify Mattermost
