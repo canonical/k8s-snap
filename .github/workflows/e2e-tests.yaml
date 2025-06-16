@@ -202,8 +202,9 @@ jobs:
           TEST_GH_BASE_REF: ${{ github.base_ref }}
         run: |
           # Parse extra-test-env and export each KEY=VALUE pair
-          if [ -n "${{ inputs.extra-test-env }}" ]; then
-            IFS=',' read -ra ENV_VARS <<< "${{ inputs.extra-test-env }}"
+          ESCAPED_ENV=$(echo "${{ inputs.extra-test-env }}" | sed 's/"/\\"/g')
+          if [ -n "${ESCAPED_ENV}" ]; then
+            IFS=',' read -ra ENV_VARS <<< "${ESCAPED_ENV}"
             for kv in "${ENV_VARS[@]}"; do
               echo "Exporting $kv"
               export "$kv"
