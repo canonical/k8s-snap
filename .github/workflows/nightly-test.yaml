@@ -14,57 +14,6 @@ permissions:
   actions: read
 
 jobs:
-  test-integration:
-    name: Integration
-    strategy:
-      matrix:
-        os: ["ubuntu:22.04", "ubuntu:24.04"]
-        arch: ["amd64", "arm64"]
-        channel: ["latest/edge"]
-      fail-fast: false # TODO: remove once we no longer have flaky tests.
-    uses: ./.github/workflows/e2e-tests.yaml
-    with:
-      arch: ${{ matrix.arch }}
-      os: ${{ matrix.os }}
-      channel: ${{ matrix.channel }}
-      test-tags: 'up_to_nightly'
-
-  test-performance:
-    name: Run performance tests for ${{ matrix.os }}-${{ matrix.arch }}
-    strategy:
-      matrix:
-        os: ["ubuntu:22.04", "ubuntu:24.04"]
-        arch: ["amd64", "arm64"]
-    uses: ./.github/workflows/compare-performance.yaml
-    with:
-      arch: ${{ matrix.arch }}
-      os: ${{ matrix.os }}
-      channel-1: latest/edge
-      channel-2: 1.32-classic/stable
-
-  Trivy:
-   permissions:
-     contents: read # for actions/checkout to fetch code
-     security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
-   strategy:
-     matrix:
-       include:
-         # Latest branches
-         - { branch: main, channel: latest/edge }
-         # Stable branches
-         # Add branches to test here
-         # TODO: automatically retrieve the list of channels.
-         - { branch: release-1.30, channel: 1.30-classic/edge }
-         - { branch: release-1.31, channel: 1.31-classic/edge }
-         - { branch: release-1.32, channel: 1.32-classic/edge }
-         - { branch: release-1.33, channel: 1.33-classic/edge }
-   uses: ./.github/workflows/security-scan.yaml
-   with:
-     channel: ${{ matrix.channel }}
-     checkout-ref: ${{ matrix.branch }}
-     upload-reports-to-jira: true
-   secrets: inherit
-
   TICS:
    if: ${{ always() && github.event_name == 'schedule' }}
    permissions:
@@ -100,48 +49,3 @@ jobs:
        run: |
          export TICSAUTHTOKEN=${{ secrets.TICSAUTHTOKEN }}
          /tmp/tics-scan.sh `pwd`
-
-  Mattermost:
-   name: Notify Mattermost
-   # Notify on success or failure but only if the event is a scheduled run.
-   # We don't want to ping people of failed PRs.
-   if: ${{ always() && github.event_name == 'schedule' }}
-   # Note: Update results check below if you change the "needs" list.
-   needs: [test-integration, test-performance, Trivy, TICS]
-   runs-on: ubuntu-latest
-   steps:
-     - name: Set current formatted date as env variable
-       run: echo "FORMATTED_DATE=$(date +'%d/%m/%Y')" >> $GITHUB_ENV
-     - name: Test results
-       run: |
-         RESULTS=$(echo '${{ toJson(needs) }}' | jq -c '[.[] | .result]')
-
-         if echo $RESULTS | jq -e 'all(. == "success")'; then
-           echo "RESULT=success" >> $GITHUB_ENV
-         else
-           echo "RESULT=failure" >> $GITHUB_ENV
-         fi
-     - name: Generate Mattermost Message
-       run: |
-         if [[ "${{ env.RESULT }}" == "success" ]]; then
-           echo "MM_TEXT=:white_check_mark: *Success!* CI completed successfully. [View Run](${{
-             github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_ENV
-         else
-           echo "MM_TEXT=:x: *Failure!* CI failed, @k8s-engineers please fix ASAP. [View Run](${{
-             github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_ENV
-         fi
-     - name: Notify Mattermost
-       uses: mattermost/action-mattermost-notify@master
-       with:
-         MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }}
-         PAYLOAD: |
-           {
-             "attachments": [
-               {
-                 "fallback": "k8s-snap Nightly CI Status",
-                 "color": "${{ env.RESULT == 'success' && 'good' || 'danger' }}",
-                 "title": "k8s-snap Nightly CI Status - ${{ env.FORMATTED_DATE }}",
-                 "text": "${{ env.MM_TEXT }}"
-               }
-             ]
-           }
