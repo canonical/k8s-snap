@@ -28,10 +28,14 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y tox jq
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        with:
+          detached: true
       - name: Generate cloud-init
         id: cloud-init
         env:
-          UBUNTU_PRO_TOKEN: ${{ secrets.UBUNTU_PRO_TOKEN }}
+          UBUNTU_PRO_TOKEN: 12345678 #${{ secrets.UBUNTU_PRO_TOKEN }}
         run: |
           cd tests/integration/templates/cloud-init
           # Replace token and escape the content properly for JSON
