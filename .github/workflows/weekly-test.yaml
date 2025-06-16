@@ -35,11 +35,9 @@ jobs:
         run: |
           cd tests/integration/templates/cloud-init
           # Replace token and escape the content properly for JSON
-          sed "s/UBUNTU_PRO_TOKEN/$UBUNTU_PRO_TOKEN/g" ubuntu-pro-fips.yaml | \
-            jq -Rs . | \
-            jq -r '{cloud_init: .}' > cloud-init.json
+          CLOUD_INIT_CONTENT=$(sed "s/UBUNTU_PRO_TOKEN/$UBUNTU_PRO_TOKEN/g" ubuntu-pro-fips.yaml | jq -Rs . | jq -r .)
           # Output the JSON content to GITHUB_OUTPUT
-          echo "cloud-init=$(cat cloud-init.json | jq -r '.cloud_init' | jq -sR .)" >> $GITHUB_OUTPUT
+          echo "cloud-init=$CLOUD_INIT_CONTENT" >> $GITHUB_OUTPUT
 
   test-on-fips:
     name: Integration tests on FIPS machine
