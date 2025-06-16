@@ -21,7 +21,8 @@ For each node in the cluster:
 
 - Update the `--node-ip` flag in the kubelet configuration file 
 `/var/snap/k8s/common/args/kubelet` to include both the IPv4 and IPv6 addresses 
-(comma-separated) from the same interface:
+(comma-separated) from the network interface that is used to connect the node 
+to the cluster network:
 
 ```bash
 --node-ip=<IPv4>,<IPv6>
