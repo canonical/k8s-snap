@@ -15,7 +15,6 @@ permissions:
 
 jobs:
   TICS:
-   if: ${{ always() && github.event_name == 'schedule' }}
    permissions:
      contents: read
    runs-on: [self-hosted, linux, amd64, tiobe, jammy]
