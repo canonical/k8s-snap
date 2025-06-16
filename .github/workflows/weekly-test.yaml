@@ -58,7 +58,7 @@ jobs:
       channel: ${{ matrix.channel }}
       test-tags: 'up_to_weekly'
       substrate: 'multipass'
-      extra-test-env: 'TEST_MULTIPASS_CLOUD_INIT={{ needs.prepare.outputs.cloud-init }}'
+      extra-test-env: 'TEST_MULTIPASS_CLOUD_INIT=${{ needs.prepare.outputs.cloud-init }}'
       extra-test-args: '-k test_smoke'
       parallel: false
       tmate_enabled: true
