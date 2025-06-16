@@ -34,10 +34,10 @@ jobs:
           UBUNTU_PRO_TOKEN: 12345678 #${{ secrets.UBUNTU_PRO_TOKEN }}
         run: |
           cd tests/integration/templates/cloud-init
-          # Replace token and escape the content properly for JSON
-          CLOUD_INIT_CONTENT=$(sed "s/UBUNTU_PRO_TOKEN/$UBUNTU_PRO_TOKEN/g" ubuntu-pro-fips.yaml | jq -Rs . | jq -r .)
-          # Output the JSON content to GITHUB_OUTPUT
-          echo "cloud-init=$CLOUD_INIT_CONTENT" >> $GITHUB_OUTPUT
+          # Replace token and escape the content properly for GitHub Actions output
+          CLOUD_INIT_CONTENT=$(sed "s/UBUNTU_PRO_TOKEN/$UBUNTU_PRO_TOKEN/g" ubuntu-pro-fips.yaml | jq -Rs . | tr -d '\n')
+          # Output the JSON content to GITHUB_OUTPUT with proper escaping
+          echo "cloud-init=$CLOUD_INIT_CONTENT" | sed 's/\\/\\\\/g' | sed 's/\//\\\//g' | sed 's/"/\\"/g' >> $GITHUB_OUTPUT
 
   test-on-fips:
     name: Integration tests on FIPS machine
