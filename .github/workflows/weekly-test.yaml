@@ -28,10 +28,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y tox jq
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        with:
-          detached: true
       - name: Generate cloud-init
         id: cloud-init
         env:
@@ -43,7 +39,7 @@ jobs:
             jq -Rs . | \
             jq -r '{cloud_init: .}' > cloud-init.json
           # Output the JSON content to GITHUB_OUTPUT
-          echo "cloud_init=$(cat cloud-init.json | jq -r '.cloud_init' | jq -sR .)" >> $GITHUB_OUTPUT
+          echo "cloud-init=$(cat cloud-init.json | jq -r '.cloud_init' | jq -sR .)" >> $GITHUB_OUTPUT
 
   test-on-fips:
     name: Integration tests on FIPS machine
