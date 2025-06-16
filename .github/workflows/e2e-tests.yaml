@@ -43,6 +43,11 @@ on:
         type: string
         required: false
         default: ''
+      tmate_enabled:
+        type: boolean
+        description: Start a tmate session before running the tests
+        required: false
+        default: false
       parallel:
         description: Run tests in parallel using GitHub Actions matrix
         type: boolean
@@ -162,7 +167,9 @@ jobs:
         run: sudo apt-get install -y tox
       - name: Setup tmate session
         uses: canonical/action-tmate@main
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.tmate_enabled }}
+        if: ${{ inputs.tmate_enabled }}
+        with:
+          detached: true
       - name: Generate names for step and artifacts
         run: |
           FULL_TEST_NODE_ID="${{ matrix.test }}"
