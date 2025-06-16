@@ -60,6 +60,7 @@ jobs:
       substrate: 'multipass'
       extra-test-env: 'TEST_MULTIPASS_CLOUD_INIT={{ needs.prepare.outputs.cloud-init }}'
       extra-test-args: '-k test_smoke'
+      tmate_enabled: true
 
   Mattermost:
     name: Notify Mattermost
