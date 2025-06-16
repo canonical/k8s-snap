@@ -106,7 +106,7 @@ class MultipassHarness(Harness):
             )
             run(["sudo", "multipass", "transfer", source, f"{instance_id}:{destination}"])
         except subprocess.CalledProcessError as e:
-            raise HarnessError("lxc file push command failed") from e
+            raise HarnessError("multipass file push command failed") from e
 
     def pull_file(self, instance_id: str, source: str, destination: str):
         if instance_id not in self.instances:
@@ -121,7 +121,7 @@ class MultipassHarness(Harness):
         try:
             run(["sudo", "multipass", "transfer", f"{instance_id}:{source}", destination])
         except subprocess.CalledProcessError as e:
-            raise HarnessError("lxc file push command failed") from e
+            raise HarnessError("multipass file pull command failed") from e
 
     def exec(self, instance_id: str, command: list, **kwargs):
         if instance_id not in self.instances:
