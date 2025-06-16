@@ -91,7 +91,7 @@ parts:
 
       mkdir -p "${INSTALL}/bin"
       mkdir -p "${INSTALL}/lib"
-      for binary in k8s k8sd k8s-apiserver-proxy; do
+      for binary in k8s k8sd k8s-apiserver-proxy etcd; do
         cp -P "bin/dynamic/${binary}" "${INSTALL}/bin/${binary}"
       done
       cp -P bin/dynamic/lib/*.so* "${INSTALL}/lib/"
@@ -252,6 +252,11 @@ apps:
     before: [kubelet]
   k8s-dqlite:
     command: k8s/wrappers/services/k8s-dqlite
+    install-mode: disable
+    daemon: simple
+    before: [kube-apiserver]
+  etcd:
+    command: k8s/wrappers/services/etcd
     install-mode: disable
     daemon: simple
     before: [kube-apiserver]

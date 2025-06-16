@@ -339,6 +339,8 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 	// NOTE: Set the notBefore certificate time to the current time.
 	notBefore := time.Now()
 
+	extraIPs, extraNames := utils.SplitIPAndDNSSANs(bootstrapConfig.ExtraSANs)
+
 	switch cfg.Datastore.GetType() {
 	case "k8s-dqlite":
 		// NOTE: Default certificate expiration is set to 20 years.
@@ -358,6 +360,38 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 
 		cfg.Datastore.K8sDqliteCert = utils.Pointer(certificates.K8sDqliteCert)
 		cfg.Datastore.K8sDqliteKey = utils.Pointer(certificates.K8sDqliteKey)
+	case "etcd":
+		// NOTE: Default certificate expiration is set to 20 years.
+		certificates := pki.NewEtcdPKI(pki.EtcdPKIOpts{
+			Hostname:          s.Name(),
+			IPSANs:            append([]net.IP{nodeIP}, extraIPs...),
+			AllowSelfSignedCA: true,
+			DNSSANs:           append([]string{s.Name()}, extraNames...),
+			NotBefore:         notBefore,
+			NotAfter:          notBefore.AddDate(20, 0, 0),
+		})
+
+		certificates.CACert = bootstrapConfig.GetEtcdCACert()
+		certificates.CAKey = bootstrapConfig.GetEtcdCAKey()
+		certificates.ServerCert = bootstrapConfig.GetEtcdServerCert()
+		certificates.ServerKey = bootstrapConfig.GetEtcdServerKey()
+		certificates.ServerPeerCert = bootstrapConfig.GetEtcdServerPeerCert()
+		certificates.ServerPeerKey = bootstrapConfig.GetEtcdServerPeerKey()
+		certificates.APIServerClientCert = bootstrapConfig.GetEtcdAPIServerClientCert()
+		certificates.APIServerClientKey = bootstrapConfig.GetEtcdAPIServerClientKey()
+
+		if err := certificates.CompleteCertificates(); err != nil {
+			return fmt.Errorf("failed to initialize etcd certificates: %w", err)
+		}
+		if _, err := setup.EnsureEtcdPKI(snap, certificates); err != nil {
+			return fmt.Errorf("failed to write etcd certificates: %w", err)
+		}
+
+		// Add certificates to cluster config
+		cfg.Datastore.EtcdCACert = utils.Pointer(certificates.CACert)
+		cfg.Datastore.EtcdCAKey = utils.Pointer(certificates.CAKey)
+		cfg.Datastore.EtcdAPIServerClientCert = utils.Pointer(certificates.APIServerClientCert)
+		cfg.Datastore.EtcdAPIServerClientKey = utils.Pointer(certificates.APIServerClientKey)
 	case "external":
 		certificates := &pki.ExternalDatastorePKI{
 			DatastoreCACert:     cfg.Datastore.GetExternalCACert(),
@@ -376,7 +410,6 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 
 	// Certificates
 	// NOTE: Default certificate expiration is set to 20 years.
-	extraIPs, extraNames := utils.SplitIPAndDNSSANs(bootstrapConfig.ExtraSANs)
 	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 		Hostname:                  s.Name(),
 		IPSANs:                    append(append([]net.IP{nodeIP}, serviceIPs...), extraIPs...),
@@ -460,6 +493,12 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 		address := fmt.Sprintf("%s:%d", utils.ToIPString(nodeIP), cfg.Datastore.GetK8sDqlitePort())
 		if err := setup.K8sDqlite(snap, address, nil, bootstrapConfig.ExtraNodeK8sDqliteArgs); err != nil {
 			return fmt.Errorf("failed to configure k8s-dqlite: %w", err)
+		}
+	case "etcd":
+		clientURL := fmt.Sprintf("https://%s", utils.JoinHostPort(nodeIP.String(), cfg.Datastore.GetEtcdPort()))
+		peerURL := fmt.Sprintf("https://%s", utils.JoinHostPort(nodeIP.String(), cfg.Datastore.GetEtcdPeerPort()))
+		if err := setup.Etcd(snap, s.Name(), clientURL, peerURL, nil, bootstrapConfig.ExtraNodeEtcdArgs); err != nil {
+			return fmt.Errorf("failed to configure etcd: %w", err)
 		}
 	case "external":
 	default:

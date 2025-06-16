@@ -79,6 +79,8 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		return fmt.Errorf("failed to get IP address(es) from ServiceCIDR %q: %w", cfg.Network.GetServiceCIDR(), err)
 	}
 
+	extraIPs, extraNames := utils.SplitIPAndDNSSANs(joinConfig.ExtraSANS)
+
 	switch cfg.Datastore.GetType() {
 	case "k8s-dqlite":
 		// NOTE: Default certificate expiration is set to 20 years.
@@ -95,6 +97,30 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		}
 		if _, err := setup.EnsureK8sDqlitePKI(snap, certificates); err != nil {
 			return fmt.Errorf("failed to write k8s-dqlite certificates: %w", err)
+		}
+	case "etcd":
+		certificates := pki.NewEtcdPKI(pki.EtcdPKIOpts{
+			Hostname:  s.Name(),
+			IPSANs:    append([]net.IP{nodeIP}, extraIPs...),
+			DNSSANs:   append([]string{s.Name()}, extraNames...),
+			NotBefore: notBefore,
+			NotAfter:  notBefore.AddDate(20, 0, 0),
+		})
+
+		certificates.CACert = cfg.Datastore.GetEtcdCACert()
+		certificates.CAKey = cfg.Datastore.GetEtcdCAKey()
+		certificates.ServerCert = joinConfig.GetEtcdServerCert()
+		certificates.ServerKey = joinConfig.GetEtcdServerKey()
+		certificates.ServerPeerCert = joinConfig.GetEtcdServerPeerCert()
+		certificates.ServerPeerKey = joinConfig.GetEtcdServerPeerKey()
+		certificates.APIServerClientCert = cfg.Datastore.GetEtcdAPIServerClientCert()
+		certificates.APIServerClientKey = cfg.Datastore.GetEtcdAPIServerClientKey()
+
+		if err := certificates.CompleteCertificates(); err != nil {
+			return fmt.Errorf("failed to initialize etcd certificates: %w", err)
+		}
+		if _, err := setup.EnsureEtcdPKI(snap, certificates); err != nil {
+			return fmt.Errorf("failed to write etcd certificates: %w", err)
 		}
 	case "external":
 		certificates := &pki.ExternalDatastorePKI{
@@ -114,7 +140,6 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 
 	// Certificates
 	// NOTE: Default certificate expiration is set to 20 years.
-	extraIPs, extraNames := utils.SplitIPAndDNSSANs(joinConfig.ExtraSANS)
 	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 		Hostname:                  s.Name(),
 		IPSANs:                    append(append([]net.IP{nodeIP}, serviceIPs...), extraIPs...),
@@ -187,7 +212,7 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		// TODO(neoaggelos): use cluster.GetInternalClusterMembers() instead
 		leader, err := s.Leader()
 		if err != nil {
-			return fmt.Errorf("failed to get dqlite leader: %w", err)
+			return fmt.Errorf("failed to get microcluster leader: %w", err)
 		}
 		members, err := leader.GetClusterMembers(ctx)
 		if err != nil {
@@ -207,6 +232,29 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		address := fmt.Sprintf("%s:%d", utils.ToIPString(nodeIP), cfg.Datastore.GetK8sDqlitePort())
 		if err := setup.K8sDqlite(snap, address, cluster, joinConfig.ExtraNodeK8sDqliteArgs); err != nil {
 			return fmt.Errorf("failed to configure k8s-dqlite with address=%s cluster=%v: %w", address, cluster, err)
+		}
+	case "etcd":
+		leader, err := s.Leader()
+		if err != nil {
+			return fmt.Errorf("failed to get microcluster leader: %w", err)
+		}
+		members, err := leader.GetClusterMembers(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to get microcluster members: %w", err)
+		}
+		clientURLs := make([]string, 0, len(members)-1)
+		for _, member := range members {
+			if member.Name == s.Name() {
+				// skip self
+				continue
+			}
+			clientURLs = append(clientURLs, fmt.Sprintf("https://%s", utils.JoinHostPort(member.Address.Addr().String(), cfg.Datastore.GetEtcdPort())))
+		}
+
+		clientURL := fmt.Sprintf("https://%s", utils.JoinHostPort(nodeIP.String(), cfg.Datastore.GetEtcdPort()))
+		peerURL := fmt.Sprintf("https://%s", utils.JoinHostPort(nodeIP.String(), cfg.Datastore.GetEtcdPeerPort()))
+		if err := setup.Etcd(snap, s.Name(), clientURL, peerURL, clientURLs, joinConfig.ExtraNodeK8sDqliteArgs); err != nil {
+			return fmt.Errorf("failed to configure etcd with peerURL=%s cluster=%v: %w", peerURL, clientURLs, err)
 		}
 	case "external":
 	default:

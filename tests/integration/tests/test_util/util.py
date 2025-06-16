@@ -887,7 +887,7 @@ def check_snap_services_ready(
     }
     expected_control_plane_services = {
         "containerd",
-        "k8s-dqlite",
+        "etcd",
         "k8sd",
         "kubelet",
         "kube-proxy",

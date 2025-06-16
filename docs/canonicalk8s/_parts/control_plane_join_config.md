@@ -99,6 +99,26 @@ If omitted defaults to an auto generated certificate.
 The client key to be used for the kubelet.
 If omitted defaults to an auto generated key.
 
+### etcd-server-crt
+**Type:** `string`<br>
+
+The certificate to be used for the etcd server.
+
+### etcd-server-key
+**Type:** `string`<br>
+
+The key to be used for the etcd server.
+
+### etcd-peer-crt
+**Type:** `string`<br>
+
+The certificate to be used for the etcd server peer communication.
+
+### etcd-peer-key
+**Type:** `string`<br>
+
+The key to be used for the etcd server peer communication.
+
 ### extra-node-config-files
 **Type:** `map[string]string`<br>
 
@@ -154,6 +174,13 @@ The format is `map[<--flag-name>]<value>`.
 **Type:** `map[string]string`<br>
 
 Additional arguments that are passed to `k8s-dqlite` only for that specific node.
+A parameter that is explicitly set to `null` is deleted.
+The format is `map[<--flag-name>]<value>`.
+
+### extra-node-etcd-args
+**Type:** `map[string]string`<br>
+
+Additional arguments that are passed to `etcd` only for that specific node.
 A parameter that is explicitly set to `null` is deleted.
 The format is `map[<--flag-name>]<value>`.
 

@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"syscall"
 
+	"github.com/canonical/k8s/cmd/etcd"
 	"github.com/canonical/k8s/cmd/k8s"
 	k8s_apiserver_proxy "github.com/canonical/k8s/cmd/k8s-apiserver-proxy"
 	"github.com/canonical/k8s/cmd/k8sd"
@@ -38,6 +39,8 @@ func main() {
 		err = k8sd.NewRootCmd(env).ExecuteContext(ctx)
 	case "k8s":
 		err = k8s.NewRootCmd(env).ExecuteContext(ctx)
+	case "etcd":
+		err = etcd.NewRootCmd(env).ExecuteContext(ctx)
 	default:
 		panic(fmt.Errorf("invalid entrypoint name %q", base))
 	}
