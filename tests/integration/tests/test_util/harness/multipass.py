@@ -1,6 +1,7 @@
 #
 # Copyright 2025 Canonical, Ltd.
 #
+import base64
 import logging
 import os
 import shlex
@@ -50,24 +51,27 @@ class MultipassHarness(Harness):
         LOG.debug("Creating instance %s with image %s", instance_id, self.image)
         try:
             cmd = [
-                    "sudo",
-                    "multipass",
-                    "launch",
-                    self.image,
-                    "--name",
-                    instance_id,
-                    "--cpus",
-                    self.cpus,
-                    "--memory",
-                    self.memory,
-                    "--disk",
-                    self.disk,
-                ]
+                "sudo",
+                "multipass",
+                "launch",
+                self.image,
+                "--name",
+                instance_id,
+                "--cpus",
+                self.cpus,
+                "--memory",
+                self.memory,
+                "--disk",
+                self.disk,
+            ]
 
             if self.cloud_init:
                 LOG.info("Using cloud-init: %s", self.cloud_init)
                 # Increase timeout to 15 minutes since custom setup steps, e.g. FIPS, may take a while.
-                run(cmd + ["--cloud-init", "-", "--timeout", "180"], input=self.cloud_init.encode())
+                run(
+                    cmd + ["--cloud-init", "-", "--timeout", "180"],
+                    input=self.cloud_init.encode(),
+                )
             else:
                 run(cmd)
 
@@ -80,12 +84,21 @@ class MultipassHarness(Harness):
         if network_type == "IPv6":
             LOG.debug("Enabling IPv6 support in instance %s", instance_id)
             try:
-                self.exec(instance_id, ["sysctl", "-w", "net.ipv6.conf.all.disable_ipv6=0"])
-                self.exec(instance_id, ["sysctl", "-w", "net.ipv6.conf.default.disable_ipv6=0"])
-                self.exec(instance_id, ["sysctl", "-w", "net.ipv6.conf.lo.disable_ipv6=0"])
+                self.exec(
+                    instance_id, ["sysctl", "-w", "net.ipv6.conf.all.disable_ipv6=0"]
+                )
+                self.exec(
+                    instance_id,
+                    ["sysctl", "-w", "net.ipv6.conf.default.disable_ipv6=0"],
+                )
+                self.exec(
+                    instance_id, ["sysctl", "-w", "net.ipv6.conf.lo.disable_ipv6=0"]
+                )
                 self.exec(instance_id, ["ip", "-6", "addr"])
             except subprocess.CalledProcessError as e:
-                raise HarnessError(f"Failed to configure IPv6 in instance {instance_id}") from e
+                raise HarnessError(
+                    f"Failed to configure IPv6 in instance {instance_id}"
+                ) from e
 
         return Instance(self, instance_id)
 
@@ -104,7 +117,15 @@ class MultipassHarness(Harness):
                 instance_id,
                 ["mkdir", "-m=0777", "-p", Path(destination).parent.as_posix()],
             )
-            run(["sudo", "multipass", "transfer", source, f"{instance_id}:{destination}"])
+            run(
+                [
+                    "sudo",
+                    "multipass",
+                    "transfer",
+                    source,
+                    f"{instance_id}:{destination}",
+                ]
+            )
         except subprocess.CalledProcessError as e:
             raise HarnessError("multipass file push command failed") from e
 
@@ -119,7 +140,15 @@ class MultipassHarness(Harness):
             "Copying file %s from instance %s to %s", source, instance_id, destination
         )
         try:
-            run(["sudo", "multipass", "transfer", f"{instance_id}:{source}", destination])
+            run(
+                [
+                    "sudo",
+                    "multipass",
+                    "transfer",
+                    f"{instance_id}:{source}",
+                    destination,
+                ]
+            )
         except subprocess.CalledProcessError as e:
             raise HarnessError("multipass file pull command failed") from e
 
