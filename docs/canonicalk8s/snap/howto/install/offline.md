@@ -27,12 +27,6 @@ From a machine with access to the internet download the
 Besides the snaps, this will also download the corresponding assert files which
 are necessary to verify the integrity of the packages.
 
-<!-- ```{note}
-Update the version of `k8s` by adjusting the channel parameter.
-For more information on channels visit the
-[channels explanation](../../explanation/channels.md).
-``` -->
-
 ### Check network requirements
 
 Air-gap deployments are typically associated with a number of constraints and
@@ -123,8 +117,8 @@ Please ensure that the images used by workloads are tracked as well.
 
 #### Choose how to access images
 
-How the container runtime accesses OCI images in your air-gapped installation
-must be selected:
+You must select how the container runtime accesses OCI images in your air-gapped
+installation:
 
 ```{note}
 The image options are presented in the order of increasing complexity
@@ -242,7 +236,7 @@ Repeat the above for all nodes of the cluster.
 
 ### Configure container runtime
 
-Based on the image access type you chose in the preparatory step
+Based on the image access type you chose in the step
 [choose how to access images](#choose-how-to-access-images), configure the
 container runtime to fetch images properly:
 
