@@ -90,7 +90,7 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 
 	cmd.Flags().Uint("port", 0, "Default port for the HTTP API")
 	cmd.Flags().MarkDeprecated("port", "this flag does not have any effect, and will be removed in a future version")
-	cmd.Flags().IntVar(&rootCmdOpts.featureControllerMaxRetryAttempts, "feature-controller-max-retry-attempts", 15, "Maximum number of retry attempts for the feature controller before giving up. Zero or negative values mean no limit.")
+	cmd.Flags().IntVar(&rootCmdOpts.featureControllerMaxRetryAttempts, "feature-controller-max-retry-attempts", 64, "Maximum number of retry attempts for the feature controller before giving up. Zero or negative values mean no limit.")
 
 	cmd.AddCommand(newSqlCmd(env))
 
