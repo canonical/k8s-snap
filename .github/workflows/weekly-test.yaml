@@ -34,11 +34,8 @@ jobs:
           UBUNTU_PRO_TOKEN: 12345678 #${{ secrets.UBUNTU_PRO_TOKEN }}
         run: |
           cd tests/integration/templates/cloud-init
-          {
-            echo 'cloud_init<<EOF'
-            sed "s/UBUNTU_PRO_TOKEN/$UBUNTU_PRO_TOKEN/g" ubuntu-pro-fips.yaml
-            echo EOF
-          } >> "$GITHUB_OUTPUT"
+          ESCAPED=$(sed "s/UBUNTU_PRO_TOKEN/$UBUNTU_PRO_TOKEN/g" ubuntu-pro-fips.yaml | jq -Rs .)
+          echo "cloud_init=$ESCAPED" >> "$GITHUB_OUTPUT"
 
   test-on-fips:
     name: Integration tests on FIPS machine
@@ -57,7 +54,11 @@ jobs:
       channel: ${{ matrix.channel }}
       test-tags: 'up_to_weekly'
       substrate: 'multipass'
-      extra-test-env: 'TEST_MULTIPASS_CLOUD_INIT=${{ needs.prepare.outputs.cloud_init }},TEST_USE_LOCAL_MIRROR=0,TEST_PRELOAD_SNAPS=0,TEST_SKIP_CLEANUP=1'
+      extra-test-env: >-
+        TEST_MULTIPASS_CLOUD_INIT=${{ fromJson(needs.prepare.outputs.cloud_init) }},
+        TEST_USE_LOCAL_MIRROR=0,
+        TEST_PRELOAD_SNAPS=0,
+        TEST_SKIP_CLEANUP=1
       extra-test-args: '-k test_smoke'
       parallel: false
       tmate_enabled: true
