@@ -38,7 +38,7 @@ jobs:
             echo 'cloud_init<<EOF'
             sed "s/UBUNTU_PRO_TOKEN/$UBUNTU_PRO_TOKEN/g" ubuntu-pro-fips.yaml
             echo EOF
-          } >> "$GITHUB_ENV"
+          } >> "$GITHUB_OUTPUT"
 
   test-on-fips:
     name: Integration tests on FIPS machine
