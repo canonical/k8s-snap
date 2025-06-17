@@ -70,7 +70,7 @@ class MultipassHarness(Harness):
                 # Increase timeout to 15 minutes since custom setup steps, e.g. FIPS, may take a while.
                 run(
                     cmd + ["--cloud-init", "-", "--timeout", "180"],
-                    input=self.cloud_init.encode(),
+                    input=self.cloud_init,
                 )
             else:
                 run(cmd)
