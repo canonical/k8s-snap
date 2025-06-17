@@ -2780,8 +2780,6 @@ Category Assurance List (PPSM CAL)
 
 
 
-
-
 **Comments:**
 
 > This STIG Finding relates to implementing PPSM CAL for kube-apiserver, and
@@ -2789,6 +2787,8 @@ Category Assurance List (PPSM CAL)
 >
 > https://www.esd.whs.mil/portals/54/documents/dd/issuances/dodi/855101p.pdf
 >
+> Please, consult the [ports and services] page on the ports, protocols and
+> services used by {{product}}.
 
 
 
@@ -2820,6 +2820,8 @@ Category Assurance List (PPSM CAL)
 >
 > https://www.esd.whs.mil/portals/54/documents/dd/issuances/dodi/855101p.pdf
 >
+> Please, consult the [ports and services] page on the ports, protocols and
+> services used by {{product}}.
 
 
 
@@ -2851,6 +2853,8 @@ Category Assurance List (PPSM CAL)
 >
 > https://www.esd.whs.mil/portals/54/documents/dd/issuances/dodi/855101p.pdf
 >
+> Please, consult the [ports and services] page on the ports, protocols and
+> services used by {{product}}.
 
 
 
@@ -6356,97 +6360,98 @@ The final line of the output will be `PASS`.
 
 <!-- Links -->
 [getting started]: ../../tutorial/getting-started
+[ports and services]:/snap/reference/ports-and-services.md
 [post-deployment hardening]: hardening.md
-[Kubernetes STIG]:https://www.stigviewer.com/stig/kubernetes/
+[Kubernetes STIG]:https://stigviewer.com/stigs/kubernetes/
 [hardening guide page]: hardening.md#set-event-rate-limits
-[V-242381]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242381
-[V-242383]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242383
-[V-242386]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242386
-[V-242387]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242387
-[V-242388]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242388
-[V-242390]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242390
-[V-242391]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242391
-[V-242392]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242392
-[V-242397]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242397
-[V-242415]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242415
-[V-242434]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242434
-[V-242436]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242436
-[V-242437]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242437
-[V-245542]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-245542
-[V-245543]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-245543
-[V-245544]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-245544
-[V-254800]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-254800
-[V-254801]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-254801
-[V-242376]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242376
-[V-242377]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242377
-[V-242378]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242378
-[V-242379]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242379
-[V-242380]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242380
-[V-242382]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242382
-[V-242384]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242384
-[V-242385]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242385
-[V-242389]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242389
-[V-242393]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242393
-[V-242394]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242394
-[V-242395]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242395
-[V-242396]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242396
-[V-242398]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242398
-[V-242399]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242399
-[V-242400]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242400
-[V-242402]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242402
-[V-242403]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242403
-[V-242404]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242404
-[V-242405]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242405
-[V-242406]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242406
-[V-242407]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242407
-[V-242408]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242408
-[V-242409]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242409
-[V-242410]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242410
-[V-242411]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242411
-[V-242412]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242412
-[V-242413]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242413
-[V-242414]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242414
-[V-242417]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242417
-[V-242418]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242418
-[V-242419]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242419
-[V-242420]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242420
-[V-242421]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242421
-[V-242422]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242422
-[V-242423]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242423
-[V-242424]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242424
-[V-242425]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242425
-[V-242426]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242426
-[V-242427]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242427
-[V-242428]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242428
-[V-242429]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242429
-[V-242430]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242430
-[V-242431]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242431
-[V-242432]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242432
-[V-242433]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242433
-[V-242438]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242438
-[V-242442]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242442
-[V-242443]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242443
-[V-242444]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242444
-[V-242445]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242445
-[V-242446]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242446
-[V-242447]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242447
-[V-242448]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242448
-[V-242449]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242449
-[V-242450]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242450
-[V-242451]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242451
-[V-242452]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242452
-[V-242453]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242453
-[V-242454]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242454
-[V-242455]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242455
-[V-242456]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242456
-[V-242457]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242457
-[V-242459]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242459
-[V-242460]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242460
-[V-242461]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242461
-[V-242462]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242462
-[V-242463]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242463
-[V-242464]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242464
-[V-242465]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242465
-[V-242466]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242466
-[V-242467]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-242467
-[V-245541]:https://www.stigviewer.com/stig/kubernetes/2024-06-10/finding/V-245541
+[V-242381]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242381
+[V-242383]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242383
+[V-242386]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242386
+[V-242387]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242387
+[V-242388]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242388
+[V-242390]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242390
+[V-242391]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242391
+[V-242392]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242392
+[V-242397]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242397
+[V-242415]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242415
+[V-242434]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242434
+[V-242436]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242436
+[V-242437]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242437
+[V-245542]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-245542
+[V-245543]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-245543
+[V-245544]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-245544
+[V-254800]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-254800
+[V-254801]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-254801
+[V-242376]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242376
+[V-242377]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242377
+[V-242378]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242378
+[V-242379]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242379
+[V-242380]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242380
+[V-242382]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242382
+[V-242384]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242384
+[V-242385]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242385
+[V-242389]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242389
+[V-242393]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242393
+[V-242394]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242394
+[V-242395]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242395
+[V-242396]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242396
+[V-242398]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242398
+[V-242399]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242399
+[V-242400]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242400
+[V-242402]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242402
+[V-242403]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242403
+[V-242404]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242404
+[V-242405]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242405
+[V-242406]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242406
+[V-242407]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242407
+[V-242408]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242408
+[V-242409]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242409
+[V-242410]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242410
+[V-242411]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242411
+[V-242412]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242412
+[V-242413]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242413
+[V-242414]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242414
+[V-242417]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242417
+[V-242418]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242418
+[V-242419]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242419
+[V-242420]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242420
+[V-242421]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242421
+[V-242422]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242422
+[V-242423]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242423
+[V-242424]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242424
+[V-242425]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242425
+[V-242426]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242426
+[V-242427]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242427
+[V-242428]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242428
+[V-242429]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242429
+[V-242430]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242430
+[V-242431]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242431
+[V-242432]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242432
+[V-242433]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242433
+[V-242438]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242438
+[V-242442]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242442
+[V-242443]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242443
+[V-242444]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242444
+[V-242445]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242445
+[V-242446]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242446
+[V-242447]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242447
+[V-242448]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242448
+[V-242449]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242449
+[V-242450]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242450
+[V-242451]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242451
+[V-242452]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242452
+[V-242453]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242453
+[V-242454]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242454
+[V-242455]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242455
+[V-242456]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242456
+[V-242457]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242457
+[V-242459]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242459
+[V-242460]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242460
+[V-242461]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242461
+[V-242462]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242462
+[V-242463]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242463
+[V-242464]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242464
+[V-242465]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242465
+[V-242466]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242466
+[V-242467]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242467
+[V-245541]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-245541
