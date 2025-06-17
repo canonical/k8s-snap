@@ -9,10 +9,11 @@ charm to pull images from a custom registry.
 ## Prerequisites
 
 - A running `k8s` charm cluster.
+- A `kubeconfig` to access the charmed cluster.
 - Access to a custom container registry from the cluster (e.g., docker registry
   or Harbor).
 
-## Configure the charm
+## Adding a custom registry
 
 To configure the charm to use a custom registry, you need to set the
 `containerd-custom-registries` configuration option. This options allows
@@ -41,6 +42,50 @@ progress by running:
 
 ```
 juju status --watch 2s
+```
+
+### Adding a registry mirror
+
+To configure the charm to use a registry mirror, you need to add to the
+`containerd-custom-registries` configuration option.
+
+To mirror `ghcr.io` with `myregistry.example.com:5000`:
+
+```
+juju config k8s containerd-custom-registries='[{
+    "url": "http://myregistry.example.com:5000",
+    "host": "myregistry.example.com:5000",
+    "username": "myuser",
+    "password": "mypassword"
+},{
+    "url": "http://myregistry.example.com:5000",
+    "host": "ghcr.io",
+    "username": "myuser",
+    "password": "mypassword"
+}]'
+```
+
+### Adding a nested path registry mirror
+
+To configure the charm to use a registry mirror where the path to the images is
+nested deeper, you need to add set the `override_path` flag to true
+`containerd-custom-registries` configuration option.
+
+To mirror `ghcr.io` with `myregistry.example.com:5000/my/own/ghcr.io`:
+
+```
+juju config k8s containerd-custom-registries='[{
+    "url": "http://myregistry.example.com:5000",
+    "host": "myregistry.example.com:5000",
+    "username": "myuser",
+    "password": "mypassword"
+},{
+    "url": "http://myregistry.example.com:5000/v2/my/own/ghcr.io",
+    "host": "ghcr.io",
+    "username": "myuser",
+    "password": "mypassword",
+    "override_path": true
+}]'
 ```
 
 ## Verify the configuration
