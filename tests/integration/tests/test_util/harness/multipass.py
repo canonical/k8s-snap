@@ -32,7 +32,7 @@ class MultipassHarness(Harness):
         self.cpus = config.MULTIPASS_CPUS
         self.memory = config.MULTIPASS_MEMORY
         self.disk = config.MULTIPASS_DISK
-        self.cloud_init = config.MULTIPASS_CLOUD_INIT
+        self.cloud_init = base64.b64decode(config.MULTIPASS_CLOUD_INIT_BASE64)
         self.instances = set()
 
         LOG.debug("Configured Multipass substrate (image %s)", self.image)
