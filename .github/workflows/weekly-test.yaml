@@ -16,7 +16,7 @@ jobs:
     name: Prepare Environment
     runs-on: ubuntu-latest
     outputs:
-      cloud_init: ${{ steps.cloud_init.outputs.cloud_init }}
+      cloud_init_b64: ${{ steps.cloud_init.outputs.cloud_init_b64 }}
     steps:
       - name: Check out code
         uses: actions/checkout@v4
