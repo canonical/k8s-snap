@@ -16,7 +16,7 @@ jobs:
     name: Prepare Environment
     runs-on: ubuntu-latest
     outputs:
-      cloud-init: ${{ steps.cloud-init.outputs.cloud-init }}
+      cloud_init: ${{ steps.cloud_init.outputs.cloud_init }}
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -29,13 +29,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y tox jq
       - name: Generate cloud-init
-        id: cloud-init
+        id: cloud_init
         env:
           UBUNTU_PRO_TOKEN: 12345678 #${{ secrets.UBUNTU_PRO_TOKEN }}
         run: |
           cd tests/integration/templates/cloud-init
           {
-            echo 'cloud-init<<EOF'
+            echo 'cloud_init<<EOF'
             sed "s/UBUNTU_PRO_TOKEN/$UBUNTU_PRO_TOKEN/g" ubuntu-pro-fips.yaml
             echo EOF
           } >> "$GITHUB_ENV"
@@ -57,7 +57,7 @@ jobs:
       channel: ${{ matrix.channel }}
       test-tags: 'up_to_weekly'
       substrate: 'multipass'
-      extra-test-env: 'TEST_MULTIPASS_CLOUD_INIT=${{ needs.prepare.outputs.cloud-init }},TEST_USE_LOCAL_MIRROR=0,TEST_PRELOAD_SNAPS=0,TEST_SKIP_CLEANUP=1'
+      extra-test-env: 'TEST_MULTIPASS_CLOUD_INIT=${{ needs.prepare.outputs.cloud_init }},TEST_USE_LOCAL_MIRROR=0,TEST_PRELOAD_SNAPS=0,TEST_SKIP_CLEANUP=1'
       extra-test-args: '-k test_smoke'
       parallel: false
       tmate_enabled: true
