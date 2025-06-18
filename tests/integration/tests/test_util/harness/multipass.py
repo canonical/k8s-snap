@@ -67,7 +67,7 @@ class MultipassHarness(Harness):
 
             if self.cloud_init:
 
-                cloud_init_content = Path(config.CLOUD_INIT_DIR / config.MULTIPASS_CLOUD_INIT).read_text()
+                cloud_init_content = Path(config.CLOUD_INIT_DIR / self.cloud_init).read_text()
                 # Replace environment variables in the format ${VAR} or $VAR
                 def replace_env_var(match):
                     var_name = match.group(1) or match.group(2)
@@ -80,10 +80,10 @@ class MultipassHarness(Harness):
                 )
 
                 LOG.info("Using cloud-init: %s", self.cloud_init)
-                # Increase timeout to 15 minutes since custom setup steps, e.g. FIPS, may take a while.
                 run(
-                    cmd + ["--cloud-init", "-", "--timeout", "900"],
+                    cmd + ["--cloud-init", "-", "--timeout", "180"],
                     input=self.cloud_init,
+                    sensitive_kwargs=True,
                 )
             else:
                 run(cmd)

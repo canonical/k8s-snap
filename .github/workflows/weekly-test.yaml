@@ -14,7 +14,6 @@ permissions:
 jobs:
   test-on-fips:
     name: Integration tests on FIPS machine
-    needs: prepare
     strategy:
       fail-fast: false
       matrix:
