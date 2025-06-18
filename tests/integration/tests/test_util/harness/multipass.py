@@ -87,6 +87,7 @@ class MultipassHarness(Harness):
                     cmd + ["--cloud-init", "-", "--timeout", "180"],
                     input=self.cloud_init.encode(),
                     sensitive_kwargs=True,
+                    check=False,
                 )
             else:
                 run(cmd)
