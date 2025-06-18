@@ -14,12 +14,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+defaults:
+  run:
+    working-directory: ./src/k8s
+
 jobs:
   TICS:
     runs-on: [self-hosted, linux, amd64, tiobe, jammy]
-    defaults:
-    run:
-      working-directory: ./src/k8s
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
