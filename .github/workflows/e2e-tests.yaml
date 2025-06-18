@@ -204,8 +204,7 @@ jobs:
           TEST_MIRROR_LIST: '[{"name": "ghcr.io", "port": 5000, "remote": "https://ghcr.io", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}, {"name": "docker.io", "port": 5001, "remote": "https://registry-1.docker.io", "username": "", "password": ""}, {"name": "rocks.canonical.com", "port": 5002, "remote": "https://rocks.canonical.com/cdk"}]'
           TEST_GH_REF: ${{ github.ref_name }}
           TEST_GH_BASE_REF: ${{ github.base_ref }}
-          # Secrets
-          UBUNTU_PRO_TOKEN: ${{ secrets.UBUNTU_PRO_TOKEN }}
+          TEST_UBUNTU_PRO_TOKEN: ${{ secrets.UBUNTU_PRO_TOKEN }}
         run: |
           # Parse extra-test-env and export each KEY=VALUE pair
           ESCAPED_ENV=$(echo "${{ inputs.extra-test-env }}" | sed 's/"/\\"/g')
