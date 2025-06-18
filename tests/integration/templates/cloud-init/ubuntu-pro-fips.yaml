@@ -3,6 +3,6 @@ package_upgrade: true
 packages:
   - ubuntu-advantage-tools
 runcmd:
-  - pro attach UBUNTU_PRO_TOKEN --no-auto-enable
+  - pro attach ${UBUNTU_PRO_TOKEN} --no-auto-enable
   - pro enable fips-updates --assume-yes
   - reboot

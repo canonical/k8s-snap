@@ -12,6 +12,7 @@ DEFAULT_WAIT_RETRIES = int(os.getenv("TEST_DEFAULT_WAIT_RETRIES") or 120)
 DEFAULT_WAIT_DELAY_S = int(os.getenv("TEST_DEFAULT_WAIT_DELAY_S") or 5)
 
 MANIFESTS_DIR = DIR / ".." / ".." / "templates"
+CLOUD_INIT_DIR = MANIFESTS_DIR / "cloud-init"
 
 # ETCD_DIR contains all templates required to setup an etcd database.
 ETCD_DIR = MANIFESTS_DIR / "etcd"
@@ -115,8 +116,10 @@ MULTIPASS_MEMORY = os.getenv("TEST_MULTIPASS_MEMORY") or "4G"
 # MULTIPASS_DISK is the disk size for Multipass VMs.
 MULTIPASS_DISK = os.getenv("TEST_MULTIPASS_DISK") or "20G"
 
-# MULTIPASS_CLOUD_INIT_BASE64 is the base64 encoded cloud-init script to use for Multipass VMs.
-MULTIPASS_CLOUD_INIT_BASE64 = os.getenv("TEST_MULTIPASS_CLOUD_INIT_BASE64") or ""
+# MULTIPASS_CLOUD_INIT is the cloud-init script to use for Multipass VMs.
+# It is the file name in the CLOUD_INIT_DIR directory.
+# Environment variables will be replaced before the file is used.
+MULTIPASS_CLOUD_INIT = os.getenv("TEST_MULTIPASS_CLOUD_INIT") or ""
 
 # JUJU_MODEL is the Juju model to use.
 JUJU_MODEL = os.getenv("TEST_JUJU_MODEL")
