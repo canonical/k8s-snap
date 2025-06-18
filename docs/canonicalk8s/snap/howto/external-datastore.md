@@ -27,6 +27,9 @@ Create a configuration file and insert the contents below while replacing
 the placeholder values based on the configuration of your etcd cluster.
 
 ```yaml
+cluster-config:
+  network:
+    enabled: true
 datastore-type: external
 datastore-servers: "<etcd-member-addresses>"
 datastore-ca-crt: |
