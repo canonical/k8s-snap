@@ -76,16 +76,20 @@ class MultipassHarness(Harness):
                     return os.environ.get(var_name, match.group(0))
 
                 LOG.info(os.environ)
-                self.cloud_init = re.sub(
+                cloud_init_content = re.sub(
                     r'\$\{([^}]+)\}|\$([A-Za-z_][A-Za-z0-9_]*)',
                     replace_env_var,
                     cloud_init_content
                 )
 
-                LOG.info("Using cloud-init: %s", self.cloud_init)
+                LOG.info("Using cloud-init: %s", cloud_init_content)
+                # Note(ben): Multipass does not handle restarts in
+                # cloud-init very well and just times out even if
+                # the underlying machine works just fine.
+                # Hence, we disable the check for this call, continue and hope for the best.
                 run(
                     cmd + ["--cloud-init", "-", "--timeout", "180"],
-                    input=self.cloud_init.encode(),
+                    input=cloud_init_content.encode(),
                     sensitive_kwargs=True,
                     check=False,
                 )
