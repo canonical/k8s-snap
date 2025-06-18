@@ -31,7 +31,7 @@ jobs:
       - name: Generate cloud-init
         id: cloud_init
         env:
-          UBUNTU_PRO_TOKEN: 12345678 #${{ secrets.UBUNTU_PRO_TOKEN }}
+          UBUNTU_PRO_TOKEN: ${{ secrets.UBUNTU_PRO_TOKEN }}
         run: |
           cd tests/integration/templates/cloud-init
           sed "s/UBUNTU_PRO_TOKEN/$UBUNTU_PRO_TOKEN/g" ubuntu-pro-fips.yaml > rendered.yaml
