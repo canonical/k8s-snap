@@ -14,10 +14,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-defaults:
-  run:
-    working-directory: ./src/k8s
-
 jobs:
   TICS:
     runs-on: [self-hosted, linux, amd64, tiobe, jammy]
@@ -34,13 +30,13 @@ jobs:
           sudo apt-get install -y python3-venv
           python3 -m venv .venv/tics
           source .venv/tics/bin/activate
-          pip install -r ../../tests/integration/requirements-test.txt
-          pip install -r ../../tests/integration/requirements-dev.txt
+          pip install -r tests/integration/requirements-test.txt
+          pip install -r tests/integration/requirements-dev.txt
 
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: "go.mod"
+          go-version-file: src/k8s/go.mod
 
       - name: Prepare Go coverage and build
         run: |
@@ -51,6 +47,7 @@ jobs:
           mkdir -p .coverage
           mv ./coverage.xml ./.coverage/
           go install honnef.co/go/tools/cmd/staticcheck@v0.5.1
+        working-directory: src/k8s
 
       - name: Install dqlite dependencies
         run: |
@@ -63,10 +60,12 @@ jobs:
           sudo apt-get install -y dqlite-tools-v2 libdqlite1.17-dev
           sudo make clean
           go build -a ./...
+        working-directory: src/k8s
 
       - name: Run TICS
         uses: tiobe/tics-github-action@v3
         with:
+          branchdir: src/k8s
           mode: qserver
           project: k8s-snap
           viewerUrl: https://canonical.tiobe.com/tiobeweb/TICS/api/cfg?name=GoProjects
