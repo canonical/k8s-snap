@@ -1,8 +1,8 @@
 #
 # Copyright 2025 Canonical, Ltd.
 #
-import base64
 import logging
+import re
 import os
 import shlex
 import subprocess
@@ -33,7 +33,7 @@ class MultipassHarness(Harness):
         self.cpus = config.MULTIPASS_CPUS
         self.memory = config.MULTIPASS_MEMORY
         self.disk = config.MULTIPASS_DISK
-        self.cloud_init = base64.b64decode(config.MULTIPASS_CLOUD_INIT_BASE64)
+        self.cloud_init = config.MULTIPASS_CLOUD_INIT
         self.instances = set()
 
         LOG.debug("Configured Multipass substrate (image %s)", self.image)
@@ -66,6 +66,19 @@ class MultipassHarness(Harness):
             ]
 
             if self.cloud_init:
+
+                cloud_init_content = Path(config.CLOUD_INIT_DIR / config.MULTIPASS_CLOUD_INIT).read_text()
+                # Replace environment variables in the format ${VAR} or $VAR
+                def replace_env_var(match):
+                    var_name = match.group(1) or match.group(2)
+                    return os.environ.get(var_name, match.group(0))
+
+                self.cloud_init = re.sub(
+                    r'\$\{([^}]+)\}|\$([A-Za-z_][A-Za-z0-9_]*)',
+                    replace_env_var,
+                    cloud_init_content
+                )
+
                 LOG.info("Using cloud-init: %s", self.cloud_init)
                 # Increase timeout to 15 minutes since custom setup steps, e.g. FIPS, may take a while.
                 run(
