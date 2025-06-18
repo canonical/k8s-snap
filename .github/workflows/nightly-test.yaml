@@ -65,6 +65,41 @@ jobs:
      upload-reports-to-jira: true
    secrets: inherit
 
+  TICS:
+   if: ${{ always() && github.event_name == 'schedule' }}
+   permissions:
+     contents: read
+   runs-on: ubuntu-latest
+   strategy:
+     matrix:
+       include:
+         - { branch: main }
+   steps:
+     - name: Checking out repo
+       uses: actions/checkout@v4
+     - name: Save tics-scan.sh script
+       run: |
+         # We'll need to scan other branches, let's create a copy of
+         # the TICS scan script.
+         cp tests/tics-scan.sh /tmp/tics-scan.sh
+     - name: Checking out tested repo branch
+       uses: actions/checkout@v4
+       with:
+         ref: ${{matrix.branch}}
+     - uses: actions/setup-python@v5
+       with:
+         python-version: '3.12'
+     - name: Install Go
+       uses: actions/setup-go@v5
+       with:
+         go-version-file: './src/k8s/go.mod'
+     - name: go mod download
+       working-directory: src/k8s
+       run: go mod download
+     - name: TICS scan
+       run: |
+         export TICSAUTHTOKEN=${{ secrets.TICSAUTHTOKEN }}
+         /tmp/tics-scan.sh `pwd`
 
   Mattermost:
    name: Notify Mattermost
@@ -72,7 +107,7 @@ jobs:
    # We don't want to ping people of failed PRs.
    if: ${{ always() && github.event_name == 'schedule' }}
    # Note: Update results check below if you change the "needs" list.
-   needs: [test-integration, test-performance, Trivy]
+   needs: [test-integration, test-performance, Trivy, TICS]
    runs-on: ubuntu-latest
    steps:
      - name: Set current formatted date as env variable
