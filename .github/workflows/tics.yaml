@@ -34,13 +34,13 @@ jobs:
           sudo apt-get install -y python3-venv
           python3 -m venv .venv/tics
           source .venv/tics/bin/activate
-          pip install -r ../tests/integration/requirements-test.txt
-          pip install -r ../tests/integration/requirements-dev.txt
+          pip install -r ../../tests/integration/requirements-test.txt
+          pip install -r ../../tests/integration/requirements-dev.txt
 
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: "./src/k8s/go.mod"
+          go-version-file: "go.mod"
 
       - name: Prepare Go coverage and build
         run: |
