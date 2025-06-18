@@ -35,9 +35,9 @@ jobs:
         run: |
           cd tests/integration/templates/cloud-init
           sed "s/UBUNTU_PRO_TOKEN/$UBUNTU_PRO_TOKEN/g" ubuntu-pro-fips.yaml > rendered.yaml
-          echo "::add-mask::$UBUNTU_PRO_TOKEN"
           base64 -w 0 rendered.yaml > encoded.txt
           echo "cloud_init_b64=$(cat encoded.txt)" >> "$GITHUB_OUTPUT"
+          echo "::add-mask::$(cat encoded.txt)"
 
   test-on-fips:
     name: Integration tests on FIPS machine
@@ -58,6 +58,7 @@ jobs:
       substrate: 'multipass'
       extra-test-env: 'TEST_MULTIPASS_CLOUD_INIT_BASE64=${{ needs.prepare.outputs.cloud_init_b64 }},TEST_USE_LOCAL_MIRROR=0,TEST_PRELOAD_SNAPS=0,TEST_SKIP_CLEANUP=1'
       extra-test-args: '-k test_smoke'
+      extra-prepare-commands: 'echo "::add-mask::$UBUNTU_PRO_TOKEN"'
       parallel: false
       tmate_enabled: true
 

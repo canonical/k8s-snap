@@ -38,6 +38,11 @@ on:
           Additional pytest arguments, use "-k <test_name>" to run a specific test
         default: ""
         type: string
+      extra-prepare-commands:
+        description: |
+          Additional commands to run before running the tests
+        default: ""
+        type: string
       extra-test-env:
         description: 'Additional environment variables in KEY1=VALUE1,KEY2=VALUE2 format'
         type: string
@@ -209,6 +214,11 @@ jobs:
               echo "Exporting $kv"
               export "$kv"
             done
+          fi
+
+          if [ -n "${{ inputs.extra-prepare-commands }}" ]; then
+            echo "Running extra prepare commands: ${{ inputs.extra-prepare-commands }}"
+            eval ${{ inputs.extra-prepare-commands }}
           fi
 
           cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- ${{ inputs.parallel && matrix.test || '' }} ${{ env.PERFORMANCE_FLAGS }} --tags ${{ inputs.test-tags }} ${{ inputs.extra-test-args }}
