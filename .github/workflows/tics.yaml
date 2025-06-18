@@ -17,6 +17,9 @@ concurrency:
 jobs:
   TICS:
     runs-on: [self-hosted, linux, amd64, tiobe, jammy]
+    defaults:
+    run:
+      working-directory: ./src/k8s
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -30,8 +33,8 @@ jobs:
           sudo apt-get install -y python3-venv
           python3 -m venv .venv/tics
           source .venv/tics/bin/activate
-          pip install -r tests/integration/requirements-test.txt
-          pip install -r tests/integration/requirements-dev.txt
+          pip install -r ../tests/integration/requirements-test.txt
+          pip install -r ../tests/integration/requirements-dev.txt
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -41,7 +44,6 @@ jobs:
       - name: Prepare Go coverage and build
         run: |
           set -ex
-          cd src/k8s
           sudo env "PATH=$PATH" make go.unit
           go install github.com/boumenot/gocover-cobertura@latest
           gocover-cobertura <coverage.txt >coverage.xml
