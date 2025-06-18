@@ -79,10 +79,10 @@ class MultipassHarness(Harness):
                     cloud_init_content
                 )
 
-                LOG.info("Using cloud-init: %s", cloud_init_content)
+                LOG.info("Using cloud-init: %s", self.cloud_init)
                 run(
                     cmd + ["--cloud-init", "-", "--timeout", "180"],
-                    input=cloud_init_content.encode(),
+                    input=self.cloud_init.encode(),
                     sensitive_kwargs=True,
                 )
             else:
