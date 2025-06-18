@@ -37,6 +37,7 @@ jobs:
           sed "s/UBUNTU_PRO_TOKEN/$UBUNTU_PRO_TOKEN/g" ubuntu-pro-fips.yaml > rendered.yaml
           base64 -w 0 rendered.yaml > encoded.txt
           echo "cloud_init_b64=$(cat encoded.txt)" >> "$GITHUB_OUTPUT"
+          echo "::add-mask::$UBUNTU_PRO_TOKEN"
 
   test-on-fips:
     name: Integration tests on FIPS machine
