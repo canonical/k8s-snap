@@ -70,9 +70,12 @@ class MultipassHarness(Harness):
                 cloud_init_content = Path(config.CLOUD_INIT_DIR / self.cloud_init).read_text()
                 # Replace environment variables in the format ${VAR} or $VAR
                 def replace_env_var(match):
+                    LOG.info(match)
                     var_name = match.group(1) or match.group(2)
+                    LOG.info(var_name)
                     return os.environ.get(var_name, match.group(0))
 
+                LOG.info(os.environ)
                 self.cloud_init = re.sub(
                     r'\$\{([^}]+)\}|\$([A-Za-z_][A-Za-z0-9_]*)',
                     replace_env_var,
