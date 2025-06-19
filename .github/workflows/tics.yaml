@@ -65,7 +65,6 @@ jobs:
       - name: Run TICS
         uses: tiobe/tics-github-action@v3
         with:
-          branchdir: src/k8s
           mode: qserver
           project: k8s-snap
           viewerUrl: https://canonical.tiobe.com/tiobeweb/TICS/api/cfg?name=GoProjects
