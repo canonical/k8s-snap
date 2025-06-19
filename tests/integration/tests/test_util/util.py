@@ -413,7 +413,7 @@ def wait_for_load_balancer(instance: harness.Instance):
     """Wait for the load balancer to be ready."""
     LOG.info("Waiting for load balancer to be ready")
     stubbornly(retries=3, delay_s=1).on(instance).exec(
-            [
+        [
             "k8s",
             "kubectl",
             "wait",
@@ -423,7 +423,7 @@ def wait_for_load_balancer(instance: harness.Instance):
             "deployment.apps/metallb-controller",
             "--timeout=20m",
         ]
-        )
+    )
 
 
 def hostname(instance: harness.Instance) -> str:
