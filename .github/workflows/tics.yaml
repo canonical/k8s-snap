@@ -3,9 +3,8 @@ name: TICS Analysis
 on:
   workflow_dispatch:
   pull_request:
-  push:
-    branches:
-      - main
+  schedule:
+    - cron: "0 0 * * 3" # Runs at midnigth every Wednesday
 
 permissions:
   contents: read
@@ -23,15 +22,19 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Python venv and install dependencies
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: tests/integration/requirements-*.txt
+
+      - name: Install Python dependencies via uv
         run: |
-          set -ex
-          sudo apt-get update
-          sudo apt-get install -y python3-venv
-          python3 -m venv .venv/tics
-          source .venv/tics/bin/activate
-          pip install -r tests/integration/requirements-test.txt
-          pip install -r tests/integration/requirements-dev.txt
+          uv venv
+          source .venv/bin/activate
+          uv pip install -r tests/integration/requirements-test.txt
+          uv pip install -r tests/integration/requirements-dev.txt
+          echo "PATH=$PATH" >> "$GITHUB_ENV"
 
       - name: Set up Go
         uses: actions/setup-go@v5
