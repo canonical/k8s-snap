@@ -476,10 +476,16 @@ def ready_nodes(control_node: harness.Instance) -> List[Any]:
 def get_join_token(
     initial_node: harness.Instance, joining_cplane_node: harness.Instance, *args: str
 ) -> str:
-    out = initial_node.exec(
-        ["k8s", "get-join-token", joining_cplane_node.id, *args],
-        capture_output=True,
+    out = (
+        stubbornly(retries=5, delay_s=3)
+        .on(initial_node)
+        .until(lambda p: len(p.stdout.decode().strip()) > 0)
+        .exec(
+            ["k8s", "get-join-token", joining_cplane_node.id, *args],
+            capture_output=True,
+        )
     )
+
     return out.stdout.decode().strip()
 
 
