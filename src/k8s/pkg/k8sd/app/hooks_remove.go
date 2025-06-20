@@ -15,6 +15,7 @@ import (
 	"github.com/canonical/k8s/pkg/log"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/snap/util/cleanup"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/microcluster/v2/cluster"
 	"github.com/canonical/microcluster/v2/state"
@@ -91,7 +92,32 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 			} else {
 				log.Error(err, "Failed to create k8s-dqlite client: %w")
 			}
+		case "etcd":
+			leader, err := s.Leader()
+			if err != nil {
+				return fmt.Errorf("failed to get microcluster leader: %w", err)
+			}
+			members, err := leader.GetClusterMembers(ctx)
+			if err != nil {
+				return fmt.Errorf("failed to get microcluster members: %w", err)
+			}
+			clientURLs := make([]string, 0, len(members)-1)
+			for _, member := range members {
+				if member.Name == s.Name() {
+					// skip self
+					continue
+				}
+				clientURLs = append(clientURLs, fmt.Sprintf("https://%s", utils.JoinHostPort(member.Address.Addr().String(), cfg.Datastore.GetEtcdPort())))
+			}
 
+			client, err := snap.EtcdClient(clientURLs)
+			if err != nil {
+				return fmt.Errorf("failed to create etcd client: %w", err)
+			}
+			nodeAddress := fmt.Sprintf("https://%s", utils.JoinHostPort(s.Address().Hostname(), cfg.Datastore.GetEtcdPeerPort()))
+			if err := client.RemoveNodeByAddress(ctx, nodeAddress); err != nil {
+				return fmt.Errorf("failed to remove node with address %s from etcd cluster: %w", nodeAddress, err)
+			}
 		case "external":
 			log.Info("Cleaning up external datastore certificates")
 			if _, err := setup.EnsureExtDatastorePKI(snap, &pki.ExternalDatastorePKI{}); err != nil {
@@ -101,6 +127,11 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 		}
 	} else {
 		log.Error(err, "Failed to retrieve cluster config")
+	}
+
+	log.Info("Cleaning up etcd directory")
+	if err := os.RemoveAll(snap.EtcdDir()); err != nil {
+		log.Error(err, "failed to cleanup etcd state directory")
 	}
 
 	log.Info("Cleaning up k8s-dqlite directory")

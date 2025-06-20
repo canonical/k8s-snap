@@ -307,3 +307,18 @@ func ReadControlPlanePKI(snap snap.Snap, certificates *pki.ControlPlanePKI, read
 
 	return nil
 }
+
+// EnsureEtcdPKI ensures the etcd PKI files are present.
+// and have the correct content, permissions and ownership.
+// It returns true if one or more files were updated and any error that occured.
+func EnsureEtcdPKI(snap snap.Snap, certificates *pki.EtcdPKI) (bool, error) {
+	return ensureFiles(snap.UID(), snap.GID(), 0o600, map[string]string{
+		filepath.Join(snap.EtcdPKIDir(), "ca.crt"):                          certificates.CACert,
+		filepath.Join(snap.EtcdPKIDir(), "server.crt"):                      certificates.ServerCert,
+		filepath.Join(snap.EtcdPKIDir(), "server.key"):                      certificates.ServerKey,
+		filepath.Join(snap.EtcdPKIDir(), "peer.crt"):                        certificates.ServerPeerCert,
+		filepath.Join(snap.EtcdPKIDir(), "peer.key"):                        certificates.ServerPeerKey,
+		filepath.Join(snap.KubernetesPKIDir(), "apiserver-etcd-client.crt"): certificates.APIServerClientCert,
+		filepath.Join(snap.KubernetesPKIDir(), "apiserver-etcd-client.key"): certificates.APIServerClientKey,
+	})
+}

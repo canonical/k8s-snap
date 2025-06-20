@@ -20,6 +20,14 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 )
 
+type configProvider struct {
+	config types.ClusterConfig
+}
+
+func (c *configProvider) getConfig(ctx context.Context) (types.ClusterConfig, error) {
+	return c.config, nil
+}
+
 func TestUpdateNodeConfigurationController(t *testing.T) {
 	g := NewWithT(t)
 

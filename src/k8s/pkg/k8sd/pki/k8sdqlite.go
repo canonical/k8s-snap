@@ -29,7 +29,6 @@ type K8sDqlitePKIOpts struct {
 	NotBefore         time.Time
 	NotAfter          time.Time
 	AllowSelfSignedCA bool
-	Datastore         string
 }
 
 func NewK8sDqlitePKI(opts K8sDqlitePKIOpts) *K8sDqlitePKI {

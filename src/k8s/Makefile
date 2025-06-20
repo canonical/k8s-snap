@@ -64,7 +64,7 @@ ln -sf $(1)-$(3) $(1)
 endef
 
 ## Static Builds
-static: bin/static/k8s bin/static/k8sd bin/static/k8s-apiserver-proxy
+static: bin/static/k8s bin/static/k8sd bin/static/k8s-apiserver-proxy bin/static/etcd
 
 $(DQLITE_BUILD_SCRIPTS_DIR)/.deps/static/lib/libdqlite.a:
 	$(DQLITE_BUILD_SCRIPTS_DIR)/static-dqlite.sh
@@ -79,8 +79,11 @@ bin/static/k8s-apiserver-proxy: bin/static/k8s
 bin/static/k8sd: bin/static/k8s
 	cd bin/static && ln -sf k8s k8sd
 
+bin/static/etcd: bin/static/k8s
+	cd bin/static && ln -sf k8s etcd
+
 ## Dynamic Builds
-dynamic: bin/dynamic/k8s bin/dynamic/k8sd bin/dynamic/k8s-apiserver-proxy
+dynamic: bin/dynamic/k8s bin/dynamic/k8sd bin/dynamic/k8s-apiserver-proxy bin/dynamic/etcd
 
 bin/dynamic/lib/libdqlite.so:
 	mkdir -p bin/dynamic/lib
@@ -96,6 +99,9 @@ bin/dynamic/k8s-apiserver-proxy: bin/dynamic/k8s
 
 bin/dynamic/k8sd: bin/dynamic/k8s
 	cd bin/dynamic && ln -s k8s k8sd
+
+bin/dynamic/etcd: bin/dynamic/k8s
+	cd bin/dynamic && ln -s k8s etcd
 
 ## Cleanup
 clean:
