@@ -409,7 +409,7 @@ def wait_for_network(instance: harness.Instance):
 def wait_for_load_balancer(instance: harness.Instance):
     """Wait for the load balancer to be ready."""
     LOG.info("Waiting for load balancer to be ready")
-    instance.exec(
+    stubbornly(retries=3, delay_s=5).on(instance).exec(
         [
             "k8s",
             "kubectl",
