@@ -2,10 +2,9 @@
 # Copyright 2025 Canonical, Ltd.
 #
 import logging
-import re
 import os
+import re
 import shlex
-from socket import timeout
 import subprocess
 from pathlib import Path
 
@@ -43,7 +42,10 @@ class MultipassHarness(Harness):
         self, network_type: str = "IPv4", name_suffix: str = ""
     ) -> Instance:
         if network_type not in ("IPv4", "IPv6", "dualstack"):
-            raise HarnessError("Unknown network type: %s; supported types: IPv4, IPv6, dualstack", network_type)
+            raise HarnessError(
+                "Unknown network type: %s; supported types: IPv4, IPv6, dualstack",
+                network_type,
+            )
 
         instance_id = (
             f"k8s-integration-{self.next_id()}-{os.urandom(3).hex()}{name_suffix}"
@@ -67,7 +69,10 @@ class MultipassHarness(Harness):
 
             if self.cloud_init:
 
-                cloud_init_content = Path(config.CLOUD_INIT_DIR / self.cloud_init).read_text()
+                cloud_init_content = Path(
+                    config.CLOUD_INIT_DIR / self.cloud_init
+                ).read_text()
+
                 # Replace environment variables in the format ${VAR} or $VAR
                 def replace_env_var(match):
                     LOG.info(match)
@@ -77,9 +82,9 @@ class MultipassHarness(Harness):
 
                 LOG.info(os.environ)
                 cloud_init_content = re.sub(
-                    r'\$\{([^}]+)\}|\$([A-Za-z_][A-Za-z0-9_]*)',
+                    r"\$\{([^}]+)\}|\$([A-Za-z_][A-Za-z0-9_]*)",
                     replace_env_var,
-                    cloud_init_content
+                    cloud_init_content,
                 )
 
                 LOG.info("Using cloud-init: %s", cloud_init_content)
@@ -93,8 +98,16 @@ class MultipassHarness(Harness):
                     sensitive_kwargs=True,
                     check=False,
                 )
-                util.stubbornly(retries=3, delay_s=5).until(lambda p: "Running" in p.stdout.decode()).exec(["multipass", "info", instance_id], timeout=180, check=False)
-                util.stubbornly(retries=3, delay_s=5).until(lambda p: "test" in p.stdout.decode()).exec(["multipass", "exec", instance_id, "--", "echo", "test"], timeout=180, check=False)
+                stubbornly(retries=3, delay_s=5).until(
+                    lambda p: "Running" in p.stdout.decode()
+                ).exec(["multipass", "info", instance_id], timeout=180, check=False)
+                stubbornly(retries=3, delay_s=5).until(
+                    lambda p: "test" in p.stdout.decode()
+                ).exec(
+                    ["multipass", "exec", instance_id, "--", "echo", "test"],
+                    timeout=180,
+                    check=False,
+                )
             else:
                 run(cmd)
 
