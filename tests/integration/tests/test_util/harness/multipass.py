@@ -11,7 +11,7 @@ from pathlib import Path
 
 from test_util import config
 from test_util.harness import Harness, HarnessError, Instance
-from test_util.util import run
+from test_util.util import run, stubbornly
 
 LOG = logging.getLogger(__name__)
 
@@ -93,11 +93,8 @@ class MultipassHarness(Harness):
                     sensitive_kwargs=True,
                     check=False,
                 )
-                run(["multipass", "info"], timeout=180, check=False)
-                run(["multipass", "list"], timeout=180, check=False)
-                self.exec(instance_id, ["echo", "test"], timeout=180, check=False)
-                self.exec(instance_id, ["echo", "test"], timeout=180, check=False)
-                self.exec(instance_id, ["echo", "test"], timeout=180, check=False)
+                util.stubbornly(retries=3, delay_s=5).until(lambda p: "Running" in p.stdout.decode()).exec(["multipass", "info", instance_id], timeout=180, check=False)
+                util.stubbornly(retries=3, delay_s=5).until(lambda p: "test" in p.stdout.decode()).exec(["multipass", "exec", instance_id, "--", "echo", "test"], timeout=180, check=False)
             else:
                 run(cmd)
 
