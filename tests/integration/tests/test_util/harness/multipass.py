@@ -5,6 +5,7 @@ import logging
 import re
 import os
 import shlex
+from socket import timeout
 import subprocess
 from pathlib import Path
 
@@ -92,6 +93,9 @@ class MultipassHarness(Harness):
                     sensitive_kwargs=True,
                     check=False,
                 )
+                self.exec(instance_id, ["echo 'test'"], timeout=180, check=False)
+                self.exec(instance_id, ["echo 'test'"], timeout=180, check=False)
+                self.exec(instance_id, ["echo 'test'"], timeout=180, check=False)
             else:
                 run(cmd)
 
