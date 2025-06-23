@@ -98,15 +98,9 @@ class MultipassHarness(Harness):
                     sensitive_kwargs=True,
                     check=False,
                 )
-                stubbornly(retries=3, delay_s=5).until(
-                    lambda p: "Running" in p.stdout.decode()
-                ).exec(["multipass", "info", instance_id], timeout=180, check=False)
-                stubbornly(retries=3, delay_s=5).until(
-                    lambda p: "test" in p.stdout.decode()
-                ).exec(
+                stubbornly(retries=20, delay_s=5).exec(
                     ["multipass", "exec", instance_id, "--", "echo", "test"],
-                    timeout=180,
-                    check=False,
+                    timeout=20,
                 )
             else:
                 run(cmd)
