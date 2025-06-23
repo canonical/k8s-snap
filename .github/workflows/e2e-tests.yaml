@@ -173,6 +173,17 @@ jobs:
         if: ${{ inputs.substrate == 'multipass' }}
         run: |
           sudo snap install multipass
+          # Wait for the Multipass daemon socket to become available
+          echo "Waiting for multipassd to be ready..."
+          timeout=30
+          while ! multipass list >/dev/null 2>&1; do
+              sleep 1
+              ((timeout--))
+              if [[ $timeout -le 0 ]]; then
+                  echo "Timeout waiting for multipass to become ready"
+                  exit 1
+              fi
+          done
           # The runner is not part of the sudo group, so we need to authenticate the client.
           # Nesting sudo caused issues with the Multipass client.
           sudo multipass set local.passphrase=runner
