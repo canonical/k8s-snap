@@ -93,8 +93,8 @@ class MultipassHarness(Harness):
                     sensitive_kwargs=True,
                     check=False,
                 )
-                run("multipass info", timeout=180, check=False)
-                run("multipass list", timeout=180, check=False)
+                run(["multipass", "info"], timeout=180, check=False)
+                run(["multipass", "list"], timeout=180, check=False)
                 self.exec(instance_id, ["echo", "test"], timeout=180, check=False)
                 self.exec(instance_id, ["echo", "test"], timeout=180, check=False)
                 self.exec(instance_id, ["echo", "test"], timeout=180, check=False)
