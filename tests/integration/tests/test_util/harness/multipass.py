@@ -93,7 +93,7 @@ class MultipassHarness(Harness):
                 # the underlying machine works just fine.
                 # Hence, we disable the check for this call, continue and hope for the best.
                 run(
-                    cmd + ["--cloud-init", "-", "--timeout", "180"],
+                    cmd + ["--cloud-init", "-", "--timeout", "900"],
                     input=cloud_init_content.encode(),
                     sensitive_kwargs=True,
                     check=False,
