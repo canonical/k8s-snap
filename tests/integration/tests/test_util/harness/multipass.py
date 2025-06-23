@@ -149,6 +149,7 @@ class MultipassHarness(Harness):
             )
             run(
                 [
+                    "sudo",
                     "multipass",
                     "transfer",
                     source,
@@ -171,6 +172,7 @@ class MultipassHarness(Harness):
         try:
             run(
                 [
+                    "sudo",
                     "multipass",
                     "transfer",
                     f"{instance_id}:{source}",
