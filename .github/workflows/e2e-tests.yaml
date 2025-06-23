@@ -176,7 +176,7 @@ jobs:
           # Wait for the Multipass daemon socket to become available
           echo "Waiting for multipassd to be ready..."
           timeout=30
-          while ! multipass list >/dev/null 2>&1; do
+          while ! sudo multipass list >/dev/null 2>&1; do
               sleep 1
               ((timeout--))
               if [[ $timeout -le 0 ]]; then
