@@ -88,7 +88,7 @@ class Retriable:
             LOG.warning(f"  stdout={stdout}")
             LOG.warning(f"  stderr={stderr}")
             raise
-        if self._condition:
+        if self._condition and command_kwds.get('check', True):
             assert self._condition(resp), "Failed to meet condition"
         return resp
 
