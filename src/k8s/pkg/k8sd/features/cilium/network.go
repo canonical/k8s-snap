@@ -37,22 +37,11 @@ func checkAndSanitizeCiliumVXLAN(port int) error {
 	}
 
 	for _, vxlanDevice := range vxlanDevices {
-		if vxlanDevice.Name == ciliumVXLANDeviceName {
-			// Note(Reza): Currently Cilium tries to bring up the vxlan interface before applying
-			// any configuration changes. If the Cilium vxlan interface has any conflicts with other
-			// interfaces that makes it unable to brought up, Cilium fails to apply configuration
-			// changes. Removing the interface before applying the new manifests is a temporary
-			// workaround. We can remove this block when the following issue gets settled:
-			// https://github.com/cilium/cilium/issues/38581
-			if err := utils.RemoveLink(vxlanDevice.Name); err != nil {
-				return err
-			}
-
-			continue
+		if vxlanDevice.Port == port && vxlanDevice.Name != ciliumVXLANDeviceName {
+			return fmt.Errorf("interface %s uses the same destination port as cilium. Please consider removing that device manually", vxlanDevice.Name)
 		}
-
-		if vxlanDevice.Port == port {
-			return fmt.Errorf("interface %s uses the same destination port as cilium", vxlanDevice.Name)
+		if vxlanDevice.Name == ciliumVXLANDeviceName && vxlanDevice.Port != port {
+			return fmt.Errorf("interface %s uses a different destination port (%d) than the provided config (%d). Please consider removing that device manually", vxlanDevice.Name, vxlanDevice.Port, port)
 		}
 	}
 
