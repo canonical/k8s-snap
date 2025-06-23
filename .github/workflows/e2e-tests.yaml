@@ -173,23 +173,20 @@ jobs:
         if: ${{ inputs.substrate == 'multipass' }}
         run: |
           sudo snap install multipass
-          # Wait for the Multipass daemon socket to become available
-          echo "Waiting for multipassd to be ready..."
-          timeout=30
-          while ! sudo multipass list >/dev/null 2>&1; do
-              sleep 1
-              ((timeout--))
-              if [[ $timeout -le 0 ]]; then
-                  echo "Timeout waiting for multipass to become ready"
-                  exit 1
-              fi
-          done
-          sleep 5
           # The runner is not part of the sudo group, so we need to authenticate the client.
           # Nesting sudo caused issues with the Multipass client.
           sudo multipass set local.passphrase=runner
-          sleep 5
-          multipass authenticate runner
+          # It might take some time to propagate this setting and directly calling multipass authenticate
+          # might fail. So we retry until it works.
+          timeout=30
+          while ! multipass authenticate runner >/dev/null 2>&1; do
+              sleep 1
+              ((timeout--))
+              if [[ $timeout -le 0 ]]; then
+                  echo "Timeout waiting for multipass to authenticate"
+                  exit 1
+              fi
+          done
       - name: Install tox
         run: sudo apt-get install -y tox
       - name: Generate names for step and artifacts
