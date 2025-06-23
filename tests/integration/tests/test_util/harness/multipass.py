@@ -41,8 +41,8 @@ class MultipassHarness(Harness):
     def new_instance(
         self, network_type: str = "IPv4", name_suffix: str = ""
     ) -> Instance:
-        if network_type not in ("IPv4", "IPv6"):
-            raise HarnessError("Currently only IPv4 is supported by Multipass harness")
+        if network_type not in ("IPv4", "IPv6", "dualstack"):
+            raise HarnessError("Unknown network type: %s; supported types: IPv4, IPv6, dualstack", network_type)
 
         instance_id = (
             f"k8s-integration-{self.next_id()}-{os.urandom(3).hex()}{name_suffix}"
@@ -51,7 +51,6 @@ class MultipassHarness(Harness):
         LOG.debug("Creating instance %s with image %s", instance_id, self.image)
         try:
             cmd = [
-                "sudo",
                 "multipass",
                 "launch",
                 self.image,
@@ -102,7 +101,7 @@ class MultipassHarness(Harness):
         self.instances.add(instance_id)
 
         self.exec(instance_id, ["snap", "wait", "system", "seed.loaded"])
-        if network_type == "IPv6":
+        if network_type in ("IPv6", "dualstack"):
             LOG.debug("Enabling IPv6 support in instance %s", instance_id)
             try:
                 self.exec(
@@ -140,7 +139,6 @@ class MultipassHarness(Harness):
             )
             run(
                 [
-                    "sudo",
                     "multipass",
                     "transfer",
                     source,
@@ -163,7 +161,6 @@ class MultipassHarness(Harness):
         try:
             run(
                 [
-                    "sudo",
                     "multipass",
                     "transfer",
                     f"{instance_id}:{source}",
@@ -186,11 +183,11 @@ class MultipassHarness(Harness):
 
         return run(
             [
-                "sudo",
                 "multipass",
                 "exec",
                 instance_id,
                 "--",
+                "sudo",
                 "bash",
                 "-c",
                 command_str,
@@ -203,8 +200,8 @@ class MultipassHarness(Harness):
             raise HarnessError(f"unknown instance {instance_id}")
 
         try:
-            run(["sudo", "multipass", "delete", instance_id])
-            run(["sudo", "multipass", "purge"])
+            run(["multipass", "delete", instance_id])
+            run(["multipass", "purge"])
         except subprocess.CalledProcessError as e:
             raise HarnessError(f"failed to delete instance {instance_id}") from e
 
