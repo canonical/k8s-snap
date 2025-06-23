@@ -166,7 +166,12 @@ jobs:
           bridges: "lxdbr0,dualstack-br0,ipv6-br0"
       - name: Setup Multipass
         if: ${{ inputs.substrate == 'multipass' }}
-        run: sudo snap install multipass
+        run: |
+          sudo snap install multipass
+          # The runner is not part of the sudo group, so we need to authenticate the client.
+          # Nesting sudo caused issues with the Multipass client.
+          sudo multipass set local.passphrase=runner
+          multipass authenticate runner
       - name: Install tox
         run: sudo apt-get install -y tox
       - name: Setup tmate session
