@@ -191,7 +191,6 @@ class MultipassHarness(Harness):
                 "exec",
                 instance_id,
                 "--",
-                "sudo",
                 "bash",
                 "-c",
                 command_str,
