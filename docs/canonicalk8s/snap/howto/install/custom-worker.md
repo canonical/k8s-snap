@@ -53,7 +53,8 @@ sudo k8s join-cluster --help
 ```
 
 You can then run the join the cluster with the token generated from the output
-of the `get-join-token` command and any arguments you may need. For example, to set the output formatting to JSON run:
+of the `get-join-token` command and any arguments you may need. For example, to
+set the output formatting to JSON run:
 
 ```
 sudo k8s join-cluster --output-format=json <JOIN-TOKEN>
