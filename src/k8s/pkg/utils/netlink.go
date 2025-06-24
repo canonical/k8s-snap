@@ -9,14 +9,14 @@ import (
 
 type VXLANInterface struct {
 	net.Interface
-	Port int
+	Port *int
 }
 
 var ipLinks []struct {
 	IfName   string `json:"ifname"`
 	LinkInfo struct {
 		InfoData struct {
-			Port int `json:"port"`
+			Port *int `json:"port"`
 		} `json:"info_data"`
 	} `json:"linkinfo"`
 }
