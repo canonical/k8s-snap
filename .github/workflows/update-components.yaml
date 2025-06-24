@@ -4,6 +4,9 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "0 10 * * *"
+  pull_request:
+    paths:
+      - .github/workflows/update-components.yaml
 
 permissions:
   contents: read
@@ -56,3 +59,4 @@ jobs:
           delete-branch: true
           base: ${{ matrix.branch }}
           token: ${{ secrets.BOT_TOKEN }}
+          author: "K8s builder bot <k8s-bot@canonical.com>"
