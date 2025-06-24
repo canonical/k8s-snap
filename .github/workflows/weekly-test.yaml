@@ -28,7 +28,6 @@ jobs:
       channel: ${{ matrix.channel }}
       test-tags: 'up_to_weekly'
       substrate: 'multipass'
-      tmate_enabled: true
       extra-test-env: 'TEST_MULTIPASS_CLOUD_INIT=ubuntu-pro-fips.yaml,TEST_USE_LOCAL_MIRROR=0,TEST_PRELOAD_SNAPS=0,TEST_SKIP_CLEANUP=1'
     secrets:
       UBUNTU_PRO_TOKEN: ${{ secrets.UBUNTU_PRO_TOKEN }}
