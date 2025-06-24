@@ -59,4 +59,4 @@ jobs:
           delete-branch: true
           base: ${{ matrix.branch }}
           token: ${{ secrets.BOT_TOKEN }}
-          author: "Github Actions <worker@org.com>"
+          author: "K8s builder bot <k8s-bot@canonical.com>"
