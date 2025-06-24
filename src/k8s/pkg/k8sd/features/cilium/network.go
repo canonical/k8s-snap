@@ -38,10 +38,10 @@ func checkAndSanitizeCiliumVXLAN(port int) error {
 
 	for _, vxlanDevice := range vxlanDevices {
 		if vxlanDevice.Port == port && vxlanDevice.Name != ciliumVXLANDeviceName {
-			return fmt.Errorf("interface %s uses the same destination port as cilium. Please consider removing that device manually", vxlanDevice.Name)
+			return fmt.Errorf("interface %s uses the same destination port as cilium. Please consider changing the Cilium tunnel port", vxlanDevice.Name)
 		}
 		if vxlanDevice.Name == ciliumVXLANDeviceName && vxlanDevice.Port != port {
-			return fmt.Errorf("interface %s uses a different destination port (%d) than the provided config (%d). Please consider removing that device manually", vxlanDevice.Name, vxlanDevice.Port, port)
+			return fmt.Errorf("interface %s uses a different destination port (%d) than the provided config (%d). Please consider adjusting the cluster configuration or removing that device manually", vxlanDevice.Name, vxlanDevice.Port, port)
 		}
 	}
 
