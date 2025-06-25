@@ -7,7 +7,7 @@ import struct
 from typing import List
 
 import pytest
-from test_util import harness, tags, util
+from test_util import config, harness, tags, util
 
 LOG = logging.getLogger(__name__)
 
@@ -21,10 +21,13 @@ def _get_failure_domain(availability_zone: str) -> int:
 
 @pytest.mark.node_count(3)
 @pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.parametrize("same_az", (False, True))
+@pytest.mark.parametrize("datastore", ("k8s-dqlite", "etcd"))
 def test_node_availability_zone(
     instances: List[harness.Instance],
     same_az: bool,
+    datastore: str,
 ):
     # Steps:
     # * create a three-node cluster
@@ -36,6 +39,21 @@ def test_node_availability_zone(
     #     domain changes to be applied. We need to make sure that this doesn't
     #     lead to a quorum loss.
     initial_node = instances[0]
+
+    if datastore == "k8s-dqlite":
+        bootstrap_config = (
+            config.MANIFESTS_DIR / "bootstrap-k8s-dqlite.yaml"
+        ).read_text()
+    else:
+        bootstrap_config = (config.MANIFESTS_DIR / "bootstrap-all.yaml").read_text()
+
+    initial_node.exec(
+        ["k8s", "bootstrap", "--file", "-"],
+        input=str.encode(bootstrap_config),
+    )
+
+    util.wait_until_k8s_ready(initial_node, [initial_node])
+
     joining_cplane_node_1 = instances[1]
     joining_cplane_node_2 = instances[2]
 
@@ -97,10 +115,13 @@ def test_node_availability_zone(
                 ]
             )
 
-            # Check k8s-dqlite.
-            util.stubbornly(retries=5, delay_s=10).on(instance).until(
-                lambda p: str(failure_domain) in p.stdout.decode()
-            ).exec(["cat", "/var/snap/k8s/common/var/lib/k8s-dqlite/failure-domain"])
+            if datastore == "k8s-dqlite":
+                # Check k8s-dqlite.
+                util.stubbornly(retries=5, delay_s=10).on(instance).until(
+                    lambda p: str(failure_domain) in p.stdout.decode()
+                ).exec(
+                    ["cat", "/var/snap/k8s/common/var/lib/k8s-dqlite/failure-domain"]
+                )
 
         # Make sure that the nodes remain available.
         util.wait_until_k8s_ready(initial_node, instances)
