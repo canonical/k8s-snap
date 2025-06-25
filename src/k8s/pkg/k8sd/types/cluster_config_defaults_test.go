@@ -24,7 +24,7 @@ func TestSetDefaults(t *testing.T) {
 			AuthorizationMode: utils.Pointer("Node,RBAC"),
 		},
 		Datastore: types.Datastore{
-			Type:          utils.Pointer("k8s-dqlite"),
+			Type:          utils.Pointer("etcd"),
 			K8sDqlitePort: utils.Pointer(9000),
 			EtcdPort:      utils.Pointer(2379),
 			EtcdPeerPort:  utils.Pointer(2380),

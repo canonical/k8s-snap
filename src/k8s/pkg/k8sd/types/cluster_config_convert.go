@@ -24,7 +24,7 @@ func ClusterConfigFromBootstrapConfig(b apiv1.BootstrapConfig) (ClusterConfig, e
 
 	// Datastore
 	switch b.GetDatastoreType() {
-	case "", "k8s-dqlite":
+	case "k8s-dqlite":
 		if len(b.DatastoreServers) > 0 {
 			return ClusterConfig{}, fmt.Errorf("datastore-servers needs datastore-type to be external, not %q", b.GetDatastoreType())
 		}
@@ -48,7 +48,7 @@ func ClusterConfigFromBootstrapConfig(b apiv1.BootstrapConfig) (ClusterConfig, e
 			Type:          utils.Pointer("k8s-dqlite"),
 			K8sDqlitePort: b.K8sDqlitePort,
 		}
-	case "etcd":
+	case "", "etcd":
 		if len(b.DatastoreServers) > 0 {
 			return ClusterConfig{}, fmt.Errorf("datastore-servers needs datastore-type to be external, not %q", b.GetDatastoreType())
 		}
