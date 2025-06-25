@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
+
+	"github.com/canonical/k8s/pkg/utils"
 )
 
 type Datastore struct {
@@ -49,13 +51,14 @@ func (c Datastore) Empty() bool          { return c == Datastore{} }
 
 // DatastorePathsProvider is to avoid circular dependency for snap.Snap in Datastore.ToKubeAPIServerArguments().
 type DatastorePathsProvider interface {
+	KubernetesPKIDir() string
 	K8sDqliteStateDir() string
 	EtcdPKIDir() string
 }
 
 // ToKubeAPIServerArguments returns updateArgs, deleteArgs that can be used with snaputil.UpdateServiceArguments() for the kube-apiserver
 // according the datastore configuration.
-func (c Datastore) ToKubeAPIServerArguments(p DatastorePathsProvider) (map[string]string, []string) {
+func (c Datastore) ToKubeAPIServerArguments(p DatastorePathsProvider) (map[string]string, []string, error) {
 	var (
 		updateArgs = make(map[string]string)
 		deleteArgs []string
@@ -68,6 +71,17 @@ func (c Datastore) ToKubeAPIServerArguments(p DatastorePathsProvider) (map[strin
 		// The watch list feature is enable by default on >1.32, but k8s-dqlite currently doesn't support it.
 		updateArgs["--feature-gates"] = "WatchList=false"
 		deleteArgs = []string{"--etcd-cafile", "--etcd-certfile", "--etcd-keyfile"}
+	case "etcd":
+		updateArgs["--etcd-cafile"] = filepath.Join(p.EtcdPKIDir(), "ca.crt")
+		updateArgs["--etcd-certfile"] = filepath.Join(p.KubernetesPKIDir(), "apiserver-etcd-client.crt")
+		updateArgs["--etcd-keyfile"] = filepath.Join(p.KubernetesPKIDir(), "apiserver-etcd-client.key")
+
+		localhostAddress, err := utils.GetLocalhostAddress()
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to get localhost address: %w", err)
+		}
+
+		updateArgs["--etcd-servers"] = fmt.Sprintf("https://%s", utils.JoinHostPort(localhostAddress.String(), c.GetEtcdPort()))
 	case "external":
 		updateArgs["--etcd-servers"] = strings.Join(c.GetExternalServers(), ",")
 
@@ -89,5 +103,5 @@ func (c Datastore) ToKubeAPIServerArguments(p DatastorePathsProvider) (map[strin
 		}
 	}
 
-	return updateArgs, deleteArgs
+	return updateArgs, deleteArgs, nil
 }
