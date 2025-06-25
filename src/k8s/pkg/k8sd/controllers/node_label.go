@@ -29,7 +29,7 @@ func NewNodeLabelController(snap snap.Snap, waitReady func(), getNodeName func(c
 	}
 }
 
-func (c *NodeLabelController) Run(ctx context.Context) {
+func (c *NodeLabelController) Run(ctx context.Context, getDatastoreType func(ctx context.Context) (string, error)) {
 	ctx = log.NewContext(ctx, log.FromContext(ctx).WithValues("controller", "node-configuration"))
 	log := log.FromContext(ctx)
 
@@ -52,7 +52,7 @@ func (c *NodeLabelController) Run(ctx context.Context) {
 
 		if err := client.WatchNode(
 			ctx, nodeName, func(node *v1.Node) error {
-				err := c.reconcile(ctx, node)
+				err := c.reconcile(ctx, node, getDatastoreType)
 				c.notifyReconciled()
 				return err
 			}); err != nil {
@@ -68,7 +68,7 @@ func (c *NodeLabelController) Run(ctx context.Context) {
 	}
 }
 
-func (c *NodeLabelController) reconcileFailureDomain(ctx context.Context, node *v1.Node) error {
+func (c *NodeLabelController) reconcileFailureDomain(ctx context.Context, node *v1.Node, getDatastoreType func(ctx context.Context) (string, error)) error {
 	azLabel, azFound := node.Labels["topology.kubernetes.io/zone"]
 	var failureDomain uint64
 	if azFound && azLabel != "" {
@@ -80,35 +80,42 @@ func (c *NodeLabelController) reconcileFailureDomain(ctx context.Context, node *
 		failureDomain = 0
 	}
 
-	if err := c.updateDqliteFailureDomain(ctx, failureDomain, azLabel); err != nil {
+	if err := c.updateDqliteFailureDomain(ctx, failureDomain, azLabel, getDatastoreType); err != nil {
 		return fmt.Errorf("failed to update failure-domain, error: %w", err)
 	}
 
 	return nil
 }
 
-func (c *NodeLabelController) updateDqliteFailureDomain(ctx context.Context, failureDomain uint64, availabilityZone string) error {
+func (c *NodeLabelController) updateDqliteFailureDomain(ctx context.Context, failureDomain uint64, availabilityZone string, getDatastoreType func(ctx context.Context) (string, error)) error {
 	log := log.FromContext(ctx)
 
 	// We need to update both k8s-snap Dqlite databases (k8sd and k8s-dqlite).
-	k8sDqliteStateDir := c.snap.K8sDqliteStateDir()
 	k8sdDbStateDir := filepath.Join(c.snap.K8sdStateDir(), "database")
 
-	modified, err := snaputil.UpdateDqliteFailureDomain(failureDomain, k8sDqliteStateDir)
+	datastoreType, err := getDatastoreType(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get datastore type: %w", err)
 	}
+	if datastoreType == "k8s-dqlite" {
+		k8sDqliteStateDir := c.snap.K8sDqliteStateDir()
 
-	if modified {
-		log.Info("Updated k8s-dqlite failure domain", "failure domain", failureDomain, "availability zone", availabilityZone)
-		if err = c.snap.RestartServices(ctx, []string{"k8s-dqlite"}); err != nil {
-			return fmt.Errorf("failed to restart k8s-dqlite to apply failure domain: %w", err)
+		modified, err := snaputil.UpdateDqliteFailureDomain(failureDomain, k8sDqliteStateDir)
+		if err != nil {
+			return fmt.Errorf("failed to update k8s-dqlite failure domain: %w", err)
+		}
+
+		if modified {
+			log.Info("Updated k8s-dqlite failure domain", "failure domain", failureDomain, "availability zone", availabilityZone)
+			if err = c.snap.RestartServices(ctx, []string{"k8s-dqlite"}); err != nil {
+				return fmt.Errorf("failed to restart k8s-dqlite to apply failure domain: %w", err)
+			}
 		}
 	}
 
-	modified, err = snaputil.UpdateDqliteFailureDomain(failureDomain, k8sdDbStateDir)
+	modified, err := snaputil.UpdateDqliteFailureDomain(failureDomain, k8sdDbStateDir)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to update k8sd failure domain: %w", err)
 	}
 
 	// TODO: use Microcluster API once it becomes available. This should
@@ -124,8 +131,8 @@ func (c *NodeLabelController) updateDqliteFailureDomain(ctx context.Context, fai
 	return nil
 }
 
-func (c *NodeLabelController) reconcile(ctx context.Context, node *v1.Node) error {
-	if err := c.reconcileFailureDomain(ctx, node); err != nil {
+func (c *NodeLabelController) reconcile(ctx context.Context, node *v1.Node, getDatastoreType func(ctx context.Context) (string, error)) error {
+	if err := c.reconcileFailureDomain(ctx, node, getDatastoreType); err != nil {
 		return fmt.Errorf("failed to reconcile failure domain: %w", err)
 	}
 
