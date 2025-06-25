@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
+	"github.com/canonical/k8s/pkg/client/etcd"
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/client/k8sd"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
@@ -55,6 +56,7 @@ type Mock struct {
 	KubernetesNodeClient        *kubernetes.Client
 	HelmClient                  helm.Client
 	K8sDqliteClient             *dqlite.Client
+	EtcdClient                  *etcd.Client
 	K8sdClient                  k8sd.Client
 	SnapctlGet                  map[string][]byte
 }
@@ -289,6 +291,10 @@ func (s *Snap) HelmClient() helm.Client {
 
 func (s *Snap) K8sDqliteClient(context.Context) (*dqlite.Client, error) {
 	return s.Mock.K8sDqliteClient, nil
+}
+
+func (s *Snap) EtcdClient(endpoints []string) (*etcd.Client, error) {
+	return s.Mock.EtcdClient, nil
 }
 
 func (s *Snap) K8sdClient(address string) (k8sd.Client, error) {
