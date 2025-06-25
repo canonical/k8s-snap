@@ -165,7 +165,6 @@ func TestNewK8sDqlitePKI(t *testing.T) {
 				NotBefore:         notBefore,
 				NotAfter:          notBefore.AddDate(2, 0, 0),
 				AllowSelfSignedCA: true,
-				Datastore:         "k8s-dqlite",
 			},
 			expectedPki: &K8sDqlitePKI{
 				hostname:          "localhost",
