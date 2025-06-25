@@ -283,6 +283,10 @@ func (s *snap) K8sDqliteStateDir() string {
 	return filepath.Join(s.snapCommonDir, "var", "lib", "k8s-dqlite")
 }
 
+func (s *snap) EtcdDir() string {
+	return filepath.Join(s.snapCommonDir, "var", "lib", "etcd")
+}
+
 func (s *snap) ServiceArgumentsDir() string {
 	return filepath.Join(s.snapCommonDir, "args")
 }

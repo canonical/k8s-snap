@@ -43,6 +43,7 @@ type Mock struct {
 	K8sInspectScriptPath        string
 	K8sdStateDir                string
 	K8sDqliteStateDir           string
+	EtcdDir                     string
 	ServiceArgumentsDir         string
 	ServiceExtraConfigDir       string
 	LockFilesDir                string
@@ -248,6 +249,10 @@ func (s *Snap) K8sdStateDir() string {
 
 func (s *Snap) K8sDqliteStateDir() string {
 	return s.Mock.K8sDqliteStateDir
+}
+
+func (s *Snap) EtcdDir() string {
+	return s.Mock.EtcdDir
 }
 
 func (s *Snap) ServiceArgumentsDir() string {
