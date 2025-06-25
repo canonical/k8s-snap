@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
+	"github.com/canonical/k8s/pkg/client/etcd"
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/client/k8sd"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
@@ -74,6 +75,8 @@ type Snap interface {
 	HelmClient() helm.Client // admin helm client
 
 	K8sDqliteClient(ctx context.Context) (*dqlite.Client, error) // go-dqlite client for k8s-dqlite
+
+	EtcdClient(endpoints []string) (*etcd.Client, error) // client for the managed etcd cluster
 
 	K8sdClient(address string) (k8sd.Client, error) // k8sd client
 
