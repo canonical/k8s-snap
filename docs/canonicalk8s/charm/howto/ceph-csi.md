@@ -44,18 +44,29 @@ the ``ceph-xfs`` and ``ceph-ext4`` storage classes, which leverage
 Ceph RBD.
 
 ```
-juju deploy ceph-csi --config provisioner-replicas=1
+CEPH_NS=ceph-ns  # kubernetes namespace for the ceph driver
+juju deploy ceph-csi \
+  --config provisioner-replicas=1 \
+  --config namespace="${CEPH_NS}" \
+  --config create-namespace=true
 juju integrate ceph-csi k8s:ceph-k8s-info
 juju integrate ceph-csi ceph-mon:client
 ```
 
-CephFS support can optionally be enabled:
+CephFS support can be optionally enabled (off by default):
 
 ```
 juju deploy ceph-fs
 juju integrate ceph-fs:ceph-mds ceph-mon:mds
-juju config ceph-csi cephfs-enable=True
+juju config ceph-csi cephfs-enable=true
 ```
+
+CephRBD support can be optionally disabled (on by default):
+
+```
+juju config ceph-csi ceph-rbd-enable=false
+```
+
 
 ## Validating the CSI integration
 
@@ -63,7 +74,7 @@ Ensure that the storage classes are available and that the
 CSI pods are running:
 
 ```
-juju ssh k8s/leader -- sudo k8s kubectl get sc,po --namespace default
+juju ssh k8s/leader -- sudo k8s kubectl get sc,po --namespace ${CEPH_NS}
 ```
 
 The list should include the ``ceph-xfs`` and ``ceph-ext4`` storage classes as
@@ -140,6 +151,7 @@ Deploy an alternate Ceph cluster containing one monitor and one storage unit
 (OSDs) -- again limiting the resources allocated.
 
 ```
+CEPH_NS_ALT=ceph-csi-alt  # kubernetes namespace for the alternate ceph driver
 juju deploy -n 1 ceph-mon-alt ceph-mon \
     --constraints "cores=2 mem=4G root-disk=16G" \
     --config monitor-count=1 \
@@ -148,6 +160,8 @@ juju deploy -n 1 ceph-osd-alt ceph-osd \
     --constraints "cores=2 mem=4G root-disk=16G" \
     --storage osd-devices=1G,1 --storage osd-journals=1G,1
 juju deploy ceph-csi-alt ceph-csi \
+    --config create-namespace=true \
+    --config namespace=${CEPH_NS_ALT} \
     --config provisioner-replicas=1
 juju integrate ceph-csi-alt k8s:ceph-k8s-info
 juju integrate ceph-csi-alt ceph-mon-alt:client
@@ -180,8 +194,8 @@ associated namespace. Ensure the configuration for the `ceph-csi-alt`
 application changes so that it doesn't collide with `ceph-csi`.
 
 ```
-juju exec k8s/leader -- k8s kubectl create namespace ceph-csi-alt
-juju config ceph-csi-alt namespace=ceph-csi-alt
+CEPH_NS_ALT=ceph-csi-alt  # kubernetes namespace for the alternate ceph driver
+juju config ceph-csi-alt namespace=${CEPH_NS_ALT} create-namespace=true
 ```
 
 After this, the number of collisions between the two applications drop off,
