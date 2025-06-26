@@ -44,18 +44,29 @@ the ``ceph-xfs`` and ``ceph-ext4`` storage classes, which leverage
 Ceph RBD.
 
 ```
-juju deploy ceph-csi --config provisioner-replicas=1
+CEPH_NS=ceph-ns  # kubernetes namespace for the ceph driver
+juju deploy ceph-csi \
+  --config provisioner-replicas=1 \
+  --config namespace="${CEPH_NS}" \
+  --config create-namespace=true
 juju integrate ceph-csi k8s:ceph-k8s-info
 juju integrate ceph-csi ceph-mon:client
 ```
 
-CephFS support can optionally be enabled:
+`ceph-fs` support can be optionally enabled (off by default):
 
 ```
 juju deploy ceph-fs
 juju integrate ceph-fs:ceph-mds ceph-mon:mds
-juju config ceph-csi cephfs-enable=True
+juju config ceph-csi cephfs-enable=true
 ```
+
+`ceph-rbd` support is enabled by default but can be optionally disabled:
+
+```
+juju config ceph-csi ceph-rbd-enable=false
+```
+
 
 ## Validating the CSI integration
 
@@ -63,7 +74,7 @@ Ensure that the storage classes are available and that the
 CSI pods are running:
 
 ```
-juju ssh k8s/leader -- sudo k8s kubectl get sc,po --namespace default
+juju ssh k8s/leader -- sudo k8s kubectl get sc,po --namespace ${CEPH_NS}
 ```
 
 The list should include the ``ceph-xfs`` and ``ceph-ext4`` storage classes as
@@ -139,7 +150,11 @@ can be deployed again as separate Juju applications with different names.
 Deploy an alternate Ceph cluster containing one monitor and one storage unit
 (OSDs) -- again limiting the resources allocated.
 
+```{note} The alternate ceph drivers will need a new namespace to deploy into.
 ```
+
+```
+CEPH_NS_ALT=ceph-ns-alt  # kubernetes namespace for the alternate ceph driver
 juju deploy -n 1 ceph-mon-alt ceph-mon \
     --constraints "cores=2 mem=4G root-disk=16G" \
     --config monitor-count=1 \
@@ -148,6 +163,8 @@ juju deploy -n 1 ceph-osd-alt ceph-osd \
     --constraints "cores=2 mem=4G root-disk=16G" \
     --storage osd-devices=1G,1 --storage osd-journals=1G,1
 juju deploy ceph-csi-alt ceph-csi \
+    --config create-namespace=true \
+    --config namespace=${CEPH_NS_ALT} \
     --config provisioner-replicas=1
 juju integrate ceph-csi-alt k8s:ceph-k8s-info
 juju integrate ceph-csi-alt ceph-mon-alt:client
@@ -159,11 +176,13 @@ instances.  A new ceph-cluster via `ceph-mon-alt` and `ceph-osd-alt` and a new
 integration with Kubernetes by `ceph-csi-alt`.
 
 There are some Kubernetes Resources which collide in this deployment style.
-The admin will notice the `ceph-csi-alt` application in the blocked state with
-a status detailing the resource conflicts it detects:
+The `ceph-csi-alt` application may enter a blocked state with a status
+detailing the resource conflicts it detects:
 
 example)
 `10 Kubernetes resource collisions (action: list-resources)`
+
+### Resolving collisions
 
 List the collisions by running an action on the charm:
 
@@ -171,17 +190,19 @@ List the collisions by running an action on the charm:
 juju run ceph-csi-alt/leader list-resources
 ```
 
-### Resolving collisions
-
 #### Namespace collisions
 
 Many of the Kubernetes Resources managed by the `ceph-csi` charm have an
 associated namespace. Ensure the configuration for the `ceph-csi-alt`
-application changes so that it doesn't collide with `ceph-csi`.
+application doesn't collide with `ceph-csi`.
+
+If both `ceph-csi` and `ceph-csi-alt` were configured with `namespace=default`,
+then one of the charms will be in a blocked state. Assign `ceph-csi-alt` to an
+alternate namespace.
 
 ```
-juju exec k8s/leader -- k8s kubectl create namespace ceph-csi-alt
-juju config ceph-csi-alt namespace=ceph-csi-alt
+CEPH_NS_ALT=ceph-ns-alt  # kubernetes namespace for the alternate ceph driver
+juju config ceph-csi-alt namespace=${CEPH_NS_ALT} create-namespace=true
 ```
 
 After this, the number of collisions between the two applications drop off,
