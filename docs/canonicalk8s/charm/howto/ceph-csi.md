@@ -176,11 +176,13 @@ instances.  A new ceph-cluster via `ceph-mon-alt` and `ceph-osd-alt` and a new
 integration with Kubernetes by `ceph-csi-alt`.
 
 There are some Kubernetes Resources which collide in this deployment style.
-The admin will notice the `ceph-csi-alt` application in the blocked state with
-a status detailing the resource conflicts it detects:
+The `ceph-csi-alt` application may enter a blocked state with a status
+detailing the resource conflicts it detects:
 
 example)
 `10 Kubernetes resource collisions (action: list-resources)`
+
+### Resolving collisions
 
 List the collisions by running an action on the charm:
 
@@ -188,17 +190,15 @@ List the collisions by running an action on the charm:
 juju run ceph-csi-alt/leader list-resources
 ```
 
-### Resolving collisions
-
 #### Namespace collisions
 
 Many of the Kubernetes Resources managed by the `ceph-csi` charm have an
 associated namespace. Ensure the configuration for the `ceph-csi-alt`
-application changes so that it doesn't collide with `ceph-csi`.
+application doesn't collide with `ceph-csi`.
 
 If both `ceph-csi` and `ceph-csi-alt` were configured with `namespace=default`,
-then one of the charms will be in a blocked state. If it's `ceph-csi-alt`,
-correct by assigning it an alternate namespace.
+then one of the charms will be in a blocked state. Assign `ceph-csi-alt` to an
+alternate namespace.
 
 ```
 CEPH_NS_ALT=ceph-ns-alt  # kubernetes namespace for the alternate ceph driver
