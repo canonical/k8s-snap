@@ -53,7 +53,7 @@ juju integrate ceph-csi k8s:ceph-k8s-info
 juju integrate ceph-csi ceph-mon:client
 ```
 
-CephFS support can be optionally enabled (off by default):
+`ceph-fs` support can be optionally enabled (off by default):
 
 ```
 juju deploy ceph-fs
@@ -61,7 +61,7 @@ juju integrate ceph-fs:ceph-mds ceph-mon:mds
 juju config ceph-csi cephfs-enable=true
 ```
 
-CephRBD support can be optionally disabled (on by default):
+`ceph-rbd` support is enabled by default but can be optionally disabled:
 
 ```
 juju config ceph-csi ceph-rbd-enable=false
@@ -150,8 +150,11 @@ can be deployed again as separate Juju applications with different names.
 Deploy an alternate Ceph cluster containing one monitor and one storage unit
 (OSDs) -- again limiting the resources allocated.
 
+```{note} The alternate ceph drivers will need a new namespace to deploy into.
 ```
-CEPH_NS_ALT=ceph-csi-alt  # kubernetes namespace for the alternate ceph driver
+
+```
+CEPH_NS_ALT=ceph-ns-alt  # kubernetes namespace for the alternate ceph driver
 juju deploy -n 1 ceph-mon-alt ceph-mon \
     --constraints "cores=2 mem=4G root-disk=16G" \
     --config monitor-count=1 \
@@ -193,8 +196,12 @@ Many of the Kubernetes Resources managed by the `ceph-csi` charm have an
 associated namespace. Ensure the configuration for the `ceph-csi-alt`
 application changes so that it doesn't collide with `ceph-csi`.
 
+If both `ceph-csi` and `ceph-csi-alt` were configured with `namespace=default`,
+then one of the charms will be in a blocked state. If it's `ceph-csi-alt`,
+correct by assigning it an alternate namespace.
+
 ```
-CEPH_NS_ALT=ceph-csi-alt  # kubernetes namespace for the alternate ceph driver
+CEPH_NS_ALT=ceph-ns-alt  # kubernetes namespace for the alternate ceph driver
 juju config ceph-csi-alt namespace=${CEPH_NS_ALT} create-namespace=true
 ```
 
