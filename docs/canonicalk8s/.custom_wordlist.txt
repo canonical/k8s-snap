@@ -104,6 +104,7 @@ CNI
 CNI's
 CNIs
 codebase
+compersonmand
 Commenter
 CommonName
 conf

@@ -2974,7 +2974,7 @@ Modify the definition of pods and service accounts which do
 not need to mount service
 account tokens to disable it.
 
-<!-- vale=off -->
+<!-- vale off -->
 ##### CIS Control 5.1.7
 
 **Description:**
@@ -2986,7 +2986,7 @@ Avoid use of system:masters group
 
 Remove the system:masters group from all users in the
 cluster.
-<!-- vale=on -->
+<!-- vale on -->
 
 ##### CIS Control 5.1.8
 
