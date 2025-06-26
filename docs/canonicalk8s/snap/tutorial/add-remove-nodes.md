@@ -153,7 +153,7 @@ multipass purge
 - Explore Kubernetes commands with our [Command Reference
   Guide][Command Reference]
 - Configure storage options [Storage][Storage]
-- Master Kubernetes networking concepts [Networking][Networking]
+- Discover Kubernetes networking concepts [Networking][Networking]
 
 <!-- LINKS -->
 
