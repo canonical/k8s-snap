@@ -955,7 +955,7 @@ and key pair to protect information in transit
 > pods and container using horizontal or vertical scaling. Anyone who can gain
 > access to the API Server can effectively control your Kubernetes
 > architecture. Using authenticity protection, the communication can be
-> protected against man-in-the-middle attacks/session hijacking and the
+> protected against person-in-the-middle attacks/session hijacking and the
 > insertion of false information into sessions.
 >
 > The communication session is protected by utilizing transport encryption
@@ -3041,7 +3041,7 @@ The final line of the output will be `PASS`.
 > resources for pods and containers using horizontal or vertical scaling.
 > Anyone who can access the API Server can effectively control the Kubernetes
 > architecture. Using authenticity protection, the communication can be
-> protected against man-in-the-middle attacks/session hijacking and the
+> protected against person-in-the-middle attacks/session hijacking and the
 > insertion of false information into sessions.
 >
 > The communication session is protected by utilizing transport encryption
@@ -3113,7 +3113,7 @@ The final line of the output will be `PASS`.
 > health checks for containers and pods. Anyone who gains access to Kubelet
 > agents can effectively control applications within the pods and containers.
 > Using authenticity protection, the communication can be protected against
-> man-in-the-middle attacks/session hijacking and the insertion of false
+> person-in-the-middle attacks/session hijacking and the insertion of false
 > information into sessions.
 >
 > The communication session is protected by utilizing transport encryption
@@ -3192,7 +3192,7 @@ Authority set
 > Anyone who gains access to the Controller Manager can generate backdoor
 > accounts, take possession of, or diminish system performance without
 > detection > by disabling system notification. Using authenticity protection,
-> the > communication can be protected against man-in-the-middle
+> the > communication can be protected against person-in-the-middle
 > attacks/session hijacking and the insertion of false information into
 > sessions.
 >
@@ -3261,7 +3261,7 @@ The final line of the output will be `PASS`.
 > pods and container using horizontal or vertical scaling. Anyone who can
 > access the API Server can effectively control the Kubernetes architecture.
 > Using authenticity protection, the communication can be protected against
-> man-in-the-middle attacks/session hijacking and the insertion of false
+> person-in-the-middle attacks/session hijacking and the insertion of false
 > information into sessions.
 >
 > The communication session is protected by utilizing transport encryption
@@ -3387,7 +3387,7 @@ service
 > health checks for containers and pods. Anyone who gains access to Kubelet
 > agents can effectively control applications within the pods and containers.
 > Using authenticity protection, the communication can be protected against
-> man-in-the-middle attacks/session hijacking and the insertion of false
+> person-in-the-middle attacks/session hijacking and the insertion of false
 > information into sessions.
 >
 > The communication session is protected by utilizing transport encryption
@@ -3539,7 +3539,7 @@ authentication to secure service
 > health checks for containers and pods. Anyone who gains access to Kubelet
 > agents can effectively control applications within the pods and containers.
 > Using authenticity protection, the communication can be protected against
-> man-in-the-middle attacks/session hijacking and the insertion of false
+> person-in-the-middle attacks/session hijacking and the insertion of false
 > information into sessions.
 >
 > The communication session is protected by utilizing transport encryption
@@ -3558,7 +3558,7 @@ authentication to secure service
 
 > The k8s-snap does not pass a `--config` command line argument to the Kubelet
 > service, but does explicitly pass
-> `--tls-private-key-file=/etc/kubernetes/pki/kubelet.key` as a command line
+> `--tls-private-key-file=/etc/kubernetes/pki/kubelet.key` as a compersonmand line
 > argument.
 >
 > The command line arguments of Kubelet in the k8s-snap are defined in the
@@ -3614,7 +3614,7 @@ authentication to secure service
 > health checks for containers and pods. Anyone who gains access to Kubelet
 > agents can effectively control applications within the pods and containers.
 > Using authenticity protection, the communication can be protected against
-> man-in-the-middle attacks/session hijacking and the insertion of false
+> person-in-the-middle attacks/session hijacking and the insertion of false
 > information into sessions.
 >
 > The communication session is protected by utilizing transport encryption
@@ -3687,7 +3687,7 @@ service
 > health checks for containers and pods. Anyone who gains access to Kubelet
 > agents can effectively control applications within the pods and containers.
 > Using authenticity protection, the communication can be protected against
-> man-in-the-middle attacks/session hijacking and the insertion of false
+> person-in-the-middle attacks/session hijacking and the insertion of false
 > information into sessions.
 >
 > The communication session is protected by utilizing transport encryption
@@ -3769,7 +3769,7 @@ The final line of the output will be `PASS`.
 > key-value store called etcd. Anyone who can write to etcd can effectively
 > control the Kubernetes cluster. Even just reading the contents of etcd could
 > easily provide helpful hints to a would-be attacker. Using authenticity
-> protection, the communication can be protected against man-in-the-middle
+> protection, the communication can be protected against person-in-the-middle
 > attacks/session hijacking and the insertion of false information into
 > sessions.
 >
@@ -3915,7 +3915,7 @@ The final line of the output will be `PASS`.
 > key-value store called etcd. Anyone who can write to etcd can effectively
 > control a Kubernetes cluster. Even just reading the contents of etcd could
 > easily provide helpful hints to a would-be attacker. Using authenticity
-> protection, the communication can be protected against man-in-the-middle
+> protection, the communication can be protected against person-in-the-middle
 > attacks/session hijacking and the insertion of false information into
 > sessions.
 >
@@ -4058,7 +4058,7 @@ The final line of the output will be `PASS`.
 > key-value store called etcd. Anyone who can write to etcd can effectively
 > control a Kubernetes cluster. Even just reading the contents of etcd could
 > easily provide helpful hints to a would-be attacker. Using authenticity
-> protection, the communication can be protected against man-in-the-middle
+> protection, the communication can be protected against person-in-the-middle
 > attacks/session hijacking and the insertion of false information into
 > sessions.
 >
@@ -4196,7 +4196,7 @@ The final line of the output will be `PASS`.
 > key-value store called etcd. Anyone who can write to etcd can effectively
 > control the Kubernetes cluster. Even just reading the contents of etcd could
 > easily provide helpful hints to a would-be attacker. Using authenticity
-> protection, the communication can be protected against man-in-the-middle
+> protection, the communication can be protected against person-in-the-middle
 > attacks/session hijacking and the insertion of false information into
 > sessions.
 >
@@ -4340,7 +4340,7 @@ The final line of the output will be `PASS`.
 > key-value store called etcd. Anyone who can write to etcd can effectively
 > control a Kubernetes cluster. Even just reading the contents of etcd could
 > easily provide helpful hints to a would-be attacker. Using authenticity
-> protection, the communication can be protected against man-in-the-middle
+> protection, the communication can be protected against person-in-the-middle
 > attacks/session hijacking and the insertion of false information into
 > sessions.
 >
@@ -4484,7 +4484,7 @@ communication
 key-value store called etcd. Anyone who can write to etcd can effectively
 control the Kubernetes cluster. Even just reading the contents of etcd could
 easily provide helpful hints to a would-be attacker. Using authenticity
-protection, the communication can be protected against man-in-the-middle
+protection, the communication can be protected against person-in-the-middle
 attacks/session hijacking and the insertion of false information into sessions.
 >
 > The communication session is protected by utilizing transport encryption
@@ -4561,7 +4561,7 @@ communication
 key-value store called etcd. Anyone who can write to etcd can effectively
 control a Kubernetes cluster. Even just reading the contents of etcd could
 easily provide helpful hints to a would-be attacker. Using authenticity
-protection, the communication can be protected against man-in-the-middle
+protection, the communication can be protected against person-in-the-middle
 attacks/session hijacking and the insertion of false information into sessions.
 >
 > The communication session is protected by utilizing transport encryption
