@@ -71,6 +71,7 @@ Center
 ceph
 cephcsi
 CephFS
+CephRBD
 cephx
 certfile
 cgroup
