@@ -260,7 +260,7 @@ func TestReadControlPlanePKI(t *testing.T) {
 			_, err := setup.EnsureControlPlanePKI(mock, orig)
 			g.Expect(err).ToNot(HaveOccurred())
 
-			err = setup.SetupControlPlaneKubeconfigs(mock.KubernetesConfigDir(), "127.0.0.1", 8443, *orig)
+			err = setup.SetupControlPlaneKubeconfigs(mock.KubernetesConfigDir(), 8443, *orig)
 			g.Expect(err).ToNot(HaveOccurred())
 
 			if tc.removeCAKeyFiles {
