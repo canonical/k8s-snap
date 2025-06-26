@@ -36,8 +36,6 @@ the workload cluster to reach the desired state.
 ```{toctree}
 :titlesonly:
 configs
-troubleshooting
-
 ```
 
 ## Networking

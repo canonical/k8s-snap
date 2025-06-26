@@ -1,7 +1,7 @@
 # Install {{product}} in development environments
 
 We recommend testing {{product}} in an isolated environment such as a clean
-virtual machine or LXD container.
+virtual machine.
 
 You **can** install {{product}} directly on your development machine. But if
 you choose to do so, please take note of the following considerations.
