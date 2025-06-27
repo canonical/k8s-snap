@@ -13,6 +13,9 @@ environment:
   REAL_PATH: $PATH
   REAL_LD_LIBRARY_PATH: $LD_LIBRARY_PATH
   SNAPCRAFT_ARCH_TRIPLET: $SNAPCRAFT_ARCH_TRIPLET
+  # Note(ben): Needs to be changed to /snap/core24/current/usr/lib/x86_64-linux-gnu/ossl-modules/
+  # when base is updated to core24.
+  OPENSSL_MODULES: /snap/core22/current/usr/lib/x86_64-linux-gnu/ossl-modules-3/
 
 architectures:
   - build-on: [amd64]
