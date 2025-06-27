@@ -63,6 +63,9 @@ def test_skip_services_stop_on_remove(instances: List[harness.Instance]):
     joining_cp = instances[1]
     worker = instances[2]
 
+    # This is performed early since `k8s status` will fail after the node removal
+    datastore_type = util.get_datastore_type(cluster_node)
+
     join_token = util.get_join_token(cluster_node, joining_cp)
     util.join_cluster(joining_cp, join_token)
 
@@ -81,8 +84,13 @@ def test_skip_services_stop_on_remove(instances: List[harness.Instance]):
     # NOTE: We're not expecting the k8sd service to be active after the node was removed.
     # microcluster removes the k8sd state folder, and without the "daemon.yaml" file in it,
     # k8sd fails to start.
+    # NOTE: Etcd is skipped because it deactivates itself / exits
+    # when the member remove API is called.
     util.check_snap_services_ready(
-        joining_cp, node_type="control-plane", skip_services=["k8sd"]
+        joining_cp,
+        node_type="control-plane",
+        skip_services=["k8sd", "etcd"],
+        datastore_type=datastore_type,
     )
 
     cluster_node.exec(["k8s", "remove-node", worker.id])
