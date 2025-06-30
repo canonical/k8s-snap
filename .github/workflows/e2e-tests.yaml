@@ -43,11 +43,6 @@ on:
         type: string
         required: false
         default: ''
-      tmate_enabled:
-        type: boolean
-        description: Start a tmate session before running the tests
-        required: false
-        default: false
       parallel:
         description: Run tests in parallel using GitHub Actions matrix
         type: boolean
@@ -92,11 +87,6 @@ on:
         type: string
         required: false
         default: ''
-      tmate_enabled:
-        type: boolean
-        description: Start a tmate session before running the tests
-        required: false
-        default: false
       parallel:
         description: Run tests in parallel using GitHub Actions matrix
         type: boolean
@@ -164,11 +154,6 @@ jobs:
         uses: canonical/setup-lxd@v0.1.3
         with:
           bridges: "lxdbr0,dualstack-br0,ipv6-br0"
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        if: ${{ inputs.tmate_enabled }}
-        with:
-          detached: true
       - name: Setup Multipass
         if: ${{ inputs.substrate == 'multipass' }}
         run: |
