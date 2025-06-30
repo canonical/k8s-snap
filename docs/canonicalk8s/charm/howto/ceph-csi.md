@@ -44,18 +44,29 @@ the ``ceph-xfs`` and ``ceph-ext4`` storage classes, which leverage
 Ceph RBD.
 
 ```
-juju deploy ceph-csi --config provisioner-replicas=1
+CEPH_NS=ceph-ns  # kubernetes namespace for the ceph driver
+juju deploy ceph-csi \
+  --config provisioner-replicas=1 \
+  --config namespace="${CEPH_NS}" \
+  --config create-namespace=true
 juju integrate ceph-csi k8s:ceph-k8s-info
 juju integrate ceph-csi ceph-mon:client
 ```
 
-CephFS support can optionally be enabled:
+`ceph-fs` support can be optionally enabled (off by default):
 
 ```
 juju deploy ceph-fs
 juju integrate ceph-fs:ceph-mds ceph-mon:mds
-juju config ceph-csi cephfs-enable=True
+juju config ceph-csi cephfs-enable=true
 ```
+
+`ceph-rbd` support is enabled by default but can be optionally disabled:
+
+```
+juju config ceph-csi ceph-rbd-enable=false
+```
+
 
 ## Validating the CSI integration
 
@@ -63,7 +74,7 @@ Ensure that the storage classes are available and that the
 CSI pods are running:
 
 ```
-juju ssh k8s/leader -- sudo k8s kubectl get sc,po --namespace default
+juju ssh k8s/leader -- sudo k8s kubectl get sc,po --namespace ${CEPH_NS}
 ```
 
 The list should include the ``ceph-xfs`` and ``ceph-ext4`` storage classes as
@@ -129,7 +140,114 @@ sudo k8s kubectl wait pod/pv-writer-test \
     --timeout 2m
 ```
 
+## Relate to multiple Ceph clusters
+
+So far, this guide demonstrates to how to integrate with a single Ceph cluster
+represented by the single `ceph-mon` application. However {{product}} supports
+multiple Ceph clusters. The same `ceph-mon`, `ceph-osd`, and `ceph-csi` charms
+can be deployed again as separate Juju applications with different names.
+
+Deploy an alternate Ceph cluster containing one monitor and one storage unit
+(OSDs) -- again limiting the resources allocated.
+
+```{note} The alternate ceph drivers will need a new namespace to deploy into.
+```
+
+```
+CEPH_NS_ALT=ceph-ns-alt  # kubernetes namespace for the alternate ceph driver
+juju deploy -n 1 ceph-mon-alt ceph-mon \
+    --constraints "cores=2 mem=4G root-disk=16G" \
+    --config monitor-count=1 \
+    --config expected-osd-count=1
+juju deploy -n 1 ceph-osd-alt ceph-osd \
+    --constraints "cores=2 mem=4G root-disk=16G" \
+    --storage osd-devices=1G,1 --storage osd-journals=1G,1
+juju deploy ceph-csi-alt ceph-csi \
+    --config create-namespace=true \
+    --config namespace=${CEPH_NS_ALT} \
+    --config provisioner-replicas=1
+juju integrate ceph-csi-alt k8s:ceph-k8s-info
+juju integrate ceph-csi-alt ceph-mon-alt:client
+juju integrate ceph-osd-alt:mon ceph-mon-alt:osd
+```
+
+These applications still uses the same charms, but represent new application
+instances.  A new ceph-cluster via `ceph-mon-alt` and `ceph-osd-alt` and a new
+integration with Kubernetes by `ceph-csi-alt`.
+
+There are some Kubernetes Resources which collide in this deployment style.
+The `ceph-csi-alt` application may enter a blocked state with a status
+detailing the resource conflicts it detects:
+
+example)
+`10 Kubernetes resource collisions (action: list-resources)`
+
+### Resolving collisions
+
+List the collisions by running an action on the charm:
+
+```
+juju run ceph-csi-alt/leader list-resources
+```
+
+#### Namespace collisions
+
+Many of the Kubernetes Resources managed by the `ceph-csi` charm have an
+associated namespace. Ensure the configuration for the `ceph-csi-alt`
+application doesn't collide with `ceph-csi`.
+
+If both `ceph-csi` and `ceph-csi-alt` were configured with `namespace=default`,
+then one of the charms will be in a blocked state. Assign `ceph-csi-alt` to an
+alternate namespace.
+
+```
+CEPH_NS_ALT=ceph-ns-alt  # kubernetes namespace for the alternate ceph driver
+juju config ceph-csi-alt namespace=${CEPH_NS_ALT} create-namespace=true
+```
+
+After this, the number of collisions between the two applications drop off,
+but there could still be collisions to investigate.
+
+#### Storage Class collisions
+
+StorageClass Kubernetes Resources managed by the `ceph-csi` charm are
+cluster-wide resources and have no namespace.
+
+For each of the supported StorageClass types, there is an independent formatter.
+
+* `ext4`, see [ceph-ext4-storage-class-name-formatter]
+* `xfs`, see [ceph-xfs-storage-class-name-formatter]
+* `cephfs`, see [cephfs-storage-class-name-formatter]
+
+Each formatter has similar, but distinct formatting rules, so take care to plan
+the storage-class names accordingly.
+
+example)
+
+```
+juju config ceph-csi-alt cephfs-storage-class-name-formatter="cephfs-{name}-{app}"
+```
+
+#### RBAC collisions
+
+RBAC Kubernetes Resources managed by the `ceph-csi` charm are cluster-wide
+resources and have no namespace. Two such resources are `ClusterRole` and
+`ClusterRoleBinding`.
+
+The charm can be configured to craft separate names for these resources.  The
+Juju admin can format the names of these objects using a custom formatter.
+
+See [ceph-rbac-name-formatter] docs for more details.
+
+```
+juju config ceph-csi-alt ceph-rbac-name-formatter="{name}-{app}"
+```
+
 <!-- LINKS -->
 
 [charm installation]: ./charm
 [Ceph]: https://docs.ceph.com/
+[ceph-rbac-name-formatter]: https://charmhub.io/ceph-csi/configurations?channel=latest/edge#ceph-rbac-name-formatter
+[ceph-ext4-storage-class-name-formatter]: https://charmhub.io/ceph-csi/configurations?channel=latest/edge#ceph-ext4-storage-class-name-formatter
+[ceph-xfs-storage-class-name-formatter]: https://charmhub.io/ceph-csi/configurations?channel=latest/edge#ceph-xfs-storage-class-name-formatter
+[cephfs-storage-class-name-formatter]: https://charmhub.io/ceph-csi/configurations?channel=latest/edge#cephfs-storage-class-name-formatter
