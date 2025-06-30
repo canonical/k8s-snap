@@ -1,0 +1,25 @@
+From 3ef3359a350e72687599f44906ecf2cc236347ee Mon Sep 17 00:00:00 2001
+From: Angelos Kolaitis <angelos.kolaitis@canonical.com>
+Date: Tue, 12 Mar 2024 16:53:02 +0200
+Subject: [PATCH] allow all nodes to get k8sd-config
+
+---
+ plugin/pkg/auth/authorizer/node/node_authorizer.go | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/plugin/pkg/auth/authorizer/node/node_authorizer.go b/plugin/pkg/auth/authorizer/node/node_authorizer.go
+index b03467ffd73..686d292b151 100644
+--- a/plugin/pkg/auth/authorizer/node/node_authorizer.go
++++ b/plugin/pkg/auth/authorizer/node/node_authorizer.go
+@@ -112,6 +112,9 @@ func (r *NodeAuthorizer) Authorize(ctx context.Context, attrs authorizer.Attribu
+ 		case secretResource:
+ 			return r.authorizeReadNamespacedObject(nodeName, secretVertexType, attrs)
+ 		case configMapResource:
++			if (attrs.GetVerb() == "get" || attrs.GetVerb() == "watch") && attrs.GetName() == "k8sd-config" && attrs.GetNamespace() == "kube-system" {
++				return authorizer.DecisionAllow, "", nil
++			}
+ 			return r.authorizeReadNamespacedObject(nodeName, configMapVertexType, attrs)
+ 		case pvcResource:
+ 			if attrs.GetSubresource() == "status" {
+--
+2.34.1
