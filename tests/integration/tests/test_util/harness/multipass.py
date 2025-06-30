@@ -89,11 +89,13 @@ class MultipassHarness(Harness):
 
                 LOG.info("Using cloud-init: %s", cloud_init_content)
                 # Note(ben): Multipass does not handle restarts in
-                # cloud-init very well and just times out even if
+                # cloud-init very well and the command times out even if
                 # the underlying machine works just fine.
-                # Hence, we disable the check for this call, continue and hope for the best.
+                # Hence, we disable the check for this call, and
+                # instead try to verify that the machine is up and
+                # running by running a simple command.
                 run(
-                    cmd + ["--cloud-init", "-", "--timeout", "900"],
+                    cmd + ["--cloud-init", "-", "--timeout", "300"],
                     input=cloud_init_content.encode(),
                     sensitive_kwargs=True,
                     check=False,
