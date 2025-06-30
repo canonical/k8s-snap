@@ -15,10 +15,6 @@ LOG = logging.getLogger(__name__)
 
 @pytest.mark.node_count(1)
 @pytest.mark.disable_k8s_bootstrapping()
-@pytest.mark.skipif(
-    util.host_is_fips_enabled(),
-    reason="Skip on FIPS systems since we use the convenient early FIPS failures for this tests.",
-)
 @pytest.mark.tags(tags.NIGHTLY)
 def test_user_config(instances: List[harness.Instance]):
     """Verifies that the snap and services environment variables set by the user are loaded correctly.
@@ -29,6 +25,9 @@ def test_user_config(instances: List[harness.Instance]):
     - `<service-env>` is passed to the service.
     """
     instance = instances[0]
+
+    if util.is_fips_enabled(instance):
+        pytest.skip("Skip on FIPS systems since we use the convenient early FIPS failures for this tests.")
 
     # Verify that environment variables are properly passed to commands.
     result = instance.exec(
