@@ -980,13 +980,13 @@ def check_snap_services_ready(
             ), f"Unexpected service {service} is {status} but should be inactive"
 
 
-def host_is_fips_enabled():
+def is_fips_enabled(instance: harness.Instance):
     """
-    Returns True if the host is running with FIPS enabled, False otherwise.
+    Returns True if the provided instance is running with FIPS enabled, False otherwise.
     """
     fips_path = "/proc/sys/crypto/fips_enabled"
     try:
-        with open(fips_path) as f:
-            return f.read().strip() == "1"
+        result = instance.exec(["cat", fips_path], capture_output=True, text=True)
+        return result.stdout.strip() == "1"
     except (FileNotFoundError, PermissionError):
         return False
