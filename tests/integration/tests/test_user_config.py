@@ -27,7 +27,9 @@ def test_user_config(instances: List[harness.Instance]):
     instance = instances[0]
 
     if util.is_fips_enabled(instance):
-        pytest.skip("Skip on FIPS systems since we use the convenient early FIPS failures for this tests.")
+        pytest.skip(
+            "Skip on FIPS systems since we use the convenient early FIPS failures for this tests."
+        )
 
     # Verify that environment variables are properly passed to commands.
     result = instance.exec(

@@ -95,7 +95,7 @@ class MultipassHarness(Harness):
                 # instead try to verify that the machine is up and
                 # running by running a simple command.
                 run(
-                    cmd + ["--cloud-init", "-", "--timeout", "300"],
+                    cmd + ["--cloud-init", "-"],
                     input=cloud_init_content.encode(),
                     sensitive_kwargs=True,
                     check=False,
