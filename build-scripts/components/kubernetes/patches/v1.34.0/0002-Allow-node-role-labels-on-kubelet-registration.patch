@@ -1,0 +1,26 @@
+From b3a0ec7ca54f91c006bf36b8d18ea60a2ef44857 Mon Sep 17 00:00:00 2001
+From: Angelos Kolaitis <angelos.kolaitis@canonical.com>
+Date: Mon, 19 Feb 2024 21:13:32 +0200
+Subject: [PATCH] Allow node-role labels on kubelet registration
+
+---
+ .../src/k8s.io/kubelet/pkg/apis/canonical_k8s_labels.go   | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+ create mode 100644 staging/src/k8s.io/kubelet/pkg/apis/canonical_k8s_labels.go
+
+diff --git a/staging/src/k8s.io/kubelet/pkg/apis/canonical_k8s_labels.go b/staging/src/k8s.io/kubelet/pkg/apis/canonical_k8s_labels.go
+new file mode 100644
+index 00000000000..fcc6acada75
+--- /dev/null
++++ b/staging/src/k8s.io/kubelet/pkg/apis/canonical_k8s_labels.go
+@@ -0,0 +1,8 @@
++package apis
++
++func init() {
++	kubeletLabels.Insert(
++		"node-role.kubernetes.io/control-plane",
++		"node-role.kubernetes.io/worker",
++	)
++}
+--
+2.34.1
