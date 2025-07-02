@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"math/rand/v2"
 	"time"
 
 	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations"
@@ -260,8 +261,9 @@ func (c *FeatureController) reconcileLoop(
 				}
 
 				log.Info("Retrying feature reconciliation", "attempts", fmt.Sprintf("%d/%s", attempts, maxAttempts))
-				// notify triggerCh after 5 seconds to retry
-				time.AfterFunc(5*time.Second, func() { utils.MaybeNotify(triggerCh) })
+				// notify triggerCh after 3-15 seconds to retry
+				retryInterval := time.Duration(3+rand.IntN(13)) * time.Second
+				time.AfterFunc(retryInterval, func() { utils.MaybeNotify(triggerCh) })
 			} else {
 				utils.MaybeNotify(reconciledCh)
 				attempts = 0
