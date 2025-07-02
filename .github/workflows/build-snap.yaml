@@ -21,12 +21,14 @@ on:
 jobs:
   build-snap:
     name: Build snap
-    runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    runs-on: self-hosted-linux-arm64-jammy-large
     outputs:
       snap-artifact: ${{ steps.build.outputs.snap-artifact }}
     steps:
       - name: Checking out repo
         uses: actions/checkout@v4
+      - name: Setup tmate session
+        uses: canonical/action-tmate@main
       - name: Apply flavor-specific patches
         if: inputs.flavor != ''
         run: |
