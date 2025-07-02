@@ -114,7 +114,7 @@ jobs:
   run-tests:
     name: ${{ matrix.test }}
     needs: prepare
-    runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    runs-on: self-hosted-linux-arm64-jammy-large
     strategy:
       fail-fast: false
       matrix:
@@ -140,7 +140,6 @@ jobs:
         run: sudo apt-get install -y tox
       - name: Setup tmate session
         uses: canonical/action-tmate@main
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.tmate_enabled }}
       - name: Generate names for step and artifacts
         run: |
           FULL_TEST_NODE_ID="${{ matrix.test }}"
