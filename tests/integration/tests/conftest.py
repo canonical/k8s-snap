@@ -65,18 +65,20 @@ def _generate_inspection_report(h: harness.Harness, instance_id: str):
 
         h.exec(instance_id, ["chmod", "775", "/inspection-report.tar.gz"], check=False)
 
-        report_log = inspection_path / instance_id / "inspection_report_logs.txt"
+        # Ensure the destination directory exists and has the right permissions
+        inspection_dir = inspection_path / instance_id
+        inspection_dir.mkdir(parents=True, exist_ok=True)
+        inspection_dir.chmod(0o775)
+
+        report_log = inspection_dir / "inspection_report_logs.txt"
         with report_log.open("w") as f:
             f.write("stdout:\n")
             f.write(result.stdout)
             f.write("stderr:\n")
             f.write(result.stderr)
 
-        # Ensure the destination directory exists and has the right permissions
-        dest_file = inspection_path / instance_id / "inspection_report.tar.gz"
-        dest_file.parent.mkdir(parents=True, exist_ok=True)
-        dest_file.parent.chmod(0o775)
-
+        # Pull the inspection report file
+        dest_file = inspection_dir / "inspection_report.tar.gz"
         h.pull_file(
             instance_id,
             "/inspection-report.tar.gz",
