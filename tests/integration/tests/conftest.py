@@ -65,6 +65,8 @@ def _generate_inspection_report(h: harness.Harness, instance_id: str):
         h.exec(instance_id, ["chmod", "775", "/inspection-report.tar.gz"], check=False)
 
         (inspection_path / instance_id).mkdir(parents=True, exist_ok=True)
+        (inspection_path / instance_id).chmod(0o775)
+
         report_log = inspection_path / instance_id / "inspection_report_logs.txt"
         with report_log.open("w") as f:
             f.write("stdout:\n")
