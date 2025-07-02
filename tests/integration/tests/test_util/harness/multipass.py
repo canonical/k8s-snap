@@ -149,7 +149,7 @@ class MultipassHarness(Harness):
                 instance_id,
                 ["mkdir", "-m=0777", "-p", Path(destination).parent.as_posix()],
             )
-            run(
+            stubbornly(retries=3, delay_s=2).exec(
                 [
                     "sudo",
                     "multipass",
@@ -172,7 +172,7 @@ class MultipassHarness(Harness):
             "Copying file %s from instance %s to %s", source, instance_id, destination
         )
         try:
-            run(
+            stubbornly(retries=3, delay_s=2).exec(
                 [
                     "sudo",
                     "multipass",
