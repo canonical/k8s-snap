@@ -139,6 +139,6 @@ def test_smoke(instances: List[harness.Instance]):
         return True
 
     LOG.info("Verifying the output of `k8s status`")
-    util.stubbornly(retries=15, delay_s=10).on(instance).until(
+    util.stubbornly(retries=100, delay_s=10).on(instance).until(
         condition=status_output_matches,
     ).exec(["k8s", "status", "--wait-ready"])

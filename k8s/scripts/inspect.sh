@@ -97,6 +97,17 @@ function collect_cluster_info {
   run_with_timeout "k8s kubectl cluster-info dump $FLAGS --output-directory $INSPECT_DUMP/cluster-info &>/dev/null"
 }
 
+function collect_helm_info {
+  log_info "Copy Helm information to the final report tarball"
+  mkdir -p "$INSPECT_DUMP/helm"
+
+  k8s helm version --short &>"$INSPECT_DUMP/helm/version"
+  if [[ "$ALL_NAMESPACES" == "1" ]]; then
+    FLAGS="--all-namespaces"
+  fi
+  k8s helm list $FLAGS &>"$INSPECT_DUMP/helm/helm-list"
+}
+
 function collect_sbom {
   log_info "Copy SBOM to the final report tarball"
   cp --no-preserve=mode,ownership /snap/k8s/current/bom.json "$INSPECT_DUMP"/sbom.json
@@ -319,6 +330,9 @@ collect_args
 
 printf -- 'Collecting k8s cluster-info\n'
 collect_cluster_info
+
+printf -- 'Collecting Helm information\n'
+collect_helm_info
 
 printf -- 'Collecting SBOM\n'
 collect_sbom
