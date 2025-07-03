@@ -260,9 +260,10 @@ func (c *FeatureController) reconcileLoop(
 					continue
 				}
 
-				log.Info("Retrying feature reconciliation", "attempts", fmt.Sprintf("%d/%s", attempts, maxAttempts))
-				// notify triggerCh after 3-15 seconds to retry
-				time.AfterFunc(timeutils.ExponentialBackoff(attempts, 3*time.Second, 5*time.Minute), func() { utils.MaybeNotify(triggerCh) })
+				retryAfter := timeutils.LinearBackoff(attempts, 5*time.Second, 1*time.Minute)
+				log.Info(fmt.Sprintf("Retrying feature reconciliation in %f seconds", retryAfter.Seconds()), "attempts", fmt.Sprintf("%d/%s", attempts, maxAttempts))
+				// notify triggerCh to retry
+				time.AfterFunc(retryAfter, func() { utils.MaybeNotify(triggerCh) })
 			} else {
 				utils.MaybeNotify(reconciledCh)
 				attempts = 0
