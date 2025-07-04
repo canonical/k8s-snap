@@ -22,8 +22,7 @@ import (
 type client struct {
 	restClientGetter func(string) genericclioptions.RESTClientGetter
 	manifestsBaseDir string
-	// timeout for the helm operations.
-	timeout time.Duration
+	timeout          time.Duration
 	// maxHistory specifies the maximum number of historical releases that will
 	// be retained, including the most recent release. Values of 0 or less are
 	// ignored (meaning no limits are imposed).
@@ -62,10 +61,8 @@ func (h *client) newActionConfiguration(ctx context.Context, namespace string) (
 // Apply implements the Client interface.
 func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, values map[string]any) (bool, error) {
 	log := log.FromContext(ctx).WithName("helm").WithValues("chart", c.Name, "desired", desired)
-	applyCtx, cancel := context.WithTimeout(ctx, h.timeout)
-	defer cancel()
 
-	cfg, err := h.newActionConfiguration(applyCtx, c.Namespace)
+	cfg, err := h.newActionConfiguration(ctx, c.Namespace)
 	if err != nil {
 		return false, fmt.Errorf("failed to create action configuration: %w", err)
 	}
@@ -107,7 +104,7 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 			return false, fmt.Errorf("failed to load manifest for %s: %w", c.Name, err)
 		}
 
-		if _, err := install.RunWithContext(applyCtx, chart, values); err != nil {
+		if _, err := install.RunWithContext(ctx, chart, values); err != nil {
 			return false, fmt.Errorf("failed to install %s: %w", c.Name, err)
 		}
 		return true, nil
@@ -156,7 +153,7 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 		// cfg.Releases.MaxHistory value.
 		upgrade.MaxHistory = h.maxHistory
 
-		if _, err := upgrade.RunWithContext(applyCtx, c.Name, chart, values); err != nil {
+		if _, err := upgrade.RunWithContext(ctx, c.Name, chart, values); err != nil {
 			return false, fmt.Errorf("failed to upgrade %s: %w", c.Name, err)
 		}
 
