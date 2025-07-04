@@ -11,8 +11,10 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/canonical/k8s/pkg/log"
@@ -77,6 +79,202 @@ func ParseArgumentFile(path string) (map[string]string, error) {
 		}
 	}
 	return args, nil
+}
+
+// ParseConfigFile parses a configuration file and returns a map of key-value pairs.
+// The file is expected to have lines in the format "key=value". Comments (lines starting with '#') are ignored.
+func ParseConfigFile(path string) (map[string]string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read config file %s: %w", path, err)
+	}
+	defer file.Close()
+
+	sc := bufio.NewScanner(file)
+	lines := make([]string, 0)
+
+	// Read through 'tokens' until an EOF is encountered.
+	for sc.Scan() {
+		line := sc.Text()
+		line = strings.TrimSpace(line) // Trim leading and trailing white spaces
+
+		// Ignore empty lines and comments
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+
+		lines = append(lines, line)
+	}
+
+	if err := sc.Err(); err != nil {
+		return nil, fmt.Errorf("failed to scan lines in config file: %w", err)
+	}
+	config := make(map[string]string, len(lines))
+	for _, line := range lines {
+		// Split the line into key and value based on the first '=' character
+		splitIndex := strings.Index(line, "=")
+		if splitIndex == -1 {
+			continue // Skip lines that do not contain an '=' character
+		}
+
+		key := strings.TrimSpace(line[:splitIndex])
+		value := strings.TrimSpace(line[splitIndex+1:])
+		config[key] = value
+	}
+	return config, nil
+}
+
+func MinConfigFileDiff(dirs []string, minConfig map[string]string) map[string]string {
+	newConfig := DeepCopyMap(minConfig)
+
+	for _, dir := range dirs {
+		entries, err := os.ReadDir(dir)
+		if err != nil {
+			if err != os.ErrNotExist {
+				log.L().Error(err, "Could not parse configuration directory")
+			}
+			continue
+		}
+
+		for _, entry := range entries {
+			if !entry.IsDir() {
+				params, err := ParseConfigFile(filepath.Join(dir, entry.Name()))
+				if err != nil {
+					log.L().Error(err, "could not parse configuration file, skipping file")
+					continue
+				}
+				for key := range minConfig {
+					if value, exists := params[key]; exists {
+						// Minimum Configuration already set
+						if exists && value >= minConfig[key] {
+							delete(newConfig, key)
+						}
+					}
+				}
+			}
+		}
+	}
+	return newConfig
+}
+
+// UpdateConfigFile takes a map with new configurations in the format "key=value" and adjusts the file to reflect the new configuration.
+// The file is expected to have lines in the format "key=value". Comments (lines starting with '#') are ignored.
+func UpdateConfigFile(path string, newConfig map[string]string) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return fmt.Errorf("failed to read config file %s: %w", path, err)
+	}
+	defer file.Close()
+
+	sc := bufio.NewScanner(file)
+	lines := make([]string, 0)
+	updatedKeys := make(map[string]bool)
+
+	// Read through 'tokens' until an EOF is encountered.
+	for sc.Scan() {
+		line := sc.Text()
+		line = strings.TrimSpace(line) // Trim leading and trailing white spaces
+
+		// Ignore empty lines and comments
+		if line != "" && !strings.HasPrefix(line, "#") {
+			splitIndex := strings.Index(line, "=")
+			if splitIndex != -1 {
+				key := strings.TrimSpace(line[:splitIndex])
+
+				// override value if necessary
+				if newValue, exists := newConfig[key]; exists {
+					line = key + "=" + newValue
+					updatedKeys[key] = true
+					delete(newConfig, key)
+				}
+			}
+		}
+		lines = append(lines, line)
+	}
+
+	// Append remaining keys
+	for key := range newConfig {
+		if !updatedKeys[key] {
+			new_line := key + "=" + newConfig[key]
+			lines = append(lines, new_line)
+		}
+	}
+
+	if err := sc.Err(); err != nil {
+		return fmt.Errorf("failed to scan lines in config file: %w", err)
+	}
+
+	// Write file with updated lines
+	file, err = os.Create(path)
+	if err != nil {
+		return fmt.Errorf("failed to open configuration file for writing %w", err)
+	}
+
+	defer file.Close()
+
+	for i := 0; i < len(lines); i++ {
+		if _, err := file.WriteString(lines[i] + "\n"); err != nil {
+			return fmt.Errorf("failed to write updated lines to configuration file %w", err)
+		}
+	}
+	return nil
+}
+
+// Deep copy of map
+func DeepCopyMap(original map[string]string) map[string]string {
+	copied := make(map[string]string, len(original))
+	for k, v := range original {
+		copied[k] = v
+	}
+	return copied
+}
+
+// GetFileMatch returns the path of the file in a dir matching the regex or "" if no match was found
+func GetFileMatch(path string, regex string) (string, error) {
+	re := regexp.MustCompile(regex)
+	entries, err := os.ReadDir(path)
+	if err != nil {
+		return "", err
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		if match := re.FindString(entry.Name()); match != "" {
+			return filepath.Join(path, match), nil
+		}
+	}
+	return "", nil
+}
+
+// GetFileMatch returns the path of the file in a dir matching a file like 10-xyz.conf using the regex `^(\d+)-.*\.conf$` or returns 0s if no match was found
+func GetHighestConfigFileOrder(path string) (int, error) {
+	maxOrder := 0
+	re := regexp.MustCompile(`^(\d+)-.*\.conf$`)
+	entries, err := os.ReadDir(path)
+	if err != nil {
+		return maxOrder, err
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		matches := re.FindStringSubmatch(entry.Name())
+		if matches == nil {
+			continue
+		}
+		numStr := matches[1]
+		num, err := strconv.Atoi(numStr)
+		if err != nil {
+			continue
+		}
+		if num > maxOrder {
+			maxOrder = num
+		}
+	}
+	return maxOrder, nil
 }
 
 // Serializes a map of service arguments in the format "argument=value" to file.
