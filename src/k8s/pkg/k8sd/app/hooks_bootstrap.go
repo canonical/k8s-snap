@@ -153,7 +153,9 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 
 	// Create system tuning file if desired
 	if !a.snap.Strict() && !joinConfig.GetDisableSystemTuning() {
-		a.createSystemTuningConfigFile(ctx)
+		if err := a.createSystemTuningConfigFile(ctx); err != nil {
+			log.Error(err, "failed to create system tuning file")
+		}
 		if err := a.tuneSystemSettings(ctx, s); err != nil {
 			log.Error(err, "failed to tune system settings")
 		}
@@ -326,7 +328,9 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 
 	// Create system tuning file if desired
 	if !a.snap.Strict() && !bootstrapConfig.GetDisableSystemTuning() {
-		a.createSystemTuningConfigFile(ctx)
+		if err := a.createSystemTuningConfigFile(ctx); err != nil {
+			log.Error(err, "failed to create system tuning file")
+		}
 		if err := a.tuneSystemSettings(ctx, s); err != nil {
 			log.Error(err, "failed to tune system settings")
 		}
