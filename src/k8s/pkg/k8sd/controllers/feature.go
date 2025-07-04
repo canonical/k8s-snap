@@ -240,10 +240,10 @@ func (c *FeatureController) reconcileLoop(
 				continue
 			}
 
+			log.Info("Reconciling feature", "feature", featureName)
 			if err := c.reconcile(ctx, getClusterConfig, apply, func(ctx context.Context, status types.FeatureStatus) error {
 				return setFeatureStatus(ctx, featureName, status)
 			}); err != nil {
-				log.Error(err, "Failed to apply feature configuration")
 				attempts++
 
 				maxAttempts := fmt.Sprintf("%d", c.reconcileLoopMaxRetryAttempts)
@@ -261,10 +261,11 @@ func (c *FeatureController) reconcileLoop(
 				}
 
 				retryAfter := timeutils.LinearBackoff(attempts, 5*time.Second, 1*time.Minute)
-				log.Info(fmt.Sprintf("Retrying feature reconciliation in %f seconds", retryAfter.Seconds()), "attempts", fmt.Sprintf("%d/%s", attempts, maxAttempts))
+				log.Info(fmt.Sprintf("Failed to apply feature configuration. Retrying feature reconciliation in %f seconds", retryAfter.Seconds()), "attempts", fmt.Sprintf("%d/%s", attempts, maxAttempts))
 				// notify triggerCh to retry
 				time.AfterFunc(retryAfter, func() { utils.MaybeNotify(triggerCh) })
 			} else {
+				log.Info("Reconciled feature successfully")
 				utils.MaybeNotify(reconciledCh)
 				attempts = 0
 			}
