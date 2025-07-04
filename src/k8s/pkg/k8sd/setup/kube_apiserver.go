@@ -94,12 +94,16 @@ func KubeAPIServer(snap snap.Snap, securePort int, nodeIP net.IP, serviceCIDR st
 	}
 
 	switch datastore.GetType() {
-	case "k8s-dqlite", "external":
+	case "k8s-dqlite", "etcd", "external":
 	default:
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", datastore.GetType(), SupportedDatastores)
 	}
 
-	datastoreUpdateArgs, deleteArgs := datastore.ToKubeAPIServerArguments(snap)
+	datastoreUpdateArgs, deleteArgs, err := datastore.ToKubeAPIServerArguments(snap)
+	if err != nil {
+		return fmt.Errorf("failed to get datastore arguments for kube-apiserver: %w", err)
+	}
+
 	for key, val := range datastoreUpdateArgs {
 		args[key] = val
 	}

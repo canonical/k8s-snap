@@ -271,3 +271,8 @@ func CIDRsOverlap(cidr1, cidr2 string) (bool, error) {
 
 	return false, nil
 }
+
+// JoinHostPort is like net.JoinHostPort but accepts an int for the port number.
+func JoinHostPort(host string, port int) string {
+	return net.JoinHostPort(host, strconv.Itoa(port))
+}
