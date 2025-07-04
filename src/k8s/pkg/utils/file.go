@@ -130,7 +130,7 @@ func MinConfigFileDiff(dirs []string, minConfig map[string]string) map[string]st
 	for _, dir := range dirs {
 		entries, err := os.ReadDir(dir)
 		if err != nil {
-			if err != os.ErrNotExist {
+			if errors.Is(err, os.ErrNotExist) {
 				log.L().Error(err, "Could not parse configuration directory")
 			}
 			continue
@@ -157,8 +157,9 @@ func MinConfigFileDiff(dirs []string, minConfig map[string]string) map[string]st
 	return newConfig
 }
 
-// UpdateConfigFile takes a map with new configurations in the format "key=value" and adjusts the file to reflect the new configuration.
-// The file is expected to have lines in the format "key=value". Comments (lines starting with '#') are ignored.
+// UpdateConfigFile takes a map with new configurations in the format "key=value" and
+// adjusts the file to reflect the new configuration. The file is expected to have
+// lines in the format "key=value". Comments (lines starting with '#') are ignored.
 func UpdateConfigFile(path string, newConfig map[string]string) error {
 	file, err := os.Open(path)
 	if err != nil {
@@ -220,7 +221,7 @@ func UpdateConfigFile(path string, newConfig map[string]string) error {
 	return nil
 }
 
-// Deep copy of map
+// Deep copy of map.
 func DeepCopyMap(original map[string]string) map[string]string {
 	copied := make(map[string]string, len(original))
 	for k, v := range original {
@@ -229,7 +230,8 @@ func DeepCopyMap(original map[string]string) map[string]string {
 	return copied
 }
 
-// GetFileMatch returns the path of the file in a dir matching the regex or "" if no match was found
+// GetFileMatch returns the path of the file in a dir matching the regex or "" if no
+// match was found.
 func GetFileMatch(path string, regex string) (string, error) {
 	re := regexp.MustCompile(regex)
 	entries, err := os.ReadDir(path)
