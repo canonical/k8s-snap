@@ -74,6 +74,25 @@ k8s::remove::containerd() {
   k8s::cmd::k8s x-cleanup containerd || true
 }
 
+# Cleanup systemd overrides
+k8s::remove::system_tuning() {
+  if ! k8s::common::is_strict; then
+    # Find files matching pattern: digits followed by '-k8s.conf'
+    files_to_remove=$(find /etc/sysctl.d/ -maxdepth 1 -type f -regextype posix-extended -regex '.*/[0-9]+-k8s\.conf')
+
+
+    if [ -n "$files_to_remove" ]; then
+      echo "Removing the following custom sysctl parameter files:"
+      echo "$files_to_remove"
+      echo "$files_to_remove" | xargs sudo rm -f
+
+      if ! sudo sysctl --system; then
+        echo "Could not refresh system parameters via sysctl"
+      fi
+    fi
+  fi
+}
+
 # Run a ctr command against the local containerd socket
 # Example: 'k8s::cmd::ctr image ls -q'
 k8s::cmd::ctr() {
