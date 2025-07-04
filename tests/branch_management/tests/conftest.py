@@ -63,8 +63,7 @@ def _latest_release() -> semver.Version:
     """Return the latest stable k8s"""
     r = requests.get(STABLE_URL)
     r.raise_for_status()
-    if r.status_code == 200:
-        return semver.Version.parse(r.content.decode().lstrip("v"))
+    return semver.Version.parse(r.content.decode().lstrip("v"))
 
 
 @pytest.fixture(scope="session")
