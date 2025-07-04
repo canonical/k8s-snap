@@ -99,6 +99,12 @@ If omitted defaults to an auto generated certificate.
 The client key to be used for the kubelet.
 If omitted defaults to an auto generated key.
 
+### disable-system-tuning
+**Type:** `bool`<br>
+
+Determines whether system tuning is allowed.
+If omitted defaults to `true`.
+
 ### extra-node-config-files
 **Type:** `map[string]string`<br>
 

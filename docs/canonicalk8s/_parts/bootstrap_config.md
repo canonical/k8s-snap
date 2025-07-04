@@ -222,6 +222,12 @@ If omitted defaults to `10.152.183.0/24`.
 Determines if RBAC should be disabled.
 If omitted defaults to `false`.
 
+### disable-system-tuning
+**Type:** `bool`<br>
+
+Determines whether system tuning is allowed.
+If omitted defaults to `true`.
+
 ### secure-port
 **Type:** `int`<br>
 
