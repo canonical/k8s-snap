@@ -78,6 +78,7 @@ func ParseArgumentFile(path string) (map[string]string, error) {
 			args[a] = v
 		}
 	}
+
 	return args, nil
 }
 
@@ -93,22 +94,20 @@ func ParseConfigFile(path string) (map[string]string, error) {
 	sc := bufio.NewScanner(file)
 	lines := make([]string, 0)
 
-	// Read through 'tokens' until an EOF is encountered.
 	for sc.Scan() {
 		line := sc.Text()
-		line = strings.TrimSpace(line) // Trim leading and trailing white spaces
+		line = strings.TrimSpace(line)
 
-		// Ignore empty lines and comments
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
-
 		lines = append(lines, line)
 	}
 
 	if err := sc.Err(); err != nil {
 		return nil, fmt.Errorf("failed to scan lines in config file: %w", err)
 	}
+
 	config := make(map[string]string, len(lines))
 	for _, line := range lines {
 		// Split the line into key and value based on the first '=' character
@@ -121,9 +120,13 @@ func ParseConfigFile(path string) (map[string]string, error) {
 		value := strings.TrimSpace(line[splitIndex+1:])
 		config[key] = value
 	}
+
 	return config, nil
 }
 
+// MinConfigFileDiff searches configuration directories to check whether the minimum
+// configurations are set in them. Returns a map with the key, value configurations that
+// need to be set to enforce the minimum configuration requirements.
 func MinConfigFileDiff(dirs []string, minConfig map[string]string) map[string]string {
 	newConfig := DeepCopyMap(minConfig)
 
@@ -143,6 +146,7 @@ func MinConfigFileDiff(dirs []string, minConfig map[string]string) map[string]st
 					log.L().Error(err, "could not parse configuration file, skipping file")
 					continue
 				}
+
 				for key := range minConfig {
 					if value, exists := params[key]; exists {
 						// Minimum Configuration already set
@@ -154,6 +158,7 @@ func MinConfigFileDiff(dirs []string, minConfig map[string]string) map[string]st
 			}
 		}
 	}
+
 	return newConfig
 }
 
@@ -221,7 +226,7 @@ func UpdateConfigFile(path string, newConfig map[string]string) error {
 	return nil
 }
 
-// Deep copy of map.
+// Deep copy of a map.
 func DeepCopyMap(original map[string]string) map[string]string {
 	copied := make(map[string]string, len(original))
 	for k, v := range original {
@@ -250,7 +255,8 @@ func GetFileMatch(path string, regex string) (string, error) {
 	return "", nil
 }
 
-// GetFileMatch returns the path of the file in a dir matching a file like 10-xyz.conf using the regex `^(\d+)-.*\.conf$` or returns 0s if no match was found
+// GetFileMatch returns the path of the file in a dir matching a file like 10-xyz.conf
+// using the regex `^(\d+)-.*\.conf$` or returns 0s if no match was found.
 func GetHighestConfigFileOrder(path string) (int, error) {
 	maxOrder := 0
 	re := regexp.MustCompile(`^(\d+)-.*\.conf$`)
@@ -267,6 +273,8 @@ func GetHighestConfigFileOrder(path string) (int, error) {
 		if matches == nil {
 			continue
 		}
+
+		// Check for configuration file order number
 		numStr := matches[1]
 		num, err := strconv.Atoi(numStr)
 		if err != nil {
@@ -276,6 +284,7 @@ func GetHighestConfigFileOrder(path string) (int, error) {
 			maxOrder = num
 		}
 	}
+
 	return maxOrder, nil
 }
 
