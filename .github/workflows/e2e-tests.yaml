@@ -175,7 +175,7 @@ jobs:
       - name: Install tox
         run: sudo apt-get install -y tox
       - name: Setup tmate
-        uses: mxschmitt/action-tmate@v4
+        uses: mxschmitt/action-tmate@v3
         with:
           detached: true
       - name: Generate names for step and artifacts
