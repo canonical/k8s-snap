@@ -1,0 +1,10 @@
+package_update: true
+package_upgrade: true
+packages:
+  - ubuntu-advantage-tools
+runcmd:
+  # We use a staging token here to avoid load on the production contracts service.
+  - 'echo "contract_url: https://contracts.staging.canonical.com" > /etc/ubuntu-advantage/uaclient.conf'
+  - pro attach $TEST_UBUNTU_PRO_TOKEN --no-auto-enable
+  - pro enable fips-updates --assume-yes
+  - reboot
