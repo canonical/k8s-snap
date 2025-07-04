@@ -41,9 +41,11 @@ def get_gateway_service_node_port(p):
 
 
 def get_external_service_ip(instance: harness.Instance) -> str:
+    LOG.info("Waiting for gateway IP to be available...")
     try_count = 0
     gateway_ip = None
-    while not gateway_ip and try_count < 5:
+    while not gateway_ip and try_count < 30:
+        LOG.info(f"Attempt {try_count + 1} to get gateway IP...")
         try_count += 1
         try:
             gateway_ip = (
