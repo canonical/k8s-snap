@@ -22,8 +22,7 @@ import (
 type client struct {
 	restClientGetter func(string) genericclioptions.RESTClientGetter
 	manifestsBaseDir string
-	// applyTimeout is the timeout for apply operations.
-	applyTimeout time.Duration
+	timeout          time.Duration
 	// maxHistory specifies the maximum number of historical releases that will
 	// be retained, including the most recent release. Values of 0 or less are
 	// ignored (meaning no limits are imposed).
@@ -36,13 +35,13 @@ var _ Client = &client{}
 // NewClient creates a new client.
 func NewClient(manifestsBaseDir string,
 	restClientGetter func(string) genericclioptions.RESTClientGetter,
-	applyTimeout time.Duration,
+	timeout time.Duration,
 	maxHistory int,
 ) *client {
 	return &client{
 		restClientGetter: restClientGetter,
 		manifestsBaseDir: manifestsBaseDir,
-		applyTimeout:     applyTimeout,
+		timeout:          timeout,
 		maxHistory:       maxHistory,
 	}
 }
@@ -62,10 +61,8 @@ func (h *client) newActionConfiguration(ctx context.Context, namespace string) (
 // Apply implements the Client interface.
 func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, values map[string]any) (bool, error) {
 	log := log.FromContext(ctx).WithName("helm").WithValues("chart", c.Name, "desired", desired)
-	applyCtx, cancel := context.WithTimeout(ctx, h.applyTimeout)
-	defer cancel()
 
-	cfg, err := h.newActionConfiguration(applyCtx, c.Namespace)
+	cfg, err := h.newActionConfiguration(ctx, c.Namespace)
 	if err != nil {
 		return false, fmt.Errorf("failed to create action configuration: %w", err)
 	}
@@ -96,6 +93,8 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 	case !isInstalled && desired == StatePresent:
 		// there is no release installed, so we must run an install action
 		install := action.NewInstall(cfg)
+		install.Atomic = true
+		install.Timeout = h.timeout
 		install.ReleaseName = c.Name
 		install.Namespace = c.Namespace
 		install.CreateNamespace = true
@@ -105,7 +104,7 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 			return false, fmt.Errorf("failed to load manifest for %s: %w", c.Name, err)
 		}
 
-		if _, err := install.RunWithContext(applyCtx, chart, values); err != nil {
+		if _, err := install.RunWithContext(ctx, chart, values); err != nil {
 			return false, fmt.Errorf("failed to install %s: %w", c.Name, err)
 		}
 		return true, nil
@@ -146,13 +145,15 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 
 		// there is already a release installed, so we must run an upgrade action
 		upgrade := action.NewUpgrade(cfg)
+		upgrade.Atomic = true
+		upgrade.Timeout = h.timeout
 		upgrade.Namespace = c.Namespace
 		upgrade.ResetThenReuseValues = true
 		// NOTE(Hue): We need to set the upgrade.MaxHistory here since it overwrites the
 		// cfg.Releases.MaxHistory value.
 		upgrade.MaxHistory = h.maxHistory
 
-		if _, err := upgrade.RunWithContext(applyCtx, c.Name, chart, values); err != nil {
+		if _, err := upgrade.RunWithContext(ctx, c.Name, chart, values); err != nil {
 			return false, fmt.Errorf("failed to upgrade %s: %w", c.Name, err)
 		}
 
@@ -160,6 +161,8 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 	case isInstalled && desired == StateDeleted:
 		// run an uninstall action
 		uninstall := action.NewUninstall(cfg)
+		uninstall.Timeout = h.timeout
+		uninstall.Wait = true
 		if _, err := uninstall.Run(c.Name); err != nil {
 			return false, fmt.Errorf("failed to uninstall %s: %w", c.Name, err)
 		}
