@@ -27,7 +27,7 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 	// tune system settings if enabled and necessary
 	if !a.snap.Strict() {
 		if err := a.tuneSystemSettings(ctx, s); err != nil {
-			return fmt.Errorf("failed to tune system settings: %w", err)
+			log.FromContext(ctx).Error(err, "failed to tune system settings")
 		}
 	}
 
