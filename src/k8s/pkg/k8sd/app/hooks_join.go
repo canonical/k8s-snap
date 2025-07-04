@@ -66,6 +66,14 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		return fmt.Errorf("failed to create directories: %w", err)
 	}
 
+	// Create system tuning file if desired
+	if !a.snap.Strict() && !joinConfig.GetDisableSystemTuning() {
+		a.createSystemTuningConfigFile(ctx)
+		if err := a.tuneSystemSettings(ctx, s); err != nil {
+			log.Error(err, "failed to tune system settings")
+		}
+	}
+
 	// cfg.Network.ServiceCIDR may be "IPv4CIDR[,IPv6CIDR]". get the first ip from CIDR(s).
 	serviceIPs, err := utils.GetKubernetesServiceIPsFromServiceCIDRs(cfg.Network.GetServiceCIDR())
 	if err != nil {
