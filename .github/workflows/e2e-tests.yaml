@@ -174,10 +174,6 @@ jobs:
           done
       - name: Install tox
         run: sudo apt-get install -y tox
-      - name: Setup tmate
-        uses: mxschmitt/action-tmate@v3
-        with:
-          detached: true
       - name: Generate names for step and artifacts
         run: |
           FULL_TEST_NODE_ID="${{ matrix.test }}"
@@ -221,6 +217,9 @@ jobs:
           fi
 
           cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- ${{ inputs.parallel && matrix.test || '' }} ${{ env.PERFORMANCE_FLAGS }} --tags ${{ inputs.test-tags }} ${{ inputs.extra-test-args }}
+      - name: Setup tmate
+        if: failure()
+        uses: mxschmitt/action-tmate@v3
       - name: Prepare inspection reports
         if: failure()
         run: |
