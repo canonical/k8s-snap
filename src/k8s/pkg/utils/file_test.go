@@ -91,7 +91,7 @@ func TestParseArgumentFile(t *testing.T) {
 			filePath := filepath.Join(t.TempDir(), tc.name)
 			err := utils.WriteFile(filePath, []byte(tc.content), 0o755)
 			if err != nil {
-				t.Fatalf("Failed to setup testfile: %v", err)
+				t.Fatalf("failed to setup testfile: %v", err)
 			}
 
 			arguments, err := utils.ParseArgumentFile(filePath)
@@ -100,6 +100,163 @@ func TestParseArgumentFile(t *testing.T) {
 			}
 
 			g.Expect(arguments).To(Equal(tc.expectedArgs))
+		})
+	}
+}
+
+func TestParseConfigFile(t *testing.T) {
+	for _, tc := range []struct {
+		name           string
+		content        string
+		expectedParams map[string]string
+	}{
+		{
+			name:    "normal",
+			content: "#some comment\nkey1=value1\n  key2=value2 \n#key3=value3 \n",
+			expectedParams: map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+			},
+		},
+		{
+			name:    "malformed",
+			content: "key1=\n=value2   \nkey3=value3",
+			expectedParams: map[string]string{
+				"key1": "",
+				"":     "value2",
+				"key3": "value3",
+			},
+		},
+		{
+			name:           "empty",
+			content:        ``,
+			expectedParams: map[string]string{},
+		},
+		{
+			name: "emptyWithNewLine",
+			content: `
+			`,
+			expectedParams: map[string]string{},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			g := NewWithT(t)
+
+			filePath := filepath.Join(t.TempDir(), tc.name)
+			err := utils.WriteFile(filePath, []byte(tc.content), 0o755)
+			if err != nil {
+				t.Fatalf("failed to setup testfile: %v", err)
+			}
+
+			arguments, err := utils.ParseConfigFile(filePath)
+			if err != nil {
+				t.Fatalf("failed to parse config file: %v", err)
+			}
+
+			g.Expect(arguments).To(Equal(tc.expectedParams))
+		})
+	}
+}
+
+func TestUpdateConfigFile(t *testing.T) {
+	for _, tc := range []struct {
+		name           string
+		content        string
+		newConfig      map[string]string
+		expectedConfig map[string]string
+	}{
+		{
+			name:    "normal",
+			content: "#some comment\n #commented_out=5 \n already_set=1\n  different_value=10 \n no_value=\n",
+			newConfig: map[string]string{
+				"already_set":     "1",
+				"different_value": "1024",
+				"new_config":      "6",
+				"no_value":        "3",
+			},
+			expectedConfig: map[string]string{
+				"already_set":     "1",
+				"different_value": "1024",
+				"new_config":      "6",
+				"no_value":        "3",
+			},
+		},
+		{
+			name:           "empty",
+			content:        ``,
+			newConfig:      map[string]string{},
+			expectedConfig: map[string]string{},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			g := NewWithT(t)
+
+			filePath := filepath.Join(t.TempDir(), tc.name)
+			err := utils.WriteFile(filePath, []byte(tc.content), 0o755)
+			if err != nil {
+				t.Fatalf("failed to setup testfile: %v", err)
+			}
+
+			if err = utils.UpdateConfigFile(filePath, tc.newConfig); err != nil {
+				t.Fatalf("failed to update config file with min parameters.")
+			}
+
+			arguments, err := utils.ParseConfigFile(filePath)
+			if err != nil {
+				t.Fatalf("failed to parse config file: %v", err)
+			}
+
+			g.Expect(arguments).To(Equal(tc.expectedConfig))
+		})
+	}
+}
+
+func TestMinConfigFileDiff(t *testing.T) {
+	for _, tc := range []struct {
+		name           string
+		content        string
+		minConfig      map[string]string
+		expectedConfig map[string]string
+	}{
+		{
+			name:    "normal",
+			content: "#some comment\n #commented_out=5 \n already_set=1\n  higher_value=1 \n lower_value=5 no_value=\n",
+			minConfig: map[string]string{
+				"already_set":  "1",
+				"higher_value": "1024",
+				"lower_value":  "1",
+				"new_config":   "1",
+				"no_value":     "1",
+			},
+			expectedConfig: map[string]string{
+				"higher_value": "1024",
+				"new_config":   "1",
+				"no_value":     "1",
+			},
+		},
+		{
+			name:           "empty",
+			content:        ``,
+			minConfig:      map[string]string{},
+			expectedConfig: map[string]string{},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			g := NewWithT(t)
+
+			tempDir := t.TempDir()
+			filePath := filepath.Join(tempDir, tc.name)
+			err := utils.WriteFile(filePath, []byte(tc.content), 0o755)
+			if err != nil {
+				t.Fatalf("failed to setup testfile: %v", err)
+			}
+
+			newConfig := utils.MinConfigFileDiff([]string{tempDir}, tc.minConfig)
+			if err != nil {
+				t.Fatalf("failed to parse config file: %v", err)
+			}
+
+			g.Expect(newConfig).To(Equal(tc.expectedConfig))
 		})
 	}
 }
@@ -170,6 +327,59 @@ func TestFileExists(t *testing.T) {
 	fileExists, err = utils.FileExists(testFilePath)
 	g.Expect(err).To(Not(HaveOccurred()))
 	g.Expect(fileExists).To(BeFalse())
+}
+
+func TestGetFileMatch(t *testing.T) {
+	g := NewWithT(t)
+
+	tempDir := t.TempDir()
+	filePath := filepath.Join(tempDir, "/11-k8s.conf")
+	_, err := os.Create(filePath)
+	g.Expect(err).To(Not(HaveOccurred()))
+
+	match, err := utils.GetFileMatch(tempDir, `^(\d+)-k8s.conf$`)
+	g.Expect(err).To(Not(HaveOccurred()))
+	g.Expect(match).To(Equal(filePath))
+
+	match, err = utils.GetFileMatch(tempDir, `^(\d+)-not-existant.conf$`)
+	g.Expect(err).To(Not(HaveOccurred()))
+	g.Expect(match).To(Equal(""))
+}
+
+func TestGetHighestConfigFileOrder(t *testing.T) {
+	g := NewWithT(t)
+
+	tempDir := t.TempDir()
+	file1 := "/000-custom.conf"
+	file2 := "/010-user-file.conf"
+
+	file1Path := filepath.Join(tempDir, file1)
+	_, err := os.Create(file1Path)
+	g.Expect(err).To(Not(HaveOccurred()))
+
+	file2Path := filepath.Join(tempDir, file2)
+	_, err = os.Create(file2Path)
+	g.Expect(err).To(Not(HaveOccurred()))
+
+	maxOrder, err := utils.GetHighestConfigFileOrder(tempDir)
+	g.Expect(err).To(Not(HaveOccurred()))
+	g.Expect(maxOrder).To(Equal(10))
+}
+
+func TestDeepCopyMap(t *testing.T) {
+	g := NewWithT(t)
+
+	original := map[string]string{
+		"a": "1",
+		"b": "2",
+	}
+
+	copied := utils.DeepCopyMap(original)
+	g.Expect(copied).To(Equal(original))
+	// Ensure original remains unchanged
+	copied["a"] = "changed"
+	g.Expect(original["a"]).To(Equal("1"))
+	g.Expect(copied["a"]).To(Equal("changed"))
 }
 
 func TestGetMountPropagationType(t *testing.T) {
