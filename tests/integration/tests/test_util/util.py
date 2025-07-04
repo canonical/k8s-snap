@@ -625,6 +625,12 @@ def _get_flavor() -> str:
     return {"": "classic", "strict": ""}.get(config.FLAVOR, config.FLAVOR)
 
 
+@retry(
+    retry=retry_if_exception_type(urllib.error.HTTPError),
+    stop=stop_after_attempt(10),
+    wait=wait_fixed(6),
+    reraise=True,
+)
 def _major_minor_from_stable_upstream(maj: Optional[int] = None) -> Optional[tuple]:
     """Determine the major and minor version of the latest stable upstream release.
 
