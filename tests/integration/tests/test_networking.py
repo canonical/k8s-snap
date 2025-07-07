@@ -55,7 +55,7 @@ def test_dualstack(instances: List[harness.Instance]):
 
         # need to shell out otherwise this runs into permission errors
         util.stubbornly(retries=10, delay_s=1).on(main).exec(
-            f"curl {address}", shell=True
+            ["curl", address], shell=True
         )
 
 
