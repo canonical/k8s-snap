@@ -94,7 +94,7 @@ def test_airgapped_with_proxy(instances: List[harness.Instance]):
     # This is required because the proxy settings are not available to the Python
     # subprocess shell that runs the connectivity test.
     instance.exec(
-        "export $(grep -v '^#' /etc/environment | xargs) && curl -I -4 https://www.google.com".split()
+        ["bash", "-c", "export $(grep -v '^#' /etc/environment | xargs) && curl -I -4 https://www.google.com"]
     )
 
     # Install and configure Kubernetes snap
@@ -132,7 +132,7 @@ def test_airgapped_with_image_mirror(
     )
     # Verify connectivity through the proxy.
     registry.exec(
-        "export $(grep -v '^#' /etc/environment | xargs) && curl -I -4 https://www.google.com".split()
+        ["bash", "-c", "export $(grep -v '^#' /etc/environment | xargs) && curl -I -4 https://www.google.com"]
     )
 
     setup_containerd_proxy(registry.instance, proxy_ip)
