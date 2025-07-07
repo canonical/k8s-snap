@@ -8,6 +8,7 @@ import (
 	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/features"
+	"github.com/canonical/k8s/pkg/k8sd/features/cilium"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
@@ -84,6 +85,11 @@ func (c *FeatureController) ReconciledMetricsServerCh() <-chan struct{} {
 	return c.reconciledMetricsServerCh
 }
 
+type featureChannels struct {
+	triggerCh    chan struct{}
+	reconciledCh chan struct{}
+}
+
 type FeatureControllerOpts struct {
 	Snap      snap.Snap
 	WaitReady func()
@@ -138,16 +144,22 @@ func (c *FeatureController) Run(
 
 	s := getState()
 
-	go c.reconcileLoop(ctx, getClusterConfig, setFeatureStatus, features.Network, c.triggerNetworkCh, c.reconciledNetworkCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		return features.Implementation.ApplyNetwork(ctx, c.snap, s, cfg.APIServer, cfg.Network, cfg.Annotations)
-	})
-
-	go c.reconcileLoop(ctx, getClusterConfig, setFeatureStatus, features.Gateway, c.triggerGatewayCh, c.reconciledGatewayCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		return features.Implementation.ApplyGateway(ctx, c.snap, cfg.Gateway, cfg.Network, cfg.Annotations)
-	})
-
-	go c.reconcileLoop(ctx, getClusterConfig, setFeatureStatus, features.Ingress, c.triggerIngressCh, c.reconciledIngressCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
-		return features.Implementation.ApplyIngress(ctx, c.snap, cfg.Ingress, cfg.Network, cfg.Annotations)
+	ciliumFeatures := map[types.FeatureName]featureChannels{
+		features.Network: {
+			triggerCh:    c.triggerNetworkCh,
+			reconciledCh: c.reconciledNetworkCh,
+		},
+		features.Gateway: {
+			triggerCh:    c.triggerGatewayCh,
+			reconciledCh: c.reconciledGatewayCh,
+		},
+		features.Ingress: {
+			triggerCh:    c.triggerIngressCh,
+			reconciledCh: c.reconciledIngressCh,
+		},
+	}
+	go c.reconcileCiliumLoop(ctx, getClusterConfig, setFeatureStatus, ciliumFeatures, func(cfg types.ClusterConfig) (map[types.FeatureName]types.FeatureStatus, error) {
+		return cilium.ApplyCilium(ctx, c.snap, s, cfg.APIServer, cfg.Network, cfg.Gateway, cfg.Ingress, cfg.Annotations)
 	})
 
 	go c.reconcileLoop(ctx, getClusterConfig, setFeatureStatus, features.LoadBalancer, c.triggerLoadBalancerCh, c.reconciledLoadBalancerCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
@@ -198,6 +210,32 @@ func (c *FeatureController) reconcile(
 	if err := updateFeatureStatus(ctx, status); err != nil {
 		// NOTE (hue): status update errors are not returned but only logged. we might need some retry logic in the future.
 		log.FromContext(ctx).WithValues("message", status.Message, "applied-successfully", applyErr == nil).Error(err, "Failed to update feature status")
+	}
+
+	if applyErr != nil {
+		return fmt.Errorf("failed to apply configuration: %w", applyErr)
+	}
+
+	return nil
+}
+
+func (c *FeatureController) reconcileCilium(
+	ctx context.Context,
+	getClusterConfig func(context.Context) (types.ClusterConfig, error),
+	apply func(cfg types.ClusterConfig) (map[types.FeatureName]types.FeatureStatus, error),
+	updateFeatureStatus func(context.Context, types.FeatureName, types.FeatureStatus) error,
+) error {
+	cfg, err := getClusterConfig(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve cluster configuration: %w", err)
+	}
+
+	statuses, applyErr := apply(cfg)
+	for featureName, status := range statuses {
+		if err := updateFeatureStatus(ctx, featureName, status); err != nil {
+			// NOTE (hue): status update errors are not returned but only logged. we might need some retry logic in the future.
+			log.FromContext(ctx).WithValues("message", status.Message, "applied-successfully", applyErr == nil).Error(err, "Failed to update feature status")
+		}
 	}
 
 	if applyErr != nil {
@@ -264,7 +302,102 @@ func (c *FeatureController) reconcileLoop(
 				// notify triggerCh after 3-15 seconds to retry
 				time.AfterFunc(timeutils.ExponentialBackoff(attempts, 3*time.Second, 5*time.Minute), func() { utils.MaybeNotify(triggerCh) })
 			} else {
+				log.Info("Reconciled feature successfully")
 				utils.MaybeNotify(reconciledCh)
+				attempts = 0
+			}
+
+		}
+	}
+}
+
+func (c *FeatureController) reconcileCiliumLoop(
+	ctx context.Context,
+	getClusterConfig func(context.Context) (types.ClusterConfig, error),
+	setFeatureStatus func(ctx context.Context, name types.FeatureName, status types.FeatureStatus) error,
+	featuresMap map[types.FeatureName]featureChannels,
+	apply func(cfg types.ClusterConfig) (map[types.FeatureName]types.FeatureStatus, error),
+
+) {
+	fanInCh := make(chan struct{}, 3)
+	for _, f := range featuresMap {
+		go func(triggerCh <-chan struct{}) {
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case _, ok := <-triggerCh:
+					if !ok {
+						return
+					}
+					utils.MaybeNotify(fanInCh)
+				}
+			}
+		}(f.triggerCh)
+	}
+
+	var attempts int
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-fanInCh:
+			log := log.FromContext(ctx).WithValues("feature", "cilium_multiple")
+
+			// reset "reconciled" state before reconciling
+			for _, f := range featuresMap {
+				utils.MaybeReceive(f.reconciledCh)
+			}
+
+			blocked, err := c.isBlocked(ctx, getClusterConfig)
+			if err != nil {
+				log.Error(err, "Failed to check if feature controller is blocked")
+				for _, f := range featuresMap {
+					// notify triggerCh to retry
+					time.AfterFunc(5*time.Second, func() { utils.MaybeNotify(f.triggerCh) })
+				}
+				continue
+			}
+
+			if blocked {
+				continue
+			}
+
+			log.Info("Reconciling cilium features")
+			if err := c.reconcileCilium(ctx, getClusterConfig, apply, func(ctx context.Context, featureName types.FeatureName, status types.FeatureStatus) error {
+				if err := setFeatureStatus(ctx, featureName, status); err != nil {
+					return fmt.Errorf("failed to set feature status for %q: %w", featureName, err)
+				}
+				return nil
+			}); err != nil {
+				log.Error(err, "Failed to apply feature configuration")
+				attempts++
+
+				maxAttempts := fmt.Sprintf("%d", c.reconcileLoopMaxRetryAttempts)
+				if c.reconcileLoopMaxRetryAttempts <= 0 {
+					maxAttempts = "unlimited"
+				}
+
+				if attempts >= c.reconcileLoopMaxRetryAttempts && c.reconcileLoopMaxRetryAttempts > 0 {
+					log.Error(err, "Failed to apply feature configuration after maximum retry attempts", "attempts", fmt.Sprintf("%d/%s", attempts, maxAttempts))
+					// NOTE(Hue): we don't notify the triggerCh here, because we want to stop retrying
+					// We also set the attempts to 0, so that the next time we receive a trigger,
+					// we start from 0 again.
+					attempts = 0
+					continue
+				}
+
+				log.Info("Retrying feature reconciliation", "attempts", fmt.Sprintf("%d/%s", attempts, maxAttempts))
+				retryDelay := timeutils.ExponentialBackoff(attempts, 3*time.Second, 1*time.Minute)
+				for _, f := range featuresMap {
+					// notify triggerCh to retry
+					time.AfterFunc(retryDelay, func() { utils.MaybeNotify(f.triggerCh) })
+				}
+			} else {
+				for _, f := range featuresMap {
+					utils.MaybeNotify(f.reconciledCh)
+				}
 				attempts = 0
 			}
 

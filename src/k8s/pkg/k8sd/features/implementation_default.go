@@ -15,11 +15,9 @@ import (
 // MetricsServer is used for metrics-server.
 // LocalPV Rawfile CSI is used for local-storage.
 var Implementation Interface = &implementation{
+	applyCilium:        cilium.ApplyCilium,
 	applyDNS:           coredns.ApplyDNS,
-	applyNetwork:       cilium.ApplyNetwork,
 	applyLoadBalancer:  metallb.ApplyLoadBalancer,
-	applyIngress:       cilium.ApplyIngress,
-	applyGateway:       cilium.ApplyGateway,
 	applyMetricsServer: metrics_server.ApplyMetricsServer,
 	applyLocalStorage:  localpv.ApplyLocalStorage,
 }
