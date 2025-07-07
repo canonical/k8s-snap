@@ -26,6 +26,8 @@ jobs:
   charm-e2e-tests:
     name: Test ${{ inputs.arch }} ${{ inputs.artifact }}
     runs-on: ${{ inputs.arch == 'arm64' && 'self-hosted-linux-arm64-jammy-large' || 'self-hosted-linux-amd64-jammy-xlarge' }}
+    env:
+      K8S_OPERATOR: k8s-operator
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -48,12 +50,12 @@ jobs:
           mkdir snap_installation
           mv ${{ steps.download-snap.outputs.snap-path }} snap_installation/k8s.snap
           tar cvzf snap_installation.tar.gz -C snap_installation/ .
-      - name: Install charmcraft
-        run: |
-          sudo snap install charmcraft --classic
       - name: Install juju
         run: |
           sudo snap install juju --classic
+      - name: Install juju-crashdump
+        run: |
+          sudo snap install juju-crashdump --classic
       - name: Download charms ${{ inputs.charm-channel }} ${{ inputs.arch }}
         run: |
           # The operator tests expect the charm file name to have the
@@ -81,7 +83,7 @@ jobs:
         with:
           repository: canonical/k8s-operator
           ref: main
-          path: k8s-operator
+          path: ${{ env.K8S_OPERATOR }}
       - name: Disable lxd ipv6
         run: |
           # The charm tests can't handle ipv6 dualstack.
@@ -98,7 +100,8 @@ jobs:
           ls -lh $charmFile
           ls -lh $snapInstallRes
 
-          cd k8s-operator
+          cd ${{ env.K8S_OPERATOR }}
+
           sudo --user "$USER" --preserve-env --preserve-env=PATH \
             -- env -- \
             tox -e integration \
@@ -107,3 +110,20 @@ jobs:
             --charm-file $k8sWorkerChamFile \
             --snap-installation-resource $snapInstallRes \
             'tests/integration/test_k8s.py::test_nodes_ready'
+      - name: Collect Juju Status
+        if: ${{ failure() }}
+        id: collect-juju-status
+        run: |
+          set -x
+          path=${{ env.K8S_OPERATOR }}/tmp
+          mkdir -p $path
+          juju status 2>&1 | tee $path/juju-status.txt
+          juju-crashdump -s -m controller -a debug-layer -a config -o $path/
+          mv ${{ env.K8S_OPERATOR }}/juju-crashdump-* $path/ | true
+          echo "path=${path}/" >> $GITHUB_OUTPUT
+      - name: Upload debug artifacts
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-run-artifacts
+          path: ${{ steps.collect-juju-status.outputs.path }}
