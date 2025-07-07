@@ -237,8 +237,7 @@ func DeepCopyMap(original map[string]string) map[string]string {
 
 // GetFileMatch returns the path of the file in a dir matching the regex or "" if no
 // match was found.
-func GetFileMatch(path string, regex string) (string, error) {
-	re := regexp.MustCompile(regex)
+func GetFileMatch(path string, re *regexp.Regexp) (string, error) {
 	entries, err := os.ReadDir(path)
 	if err != nil {
 		return "", err

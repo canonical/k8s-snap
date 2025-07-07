@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sync"
 	"testing"
 
@@ -337,11 +338,13 @@ func TestGetFileMatch(t *testing.T) {
 	_, err := os.Create(filePath)
 	g.Expect(err).To(Not(HaveOccurred()))
 
-	match, err := utils.GetFileMatch(tempDir, `^(\d+)-k8s.conf$`)
+	re := regexp.MustCompile(`^(\d+)-k8s.conf$`)
+	match, err := utils.GetFileMatch(tempDir, re)
 	g.Expect(err).To(Not(HaveOccurred()))
 	g.Expect(match).To(Equal(filePath))
 
-	match, err = utils.GetFileMatch(tempDir, `^(\d+)-not-existant.conf$`)
+	re = regexp.MustCompile(`^(\d+)-not-existant.conf$`)
+	match, err = utils.GetFileMatch(tempDir, re)
 	g.Expect(err).To(Not(HaveOccurred()))
 	g.Expect(match).To(Equal(""))
 }

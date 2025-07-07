@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/pprof"
-	"os/exec"
 	"sync"
 	"time"
 
@@ -18,21 +17,10 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
-	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/microcluster/v2/client"
 	"github.com/canonical/microcluster/v2/microcluster"
 	"github.com/canonical/microcluster/v2/state"
-)
-
-var (
-	minConfig = map[string]string{
-		"fs.inotify.max_user_instances": "1024",
-		"fs.inotify.max_user_watches":   "1048576",
-	}
-	confLocs = []string{
-		"/etc/sysctl.d/", "/run/sysctl.d/", "/usr/local/lib/sysctl.d/", "/usr/lib/sysctl.d/", "/lib/sysctl.d/", "/etc/sysctl.conf",
-	}
 )
 
 // Config defines configuration for the k8sd app.
@@ -330,40 +318,5 @@ func (a *App) markNodeReady(ctx context.Context, s state.State) error {
 	log.Info("Marking node as ready")
 	a.readyWg.Done()
 
-	return nil
-}
-
-// tuneSystemSettings bumps system parameters if the configuration file exists.
-// This ensures system settings reflect minimum k8s requirements.
-func (a *App) tuneSystemSettings(ctx context.Context, s state.State) error {
-	log := log.FromContext(ctx).WithValues("startup", "tuneSystem")
-
-	// Find highest order file
-	// Match patterns like: 10-k8s.conf
-	regex := `^(\d+)-k8s.conf$`
-	confPath, err := utils.GetFileMatch(systemConfigPath, regex)
-	if err != nil {
-		log.Error(err, "failed to get file match on system config file *-k8s.conf")
-	}
-
-	// skip tuning if the tuning file does not exist
-	if confPath == "" {
-		log.Info(fmt.Sprintf("skipping system tuning: no sysctl config file %s", confPath))
-		return nil
-	}
-
-	// parse config files to check minimum requirements are set
-	newConfig := utils.MinConfigFileDiff(confLocs, minConfig)
-	if len(newConfig) == 0 {
-		return nil
-	}
-	// Update the x-k8s.conf file to ensure minimum k8s requirements
-	if err := utils.UpdateConfigFile(confPath, newConfig); err != nil {
-		log.Error(err, fmt.Sprintf("failed to update system configuration file %s", confPath))
-	}
-
-	if err := exec.CommandContext(ctx, "sysctl", "--system").Run(); err != nil {
-		return fmt.Errorf("failed to apply system parameters: %w", err)
-	}
 	return nil
 }
