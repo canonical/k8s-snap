@@ -70,15 +70,11 @@ def _generate_inspection_report(h: harness.Harness, instance_id: str):
             f.write("stderr:\n")
             f.write(result.stderr)
 
-        # Pull to /tmp first to avoid permission errors, then move to destination
-        tmp_report = f"/tmp/{instance_id}_inspection_report.tar.gz"
-        dest_report = (inspection_path / instance_id / "inspection_report.tar.gz").as_posix()
         h.pull_file(
             instance_id,
             "/inspection-report.tar.gz",
-            tmp_report,
+            (inspection_path / instance_id / "inspection_report.tar.gz").as_posix(),
         )
-        Path(tmp_report).replace(dest_report)
     except harness.HarnessError as e:
         LOG.warning("Failed to pull inspection report: %s", e)
 
