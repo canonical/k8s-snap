@@ -87,7 +87,7 @@ class Registry:
         # valid use cases, e.g. in the promotion scenarios.
         util.preload_snaps(self.instance)
         util.setup_k8s_snap(
-            self.instance, Path("/"), config.SNAP or "latest/edge/classic"
+            self.instance, Path("/tmp"), config.SNAP or "latest/edge/classic"
         )
 
     def get_configured_mirrors(self) -> List[Mirror]:
