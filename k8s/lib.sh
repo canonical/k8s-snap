@@ -82,13 +82,8 @@ k8s::remove::system_tuning() {
 
 
     if [ -n "$files_to_remove" ]; then
-      echo "Removing the following custom sysctl parameter files:"
-      echo "$files_to_remove"
       echo "$files_to_remove" | xargs sudo rm -f
-
-      if ! sudo sysctl --system; then
-        echo "Could not refresh system parameters via sysctl"
-      fi
+      sudo sysctl --system
     fi
   fi
 }
