@@ -5,9 +5,9 @@ import json
 import logging
 import re
 import subprocess
-from typing import List
 import time
 from pathlib import Path
+from typing import List
 
 import pytest
 from test_util import config, harness, tags, util
