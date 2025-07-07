@@ -9,12 +9,14 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/log"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart/loader"
 	"helm.sh/helm/v3/pkg/chartutil"
 	releasepkg "helm.sh/helm/v3/pkg/release"
 	"helm.sh/helm/v3/pkg/storage/driver"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
@@ -84,6 +86,24 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 	} else {
 		// keep the existing release configuration, to check if any changes were made.
 		oldConfig = release.Config
+	}
+
+	// Delete the Helm release secret if it is in a pending state or uninstalling.
+	// This will prevent Helm from getting stuck in a pending state when there's been
+	// an interruption or failure in a previous operation.
+	if isInstalled {
+		if release.Info.Status.IsPending() || release.Info.Status == releasepkg.StatusUninstalling {
+			log.Info("release is in a pending state, deleting secret", "status", release.Info.Status, "chart", c.Name)
+			k8sClient, err := kubernetes.NewClient(h.restClientGetter(c.Namespace))
+			if err != nil {
+				log.Error(err, "failed to create Kubernetes client to delete Helm release secret")
+			} else {
+				secretName := helmSecretName(c.Name, release.Version)
+				if err := k8sClient.CoreV1().Secrets(c.Namespace).Delete(applyCtx, secretName, metav1.DeleteOptions{}); err != nil {
+					log.Error(err, "failed to delete Helm release secret", "name", secretName)
+				}
+			}
+		}
 	}
 
 	switch {
@@ -188,4 +208,8 @@ func cloneMap(m map[string]any) (map[string]any, error) {
 		return nil, fmt.Errorf("failed to unmarshal map: %w", err)
 	}
 	return cloned, nil
+}
+
+func helmSecretName(releaseName string, revision int) string {
+	return fmt.Sprintf("sh.helm.release.v1.%s.v%d", releaseName, revision)
 }
