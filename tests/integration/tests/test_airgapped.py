@@ -83,7 +83,7 @@ def test_airgapped_with_proxy(instances: List[harness.Instance]):
     # Verify connectivity without the proxy is blocked.
     assert (
         instance.exec(
-            "curl -I -4 --noproxy '*' https://www.google.com".split(),
+            ["curl", "-I", "-4", "--noproxy", "*", "https://www.google.com"],
             check=False,
             capture_output=True,
         ).returncode
@@ -98,7 +98,7 @@ def test_airgapped_with_proxy(instances: List[harness.Instance]):
     )
 
     # Install and configure Kubernetes snap
-    util.setup_k8s_snap(instance, Path("/"))
+    util.setup_k8s_snap(instance, Path("/tmp"))
     setup_containerd_proxy(instance, proxy_ip)
     instance.exec("sudo k8s bootstrap".split())
     util.wait_until_k8s_ready(instance, [instance])
@@ -124,7 +124,7 @@ def test_airgapped_with_image_mirror(
     # Verify connectivity without the proxy is blocked.
     assert (
         registry.exec(
-            "curl -I -4 --noproxy '*' https://www.google.com".split(),
+            ["curl", "-I", "-4", "--noproxy", "*", "https://www.google.com"],
             check=False,
             capture_output=True,
         ).returncode
@@ -186,7 +186,7 @@ def test_airgapped_with_image_mirror(
     )
 
     restrict_network(instance, allow_ports=[REGISTRY_PORT])
-    util.setup_k8s_snap(instance, Path("/"))
+    util.setup_k8s_snap(instance, Path("/tmp"))
     registry.apply_configuration(instance)
     instance.exec("sudo k8s bootstrap".split())
     util.wait_until_k8s_ready(instance, [instance])

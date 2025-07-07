@@ -55,7 +55,7 @@ def test_dualstack(instances: List[harness.Instance]):
 
         # need to shell out otherwise this runs into permission errors
         util.stubbornly(retries=10, delay_s=1).on(main).exec(
-            ["curl", address], shell=True
+            f"curl {address}", shell=True
         )
 
 
@@ -63,6 +63,7 @@ def test_dualstack(instances: List[harness.Instance]):
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.network_type("dualstack")
 @pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.skipif(config.SUBSTRATE == "multipass", reason="QUEMU does not support IPv6")
 def test_ipv6_only_on_dualstack_infra(instances: List[harness.Instance]):
     main = instances[0]
     joining_cp = instances[1]
