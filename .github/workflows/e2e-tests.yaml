@@ -157,7 +157,18 @@ jobs:
       - name: Setup Multipass
         if: ${{ inputs.substrate == 'multipass' }}
         run: |
-          sudo snap install multipass
+          # Retry multipass install up to 5 times if it fails
+          for i in {1..5}; do
+            if sudo snap install multipass; then
+              break
+            elif [[ $i -eq 5 ]]; then
+              echo "Failed to install multipass after 5 attempts"
+              exit 1
+            else
+              echo "Retrying multipass install ($i/5) in 5s..."
+              sleep 5
+            fi
+          done
           # The runner is not part of the sudo group, so we need to authenticate the client.
           # Nesting sudo caused issues with the Multipass client.
           sudo multipass set local.passphrase=runner

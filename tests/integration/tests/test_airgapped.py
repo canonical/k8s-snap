@@ -163,7 +163,7 @@ def test_airgapped_with_image_mirror(
 
         registry.exec([
             "bash", "-c",
-            f"export $(grep -v '^#' /etc/environment | xargs) && /snap/k8s/current/bin/ctr images push --plain-http {tag} > /dev/null"
+            f"export $(grep -v '^#' /etc/environment | xargs) && /snap/k8s/current/bin/ctr images push --plain-http {tag}",
         ])
 
         registry.exec("iptables -D OUTPUT -p tcp --dport 443 -j ACCEPT".split())
