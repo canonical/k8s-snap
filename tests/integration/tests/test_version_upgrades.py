@@ -19,6 +19,9 @@ LOG = logging.getLogger(__name__)
 @pytest.mark.skipif(
     not config.VERSION_UPGRADE_CHANNELS, reason="No upgrade channels configured"
 )
+@pytest.mark.skipif(
+    config.SUBSTRATE == "multipass", reason="runner size too small on multipass"
+)
 @pytest.mark.tags(tags.NIGHTLY)
 def test_version_upgrades(
     instances: List[harness.Instance],
@@ -137,6 +140,9 @@ def test_version_upgrades(
 @pytest.mark.no_setup()
 @pytest.mark.skipif(
     not config.VERSION_DOWNGRADE_CHANNELS, reason="No downgrade channels configured"
+)
+@pytest.mark.skipif(
+    config.SUBSTRATE == "multipass", reason="runner size too small on multipass"
 )
 @pytest.mark.tags(tags.NIGHTLY)
 def test_version_downgrades_with_rollback(

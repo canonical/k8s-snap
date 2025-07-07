@@ -94,7 +94,15 @@ def test_airgapped_with_proxy(instances: List[harness.Instance]):
     # This is required because the proxy settings are not available to the Python
     # subprocess shell that runs the connectivity test.
     instance.exec(
-        ["bash", "-c", "export $(grep -v '^#' /etc/environment | xargs) && curl -I -4 https://www.google.com"]
+        [
+            "export",
+            "$(grep -v '^#' /etc/environment | xargs)",
+            "&&",
+            "curl",
+            "-I",
+            "-4",
+            "https://www.google.com",
+        ]
     )
 
     # Install and configure Kubernetes snap
@@ -132,7 +140,15 @@ def test_airgapped_with_image_mirror(
     )
     # Verify connectivity through the proxy.
     registry.exec(
-        ["bash", "-c", "export $(grep -v '^#' /etc/environment | xargs) && curl -I -4 https://www.google.com"]
+        [
+            "export",
+            "$(grep -v '^#' /etc/environment | xargs)",
+            "&&",
+            "curl",
+            "-I",
+            "-4",
+            "https://www.google.com",
+        ]
     )
 
     setup_containerd_proxy(registry.instance, proxy_ip)
@@ -147,16 +163,29 @@ def test_airgapped_with_image_mirror(
         # Pull the image from the upstream registry and push it to the local registry.
         # Pipe the pull and push output to /dev/null as ctr is very verbose.
         registry.exec(
-            (
-                "export $(grep -v '^#' /etc/environment | xargs) && "
-                + f"/snap/k8s/current/bin/ctr images pull --all-platforms {image} > /dev/null"
-            ).split()
+            [
+                "export",
+                "$(grep -v '^#' /etc/environment | xargs)",
+                "&&",
+                "/snap/k8s/current/bin/ctr",
+                "images",
+                "pull",
+                "--all-platforms",
+                image,
+                "> /dev/null"
+            ]
         )
         registry.exec(
-            (
-                "export $(grep -v '^#' /etc/environment | xargs) && "
-                + f"/snap/k8s/current/bin/ctr images tag {image} {tag}"
-            ).split()
+            [
+                "export",
+                "$(grep -v '^#' /etc/environment | xargs)",
+                "&&",
+                "/snap/k8s/current/bin/ctr",
+                "images",
+                "tag",
+                image,
+                tag
+            ]
         )
 
         # The 443 port is required to upload to the local registry. So, we need to temporarily allow it.
@@ -164,10 +193,18 @@ def test_airgapped_with_image_mirror(
         registry.exec("iptables -A OUTPUT -p tcp --dport 443 -j ACCEPT".split())
 
         registry.exec(
-            (
-                "export $(grep -v '^#' /etc/environment | xargs) && "
-                + f"/snap/k8s/current/bin/ctr images push --plain-http {tag} > /dev/null"
-            ).split()
+            [
+                "export",
+                "$(grep -v '^#' /etc/environment | xargs)",
+                "&&",
+                "/snap/k8s/current/bin/ctr",
+                "images",
+                "push",
+                "--plain-http",
+                {tag},
+                "> /dev/null"
+            ]
+
         )
 
         registry.exec("iptables -D OUTPUT -p tcp --dport 443 -j ACCEPT".split())
