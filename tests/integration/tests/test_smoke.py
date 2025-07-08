@@ -16,7 +16,7 @@ STATUS_PATTERNS = [
     r"cluster status:\s*ready",
     r"control plane nodes:\s*(\d{1,3}(?:\.\d{1,3}){3}:\d{1,5})\s\(voter\)",
     r"high availability:\s*no",
-    r"datastore:\s*k8s-dqlite",
+    r"datastore:\s*etcd",
     r"network:\s*enabled",
     r"dns:\s*enabled at (\d{1,3}(?:\.\d{1,3}){3})",
     r"ingress:\s*enabled",
@@ -58,7 +58,7 @@ def test_smoke(instances: List[harness.Instance]):
         "kube-proxy": '--config-sync-period="14m"',
         "kubelet": '--authentication-token-webhook-cache-ttl="3m"',
         "containerd": '--log-level="debug"',
-        "k8s-dqlite": '--watch-storage-available-size-interval="6s"',
+        "etcd": '--log-level="info"',
     }.items():
         args = instance.exec(
             ["cat", f"/var/snap/k8s/common/args/{service}"], capture_output=True

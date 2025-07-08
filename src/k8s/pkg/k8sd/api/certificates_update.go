@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"path/filepath"
 	"time"
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
@@ -50,13 +49,6 @@ func refreshCertsUpdateControlPlane(s state.State, r *http.Request, snap snap.Sn
 	nodeIP := net.ParseIP(s.Address().Hostname())
 	if nodeIP == nil {
 		return response.InternalError(fmt.Errorf("failed to parse node IP address %q", s.Address().Hostname()))
-	}
-
-	var localhostAddress string
-	if nodeIP.To4() == nil {
-		localhostAddress = "[::1]"
-	} else {
-		localhostAddress = "127.0.0.1"
 	}
 
 	serviceIPs, err := utils.GetKubernetesServiceIPsFromServiceCIDRs(clusterConfig.Network.GetServiceCIDR())
@@ -111,7 +103,7 @@ func refreshCertsUpdateControlPlane(s state.State, r *http.Request, snap snap.Sn
 		return response.InternalError(fmt.Errorf("failed to write control plane certificates: %w", err))
 	}
 
-	if err := setup.SetupControlPlaneKubeconfigs(snap.KubernetesConfigDir(), localhostAddress, clusterConfig.APIServer.GetSecurePort(), *certificates); err != nil {
+	if err := setup.SetupControlPlaneKubeconfigs(snap.KubernetesConfigDir(), clusterConfig.APIServer.GetSecurePort(), *certificates); err != nil {
 		return response.InternalError(fmt.Errorf("failed to generate control plane kubeconfigs: %w", err))
 	}
 
@@ -145,13 +137,6 @@ func refreshCertsUpdateWorker(s state.State, r *http.Request, snap snap.Snap) re
 		return response.InternalError(fmt.Errorf("failed to parse node IP address %q", s.Address().Hostname()))
 	}
 
-	var localhostAddress string
-	if nodeIP.To4() == nil {
-		localhostAddress = "[::1]"
-	} else {
-		localhostAddress = "127.0.0.1"
-	}
-
 	var certificates pki.WorkerNodePKI
 	certificates.CACert = clusterConfig.Certificates.GetCACert()
 	certificates.ClientCACert = clusterConfig.Certificates.GetClientCACert()
@@ -171,12 +156,8 @@ func refreshCertsUpdateWorker(s state.State, r *http.Request, snap snap.Snap) re
 		return response.InternalError(fmt.Errorf("failed to write worker certificates: %w", err))
 	}
 
-	if err := setup.Kubeconfig(filepath.Join(snap.KubernetesConfigDir(), "kubelet.conf"), fmt.Sprintf("%s:%d", localhostAddress, clusterConfig.APIServer.GetSecurePort()), certificates.CACert, certificates.KubeletClientCert, certificates.KubeletClientKey); err != nil {
-		return response.InternalError(fmt.Errorf("failed to write kubeconfig %s: %w", filepath.Join(snap.KubernetesConfigDir(), "kubelet.conf"), err))
-	}
-
-	if err := setup.Kubeconfig(filepath.Join(snap.KubernetesConfigDir(), "proxy.conf"), fmt.Sprintf("%s:%d", localhostAddress, clusterConfig.APIServer.GetSecurePort()), certificates.CACert, certificates.KubeProxyClientCert, certificates.KubeProxyClientKey); err != nil {
-		return response.InternalError(fmt.Errorf("failed to write kubeconfig %s: %w", filepath.Join(snap.KubernetesConfigDir(), "proxy.conf"), err))
+	if err := setup.SetupWorkerKubeconfigs(snap.KubernetesConfigDir(), clusterConfig.APIServer.GetSecurePort(), certificates); err != nil {
+		return response.InternalError(fmt.Errorf("failed to generate worker kubeconfigs: %w", err))
 	}
 
 	restartFn := func(ctx context.Context) error {
