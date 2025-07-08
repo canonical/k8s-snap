@@ -249,14 +249,14 @@ func TestGetFileMatch(t *testing.T) {
 	re := regexp.MustCompile(`^(\d+)-k8s.conf$`)
 	matches, err := utils.GetFileMatches(tempDir, re)
 	g.Expect(err).To(Not(HaveOccurred()))
-	g.Expect(len(matches)).To(Equal(2))
+	g.Expect(matches).To(HaveLen(2))
 	g.Expect(matches[0]).To(Equal(file2))
 	g.Expect(matches[1]).To(Equal(file1))
 
 	re = regexp.MustCompile(`^(\d+)-not-existant.conf$`)
 	matches, err = utils.GetFileMatches(tempDir, re)
 	g.Expect(err).To(Not(HaveOccurred()))
-	g.Expect(len(matches)).To(Equal(0))
+	g.Expect(matches).To(HaveLen(0))
 }
 
 func TestGetMountPropagationType(t *testing.T) {
