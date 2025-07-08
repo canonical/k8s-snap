@@ -51,6 +51,7 @@ parts:
       - libseccomp-dev
       - libtool
       - libssl-dev
+      - patchelf
       - pkg-config
       - rsync
       - tcl
