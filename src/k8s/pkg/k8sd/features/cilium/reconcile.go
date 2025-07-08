@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	CiliumDeleteFailedMsgTmpl = "Failed to delete Cilium features, the error was: %v"
-	CiliumDeployFailedMsgTmpl = "Failed to deploy Cilium features, the error was: %v"
+	CiliumDisableFailedMsgTmpl = "Failed to disable Cilium features, the error was: %v"
+	CiliumEnableFailedMsgTmpl  = "Failed to enable Cilium features, the error was: %v"
 
 	IngressOptionEnabled                          = "enabled"
 	IngressOptionLoadBalancerMode                 = "loadbalancerMode"
@@ -171,7 +171,7 @@ func ApplyCilium(
 	ciliumValues := map[string]any{
 		"bpf": bpfValues,
 		"image": map[string]any{
-			"repository": ciliumAgentImageRepo,
+			"repository": CiliumAgentImageRepo,
 			"tag":        CiliumAgentImageTag,
 			"useDigest":  false,
 		},
@@ -190,8 +190,8 @@ func ApplyCilium(
 		"operator": map[string]any{
 			"replicas": 1,
 			"image": map[string]any{
-				"repository": ciliumOperatorImageRepo,
-				"tag":        ciliumOperatorImageTag,
+				"repository": CiliumOperatorImageRepo,
+				"tag":        CiliumOperatorImageTag,
 				"useDigest":  false,
 			},
 		},
@@ -349,17 +349,6 @@ func ApplyCilium(
 		}
 
 		ciliumValues["gatewayAPI"] = map[string]any{"enabled": false}
-
-		// TODO(Hue) Remove Gateway CRDs if the Gateway feature is disabled.
-		// This is done after the Cilium update as cilium requires the CRDs to be present for cleanups.
-		// if _, err := m.Apply(ctx, chartGateway, helm.StateDeleted, nil); err != nil {
-		// 	err = fmt.Errorf("failed to delete Gateway API CRDs: %w", err)
-		// 	return types.FeatureStatus{
-		// 		Enabled: false,
-		// 		Version: CiliumAgentImageTag,
-		// 		Message: fmt.Sprintf(CiliumDeleteFailedMsgTmpl, err),
-		// 	}, err
-		// }
 	}
 
 	// ingress
@@ -390,6 +379,20 @@ func ApplyCilium(
 			ingress.GetEnabled(),
 			err,
 		), err
+	}
+
+	if !gateway.GetEnabled() {
+		// Remove Gateway CRDs if the Gateway feature is disabled.
+		// This is done after the Cilium update as cilium requires the CRDs to be present for cleanups.
+		if _, err := m.Apply(ctx, chartGateway, helm.StateDeleted, nil); err != nil {
+			err = fmt.Errorf("failed to delete Gateway API CRDs: %w", err)
+			return returnStatuses(
+				network.GetEnabled(),
+				gateway.GetEnabled(),
+				ingress.GetEnabled(),
+				err,
+			), err
+		}
 	}
 
 	if changed {
@@ -483,7 +486,7 @@ func returnStatuses(networkEnabled, gatewayEnabled, ingressEnabled bool, err err
 		enabledMsg := EnabledMsg
 		enabled := true
 		if err != nil {
-			enabledMsg = fmt.Sprintf(CiliumDeployFailedMsgTmpl, err)
+			enabledMsg = fmt.Sprintf(CiliumEnableFailedMsgTmpl, err)
 			enabled = false
 		}
 		ss[types.FeatureName("network")] = types.FeatureStatus{
@@ -494,7 +497,7 @@ func returnStatuses(networkEnabled, gatewayEnabled, ingressEnabled bool, err err
 	} else {
 		disabledMsg := DisabledMsg
 		if err != nil {
-			disabledMsg = fmt.Sprintf(CiliumDeleteFailedMsgTmpl, err)
+			disabledMsg = fmt.Sprintf(CiliumDisableFailedMsgTmpl, err)
 		}
 		ss[types.FeatureName("network")] = types.FeatureStatus{
 			Enabled: false,
@@ -508,7 +511,7 @@ func returnStatuses(networkEnabled, gatewayEnabled, ingressEnabled bool, err err
 		enabledMsg := EnabledMsg
 		enabled := true
 		if err != nil {
-			enabledMsg = fmt.Sprintf(CiliumDeployFailedMsgTmpl, err)
+			enabledMsg = fmt.Sprintf(CiliumEnableFailedMsgTmpl, err)
 			enabled = false
 		}
 		ss[types.FeatureName("gateway")] = types.FeatureStatus{
@@ -519,7 +522,7 @@ func returnStatuses(networkEnabled, gatewayEnabled, ingressEnabled bool, err err
 	} else {
 		disabledMsg := DisabledMsg
 		if err != nil {
-			disabledMsg = fmt.Sprintf(CiliumDeleteFailedMsgTmpl, err)
+			disabledMsg = fmt.Sprintf(CiliumDisableFailedMsgTmpl, err)
 		}
 		ss[types.FeatureName("gateway")] = types.FeatureStatus{
 			Enabled: false,
@@ -533,7 +536,7 @@ func returnStatuses(networkEnabled, gatewayEnabled, ingressEnabled bool, err err
 		enabledMsg := EnabledMsg
 		enabled := true
 		if err != nil {
-			enabledMsg = fmt.Sprintf(CiliumDeployFailedMsgTmpl, err)
+			enabledMsg = fmt.Sprintf(CiliumEnableFailedMsgTmpl, err)
 			enabled = false
 		}
 		ss[types.FeatureName("ingress")] = types.FeatureStatus{
@@ -544,7 +547,7 @@ func returnStatuses(networkEnabled, gatewayEnabled, ingressEnabled bool, err err
 	} else {
 		disabledMsg := DisabledMsg
 		if err != nil {
-			disabledMsg = fmt.Sprintf(CiliumDeleteFailedMsgTmpl, err)
+			disabledMsg = fmt.Sprintf(CiliumDisableFailedMsgTmpl, err)
 		}
 		ss[types.FeatureName("ingress")] = types.FeatureStatus{
 			Enabled: false,
