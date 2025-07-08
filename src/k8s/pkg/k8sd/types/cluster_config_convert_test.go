@@ -22,7 +22,7 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 					AuthorizationMode: utils.Pointer("Node,RBAC"),
 				},
 				Datastore: types.Datastore{
-					Type: utils.Pointer("k8s-dqlite"),
+					Type: utils.Pointer("etcd"),
 				},
 			},
 		},
@@ -36,7 +36,7 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 					AuthorizationMode: utils.Pointer("AlwaysAllow"),
 				},
 				Datastore: types.Datastore{
-					Type: utils.Pointer("k8s-dqlite"),
+					Type: utils.Pointer("etcd"),
 				},
 			},
 		},
@@ -50,7 +50,23 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 					AuthorizationMode: utils.Pointer("Node,RBAC"),
 				},
 				Datastore: types.Datastore{
-					Type: utils.Pointer("k8s-dqlite"),
+					Type: utils.Pointer("etcd"),
+				},
+			},
+		},
+		{
+			name: "K8sDqlite",
+			bootstrap: apiv1.BootstrapConfig{
+				DatastoreType: utils.Pointer("k8s-dqlite"),
+				K8sDqlitePort: utils.Pointer(9090),
+			},
+			expectConfig: types.ClusterConfig{
+				APIServer: types.APIServer{
+					AuthorizationMode: utils.Pointer("Node,RBAC"),
+				},
+				Datastore: types.Datastore{
+					Type:          utils.Pointer("k8s-dqlite"),
+					K8sDqlitePort: utils.Pointer(9090),
 				},
 			},
 		},
@@ -73,6 +89,24 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 					ExternalCACert:     utils.Pointer("CA DATA"),
 					ExternalClientCert: utils.Pointer("CERT DATA"),
 					ExternalClientKey:  utils.Pointer("KEY DATA"),
+				},
+			},
+		},
+		{
+			name: "EtcdDatastore",
+			bootstrap: apiv1.BootstrapConfig{
+				DatastoreType: utils.Pointer("etcd"),
+				EtcdPort:      utils.Pointer(12379),
+				EtcdPeerPort:  utils.Pointer(12380),
+			},
+			expectConfig: types.ClusterConfig{
+				APIServer: types.APIServer{
+					AuthorizationMode: utils.Pointer("Node,RBAC"),
+				},
+				Datastore: types.Datastore{
+					Type:         utils.Pointer("etcd"),
+					EtcdPort:     utils.Pointer(12379),
+					EtcdPeerPort: utils.Pointer(12380),
 				},
 			},
 		},
@@ -115,14 +149,16 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 				ServiceCIDR:   utils.Pointer("10.200.0.0/16"),
 				DisableRBAC:   utils.Pointer(false),
 				SecurePort:    utils.Pointer(6443),
-				K8sDqlitePort: utils.Pointer(9090),
-				DatastoreType: utils.Pointer("k8s-dqlite"),
+				EtcdPort:      utils.Pointer(12379),
+				EtcdPeerPort:  utils.Pointer(12380),
+				DatastoreType: utils.Pointer("etcd"),
 				ExtraSANs:     []string{"custom.kubernetes"},
 			},
 			expectConfig: types.ClusterConfig{
 				Datastore: types.Datastore{
-					Type:          utils.Pointer("k8s-dqlite"),
-					K8sDqlitePort: utils.Pointer(9090),
+					Type:         utils.Pointer("etcd"),
+					EtcdPort:     utils.Pointer(12379),
+					EtcdPeerPort: utils.Pointer(12380),
 				},
 				APIServer: types.APIServer{
 					SecurePort:        utils.Pointer(6443),
@@ -175,7 +211,7 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 					AuthorizationMode: utils.Pointer("Node,RBAC"),
 				},
 				Datastore: types.Datastore{
-					Type: utils.Pointer("k8s-dqlite"),
+					Type: utils.Pointer("etcd"),
 				},
 				Kubelet: types.Kubelet{
 					ControlPlaneTaints: utils.Pointer([]string{"node-role.kubernetes.io/control-plane:NoSchedule"}),

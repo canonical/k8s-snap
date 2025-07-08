@@ -14,9 +14,14 @@ func startControlPlaneServices(ctx context.Context, snap snap.Snap, datastore st
 	switch datastore {
 	case "k8s-dqlite":
 		if err := snaputil.StartK8sDqliteServices(ctx, snap); err != nil {
-			return fmt.Errorf("failed to start control plane services: %w", err)
+			return fmt.Errorf("failed to start k8s-dqlite services: %w", err)
+		}
+	case "etcd":
+		if err := snaputil.StartEtcdServices(ctx, snap); err != nil {
+			return fmt.Errorf("failed to start etcd services: %w", err)
 		}
 	case "external":
+		// For external datastore, we do not start any services here.
 	default:
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", datastore, setup.SupportedDatastores)
 	}

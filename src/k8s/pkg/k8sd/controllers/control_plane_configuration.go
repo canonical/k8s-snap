@@ -91,7 +91,11 @@ func (c *ControlPlaneConfigurationController) reconcile(ctx context.Context, con
 		}
 
 		// kube-apiserver arguments
-		updateArgs, deleteArgs := config.Datastore.ToKubeAPIServerArguments(c.snap)
+		updateArgs, deleteArgs, err := config.Datastore.ToKubeAPIServerArguments(c.snap)
+		if err != nil {
+			return fmt.Errorf("failed to get datastore arguments for kube-apiserver: %w", err)
+		}
+
 		argsChanged, err := snaputil.UpdateServiceArguments(c.snap, "kube-apiserver", updateArgs, deleteArgs)
 		if err != nil {
 			return fmt.Errorf("failed to update kube-apiserver datastore arguments: %w", err)
