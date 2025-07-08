@@ -3,25 +3,39 @@ package utils
 import (
 	"fmt"
 	"net"
-
-	mctypes "github.com/canonical/microcluster/v2/rest/types"
 )
 
-func DetermineLocalhostAddress(clusterMembers []mctypes.ClusterMember) (string, error) {
-	// Check if any of the cluster members have an IPv6 address, if so return "::1"
-	// if one member has an IPv6 address, other members should also have IPv6 interfaces
-	for _, clusterMember := range clusterMembers {
-		memberAddress := clusterMember.Address.Addr().String()
-		nodeIP := net.ParseIP(memberAddress)
-		if nodeIP == nil {
-			return "", fmt.Errorf("failed to parse node IP address %q", memberAddress)
-		}
+// GetLocalhostAddress returns the loopback address (IPv4 or IPv6) of the local machine.
+// It checks the loopback interface "lo" and returns "127.0.0.1" if available,
+// or "::1" if only IPv6 is available. If neither is found, it returns an error.
+func GetLocalhostAddress() (net.IP, error) {
+	iface, err := net.InterfaceByName("lo")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get loopback interface: %w", err)
+	}
 
-		if nodeIP.To4() == nil {
-			return "[::1]", nil
+	addrs, err := iface.Addrs()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get addresses for loopback interface: %w", err)
+	}
+
+	var ipv6 net.IP
+	for _, addr := range addrs {
+		ip, _, err := net.ParseCIDR(addr.String())
+		if err != nil {
+			continue
+		}
+		if ip.Equal(net.ParseIP("127.0.0.1")) {
+			return ip, nil
+		}
+		if ip.Equal(net.ParseIP("::1")) {
+			ipv6 = ip
 		}
 	}
 
-	// If no IPv6 addresses are found this means the cluster is IPv4 only
-	return "127.0.0.1", nil
+	if ipv6 != nil {
+		return ipv6, nil
+	}
+
+	return nil, fmt.Errorf("no loopback address found")
 }
