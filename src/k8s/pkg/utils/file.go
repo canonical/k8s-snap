@@ -120,23 +120,26 @@ func MinConfigFileDiff(dirs []string, minConfig map[string]string) map[string]st
 	return newConfig
 }
 
-// GetFileMatch returns the path of the first file in a dir matching the regex or "" if no file
+// GetFileMatches returns the path of the first file in a dir matching the regex or "" if no file
 // match was found.
-func GetFileMatch(path string, re *regexp.Regexp) (string, error) {
+func GetFileMatches(path string, re *regexp.Regexp) ([]string, error) {
+	var matches []string
 	entries, err := os.ReadDir(path)
 	if err != nil {
-		return "", err
+		return matches, err
 	}
 
 	for _, entry := range entries {
 		if entry.IsDir() {
 			continue
 		}
-		if match := re.FindString(entry.Name()); match != "" {
-			return filepath.Join(path, match), nil
+		match := re.FindString(entry.Name())
+		if match == "" {
+			continue
 		}
+		matches = append(matches, match)
 	}
-	return "", nil
+	return matches, nil
 }
 
 // Serializes a map of service arguments in the format "argument=value" to file.

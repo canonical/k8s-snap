@@ -239,19 +239,24 @@ func TestGetFileMatch(t *testing.T) {
 	g := NewWithT(t)
 
 	tempDir := t.TempDir()
-	filePath := filepath.Join(tempDir, "/11-k8s.conf")
-	_, err := os.Create(filePath)
+	file1 := "11-k8s.conf"
+	file2 := "1-k8s.conf"
+	_, err := os.Create(filepath.Join(tempDir, file1))
+	g.Expect(err).To(Not(HaveOccurred()))
+	_, err = os.Create(filepath.Join(tempDir, file2))
 	g.Expect(err).To(Not(HaveOccurred()))
 
 	re := regexp.MustCompile(`^(\d+)-k8s.conf$`)
-	match, err := utils.GetFileMatch(tempDir, re)
+	matches, err := utils.GetFileMatches(tempDir, re)
 	g.Expect(err).To(Not(HaveOccurred()))
-	g.Expect(match).To(Equal(filePath))
+	g.Expect(len(matches)).To(Equal(2))
+	g.Expect(matches[0]).To(Equal(file2))
+	g.Expect(matches[1]).To(Equal(file1))
 
 	re = regexp.MustCompile(`^(\d+)-not-existant.conf$`)
-	match, err = utils.GetFileMatch(tempDir, re)
+	matches, err = utils.GetFileMatches(tempDir, re)
 	g.Expect(err).To(Not(HaveOccurred()))
-	g.Expect(match).To(Equal(""))
+	g.Expect(len(matches)).To(Equal(0))
 }
 
 func TestGetMountPropagationType(t *testing.T) {

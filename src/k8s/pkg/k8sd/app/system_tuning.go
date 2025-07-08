@@ -26,12 +26,12 @@ var (
 func (a *App) ensureSystemTuningConfigFile(ctx context.Context) error {
 	log := log.FromContext(ctx).WithValues("hook", "bootstrap")
 
-	confPath, err := utils.GetFileMatch(a.snap.SystemTuningConfigDir(), reK8sConfFile)
+	confPath, err := utils.GetFileMatches(a.snap.SystemTuningConfigDir(), reK8sConfFile)
 	if err != nil {
 		log.Error(err, "Failed to check for existing system tuning file")
 		return err
 	}
-	if confPath != "" {
+	if len(confPath) == 0 {
 		return nil
 	}
 
@@ -55,13 +55,13 @@ func (a *App) ensureSystemTuningConfigFile(ctx context.Context) error {
 func (a *App) tuneSystemSettings(ctx context.Context, s state.State) error {
 	log := log.FromContext(ctx).WithValues("startup", "tuneSystem")
 
-	confPath, err := utils.GetFileMatch(a.snap.SystemTuningConfigDir(), reK8sConfFile)
+	confPath, err := utils.GetFileMatches(a.snap.SystemTuningConfigDir(), reK8sConfFile)
 	if err != nil {
 		log.Error(err, "failed to get file match on system config file *-k8s.conf")
 	}
 
 	// skip tuning if the tuning file does not exist
-	if confPath == "" {
+	if len(confPath) == 0 {
 		log.Info(fmt.Sprintf("skipping system tuning: no sysctl config file %s", confPath))
 		return nil
 	}
@@ -72,8 +72,8 @@ func (a *App) tuneSystemSettings(ctx context.Context, s state.State) error {
 		return nil
 	}
 	// Update the x-k8s.conf file to ensure minimum k8s requirements
-	if err := utils.SerializeArgumentFile(newConfig, confPath, systemConfFileHeader); err != nil {
-		log.Error(err, fmt.Sprintf("failed to update system configuration file %s", confPath))
+	if err := utils.SerializeArgumentFile(newConfig, confPath[0], systemConfFileHeader); err != nil {
+		log.Error(err, fmt.Sprintf("failed to update system configuration file %s", confPath[0]))
 	}
 
 	if err := exec.CommandContext(ctx, "sysctl", "--system").Run(); err != nil {
@@ -82,7 +82,7 @@ func (a *App) tuneSystemSettings(ctx context.Context, s state.State) error {
 	return nil
 }
 
-// GetFileMatch returns the path of the file in a dir matching a file like 10-xyz.conf
+// GetHighestConfigFileOrder returns the path of the file in a dir matching a file like 10-xyz.conf
 // using the regex `^(\d+)-.*\.conf$` or returns 0s if no match was found.
 func GetHighestConfigFileOrder(path string, reConfFiles *regexp.Regexp) (int, error) {
 	maxOrder := 0
