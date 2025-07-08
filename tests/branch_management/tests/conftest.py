@@ -8,7 +8,6 @@ import pytest
 import util
 import semver
 
-
 STABLE_URL = "https://dl.k8s.io/release/stable.txt"
 RELEASE_URL = "https://dl.k8s.io/release/stable-{}.{}.txt"
 
