@@ -5,33 +5,21 @@ from pathlib import Path
 from typing import Optional
 
 import pytest
-import requests
+import util
 import semver
-
-from tenacity import (
-    retry,
-    retry_if_result,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_fixed,
-)
 
 
 STABLE_URL = "https://dl.k8s.io/release/stable.txt"
 RELEASE_URL = "https://dl.k8s.io/release/stable-{}.{}.txt"
 
 
-@retry(
-    retry=(retry_if_exception_type() | retry_if_result(lambda x: x is None)),
-    stop=stop_after_attempt(10),
-    wait=wait_fixed(6),
-    reraise=True,
-)
 def _upstream_release(ver: semver.Version) -> Optional[semver.Version]:
     """Semver of the major.minor release if it exists"""
-    r = requests.get(RELEASE_URL.format(ver.major, ver.minor))
-    if r.status_code == 200:
-        return semver.Version.parse(r.content.decode().lstrip("v"))
+    resp = util.stubbornly(retry=10, delay=6).exec(
+        ["curl", "-L", RELEASE_URL.format(ver.major, ver.minor)],
+        capture_output=True,
+    )
+    return semver.Version.parse(resp.lstrip("v"))
 
 
 def _get_max_minor(ver: semver.Version) -> semver.Version:
@@ -54,22 +42,15 @@ def _previous_release(ver: semver.Version) -> semver.Version:
     return _get_max_minor(semver.Version(ver.major, 0, 0))
 
 
-@retry(
-    stop=stop_after_attempt(10),
-    wait=wait_fixed(6),
-    reraise=True,
-)
-def _latest_release() -> semver.Version:
-    """Return the latest stable k8s"""
-    r = requests.get(STABLE_URL)
-    r.raise_for_status()
-    return semver.Version.parse(r.content.decode().lstrip("v"))
-
 
 @pytest.fixture(scope="session")
 def stable_release() -> semver.Version:
     """Return the latest stable k8s in the release series"""
-    return _latest_release()
+    resp = util.stubbornly(retry=10, delay=6).exec(
+        ["curl", "-L", STABLE_URL],
+        capture_output=True,
+    )
+    return semver.Version.parse(resp.lstrip("v"))
 
 
 @pytest.fixture(scope="session")
