@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import List
 
 import pytest
-from test_util import harness
+from test_util import config, harness
 from test_util import registry as reg
 from test_util import tags, util
 
@@ -93,10 +93,13 @@ def test_airgapped_with_proxy(instances: List[harness.Instance]):
     # Export the proxy settings and verify connectivity through proxy.
     # This is required because the proxy settings are not available to the Python
     # subprocess shell that runs the connectivity test.
-    instance.exec([
-        "bash", "-c",
-        "export $(grep -v '^#' /etc/environment | xargs) && curl -I -4 https://www.google.com"
-    ])
+    instance.exec(
+        [
+            "bash",
+            "-c",
+            "export $(grep -v '^#' /etc/environment | xargs) && curl -I -4 https://www.google.com",
+        ]
+    )
 
     # Install and configure Kubernetes snap
     util.setup_k8s_snap(instance, Path("/tmp"))
@@ -108,6 +111,9 @@ def test_airgapped_with_proxy(instances: List[harness.Instance]):
 @pytest.mark.node_count(2)
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.skipif(
+    config.SUBSTRATE == "multipass", reason="runner size too small on multipass"
+)
 def test_airgapped_with_image_mirror(
     h: harness.Harness,
     instances: List[harness.Instance],
@@ -132,10 +138,13 @@ def test_airgapped_with_image_mirror(
         == 7
     )
     # Verify connectivity through the proxy.
-    registry.exec([
-        "bash", "-c",
-        "export $(grep -v '^#' /etc/environment | xargs) && curl -I -4 https://www.google.com"
-    ])
+    registry.exec(
+        [
+            "bash",
+            "-c",
+            "export $(grep -v '^#' /etc/environment | xargs) && curl -I -4 https://www.google.com",
+        ]
+    )
 
     setup_containerd_proxy(registry.instance, proxy_ip)
     registry.exec("sudo k8s bootstrap".split())
@@ -148,23 +157,35 @@ def test_airgapped_with_image_mirror(
         tag = f"{registry_ip}:{REGISTRY_PORT}/{link}"
         # Pull the image from the upstream registry and push it to the local registry.
         # Pipe the pull and push output to /dev/null as ctr is very verbose.
-        registry.exec([
-            "bash", "-c",
-            f"export $(grep -v '^#' /etc/environment | xargs) && /snap/k8s/current/bin/ctr images pull --all-platforms {image} > /dev/null"
-        ])
-        registry.exec([
-            "bash", "-c",
-            f"export $(grep -v '^#' /etc/environment | xargs) && /snap/k8s/current/bin/ctr images tag {image} {tag}"
-        ])
+        registry.exec(
+            [
+                "bash",
+                "-c",
+                f"export $(grep -v '^#' /etc/environment | xargs) && "
+                f"/snap/k8s/current/bin/ctr images pull --all-platforms {image} > /dev/null",
+            ]
+        )
+        registry.exec(
+            [
+                "bash",
+                "-c",
+                f"export $(grep -v '^#' /etc/environment | xargs) && "
+                f"/snap/k8s/current/bin/ctr images tag {image} {tag} > /dev/null",
+            ]
+        )
 
         # The 443 port is required to upload to the local registry. So, we need to temporarily allow it.
         registry.exec("iptables -D OUTPUT -p tcp --dport 443 -j REJECT".split())
         registry.exec("iptables -A OUTPUT -p tcp --dport 443 -j ACCEPT".split())
 
-        registry.exec([
-            "bash", "-c",
-            f"export $(grep -v '^#' /etc/environment | xargs) && /snap/k8s/current/bin/ctr images push --plain-http {tag}",
-        ])
+        registry.exec(
+            [
+                "bash",
+                "-c",
+                f"export $(grep -v '^#' /etc/environment | xargs) && "
+                f"/snap/k8s/current/bin/ctr images push --plain-http {tag}",
+            ]
+        )
 
         registry.exec("iptables -D OUTPUT -p tcp --dport 443 -j ACCEPT".split())
         registry.exec("iptables -A OUTPUT -p tcp --dport 443 -j REJECT".split())

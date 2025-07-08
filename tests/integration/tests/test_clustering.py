@@ -5,7 +5,6 @@ import datetime
 import logging
 import os
 import subprocess
-import tempfile
 from typing import List
 
 import pytest
