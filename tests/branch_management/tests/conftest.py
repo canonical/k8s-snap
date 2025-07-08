@@ -42,7 +42,6 @@ def _previous_release(ver: semver.Version) -> semver.Version:
     return _get_max_minor(semver.Version(ver.major, 0, 0))
 
 
-
 @pytest.fixture(scope="session")
 def stable_release() -> semver.Version:
     """Return the latest stable k8s in the release series"""
