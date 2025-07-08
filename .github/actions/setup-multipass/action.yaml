@@ -1,0 +1,50 @@
+name: Setup Multipass
+
+inputs:
+  channel:
+    description: multipass snap channel
+    type: string
+    default: "latest/stable"
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+  - name: Setup Multipass
+    run: |
+      # Retry multipass install up to 5 times if it fails
+      for i in {1..5}; do
+        if sudo snap install multipass; then
+          break
+        elif [[ $i -eq 5 ]]; then
+          echo "Failed to install multipass after 5 attempts"
+          exit 1
+        else
+          echo "Retrying multipass install ($i/5) in 5s..."
+          sleep 5
+        fi
+      done
+      # The runner is not part of the sudo group, so we need to authenticate the client.
+      # Nesting sudo caused issues with the Multipass client.
+      # It might take some time to propagate this setting and directly calling multipass authenticate
+      # might fail. So we retry until it works.
+      timeout=30
+      while ! sudo multipass set local.passphrase=runner >/dev/null 2>&1; do
+          sleep 1
+          ((timeout--))
+          if [[ $timeout -le 0 ]]; then
+              echo "Timeout waiting for multipass to set passphrase"
+              exit 1
+          fi
+      done
+      # It might take some time to propagate this setting and directly calling multipass authenticate
+      # might fail. So we retry until it works.
+      timeout=30
+      while ! multipass authenticate runner >/dev/null 2>&1; do
+          sleep 1
+          ((timeout--))
+          if [[ $timeout -le 0 ]]; then
+              echo "Timeout waiting for multipass to authenticate"
+              exit 1
+          fi
+      done
