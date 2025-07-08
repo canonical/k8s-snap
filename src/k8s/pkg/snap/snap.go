@@ -10,7 +10,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
 	"github.com/canonical/k8s/pkg/client/etcd"
@@ -378,7 +377,6 @@ func (s *snap) HelmClient() helm.Client {
 		func(namespace string) genericclioptions.RESTClientGetter {
 			return s.restClientGetter(filepath.Join(s.KubernetesConfigDir(), "admin.conf"), namespace)
 		},
-		5*time.Minute,
 		10,
 	)
 }

@@ -317,7 +317,6 @@ func (c *FeatureController) reconcileCiliumLoop(
 	setFeatureStatus func(ctx context.Context, name types.FeatureName, status types.FeatureStatus) error,
 	featuresMap map[types.FeatureName]featureChannels,
 	apply func(cfg types.ClusterConfig) (map[types.FeatureName]types.FeatureStatus, error),
-
 ) {
 	fanInCh := make(chan struct{}, 3)
 	for _, f := range featuresMap {
