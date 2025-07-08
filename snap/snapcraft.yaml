@@ -68,6 +68,12 @@ parts:
     source: build-scripts/components/k8s-dqlite
     override-build: $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh k8s-dqlite
 
+  etcd:
+    after: [build-deps]
+    plugin: nil
+    source: build-scripts/components/etcd
+    override-build: $SNAPCRAFT_PROJECT_DIR/build-scripts/build-component.sh etcd
+
   k8s-binaries:
     after: [dqlite]
     source: src/k8s
@@ -230,6 +236,11 @@ apps:
     before: [kubelet]
   k8s-dqlite:
     command: k8s/wrappers/services/k8s-dqlite
+    install-mode: disable
+    daemon: simple
+    before: [kube-apiserver]
+  etcd:
+    command: k8s/wrappers/services/etcd
     install-mode: disable
     daemon: simple
     before: [kube-apiserver]

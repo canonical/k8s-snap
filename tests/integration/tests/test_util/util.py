@@ -437,6 +437,18 @@ def get_local_node_status(instance: harness.Instance) -> str:
     return resp.stdout.decode().strip()
 
 
+def get_datastore_type(control_node: harness.Instance) -> str:
+    """Get the type of datastore used by the Kubernetes cluster.
+
+    Should only be used with control plane nodes.
+    """
+    resp = control_node.exec(
+        ["k8s", "status", "--output-format", "json"], capture_output=True
+    )
+    status = json.loads(resp.stdout.decode().strip())
+    return status["datastore"]["type"]
+
+
 def get_nodes(control_node: harness.Instance) -> List[Any]:
     """Get a list of existing nodes.
 
@@ -868,6 +880,7 @@ def check_snap_services_ready(
     instance: harness.Instance,
     node_type: Optional[str] = None,
     skip_services: Optional[List[str]] = None,
+    datastore_type: Optional[str] = None,
 ):
     """Check that the snap services are active on the given harness instance.
 
@@ -893,7 +906,6 @@ def check_snap_services_ready(
     }
     expected_control_plane_services = {
         "containerd",
-        "k8s-dqlite",
         "k8sd",
         "kubelet",
         "kube-proxy",
@@ -914,6 +926,21 @@ def check_snap_services_ready(
             if "control-plane" in get_local_node_status(instance)
             else "worker"
         )
+
+    if node_type == "control-plane":
+        # If the node is a control-plane node, we need to check the datastore service.
+        # The datastore type can be provided explicitly or determined from the instance.
+        if datastore_type:
+            assert datastore_type in (
+                "etcd",
+                "k8s-dqlite",
+                "external",
+            ), "Invalid datastore type provided"
+        else:
+            datastore_type = get_datastore_type(instance)
+
+        if datastore_type != "external":
+            expected_control_plane_services.add(datastore_type)
 
     expected_active_services = (
         expected_control_plane_services
