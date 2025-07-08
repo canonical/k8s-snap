@@ -625,12 +625,6 @@ def _get_flavor() -> str:
     return {"": "classic", "strict": ""}.get(config.FLAVOR, config.FLAVOR)
 
 
-@retry(
-    retry=retry_if_exception_type(urllib.error.HTTPError),
-    stop=stop_after_attempt(10),
-    wait=wait_fixed(6),
-    reraise=True,
-)
 def _major_minor_from_stable_upstream(maj: Optional[int] = None) -> Optional[tuple]:
     """Determine the major and minor version of the latest stable upstream release.
 
@@ -644,9 +638,11 @@ def _major_minor_from_stable_upstream(maj: Optional[int] = None) -> Optional[tup
         dash_maj=f"-{maj}" if maj else ""
     )
     LOG.info("Getting upstream version from %s", addr)
-    with urllib.request.urlopen(addr) as r:
-        stable = r.read().decode().strip()
-        return major_minor(stable)
+    resp = stubbornly(retry=10, delay=6).exec(
+        ["curl", "-L", addr],
+        capture_output=True,
+    )
+    return major_minor(resp.lstrip("v"))
 
 
 def _previous_track_from_branch(branch: str) -> Optional[str]:
