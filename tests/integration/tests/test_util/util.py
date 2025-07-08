@@ -73,7 +73,6 @@ class Retriable:
         :param List[str]        command_args: The command to be executed, as a str or list of str
         :param Mapping[str,str] command_kwds: Additional keyword arguments to be passed to exec
         """
-
         try:
             resp = self._run(command_args, **command_kwds)
         except subprocess.CalledProcessError as e:
@@ -638,10 +637,16 @@ def _major_minor_from_stable_upstream(maj: Optional[int] = None) -> Optional[tup
         dash_maj=f"-{maj}" if maj else ""
     )
     LOG.info("Getting upstream version from %s", addr)
-    resp = stubbornly(retry=10, delay=6).exec(
-        ["curl", "-L", addr],
-        capture_output=True,
+    resp = (
+        stubbornly(retries=10, delay=6)
+        .exec(
+            ["curl", "-f", "-L", addr],
+            text=True,
+            capture_output=True,
+        )
+        .stdout
     )
+
     return major_minor(resp.lstrip("v"))
 
 
