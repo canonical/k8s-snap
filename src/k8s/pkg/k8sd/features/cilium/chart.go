@@ -35,17 +35,17 @@ var (
 		ManifestPath: filepath.Join("charts", "ck-gateway-cilium"),
 	}
 
-	// ciliumAgentImageRepo represents the image to use for cilium-agent.
-	ciliumAgentImageRepo = "ghcr.io/canonical/cilium"
+	// CiliumAgentImageRepo represents the image to use for cilium-agent.
+	CiliumAgentImageRepo = "ghcr.io/canonical/cilium"
 
 	// CiliumAgentImageTag is the tag to use for the cilium-agent image.
 	CiliumAgentImageTag = "1.16.3-ck0"
 
-	// ciliumOperatorImageRepo is the image to use for cilium-operator.
-	ciliumOperatorImageRepo = "ghcr.io/canonical/cilium-operator"
+	// CiliumOperatorImageRepo is the image to use for cilium-operator.
+	CiliumOperatorImageRepo = "ghcr.io/canonical/cilium-operator"
 
 	// ciliumOperatorImageTag is the tag to use for the cilium-operator image.
-	ciliumOperatorImageTag = "1.16.3-ck0"
+	CiliumOperatorImageTag = "1.16.3-ck0"
 
 	ciliumDefaultVXLANPort = 8472
 
