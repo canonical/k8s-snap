@@ -156,35 +156,11 @@ jobs:
           bridges: "lxdbr0,dualstack-br0,ipv6-br0"
       - name: Setup Multipass
         if: ${{ inputs.substrate == 'multipass' }}
-        run: |
-          # Retry multipass install up to 5 times if it fails
-          for i in {1..5}; do
-            if sudo snap install multipass; then
-              break
-            elif [[ $i -eq 5 ]]; then
-              echo "Failed to install multipass after 5 attempts"
-              exit 1
-            else
-              echo "Retrying multipass install ($i/5) in 5s..."
-              sleep 5
-            fi
-          done
-          # The runner is not part of the sudo group, so we need to authenticate the client.
-          # Nesting sudo caused issues with the Multipass client.
-          sudo multipass set local.passphrase=runner
-          # It might take some time to propagate this setting and directly calling multipass authenticate
-          # might fail. So we retry until it works.
-          timeout=30
-          while ! multipass authenticate runner >/dev/null 2>&1; do
-              sleep 1
-              ((timeout--))
-              if [[ $timeout -le 0 ]]; then
-                  echo "Timeout waiting for multipass to authenticate"
-                  exit 1
-              fi
-          done
+        uses: ./.github/actions/setup-multipass
       - name: Install tox
         run: sudo apt-get install -y tox
+      - name: Setup tmate
+        uses: mxschmitt/action-tmate@v3
       - name: Generate names for step and artifacts
         run: |
           FULL_TEST_NODE_ID="${{ matrix.test }}"
@@ -228,9 +204,6 @@ jobs:
           fi
 
           cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- ${{ inputs.parallel && matrix.test || '' }} ${{ env.PERFORMANCE_FLAGS }} --tags ${{ inputs.test-tags }} ${{ inputs.extra-test-args }}
-      - name: Setup tmate
-        if: failure()
-        uses: mxschmitt/action-tmate@v3
       - name: Prepare inspection reports
         if: failure()
         run: |
