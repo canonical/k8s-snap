@@ -256,7 +256,7 @@ func TestGetFileMatch(t *testing.T) {
 	re = regexp.MustCompile(`^(\d+)-not-existant.conf$`)
 	matches, err = utils.GetFileMatches(tempDir, re)
 	g.Expect(err).To(Not(HaveOccurred()))
-	g.Expect(matches).To(HaveLen(0))
+	g.Expect(matches).To(BeEmpty())
 }
 
 func TestGetMountPropagationType(t *testing.T) {
