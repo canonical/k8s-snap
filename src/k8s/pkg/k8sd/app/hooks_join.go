@@ -60,13 +60,6 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		return fmt.Errorf("failed to get local node IPs for kubelet: %w", err)
 	}
 
-	var localhostAddress string
-	if nodeIP.To4() == nil {
-		localhostAddress = "[::1]"
-	} else {
-		localhostAddress = "127.0.0.1"
-	}
-
 	// Create directories
 	if err := setup.EnsureAllDirectories(snap); err != nil {
 		return fmt.Errorf("failed to create directories: %w", err)
@@ -77,6 +70,8 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 	if err != nil {
 		return fmt.Errorf("failed to get IP address(es) from ServiceCIDR %q: %w", cfg.Network.GetServiceCIDR(), err)
 	}
+
+	extraIPs, extraNames := utils.SplitIPAndDNSSANs(joinConfig.ExtraSANS)
 
 	switch cfg.Datastore.GetType() {
 	case "k8s-dqlite":
@@ -94,6 +89,30 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		}
 		if _, err := setup.EnsureK8sDqlitePKI(snap, certificates); err != nil {
 			return fmt.Errorf("failed to write k8s-dqlite certificates: %w", err)
+		}
+	case "etcd":
+		certificates := pki.NewEtcdPKI(pki.EtcdPKIOpts{
+			Hostname:  s.Name(),
+			IPSANs:    append([]net.IP{nodeIP, net.ParseIP("127.0.0.1"), net.ParseIP("::1")}, extraIPs...),
+			DNSSANs:   append([]string{s.Name()}, extraNames...),
+			NotBefore: notBefore,
+			NotAfter:  notBefore.AddDate(20, 0, 0),
+		})
+
+		certificates.CACert = cfg.Datastore.GetEtcdCACert()
+		certificates.CAKey = cfg.Datastore.GetEtcdCAKey()
+		certificates.ServerCert = joinConfig.GetEtcdServerCert()
+		certificates.ServerKey = joinConfig.GetEtcdServerKey()
+		certificates.ServerPeerCert = joinConfig.GetEtcdServerPeerCert()
+		certificates.ServerPeerKey = joinConfig.GetEtcdServerPeerKey()
+		certificates.APIServerClientCert = cfg.Datastore.GetEtcdAPIServerClientCert()
+		certificates.APIServerClientKey = cfg.Datastore.GetEtcdAPIServerClientKey()
+
+		if err := certificates.CompleteCertificates(); err != nil {
+			return fmt.Errorf("failed to initialize etcd certificates: %w", err)
+		}
+		if _, err := setup.EnsureEtcdPKI(snap, certificates); err != nil {
+			return fmt.Errorf("failed to write etcd certificates: %w", err)
 		}
 	case "external":
 		certificates := &pki.ExternalDatastorePKI{
@@ -113,7 +132,6 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 
 	// Certificates
 	// NOTE: Default certificate expiration is set to 20 years.
-	extraIPs, extraNames := utils.SplitIPAndDNSSANs(joinConfig.ExtraSANS)
 	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 		Hostname:                  s.Name(),
 		IPSANs:                    append(append([]net.IP{nodeIP}, serviceIPs...), extraIPs...),
@@ -176,7 +194,7 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		return fmt.Errorf("failed to write control plane certificates: %w", err)
 	}
 
-	if err := setup.SetupControlPlaneKubeconfigs(snap.KubernetesConfigDir(), localhostAddress, cfg.APIServer.GetSecurePort(), *certificates); err != nil {
+	if err := setup.SetupControlPlaneKubeconfigs(snap.KubernetesConfigDir(), cfg.APIServer.GetSecurePort(), *certificates); err != nil {
 		return fmt.Errorf("failed to generate kubeconfigs: %w", err)
 	}
 
@@ -186,7 +204,7 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		// TODO(neoaggelos): use cluster.GetInternalClusterMembers() instead
 		leader, err := s.Leader()
 		if err != nil {
-			return fmt.Errorf("failed to get dqlite leader: %w", err)
+			return fmt.Errorf("failed to get microcluster leader: %w", err)
 		}
 		members, err := leader.GetClusterMembers(ctx)
 		if err != nil {
@@ -207,6 +225,41 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		if err := setup.K8sDqlite(snap, address, cluster, joinConfig.ExtraNodeK8sDqliteArgs); err != nil {
 			return fmt.Errorf("failed to configure k8s-dqlite with address=%s cluster=%v: %w", address, cluster, err)
 		}
+	case "etcd":
+		leader, err := s.Leader()
+		if err != nil {
+			return fmt.Errorf("failed to get microcluster leader: %w", err)
+		}
+		members, err := leader.GetClusterMembers(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to get microcluster members: %w", err)
+		}
+		initialClusterMembers := make(map[string]string)
+
+		endpoints := make([]string, 0, len(members)-1)
+
+		for _, member := range members {
+			if member.Name == s.Name() {
+				// skip self
+				continue
+			}
+			endpoints = append(endpoints, fmt.Sprintf("https://%s", utils.JoinHostPort(member.Address.Addr().String(), cfg.Datastore.GetEtcdPort())))
+			initialClusterMembers[member.Name] = fmt.Sprintf("https://%s", utils.JoinHostPort(member.Address.Addr().String(), cfg.Datastore.GetEtcdPeerPort()))
+		}
+
+		etcdClient, err := snap.EtcdClient(endpoints)
+		if err != nil {
+			return fmt.Errorf("failed to create etcd client: %w", err)
+		}
+		defer etcdClient.Close()
+
+		if _, err := etcdClient.MemberAdd(ctx, []string{fmt.Sprintf("https://%s", utils.JoinHostPort(nodeIP.String(), cfg.Datastore.GetEtcdPeerPort()))}); err != nil {
+			return fmt.Errorf("failed to add member %s to etcd cluster: %w", s.Name(), err)
+		}
+
+		if err := setup.Etcd(snap, s.Name(), nodeIP, cfg.Datastore.GetEtcdPort(), cfg.Datastore.GetEtcdPeerPort(), initialClusterMembers, joinConfig.ExtraNodeEtcdArgs); err != nil {
+			return fmt.Errorf("failed to configure etcd: %w", err)
+		}
 	case "external":
 	default:
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.Datastore.GetType(), setup.SupportedDatastores)
@@ -219,7 +272,7 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 	if err := setup.KubeletControlPlane(snap, s.Name(), nodeIPs, cfg.Kubelet.GetClusterDNS(), cfg.Kubelet.GetClusterDomain(), cfg.Kubelet.GetCloudProvider(), cfg.Kubelet.GetControlPlaneTaints(), joinConfig.ExtraNodeKubeletArgs); err != nil {
 		return fmt.Errorf("failed to configure kubelet: %w", err)
 	}
-	if err := setup.KubeProxy(ctx, snap, s.Name(), cfg.Network.GetPodCIDR(), localhostAddress, joinConfig.ExtraNodeKubeProxyArgs); err != nil {
+	if err := setup.KubeProxy(ctx, snap, s.Name(), cfg.Network.GetPodCIDR(), joinConfig.ExtraNodeKubeProxyArgs); err != nil {
 		return fmt.Errorf("failed to configure kube-proxy: %w", err)
 	}
 	if err := setup.KubeControllerManager(snap, joinConfig.ExtraNodeKubeControllerManagerArgs); err != nil {

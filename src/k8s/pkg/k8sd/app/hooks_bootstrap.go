@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -185,13 +184,6 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 		return fmt.Errorf("failed to write worker node certificates: %w", err)
 	}
 
-	var localhostAddress string
-	if nodeIP.To4() == nil {
-		localhostAddress = "[::1]"
-	} else {
-		localhostAddress = "127.0.0.1"
-	}
-
 	port := "6443"
 	if len(response.APIServers) == 0 {
 		return fmt.Errorf("no APIServers found in worker node info")
@@ -204,11 +196,8 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 	}
 
 	// Kubeconfigs
-	if err := setup.Kubeconfig(filepath.Join(snap.KubernetesConfigDir(), "kubelet.conf"), fmt.Sprintf("%s:%d", localhostAddress, securePort), certificates.CACert, certificates.KubeletClientCert, certificates.KubeletClientKey); err != nil {
-		return fmt.Errorf("failed to generate kubelet kubeconfig: %w", err)
-	}
-	if err := setup.Kubeconfig(filepath.Join(snap.KubernetesConfigDir(), "proxy.conf"), fmt.Sprintf("%s:%d", localhostAddress, securePort), certificates.CACert, certificates.KubeProxyClientCert, certificates.KubeProxyClientKey); err != nil {
-		return fmt.Errorf("failed to generate kube-proxy kubeconfig: %w", err)
+	if err := setup.SetupWorkerKubeconfigs(snap.KubernetesConfigDir(), securePort, *certificates); err != nil {
+		return fmt.Errorf("failed to generate worker node kubeconfigs: %w", err)
 	}
 
 	// Write worker node configuration to dqlite
@@ -263,7 +252,7 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 	if err := setup.KubeletWorker(snap, s.Name(), nodeIPs, response.ClusterDNS, response.ClusterDomain, response.CloudProvider, joinConfig.ExtraNodeKubeletArgs); err != nil {
 		return fmt.Errorf("failed to configure kubelet: %w", err)
 	}
-	if err := setup.KubeProxy(ctx, snap, s.Name(), response.PodCIDR, localhostAddress, joinConfig.ExtraNodeKubeProxyArgs); err != nil {
+	if err := setup.KubeProxy(ctx, snap, s.Name(), response.PodCIDR, joinConfig.ExtraNodeKubeProxyArgs); err != nil {
 		return fmt.Errorf("failed to configure kube-proxy: %w", err)
 	}
 	if err := setup.K8sAPIServerProxy(snap, response.APIServers, securePort, joinConfig.ExtraNodeK8sAPIServerProxyArgs); err != nil {
@@ -318,13 +307,6 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 		return fmt.Errorf("failed to get local node IPs for kubelet: %w", err)
 	}
 
-	var localhostAddress string
-	if nodeIP.To4() == nil {
-		localhostAddress = "[::1]"
-	} else {
-		localhostAddress = "127.0.0.1"
-	}
-
 	// Create directories
 	if err := setup.EnsureAllDirectories(snap); err != nil {
 		return fmt.Errorf("failed to create directories: %w", err)
@@ -338,6 +320,8 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 
 	// NOTE: Set the notBefore certificate time to the current time.
 	notBefore := time.Now()
+
+	extraIPs, extraNames := utils.SplitIPAndDNSSANs(bootstrapConfig.ExtraSANs)
 
 	switch cfg.Datastore.GetType() {
 	case "k8s-dqlite":
@@ -358,6 +342,38 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 
 		cfg.Datastore.K8sDqliteCert = utils.Pointer(certificates.K8sDqliteCert)
 		cfg.Datastore.K8sDqliteKey = utils.Pointer(certificates.K8sDqliteKey)
+	case "etcd":
+		// NOTE: Default certificate expiration is set to 20 years.
+		certificates := pki.NewEtcdPKI(pki.EtcdPKIOpts{
+			Hostname:          s.Name(),
+			IPSANs:            append([]net.IP{nodeIP, net.ParseIP("127.0.0.1"), net.ParseIP("::1")}, extraIPs...),
+			AllowSelfSignedCA: true,
+			DNSSANs:           append([]string{s.Name()}, extraNames...),
+			NotBefore:         notBefore,
+			NotAfter:          notBefore.AddDate(20, 0, 0),
+		})
+
+		certificates.CACert = bootstrapConfig.GetEtcdCACert()
+		certificates.CAKey = bootstrapConfig.GetEtcdCAKey()
+		certificates.ServerCert = bootstrapConfig.GetEtcdServerCert()
+		certificates.ServerKey = bootstrapConfig.GetEtcdServerKey()
+		certificates.ServerPeerCert = bootstrapConfig.GetEtcdServerPeerCert()
+		certificates.ServerPeerKey = bootstrapConfig.GetEtcdServerPeerKey()
+		certificates.APIServerClientCert = bootstrapConfig.GetEtcdAPIServerClientCert()
+		certificates.APIServerClientKey = bootstrapConfig.GetEtcdAPIServerClientKey()
+
+		if err := certificates.CompleteCertificates(); err != nil {
+			return fmt.Errorf("failed to initialize etcd certificates: %w", err)
+		}
+		if _, err := setup.EnsureEtcdPKI(snap, certificates); err != nil {
+			return fmt.Errorf("failed to write etcd certificates: %w", err)
+		}
+
+		// Add certificates to cluster config
+		cfg.Datastore.EtcdCACert = utils.Pointer(certificates.CACert)
+		cfg.Datastore.EtcdCAKey = utils.Pointer(certificates.CAKey)
+		cfg.Datastore.EtcdAPIServerClientCert = utils.Pointer(certificates.APIServerClientCert)
+		cfg.Datastore.EtcdAPIServerClientKey = utils.Pointer(certificates.APIServerClientKey)
 	case "external":
 		certificates := &pki.ExternalDatastorePKI{
 			DatastoreCACert:     cfg.Datastore.GetExternalCACert(),
@@ -376,7 +392,6 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 
 	// Certificates
 	// NOTE: Default certificate expiration is set to 20 years.
-	extraIPs, extraNames := utils.SplitIPAndDNSSANs(bootstrapConfig.ExtraSANs)
 	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 		Hostname:                  s.Name(),
 		IPSANs:                    append(append([]net.IP{nodeIP}, serviceIPs...), extraIPs...),
@@ -450,7 +465,7 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 	}
 
 	// Generate kubeconfigs
-	if err := setup.SetupControlPlaneKubeconfigs(snap.KubernetesConfigDir(), localhostAddress, cfg.APIServer.GetSecurePort(), *certificates); err != nil {
+	if err := setup.SetupControlPlaneKubeconfigs(snap.KubernetesConfigDir(), cfg.APIServer.GetSecurePort(), *certificates); err != nil {
 		return fmt.Errorf("failed to generate kubeconfigs: %w", err)
 	}
 
@@ -460,6 +475,10 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 		address := fmt.Sprintf("%s:%d", utils.ToIPString(nodeIP), cfg.Datastore.GetK8sDqlitePort())
 		if err := setup.K8sDqlite(snap, address, nil, bootstrapConfig.ExtraNodeK8sDqliteArgs); err != nil {
 			return fmt.Errorf("failed to configure k8s-dqlite: %w", err)
+		}
+	case "etcd":
+		if err := setup.Etcd(snap, s.Name(), nodeIP, cfg.Datastore.GetEtcdPort(), cfg.Datastore.GetEtcdPeerPort(), nil, bootstrapConfig.ExtraNodeEtcdArgs); err != nil {
+			return fmt.Errorf("failed to configure etcd: %w", err)
 		}
 	case "external":
 	default:
@@ -473,7 +492,7 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 	if err := setup.KubeletControlPlane(snap, s.Name(), nodeIPs, cfg.Kubelet.GetClusterDNS(), cfg.Kubelet.GetClusterDomain(), cfg.Kubelet.GetCloudProvider(), cfg.Kubelet.GetControlPlaneTaints(), bootstrapConfig.ExtraNodeKubeletArgs); err != nil {
 		return fmt.Errorf("failed to configure kubelet: %w", err)
 	}
-	if err := setup.KubeProxy(ctx, snap, s.Name(), cfg.Network.GetPodCIDR(), localhostAddress, bootstrapConfig.ExtraNodeKubeProxyArgs); err != nil {
+	if err := setup.KubeProxy(ctx, snap, s.Name(), cfg.Network.GetPodCIDR(), bootstrapConfig.ExtraNodeKubeProxyArgs); err != nil {
 		return fmt.Errorf("failed to configure kube-proxy: %w", err)
 	}
 	if err := setup.KubeControllerManager(snap, bootstrapConfig.ExtraNodeKubeControllerManagerArgs); err != nil {

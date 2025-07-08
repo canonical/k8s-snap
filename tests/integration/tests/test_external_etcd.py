@@ -17,7 +17,7 @@ LOG = logging.getLogger(__name__)
 @pytest.mark.etcd_count(1)
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.tags(tags.NIGHTLY)
-def test_etcd(instances: List[harness.Instance], etcd_cluster: EtcdCluster):
+def test_external_etcd(instances: List[harness.Instance], etcd_cluster: EtcdCluster):
     k8s_instance = instances[0]
 
     bootstrap_conf = yaml.safe_dump(
