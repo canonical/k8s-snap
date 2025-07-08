@@ -3,3 +3,4 @@ codespell==2.2.4
 flake8==6.0.0
 isort==5.12.0
 licenseheaders==0.8.8
+k8s-test-harness @ git+https://github.com/canonical/k8s-test-harness@de46217
