@@ -3,6 +3,7 @@ package features
 import (
 	"context"
 
+	"github.com/canonical/k8s/pkg/k8sd/features/cilium"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/microcluster/v2/state"
@@ -24,7 +25,7 @@ type Interface interface {
 
 // implementation implements Interface.
 type implementation struct {
-	applyCilium        func(context.Context, snap.Snap, state.State, types.APIServer, types.Network, types.Gateway, types.Ingress, types.Annotations) (map[types.FeatureName]types.FeatureStatus, error)
+	applyCilium        func(context.Context, snap.Snap, cilium.AddressGetter, types.APIServer, types.Network, types.Gateway, types.Ingress, types.Annotations) (map[types.FeatureName]types.FeatureStatus, error)
 	applyDNS           func(context.Context, snap.Snap, types.DNS, types.Kubelet, types.Annotations) (types.FeatureStatus, string, error)
 	applyLoadBalancer  func(context.Context, snap.Snap, types.LoadBalancer, types.Network, types.Annotations) (types.FeatureStatus, error)
 	applyMetricsServer func(context.Context, snap.Snap, types.MetricsServer, types.Annotations) (types.FeatureStatus, error)
