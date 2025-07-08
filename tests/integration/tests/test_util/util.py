@@ -638,7 +638,7 @@ def _major_minor_from_stable_upstream(maj: Optional[int] = None) -> Optional[tup
     )
     LOG.info("Getting upstream version from %s", addr)
     resp = (
-        stubbornly(retries=10, delay=6)
+        stubbornly(retries=10, delay_s=6)
         .exec(
             ["curl", "-f", "-L", addr],
             text=True,
