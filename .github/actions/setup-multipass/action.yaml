@@ -11,6 +11,7 @@ runs:
   using: "composite"
   steps:
   - name: Setup Multipass
+    shell: bash
     run: |
       # Retry multipass install up to 5 times if it fails
       for i in {1..5}; do
