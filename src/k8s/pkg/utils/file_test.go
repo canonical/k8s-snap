@@ -113,59 +113,6 @@ func TestParseArgumentFile(t *testing.T) {
 	}
 }
 
-func TestUpdateConfigFile(t *testing.T) {
-	for _, tc := range []struct {
-		name           string
-		content        string
-		newConfig      map[string]string
-		expectedConfig map[string]string
-	}{
-		{
-			name:    "normal",
-			content: "#some comment\n #commented_out=5 \n already_set=1\n  different_value=10 \n no_value=\n",
-			newConfig: map[string]string{
-				"already_set":     "1",
-				"different_value": "1024",
-				"new_config":      "6",
-				"no_value":        "3",
-			},
-			expectedConfig: map[string]string{
-				"already_set":     "1",
-				"different_value": "1024",
-				"new_config":      "6",
-				"no_value":        "3",
-			},
-		},
-		{
-			name:           "empty",
-			content:        ``,
-			newConfig:      map[string]string{},
-			expectedConfig: map[string]string{},
-		},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			g := NewWithT(t)
-
-			filePath := filepath.Join(t.TempDir(), tc.name)
-			err := utils.WriteFile(filePath, []byte(tc.content), 0o755)
-			if err != nil {
-				t.Fatalf("failed to setup testfile: %v", err)
-			}
-
-			if err = utils.UpdateConfigFile(filePath, tc.newConfig); err != nil {
-				t.Fatalf("failed to update config file with min parameters.")
-			}
-
-			arguments, err := utils.ParseArgumentFile(filePath)
-			if err != nil {
-				t.Fatalf("failed to parse config file: %v", err)
-			}
-
-			g.Expect(arguments).To(Equal(tc.expectedConfig))
-		})
-	}
-}
-
 func TestMinConfigFileDiff(t *testing.T) {
 	for _, tc := range []struct {
 		name           string
@@ -221,15 +168,17 @@ func TestSerializeArgumentFile(t *testing.T) {
 		name            string
 		args            map[string]string
 		expectedContent string
+		header          string
 	}{
 		{
 			name:            "normal",
-			expectedContent: "--key1=value1\n--key2=value2\n--key3=value3\n",
+			expectedContent: "be a rainbow in someone else's cloud\n--key1=value1\n--key2=value2\n--key3=value3\n",
 			args: map[string]string{
 				"--key1": "value1",
 				"--key2": "value2",
 				"--key3": "value3",
 			},
+			header: "be a rainbow in someone else's cloud\n",
 		},
 		{
 			name:            "withBoolFlag",
@@ -238,11 +187,13 @@ func TestSerializeArgumentFile(t *testing.T) {
 				"--key1": "",
 				"--key2": "value2",
 			},
+			header: "",
 		},
 		{
 			name:            "empty",
 			expectedContent: "",
 			args:            map[string]string{},
+			header:          "",
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -250,7 +201,7 @@ func TestSerializeArgumentFile(t *testing.T) {
 
 			filePath := filepath.Join(t.TempDir(), tc.name)
 
-			err := utils.SerializeArgumentFile(tc.args, filePath)
+			err := utils.SerializeArgumentFile(tc.args, filePath, tc.header)
 			if err != nil {
 				t.Fatalf("failed to serialize argument file: %v", err)
 			}

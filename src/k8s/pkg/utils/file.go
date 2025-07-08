@@ -120,70 +120,6 @@ func MinConfigFileDiff(dirs []string, minConfig map[string]string) map[string]st
 	return newConfig
 }
 
-// UpdateConfigFile takes a map with new configurations in the format "key=value" and
-// adjusts the file to reflect the new configuration. The file is expected to have
-// lines in the format "key=value". Comments (lines starting with '#') are ignored.
-func UpdateConfigFile(path string, newConfig map[string]string) error {
-	file, err := os.Open(path)
-	if err != nil {
-		return fmt.Errorf("failed to read config file %s: %w", path, err)
-	}
-	defer file.Close()
-
-	sc := bufio.NewScanner(file)
-	lines := make([]string, 0)
-	updatedKeys := make(map[string]bool)
-
-	// Read through 'tokens' until an EOF is encountered.
-	for sc.Scan() {
-		line := sc.Text()
-		line = strings.TrimSpace(line) // Trim leading and trailing white spaces
-
-		// Ignore empty lines and comments
-		if line != "" && !strings.HasPrefix(line, "#") {
-			splitIndex := strings.Index(line, "=")
-			if splitIndex != -1 {
-				key := strings.TrimSpace(line[:splitIndex])
-
-				// override value if necessary
-				if newValue, exists := newConfig[key]; exists {
-					line = key + "=" + newValue
-					updatedKeys[key] = true
-					delete(newConfig, key)
-				}
-			}
-		}
-		lines = append(lines, line)
-	}
-
-	// Append remaining keys
-	for key := range newConfig {
-		if !updatedKeys[key] {
-			new_line := key + "=" + newConfig[key]
-			lines = append(lines, new_line)
-		}
-	}
-
-	if err := sc.Err(); err != nil {
-		return fmt.Errorf("failed to scan lines in config file: %w", err)
-	}
-
-	// Write file with updated lines
-	file, err = os.Create(path)
-	if err != nil {
-		return fmt.Errorf("failed to open configuration file for writing %w", err)
-	}
-
-	defer file.Close()
-
-	for i := 0; i < len(lines); i++ {
-		if _, err := file.WriteString(lines[i] + "\n"); err != nil {
-			return fmt.Errorf("failed to write updated lines to configuration file %w", err)
-		}
-	}
-	return nil
-}
-
 // GetFileMatch returns the path of the first file in a dir matching the regex or "" if no file
 // match was found.
 func GetFileMatch(path string, re *regexp.Regexp) (string, error) {
@@ -204,12 +140,16 @@ func GetFileMatch(path string, re *regexp.Regexp) (string, error) {
 }
 
 // Serializes a map of service arguments in the format "argument=value" to file.
-func SerializeArgumentFile(arguments map[string]string, path string) error {
+func SerializeArgumentFile(arguments map[string]string, path string, headerComment string) error {
 	file, err := os.Create(path)
 	if err != nil {
 		return fmt.Errorf("failed to write argument file %s: %w", path, err)
 	}
 	defer file.Close()
+
+	if headerComment != "" {
+		file.WriteString(headerComment)
+	}
 
 	// Order the argument keys alphabetically to make the output deterministic
 	keys := make([]string, 0)
