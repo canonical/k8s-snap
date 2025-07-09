@@ -44,8 +44,7 @@ func (c *Client) ApplyCRDs(ctx context.Context, crdsDir string) error {
 	return nil
 }
 
-// ApplyCRD reads and applies a single CRD YAML file.
-// TODO(ben): Add unittests
+// TODO(ben): Add unittests.
 func (c *Client) ApplyCRD(ctx context.Context, filePath string) error {
 	log := log.FromContext(ctx).WithValues("kubernetes", "ApplyCRD", "file", filePath)
 
