@@ -95,6 +95,21 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 				if err := k8sClient.CoreV1().Secrets(c.Namespace).Delete(ctx, secretName, metav1.DeleteOptions{}); err != nil {
 					log.Error(err, "failed to delete Helm release secret", "name", secretName)
 				}
+
+				// After deleting the secret, we need to re-fetch the latest release.
+				release, err = get.Run(c.Name)
+				if err != nil {
+					if !errors.Is(err, driver.ErrReleaseNotFound) {
+						return false, fmt.Errorf("failed to get status of release %s: %w", c.Name, err)
+					}
+					isInstalled = false
+					oldConfig = nil
+					log.Info("release not found after deleting secret", "chart", c.Name)
+				} else {
+					// keep the existing release configuration, to check if any changes were made.
+					oldConfig = release.Config
+					log.Info("release found after deleting secret", "chart", c.Name, "version", release.Version)
+				}
 			}
 		}
 	}
@@ -107,6 +122,7 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 		// there is no release installed, this is an error
 		return false, fmt.Errorf("cannot upgrade %s as it is not installed", c.Name)
 	case !isInstalled && desired == StatePresent:
+		log.Info("installing chart", "chart", c.Name)
 		// there is no release installed, so we must run an install action
 		install := action.NewInstall(cfg)
 		install.ReleaseName = c.Name
@@ -123,6 +139,7 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 		}
 		return true, nil
 	case isInstalled && desired != StateDeleted:
+		log.Info("upgrading chart", "chart", c.Name)
 		chart, err := loader.Load(filepath.Join(h.manifestsBaseDir, c.ManifestPath))
 		if err != nil {
 			return false, fmt.Errorf("failed to load manifest for %s: %w", c.Name, err)
@@ -171,6 +188,7 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 
 		return true, nil
 	case isInstalled && desired == StateDeleted:
+		log.Info("uninstalling chart", "chart", c.Name)
 		// run an uninstall action
 		uninstall := action.NewUninstall(cfg)
 		if _, err := uninstall.Run(c.Name); err != nil {
