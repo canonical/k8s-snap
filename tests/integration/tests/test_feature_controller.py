@@ -4,7 +4,6 @@
 import logging
 import re
 import subprocess
-import time
 from typing import List
 
 import pytest
@@ -33,9 +32,6 @@ def test_feature_controller(instances: List[harness.Instance]):
     """
 
     instance = instances[0]
-    util.wait_until_k8s_ready(instance, [instance])
-    util.wait_for_network(instance)
-    util.wait_for_dns(instance)
 
     for _ in range(20):
         instance.exec(
@@ -56,9 +52,9 @@ def test_feature_controller(instances: List[harness.Instance]):
                 "-f",
                 "-9",
                 "/snap/k8s/current/bin/kube-apiserver",
-            ]
+            ],
+            check=False,
         )
-        time.sleep(3)
         instance.exec(
             [
                 "k8s",
@@ -77,9 +73,9 @@ def test_feature_controller(instances: List[harness.Instance]):
                 "-f",
                 "-9",
                 "/snap/k8s/current/bin/kube-apiserver",
-            ]
+            ],
+            check=False,
         )
-        time.sleep(3)
 
     def status_output_matches(p: subprocess.CompletedProcess) -> bool:
         result_lines = p.stdout.decode().strip().split("\n")
