@@ -2,8 +2,10 @@ package setup
 
 import (
 	"fmt"
+	"maps"
 	"net"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/canonical/k8s/pkg/snap"
@@ -44,8 +46,8 @@ func Etcd(snap snap.Snap, name string, nodeIP net.IP, clientPort, peerPort int, 
 
 	var initialCluster []string
 
-	for memberName, memberURL := range initialClusterMembers {
-		initialCluster = append(initialCluster, fmt.Sprintf("%s=%s", memberName, memberURL))
+	for _, memberName := range slices.Sorted(maps.Keys(initialClusterMembers)) {
+		initialCluster = append(initialCluster, fmt.Sprintf("%s=%s", memberName, initialClusterMembers[memberName]))
 	}
 
 	args := map[string]string{
