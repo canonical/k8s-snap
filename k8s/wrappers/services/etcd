@@ -2,4 +2,4 @@
 
 . "$SNAP/k8s/lib.sh"
 
-k8s::common::execute etcd
+k8s::common::execute_service etcd

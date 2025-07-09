@@ -91,7 +91,7 @@ func TestEtcd(t *testing.T) {
 			{key: "--listen-client-urls", expectedVal: "https://10.0.0.3:2379,https://127.0.0.1:2379"},
 			{key: "--advertise-client-urls", expectedVal: "https://10.0.0.3:2379"},
 			{key: "--initial-cluster-state", expectedVal: "existing"},
-			{key: "--initial-cluster", expectedVal: "t2=https://10.0.0.1:2380,t1=https://10.0.0.3:2380"},
+			{key: "--initial-cluster", expectedVal: "t1=https://10.0.0.3:2380,t2=https://10.0.0.1:2380"},
 			{key: "--client-cert-auth", expectedVal: "true"},
 			{key: "--trusted-ca-file", expectedVal: filepath.Join(s.EtcdPKIDir(), "ca.crt")},
 			{key: "--cert-file", expectedVal: filepath.Join(s.EtcdPKIDir(), "server.crt")},
