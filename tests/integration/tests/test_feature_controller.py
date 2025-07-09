@@ -4,6 +4,7 @@
 import logging
 import re
 import subprocess
+import time
 from typing import List
 
 import pytest
@@ -57,6 +58,7 @@ def test_feature_controller(instances: List[harness.Instance]):
                 "/snap/k8s/current/bin/kube-apiserver",
             ]
         )
+        time.sleep(3)
         instance.exec(
             [
                 "k8s",
@@ -77,6 +79,7 @@ def test_feature_controller(instances: List[harness.Instance]):
                 "/snap/k8s/current/bin/kube-apiserver",
             ]
         )
+        time.sleep(3)
 
     def status_output_matches(p: subprocess.CompletedProcess) -> bool:
         result_lines = p.stdout.decode().strip().split("\n")
