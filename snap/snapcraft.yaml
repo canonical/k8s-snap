@@ -13,6 +13,9 @@ environment:
   REAL_PATH: $PATH
   REAL_LD_LIBRARY_PATH: $LD_LIBRARY_PATH
   SNAPCRAFT_ARCH_TRIPLET: $SNAPCRAFT_ARCH_TRIPLET
+  # Note(ben): Needs to be changed to /snap/core24/current/usr/lib/x86_64-linux-gnu/ossl-modules/
+  # when base is updated to core24.
+  OPENSSL_MODULES: /snap/core22/current/usr/lib/x86_64-linux-gnu/ossl-modules-3/
 
 architectures:
   - build-on: [amd64]
@@ -22,7 +25,7 @@ parts:
   build-deps:
     plugin: nil
     build-snaps:
-      - go/1.24/stable
+      - go/1.23-fips/stable
     build-attributes: [enable-patchelf]
     build-packages:
       - sudo
@@ -91,7 +94,7 @@ parts:
       export DQLITE_BUILD_SCRIPTS_DIR="${CRAFT_STAGE}/static-dqlite-deps"
       export CGO_ENABLED=1
       export GOTOOLCHAIN=local
-      # export GOEXPERIMENT=opensslcrypto
+      export GOEXPERIMENT=opensslcrypto
 
       make dynamic -j
 
