@@ -8,14 +8,12 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/log"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart/loader"
 	"helm.sh/helm/v3/pkg/chartutil"
 	releasepkg "helm.sh/helm/v3/pkg/release"
 	"helm.sh/helm/v3/pkg/storage/driver"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
@@ -81,36 +79,15 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 		oldConfig = release.Config
 	}
 
-	// Delete the Helm release secret if it is in a pending state or uninstalling.
-	// This will prevent Helm from getting stuck in a pending state when there's been
-	// an interruption or failure in a previous operation.
-	if isInstalled {
-		if release.Info.Status.IsPending() || release.Info.Status == releasepkg.StatusUninstalling {
-			log.Info("release is in a pending state, deleting secret", "status", release.Info.Status, "chart", c.Name)
-			k8sClient, err := kubernetes.NewClient(h.restClientGetter(c.Namespace))
-			if err != nil {
-				log.Error(err, "failed to create Kubernetes client to delete Helm release secret")
-			} else {
-				secretName := helmSecretName(c.Name, release.Version)
-				if err := k8sClient.CoreV1().Secrets(c.Namespace).Delete(ctx, secretName, metav1.DeleteOptions{}); err != nil {
-					log.Error(err, "failed to delete Helm release secret", "name", secretName)
-				}
+	// If the release is installed, we need to check if it is in a pending state.
+	// If it is, we need to change its status, so that it can be reinstalled or upgraded.
+	if isInstalled && release.Info.Status.IsPending() {
+		s := releasepkg.StatusFailed
+		log.Info("release is in a pending state, changing status", "status", release.Info.Status, "chart", c.Name, "target_status", s)
 
-				// After deleting the secret, we need to re-fetch the latest release.
-				release, err = get.Run(c.Name)
-				if err != nil {
-					if !errors.Is(err, driver.ErrReleaseNotFound) {
-						return false, fmt.Errorf("failed to get status of release %s: %w", c.Name, err)
-					}
-					isInstalled = false
-					oldConfig = nil
-					log.Info("release not found after deleting secret", "chart", c.Name)
-				} else {
-					// keep the existing release configuration, to check if any changes were made.
-					oldConfig = release.Config
-					log.Info("release found after deleting secret", "chart", c.Name, "version", release.Version)
-				}
-			}
+		release.Info.Status = s
+		if err := cfg.Releases.Update(release); err != nil {
+			return false, fmt.Errorf("failed to update release %s status: %w", c.Name, err)
 		}
 	}
 
@@ -219,8 +196,4 @@ func cloneMap(m map[string]any) (map[string]any, error) {
 		return nil, fmt.Errorf("failed to unmarshal map: %w", err)
 	}
 	return cloned, nil
-}
-
-func helmSecretName(releaseName string, revision int) string {
-	return fmt.Sprintf("sh.helm.release.v1.%s.v%d", releaseName, revision)
 }
