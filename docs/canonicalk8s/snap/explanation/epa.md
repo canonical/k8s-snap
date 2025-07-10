@@ -29,8 +29,8 @@ capabilities. This document provides a detailed guide of how EPA applies to
 This document provides relevant links to detailed instructions for setting up
 and installing these technologies. It is designed for developers and architects
 who wish to integrate these new technologies into their {{product}}-based
-networking solutions. The separate [how to guide][howto-epa] for EPA includes the
-necessary steps to implement these features on {{product}}.
+networking solutions. The separate [how to guide][howto-epa] for EPA includes 
+the necessary steps to implement these features on {{product}}.
 
 ## HugePages
 

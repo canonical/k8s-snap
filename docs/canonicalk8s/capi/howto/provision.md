@@ -39,7 +39,8 @@ clusterctl generate cluster ${CLUSTER_NAME} --from ./templates/<infrastructure-p
 ```
 
 Each provisioned node is associated with a `CK8sConfig`, through which you can
-set the cluster’s properties. Available configuration fields can be listed in detail with:
+set the cluster’s properties. Available configuration fields can be listed in
+detail with:
 
 ```
 sudo k8s kubectl explain CK8sConfig.spec

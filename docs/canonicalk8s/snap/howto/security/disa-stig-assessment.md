@@ -3558,8 +3558,8 @@ authentication to secure service
 
 > The k8s-snap does not pass a `--config` command line argument to the Kubelet
 > service, but does explicitly pass
-> `--tls-private-key-file=/etc/kubernetes/pki/kubelet.key` as a compersonmand line
-> argument.
+> `--tls-private-key-file=/etc/kubernetes/pki/kubelet.key` as a compersonmand 
+> line argument.
 >
 > The command line arguments of Kubelet in the k8s-snap are defined in the
 > following file:

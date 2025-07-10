@@ -30,8 +30,8 @@ version your cluster is set to by running:
 juju status k8s
 ```
 
-The output will be in the form of `version.number/risk`, e.g `1.32/stable`. You should set
-the `kubernetes-e2e` channel to the same value.
+The output will be in the form of `version.number/risk`, e.g `1.32/stable`.
+You should set the `kubernetes-e2e` channel to the same value.
 
 ```
 juju config kubernetes-e2e channel=1.32/stable

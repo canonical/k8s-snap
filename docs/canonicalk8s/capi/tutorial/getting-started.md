@@ -1,6 +1,7 @@
 # Getting started with Cluster API
 
-This guide covers how to deploy a {{product}} management cluster for Cluster API (CAPI).
+This guide covers how to deploy a {{product}} management cluster for Cluster
+API (CAPI).
 
 ## Install `clusterctl`
 
@@ -158,9 +159,12 @@ provision.
 
 ## Next steps
 
-- Learn how to provision a {{product}} cluster with CAPI: [Provision a Canonical Kubernetes cluster]
-- Learn how to upgrade the providers: [Upgrade the providers of a management cluster]
-- Learn how to install a custom {{product}} version: [Install custom Canonical Kubernetes]
+- Learn how to provision a {{product}} cluster with CAPI: 
+[Provision a Canonical Kubernetes cluster]
+- Learn how to upgrade the providers: 
+[Upgrade the providers of a management cluster]
+- Learn how to install a custom {{product}} version: 
+[Install custom Canonical Kubernetes]
 
 <!-- Links -->
 [upstream instructions]: https://cluster-api.sigs.k8s.io/user/quick-start#install-clusterctl

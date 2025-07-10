@@ -25,8 +25,8 @@ The 'risk level' component of the channel is one of the following:
 Note that for each track, not all risk levels are guaranteed to be available.
 For example, there may be a new upstream version in development which only has
 an `edge` level. For a mature release, there may no longer be any `beta` or
-`candidate`. In these cases, if you specify a risk level which has no releases for
-that track the snap system will choose the closest available release with a
+`candidate`. In these cases, if you specify a risk level which has no releases 
+for that track the snap system will choose the closest available release with a
 lower risk level. Whatever risk level specified is the **maximum** risk level
 of the snap that will be installed - if you choose `candidate` you will never
 get `edge` for example.

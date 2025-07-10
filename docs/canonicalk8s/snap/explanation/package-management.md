@@ -26,6 +26,7 @@ A Helm repository can be added to the local client with:
 ```
 helm repo add <repository-name> <repository-url>
 ```
+
 This command fetches the index from the repository and
 stores it in a cache directory.
 This index is used when doing an installation or performing an upgrade.

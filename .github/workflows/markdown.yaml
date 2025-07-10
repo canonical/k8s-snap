@@ -3,7 +3,7 @@ name: "Docs: Markdown lint"
 on:
   pull_request:
     paths:
-      - 'docs/**'
+      - 'docs/canonicalk8s/**'
       - '!docs/canonicalk8s/_parts/**'
 
 permissions:
@@ -21,5 +21,5 @@ jobs:
         with:
           config: "docs/canonicalk8s/.sphinx/.markdownlint.json"
           globs: |
-            docs/**/*.md
+            docs/canonicalk8s/**/*.md
             !docs/canonicalk8s/_parts/**

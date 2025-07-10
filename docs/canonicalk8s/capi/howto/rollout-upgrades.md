@@ -118,6 +118,7 @@ spec:
     spec:
       version: v1.30.3
 ```
+
 Please save your changes.
 
 ## Monitor the worker node upgrade
