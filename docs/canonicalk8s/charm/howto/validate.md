@@ -178,8 +178,8 @@ fill up storage.
 
 ## Upgrade the e2e tests
 
-When an update is available, the `kubernetes-e2e` charm can be upgraded with the 
-command:
+When an update is available, the `kubernetes-e2e` charm can be upgraded with 
+the command:
 
 ```bash
 juju refresh kubernetes-e2e --channel=${release}
