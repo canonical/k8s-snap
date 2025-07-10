@@ -32,7 +32,8 @@ machine.cluster.x-k8s.io/my-cluster-worker-md-0-8zlzv-7vff7   my-cluster   my-cl
 
 ## Check providers status
 
-{{product}} cluster provisioning failures could happen in multiple providers used in CAPI.
+{{product}} cluster provisioning failures could happen in multiple providers 
+used in CAPI.
 
 Check the {{product}} bootstrap provider logs:
 
