@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations"
@@ -48,6 +49,8 @@ type FeatureController struct {
 	// reconcileLoopMaxRetryAttempts is the maximum number of retry attempts for the reconcile loop.
 	// Zero or negative values mean unlimited retries.
 	reconcileLoopMaxRetryAttempts int
+
+	ciliumLock sync.Mutex
 }
 
 // ReadyCh returns a channel that is closed when the controller is ready.
@@ -139,14 +142,20 @@ func (c *FeatureController) Run(
 	s := getState()
 
 	go c.reconcileLoop(ctx, getClusterConfig, setFeatureStatus, features.Network, c.triggerNetworkCh, c.reconciledNetworkCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
+		c.ciliumLock.Lock()
+		defer c.ciliumLock.Unlock()
 		return features.Implementation.ApplyNetwork(ctx, c.snap, s, cfg.APIServer, cfg.Network, cfg.Annotations)
 	})
 
 	go c.reconcileLoop(ctx, getClusterConfig, setFeatureStatus, features.Gateway, c.triggerGatewayCh, c.reconciledGatewayCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
+		c.ciliumLock.Lock()
+		defer c.ciliumLock.Unlock()
 		return features.Implementation.ApplyGateway(ctx, c.snap, cfg.Gateway, cfg.Network, cfg.Annotations)
 	})
 
 	go c.reconcileLoop(ctx, getClusterConfig, setFeatureStatus, features.Ingress, c.triggerIngressCh, c.reconciledIngressCh, func(cfg types.ClusterConfig) (types.FeatureStatus, error) {
+		c.ciliumLock.Lock()
+		defer c.ciliumLock.Unlock()
 		return features.Implementation.ApplyIngress(ctx, c.snap, cfg.Ingress, cfg.Network, cfg.Annotations)
 	})
 
