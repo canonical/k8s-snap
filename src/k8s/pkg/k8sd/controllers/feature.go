@@ -50,6 +50,12 @@ type FeatureController struct {
 	// Zero or negative values mean unlimited retries.
 	reconcileLoopMaxRetryAttempts int
 
+	// ciliumLock is a mutex to ensure that only one reconciliation is
+	// happening for Cilium-related features (that operate on the `ck-network` chart) at a time.
+	// Currently, these features include:
+	// - Network
+	// - Gateway
+	// - Ingress
 	ciliumLock sync.Mutex
 }
 
