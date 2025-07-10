@@ -84,6 +84,18 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 		oldConfig = release.Config
 	}
 
+	// If the release is installed, we need to check if it is in a pending state.
+	// If it is, we need to change its status, so that it can be reinstalled or upgraded.
+	if isInstalled && release.Info.Status.IsPending() {
+		s := releasepkg.StatusFailed
+		log.Info("release is in a pending state, changing status", "status", release.Info.Status, "chart", c.Name, "target_status", s)
+
+		release.Info.Status = s
+		if err := cfg.Releases.Update(release); err != nil {
+			return false, fmt.Errorf("failed to update release %s status: %w", c.Name, err)
+		}
+	}
+
 	switch {
 	case !isInstalled && desired == StateDeleted:
 		// no-op
