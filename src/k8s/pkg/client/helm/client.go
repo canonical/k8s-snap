@@ -87,6 +87,10 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 	// If the release is installed, we need to check if it is in a pending state.
 	// If it is, we need to change its status, so that it can be reinstalled or upgraded.
 	if isInstalled && release.Info.Status.IsPending() {
+		// NOTE(Hue): We're updating the status to "failed", so that future reconciliations
+		// (helm operations) can proceed without being blocked by the pending state.
+		// Another proposed approach would be to delete the pending revision's secret,
+		// but that would introduce various issues and edge cases.
 		s := releasepkg.StatusFailed
 		log.Info("release is in a pending state, changing status", "status", release.Info.Status, "chart", c.Name, "target_status", s)
 
