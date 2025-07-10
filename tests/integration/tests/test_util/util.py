@@ -263,10 +263,6 @@ def setup_k8s_snap(
         LOG.info("Install k8s snap by least risky channel: %s", channel)
         cmd += [config.SNAP_NAME, "--channel", channel]
 
-    # TODO(ben): Remove this temporary workaround once the snapstore issue is resolved.
-    instance.exec(["apt", "update"])
-    instance.exec(["apt", "install", "xdelta3", "--yes"])
-
     instance.exec(cmd)
     if connect_interfaces:
         LOG.info("Ensure k8s interfaces and network requirements")
