@@ -30,8 +30,7 @@ var (
 	// tigeraOperatorVersion is the version to use for the tigera-operator image.
 	tigeraOperatorVersion = "v1.34.0"
 
-	// calicoCtlImage represents the image to fetch for calicoctl.
-	// TODO: use ROCKs instead of upstream
+	// TODO: use ROCKs instead of upstream.
 	calicoCtlImage = "ghcr.io/canonical/k8s-snap/calico/ctl"
 	// calicoCtlTag represents the tag to use for the calicoctl image.
 	calicoCtlTag = "v3.28.0"
