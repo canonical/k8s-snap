@@ -175,6 +175,25 @@ html_theme_options = {
 
 slug = 'canonical-kubernetes'
 
+#######################
+# Sitemap configuration: https://sphinx-sitemap.readthedocs.io/
+#######################
+
+# Base URL of RTD hosted project
+
+html_baseurl = 'https://documentation.ubuntu.com/canonical-kubernetes/'
+
+html_extra_path = ["sitemapindex.xml", "robots.txt"]
+
+# When configured with RTD variables, check for RTD environment so manual runs succeed:
+
+if 'READTHEDOCS_VERSION' in os.environ:
+    version = os.environ["READTHEDOCS_VERSION"]
+    sitemap_url_scheme = '{version}{link}'
+else:
+    sitemap_url_scheme = 'latest/{link}'
+
+sitemap_show_lastmod = True
 
 # Template and asset locations
 
@@ -187,6 +206,7 @@ templates_path = [".sphinx/_templates"]
 #############
 
 # To set up redirects: https://documatt.gitlab.io/sphinx-reredirects/usage.html
+
 # For example: 'explanation/old-name.html': '../how-to/prettify.html',
 
 # To set up redirects in the Read the Docs project dashboard:
@@ -281,6 +301,7 @@ extensions = [
     "sphinxcontrib.cairosvgconverter",
     "sphinx_last_updated_by_git",
     "sphinx.ext.intersphinx",
+    "sphinx_sitemap",
 ]
 
 # Excludes files or directories from processing
