@@ -67,7 +67,7 @@ net.ipv4.ip_forward=1
 ```
 
 Or use `sysctl` directly so forwarding is applied immediately,
-ie without rebooting the system:
+without rebooting the system:
 
 ```sh
 sudo sysctl -w net.ipv4.ip_forward=1
