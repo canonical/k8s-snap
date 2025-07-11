@@ -83,7 +83,7 @@ Allow traffic on port 6443 with:
 sudo ufw allow 6443/tcp
 ```
 
-Services such as for example the metrics-server need access to the kubelet,
+Services such as the metrics-server need access to the kubelet,
 controller manager and kube scheduler to query for metrics.
 Kubelet runs on all nodes, while the kube-controller-manager and
 kube-scheduler run only on the control plane nodes:
