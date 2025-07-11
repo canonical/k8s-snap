@@ -530,6 +530,7 @@ ubuntu
 Ubuntu Core
 Ubuntu Pro
 Ubuntu Server
+UDP
 uid
 UIDs
 unix
