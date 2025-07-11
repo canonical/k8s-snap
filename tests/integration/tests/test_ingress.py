@@ -5,7 +5,6 @@ import json
 import logging
 import subprocess
 import time
-from pathlib import Path
 from typing import List
 
 import pytest
@@ -15,18 +14,19 @@ from test_util.config import MANIFESTS_DIR
 LOG = logging.getLogger(__name__)
 
 
-def get_ingress_service_node_port(p):
+def get_ingress_class_and_service_node_port(p):
     ingress_http_port = None
     services = json.loads(p.stdout.decode())
 
-    ingress_services = [
-        svc
-        for svc in services["items"]
-        if (
-            svc["metadata"]["name"] == "ck-ingress-contour-envoy"
-            or svc["metadata"]["name"] == "cilium-ingress"
-        )
-    ]
+    ingress_class = None
+    ingress_services = []
+    for svc in services["items"]:
+        if svc["metadata"]["name"] == "ck-ingress-contour-envoy":
+            ingress_class = "ck-ingress"
+            ingress_services.append(svc)
+        elif svc["metadata"]["name"] == "cilium-ingress":
+            ingress_class = "cilium"
+            ingress_services.append(svc)
 
     for svc in ingress_services:
         for port in svc["spec"]["ports"]:
@@ -34,8 +34,8 @@ def get_ingress_service_node_port(p):
                 ingress_http_port = port["nodePort"]
                 break
         if ingress_http_port:
-            return ingress_http_port
-    return None
+            return ingress_http_port, ingress_class
+    return None, ingress_class
 
 
 def get_external_service_ip(instance: harness.Instance, service_namespace) -> str:
@@ -90,21 +90,28 @@ def test_ingress(instances: List[harness.Instance]):
     util.wait_for_network(instance)
     util.wait_for_dns(instance)
 
+    def has_ingress_node_port(p: subprocess.CompletedProcess) -> bool:
+        port, _ = get_ingress_class_and_service_node_port(p)
+        return bool(port)
+
     result = (
         util.stubbornly(retries=20, delay_s=3)
         .on(instance)
-        .until(lambda p: get_ingress_service_node_port(p))
+        .until(has_ingress_node_port)
         .exec(["k8s", "kubectl", "get", "service", "-A", "-o", "json"])
     )
 
-    ingress_http_port = get_ingress_service_node_port(result)
+    ingress_http_port, ingress_class = get_ingress_class_and_service_node_port(result)
 
     assert ingress_http_port, "No ingress nodePort found."
+    assert ingress_class, "No ingress class found."
 
-    manifest = MANIFESTS_DIR / "ingress-test.yaml"
+    manifest_tmpl_path = MANIFESTS_DIR / "ingress-test.yaml.tmpl"
+    manifest = manifest_tmpl_path.read_text().format(ingress_class_name=ingress_class)
+
     instance.exec(
         ["k8s", "kubectl", "apply", "-f", "-"],
-        input=Path(manifest).read_bytes(),
+        input=manifest.encode("utf-8"),
     )
 
     LOG.info("Waiting for nginx pod to show up...")
