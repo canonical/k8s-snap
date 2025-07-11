@@ -29,7 +29,8 @@ To verify UFW is installed try:
 sudo ufw status verbose
 ```
 
-In case you need to maintain ssh access to the machine make sure you configure UFW properly before enabling it:
+In case you need to maintain ssh access to the machine make sure you
+configure UFW properly before enabling it:
 
 ```sh
 sudo ufw allow OpenSSH
@@ -72,6 +73,7 @@ sudo ufw reload
 ```
 
 ## Allow access to the Kubernetes services
+
 Services such as for example CoreDNS require access to the Kubernetes API
 server listening on port 6443:
  
@@ -100,6 +102,7 @@ sudo ufw allow 10259/tcp
 ```
 
 ## Allow cluster formation
+
 To form an HA cluster the datastore used by Kubernetes (dqlite/etcd) needs
 to establish a direct connection among its peers. In dqlite this is done
 through port 9000 while on etcd port 2380 is used.
@@ -116,7 +119,8 @@ Allow traffic on port 2380 on control plane nodes with etcd:
 sudo ufw allow 2380/tcp
 ```
 
-Cluster formation is overseen by a Kubernetes daemon running on all nodes on port 6400.
+Cluster formation is overseen by a Kubernetes daemon running on all nodes
+on port 6400.
 
 Allow traffic on port 6400:
 
@@ -125,6 +129,7 @@ sudo ufw allow 6400/tcp
 ```
 
 ## Allow CNI specific communication
+
 The default CNI used in {{product}} is cilium.
 Unless you are not disabling this network plugin and deploying your own,
 you should consider the following firewall rules.
@@ -137,6 +142,7 @@ sudo ufw allow 8472/udp
 ```
 
 ## UFW troubleshooting
+
 The [ports-and-services] page has a list of all ports {{product}} uses.
 
 To inspect a failing service you can enable logging:
