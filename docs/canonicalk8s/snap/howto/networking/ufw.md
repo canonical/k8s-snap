@@ -130,7 +130,7 @@ sudo ufw allow 6400/tcp
 
 ## Allow CNI specific communication
 
-The default CNI used in {{product}} is cilium.
+The default CNI used in {{product}} is Cilium.
 Unless you are not disabling this network plugin and deploying your own,
 you should consider the following firewall rules.
 
