@@ -1,6 +1,6 @@
 # How to configure Uncomplicated Firewall (UFW)
 
-In this howto we present a set of firewall rules/guidelines you should
+In this how-to we present a set of firewall rules/guidelines you should
 consider when setting up {{product}}. Be aware that these rules
 may be incompatible with your network setup, you may find them too permissive
 or too restrictive. We recommend you review them and tune them to match
