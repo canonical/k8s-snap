@@ -191,14 +191,15 @@ if 'READTHEDOCS_VERSION' in os.environ:
     version = os.environ["READTHEDOCS_VERSION"]
     sitemap_url_scheme = '{version}{link}'
 else:
-    sitemap_url_scheme = 'release-1.32/{link}'
+    sitemap_url_scheme = 'latest/{link}'
+
+sitemap_show_lastmod = True
 
 # Template and asset locations
 
 html_static_path = [".sphinx/_static"]
 templates_path = [".sphinx/_templates"]
 
-sitemap_show_lastmod = True
 
 #############
 # Redirects #
