@@ -12,8 +12,6 @@ fi
 # Remove unrelated tests
 rm "${DIR}/../../../tests/integration/tests/test_cilium_e2e.py"
 
-sed -i 's/ingressClassName: cilium/ingressClassName: ck-ingress/g' "${DIR}/../../../tests/integration/templates/ingress-test.yaml"
-
 git commit -a -m "Remove unrelated tests"
 
 # Apply strict patch
