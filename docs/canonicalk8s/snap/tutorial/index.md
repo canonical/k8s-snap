@@ -1,17 +1,32 @@
 # Tutorials
 
 This section contains a step-by-step guide to help you start exploring how to
-install and use {{product}}.
+install and use {{product}}. Our tutorials aim to provide a learning experience
+as you first get started with {{product}}.
 
 ```{toctree}
 :hidden:
 Overview <self>
 ```
 
+## Getting started
+
+This tutorial walks through the installation of {{product}} and deploys a
+sample workload.
+
 ```{toctree}
 :glob:
 :titlesonly:
 getting-started
+```
+
+## Cluster operations
+
+Now that you have a {{product}} cluster, learn about what you can do with it!
+
+```{toctree}
+:glob:
+:titlesonly:
 Basic operations with kubectl <kubectl>
 add-remove-nodes
 ```

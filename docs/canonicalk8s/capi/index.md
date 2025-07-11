@@ -16,7 +16,12 @@ explanation/index.md
 reference/index.md
 ```
 
-Cluster API (CAPI) is a Kubernetes project focused on providing declarative APIs and tooling to simplify provisioning, upgrading, and operating multiple Kubernetes clusters. The supporting infrastructure, like virtual machines, networks, load balancers, and VPCs, as well as the cluster configuration are all defined in the same way that cluster operators are already familiar with. {{product}} supports deploying and operating Kubernetes through CAPI.
+Cluster API (CAPI) is a Kubernetes project focused on providing declarative
+APIs and tooling to simplify provisioning, upgrading, and operating multiple
+Kubernetes clusters. The supporting infrastructure, like virtual machines,
+networks, load balancers, and VPCs, as well as the cluster configuration are 
+all defined in the same way that cluster operators are already familiar with.
+{{product}} supports deploying and operating Kubernetes through CAPI.
 
 ![Illustration depicting working on components and clouds][logo]
 
@@ -71,10 +76,10 @@ and constructive feedback.
 <!-- LINKS -->
 
 [Code of Conduct]: https://ubuntu.com/community/ethos/code-of-conduct
-[community]: ../charm/reference/community
-[contribute]: ../snap/howto/contribute
-[releases]: ../snap/reference/releases
-[overview page]: ../charm/explanation/about
-[arch]: ../charm/reference/architecture
+[community]: /charm/reference/community
+[contribute]: /snap/howto/contribute
+[releases]: /snap/reference/releases
+[overview page]: /charm/explanation/about
+[arch]: /charm/reference/architecture
 [Juju]: https://juju.is
-[k8s snap package]: ../snap/index
+[k8s snap package]: /snap/index

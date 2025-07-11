@@ -27,8 +27,11 @@ Create a configuration file and insert the contents below while replacing
 the placeholder values based on the configuration of your etcd cluster.
 
 ```yaml
+cluster-config:
+  network:
+    enabled: true
 datastore-type: external
-datastore-url: "<etcd-member-addresses>"
+datastore-servers: "<etcd-member-addresses>"
 datastore-ca-crt: |
   <etcd-root-ca-certificate>
 datastore-client-crt: |
@@ -37,8 +40,8 @@ datastore-client-key: |
   <etcd-client-key>
 ```
 <!-- markdownlint-disable -->
-* `datastore-url` expects a comma separated list of addresses
-  (e.g. `https://10.42.254.192:2379,https://10.42.254.193:2379,https://10.42.254.194:2379`)
+* `datastore-servers` expects a YAML sequence of addresses
+  (e.g. `[https://10.42.254.192:2379,https://10.42.254.193:2379,https://10.42.254.194:2379]`)
 <!-- markdownlint-restore -->
 * `datastore-ca-crt` expects a certificate for the CA in PEM format
 * `datastore-client-crt` expects a certificate that's signed by the root CA
@@ -65,7 +68,7 @@ and is not available in interactive mode.
 
 ## Confirm the cluster is ready
 
-It is recommended to ensure that the cluster initialises properly and is
+It is recommended to ensure that the cluster initializes properly and is
 running without issues. Run the command:
 
 ```

@@ -10,39 +10,28 @@ deployments, as well the steps that are needed to successfully deploy
 ## Prepare for deployment
 
 In preparation for the offline deployment download the {{product}} snap,
-fulfil the networking requirements based on your scenario and handle images for
+fulfill the networking requirements based on your scenario and handle images for
 workloads and {{product}} features.
 
 ### Download the {{product}} snap
 
 From a machine with access to the internet download the
-`k8s` and `core20` snap with:
+`k8s` and `core22` snap with:
 
 ```{literalinclude} ../../../_parts/install.md
 :start-after: <!-- offline start -->
 :end-before: <!-- offline end -->
-:append: sudo snap download core20 --basename core20
+:append: sudo snap download core22 --basename core22
 ```
 
 Besides the snaps, this will also download the corresponding assert files which
 are necessary to verify the integrity of the packages.
 
-```{note}
-Update the version of `k8s` by adjusting the channel parameter.
-For more information on channels visit the
-[channels explanation](../../explanation/channels.md).
-```
-
-```{note}
-Future updates to the `k8s` snap may require a different version of the core
-snap.
-```
-
-### Network requirements
+### Check network requirements
 
 Air-gap deployments are typically associated with a number of constraints and
 restrictions when it comes to the networking connectivity of the machines.
-Below we discuss the requirements that the deployment needs to fulfil.
+Below we discuss the requirements that the deployment needs to fulfill.
 
 #### Cluster node communication
 
@@ -56,7 +45,8 @@ ports used by {{product}}.  -->
 #### Default Gateway
 
 In cases where the air-gap environment does not have a default Gateway,
-add a dummy default route on the `eth0` interface using the following command:
+add a placeholder default route on the `eth0` interface using the following
+command:
 
 ```
 ip route add default dev eth0
@@ -67,9 +57,9 @@ Ensure that `eth0` is the name of the default network interface used for
 pod-to-pod communication.
 ```
 
-The dummy gateway will only be used by the Kubernetes services to
+The placeholder gateway will only be used by the Kubernetes services to
 know which interface to use, actual connectivity to the internet is not
-required. Ensure that the dummy gateway rule survives a node reboot.
+required. Ensure that the placeholder gateway rule survives a node reboot.
 
 #### Ensure proxy access
 
@@ -86,7 +76,7 @@ export https_proxy=http://squid.internal:3128
 curl -v https://registry-1.docker.io/v2
 ```
 
-### Images
+### Access images
 
 All workloads in a Kubernetes cluster are run as an OCI image.
 Kubernetes needs to be able to fetch these images and load them
@@ -95,11 +85,6 @@ For {{product}}, it is also necessary to fetch the images used
 by its features (network, DNS, etc.) as well as any images that are
 needed to run specific workloads.
 
-```{note}
-The image options are presented in the order of increasing complexity
-of implementation.
-It may be helpful to combine these options for different scenarios.
-```
 
 #### List images
 
@@ -130,19 +115,33 @@ downloaded `k8s` snap is unsquashed.
 
 Please ensure that the images used by workloads are tracked as well.
 
-#### Images option A: via an HTTP proxy
+#### Choose how to access images
+
+You must select how the container runtime accesses OCI images in your air-gapped
+installation:
+
+```{note}
+The image options are presented in the order of increasing complexity
+of implementation.
+It may be helpful to combine these options for different scenarios.
+```
+
+`````{tabs}
+
+````{group-tab} HTTP proxy
 
 In many cases, the nodes of the air-gap deployment may not have direct access
-to upstream registries, but can reach them through the [use of an HTTP
-proxy][proxy].
+to upstream registries, but can reach them through the use of an HTTP proxy.
 
-The configuration of the proxy is out of the scope of this documentation.
+Create or edit the
+`/etc/systemd/system/snap.k8s.containerd.service.d/http-proxy.conf`
+file on each node and set the appropriate `http_proxy`, `https_proxy` and
+`no_proxy` variables as described in the
+[adding proxy configuration section][proxy].
 
-<!-- markdownlint-disable MD022 -->
-(private-registry)=
-#### Images option B: private registry mirror
-<!-- markdownlint-enable MD022 -->
+````
 
+````{group-tab} Private registry mirrors
 In case regulations and/or network constraints do not permit the cluster nodes
 to access any upstream image registry, it is typical to deploy a private
 registry mirror. This is an image registry service that contains all the
@@ -159,11 +158,10 @@ This requires three steps:
    push to your registry mirror.
 3. Configure the {{product}} container runtime (`containerd`) to load
    images from the private registry mirror instead of the upstream source. This
-   will be described in the
-   [Configure registry mirrors](#container-runtime-option-b-configure-registry-mirrors)
-   section.
+   will be described in the [container runtime](
+   #configure-container-runtime) section under configure registry mirrors.
 
-To load images into the private registry, a machine is needed with access to
+ To load images into the private registry, a machine is needed with access to
 any upstream registries (e.g. `docker.io`) and the private mirror.
 
 ##### Load images with regsync
@@ -189,16 +187,9 @@ images. Assuming your registry mirror is at `http://10.10.10.10:5050`, run:
 USERNAME="$username" PASSWORD="$password" MIRROR="10.10.10.10:5050" \
 ./src/k8s/tools/regsync.sh once -c path/to/sync-images.yaml
 ```
+````
 
-An alternative to configuring a registry mirror is to download all necessary
-OCI images, and then manually add them to all cluster nodes. Instructions for
-this are described in [Side-load images](#side-load).
-
-<!-- markdownlint-disable MD022 -->
-(side-load)=
-#### Images option C: Side-load images
-<!-- markdownlint-enable MD022 -->
-
+````{group-tab} Side-load images
 Image side-loading is the process of loading all required OCI images directly
 into the container runtime, so they do not have to be fetched at runtime.
 
@@ -215,54 +206,58 @@ The flag `--name` is essential. Without it, the exported image will be imported 
 and the image with the particular tag required by k8s will not be found.
 ```
 
-Upon choosing this option, place all images under
+   Upon choosing this option, place all images under
 `/var/snap/k8s/common/images` and they will be picked up by containerd.
+````
+`````
 
 ## Deploy {{product}}
 
 Once you've completed all the preparatory steps for your air-gapped cluster,
 you can proceed with the deployment.
 
-### Step 1: Install {{product}}
+### Install {{product}}
 
 Transfer the following files to the target node:
 
 - `k8s.snap`
 - `k8s.assert`
-- `core20.snap`
-- `core20.assert`
+- `core22.snap`
+- `core22.assert`
 
 On the target node, run the following command to install the Kubernetes snap:
 
 ```
-sudo snap ack core20.assert && sudo snap install ./core20.snap
+sudo snap ack core22.assert && sudo snap install ./core22.snap
 sudo snap ack k8s.assert && sudo snap install ./k8s.snap --classic
 ```
 
 Repeat the above for all nodes of the cluster.
 
-### Step 2: Container runtime
+### Configure container runtime
 
-The container runtime must be configured to fetch images properly.
-Choose one of the following options:
+Based on the image access type you chose in the step
+[choose how to access images](#choose-how-to-access-images), configure the
+container runtime to fetch images properly:
 
-#### Container runtime option A: Configure HTTP proxy for registries
 
-Create or edit the
-`/etc/systemd/system/snap.k8s.containerd.service.d/http-proxy.conf`
-file on each node and set the appropriate `http_proxy`, `https_proxy` and
-`no_proxy` variables as described in the
-[adding proxy configuration section][proxy].
+`````{tabs}
 
-#### Container runtime option B: Configure registry mirrors
+````{group-tab} HTTP proxy
+The HTTP proxy should be set from the earlier access images via HTTP proxy step. Refer to the
+[adding proxy configuration section][proxy] for more help if necessary.
+````
 
-This requires having already set up a registry mirror, as explained in the
+````{group-tab} Private registry mirrors
+You should have already set up a registry mirror, as explained in the
 preparation section on the private registry mirror. Complete the following
 instructions on all nodes. For each upstream registry that needs mirroring,
 create a `hosts.toml` file. Here's an example that configures
 `http://10.10.10.10:5050` as a mirror for `ghcr.io`:
 
-##### HTTP registry
+
+
+#### HTTP registry mirror
 
 In `/etc/containerd/hosts.d/ghcr.io/hosts.toml`
 add the configuration:
@@ -272,7 +267,8 @@ add the configuration:
 capabilities = ["pull", "resolve"]
 ```
 
-##### HTTPS registry
+
+#### HTTPS registry mirror
 
 HTTPS requires the additionally specification of the registry CA certificate.
 Copy the certificate to
@@ -286,7 +282,7 @@ capabilities = ["pull", "resolve"]
 ca = "/var/snap/k8s/common/etc/containerd/hosts.d/ghcr.io/ca.crt"
 ```
 
-##### Nested Path registry
+#### Nested path registry mirror
 
 If the registry mirrors the images at a nested path, configure the hosts.toml
 with an `override_path = true`.
@@ -294,7 +290,6 @@ with an `override_path = true`.
 ```
 # /etc/containerd/hosts.d/ghcr.io/hosts.toml
 server = https://10.10.10.10:5050/v2/my/own/ghcr.io
-
 [host."https://10.10.10.10:5050/v2/my/own/ghcr.io"]
 capabilities = ["pull", "resolve"]
 ca = "/var/snap/k8s/common/etc/containerd/hosts.d/ghcr.io/ca.crt"
@@ -304,15 +299,19 @@ override_path = true
 The image `ghcr.io/canonical/coredns:1.12.0-ck1` would be fetched via https
 from `my.mirror.io/my/own/ghcr.io/canonical/coredns:1.12.0-ck1`.
 
-#### Container runtime option C: Side-load images
+````
 
-This is only required if choosing to [side-load images](#side-load). Make sure
+````{group-tab} Side-load images
+This is only required if choosing to side-load images. Make sure
 that the directory `/var/snap/k8s/common/images` directory exists, then copy
 all `$image.tar` to that directory, such that containerd automatically picks
 them up and imports them when it starts. Copy the `images.tar` file(s) to
 `/var/snap/k8s/common/images`. Repeat this step for all cluster nodes.
+````
 
-### Step 3: Bootstrap cluster
+`````
+
+### Bootstrap cluster
 
 Now, bootstrap the cluster and replace `MY-NODE-IP` with the IP of the node
 by running the command:
@@ -321,18 +320,21 @@ by running the command:
 sudo k8s bootstrap --address MY-NODE-IP
 ```
 
-Adding nodes requires the same steps to be repeated but instead of
-bootstrapping you would need to join the node to the cluster.
-
-After a while, confirm that all the cluster nodes show up in the output of the
+After a while, confirm that all the node show up in the output of the
 `sudo k8s kubectl get node` command.
+
+Adding nodes requires the same steps to be repeated but instead of
+bootstrapping, you would need to [generate a join token] and [join the node]
+to the cluster.
 
 <!-- LINKS -->
 
-[Core20]: https://canonical.com/blog/ubuntu-core-20-secures-linux-for-iot
-[proxy]: ../networking/proxy.md
+[proxy]: /snap/howto/networking/proxy.md
 [regsync]: https://github.com/regclient/regclient/blob/main/docs/regsync.md
 [regctl]: https://github.com/regclient/regclient/blob/main/docs/regctl.md
 [regctl.sh]: https://github.com/canonical/k8s-snap/blob/main/src/k8s/tools/regctl.sh
-[nodes]: ../../tutorial/add-remove-nodes.md
+[nodes]: /snap/tutorial/add-remove-nodes.md
 [squid]: https://www.squid-cache.org/
+[generate a join token]: /snap/reference/commands/#k8s-get-join-token
+[join the node]:/snap/reference/commands/#k8s-join-cluster
+

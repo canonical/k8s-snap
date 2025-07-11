@@ -66,6 +66,6 @@ however the following can be used to enumerate the tables:
 
 ```
 /snap/k8s/current/bin/k8sd sql \
-  --state-dir /var/snap/k8s/common/var/lib/k8sd/state
+  --state-dir /var/snap/k8s/common/var/lib/k8sd/state \
   "SELECT * FROM sqlite_master WHERE type='table'"
 ```

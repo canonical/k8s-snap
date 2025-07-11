@@ -430,7 +430,7 @@ Ensure that the dqlite data directory permissions are set to
 **Remediation:**
 
 Dqlite data are kept by default under
-/var/snap/k8s/common/var/lib/k8s-dqlite.
+`/var/snap/k8s/common/var/lib/k8s-dqlite`.
 To comply with the spirit of this CIS recommendation:
 
 `chmod 700 /var/snap/k8s/common/var/lib/k8s-dqlite`
@@ -460,7 +460,7 @@ root:root
 **Remediation:**
 
 Dqlite data are kept by default under
-/var/snap/k8s/common/var/lib/k8s-dqlite.
+`/var/snap/k8s/common/var/lib/k8s-dqlite`.
 To comply with the spirit of this CIS recommendation:
 
 `chown root:root /var/snap/k8s/common/var/lib/k8s-dqlite`
@@ -727,12 +727,13 @@ permissions=600
 
 **Description:**
 
-Ensure that the --anonymous-auth argument is set to false
+Ensure that the `--anonymous-auth` argument is set to false
 
 
 **Remediation:**
 
-Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+Edit the API server configuration file
+`/var/snap/k8s/common/args/kube-apiserver`
 on the control plane node and set the following argument.
 
 `--anonymous-auth=false`
@@ -754,7 +755,7 @@ on the control plane node and set the following argument.
 
 **Description:**
 
-Ensure that the --token-auth-file parameter is not set
+Ensure that the `--token-auth-file` parameter is not set
 
 
 **Remediation:**
@@ -762,8 +763,8 @@ Ensure that the --token-auth-file parameter is not set
 Follow the Kubernetes documentation and configure alternate
 mechanisms for
 authentication. Then, edit the API server configuration file
-/var/snap/k8s/common/args/kube-apiserver
-on the control plane node and remove the --token-auth-file
+`/var/snap/k8s/common/args/kube-apiserver`
+on the control plane node and remove the `--token-auth-file`
 argument.
 
 
@@ -783,12 +784,13 @@ argument.
 
 **Description:**
 
-Ensure that the --DenyServiceExternalIPs is not set
+Ensure that the `--DenyServiceExternalIPs` is not set
 
 
 **Remediation:**
 
-Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+Edit the API server configuration file
+`/var/snap/k8s/common/args/kube-apiserver`
 on the control plane node and remove the
 `DenyServiceExternalIPs`
 from enabled admission plugins.
@@ -811,8 +813,8 @@ DenyServiceExternalIPs
 
 **Description:**
 
-Ensure that the --kubelet-client-certificate and --kubelet-
-client-key arguments are set as appropriate
+Ensure that the `--kubelet-client-certificate` and `--kubelet-client-key`
+arguments are set as appropriate
 
 
 **Remediation:**
@@ -821,7 +823,7 @@ Follow the Kubernetes documentation and set up the TLS
 connection between the
 apiserver and kubelets. Then, edit API server configuration
 file
-/var/snap/k8s/common/args/kube-apiserver on the control plane node and set the
+`/var/snap/k8s/common/args/kube-apiserver` on the control plane node and set the
 kubelet client certificate and key parameters as follows.
 
 ```
@@ -847,7 +849,7 @@ and --kubelet-client-key=/etc/kubernetes/pki/apiserver-kubelet-client.key
 
 **Description:**
 
-Ensure that the --kubelet-certificate-authority argument is
+Ensure that the `--kubelet-certificate-authority` argument is
 set as appropriate
 
 
@@ -857,8 +859,8 @@ Follow the Kubernetes documentation and setup the TLS
 connection between
 the apiserver and kubelets. Then, edit the API server
 configuration file
-/var/snap/k8s/common/args/kube-apiserver on the control plane node and set the
---kubelet-certificate-authority parameter to the path to the
+`/var/snap/k8s/common/args/kube-apiserver` on the control plane node and set the
+`--kubelet-certificate-authority` parameter to the path to the
 cert file for the certificate authority.
 
 `--kubelet-certificate-authority=<ca-string>`
@@ -880,15 +882,16 @@ cert file for the certificate authority.
 
 **Description:**
 
-Ensure that the --authorization-mode argument is not set to
-AlwaysAllow
+Ensure that the `--authorization-mode` argument is not set to
+`AlwaysAllow`
 
 
 **Remediation:**
 
-Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
-on the control plane node and set the --authorization-mode
-parameter to values other than AlwaysAllow.
+Edit the API server configuration file
+`/var/snap/k8s/common/args/kube-apiserver`
+on the control plane node and set the `--authorization-mode`
+parameter to values other than `AlwaysAllow`.
 One such example could be as follows.
 
 `--authorization-mode=Node,RBAC`
@@ -910,13 +913,14 @@ One such example could be as follows.
 
 **Description:**
 
-Ensure that the --authorization-mode argument includes Node
+Ensure that the `--authorization-mode` argument includes Node
 
 
 **Remediation:**
 
-Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
-on the control plane node and set the --authorization-mode
+Edit the API server configuration file
+`/var/snap/k8s/common/args/kube-apiserver`
+on the control plane node and set the `--authorization-mode`
 parameter to a value that includes Node.
 
 `--authorization-mode=Node,RBAC`
@@ -938,13 +942,14 @@ parameter to a value that includes Node.
 
 **Description:**
 
-Ensure that the --authorization-mode argument includes RBAC
+Ensure that the `--authorization-mode` argument includes RBAC
 
 
 **Remediation:**
 
-Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
-on the control plane node and set the --authorization-mode
+Edit the API server configuration file
+`/var/snap/k8s/common/args/kube-apiserver`
+on the control plane node and set the `--authorization-mode`
 parameter to a value that includes RBAC,
 
 `--authorization-mode=Node,RBAC`
@@ -975,7 +980,7 @@ set
 Follow the Kubernetes documentation and set the desired
 limits in a configuration file.
 Then, edit the API server configuration file
-/var/snap/k8s/common/args/kube-apiserver
+`/var/snap/k8s/common/args/kube-apiserver`
 and set the following arguments.
 
 ```
@@ -1001,16 +1006,17 @@ plugins=NodeRestriction,EventRateLimit,AlwaysPullImages
 
 **Description:**
 
-Ensure that the admission control plugin AlwaysAdmit is not
+Ensure that the admission control plugin `AlwaysAdmit` is not
 set
 
 
 **Remediation:**
 
-Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+Edit the API server configuration file
+`/var/snap/k8s/common/args/kube-apiserver`
 on the control plane node and either remove the
---enable-admission-plugins parameter, or set it to a
-value that does not include AlwaysAdmit.
+`--enable-admission-plugins` parameter, or set it to a
+value that does not include `AlwaysAdmit`.
 
 
 **Audit (as root):**
@@ -1030,16 +1036,17 @@ plugins=NodeRestriction,EventRateLimit,AlwaysPullImages
 
 **Description:**
 
-Ensure that the admission control plugin AlwaysPullImages is
+Ensure that the admission control plugin `AlwaysPullImages` is
 set
 
 
 **Remediation:**
 
-Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+Edit the API server configuration file
+`/var/snap/k8s/common/args/kube-apiserver`
 on the control plane node and set the
---enable-admission-plugins parameter to include
-AlwaysPullImages.
+`--enable-admission-plugins` parameter to include
+`AlwaysPullImages`.
 
 `--enable-admission-plugins=...,AlwaysPullImages,...`
 
@@ -1061,16 +1068,17 @@ plugins=NodeRestriction,EventRateLimit,AlwaysPullImages
 
 **Description:**
 
-Ensure that the admission control plugin SecurityContextDeny
-is set if PodSecurityPolicy is not used
+Ensure that the admission control plugin `SecurityContextDeny`
+is set if `PodSecurityPolicy` is not used
 
 
 **Remediation:**
 
-Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
-on the control plane node and set the --enable-admission-
-plugins parameter to include
-SecurityContextDeny, unless PodSecurityPolicy is already in
+Edit the API server configuration file
+`/var/snap/k8s/common/args/kube-apiserver`
+on the control plane node and set the `--enable-admission-plugins`
+parameter to include
+`SecurityContextDeny`, unless PodSecurityPolicy is already in
 place.
 
 `--enable-admission-plugins=...,SecurityContextDeny,...`
@@ -1101,10 +1109,10 @@ set
 
 Follow the documentation and create ServiceAccount objects
 as per your environment. Then, edit the API server configuration
-file /var/snap/k8s/common/args/kube-apiserver
+file `/var/snap/k8s/common/args/kube-apiserver`
 on the control plane node and ensure that the
---disable-admission-plugins parameter is set to a
-value that does not include ServiceAccount.
+`--disable-admission-plugins` parameter is set to a
+value that does not include `ServiceAccount`.
 
 
 **Audit (as root):**
@@ -1129,10 +1137,10 @@ is set
 
 **Remediation:**
 
-Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
-on the control plane node and set the --disable-admission-
-plugins parameter to
-ensure it does not include NamespaceLifecycle.
+Edit the API server configuration file
+`/var/snap/k8s/common/args/kube-apiserver`
+on the control plane node and set the `--disable-admission-plugins` parameter to
+ensure it does not include `NamespaceLifecycle`.
 
 
 **Audit (as root):**
@@ -1159,10 +1167,9 @@ set
 
 Follow the Kubernetes documentation and configure
 NodeRestriction plug-in on kubelets. Then, edit the API server
-configuration file /var/snap/k8s/common/args/kube-apiserver
-on the control plane node and set the --enable-admission-
-plugins parameter to a
-value that includes NodeRestriction.
+configuration file `/var/snap/k8s/common/args/kube-apiserver`
+on the control plane node and set the `--enable-admission-plugins` parameter to
+a value that includes `NodeRestriction`.
 
 `--enable-admission-plugins=...,NodeRestriction,...`
 
@@ -1184,14 +1191,14 @@ plugins=NodeRestriction,EventRateLimit,AlwaysPullImages
 
 **Description:**
 
-Ensure that the --secure-port argument is not set to 0
+Ensure that the `--secure-port` argument is not set to 0
 
 
 **Remediation:**
 
-Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
-on the control plane node and either remove the --secure-
-port parameter or
+Edit the API server configuration file
+`/var/snap/k8s/common/args/kube-apiserver`
+on the control plane node and either remove the `--secure-port` parameter or
 set it to a different (non-zero) desired port.
 
 
@@ -1211,12 +1218,13 @@ set it to a different (non-zero) desired port.
 
 **Description:**
 
-Ensure that the --profiling argument is set to false
+Ensure that the `--profiling` argument is set to false
 
 
 **Remediation:**
 
-Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+Edit the API server configuration file
+`/var/snap/k8s/common/args/kube-apiserver`
 on the control plane node and set the following argument.
 
 `--profiling=false`
@@ -1238,17 +1246,18 @@ on the control plane node and set the following argument.
 
 **Description:**
 
-Ensure that the --audit-log-path argument is set
+Ensure that the `--audit-log-path` argument is set
 
 
 **Remediation:**
 
-Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
-on the control plane node and set the --audit-log-path
+Edit the API server configuration file
+`/var/snap/k8s/common/args/kube-apiserver`
+on the control plane node and set the `--audit-log-path`
 parameter to a suitable path and
 file where you would like audit logs to be written.
 
-`--audit-log-path=/var/log/apiserver/audit.log`
+`--audit-log-path=/var/log/kubernetes/audit.log`
 
 
 **Audit (as root):**
@@ -1260,21 +1269,22 @@ file where you would like audit logs to be written.
 **Expected output:**
 
 ```
---audit-log-path=/var/log/apiserver/audit.log
+--audit-log-path=/var/log/kubernetes/audit.log
 ```
 
 ##### CIS Control 1.2.19
 
 **Description:**
 
-Ensure that the --audit-log-maxage argument is set to 30 or
+Ensure that the `--audit-log-maxage` argument is set to 30 or
 as appropriate
 
 
 **Remediation:**
 
-Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
-on the control plane node and set the --audit-log-maxage
+Edit the API server configuration file
+`/var/snap/k8s/common/args/kube-apiserver`
+on the control plane node and set the `--audit-log-maxage`
 parameter to 30
 or as an appropriate number of days.
 
@@ -1297,14 +1307,15 @@ or as an appropriate number of days.
 
 **Description:**
 
-Ensure that the --audit-log-maxbackup argument is set to 10
+Ensure that the `--audit-log-maxbackup` argument is set to 10
 or as appropriate
 
 
 **Remediation:**
 
-Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
-on the control plane node and set the --audit-log-maxbackup
+Edit the API server configuration file
+`/var/snap/k8s/common/args/kube-apiserver`
+on the control plane node and set the `--audit-log-maxbackup`
 parameter to 10 or to an appropriate
 value.
 
@@ -1327,14 +1338,15 @@ value.
 
 **Description:**
 
-Ensure that the --audit-log-maxsize argument is set to 100
+Ensure that the `--audit-log-maxsize` argument is set to 100
 or as appropriate
 
 
 **Remediation:**
 
-Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
-on the control plane node and set the --audit-log-maxsize
+Edit the API server configuration file
+`/var/snap/k8s/common/args/kube-apiserver`
+on the control plane node and set the `--audit-log-maxsize`
 parameter to an appropriate size in MB.
 
 `--audit-log-maxsize=100`
@@ -1356,13 +1368,14 @@ parameter to an appropriate size in MB.
 
 **Description:**
 
-Ensure that the --request-timeout argument is set as
+Ensure that the `--request-timeout` argument is set as
 appropriate
 
 
 **Remediation:**
 
-Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+Edit the API server configuration file
+`/var/snap/k8s/common/args/kube-apiserver`
 and set the following argument as appropriate and if needed.
 
 `--request-timeout=300s`
@@ -1384,18 +1397,19 @@ and set the following argument as appropriate and if needed.
 
 **Description:**
 
-Ensure that the --service-account-lookup argument is set to
+Ensure that the `--service-account-lookup` argument is set to
 true
 
 
 **Remediation:**
 
-Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+Edit the API server configuration file
+`/var/snap/k8s/common/args/kube-apiserver`
 on the control plane node and set the following argument.
 
 `--service-account-lookup=true`
 
-Alternatively, you can delete the --service-account-lookup
+Alternatively, you can delete the `--service-account-lookup`
 argument from this file so
 that the default takes effect.
 
@@ -1416,15 +1430,15 @@ that the default takes effect.
 
 **Description:**
 
-Ensure that the --service-account-key-file argument is set
+Ensure that the `--service-account-key-file` argument is set
 as appropriate
 
 
 **Remediation:**
 
-Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
-on the control plane node and set the --service-account-key-
-file parameter
+Edit the API server configuration file
+`/var/snap/k8s/common/args/kube-apiserver`
+on the control plane node and set the `--service-account-key-file` parameter
 to the public key file for service accounts.
 
 `--service-account-key-file=<filename>`
@@ -1447,7 +1461,7 @@ file=/etc/kubernetes/pki/serviceaccount.key
 
 **Description:**
 
-Ensure that the --etcd-certfile and --etcd-keyfile arguments
+Ensure that the `--etcd-certfile` and `--etcd-keyfile` arguments
 are set as appropriate
 
 
@@ -1456,7 +1470,7 @@ are set as appropriate
 Not applicable. Canonical K8s uses dqlite and the
 communication to this service is done through a
 local socket
-(/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock)
+(`/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`)
 accessible to users with root permissions.
 
 
@@ -1464,7 +1478,7 @@ accessible to users with root permissions.
 
 **Description:**
 
-Ensure that the --tls-cert-file and --tls-private-key-file
+Ensure that the `--tls-cert-file` and `--tls-private-key-file`
 arguments are set as appropriate
 
 
@@ -1473,7 +1487,7 @@ arguments are set as appropriate
 Follow the Kubernetes documentation and set up the TLS
 connection on the apiserver.
 Then, edit the API server configuration file
-/var/snap/k8s/common/args/kube-apiserver
+`/var/snap/k8s/common/args/kube-apiserver`
 on the control plane node and set the TLS certificate and
 private key file parameters.
 
@@ -1500,7 +1514,7 @@ private-key-file=/etc/kubernetes/pki/apiserver.key
 
 **Description:**
 
-Ensure that the --client-ca-file argument is set as
+Ensure that the `--client-ca-file` argument is set as
 appropriate
 
 
@@ -1508,7 +1522,7 @@ appropriate
 
 Follow the Kubernetes documentation and set up the TLS
 connection on the apiserver. Then, edit the API server configuration
-file /var/snap/k8s/common/args/kube-apiserver
+file `/var/snap/k8s/common/args/kube-apiserver`
 on the control plane node and set the client certificate
 authority file.
 
@@ -1531,7 +1545,7 @@ authority file.
 
 **Description:**
 
-Ensure that the --etcd-cafile argument is set as appropriate
+Ensure that the `--etcd-cafile` argument is set as appropriate
 
 
 **Remediation:**
@@ -1539,7 +1553,7 @@ Ensure that the --etcd-cafile argument is set as appropriate
 Not applicable. Canonical K8s uses dqlite and the
 communication to this service is done through a
 local socket
-(/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock)
+(`/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`)
 accessible to users with root permissions.
 
 
@@ -1547,20 +1561,19 @@ accessible to users with root permissions.
 
 **Description:**
 
-Ensure that the --encryption-provider-config argument is set
+Ensure that the `--encryption-provider-config` argument is set
 as appropriate
 
 
 **Remediation:**
 
 Follow the Kubernetes documentation and configure a
-EncryptionConfig file. Then, edit the API server configuration
-file /var/snap/k8s/common/args/kube-apiserver
-on the control plane node and set the --encryption-provider-
-config parameter to the path of that file.
+`EncryptionConfig` file. Then, edit the API server configuration
+file `/var/snap/k8s/common/args/kube-apiserver`
+on the control plane node and set the `--encryption-provider-config` parameter
+to the path of that file.
 
-`--encryption-provider-
-config=</path/to/EncryptionConfig/File>`
+`--encryption-provider-config=</path/to/EncryptionConfig/File>`
 
 
 **Audit (as root):**
@@ -1586,8 +1599,8 @@ configured
 **Remediation:**
 
 Follow the Kubernetes documentation and configure a
-EncryptionConfig file.
-In this file, choose aescbc, kms or secretbox as the
+`EncryptionConfig` file.
+In this file, choose AES-CBC, KMS or SecretBox as the
 encryption provider.
 
 
@@ -1616,7 +1629,7 @@ Cryptographic Ciphers
 **Remediation:**
 
 Edit the API server configuration file
-/etc/kubernetes/manifests/kube-apiserver.yaml
+`/etc/kubernetes/manifests/kube-apiserver.yaml`
 on the control plane node and set the following argument.
 
 ```
@@ -1668,16 +1681,16 @@ _256_CBC_SHA,TLS_RSA_WITH_AES_256_GCM_SHA384
 
 **Description:**
 
-Ensure that the --terminated-pod-gc-threshold argument is
+Ensure that the `--terminated-pod-gc-threshold` argument is
 set as appropriate
 
 
 **Remediation:**
 
 Edit the Controller Manager configuration file
-/var/snap/k8s/common/args/kube-controller-manager
-on the control plane node and set the --terminated-pod-gc-
-threshold to an appropriate threshold.
+`/var/snap/k8s/common/args/kube-controller-manager`
+on the control plane node and set the `--terminated-pod-gc-threshold`
+ to an appropriate threshold.
 
 `--terminated-pod-gc-threshold=12500`
 
@@ -1698,13 +1711,13 @@ threshold to an appropriate threshold.
 
 **Description:**
 
-Ensure that the --profiling argument is set to false
+Ensure that the `--profiling` argument is set to false
 
 
 **Remediation:**
 
 Edit the Controller Manager configuration file
-/var/snap/k8s/common/args/kube-controller-manager
+`/var/snap/k8s/common/args/kube-controller-manager`
 on the control plane node and set the following argument.
 
 `--profiling=false`
@@ -1726,14 +1739,14 @@ on the control plane node and set the following argument.
 
 **Description:**
 
-Ensure that the --use-service-account-credentials argument
+Ensure that the `--use-service-account-credentials` argument
 is set to true
 
 
 **Remediation:**
 
 Edit the Controller Manager configuration file
-/var/snap/k8s/common/args/kube-controller-manager
+`/var/snap/k8s/common/args/kube-controller-manager`
 on the control plane node to set the following argument.
 
 `--use-service-account-credentials=true`
@@ -1755,17 +1768,16 @@ on the control plane node to set the following argument.
 
 **Description:**
 
-Ensure that the --service-account-private-key-file argument
+Ensure that the `--service-account-private-key-file` argument
 is set as appropriate
 
 
 **Remediation:**
 
 Edit the Controller Manager configuration file
-/var/snap/k8s/common/args/kube-controller-manager
-on the control plane node and set the --service-account-
-private-key-file parameter
-to the private key file for service accounts.
+`/var/snap/k8s/common/args/kube-controller-manager`
+on the control plane node and set the `--service-account-private-key-file`
+parameter to the private key file for service accounts.
 
 `--service-account-private-key-file=<filename>`
 
@@ -1779,23 +1791,22 @@ to the private key file for service accounts.
 **Expected output:**
 
 ```
---service-account-private-key-
-file=/etc/kubernetes/pki/serviceaccount.key
+--service-account-private-key-file=/etc/kubernetes/pki/serviceaccount.key
 ```
 
 ##### CIS Control 1.3.5
 
 **Description:**
 
-Ensure that the --root-ca-file argument is set as
+Ensure that the `--root-ca-file` argument is set as
 appropriate
 
 
 **Remediation:**
 
 Edit the Controller Manager configuration file
-/var/snap/k8s/common/args/kube-controller-manager
-on the control plane node and set the --root-ca-file
+`/var/snap/k8s/common/args/kube-controller-manager`
+on the control plane node and set the `--root-ca-file`
 parameter to the certificate bundle file.
 
 `--root-ca-file=<path/to/file>`
@@ -1817,16 +1828,16 @@ parameter to the certificate bundle file.
 
 **Description:**
 
-Ensure that the RotateKubeletServerCertificate argument is
+Ensure that the `RotateKubeletServerCertificate` argument is
 set to true
 
 
 **Remediation:**
 
 Edit the Controller Manager configuration file
-/var/snap/k8s/common/args/kube-controller-manager
-on the control plane node and set the --feature-gates
-parameter to include RotateKubeletServerCertificate=true.
+`/var/snap/k8s/common/args/kube-controller-manager`
+on the control plane node and set the `--feature-gates`
+parameter to include `RotateKubeletServerCertificate=true`.
 
 `--feature-gates=RotateKubeletServerCertificate=true`
 
@@ -1848,15 +1859,15 @@ to true
 
 **Description:**
 
-Ensure that the --bind-address argument is set to 127.0.0.1
+Ensure that the `--bind-address` argument is set to 127.0.0.1
 
 
 **Remediation:**
 
 Edit the Controller Manager configuration file
-/var/snap/k8s/common/args/kube-controller-manager
+`/var/snap/k8s/common/args/kube-controller-manager`
 on the control plane node and ensure the correct value for
-the --bind-address parameter
+the `--bind-address` parameter
 and restart the controller manager service
 
 
@@ -1878,12 +1889,12 @@ and restart the controller manager service
 
 **Description:**
 
-Ensure that the --profiling argument is set to false
+Ensure that the `--profiling` argument is set to false
 
 
 **Remediation:**
 
-Edit the Scheduler configuration file /var/snap/k8s/common/args/kube-scheduler
+Edit the Scheduler configuration file `/var/snap/k8s/common/args/kube-scheduler`
 on the control plane node and set the following argument.
 
 `--profiling=false`
@@ -1905,14 +1916,14 @@ on the control plane node and set the following argument.
 
 **Description:**
 
-Ensure that the --bind-address argument is set to 127.0.0.1
+Ensure that the `--bind-address` argument is set to 127.0.0.1
 
 
 **Remediation:**
 
-Edit the Scheduler configuration file /var/snap/k8s/common/args/kube-scheduler
+Edit the Scheduler configuration file `/var/snap/k8s/common/args/kube-scheduler`
 on the control plane node and ensure the correct value for
-the --bind-address parameter
+the `--bind-address` parameter
 and restart the kube-scheduler service
 
 
@@ -1936,7 +1947,7 @@ and restart the kube-scheduler service
 
 **Description:**
 
-Ensure that the --cert-file and --key-file arguments are set
+Ensure that the `--cert-file` and `--key-file` arguments are set
 as appropriate
 
 
@@ -1945,7 +1956,7 @@ as appropriate
 Not applicable. Canonical K8s uses dqlite and the
 communication to this service is done through a
 local socket
-(/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock)
+(`/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`)
 accessible to users with root permissions.
 
 
@@ -1953,7 +1964,7 @@ accessible to users with root permissions.
 
 **Description:**
 
-Ensure that the --client-cert-auth argument is set to true
+Ensure that the `--client-cert-auth` argument is set to true
 
 
 **Remediation:**
@@ -1961,7 +1972,7 @@ Ensure that the --client-cert-auth argument is set to true
 Not applicable. Canonical K8s uses dqlite and the
 communication to this service is done through a
 local socket
-(/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock)
+(`/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`)
 accessible to users with root permissions.
 
 
@@ -1969,7 +1980,7 @@ accessible to users with root permissions.
 
 **Description:**
 
-Ensure that the --auto-tls argument is not set to true
+Ensure that the `--auto-tls` argument is not set to true
 
 
 **Remediation:**
@@ -1977,7 +1988,7 @@ Ensure that the --auto-tls argument is not set to true
 Not applicable. Canonical K8s uses dqlite and the
 communication to this service is done through a
 local socket
-(/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock)
+(`/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`)
 accessible to users with root permissions.
 
 
@@ -1985,7 +1996,7 @@ accessible to users with root permissions.
 
 **Description:**
 
-Ensure that the --peer-cert-file and --peer-key-file
+Ensure that the `--peer-cert-file` and `--peer-key-file`
 arguments are set as appropriate
 
 
@@ -1993,8 +2004,8 @@ arguments are set as appropriate
 
 The certificate pair for dqlite and tls peer communication
 is
-/var/snap/k8s/common/var/lib/k8s-dqlite/cluster.crt and
-/var/snap/k8s/common/var/lib/k8s-dqlite/cluster.key.
+`/var/snap/k8s/common/var/lib/k8s-dqlite/cluster.crt` and
+`/var/snap/k8s/common/var/lib/k8s-dqlite/cluster.key`.
 
 
 **Audit (as root):**
@@ -2013,15 +2024,15 @@ certs-found
 
 **Description:**
 
-Ensure that the --peer-client-cert-auth argument is set to
+Ensure that the `--peer-client-cert-auth` argument is set to
 true
 
 
 **Remediation:**
 
-Dqlite peer communication uses TLS unless the --enable-tls
+Dqlite peer communication uses TLS unless the `--enable-tls`
 is set to false in
-/var/snap/k8s/common/args/k8s-dqlite.
+`/var/snap/k8s/common/args/k8s-dqlite`.
 
 
 **Audit (as root):**
@@ -2040,7 +2051,7 @@ is set to false in
 
 **Description:**
 
-Ensure that the --peer-auto-tls argument is not set to true
+Ensure that the `--peer-auto-tls` argument is not set to true
 
 
 **Remediation:**
@@ -2257,7 +2268,7 @@ root:root
 
 **Description:**
 
-Ensure that the --kubeconfig kubelet.conf file permissions
+Ensure that the `--kubeconfig` kubelet.conf file permissions
 are set to 600
 
 
@@ -2285,7 +2296,7 @@ permissions=600
 
 **Description:**
 
-Ensure that the --kubeconfig kubelet.conf file ownership is
+Ensure that the `--kubeconfig` kubelet.conf file ownership is
 set to root:root
 
 
@@ -2320,8 +2331,7 @@ set to 600
 **Remediation:**
 
 Run the following command to modify the file permissions of
-the
---client-ca-file.
+the `--client-ca-file`.
 
 `chmod 600 /etc/kubernetes/pki/client-ca.crt`
 
@@ -2351,7 +2361,7 @@ ownership is set to root:root
 **Remediation:**
 
 Run the following command to modify the ownership of the
---client-ca-file.
+`--client-ca-file`.
 
 `chown root:root /etc/kubernetes/pki/client-ca.crt`
 
@@ -2434,13 +2444,13 @@ root:root
 
 **Description:**
 
-Ensure that the --anonymous-auth argument is set to false
+Ensure that the `--anonymous-auth` argument is set to false
 
 
 **Remediation:**
 
 Edit the kubelet configuration file
-/var/snap/k8s/common/args/kubelet on each worker node and set the following
+`/var/snap/k8s/common/args/kubelet` on each worker node and set the following
 argument.
 
 `--anonymous-auth=false`
@@ -2466,14 +2476,14 @@ Restart the kubelet service.
 
 **Description:**
 
-Ensure that the --authorization-mode argument is not set to
-AlwaysAllow
+Ensure that the `--authorization-mode` argument is not set to
+`AlwaysAllow`
 
 
 **Remediation:**
 
 Edit the kubelet configuration file
-/var/snap/k8s/common/args/kubelet on each worker node and set the following
+`/var/snap/k8s/common/args/kubelet` on each worker node and set the following
 argument.
 
 `--authorization-mode=Webhook`
@@ -2499,14 +2509,14 @@ Restart the kubelet service:
 
 **Description:**
 
-Ensure that the --client-ca-file argument is set as
+Ensure that the `--client-ca-file` argument is set as
 appropriate
 
 
 **Remediation:**
 
 Edit the kubelet configuration file
-/var/snap/k8s/common/args/kubelet on each worker node and set the following
+`/var/snap/k8s/common/args/kubelet` on each worker node and set the following
 argument.
 
 `--client-ca-file=/etc/kubernetes/pki/client-ca.crt`
@@ -2532,13 +2542,13 @@ Restart the kubelet service:
 
 **Description:**
 
-Verify that the --read-only-port argument is set to 0
+Verify that the `--read-only-port` argument is set to 0
 
 
 **Remediation:**
 
 Edit the kubelet configuration file
-/var/snap/k8s/common/args/kubelet on each worker node and set the following
+`/var/snap/k8s/common/args/kubelet` on each worker node and set the following
 argument.
 
 `--read-only-port=0`
@@ -2564,14 +2574,14 @@ Restart the kubelet service:
 
 **Description:**
 
-Ensure that the --streaming-connection-idle-timeout argument
+Ensure that the `--streaming-connection-idle-timeout` argument
 is not set to 0
 
 
 **Remediation:**
 
 Edit the kubelet configuration file
-/var/snap/k8s/common/args/kubelet on each worker node and set the following
+`/var/snap/k8s/common/args/kubelet` on each worker node and set the following
 argument.
 
 `--streaming-connection-idle-timeout=5m`
@@ -2598,14 +2608,14 @@ value greater or equal to 5m
 
 **Description:**
 
-Ensure that the --protect-kernel-defaults argument is set to
+Ensure that the `--protect-kernel-defaults` argument is set to
 true
 
 
 **Remediation:**
 
 Edit the kubelet configuration file
-/var/snap/k8s/common/args/kubelet on each worker node and set the following
+`/var/snap/k8s/common/args/kubelet` on each worker node and set the following
 argument:
 
 `--protect-kernel-defaults=true`
@@ -2631,14 +2641,14 @@ Restart the kubelet service:
 
 **Description:**
 
-Ensure that the --make-iptables-util-chains argument is set
+Ensure that the `--make-iptables-util-chains` argument is set
 to true
 
 
 **Remediation:**
 
 Edit the kubelet configuration file
-/var/snap/k8s/common/args/kubelet on each worker node and
+`/var/snap/k8s/common/args/kubelet` on each worker node and
 set the following argument:
 
 `--make-iptables-util-chains=true`
@@ -2664,13 +2674,13 @@ For example: `snap restart k8s.kubelet`
 
 **Description:**
 
-Ensure that the --hostname-override argument is not set
+Ensure that the `--hostname-override` argument is not set
 
 
 **Remediation:**
 
-Edit the kubelet configuration file /var/snap/k8s/common/args/kubelet
-on each worker node and remove the --hostname-override
+Edit the kubelet configuration file `/var/snap/k8s/common/args/kubelet`
+on each worker node and remove the `--hostname-override`
 argument.
 
 Restart the kubelet service.
@@ -2694,15 +2704,15 @@ Restart the kubelet service.
 
 **Description:**
 
-Ensure that the --event-qps argument is set to a level which
+Ensure that the `--event-qps` argument is set to a level which
 ensures appropriate event capture
 
 
 **Remediation:**
 
-Edit the kubelet configuration file /var/snap/k8s/common/args/kubelet on each
+Edit the kubelet configuration file `/var/snap/k8s/common/args/kubelet` on each
 worker node and
-set the --event-qps parameter as appropriate.
+set the `--event-qps` parameter as appropriate.
 
 Restart the kubelet service.
 
@@ -2725,13 +2735,13 @@ Restart the kubelet service.
 
 **Description:**
 
-Ensure that the --tls-cert-file and --tls-private-key-file
+Ensure that the `--tls-cert-file` and `--tls-private-key-file`
 arguments are set as appropriate
 
 
 **Remediation:**
 
-Edit the kubelet configuration file /var/snap/k8s/common/args/kubelet on each
+Edit the kubelet configuration file `/var/snap/k8s/common/args/kubelet` on each
 worker node and
 set the following arguments:
 
@@ -2762,15 +2772,15 @@ private-key-file=/etc/kubernetes/pki/kubelet.key
 
 **Description:**
 
-Ensure that the --rotate-certificates argument is not set to
+Ensure that the `--rotate-certificates` argument is not set to
 false
 
 
 **Remediation:**
 
-Edit the kubelet configuration file /var/snap/k8s/common/args/kubelet on each
+Edit the kubelet configuration file `/var/snap/k8s/common/args/kubelet` on each
 worker node and
-remove the --rotate-certificates=false argument.
+remove the `--rotate-certificates=false` argument.
 
 Restart the kubelet service.
 
@@ -2793,16 +2803,15 @@ Restart the kubelet service.
 
 **Description:**
 
-Verify that the RotateKubeletServerCertificate argument is
+Verify that the `RotateKubeletServerCertificate` argument is
 set to true
 
 
 **Remediation:**
 
-Edit the kubelet configuration file /var/snap/k8s/common/args/kubelet on each
+Edit the kubelet configuration file `/var/snap/k8s/common/args/kubelet` on each
 worker node and
-set the argument --feature-
-gates=RotateKubeletServerCertificate=true
+set the argument `--feature-gates=RotateKubeletServerCertificate=true`
 on each worker node.
 
 Restart the kubelet service.
@@ -2833,9 +2842,9 @@ Cryptographic Ciphers
 
 **Remediation:**
 
-Edit the kubelet configuration file /var/snap/k8s/common/args/kubelet on each
+Edit the kubelet configuration file `/var/snap/k8s/common/args/kubelet` on each
 worker node and
-set the --tls-cipher-suites parameter as follows, or to a
+set the `--tls-cipher-suites` parameter as follows, or to a
 subset of these values.
 
 ```
@@ -2882,15 +2891,17 @@ required
 
 **Remediation:**
 
-Identify all clusterrolebindings to the cluster-admin role.
+Identify all ClusterRoleBindings to the cluster-admin role.
 Check if they are used and
 if they need this role or if they could use a role with
 fewer privileges.
 Where possible, first bind users to a lower privileged role
 and then remove the
-clusterrolebinding to the cluster-admin role :
-kubectl delete clusterrolebinding [name]
+ClusterRoleBinding to the cluster-admin role :
 
+```
+kubectl delete clusterrolebinding [name]
+```
 
 ##### CIS Control 5.1.2
 
@@ -2914,7 +2925,7 @@ Minimize wildcard use in Roles and ClusterRoles
 
 **Remediation:**
 
-Where possible replace any use of wildcards in clusterroles
+Where possible replace any use of wildcards in ClusterRoles
 and roles with specific
 objects or actions.
 
@@ -2946,7 +2957,7 @@ workload requires specific access
 to the Kubernetes API server.
 Modify the configuration of each default service account to
 include this value
-automountServiceAccountToken: false
+`automountServiceAccountToken: false`
 
 
 ##### CIS Control 5.1.6
@@ -2963,7 +2974,7 @@ Modify the definition of pods and service accounts which do
 not need to mount service
 account tokens to disable it.
 
-
+<!-- vale off -->
 ##### CIS Control 5.1.7
 
 **Description:**
@@ -2975,7 +2986,7 @@ Avoid use of system:masters group
 
 Remove the system:masters group from all users in the
 cluster.
-
+<!-- vale on -->
 
 ##### CIS Control 5.1.8
 

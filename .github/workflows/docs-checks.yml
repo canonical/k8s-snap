@@ -1,0 +1,17 @@
+name: Documentation Checks
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'docs/**'
+permissions:
+  contents: read
+
+jobs:
+  documentation-checks:
+    uses: canonical/documentation-workflows/.github/workflows/documentation-checks.yaml@main
+    with:
+      working-directory: "docs/canonicalk8s"
+      fetch-depth: 0
+

@@ -10,23 +10,88 @@ adapt the steps to fit your specific requirements.
 Overview <self>
 ```
 
+## Install and configure
+
+Installation follows a similar pattern on all platforms, but some
+differences must be addressed in each case. You may also want to customize the
+installation of your Canonical Kubernetes nodes.
+
 ```{toctree}
 :glob:
 :titlesonly:
-
-install/index
+Install <install/index>
 Configure the cluster <configure-cluster>
+```
+
+## Integrate
+
+Learn how to integrate {{product}} with other charms to truly customize your
+cluster and provide additional functionality.
+
+```{toctree}
+:glob:
+:titlesonly:
 Integrate with OpenStack <openstack>
 Integrate with etcd <etcd>
 Integrate with ceph-csi <ceph-csi>
-Integrate with COS Lite <cos-lite>
+```
+
+## Networking
+
+```{toctree}
+:glob:
+:titlesonly:
 Configure proxy settings <proxy>
-Configure a custom registry <custom-registry>
+```
+
+## Upgrade
+
+Perform major and minor upgrades of your {{product}} cluster.
+
+```{toctree}
+:glob:
+:titlesonly:
 Upgrade minor version <upgrade-minor>
 Upgrade patch version <upgrade-patch>
-Validate the cluster <validate>
+
+```
+
+## Image registry
+
+```{toctree}
+:glob:
+:titlesonly:
+Configure a custom registry <custom-registry>
+```
+
+## Monitoring and troubleshooting
+
+Sometimes things go wrong and you need to troubleshoot. Having observability
+set up on your cluster can greatly increase the rate at which a problem is
+identified and solved.
+
+```{toctree}
+:titlesonly:
 Troubleshooting <troubleshooting>
-Contribute to Canonical Kubernetes <contribute>
+Validate the cluster <validate>
+Integrate with COS Lite <cos-lite>
+```
+
+## Security
+
+```{toctree}
+:titlesonly:
+Report a security issue <report-security-issue>
+Harden the cluster <hardening>
+```
+
+## Contribute
+
+Contribute to the {{product}} project! Add to the code, documentation or both!
+
+```{toctree}
+:titlesonly:
+Contribute <contribute>
 ```
 
 ---

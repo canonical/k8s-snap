@@ -8,21 +8,84 @@ information such as the command reference or release notes.
 Overview <self>
 ```
 
+## System components
+
 ```{toctree}
 :titlesonly:
-
-releases
-config-files/index
-commands
-ports-and-services
-annotations
-certificates
-proxy
-troubleshooting
 architecture
 dqlite
+```
+
+## Command reference
+
+Commands provided by the {{product}} snap.
+
+```{toctree}
+:titlesonly:
+commands
+```
+
+## Cluster configuration
+
+Configuration files used during cluster creation.
+
+```{toctree}
+:titlesonly:
+config-files/index
+```
+
+## Release notes
+
+New features, bug fixes, deprecations and more are included in the release
+notes for each version.
+
+```{toctree}
+:titlesonly:
+releases
+```
+
+## Security
+
+```{toctree}
+:titlesonly:
+Security <security>
+certificates
+```
+
+## Annotations
+
+A list of annotations that can be applied to a node on cluster bootstrap.
+
+```{toctree}
+:titlesonly:
+annotations
+```
+
+## Networking
+
+```{toctree}
+:titlesonly:
+proxy
+ports-and-services
+```
+
+## Troubleshooting
+
+Common issues faced by users and their solutions.
+
+```{toctree}
+:titlesonly:
+troubleshooting
+```
+
+## Contributing
+
+```{toctree}
+:titlesonly:
 Community <community>
 ```
+
+---
 
 ## Other documentation types
 

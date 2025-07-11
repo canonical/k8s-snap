@@ -29,7 +29,7 @@ this demonstration will have less than 5 OSDs. (See [placement groups])
 ceph osd pool create kubernetes 128
 ```
 
-Initialise the pool as a Ceph block device pool.
+Initialize the pool as a Ceph block device pool.
 
 ```
 rbd pool init kubernetes
@@ -49,7 +49,7 @@ ceph auth get-or-create client.kubernetes mon 'profile rbd' osd 'profile rbd poo
 ```
 
 For more information on user capabilities in Ceph, see the
-[authorisation capabilities page][]
+[authorization capabilities page][]
 
 ```
 [client.kubernetes]
@@ -93,7 +93,7 @@ data:
       {
         "clusterID": "6d5c12c9-6dfb-445a-940f-301aa7de0f29",
         "monitors": [
-          "10.0.0.136:6789",
+          "10.0.0.136:6789"
         ]
       }
     ]
@@ -105,7 +105,7 @@ EOF
 Then apply:
 
 ```
-kubectl apply -f csi-config-map.yaml
+sudo k8s kubectl apply -f csi-config-map.yaml
 ```
 
 Recent versions of ceph-csi also require an additional ConfigMap object to
@@ -128,7 +128,7 @@ EOF
 Then apply:
 
 ```
-kubectl apply -f csi-kms-config-map.yaml
+sudo k8s kubectl apply -f csi-kms-config-map.yaml
 ```
 
 If you do need to configure a KMS provider, an [example ConfigMap][] is
@@ -159,7 +159,7 @@ EOF
 Then apply:
 
 ```
-kubectl apply -f ceph-config-map.yaml
+sudo k8s kubectl apply -f ceph-config-map.yaml
 ```
 
 ## Create the ceph-csi cephx secret
@@ -184,7 +184,7 @@ EOF
 Then apply:
 
 ```
-kubectl apply -f csi-rbd-secret.yaml
+sudo k8s kubectl apply -f csi-rbd-secret.yaml
 ```
 
 ## Create ceph-csi custom Kubernetes objects
@@ -192,9 +192,9 @@ kubectl apply -f csi-rbd-secret.yaml
 Create the ServiceAccount and RBAC ClusterRole/ClusterRoleBinding objects:
 
 ```
-kubectl apply -f https://raw.githubusercontent.com/ceph/ceph-csi/master/deploy/rbd/kubernetes/csi-provisioner-rbac.yaml
+sudo k8s kubectl apply -f https://raw.githubusercontent.com/ceph/ceph-csi/master/deploy/rbd/kubernetes/csi-provisioner-rbac.yaml
 
-kubectl apply -f https://raw.githubusercontent.com/ceph/ceph-csi/master/deploy/rbd/kubernetes/csi-nodeplugin-rbac.yaml
+sudo k8s kubectl apply -f https://raw.githubusercontent.com/ceph/ceph-csi/master/deploy/rbd/kubernetes/csi-nodeplugin-rbac.yaml
 ```
 
 Create the ceph-csi provisioner and node plugins:
@@ -202,11 +202,11 @@ Create the ceph-csi provisioner and node plugins:
 ```
 wget https://raw.githubusercontent.com/ceph/ceph-csi/master/deploy/rbd/kubernetes/csi-rbdplugin-provisioner.yaml
 
-kubectl apply -f csi-rbdplugin-provisioner.yaml
+sudo k8s kubectl apply -f csi-rbdplugin-provisioner.yaml
 
 wget https://raw.githubusercontent.com/ceph/ceph-csi/master/deploy/rbd/kubernetes/csi-rbdplugin.yaml
 
-kubectl apply -f csi-rbdplugin.yaml
+sudo k8s kubectl apply -f csi-rbdplugin.yaml
 ```
 
 Consider this important note from the Ceph documentation:
@@ -247,7 +247,7 @@ EOF
 Then apply:
 
 ```
-kubectl apply -f csi-rbd-sc.yaml
+sudo k8s kubectl apply -f csi-rbd-sc.yaml
 ```
 
 ## Create a Persistent Volume Claim (PVC) for a RBD-backed file-system
@@ -275,7 +275,7 @@ EOF
 Then apply:
 
 ```
-kubectl apply -f pvc.yaml
+sudo k8s kubectl apply -f pvc.yaml
 ```
 
 ## Create a pod that binds to the RADOS Block Device PVC
@@ -300,14 +300,14 @@ spec:
     - name: mypvc
       persistentVolumeClaim:
         claimName: rbd-pvc
-        readOn
+        readOnly: true
 EOF
 ```
 
 Then apply:
 
 ```
-kubectl apply -f pod.yaml
+sudo k8s kubectl apply -f pod.yaml
 ```
 
 ## Verify that the pod is using the RBD PV
@@ -317,9 +317,9 @@ run the following commands, you should see information related to attached
 volumes in both of their outputs:
 
 ```
-kubectl describe pvc rbd-pvc
+sudo k8s kubectl describe pvc rbd-pvc
 
-kubectl describe pod csi-rbd-demo-pod
+sudo k8s kubectl describe pod csi-rbd-demo-pod
 ```
 
 Congratulations! By following this guide, you've set up a basic yet reliable
@@ -334,5 +334,5 @@ Ceph documentation: [Intro to Ceph].
 [block-devices-and-kubernetes]: https://docs.ceph.com/en/latest/rbd/rbd-kubernetes/
 [placement groups]: https://docs.ceph.com/en/mimic/rados/operations/placement-groups/
 [Intro to Ceph]: https://docs.ceph.com/en/reef/start/
-[authorisation capabilities page]:[https://docs.ceph.com/en/latest/rados/operations/user-management/#authorization-capabilities]
+[authorization capabilities page]:[https://docs.ceph.com/en/latest/rados/operations/user-management/#authorization-capabilities]
 [example ConfigMap]:https://github.com/ceph/ceph-csi/blob/devel/examples/kms/vault/kms-config.yaml

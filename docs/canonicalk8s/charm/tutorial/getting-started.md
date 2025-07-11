@@ -3,7 +3,7 @@
 The {{product}} `k8s` charm takes care of installing and configuring
 Kubernetes on cloud instances managed by Juju. Operating Kubernetes through
 this charm makes it significantly easier to manage at scale, on remote cloud
-instances and also to integrate other operators to enhance or customise your
+instances and also to integrate other operators to enhance or customize your
 Kubernetes deployment. This tutorial will take you through installing
 Kubernetes and some common first steps.
 

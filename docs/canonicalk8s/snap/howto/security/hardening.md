@@ -15,10 +15,11 @@ comprehensive list of manual tests.
 
 Please evaluate the implications of each configuration before applying it.
 
-## Post-deployment hardening steps
+## Platform hardening recommendations
 
-These steps are common to the hardening process for both CIS and DISA STIG
-compliance.
+These steps are common to the hardening process for not only CIS and DISA STIG
+compliance, but also good suggestions if one is willing to incur the performance
+costs for the benefit of an increased security posture.
 
 ```{include} /_parts/common_hardening.md
 ```
@@ -33,7 +34,5 @@ To assess compliance to the CIS hardening guidelines, please see the [CIS
 assessment page].
 
 <!-- Links -->
-[upstream instructions]:https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
-[rate limits]:https://kubernetes.io/docs/reference/config-api/apiserver-eventratelimit.v1alpha1
 [DISA STIG assessment page]: disa-stig-assessment.md
 [CIS assessment page]: cis-assessment.md

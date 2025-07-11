@@ -62,7 +62,7 @@ juju run k8s/leader get-kubeconfig | yq .kubeconfig > cluster-kubeconfig.yaml
 ```
 
 ```{warning}
-When running `juju run k8s/leader get-kubeconfig` you retrieve the kubeconfig file that uses one of the unit's  public IP addresses in the kubernetes endpoint. This endpoint ip can be overriden by providing a `server` argument if the api is exposed through a load-balancer.
+When running `juju run k8s/leader get-kubeconfig` you retrieve the kubeconfig file that uses one of the unit's  public IP addresses in the kubernetes endpoint. This endpoint ip can be overridden by providing a `server` argument if the api is exposed through a load-balancer.
 ```
 
 Verify that the API server is healthy and reachable by running:
@@ -207,8 +207,8 @@ information.
 its underlying system. This is an essential tool for bug reports and for
 investigating whether a system is (or isn’t) working.
 
-The inspection command can be executed on a specific unit by running the following
-commands:
+The inspection command can be executed on a specific unit by running the 
+following commands:
 
 ```
 juju exec --unit <k8s/unit#> -- sudo k8s inspect /home/ubuntu/inspection-report.tar.gz
