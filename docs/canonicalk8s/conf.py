@@ -183,6 +183,8 @@ slug = 'canonical-kubernetes'
 
 html_baseurl = 'https://documentation.ubuntu.com/canonical-kubernetes/'
 
+html_extra_path = ["sitemapindex.xml", "robots.txt"]
+
 # When configured with RTD variables, check for RTD environment so manual runs succeed:
 
 if 'READTHEDOCS_VERSION' in os.environ:
