@@ -196,6 +196,7 @@ else:
 html_static_path = [".sphinx/_static"]
 templates_path = [".sphinx/_templates"]
 
+sitemap_show_lastmod = True
 
 #############
 # Redirects #
