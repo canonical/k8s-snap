@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/canonical/k8s/pkg/client/dqlite"
+	"github.com/canonical/k8s/pkg/client/etcd"
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/client/k8sd"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
@@ -283,6 +284,10 @@ func (s *snap) K8sDqliteStateDir() string {
 	return filepath.Join(s.snapCommonDir, "var", "lib", "k8s-dqlite")
 }
 
+func (s *snap) EtcdDir() string {
+	return filepath.Join(s.snapCommonDir, "var", "lib", "etcd")
+}
+
 func (s *snap) ServiceArgumentsDir() string {
 	return filepath.Join(s.snapCommonDir, "args")
 }
@@ -388,6 +393,13 @@ func (s *snap) K8sDqliteClient(ctx context.Context) (*dqlite.Client, error) {
 		return nil, fmt.Errorf("failed to create default k8s-dqlite client: %w", err)
 	}
 	return client, nil
+}
+
+func (s *snap) EtcdClient(endpoints []string) (*etcd.Client, error) {
+	return etcd.NewClient(
+		s.EtcdPKIDir(),
+		endpoints,
+	)
 }
 
 func (s *snap) K8sdClient(address string) (k8sd.Client, error) {

@@ -34,6 +34,7 @@ var (
 		"kube-proxy",
 		"kubelet",
 		"k8s-dqlite",
+		"etcd",
 		"k8s-apiserver-proxy",
 	}
 )
@@ -73,6 +74,14 @@ func StartK8sDqliteServices(ctx context.Context, snap snap.Snap, extraSnapArgs .
 	return nil
 }
 
+// StartEtcdServices starts the etcd datastore service.
+func StartEtcdServices(ctx context.Context, snap snap.Snap, extraSnapArgs ...string) error {
+	if err := snap.StartServices(ctx, []string{"etcd"}, extraSnapArgs...); err != nil {
+		return fmt.Errorf("failed to start service %v: %w", "etcd", err)
+	}
+	return nil
+}
+
 // StopWorkerServices starts the worker services.
 // StopWorkerServices will return on the first failing service.
 func StopWorkerServices(ctx context.Context, snap snap.Snap, extraSnapArgs ...string) error {
@@ -96,6 +105,14 @@ func StopControlPlaneServices(ctx context.Context, snap snap.Snap, extraSnapArgs
 func StopK8sDqliteServices(ctx context.Context, snap snap.Snap, extraSnapArgs ...string) error {
 	if err := snap.StopServices(ctx, []string{"k8s-dqlite"}, extraSnapArgs...); err != nil {
 		return fmt.Errorf("failed to stop service %v: %w", "k8s-dqlite", err)
+	}
+	return nil
+}
+
+// StopEtcdServices stops the etcd datastore service.
+func StopEtcdServices(ctx context.Context, snap snap.Snap, extraSnapArgs ...string) error {
+	if err := snap.StopServices(ctx, []string{"etcd"}, extraSnapArgs...); err != nil {
+		return fmt.Errorf("failed to stop service %v: %w", "etcd", err)
 	}
 	return nil
 }

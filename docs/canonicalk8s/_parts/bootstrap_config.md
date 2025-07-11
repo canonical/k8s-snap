@@ -222,6 +222,12 @@ If omitted defaults to `10.152.183.0/24`.
 Determines if RBAC should be disabled.
 If omitted defaults to `false`.
 
+### disable-system-tuning
+**Type:** `bool`<br>
+
+Determines whether system tuning is allowed.
+If omitted defaults to `true`.
+
 ### secure-port
 **Type:** `int`<br>
 
@@ -238,11 +244,11 @@ If omitted defaults to `9000`.
 **Type:** `string`<br>
 
 The type of datastore to be used.
-If omitted defaults to `k8s-dqlite`.
+If omitted defaults to `etcd`.
 
 Can be used to point to an external datastore like etcd.
 
-Possible Values: `k8s-dqlite | external`.
+Possible Values: `k8s-dqlite | etcd | external`.
 
 ### datastore-servers
 **Type:** `[]string`<br>
@@ -264,6 +270,56 @@ datastore.
 **Type:** `string`<br>
 
 The client key to be used when communicating with the external datastore.
+
+### etcd-port
+**Type:** `int`<br>
+
+The port number for etcd to use.
+
+### etcd-peer-port
+**Type:** `int`<br>
+
+The port number for etcd peer communication to use.
+
+### etcd-ca-crt
+**Type:** `string`<br>
+
+The CA certificate to be used for etcd.
+
+### etcd-ca-key
+**Type:** `string`<br>
+
+The CA key to be used for etcd.
+
+### etcd-server-crt
+**Type:** `string`<br>
+
+The server certificate to be used for etcd.
+
+### etcd-server-key
+**Type:** `string`<br>
+
+The server key to be used for etcd.
+
+### etcd-peer-crt
+**Type:** `string`<br>
+
+The server peer certificate to be used for etcd.
+
+### etcd-peer-key
+**Type:** `string`<br>
+
+The server peer key to be used for etcd.
+
+### etcd-apiserver-client-crt
+**Type:** `string`<br>
+
+The client certificate to be used by the kube-apiserver to communicate with etcd.
+
+### etcd-apiserver-client-key
+**Type:** `string`<br>
+
+The client key to be used by the kube-apiserver to communicate with etcd.
 
 ### extra-sans
 **Type:** `[]string`<br>
@@ -475,6 +531,13 @@ The format is `map[<--flag-name>]<value>`.
 **Type:** `map[string]string`<br>
 
 Additional arguments that are passed to `k8s-dqlite` only for that specific node.
+A parameter that is explicitly set to `null` is deleted.
+The format is `map[<--flag-name>]<value>`.
+
+### extra-node-etcd-args
+**Type:** `map[string]string`<br>
+
+Additional arguments that are passed to `etcd` only for that specific node.
 A parameter that is explicitly set to `null` is deleted.
 The format is `map[<--flag-name>]<value>`.
 
