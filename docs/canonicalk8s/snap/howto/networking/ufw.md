@@ -29,7 +29,7 @@ To verify UFW is installed try:
 sudo ufw status verbose
 ```
 
-In case you need to maintain ssh access to the machine make sure you
+If you need to maintain ssh access to the machine, make sure you configure UFW to allow `OpenSSH` before enabling it:
 configure UFW properly before enabling it:
 
 ```sh
