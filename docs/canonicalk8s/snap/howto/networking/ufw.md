@@ -163,7 +163,12 @@ Monitor the firewall logs with:
 tail -f /var/log/ufw.log
 ```
 
-To the resources used by UFW to a minimum you can disable logging:
+The logs will show you which packets are dropped, their destination
+and source as well as the protocol used and the destination port.
+This information may help you identify any other ports or services
+you need to enable within UFW.
+
+To keep the resources used by UFW to a minimum you can disable logging:
 
 ```sh
 sudo ufw logging off
