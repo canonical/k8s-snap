@@ -75,7 +75,7 @@ sudo ufw reload
 ## Allow access to the Kubernetes services
 
 Services such as for example CoreDNS require access to the Kubernetes API
-server listening on port 6443:
+server listening on port 6443.
  
 Allow traffic on port 6443 with:
 
