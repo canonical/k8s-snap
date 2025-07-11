@@ -1,119 +1,21 @@
 package utils
 
 import (
-	"net/netip"
+	"net"
 	"testing"
 
-	mctypes "github.com/canonical/microcluster/v2/rest/types"
 	. "github.com/onsi/gomega"
 )
 
-func TestDetermineLocalhostAddress(t *testing.T) {
-	t.Run("IPv4Only", func(t *testing.T) {
-		g := NewWithT(t)
+func TestGetLocalhostAddress_ReturnsIPv4OrIPv6(t *testing.T) {
+	g := NewWithT(t)
 
-		mockMembers := []mctypes.ClusterMember{
-			{
-				ClusterMemberLocal: mctypes.ClusterMemberLocal{
-					Name: "node1",
-					Address: mctypes.AddrPort{
-						AddrPort: netip.MustParseAddrPort("10.1.0.1:1234"),
-					},
-				},
-			},
-			{
-				ClusterMemberLocal: mctypes.ClusterMemberLocal{
-					Name: "node2",
-					Address: mctypes.AddrPort{
-						AddrPort: netip.MustParseAddrPort("10.1.0.2:1234"),
-					},
-				},
-			},
-			{
-				ClusterMemberLocal: mctypes.ClusterMemberLocal{
-					Name: "node3",
-					Address: mctypes.AddrPort{
-						AddrPort: netip.MustParseAddrPort("10.1.0.3:1234"),
-					},
-				},
-			},
-		}
+	ip, err := GetLocalhostAddress()
+	g.Expect(err).ToNot(HaveOccurred(), "expected no error when getting localhost address, got %v", err)
+	g.Expect(ip).NotTo(BeNil(), "expected a non-nil IP address")
 
-		localhostAddress, err := DetermineLocalhostAddress(mockMembers)
-
-		g.Expect(err).NotTo(HaveOccurred())
-		g.Expect(localhostAddress).To(Equal("127.0.0.1"))
-	})
-
-	t.Run("IPv6Only", func(t *testing.T) {
-		g := NewWithT(t)
-
-		mockMembers := []mctypes.ClusterMember{
-			{
-				ClusterMemberLocal: mctypes.ClusterMemberLocal{
-					Name: "node1",
-					Address: mctypes.AddrPort{
-						AddrPort: netip.MustParseAddrPort("[fda1:8e75:b6ef::]:1234"),
-					},
-				},
-			},
-			{
-				ClusterMemberLocal: mctypes.ClusterMemberLocal{
-					Name: "node2",
-					Address: mctypes.AddrPort{
-						AddrPort: netip.MustParseAddrPort("[fd51:d664:aca3::]:1234"),
-					},
-				},
-			},
-			{
-				ClusterMemberLocal: mctypes.ClusterMemberLocal{
-					Name: "node3",
-					Address: mctypes.AddrPort{
-						AddrPort: netip.MustParseAddrPort("[fda3:c11d:3cda::]:1234"),
-					},
-				},
-			},
-		}
-
-		localhostAddress, err := DetermineLocalhostAddress(mockMembers)
-
-		g.Expect(err).NotTo(HaveOccurred())
-		g.Expect(localhostAddress).To(Equal("[::1]"))
-	})
-
-	t.Run("IPv4_IPv6_Mixed", func(t *testing.T) {
-		g := NewWithT(t)
-
-		mockMembers := []mctypes.ClusterMember{
-			{
-				ClusterMemberLocal: mctypes.ClusterMemberLocal{
-					Name: "node1",
-					Address: mctypes.AddrPort{
-						AddrPort: netip.MustParseAddrPort("10.1.0.1:1234"),
-					},
-				},
-			},
-			{
-				ClusterMemberLocal: mctypes.ClusterMemberLocal{
-					Name: "node2",
-					Address: mctypes.AddrPort{
-						AddrPort: netip.MustParseAddrPort("[fd51:d664:aca3::]:1234"),
-					},
-				},
-			},
-			{
-				ClusterMemberLocal: mctypes.ClusterMemberLocal{
-					Name: "node3",
-					Address: mctypes.AddrPort{
-						AddrPort: netip.MustParseAddrPort("10.1.0.3:1234"),
-					},
-				},
-			},
-		}
-
-		localhostAddress, err := DetermineLocalhostAddress(mockMembers)
-
-		g.Expect(err).NotTo(HaveOccurred())
-		g.Expect(localhostAddress).To(Equal("[::1]"))
-	})
+	// Should be either 127.0.0.1 or ::1
+	isIPv4 := ip.Equal(net.ParseIP("127.0.0.1"))
+	isIPv6 := ip.Equal(net.ParseIP("::1"))
+	g.Expect(isIPv4 || isIPv6).To(BeTrue(), "expected IP to be 127.0.0.1 or ::1, got %s", ip.String())
 }

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/canonical/k8s/pkg/k8sd/pki"
+	"github.com/canonical/k8s/pkg/utils"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
@@ -57,7 +58,12 @@ func KubeconfigString(url string, caPEM string, crtPEM string, keyPEM string) (s
 }
 
 // SetupControlPlaneKubeconfigs writes kubeconfig files for the control plane components.
-func SetupControlPlaneKubeconfigs(kubeConfigDir string, localhostAddress string, securePort int, pki pki.ControlPlanePKI) error {
+func SetupControlPlaneKubeconfigs(kubeConfigDir string, securePort int, pki pki.ControlPlanePKI) error {
+	localhostAddress, err := utils.GetLocalhostAddress()
+	if err != nil {
+		return fmt.Errorf("failed to get localhost address: %w", err)
+	}
+
 	for _, kubeconfig := range []struct {
 		file string
 		crt  string
@@ -68,6 +74,28 @@ func SetupControlPlaneKubeconfigs(kubeConfigDir string, localhostAddress string,
 		{file: "proxy.conf", crt: pki.KubeProxyClientCert, key: pki.KubeProxyClientKey},
 		{file: "scheduler.conf", crt: pki.KubeSchedulerClientCert, key: pki.KubeSchedulerClientKey},
 		{file: "kubelet.conf", crt: pki.KubeletClientCert, key: pki.KubeletClientKey},
+	} {
+		if err := Kubeconfig(filepath.Join(kubeConfigDir, kubeconfig.file), fmt.Sprintf("%s:%d", localhostAddress, securePort), pki.CACert, kubeconfig.crt, kubeconfig.key); err != nil {
+			return fmt.Errorf("failed to write kubeconfig %s: %w", kubeconfig.file, err)
+		}
+	}
+	return nil
+}
+
+// SetupWorkerKubeconfigs writes kubeconfig files for the worker node components.
+func SetupWorkerKubeconfigs(kubeConfigDir string, securePort int, pki pki.WorkerNodePKI) error {
+	localhostAddress, err := utils.GetLocalhostAddress()
+	if err != nil {
+		return fmt.Errorf("failed to get localhost address: %w", err)
+	}
+
+	for _, kubeconfig := range []struct {
+		file string
+		crt  string
+		key  string
+	}{
+		{file: "kubelet.conf", crt: pki.KubeletClientCert, key: pki.KubeletClientKey},
+		{file: "proxy.conf", crt: pki.KubeProxyClientCert, key: pki.KubeProxyClientKey},
 	} {
 		if err := Kubeconfig(filepath.Join(kubeConfigDir, kubeconfig.file), fmt.Sprintf("%s:%d", localhostAddress, securePort), pki.CACert, kubeconfig.crt, kubeconfig.key); err != nil {
 			return fmt.Errorf("failed to write kubeconfig %s: %w", kubeconfig.file, err)
