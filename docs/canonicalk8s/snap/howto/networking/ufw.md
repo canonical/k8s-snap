@@ -1,22 +1,27 @@
 # How to configure Uncomplicated Firewall (UFW)
 
-In this how-to we present a set of firewall rules/guidelines you should
-consider when setting up {{product}}. Be aware that these rules
-may be incompatible with your network setup, you may find them too permissive
-or too restrictive. We recommend you review them and tune them to match
-your needs. Also, be aware that the firewall rules need to be reviewed
-for each service hosted in Kubernetes as there might be special requirements.
+In this how-to we present a set of firewall rules/guidelines
+you should consider when setting up {{product}}.
+Be aware that these rules may be incompatible with your network setup
+and we recommend you review and tune them to match your needs.  
+
+Also, be aware that for each service hosted in Kubernetes,
+the firewall rules need to be reviewed as there might be
+special requirements for each.
+
 
 ## Prerequisites
 
 This guide assumes the following:
 
-- A machine with Ubuntu.
+- A machine with Ubuntu where you have installed
+  or you plan to install {{product}}.
 - You have root or sudo access to the machine.
 
-## Install and enable UFW
+## Install and enable UFW 
 
-To install Uncomplicated Firewall:
+Uncomplicated Firewall needs to be configured on all nodes of {{product}}.
+To do so try:
 
 ```sh
 sudo apt update
@@ -29,14 +34,14 @@ To verify UFW is installed try:
 sudo ufw status verbose
 ```
 
-If you need to maintain ssh access to the machine, make sure you configure UFW to allow `OpenSSH` before enabling it:
-configure UFW properly before enabling it:
+If you need to maintain ssh access to the machine, make sure you configure
+UFW to allow `OpenSSH` before enabling it:
 
 ```sh
 sudo ufw allow OpenSSH
 ```
 
-Now you are finally ready to enable:
+Now you are ready to enable UFW:
 
 ```sh
 sudo ufw enable
@@ -54,13 +59,15 @@ First edit `/etc/default/ufw` and allow UFW to route/forward packets:
 DEFAULT_FORWARD_POLICY="ACCEPT"
 ```
 
-Enable IP forwarding by editing `/etc/sysctl.conf` (or use `sysctl` directly):
+Enable IP forwarding by editing `/etc/sysctl.conf` so it persists through
+system reboots:
 
 ```sh
 net.ipv4.ip_forward=1
 ```
 
-Apply immediately:
+Or use `sysctl` directly so forwarding is applied immediately,
+ie without rebooting the system:
 
 ```sh
 sudo sysctl -w net.ipv4.ip_forward=1
@@ -74,7 +81,7 @@ sudo ufw reload
 
 ## Allow access to the Kubernetes services
 
-Services such as for example CoreDNS require access to the Kubernetes API
+Services such as CoreDNS require access to the Kubernetes API
 server listening on port 6443.
  
 Allow traffic on port 6443 with:
@@ -85,16 +92,16 @@ sudo ufw allow 6443/tcp
 
 Services such as the metrics-server need access to the kubelet,
 controller manager and kube scheduler to query for metrics.
-Kubelet runs on all nodes, while the kube-controller-manager and
-kube-scheduler run only on the control plane nodes:
 
-Allow traffic on port 10250 on all nodes:
+Kubelet runs on all nodes, so allow traffic on port 10250 on all nodes:
 
 ```sh
 sudo ufw allow 10250/tcp
 ```
 
-Allow traffic on ports 10257 and 10259 on control plane nodes:
+The kube-controller-manager and kube-scheduler run only on
+the control plane so allow traffic on ports 10257 and 10259
+on control plane nodes:
 
 ```sh
 sudo ufw allow 10257/tcp
@@ -103,9 +110,9 @@ sudo ufw allow 10259/tcp
 
 ## Allow cluster formation
 
-To form an HA cluster the datastore used by Kubernetes (dqlite/etcd) needs
-to establish a direct connection among its peers. In dqlite this is done
-through port 9000 while on etcd port 2380 is used.
+To form a High Availability (HA) cluster the datastore used by Kubernetes
+(dqlite/etcd) needs to establish a direct connection among its peers.
+In dqlite this is done through port 9000 while on etcd port 2380 is used.
 
 Allow traffic on port 9000 on control plane nodes with dqlite:
 
@@ -130,8 +137,7 @@ sudo ufw allow 6400/tcp
 
 ## Allow CNI specific communication
 
-The default CNI used in {{product}} is Cilium.
-Unless you are not disabling this network plugin and deploying your own,
+If you are using the default network plugin (Cilium),
 you should consider the following firewall rules.
 
 Allow cluster-wide Cilium agent health checks and VXLAN traffic:
@@ -157,7 +163,7 @@ Monitor the firewall logs with:
 tail -f /var/log/ufw.log
 ```
 
-At the end disable logging:
+To the resources used by UFW to a minimum you can disable logging:
 
 ```sh
 sudo ufw logging off
