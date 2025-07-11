@@ -308,7 +308,6 @@ sudo k8s kubectl get pods -n kube-system
 
 <!-- Links -->
 
-[lxd-install]: /snap/howto/install/lxd.md
 [troubleshooting how-to guide]: /snap/howto/troubleshooting.md
 [kubeconfig file]: https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/
 [kubernetes-122955]: https://github.com/kubernetes/kubernetes/issues/122955
