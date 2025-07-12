@@ -5,3 +5,4 @@ tenacity==8.2.3
 pylint==3.2.5
 requests==2.32.3
 semver==3.0.2
+k8s-test-harness @ git+https://github.com/canonical/k8s-test-harness@de46217
