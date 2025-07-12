@@ -8,7 +8,7 @@ from typing import List
 
 import pytest
 from test_util import harness, tags, util
-from test_util.config import MANIFESTS_DIR
+from test_util.config import MANIFESTS_DIR, SUBSTRATE
 
 LOG = logging.getLogger(__name__)
 
@@ -29,6 +29,9 @@ def test_loadbalancer_ipv4(instances: List[harness.Instance]):
 @pytest.mark.node_count(2)
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.tags(tags.PULL_REQUEST)
+@pytest.mark.skipif(
+    SUBSTRATE == "multipass", reason="QUEMU does not properly support IPv6"
+)
 def test_loadbalancer_ipv6_only(instances: List[harness.Instance]):
     _test_loadbalancer(instances, k8s_net_type=K8sNetType.ipv6)
 
@@ -38,6 +41,9 @@ def test_loadbalancer_ipv6_only(instances: List[harness.Instance]):
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.dualstack()
 @pytest.mark.network_type("dualstack")
+@pytest.mark.skipif(
+    SUBSTRATE == "multipass", reason="QUEMU does not properly support IPv6"
+)
 def test_loadbalancer_ipv6_dualstack(instances: List[harness.Instance]):
     _test_loadbalancer(instances, k8s_net_type=K8sNetType.dualstack)
 

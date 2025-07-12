@@ -536,11 +536,30 @@ def get_default_ip(instance: harness.Instance, ipv6=False):
     # Fetching the default IP address from the output, e.g. 10.42.254.197
     if ipv6:
         p = instance.exec(
-            ["ip", "-json", "-6", "addr", "show", "scope", "global"],
+            ["ip", "-json", "-6", "addr", "show"],
             capture_output=True,
         )
         addr_json = json.loads(p.stdout.decode())
-        return addr_json[0]["addr_info"][0]["local"]
+        global_ip = None
+        link_local_ip = None
+        link_local_iface = None
+        for iface in addr_json:
+            iface_name = iface.get("ifname")
+            for addr in iface.get("addr_info", []):
+                ip = addr.get("local")
+                scope = addr.get("scope")
+                if scope == "global" and not global_ip:
+                    global_ip = ip
+                elif scope == "link" and not link_local_ip:
+                    link_local_ip = ip
+                    link_local_iface = iface_name
+        # Prefer global, fallback to link-local (with interface)
+        if global_ip:
+            return global_ip
+        elif link_local_ip and link_local_iface:
+            return f"{link_local_ip}%{link_local_iface}"
+        else:
+            return None
     else:
         p = instance.exec(
             ["ip", "-o", "-4", "route", "show", "to", "default"], capture_output=True
@@ -980,13 +999,13 @@ def check_snap_services_ready(
             ), f"Unexpected service {service} is {status} but should be inactive"
 
 
-def host_is_fips_enabled():
+def is_fips_enabled(instance: harness.Instance):
     """
-    Returns True if the host is running with FIPS enabled, False otherwise.
+    Returns True if the provided instance is running with FIPS enabled, False otherwise.
     """
     fips_path = "/proc/sys/crypto/fips_enabled"
     try:
-        with open(fips_path) as f:
-            return f.read().strip() == "1"
+        result = instance.exec(["cat", fips_path], capture_output=True, text=True)
+        return result.stdout.strip() == "1"
     except (FileNotFoundError, PermissionError):
         return False
