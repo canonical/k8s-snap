@@ -536,30 +536,15 @@ def get_default_ip(instance: harness.Instance, ipv6=False):
     # Fetching the default IP address from the output, e.g. 10.42.254.197
     if ipv6:
         p = instance.exec(
-            ["ip", "-json", "-6", "addr", "show"],
+            ["ip", "-json", "-6", "addr", "show", "scope", "global"],
             capture_output=True,
         )
         addr_json = json.loads(p.stdout.decode())
-        global_ip = None
-        link_local_ip = None
-        link_local_iface = None
-        for iface in addr_json:
-            iface_name = iface.get("ifname")
-            for addr in iface.get("addr_info", []):
-                ip = addr.get("local")
-                scope = addr.get("scope")
-                if scope == "global" and not global_ip:
-                    global_ip = ip
-                elif scope == "link" and not link_local_ip:
-                    link_local_ip = ip
-                    link_local_iface = iface_name
-        # Prefer global, fallback to link-local (with interface)
-        if global_ip:
-            return global_ip
-        elif link_local_ip and link_local_iface:
-            return f"{link_local_ip}%{link_local_iface}"
-        else:
-            return None
+        if not addr_json or not addr_json[0].get("addr_info"):
+            raise ValueError(
+                "No IPv6 address found in the output of 'ip -json -6 addr show scope global'"
+            )
+        return addr_json[0]["addr_info"][0]["local"]
     else:
         p = instance.exec(
             ["ip", "-o", "-4", "route", "show", "to", "default"], capture_output=True
@@ -1007,5 +992,5 @@ def is_fips_enabled(instance: harness.Instance):
     try:
         result = instance.exec(["cat", fips_path], capture_output=True, text=True)
         return result.stdout.strip() == "1"
-    except (FileNotFoundError, PermissionError):
+    except subprocess.CalledProcessError:
         return False
