@@ -206,7 +206,6 @@ templates_path = [".sphinx/_templates"]
 #############
 
 # To set up redirects: https://documatt.gitlab.io/sphinx-reredirects/usage.html
-
 # For example: 'explanation/old-name.html': '../how-to/prettify.html',
 
 # To set up redirects in the Read the Docs project dashboard:
