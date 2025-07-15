@@ -47,7 +47,7 @@ Now you are ready to enable UFW:
 sudo ufw enable
 ```
 
-## Allow package forwarding
+## Allow forwarding
 
 Forwarding is needed because containers typically live in isolated networks
 and expect the host-to-route traffic between their internal network and the
