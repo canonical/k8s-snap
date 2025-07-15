@@ -76,7 +76,7 @@ jobs:
     name: Get e2e test tags
     runs-on: ubuntu-latest
     outputs:
-      test-tags: ${{ steps.get-e2e-tags.outputs.test-tags }}
+      test-tags: up_to_weekly 
     needs: [build-snap, go-lint-and-unit, python-lint]
     steps:
       - name: Checking out repo
@@ -116,7 +116,7 @@ jobs:
     with:
       arch: ${{ matrix.arch }}
       os: ubuntu:24.04
-      test-tags: ${{ needs.get-e2e-tags.outputs.test-tags }}
+      test-tags: up_to_weekly
       artifact: k8s-${{ matrix.arch }}.snap
       parallel: true
 
