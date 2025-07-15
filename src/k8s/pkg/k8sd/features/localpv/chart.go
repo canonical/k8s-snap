@@ -11,7 +11,7 @@ var (
 	Chart = helm.InstallableChart{
 		Name:         "ck-storage",
 		Namespace:    "kube-system",
-		ManifestPath: filepath.Join("charts", "rawfile-csi-0.9.0.tgz"),
+		ManifestPath: filepath.Join("charts", "rawfile-csi-0.9.1.tgz"),
 	}
 
 	// imageRepo is the repository to use for Rawfile LocalPV CSI.
