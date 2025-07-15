@@ -119,6 +119,7 @@ func TestMinConfigFileDiff(t *testing.T) {
 		content        string
 		minConfig      map[string]string
 		expectedConfig map[string]string
+		excludeFile    string
 	}{
 		{
 			name:    "normal",
@@ -135,25 +136,47 @@ func TestMinConfigFileDiff(t *testing.T) {
 				"new_config":   "1",
 				"no_value":     "1",
 			},
+			excludeFile: "",
+		},
+		{
+			name:    "exclude",
+			content: "#some comment\n #commented_out=5 \n already_set=1\n  higher_value=1 \n lower_value=5 no_value=\n",
+			minConfig: map[string]string{
+				"already_set":  "1",
+				"higher_value": "1024",
+				"lower_value":  "1",
+				"new_config":   "1",
+				"no_value":     "1",
+			},
+			expectedConfig: map[string]string{
+				"already_set":  "1",
+				"higher_value": "1024",
+				"lower_value":  "1",
+				"new_config":   "1",
+				"no_value":     "1",
+			},
+			excludeFile: "exclude",
 		},
 		{
 			name:           "empty",
 			content:        ``,
 			minConfig:      map[string]string{},
 			expectedConfig: map[string]string{},
+			excludeFile:    "",
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			g := NewWithT(t)
 
 			tempDir := t.TempDir()
-			filePath := filepath.Join(tempDir, tc.name)
-			err := utils.WriteFile(filePath, []byte(tc.content), 0o755)
+			confFilePath := filepath.Join(tempDir, tc.name)
+			excludePath := filepath.Join(tempDir, tc.excludeFile)
+			err := utils.WriteFile(confFilePath, []byte(tc.content), 0o755)
 			if err != nil {
 				t.Fatalf("failed to setup testfile: %v", err)
 			}
 
-			newConfig := utils.MinConfigFileDiff([]string{tempDir}, tc.minConfig)
+			newConfig := utils.MinConfigFileDiff([]string{tempDir}, tc.minConfig, excludePath)
 			if err != nil {
 				t.Fatalf("failed to parse config file: %v", err)
 			}

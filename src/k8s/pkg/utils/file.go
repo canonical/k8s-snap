@@ -85,20 +85,23 @@ func ParseArgumentFile(path string) (map[string]string, error) {
 // MinConfigFileDiff searches configuration directories to check whether the minimum
 // configurations are set in them. Returns a map with the key, value configurations that
 // need to be set to enforce the minimum configuration requirements.
-func MinConfigFileDiff(dirs []string, minConfig map[string]string) map[string]string {
+func MinConfigFileDiff(dirs []string, minConfig map[string]string, excludeFile string) map[string]string {
 	newConfig := DeepCopyMap(minConfig)
 
 	for _, dir := range dirs {
 		entries, err := os.ReadDir(dir)
 		if err != nil {
 			if errors.Is(err, os.ErrNotExist) {
-				log.L().Error(err, "Could not parse configuration directory")
+				log.L().Error(err, "could not parse configuration directory")
 			}
 			continue
 		}
 
 		for _, entry := range entries {
 			if !entry.IsDir() {
+				if filepath.Join(dir, entry.Name()) == excludeFile {
+					continue
+				}
 				params, err := ParseArgumentFile(filepath.Join(dir, entry.Name()))
 				if err != nil {
 					log.L().Error(err, "could not parse configuration file, skipping file")

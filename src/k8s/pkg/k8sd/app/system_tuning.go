@@ -28,15 +28,17 @@ func (a *App) ensureSystemTuningConfigFile(ctx context.Context) error {
 
 	confPath, err := utils.GetFileMatches(a.snap.SystemTuningConfigDir(), reK8sConfFile)
 	if err != nil {
-		log.Error(err, "Failed to check for existing system tuning file")
+		log.Error(err, "failed to check for existing system tuning file")
 		return err
 	}
-	if len(confPath) == 0 {
+
+	if len(confPath) != 0 {
 		return nil
 	}
 
 	maxOrder, err := GetHighestConfigFileOrder(a.snap.SystemTuningConfigDir(), reConfFiles)
 	if err != nil {
+		log.Error(err, "failed to check for highest order system tuning file")
 		return err
 	}
 
@@ -45,6 +47,7 @@ func (a *App) ensureSystemTuningConfigFile(ctx context.Context) error {
 	data := []byte(systemConfFileHeader)
 
 	if err = utils.WriteFile(newFile, data, 0o600); err != nil {
+		log.Error(err, "failed to create system tuning file")
 		return err
 	}
 	return nil
@@ -62,17 +65,18 @@ func (a *App) tuneSystemSettings(ctx context.Context, s state.State) error {
 
 	// skip tuning if the tuning file does not exist
 	if len(confPath) == 0 {
-		log.Info(fmt.Sprintf("skipping system tuning: no sysctl config file %s", confPath))
+		log.Info(fmt.Sprintf("skipping system tuning: no sysctl config file under %s", a.snap.SystemTuningConfigDir()))
 		return nil
 	}
 
 	// parse config files to check minimum requirements are set
-	newConfig := utils.MinConfigFileDiff(a.snap.SystemConfigDirs(), a.snap.SystemMinConfig())
+	confFile := filepath.Join(a.snap.SystemTuningConfigDir(), confPath[0])
+	newConfig := utils.MinConfigFileDiff(a.snap.SystemConfigDirs(), a.snap.SystemMinConfig(), confFile)
 	if len(newConfig) == 0 {
 		return nil
 	}
 	// Update the x-k8s.conf file to ensure minimum k8s requirements
-	if err := utils.SerializeArgumentFile(newConfig, confPath[0], systemConfFileHeader); err != nil {
+	if err := utils.SerializeArgumentFile(newConfig, confFile, systemConfFileHeader); err != nil {
 		log.Error(err, fmt.Sprintf("failed to update system configuration file %s", confPath[0]))
 	}
 
