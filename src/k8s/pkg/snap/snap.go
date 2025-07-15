@@ -227,6 +227,23 @@ func (s *snap) ContainerdStateDir() string {
 	return filepath.Join(s.containerdBaseDir, "run", "containerd")
 }
 
+func (s *snap) SystemTuningConfigDir() string {
+	return "/etc/sysctl.d"
+}
+
+func (s *snap) SystemConfigDirs() []string {
+	return []string{
+		"/etc/sysctl.d", "/run/sysctl.d", "/usr/local/lib/sysctl.d", "/usr/lib/sysctl.d", "/lib/sysctl.d", "/etc/sysctl.conf",
+	}
+}
+
+func (s *snap) SystemMinConfig() map[string]string {
+	return map[string]string{
+		"fs.inotify.max_user_instances": "1024",
+		"fs.inotify.max_user_watches":   "1048576",
+	}
+}
+
 func (s *snap) CNIConfDir() string {
 	return "/etc/cni/net.d"
 }

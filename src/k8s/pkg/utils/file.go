@@ -11,6 +11,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"sort"
 	"strings"
@@ -71,21 +72,90 @@ func ParseArgumentFile(path string) (map[string]string, error) {
 
 	args := make(map[string]string, len(lines))
 	for _, line := range lines {
-		if strings.TrimSpace(line) != "" {
+		line = strings.TrimSpace(line)
+		if line != "" && !strings.HasPrefix(line, "#") {
 			a, v := ParseArgumentLine(line)
 			args[a] = v
 		}
 	}
+
 	return args, nil
 }
 
+// MinConfigFileDiff searches configuration directories to check whether the minimum
+// configurations are set in them. Returns a map with the key, value configurations that
+// need to be set to enforce the minimum configuration requirements.
+func MinConfigFileDiff(dirs []string, minConfig map[string]string, excludeFile string) map[string]string {
+	newConfig := DeepCopyMap(minConfig)
+
+	for _, dir := range dirs {
+		entries, err := os.ReadDir(dir)
+		if err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				log.L().Error(err, "could not parse configuration directory")
+			}
+			continue
+		}
+
+		for _, entry := range entries {
+			if !entry.IsDir() {
+				if filepath.Join(dir, entry.Name()) == excludeFile {
+					continue
+				}
+				params, err := ParseArgumentFile(filepath.Join(dir, entry.Name()))
+				if err != nil {
+					log.L().Error(err, "could not parse configuration file, skipping file")
+					continue
+				}
+
+				for key := range minConfig {
+					if value, exists := params[key]; exists {
+						// Minimum Configuration already set
+						if exists && value >= minConfig[key] {
+							delete(newConfig, key)
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return newConfig
+}
+
+// GetFileMatches returns the path of the first file in a dir matching the regex or "" if no file
+// match was found.
+func GetFileMatches(path string, re *regexp.Regexp) ([]string, error) {
+	var matches []string
+	entries, err := os.ReadDir(path)
+	if err != nil {
+		return matches, err
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		match := re.FindString(entry.Name())
+		if match == "" {
+			continue
+		}
+		matches = append(matches, match)
+	}
+	return matches, nil
+}
+
 // Serializes a map of service arguments in the format "argument=value" to file.
-func SerializeArgumentFile(arguments map[string]string, path string) error {
+func SerializeArgumentFile(arguments map[string]string, path string, headerComment string) error {
 	file, err := os.Create(path)
 	if err != nil {
 		return fmt.Errorf("failed to write argument file %s: %w", path, err)
 	}
 	defer file.Close()
+
+	if headerComment != "" {
+		file.WriteString(headerComment)
+	}
 
 	// Order the argument keys alphabetically to make the output deterministic
 	keys := make([]string, 0)
