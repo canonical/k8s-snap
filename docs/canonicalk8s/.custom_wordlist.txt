@@ -530,6 +530,7 @@ ubuntu
 Ubuntu Core
 Ubuntu Pro
 Ubuntu Server
+UFW
 uid
 UIDs
 unix
