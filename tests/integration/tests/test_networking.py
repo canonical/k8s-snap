@@ -56,8 +56,10 @@ def test_dualstack(instances: List[harness.Instance]):
         else:
             pytest.fail(f"Unknown IP address type: {addr}")
 
-        util.stubbornly(retries=10, delay_s=1).on(main).exec(f"curl {address}")
-
+        # need to shell out otherwise this runs into permission errors
+        util.stubbornly(retries=10, delay_s=1).on(main).exec(
+            ["curl", address], shell=True
+        )
 
 @pytest.mark.node_count(3)
 @pytest.mark.disable_k8s_bootstrapping()
@@ -117,6 +119,9 @@ def test_ipv6_only_on_dualstack_infra(instances: List[harness.Instance]):
         else:
             pytest.fail(f"Unknown IP address type: {addr}")
 
-        util.stubbornly(retries=10, delay_s=1).on(main).exec(f"curl {address}")
+        # need to shell out otherwise this runs into permission errors
+        util.stubbornly(retries=10, delay_s=1).on(main).exec(
+            ["curl", address], shell=True
+        )
 
     util.wait_until_k8s_ready(main, instances)

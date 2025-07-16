@@ -71,6 +71,9 @@ Environment="NO_PROXY=10.1.0.0/16,10.152.183.0/24,192.168.0.0/16,127.0.0.1,172.1
 @pytest.mark.node_count(2)
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.skipif(
+    config.SUBSTRATE == "multipass", reason="runner size too small on multipass"
+)
 def test_airgapped_with_proxy(instances: List[harness.Instance]):
     proxy, instance = instances
     proxy_ip = util.get_default_ip(proxy)
