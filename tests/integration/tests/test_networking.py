@@ -61,6 +61,7 @@ def test_dualstack(instances: List[harness.Instance]):
             ["curl", address], shell=True
         )
 
+
 @pytest.mark.node_count(3)
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.network_type("dualstack")
