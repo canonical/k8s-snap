@@ -95,9 +95,13 @@ def test_airgapped_with_proxy(instances: List[harness.Instance]):
     # subprocess shell that runs the connectivity test.
     instance.exec(
         [
-            "bash",
-            "-c",
-            "export $(grep -v '^#' /etc/environment | xargs) && curl -I -4 https://www.google.com",
+            "export",
+            "$(cat /etc/environment | xargs)",
+            "&&",
+            "curl",
+            "-I",
+            "-4",
+            "https://www.google.com",
         ]
     )
 
@@ -140,9 +144,13 @@ def test_airgapped_with_image_mirror(
     # Verify connectivity through the proxy.
     registry.exec(
         [
-            "bash",
-            "-c",
-            "export $(grep -v '^#' /etc/environment | xargs) && curl -I -4 https://www.google.com",
+            "export",
+            "$(cat /etc/environment | xargs)",
+            "&&",
+            "curl",
+            "-I",
+            "-4",
+            "https://www.google.com",
         ]
     )
 
@@ -159,18 +167,30 @@ def test_airgapped_with_image_mirror(
         # Pipe the pull and push output to /dev/null as ctr is very verbose.
         registry.exec(
             [
-                "bash",
-                "-c",
-                f"export $(grep -v '^#' /etc/environment | xargs) && "
-                f"/snap/k8s/current/bin/ctr images pull --all-platforms {image} > /dev/null",
+                "export",
+                "$(cat /etc/environment | xargs)",
+                "&&",
+                "/snap/k8s/current/bin/ctr",
+                "images",
+                "pull",
+                "--all-platforms",
+                image,
+                ">",
+                "/dev/null",
             ]
         )
         registry.exec(
             [
-                "bash",
-                "-c",
-                f"export $(grep -v '^#' /etc/environment | xargs) && "
-                f"/snap/k8s/current/bin/ctr images tag {image} {tag} > /dev/null",
+                "export",
+                "$(cat /etc/environment | xargs)",
+                "&&",
+                "/snap/k8s/current/bin/ctr",
+                "images",
+                "tag",
+                image,
+                tag,
+                ">",
+                "/dev/null",
             ]
         )
 
