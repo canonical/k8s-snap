@@ -1,0 +1,11 @@
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<sitemap>
+<loc>https://documentation.ubuntu.com/canonical-kubernetes/latest/sitemap.xml</loc>
+</sitemap>
+<sitemap>
+<loc>https://documentation.ubuntu.com/canonical-kubernetes/release-1.32/sitemap.xml</loc>
+</sitemap>
+<sitemap>
+<loc>https://documentation.ubuntu.com/canonical-kubernetes/release-1.33/sitemap.xml</loc>
+</sitemap>
+</sitemapindex>
