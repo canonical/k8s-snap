@@ -8,18 +8,64 @@ information such as the command reference or release notes.
 Overview <self>
 ```
 
+## System components
+
 ```{toctree}
 :titlesonly:
+Architecture diagrams <architecture>
+```
 
+## Charms
+
+Learn about the `k8s` and `k8s-worker` charms, their configurations and actions.
+
+```{toctree}
+:titlesonly:
 Charms <charms>
-Architecture <architecture>
 Configuration options <charm-configurations>
+Actions <actions>
+Availability Zones <az>
+```
+
+## Networking
+
+```{toctree}
+:titlesonly:
 Ports and services <ports-and-services>
 proxy
-Actions <actions>
-troubleshooting
-Community <community>
+```
+
+## Security
+
+```{toctree}
+:titlesonly:
+Security <security>
+```
+
+## Release notes
+
+New features, bug fixes, deprecations and more are included in the release
+notes for each version.
+
+```{toctree}
+:titlesonly:
 releases
+```
+
+## Troubleshooting
+
+Common issues faced by users and their solutions.
+
+```{toctree}
+:titlesonly:
+troubleshooting
+```
+
+## Contributing
+
+```{toctree}
+:titlesonly:
+Community <community>
 ```
 
 ## Other documentation types

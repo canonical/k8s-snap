@@ -17,7 +17,7 @@ services, and external resources, ensuring smooth traffic flow within the
 cluster. The current implementation of {{product}} leverages a widely adopted
 CNI (Container Network Interface) called [Cilium][Cilium].
 If you wish to use a different network plugin
-please follow the [alternative-cni] guide.
+please follow the [alternative CNI] guide.
 
 Learn how to use the {{product}} default network
 in the [networking how-to guide][Network].
@@ -80,7 +80,7 @@ outlining rules that direct traffic to your application's Kubernetes service.
 
 <!-- LINKS -->
 
-[alternative-cni]: /snap/howto/networking/alternative-cni
+[alternative CNI]: /snap/howto/networking/alternative-cni
 [Ingress]: /snap/howto/networking/default-ingress
 [Network]: /snap/howto/networking/default-network
 [LoadBalancer]: load-balancer

@@ -32,10 +32,10 @@ with a skew of up to three versions is acceptable.
 
 ## Upgrade approach
 
-It is important to upgrade your cluster with the same method that you used to install
-the cluster. If you have deployed {{product}} using Juju, you should upgrade your cluster
-using Juju controller commands. Similarly, with snap and CAPI deployments,
-the original install method should be used.
+It is important to upgrade your cluster with the same method that you used to
+install the cluster. If you have deployed {{product}} using Juju, you should 
+upgrade your cluster using Juju controller commands. Similarly, with snap and 
+CAPI deployments, the original install method should be used.
 
 
 ## Snap upgrades

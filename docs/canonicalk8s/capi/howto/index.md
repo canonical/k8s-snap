@@ -10,19 +10,63 @@ adapt the steps to fit your specific requirements.
 Overview <self>
 ```
 
+## Install and provision
+
 ```{toctree}
 :glob:
 :titlesonly:
-
 Provision a Canonical Kubernetes cluster <provision>
 Install custom Canonical Kubernetes <custom-ck8s>
-Use external etcd <external-etcd.md>
+Use custom bootstrap configuration <custom-bootstrap-config>
+```
+
+## Upgrade
+
+Perform important cluster maintenance by upgrading the Kubernetes version and
+more.
+
+```{toctree}
+:glob:
+:titlesonly:
 Upgrade the Kubernetes version <rollout-upgrades>
 Perform an in-place upgrade <in-place-upgrades>
 Upgrade the providers of a management cluster <upgrade-providers>
-Migrate the management cluster <migrate-management>
+```
+
+## Certificates
+
+```{toctree}
+:glob:
+:titlesonly:
 Refresh workload cluster certificates <refresh-certs>
-Use intermediate CAs with Vault <intermediate-ca>
+Use intermediate CAs with Vault <intermediate-ca.md>
+```
+
+## External datastore
+
+```{toctree}
+:glob:
+:titlesonly:
+Use external etcd <external-etcd.md>
+```
+
+## Cluster migration
+
+Migrate your management cluster to a different substrate.
+
+```{toctree}
+:glob:
+:titlesonly:
+Migrate the management cluster <migrate-management>
+```
+
+## Troubleshoot
+
+Debug issues in your cluster.
+
+```{toctree}
+:glob:
+:titlesonly:
 Troubleshooting <troubleshooting>
 ```
 
