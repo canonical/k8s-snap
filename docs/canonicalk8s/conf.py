@@ -218,6 +218,7 @@ linkcheck_ignore = [
     'https://www.squid-cache.org/',
     'https://www.esd.whs.mil/portals/54/documents/dd/issuances/dodi/855101p.pdf',
     r'https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-24',
+    'https://kubernetes.io/*',
     ]
 
 
@@ -293,12 +294,18 @@ exclude_patterns = [
 
 # Adds custom CSS files, located under 'html_static_path'
 
-html_css_files = ["github_issue_links.css"]
+html_css_files = [
+        "github_issue_links.css",
+        "cookie-banner.css"
+        ]
 
 
 # Adds custom JavaScript files, located under 'html_static_path'
 
-html_js_files = ["github_issue_links.js"]
+html_js_files = [
+        "github_issue_links.js",
+        "js/bundle.js"
+        ]
 
 
 # Specifies a reST snippet to be appended to each .rst file
