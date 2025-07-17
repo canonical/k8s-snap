@@ -5,8 +5,8 @@ import (
 
 	upgradesv1alpha1 "github.com/canonical/k8s/pkg/k8sd/crds/upgrades/v1alpha"
 	"github.com/canonical/k8s/pkg/k8sd/types"
-	"github.com/canonical/microcluster/v2/state"
 	"github.com/go-logr/logr"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/util/workqueue"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -14,7 +14,6 @@ import (
 )
 
 type Controller struct {
-	getState                          func() state.State
 	logger                            logr.Logger
 	client                            client.Client
 	featureControllerReadyCh          <-chan struct{}
@@ -57,13 +56,11 @@ type ControllerOptions struct {
 }
 
 func NewController(
-	getState func() state.State,
 	logger logr.Logger,
 	client client.Client,
 	opts ControllerOptions,
 ) *Controller {
 	return &Controller{
-		getState:                          getState,
 		logger:                            logger,
 		client:                            client,
 		featureControllerReadyCh:          opts.FeatureControllerReadyCh,
@@ -84,6 +81,7 @@ func NewController(
 func (c *Controller) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&upgradesv1alpha1.Upgrade{}).
+		For(&corev1.Node{}).
 		WithOptions(controller.Options{
 			// NOTE(Hue): We use a custom rate limiter to reduce the load on the API server,
 			// as the default rate limiter is too aggressive for our use case (baseDelay is 5 Milliseconds).

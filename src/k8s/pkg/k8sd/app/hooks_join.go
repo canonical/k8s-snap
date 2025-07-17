@@ -15,9 +15,11 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
+	upgradepkg "github.com/canonical/k8s/pkg/upgrade"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/k8s/pkg/utils/experimental/snapdconfig"
+	"github.com/canonical/k8s/pkg/version"
 	"github.com/canonical/microcluster/v2/state"
 	versionutil "k8s.io/apimachinery/pkg/util/version"
 )
@@ -422,7 +424,8 @@ func initiateRollingUpgrade(ctx context.Context, snap snap.Snap, s state.State, 
 		strategy = upgradesv1alpha.UpgradeStrategyRollingDowngrade
 	}
 
-	newUpgrade := upgradesv1alpha.NewUpgrade(fmt.Sprintf("cluster-upgrade-to-rev-%s", rev))
+	versionData := version.Info{Revision: rev}
+	newUpgrade := upgradesv1alpha.NewUpgrade(upgradepkg.GetName(versionData))
 	if err := k8sClient.Create(ctx, newUpgrade); err != nil {
 		return fmt.Errorf("failed to create upgrade: %w", err)
 	}
