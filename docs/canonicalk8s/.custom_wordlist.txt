@@ -367,6 +367,7 @@ no_proxy
 NodeInternalIP
 NodePort
 NodeRestriction
+NodeStatus
 nohz
 Nota
 NUMA
@@ -477,6 +478,7 @@ Spark
 Spark History Server
 Spark Job
 Spark Submit
+SQLite
 Squashfs
 SR-IOV
 src
