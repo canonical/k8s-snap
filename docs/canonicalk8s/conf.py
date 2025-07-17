@@ -239,6 +239,7 @@ linkcheck_ignore = [
     r'https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-24',
     'https://kubernetes.io/*',
     'https://multipass.run/docs',
+    'https://canonical.com/'
     ]
 
 
