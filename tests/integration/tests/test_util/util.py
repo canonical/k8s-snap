@@ -540,6 +540,10 @@ def get_default_ip(instance: harness.Instance, ipv6=False):
             capture_output=True,
         )
         addr_json = json.loads(p.stdout.decode())
+        if not addr_json or not addr_json[0].get("addr_info"):
+            raise ValueError(
+                "No IPv6 address found in the output of 'ip -json -6 addr show scope global'"
+            )
         return addr_json[0]["addr_info"][0]["local"]
     else:
         p = instance.exec(
@@ -980,13 +984,13 @@ def check_snap_services_ready(
             ), f"Unexpected service {service} is {status} but should be inactive"
 
 
-def host_is_fips_enabled():
+def is_fips_enabled(instance: harness.Instance):
     """
-    Returns True if the host is running with FIPS enabled, False otherwise.
+    Returns True if the provided instance is running with FIPS enabled, False otherwise.
     """
     fips_path = "/proc/sys/crypto/fips_enabled"
     try:
-        with open(fips_path) as f:
-            return f.read().strip() == "1"
-    except (FileNotFoundError, PermissionError):
+        result = instance.exec(["cat", fips_path], capture_output=True, text=True)
+        return result.stdout.strip() == "1"
+    except subprocess.CalledProcessError:
         return False

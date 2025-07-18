@@ -47,7 +47,6 @@ jobs:
       - name: Run branch_management tests
         run: |
           tox -c tests/branch_management -e test
-
   python-lint:
     name: Python lint
     runs-on: ubuntu-latest
@@ -63,7 +62,6 @@ jobs:
       - name: Lint
         run: |
           cd tests/integration && tox -e lint
-
   go-lint-and-unit:
     name: Go lint and unit tests
     uses: ./.github/workflows/go.yaml
@@ -102,9 +100,7 @@ jobs:
               tags="up_to_weekly"
             fi
           fi
-
           echo "test-tags=$tags" >> "$GITHUB_OUTPUT"
-
   test-integration:
     name: Integration
     strategy:
@@ -151,7 +147,6 @@ jobs:
             channel=latest/edge
           fi
           echo "charm-channel=$channel" >> "$GITHUB_OUTPUT"
-
   charm-e2e-tests:
     name: Charm e2e tests - ${{ matrix.arch }}
     strategy:

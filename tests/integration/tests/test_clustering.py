@@ -5,7 +5,6 @@ import datetime
 import logging
 import os
 import subprocess
-import tempfile
 from typing import List
 
 import pytest
@@ -203,9 +202,7 @@ def _instance_path_exists(instance: harness.Instance, remote_path: str):
 def _get_instance_cert(
     instance: harness.Instance, remote_path: str
 ) -> x509.Certificate:
-    with tempfile.NamedTemporaryFile() as fp:
-        instance.pull_file(remote_path, fp.name)
-
-        pem = fp.read()
-        cert = x509.load_pem_x509_certificate(pem, default_backend())
-        return cert
+    result = instance.exec(["cat", remote_path], capture_output=True)
+    pem = result.stdout
+    cert = x509.load_pem_x509_certificate(pem, default_backend())
+    return cert

@@ -17,6 +17,9 @@ LOG = logging.getLogger(__name__)
 )
 @pytest.mark.dualstack()
 @pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.skipif(
+    config.SUBSTRATE == "multipass", reason="QUEMU does not properly support IPv6"
+)
 def test_dualstack(instances: List[harness.Instance]):
     main = instances[0]
     dualstack_config = (config.MANIFESTS_DIR / "nginx-dualstack.yaml").read_text()
@@ -63,6 +66,9 @@ def test_dualstack(instances: List[harness.Instance]):
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.network_type("dualstack")
 @pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.skipif(
+    config.SUBSTRATE == "multipass", reason="QUEMU does not properly support IPv6"
+)
 def test_ipv6_only_on_dualstack_infra(instances: List[harness.Instance]):
     main = instances[0]
     joining_cp = instances[1]
