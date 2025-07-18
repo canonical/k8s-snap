@@ -13,7 +13,6 @@ import (
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
-	"github.com/canonical/microcluster/v2/state"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
@@ -55,7 +54,6 @@ func NewCoordinator(
 func (c *Coordinator) Run(
 	ctx context.Context,
 	getClusterConfig func(context.Context) (types.ClusterConfig, error),
-	getState func() state.State,
 ) error {
 	logger := log.FromContext(ctx).WithName("controller-coordinator")
 	ctrllog.SetLogger(logger)
@@ -100,7 +98,7 @@ func (c *Coordinator) Run(
 		return fmt.Errorf("failed to create manager: %w", err)
 	}
 
-	if err := c.setupControllers(ctx, getClusterConfig, getState, mgr); err != nil {
+	if err := c.setupControllers(ctx, getClusterConfig, mgr); err != nil {
 		return fmt.Errorf("failed to setup controllers: %w", err)
 	}
 
@@ -114,10 +112,9 @@ func (c *Coordinator) Run(
 func (c *Coordinator) setupControllers(
 	ctx context.Context,
 	getClusterConfig func(context.Context) (types.ClusterConfig, error),
-	getState func() state.State,
 	mgr manager.Manager,
 ) error {
-	if err := c.setupUpgradeController(ctx, getClusterConfig, getState, mgr); err != nil {
+	if err := c.setupUpgradeController(ctx, getClusterConfig, mgr); err != nil {
 		return fmt.Errorf("failed to setup upgrade controller: %w", err)
 	}
 
@@ -131,7 +128,6 @@ func (c *Coordinator) setupControllers(
 func (c *Coordinator) setupUpgradeController(
 	ctx context.Context,
 	getClusterConfig func(context.Context) (types.ClusterConfig, error),
-	getState func() state.State,
 	mgr manager.Manager,
 ) error {
 	logger := mgr.GetLogger()
@@ -152,7 +148,6 @@ func (c *Coordinator) setupUpgradeController(
 	}
 
 	upgradeController := upgrade.NewController(
-		getState,
 		logger,
 		mgr.GetClient(),
 		c.upgradeControllerOpts,

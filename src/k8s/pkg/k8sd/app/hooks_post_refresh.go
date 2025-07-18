@@ -10,7 +10,9 @@ import (
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/log"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
+	upgradepkg "github.com/canonical/k8s/pkg/upgrade"
 	"github.com/canonical/k8s/pkg/utils/experimental/snapdconfig"
+	"github.com/canonical/k8s/pkg/version"
 	"github.com/canonical/microcluster/v2/state"
 )
 
@@ -86,7 +88,8 @@ func (a *App) performPostUpgrade(ctx context.Context, s state.State) error {
 		}
 		// TODO(ben): Add more metadata to the upgrade.
 		// e.g. initial revision, target revision, name of the node that started the upgrade, etc.
-		upgrade = upgradesv1alpha.NewUpgrade(fmt.Sprintf("cluster-upgrade-to-rev-%s", rev))
+		versionData := version.Info{Revision: rev}
+		upgrade = upgradesv1alpha.NewUpgrade(upgradepkg.GetName(versionData))
 		if err := k8sClient.Create(ctx, upgrade); err != nil {
 			return fmt.Errorf("failed to create upgrade: %w", err)
 		}
