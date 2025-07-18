@@ -3,6 +3,7 @@
 #
 import json
 import logging
+import time
 from pathlib import Path
 from typing import List
 
@@ -296,7 +297,18 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
     The test will also verify that the feature version is not upgraded until all nodes are upgraded.
     """
 
-    start_branch = util.previous_track(config.SNAP)
+    for _ in range(10):
+        try:
+            start_branch = util.previous_track(config.SNAP)
+            break
+        except Exception as e:
+            LOG.warning(
+                "Failed to get previous track of snap %s: %s. Retrying...",
+                config.SNAP,
+                e,
+            )
+            time.sleep(5)
+
     main = instances[0]
 
     for instance in instances:
