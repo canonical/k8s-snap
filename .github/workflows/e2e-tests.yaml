@@ -190,7 +190,6 @@ jobs:
           TEST_GH_REF: ${{ github.ref_name }}
           TEST_GH_BASE_REF: ${{ github.base_ref }}
           TEST_UBUNTU_PRO_TOKEN: ${{ secrets.UBUNTU_PRO_TOKEN }}
-          TEST_SKIP_CLEANUP: 1
         run: |
           # Parse extra-test-env and export each KEY=VALUE pair
           ESCAPED_ENV=$(echo "${{ inputs.extra-test-env }}" | sed 's/"/\\"/g')
