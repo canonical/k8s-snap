@@ -123,7 +123,6 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 			func(ctx context.Context) (types.ClusterConfig, error) {
 				return databaseutil.GetClusterConfig(ctx, s)
 			},
-			func() state.State { return s },
 		); err != nil {
 			log.FromContext(ctx).Error(err, "Failed to start controller coordinator")
 		}
