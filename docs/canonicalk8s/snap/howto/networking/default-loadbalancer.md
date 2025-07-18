@@ -86,7 +86,7 @@ sudo k8s disable load-balancer
 
 ## Next Step
 
-- Learn more in the [Load Balancer] explanation page.
+- Learn more in the [Load-Balancer] explanation page.
 
 <!-- LINKS -->
 [CIDR]: https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing
