@@ -97,13 +97,13 @@ parts:
       case "$CRAFT_ARCH_TRIPLET_BUILD_FOR" in
         x86_64-linux-gnu)
           python3 $CRAFT_PROJECT_DIR/build-scripts/hack/patchelf.py $CRAFT_PART_INSTALL/bin/etcd \
-            --set-rpath /snap/core22/current/lib/x86_64-linux-gnu/ \
-            --set-interpreter /snap/core22/current/lib64/ld-linux-x86-64.so.2
+            --set-rpath /snap/$BASE/current/lib/x86_64-linux-gnu/ \
+            --set-interpreter /snap/$BASE/current/lib64/ld-linux-x86-64.so.2
           ;;
         aarch64-linux-gnu)
           python3 $CRAFT_PROJECT_DIR/build-scripts/hack/patchelf.py $CRAFT_PART_INSTALL/bin/etcd \
-            --set-rpath /snap/core22/current/lib/aarch64-linux-gnu/ \
-            --set-interpreter /snap/core22/current/lib/ld-linux-aarch64.so.1
+            --set-rpath /snap/$BASE/current/lib/aarch64-linux-gnu/ \
+            --set-interpreter /snap/$BASE/current/lib/ld-linux-aarch64.so.1
           ;;
         *)
           echo "Unknown architecture: $CRAFT_ARCH_TRIPLET_BUILD_FOR"
