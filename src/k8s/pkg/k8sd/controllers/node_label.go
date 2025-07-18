@@ -6,10 +6,14 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
+	"github.com/canonical/k8s/pkg/version"
 	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/errors"
 )
 
 type NodeLabelController struct {
@@ -52,7 +56,7 @@ func (c *NodeLabelController) Run(ctx context.Context, getDatastoreType func(ctx
 
 		if err := client.WatchNode(
 			ctx, nodeName, func(node *v1.Node) error {
-				err := c.reconcile(ctx, node, getDatastoreType)
+				err := c.reconcile(ctx, client, node, getDatastoreType)
 				c.notifyReconciled()
 				return err
 			}); err != nil {
@@ -82,6 +86,35 @@ func (c *NodeLabelController) reconcileFailureDomain(ctx context.Context, node *
 
 	if err := c.updateDqliteFailureDomain(ctx, failureDomain, azLabel, getDatastoreType); err != nil {
 		return fmt.Errorf("failed to update failure-domain, error: %w", err)
+	}
+
+	return nil
+}
+
+// reconcileVersionAnnotation updates the node's version annotation with the current version info.
+func (c *NodeLabelController) reconcileVersionAnnotation(ctx context.Context, client *kubernetes.Client, node *v1.Node) error {
+	rev, err := c.snap.Revision(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get snap revision: %w", err)
+	}
+
+	v := version.Info{
+		Revision: rev,
+	}
+
+	b, err := v.Encode()
+	if err != nil {
+		return fmt.Errorf("failed to encode version info: %w", err)
+	}
+
+	if node.Annotations == nil {
+		node.Annotations = make(map[string]string)
+	}
+
+	node.Annotations[version.NodeAnnotationKey] = string(b)
+
+	if _, err := client.CoreV1().Nodes().Update(ctx, node, metav1.UpdateOptions{}); err != nil {
+		return fmt.Errorf("failed to update node %s annotations: %w", node.Name, err)
 	}
 
 	return nil
@@ -131,12 +164,27 @@ func (c *NodeLabelController) updateDqliteFailureDomain(ctx context.Context, fai
 	return nil
 }
 
-func (c *NodeLabelController) reconcile(ctx context.Context, node *v1.Node, getDatastoreType func(ctx context.Context) (string, error)) error {
-	if err := c.reconcileFailureDomain(ctx, node, getDatastoreType); err != nil {
-		return fmt.Errorf("failed to reconcile failure domain: %w", err)
+func (c *NodeLabelController) reconcile(ctx context.Context, client *kubernetes.Client, node *v1.Node, getDatastoreType func(ctx context.Context) (string, error)) error {
+	isWorker, err := snaputil.IsWorker(c.snap)
+	if err != nil {
+		return fmt.Errorf("failed to check if node is a worker: %w", err)
 	}
 
-	return nil
+	var errs []error
+
+	log.FromContext(ctx).Info("Reconciling node failure domain", "nodeName", node.Name)
+	if !isWorker {
+		if err := c.reconcileFailureDomain(ctx, node, getDatastoreType); err != nil {
+			errs = append(errs, fmt.Errorf("failed to reconcile failure domain: %w", err))
+		}
+	}
+
+	log.FromContext(ctx).Info("Reconciling node version annotation", "nodeName", node.Name)
+	if err := c.reconcileVersionAnnotation(ctx, client, node); err != nil {
+		errs = append(errs, fmt.Errorf("failed to reconcile version annotation: %w", err))
+	}
+
+	return errors.NewAggregate(errs)
 }
 
 // ReconciledCh returns the channel where the controller pushes when a reconciliation loop is finished.
