@@ -11,6 +11,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 )
 
 type Controller struct {
@@ -81,7 +82,12 @@ func NewController(
 func (c *Controller) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&upgradesv1alpha1.Upgrade{}).
-		For(&corev1.Node{}).
+		// NOTE(Hue): For(...) can not be used more than once, so we use Watches(...) to reconcile
+		// multiple objects.
+		Watches(
+			&corev1.Node{},
+			&handler.EnqueueRequestForObject{},
+		).
 		WithOptions(controller.Options{
 			// NOTE(Hue): We use a custom rate limiter to reduce the load on the API server,
 			// as the default rate limiter is too aggressive for our use case (baseDelay is 5 Milliseconds).
