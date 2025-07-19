@@ -54,19 +54,12 @@
     {%- endif %}
 
     {# mod: removed "Made with" #}
-
+<div class="cookies"><a href="" class="js-revoke-cookie-manager muted-link">Manage your tracker settings</a></div>
     {%- if last_updated -%}
     <div class="last-updated">
       {% trans last_updated=last_updated|e -%}
         Last updated on {{ last_updated }}
       {%- endtrans -%}
-    </div>
-    {%- endif %}
-
-    {%- if show_source and has_source and sourcename %}
-    <div class="show-source">
-      <a class="muted-link" href="{{ pathto('_sources/' + sourcename, true)|e }}"
-         rel="nofollow">Show source</a>
     </div>
     {%- endif %}
   </div>
