@@ -321,4 +321,10 @@ sudo k8s kubectl get pods -n kube-system
 
 [troubleshooting how-to guide]: ../howto/troubleshooting.md
 [kubeconfig file]: https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/
+[kubernetes-122955]: https://github.com/kubernetes/kubernetes/issues/122955
+[kubernetes-125923]: https://github.com/kubernetes/kubernetes/pull/125923
+[kubernetes-122955-2020403422]: https://github.com/kubernetes/kubernetes/issues/122955#issuecomment-2020403422
+[@haircommander]: https://github.com/haircommander
+[lxd-install]: /snap/howto/install/lxd.md
 [issue #196]: https://github.com/canonical/k8s-dqlite/issues/196#issuecomment-2621527026
+[reported here]: https://github.com/cilium/cilium/issues/30889
