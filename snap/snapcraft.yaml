@@ -54,6 +54,7 @@ parts:
       - pkg-config
       - rsync
       - tcl
+      - python3-pip
 
   dqlite:
     after: [build-deps]
