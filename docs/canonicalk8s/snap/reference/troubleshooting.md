@@ -118,11 +118,11 @@ EOF
 
 ````
 
-## Increased memory usage with Dqlite backends
+## Increased memory usage using a Dqlite backend
 
 While increased memory usage can be a symptom of many issues, it is possible
 that you can improve the memory usage of your {{product}} cluster by tuning
-parameters related to snapshotting in Dqlite. An [issue #196] reports increased
+parameters related to creating snapshots in Dqlite. An [issue #196] reports increased
 memory usage over time. This was particularly evident in smaller clusters.
 In the future, we will use a Dqlite release which dynamically adjusts the
 parameters for optimized performance.
