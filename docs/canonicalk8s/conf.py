@@ -71,7 +71,7 @@ copyright = "%s CC-BY-SA, %s" % (datetime.date.today().year, author)
 # NOTE: The Open Graph Protocol (OGP) enhances page display in a social graph
 #       and is used by social media platforms; see https://ogp.me/
 
-ogp_site_url = "https://documentation.ubuntu.com/canonical-kubernetes/latest/"
+ogp_site_url = "https://documentation.ubuntu.com/canonical-kubernetes/"
 
 
 # Preview name of the documentation website
@@ -175,6 +175,25 @@ html_theme_options = {
 
 slug = 'canonical-kubernetes'
 
+#######################
+# Sitemap configuration: https://sphinx-sitemap.readthedocs.io/
+#######################
+
+# Base URL of RTD hosted project
+
+html_baseurl = 'https://documentation.ubuntu.com/canonical-kubernetes/'
+
+html_extra_path = ["sitemapindex.xml", "robots.txt"]
+
+# When configured with RTD variables, check for RTD environment so manual runs succeed:
+
+if 'READTHEDOCS_VERSION' in os.environ:
+    version = os.environ["READTHEDOCS_VERSION"]
+    sitemap_url_scheme = '{version}{link}'
+else:
+    sitemap_url_scheme = 'release-1.32/{link}'
+
+sitemap_show_lastmod = True
 
 # Template and asset locations
 
@@ -219,6 +238,8 @@ linkcheck_ignore = [
     'https://www.esd.whs.mil/portals/54/documents/dd/issuances/dodi/855101p.pdf',
     r'https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-24',
     'https://kubernetes.io/*',
+    'https://multipass.run/docs',
+    'https://canonical.com/'
     ]
 
 
@@ -282,6 +303,7 @@ extensions = [
     "sphinxcontrib.cairosvgconverter",
     "sphinx_last_updated_by_git",
     "sphinx.ext.intersphinx",
+    "sphinx_sitemap",
 ]
 
 # Excludes files or directories from processing
