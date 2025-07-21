@@ -316,12 +316,18 @@ exclude_patterns = [
 
 # Adds custom CSS files, located under 'html_static_path'
 
-html_css_files = ["github_issue_links.css"]
+html_css_files = [
+        "github_issue_links.css",
+        "cookie-banner.css"
+        ]
 
 
 # Adds custom JavaScript files, located under 'html_static_path'
 
-html_js_files = ["github_issue_links.js"]
+html_js_files = [
+        "github_issue_links.js",
+        "js/bundle.js"
+        ]
 
 
 # Specifies a reST snippet to be appended to each .rst file
