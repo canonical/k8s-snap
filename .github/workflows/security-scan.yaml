@@ -60,10 +60,10 @@ jobs:
         run: |
           cp $GITHUB_WORKSPACE/trivy-scan.sh ./tests/trivy-scan.sh
           ./tests/trivy-scan.sh ${{ steps.download-snap.outputs.snap-path }}
-      - name: Upload Trivy scan results to GitHub Security tab
+      - name: Upload Trivy scan results to Github Security tab
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: "./.trivy/sarifs"
+          sarif_file: ./.trivy/sarifs/trivy-k8s-repo-scan--results.sarif
       - name: Send vulnerability records
         if: ${{ inputs.upload-reports-to-jira == true }}
         uses: canonical/k8s-workflows/.github/actions/send-cve-reports@main
