@@ -3,6 +3,7 @@
 #
 import json
 import logging
+import subprocess
 from pathlib import Path
 from typing import List
 
@@ -127,7 +128,13 @@ def test_version_upgrades(
                 LOG.info("Refreshing k8s snap by path")
                 cmd = ["snap", "install", "--classic", "--dangerous", snap_path]
 
-            instance.exec(cmd)
+            try:
+                instance.exec(cmd, capture_output=True)
+            except subprocess.CalledProcessError as e:
+                LOG.error("Command failed with exit code %i", e.returncode)
+                LOG.error("stdout: %s", e.stdout.decode())
+                LOG.error("stderr: %s", e.stderr.decode())
+                raise
             util.wait_until_k8s_ready(cp, instances)
             current_channel = channel
             LOG.info(f"Upgraded {instance.id} on channel {channel}")
