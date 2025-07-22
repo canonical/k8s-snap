@@ -22,10 +22,7 @@ def get_ingress_service_node_port(p):
     ingress_services = [
         svc
         for svc in services["items"]
-        if (
-            svc["metadata"]["name"] == "ck-ingress-contour-envoy"
-            or svc["metadata"]["name"] == "cilium-ingress"
-        )
+        if svc["metadata"]["name"] == "cilium-ingress"
     ]
 
     for svc in ingress_services:
@@ -135,7 +132,6 @@ def test_ingress(instances: List[harness.Instance]):
     ingress_ip = get_external_service_ip(
         instance,
         [
-            {"service": "ck-ingress-contour-envoy", "namespace": "projectcontour"},
             {"service": "cilium-ingress", "namespace": "kube-system"},
         ],
     )
