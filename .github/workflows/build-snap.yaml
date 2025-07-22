@@ -11,7 +11,7 @@ on:
         default: amd64
         type: string
       flavor:
-        description: k8s-snap flavor (e.g. moonray or strict)
+        description: k8s-snap flavor (e.g. strict)
         type: string
     outputs:
       snap-artifact:

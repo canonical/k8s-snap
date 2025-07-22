@@ -30,7 +30,7 @@ on:
         default: pull_request
         type: string
       flavor:
-        description: Test flavor (e.g. moonray or strict), leave empty for classic
+        description: Test flavor (e.g. strict), leave empty for classic
         default: ""
         type: string
       extra-test-args:
@@ -75,7 +75,7 @@ on:
         default: pull_request
         type: string
       flavor:
-        description: Test flavor (e.g. moonray or strict). Leave empty for classic
+        description: Test flavor (e.g. strict). Leave empty for classic
         default: ""
         type: string
       extra-test-args:
