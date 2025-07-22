@@ -82,8 +82,7 @@ jobs:
          else
            echo "RESULT=failure" >> $GITHUB_ENV
          fi
-     - name: Generate Mattermost Message         - { branch: release-1.30, channel: 1.30-classic/edge }
-         - { branch: release-1.31, channel: 1.31-classic/edge }
+     - name: Generate Mattermost Message
        run: |
          if [[ "${{ env.RESULT }}" == "success" ]]; then
            echo "MM_TEXT=:white_check_mark: *Success!* CI completed successfully. [View Run](${{
