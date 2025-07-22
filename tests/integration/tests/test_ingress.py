@@ -20,9 +20,7 @@ def get_ingress_service_node_port(p):
     services = json.loads(p.stdout.decode())
 
     ingress_services = [
-        svc
-        for svc in services["items"]
-        if svc["metadata"]["name"] == "cilium-ingress"
+        svc for svc in services["items"] if svc["metadata"]["name"] == "cilium-ingress"
     ]
 
     for svc in ingress_services:
