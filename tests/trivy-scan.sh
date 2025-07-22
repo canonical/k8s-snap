@@ -19,6 +19,14 @@ wget https://github.com/aquasecurity/trivy/releases/download/${VER}/trivy_${VER#
 tar -zxvf ./trivy_${VER#v}_Linux-64bit.tar.gz
 popd
 
+# Run Trivy vulnerability scanner in repo mode.
+#
+# We'll have two runs:
+# * one with SARIF output, used by GitHub
+# * one with "json" output
+#   * SARIF is also a json but not as well structured
+#   * the list of vulnerabilities is easier to parse and compare with the CISA list
+#   * the second run will not filter the records based on severity
 TRIVY_FS_SARIF="./.trivy/sarifs/trivy-k8s-repo-scan--results.sarif"
 
 # Run Trivy vulnerability scanner in repo mode
@@ -86,6 +94,7 @@ function split_sarif_runs() {
 REPO_SARIF_FILES=($(split_sarif_runs "$TRIVY_FS_SARIF" "trivy-k8s-repo-scan"))
 ROOTFS_SARIF_FILES=($(split_sarif_runs "$TRIVY_ROOTFS_SARIF" "snap"))
 
+# Obtain CISA Known Exploited Vulnerabilities list.
 curl -s -o ./.trivy/kev.json \
   https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json
 
@@ -110,7 +119,7 @@ function get_cisa_kev_cves() {
 get_cisa_kev_cves ./.trivy/kev.json ./.trivy/sarifs/trivy-k8s-repo-scan--results.json
 get_cisa_kev_cves ./.trivy/kev.json ./.trivy/sarifs/snap.json
 
-echo "Final SARIF files for GitHub upload:"
+echo "Final SARIF files:"
 for sarif in "${REPO_SARIF_FILES[@]}" "${ROOTFS_SARIF_FILES[@]}"; do
   echo "$sarif"
 done

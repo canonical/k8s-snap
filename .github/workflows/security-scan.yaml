@@ -60,7 +60,7 @@ jobs:
         run: |
           cp $GITHUB_WORKSPACE/trivy-scan.sh ./tests/trivy-scan.sh
           ./tests/trivy-scan.sh ${{ steps.download-snap.outputs.snap-path }}
-      - name: Upload SARIF files
+      - name: Upload Trivy scan results to Github Security tab
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: ./.trivy/sarifs/trivy-k8s-repo-scan--results.sarif
