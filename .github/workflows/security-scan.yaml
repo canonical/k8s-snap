@@ -64,6 +64,7 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: "./.trivy/sarifs"
+          category: ${{ inputs.channel }}-${{ inputs.artifact }}-${{ inputs.checkout-ref }}-scan
       - name: Send vulnerability records
         if: ${{ inputs.upload-reports-to-jira == true }}
         uses: canonical/k8s-workflows/.github/actions/send-cve-reports@main
