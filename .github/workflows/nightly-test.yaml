@@ -54,8 +54,6 @@ jobs:
          # Stable branches
          # Add branches to test here
          # TODO: automatically retrieve the list of channels.
-         - { branch: release-1.30, channel: 1.30-classic/edge }
-         - { branch: release-1.31, channel: 1.31-classic/edge }
          - { branch: release-1.32, channel: 1.32-classic/edge }
          - { branch: release-1.33, channel: 1.33-classic/edge }
    uses: ./.github/workflows/security-scan.yaml
@@ -84,7 +82,8 @@ jobs:
          else
            echo "RESULT=failure" >> $GITHUB_ENV
          fi
-     - name: Generate Mattermost Message
+     - name: Generate Mattermost Message         - { branch: release-1.30, channel: 1.30-classic/edge }
+         - { branch: release-1.31, channel: 1.31-classic/edge }
        run: |
          if [[ "${{ env.RESULT }}" == "success" ]]; then
            echo "MM_TEXT=:white_check_mark: *Success!* CI completed successfully. [View Run](${{

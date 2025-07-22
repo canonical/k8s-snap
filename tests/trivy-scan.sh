@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SCRIPT_DIR=$(realpath $(dirname "$BASH_SOURCE"))
+SCRIPT_DIR=$(realpath "$(dirname "$BASH_SOURCE")")
 
 set -ex
 cd "${SCRIPT_DIR}/.."
@@ -19,6 +19,8 @@ wget https://github.com/aquasecurity/trivy/releases/download/${VER}/trivy_${VER#
 tar -zxvf ./trivy_${VER#v}_Linux-64bit.tar.gz
 popd
 
+TRIVY_FS_SARIF="./.trivy/sarifs/trivy-k8s-repo-scan--results.sarif"
+
 # Run Trivy vulnerability scanner in repo mode.
 #
 # We'll have two runs:
@@ -32,7 +34,7 @@ popd
   --db-repository public.ecr.aws/aquasecurity/trivy-db \
   --severity "MEDIUM,HIGH,CRITICAL" \
   --ignore-unfixed \
-  > ./.trivy/sarifs/trivy-k8s-repo-scan--results.sarif
+  > "$TRIVY_FS_SARIF"
 
 ./.trivy/trivy fs . \
   --format json \
@@ -45,22 +47,45 @@ popd
 for var in $(env | grep -o '^TRIVY_[^=]*'); do
   unset "$var"
 done
+
 cp "${SNAP_PATH}" ./.trivy/k8s-test.snap
 rm -rf ./.trivy/squashfs-root
 pushd ./.trivy
 unsquashfs ./k8s-test.snap
 popd
+
+TRIVY_ROOTFS_SARIF="./.trivy/sarifs/snap.sarif"
 ./.trivy/trivy rootfs ./.trivy/squashfs-root/ \
   --format sarif \
   --db-repository public.ecr.aws/aquasecurity/trivy-db \
-  > ./.trivy/sarifs/snap.sarif
+  > "$TRIVY_ROOTFS_SARIF"
 
 ./.trivy/trivy rootfs ./.trivy/squashfs-root/ \
   --format json \
   --db-repository public.ecr.aws/aquasecurity/trivy-db \
   > ./.trivy/sarifs/snap.json
 
-# Obtain CISA Known Exploited Vulnerabilities list.
+# --- SPLIT SARIF BY RUN ---
+function split_sarif_runs() {
+  local input_sarif="$1"
+  local prefix="$2"
+
+  count=$(jq '.runs | length' "$input_sarif")
+  if [[ "$count" -le 1 ]]; then
+    return 0
+  fi
+
+  echo "Splitting SARIF: $input_sarif (contains $count runs)"
+  for i in $(seq 0 $((count - 1))); do
+    jq --argjson idx "$i" '{version: "2.1.0", runs: [ .runs[$idx] ]}' "$input_sarif" > "${input_sarif%.sarif}--run${i}.sarif"
+  done
+  rm "$input_sarif"
+}
+
+split_sarif_runs "$TRIVY_FS_SARIF" "trivy-k8s-repo-scan"
+split_sarif_runs "$TRIVY_ROOTFS_SARIF" "snap"
+
+# --- DOWNLOAD CISA KEV LIST ---
 curl -s -o ./.trivy/kev.json \
   https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json
 
@@ -69,13 +94,13 @@ function get_cisa_kev_cves() {
   local trivyJsonReport=$2
 
   set +x
-  local kev_cves=$(jq -r '.vulnerabilities[].cveID' $kevJson | sort -u)
-  local found_cves=$(jq -r '.Results[] | select(.Vulnerabilities != null) | .Vulnerabilities[].VulnerabilityID' $trivyJsonReport | sort -u)
+  local kev_cves=$(jq -r '.vulnerabilities[].cveID' "$kevJson" | sort -u)
+  local found_cves=$(jq -r '.Results[] | select(.Vulnerabilities != null) | .Vulnerabilities[].VulnerabilityID' "$trivyJsonReport" | sort -u)
   local matches="$(echo "$found_cves" | grep -F -f <(echo "$kev_cves") || true)"
   set -x
 
   if [ -n "$matches" ]; then
-    echo "KEV listed vulnerabilities found in $2:"
+    echo "KEV listed vulnerabilities found in $trivyJsonReport:"
     echo "$matches"
     exit 1
   fi
