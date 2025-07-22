@@ -21,14 +21,7 @@ popd
 
 TRIVY_FS_SARIF="./.trivy/sarifs/trivy-k8s-repo-scan--results.sarif"
 
-# Run Trivy vulnerability scanner in repo mode.
-#
-# We'll have two runs:
-# * one with SARIF output, used by GitHub
-# * one with "json" output
-#   * SARIF is also a json but not as well structured
-#   * the list of vulnerabilities is easier to parse and compare with the CISA list
-#   * the second run will not filter the records based on severity
+# Run Trivy vulnerability scanner in repo mode
 ./.trivy/trivy fs . \
   --format sarif \
   --db-repository public.ecr.aws/aquasecurity/trivy-db \
@@ -42,7 +35,6 @@ TRIVY_FS_SARIF="./.trivy/sarifs/trivy-k8s-repo-scan--results.sarif"
   --ignore-unfixed \
   > ./.trivy/sarifs/trivy-k8s-repo-scan--results.json
 
-
 # Run Trivy vulnerability scanner in rootfs mode, scanning the snap
 for var in $(env | grep -o '^TRIVY_[^=]*'); do
   unset "$var"
@@ -55,6 +47,7 @@ unsquashfs ./k8s-test.snap
 popd
 
 TRIVY_ROOTFS_SARIF="./.trivy/sarifs/snap.sarif"
+
 ./.trivy/trivy rootfs ./.trivy/squashfs-root/ \
   --format sarif \
   --db-repository public.ecr.aws/aquasecurity/trivy-db \
@@ -65,27 +58,32 @@ TRIVY_ROOTFS_SARIF="./.trivy/sarifs/snap.sarif"
   --db-repository public.ecr.aws/aquasecurity/trivy-db \
   > ./.trivy/sarifs/snap.json
 
-# --- SPLIT SARIF BY RUN ---
 function split_sarif_runs() {
   local input_sarif="$1"
   local prefix="$2"
 
+  local count
   count=$(jq '.runs | length' "$input_sarif")
   if [[ "$count" -le 1 ]]; then
+    echo "$input_sarif"
     return 0
   fi
 
   echo "Splitting SARIF: $input_sarif (contains $count runs)"
+  local output_files=()
   for i in $(seq 0 $((count - 1))); do
-    jq --argjson idx "$i" '{version: "2.1.0", runs: [ .runs[$idx] ]}' "$input_sarif" > "${input_sarif%.sarif}--run${i}.sarif"
+    local output="${input_sarif%.sarif}--run${i}.sarif"
+    jq --argjson idx "$i" '{version: "2.1.0", runs: [ .runs[$idx] ]}' "$input_sarif" > "$output"
+    output_files+=("$output")
   done
   rm "$input_sarif"
+  echo "${output_files[@]}"
 }
 
-split_sarif_runs "$TRIVY_FS_SARIF" "trivy-k8s-repo-scan"
-split_sarif_runs "$TRIVY_ROOTFS_SARIF" "snap"
+# Split and collect final SARIF files
+REPO_SARIF_FILES=($(split_sarif_runs "$TRIVY_FS_SARIF" "trivy-k8s-repo-scan"))
+ROOTFS_SARIF_FILES=($(split_sarif_runs "$TRIVY_ROOTFS_SARIF" "snap"))
 
-# --- DOWNLOAD CISA KEV LIST ---
 curl -s -o ./.trivy/kev.json \
   https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json
 
@@ -109,3 +107,8 @@ function get_cisa_kev_cves() {
 # Compare the trivy reports with the CISA KEV list
 get_cisa_kev_cves ./.trivy/kev.json ./.trivy/sarifs/trivy-k8s-repo-scan--results.json
 get_cisa_kev_cves ./.trivy/kev.json ./.trivy/sarifs/snap.json
+
+echo "Final SARIF files for GitHub upload:"
+for sarif in "${REPO_SARIF_FILES[@]}" "${ROOTFS_SARIF_FILES[@]}"; do
+  echo "$sarif"
+done
