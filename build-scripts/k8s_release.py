@@ -17,9 +17,12 @@ EXEC_TIMEOUT = 60
 LOG = logging.getLogger(__name__)
 
 
-def _url_get(url: str) -> str:
-    """Make a GET request to the given URL and return the response text."""
-    response = requests.get(url, timeout=5)
+def _url_get(url):
+    headers = {}
+    token = os.getenv("GITHUB_TOKEN")
+    if token:
+        headers["Authorization"] = f"token {token}"
+    response = requests.get(url, headers=headers)
     response.raise_for_status()
     return response.text
 

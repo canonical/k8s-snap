@@ -21,6 +21,8 @@ jobs:
     outputs:
       preRelease: ${{ steps.determine.outputs.preRelease }}
       branch: ${{ steps.determine.outputs.branch }}
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
