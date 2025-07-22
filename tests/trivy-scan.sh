@@ -71,14 +71,16 @@ function split_sarif_runs() {
 
   echo "Splitting SARIF: $input_sarif (contains $count runs)"
   local output_files=()
+  local base="${input_sarif%.sarif}"
   for i in $(seq 0 $((count - 1))); do
-    local output="${input_sarif%.sarif}--run${i}.sarif"
+    local output="${base}--run${i}.sarif"
     jq --argjson idx "$i" '{version: "2.1.0", runs: [ .runs[$idx] ]}' "$input_sarif" > "$output"
     output_files+=("$output")
   done
   rm "$input_sarif"
   echo "${output_files[@]}"
 }
+
 
 # Split and collect final SARIF files
 REPO_SARIF_FILES=($(split_sarif_runs "$TRIVY_FS_SARIF" "trivy-k8s-repo-scan"))
