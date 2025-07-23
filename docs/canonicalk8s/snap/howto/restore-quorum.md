@@ -1,7 +1,7 @@
 # How to recover a cluster after quorum loss
 
 Highly available {{product}} clusters can survive losing one or more
-nodes. [Dqlite], the default datastore, implements a [Raft] based protocol
+nodes. Both [etcd] and [Dqlite] implement a [Raft] based protocol
 where an elected leader holds the definitive copy of the database, which is
 then replicated on two or more secondary nodes.
 
@@ -10,11 +10,111 @@ If at least one database node survived, the cluster can be recovered using the
 steps outlined in this document.
 
 ```{note}
-This guide can be used to recover the default {{product}} datastore,
-Dqlite. Persistent volumes on the lost nodes are *not* recovered.
+This guide can be used to recover the {{product}} managed datastore,
+which can be either etcd or Dqlite. Persistent volumes on the lost nodes are 
+*not* recovered.
 ```
 
-Please consult the [Dqlite configuration reference] before moving forward.
+If you have set Dqlite as the datastore, please consult the 
+[Dqlite configuration reference] before moving forward.
+
+# etcd
+
+## Take an etcd snapshot
+
+Choose one of the remaining alive cluster nodes that has the most recent
+version of the Raft log.
+
+Install `etcdctl` and `etcdutl` binaries following the 
+[etcd upstream installation instructions]. Run this command with sudo 
+privilege to verify you have access to etcd cluster node's data:
+
+```
+sudo etcdctl --cacert /etc/kubernetes/pki/etcd/ca.crt \
+        --cert /etc/kubernetes/pki/apiserver-etcd-client.crt \
+        --key /etc/kubernetes/pki/apiserver-etcd-client.key \
+        snapshot save snapshot.db
+```
+
+Follow the [upstream instructions] to take an snapshot of the keyspace. 
+
+## Stop {{product}} services on all nodes
+
+Before recovering the cluster, all remaining {{product}} services
+must be stopped. Use the following command on every node:
+
+```
+sudo snap stop k8s
+```
+
+## Recover the k8sd database
+
+Update the ``cluster.yaml`` file, changing the role of the lost nodes to
+"spare". Additionally, double check the addresses and IDs specified in
+``cluster.yaml``, ``info.yaml`` and ``daemon.yaml``, especially if database
+files were moved across nodes.
+
+The following command guides us through the recovery process, prompting a text
+editor with informative inline comments for each of the Dqlite configuration
+files.
+
+```
+sudo /snap/k8s/current/bin/k8sd cluster-recover \
+    --state-dir=/var/snap/k8s/common/var/lib/k8sd/state \
+    --k8s-dqlite-state-dir=/var/snap/k8s/common/var/lib/k8s-dqlite \
+    --log-level 0
+    --skip-k8s-dqlite
+```
+
+Please adjust the log level for additional debug messages by increasing its
+value. The command creates database backups before making any changes.
+
+Copy the generated ``recovery_db.tar.gz`` to all remaining nodes at
+``/var/snap/k8s/common/var/lib/k8sd/state/recovery_db.tar.gz``. When the k8sd
+service starts, it will load the archive and perform the necessary recovery
+steps.
+
+## Restore the etcd snapshot
+
+Run the following command on all remanining alive nodes to reconfigure the 
+etcd membership:
+
+```
+etcdutl snapshot restore snapshot.db \
+      --name=<NAME> \
+      --initial-advertise-peer-urls=<ADVERTISE_PEER_URLS> \
+      --initial-cluster=<INITIAL_CLUSTER> \
+      --data-dir /var/snap/k8s/common/var/lib/etcd/data
+```
+
+You can get the `<NAME>` and `<ADVERTISE_PEER_URLS>` for each node by 
+executing the following command:
+
+```
+args=$(grep -E '^--(name|initial-advertise-peer-urls)=' /var/snap/k8s/common/args/etcd | xargs)
+```
+
+The `<INITIAL_CLUSTER>` will be the comma-separated list of values fetched 
+from each node by 
+running:
+
+```
+args=$(grep -E '^--(name|initial-cluster)=' /var/snap/k8s/common/args/etcd | xargs)
+```
+
+## Start the services 
+
+For each node, start the {{product}} services by running:
+
+```
+sudo snap start k8s
+```
+
+Ensure that the services started successfully by using
+``sudo snap services k8s``. Use ``sudo k8s status --wait-ready`` to wait for the
+cluster to become ready.
+
+# Dqlite
 
 ## Stop {{product}} services on all nodes
 
@@ -147,5 +247,8 @@ gateway                   enabled
 
 <!-- LINKS -->
 [Dqlite]: https://dqlite.io/
+[etcd]: https://etcd.io/
+[etcd upstream installation instructions]: https://etcd.io/docs/latest/install/
+[upstream instructions]: https://etcd.io/docs/latest/op-guide/recovery/
 [Dqlite configuration reference]: ../reference/dqlite.md
 [Raft]: https://raft.github.io/
