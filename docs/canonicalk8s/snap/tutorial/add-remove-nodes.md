@@ -119,7 +119,8 @@ Congratulations!
 
 It is important to clean-up your nodes before tearing down the VMs.
 
-```{note}  Purging a VM does not remove the node from your cluster. You must remove the nodes from the cluster before deleting the snap or VM.
+```{note}  Purging a VM does not remove the node from your cluster.
+You must remove the nodes from the cluster before deleting the snap or VM.
 ```
 
 Keep in mind the consequences of removing nodes:
