@@ -95,8 +95,7 @@ args=$(grep -E '^--(name|initial-advertise-peer-urls)=' /var/snap/k8s/common/arg
 ```
 
 The `<INITIAL_CLUSTER>` will be the comma-separated list of values fetched 
-from each node by 
-running:
+from each node by running:
 
 ```
 args=$(grep -E '^--(name|initial-cluster)=' /var/snap/k8s/common/args/etcd | xargs)
@@ -244,6 +243,25 @@ local-storage:            enabled at /var/snap/k8s/common/rawfile-storage
 gateway                   enabled
 ```
 
+# Difference between etcd and Dqlite pertaining 2-node quorum
+
+K8s-dqlite and etcd handle quorum formation differently in a two-node 
+cluster configuration. With k8s-dqlite, quorum is not established until 
+a third node is added. The second node that joins the cluster initially 
+acts as a follower and is only promoted to a voter once the cluster reaches 
+three nodes. In contrast, etcd adds the second node as a full voter right 
+away, effectively forming a quorum with just two nodes.
+
+This design difference impacts cluster behavior during node failure. If one 
+node fails in a k8s-dqlite-backed cluster, the cluster can still operate as 
+long as the remaining node is the leader. However, in an etcd-backed cluster, 
+the system becomes unavailable regardless of which node goes down, since both 
+nodes are needed to maintain quorum.
+
+Etcd’s documentation explicitly warns against reconfiguring a two-member 
+cluster by removing a member. Because quorum requires a majority of nodes, 
+and the majority in a two-node setup is also two, any failure during the 
+removal process can render the cluster inoperable.
 
 <!-- LINKS -->
 [Dqlite]: https://dqlite.io/
