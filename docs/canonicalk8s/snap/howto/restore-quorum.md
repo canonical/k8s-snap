@@ -4,7 +4,6 @@ Highly available {{product}} clusters can survive losing one or more
 nodes. Both [etcd] and [Dqlite] implement a [Raft] based protocol
 where an elected leader holds the definitive copy of the database, which is
 then replicated on two or more secondary nodes.
-
 When the a majority of the nodes are lost, the cluster becomes unavailable.
 If at least one database node survived, the cluster can be recovered using the
 steps outlined in this document.
@@ -26,8 +25,8 @@ Choose one of the remaining cluster nodes that has the most recent
 version of the Raft log.
 
 Install `etcdctl` and `etcdutl` binaries following the 
-[etcd upstream installation instructions]. Run this command with sudo 
-privilege to verify you have access to etcd cluster node's data:
+[etcd upstream installation instructions]. With sudo privilege, 
+run `etcdctl` to verify you have access to etcd cluster node's data:
 
 ```
 sudo etcdctl --cacert /etc/kubernetes/pki/etcd/ca.crt \
@@ -49,14 +48,11 @@ sudo snap stop k8s
 
 ### Recover the k8sd database
 
-Update the ``cluster.yaml`` file, changing the role of the lost nodes to
-"spare". Additionally, verify the addresses and IDs specified in 
-``cluster.yaml``, ``info.yaml`` and ``daemon.yaml`` are correct, especially 
-if database files were moved across nodes.
-
-The following command guides us through the recovery process, prompting a text
-editor with informative inline comments for each of the Dqlite configuration
-files.
+Choose one of the remaining healthy cluster nodes that has the most recent
+version of the Raft log. Use the `cluster-recover` command to reconfigure 
+the Raft members and creates recovery tarballs that are used to restore the 
+cluster datastore on lost nodes. The command is an interactive tool that lets
+you modify the relevant files and provides useful hints at each step.
 
 ```
 sudo /snap/k8s/current/bin/k8sd cluster-recover \
@@ -65,6 +61,11 @@ sudo /snap/k8s/current/bin/k8sd cluster-recover \
     --log-level 0
     --skip-k8s-dqlite
 ```
+
+Use the command to update the ``cluster.yaml`` file, changing the role of the 
+lost nodes to "spare". Additionally, verify the addresses and IDs specified 
+in ``cluster.yaml``, ``info.yaml`` and ``daemon.yaml`` are correct, 
+especially if database files were moved across nodes.
 
 ```note
 By default, `cluster-recover` will recover both Dqlite cluster and Kubernetes 
@@ -132,16 +133,11 @@ sudo snap stop k8s
 
 ### Recover the database
 
-Choose one of the remaining cluster nodes that has the most recent
-version of the Raft log.
-
-Update the ``cluster.yaml`` files, changing the role of the lost nodes to
-"spare". Additionally, verify the addresses and IDs specified in
-`cluster.yaml`, `info.yaml` and `daemon.yaml` are correct, especially if database
-files were moved across nodes.
-
-The `cluster-recover` command reconfigures the Raft members and creates 
-recovery tarballs that are used to restore the cluster datastore on lost nodes.
+Choose one of the remaining healthy cluster nodes that has the most recent
+version of the Raft log. Use the `cluster-recover` command to reconfigure 
+the Raft members and creates recovery tarballs that are used to restore the 
+cluster datastore on lost nodes. The command is an interactive tool that lets
+you modify the relevant files and provides useful hints at each step.
 
 ```
 sudo /snap/k8s/current/bin/k8sd cluster-recover \
@@ -149,6 +145,11 @@ sudo /snap/k8s/current/bin/k8sd cluster-recover \
     --k8s-dqlite-state-dir=/var/snap/k8s/common/var/lib/k8s-dqlite \
     --log-level 0
 ```
+
+Use the command to update the ``cluster.yaml`` file, changing the role of the 
+lost nodes to "spare". Additionally, verify the addresses and IDs specified 
+in ``cluster.yaml``, ``info.yaml`` and ``daemon.yaml`` are correct, 
+especially if database files were moved across nodes.
 
 Adjust the log level for additional debug messages by increasing its
 value. Database backups are created before making any changes.
