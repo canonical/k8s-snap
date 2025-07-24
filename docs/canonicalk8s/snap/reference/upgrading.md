@@ -1,5 +1,11 @@
 # Upgrade notes
 
+```{warning}
+You are currently on version `release-1.32` of our docs. Reminder to switch 
+to the version of the docs you aim to upgrade to in order to see the release 
+notes and get the latest updates for that version. 
+```
+
 ## Upgrade 1.32 to 1.33
 
 If you are not using dual stack networking, you can simply run:
