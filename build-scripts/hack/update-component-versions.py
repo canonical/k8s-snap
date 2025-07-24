@@ -47,10 +47,6 @@ CONTAINERD_RELEASE_BRANCH = "release/1.7"
 # - Version("3.14") (e.g. for release candidate builds)
 HELM_BRANCH, HELM_RELEASE_SEMVER = "main", None
 
-# Contour Helm repository and chart version
-CONTOUR_HELM_REPO = "https://charts.bitnami.com/bitnami"
-CONTOUR_CHART_VERSION = "17.0.4"
-
 # MetalLB Helm repository and chart version
 METALLB_REPO = "https://metallb.github.io/metallb"
 METALLB_CHART_VERSION = "0.14.8"
@@ -109,16 +105,6 @@ def get_cni_version() -> str:
                 return f"v{ersion.lstrip('v')}"
 
         raise Exception(f"Failed to find cni dependency in {deps_file}")
-
-
-def pull_contour_chart() -> None:
-    LOG.info(
-        "Pulling Contour Helm chart from %s with version %s",
-        CONTOUR_HELM_REPO,
-        CONTOUR_CHART_VERSION,
-    )
-    util.helm_pull("contour", CONTOUR_HELM_REPO, CONTOUR_CHART_VERSION, CHARTS)
-
 
 def get_containerd_version() -> str:
     """Update containerd version using latest tag of specified branch"""
@@ -180,7 +166,6 @@ def update_component_versions(dry_run: bool):
     update_go_version(dry_run)
 
     for component, pull_helm_chart in [
-        ("bitnami/contour", pull_contour_chart),
         ("metallb", pull_metallb_chart),
     ]:
         LOG.info("Updating chart for %s", component)
