@@ -60,7 +60,13 @@ To upgrade to a new minor version, the snap channel needs to be changed.
 snap info k8s
 ```
 
-2. **Change the snap channel:**
+2. **Check version specific instructions and possible manual steps**
+
+Please check [Upgrade notes] for any version-specific considerations or manual 
+steps before upgrading. 
+
+
+3. **Change the snap channel:**
 
 The {{product}} snap channel can be changed by using the `snap refresh`
 command.
@@ -69,7 +75,7 @@ command.
 snap refresh --channel=1.33/stable k8s
 ```
 
-3. **Verify the upgrade:**
+4. **Verify the upgrade:**
 
 Ensure that the upgrade was successful by checking the version of the snap
 and confirming that the cluster is ready:
@@ -104,3 +110,5 @@ snap refresh k8s --hold=24h
 [Version Skew Policy]: https://kubernetes.io/docs/setup/release/version-skew-policy/
 [backup guide]: ./backup-restore.md
 [snap documentation]: https://snapcraft.io/docs/managing-updates
+[Upgrade notes]: ../reference/upgrading
+
