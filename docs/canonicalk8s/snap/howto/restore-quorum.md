@@ -35,7 +35,7 @@ sudo etcdctl --cacert /etc/kubernetes/pki/etcd/ca.crt \
         snapshot save snapshot.db
 ```
 
-Follow the [upstream instructions] to take an snapshot of the keyspace. 
+Follow the [upstream instructions] to take an snapshot of the Keyspace. 
 
 ### Stop {{product}} services on all nodes
 
@@ -50,9 +50,9 @@ sudo snap stop k8s
 
 Choose one of the remaining healthy cluster nodes that has the most recent
 version of the Raft log. Use the `cluster-recover` command to reconfigure 
-the Raft members and creates recovery tarballs that are used to restore the 
-cluster datastore on lost nodes. The command is an interactive tool that lets
-you modify the relevant files and provides useful hints at each step.
+the Raft members and generate recovery tarballs that are used to restore the 
+cluster datastore on lost nodes. The command is an interactive tool that 
+allows you modify the relevant files and provides useful hints at each step.
 
 ```
 sudo /snap/k8s/current/bin/k8sd cluster-recover \
@@ -101,11 +101,11 @@ executing the following command:
 args=$(grep -E '^--(name|initial-advertise-peer-urls)=' /var/snap/k8s/common/args/etcd | xargs)
 ```
 
-The `<INITIAL_CLUSTER>` will be the comma-separated list of values fetched 
-from each node by running:
+The `<INITIAL_CLUSTER>` will be the comma-separated list of all remaining 
+cluster members fetched from each node by running:
 
 ```
-args=$(grep -E '^--(name|initial-cluster)=' /var/snap/k8s/common/args/etcd | xargs)
+args=$(grep -E '^--(initial-cluster)=' /var/snap/k8s/common/args/etcd | xargs)
 ```
 
 ### Start the services 
@@ -135,9 +135,9 @@ sudo snap stop k8s
 
 Choose one of the remaining healthy cluster nodes that has the most recent
 version of the Raft log. Use the `cluster-recover` command to reconfigure 
-the Raft members and creates recovery tarballs that are used to restore the 
-cluster datastore on lost nodes. The command is an interactive tool that lets
-you modify the relevant files and provides useful hints at each step.
+the Raft members and generate recovery tarballs that are used to restore the 
+cluster datastore on lost nodes. The command is an interactive tool that 
+allows you modify the relevant files and provides useful hints at each step.
 
 ```
 sudo /snap/k8s/current/bin/k8sd cluster-recover \
