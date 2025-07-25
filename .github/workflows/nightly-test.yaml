@@ -61,6 +61,7 @@ jobs:
      channel: ${{ matrix.channel }}
      checkout-ref: ${{ matrix.branch }}
      upload-reports-to-jira: true
+     scan-category: $ {{ matrix.branch }}
    secrets: inherit
 
   Mattermost:

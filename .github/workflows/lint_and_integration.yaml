@@ -122,6 +122,7 @@ jobs:
     uses: ./.github/workflows/security-scan.yaml
     with:
       artifact: ${{ needs.build-snap.outputs.snap-artifact }}
+      scan-category: ${{ matrix.patch }}+${{ matrix.arch }}
     permissions:
       contents: read # for actions/checkout to fetch code
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results

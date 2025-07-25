@@ -21,6 +21,11 @@ on:
         required: false
         type: boolean
         default: false
+      scan-category:
+        description: Category for the SARIF report.
+        type: string
+        default: security-scan
+        required: false
 
 jobs:
   security-scan:
@@ -64,6 +69,7 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: ./.trivy/sarifs/trivy-k8s-repo-scan--results.sarif
+          category: $ {{ inputs.scan-category }}
       - name: Send vulnerability records
         if: ${{ inputs.upload-reports-to-jira == true }}
         uses: canonical/k8s-workflows/.github/actions/send-cve-reports@main
