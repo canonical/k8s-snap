@@ -34,6 +34,11 @@ jobs:
       # Need to fetch the GH actions first.
       - name: Checking out repo
         uses: actions/checkout@v4
+      - name: Save trivy-scan.sh script
+        run: |
+          # We'll need to scan other branches, let's create a copy of
+          # the Trivy scan script.
+          cp tests/trivy-scan.sh $GITHUB_WORKSPACE/trivy-scan.sh
       - name: Download k8s-snap
         id: download-snap
         uses: ./.github/actions/download-k8s-snap
