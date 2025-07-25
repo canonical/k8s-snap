@@ -12,8 +12,8 @@ if [[ ! -f $SNAP_PATH ]]; then
 fi
 
 # Setup Trivy vulnerability scanner
-mkdir -p manual-trivy/sarifs
-pushd manual-trivy
+mkdir -p .trivy/sarifs
+pushd .trivy
 VER=$(curl --silent -qI https://github.com/aquasecurity/trivy/releases/latest | awk -F '/' '/^location/ {print  substr($NF, 1, length($NF)-1)}');
 wget https://github.com/aquasecurity/trivy/releases/download/${VER}/trivy_${VER#v}_Linux-64bit.tar.gz
 tar -zxvf ./trivy_${VER#v}_Linux-64bit.tar.gz
