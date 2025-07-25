@@ -34,7 +34,7 @@ This should output a list of values like this:
 
 - `enabled`: if set to true, load-balancer is enabled
 - `cidrs` - a list containing [CIDR] or IP address ranges for the
-load-balancer's address pool
+load balancer's address pool
 - `l2-mode` - whether L2 mode (failover) is turned on
 - `l2-interfaces` - optional list of interfaces to announce services over
   (defaults to all)
