@@ -16,6 +16,12 @@ services:
     startup: disabled
     before: [kube-apiserver]
 
+  etcd:
+    override: replace
+    command: bash -c "$SNAP/k8s/wrappers/services/etcd"
+    startup: disabled
+    before: [kube-apiserver]
+
   kube-apiserver:
     override: replace
     command: bash -c "$SNAP/k8s/wrappers/services/kube-apiserver"
