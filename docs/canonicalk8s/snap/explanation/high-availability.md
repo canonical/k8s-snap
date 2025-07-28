@@ -44,7 +44,17 @@ replication and leader elections can be found in
 the [dqlite replication documentation][Dqlite-replication].
 -->
 
-## Difference between etcd and Dqlite pertaining 2-node quorum
+## Fault tolerance in a 2-node setup
+
+```{warning}
+Avoid using a two-node cluster in production environments, as it 
+can lead to availability issues if either node fails.
+```
+
+Quorum is the minimum number of nodes in a cluster that must agree 
+before making decisions, usually a majority. It's essential for 
+high availability because it ensures the system can keep running safely 
+even if some nodes fail.
 
 Dqlite and etcd handle quorum formation differently in a two-node 
 cluster configuration. With Dqlite, quorum is not established until 
@@ -57,12 +67,15 @@ This design difference impacts cluster behavior during node failure. If one
 node fails in a Dqlite-backed cluster, the cluster can still operate as 
 long as the remaining node is the leader. However, in an etcd-backed cluster, 
 the system becomes unavailable regardless of which node goes down, since both 
-nodes are needed to maintain quorum.
+nodes are needed to maintain quorum. Note that in the case of Dqlite, if the 
+leader node is the one that goes down, the remaining follower cannot take over, 
+and the cluster becomes unavailable. 
 
-etcd documentation explicitly warns against reconfiguration of a two-member 
+[etcd documentation] explicitly warns against reconfiguration of a two-member 
 cluster by removing a member. Because quorum requires a majority of nodes, 
-and the majority in a two-node setup is also two, any failure during the 
+and the majority in a two-node setup is also two, any node failure during the 
 removal process can render the cluster inoperable.
 
 <!-- LINKS -->
 <!-- [Dqlite-replication]: https://dqlite.io/docs/explanation/replication --> 
+[etcd documentation]: https://etcd.io/docs/latest/faq/
