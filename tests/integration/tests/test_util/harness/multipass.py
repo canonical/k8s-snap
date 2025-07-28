@@ -127,7 +127,7 @@ class MultipassHarness(Harness):
 
         self.instances.add(instance_id)
 
-        self.exec(instance_id, ["snap", "wait", "system", "seed.loaded"])
+        stubbornly(retries=5, delay_s=5).on(self).exec(instance_id, ["snap", "wait", "system", "seed.loaded"])
         if network_type in ("IPv6", "dualstack"):
             LOG.debug("Enabling IPv6 support in instance %s", instance_id)
             try:
