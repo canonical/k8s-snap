@@ -1,6 +1,7 @@
 #
 # Copyright 2025 Canonical, Ltd.
 #
+import json
 import logging
 import os
 import re
@@ -91,19 +92,33 @@ class MultipassHarness(Harness):
                 # Note(ben): Multipass does not handle restarts in
                 # cloud-init very well and the command times out even if
                 # the underlying machine works just fine.
-                # Hence, we disable the check for this call, and
-                # instead try to verify that the machine is up and
-                # running by running a simple command.
+                # See https://github.com/canonical/multipass/issues/4199
+                # Hence, we disable the check for this call, and manually wait until
+                # the cloud-init is done.
                 run(
                     cmd + ["--cloud-init", "-"],
                     input=cloud_init_content.encode(),
                     sensitive_kwargs=True,
                     check=False,
                 )
-                stubbornly(retries=20, delay_s=5).exec(
-                    ["multipass", "exec", instance_id, "--", "echo", "test"],
+                stubbornly(retries=200, delay_s=10).until(
+                    lambda p: json.loads(p.stdout).get("status") == "done"
+                ).exec(
+                    [
+                        "multipass",
+                        "exec",
+                        instance_id,
+                        "--",
+                        "cloud-init",
+                        "status",
+                        "--format",
+                        "json",
+                    ],
+                    capture_output=True,
+                    text=True,
                     timeout=20,
                 )
+
             else:
                 run(cmd)
 
