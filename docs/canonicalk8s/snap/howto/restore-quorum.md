@@ -1,7 +1,7 @@
 # How to recover a cluster after quorum loss
 
-Highly available {{product}} clusters can survive losing one or more
-nodes. Both [etcd] and [Dqlite] implement a [Raft] based protocol
+Highly available {{product}} clusters are designed to tolerate losing 
+one or more nodes. Both [etcd] and [Dqlite] use [Raft] protocol
 where an elected leader holds the definitive copy of the database, which is
 then replicated on two or more secondary nodes.
 When the a majority of the nodes are lost, the cluster becomes unavailable.
@@ -12,6 +12,14 @@ steps outlined in this document.
 This guide can be used to recover the {{product}} managed datastore,
 which can be either etcd or Dqlite. Persistent volumes on the lost nodes are 
 *not* recovered.
+```
+
+```{note}
+{{product}} relies on two separate distributed datastores. The first 
+is a Dqlite-based cluster datastore used to manage the {{product}} itself. 
+The second is the Kubernetes backend datastore, which stores 
+Kubernetes objects' state and can be either etcd (default) or Dqlite, depending 
+on user configuration. For more information, please see [the architecture].
 ```
 
 If you have set Dqlite as the datastore, please consult the 
@@ -35,7 +43,7 @@ sudo etcdctl --cacert /etc/kubernetes/pki/etcd/ca.crt \
         snapshot save snapshot.db
 ```
 
-Follow the [upstream instructions] to take an snapshot of the Keyspace. 
+Follow the [upstream instructions] to take a snapshot of the Keyspace. 
 
 ### Stop {{product}} services on all nodes
 
@@ -52,7 +60,8 @@ Choose one of the remaining healthy cluster nodes that has the most recent
 version of the Raft log. Use the `cluster-recover` command to reconfigure 
 the Raft members and generate recovery tarballs that are used to restore the 
 cluster datastore on lost nodes. The command is an interactive tool that 
-allows you modify the relevant files and provides useful hints at each step.
+allows you to modify the relevant files and provides useful hints at each step.
+On the node with the most recent Raft logs, run:
 
 ```
 sudo /snap/k8s/current/bin/k8sd cluster-recover \
@@ -74,7 +83,7 @@ instruct `cluster-recover` to ignore the Dqlite Kubernetes datastore.
 ```
 
 Adjust the log level for additional debug messages by increasing its
-value. Database backups are created before making any changes.
+value. Database backups are created by the command before making any changes.
 
 Copy the generated ``recovery_db.tar.gz`` to all remaining nodes at
 ``/var/snap/k8s/common/var/lib/k8sd/state/recovery_db.tar.gz``. When the k8sd
@@ -138,6 +147,7 @@ version of the Raft log. Use the `cluster-recover` command to reconfigure
 the Raft members and generate recovery tarballs that are used to restore the 
 cluster datastore on lost nodes. The command is an interactive tool that 
 allows you modify the relevant files and provides useful hints at each step.
+On the node with the most recent Raft logs, run:
 
 ```
 sudo /snap/k8s/current/bin/k8sd cluster-recover \
@@ -150,9 +160,6 @@ Use the command to update the ``cluster.yaml`` file, changing the role of the
 lost nodes to "spare". Additionally, verify the addresses and IDs specified 
 in ``cluster.yaml``, ``info.yaml`` and ``daemon.yaml`` are correct, 
 especially if database files were moved across nodes.
-
-Adjust the log level for additional debug messages by increasing its
-value. Database backups are created before making any changes.
 
 The above command will reconfigure the Raft members and create recovery
 tarballs that are used to restore the lost nodes, once the Dqlite
@@ -256,3 +263,4 @@ gateway                   enabled
 [upstream instructions]: https://etcd.io/docs/latest/op-guide/recovery/
 [Dqlite configuration reference]: ../reference/dqlite.md
 [Raft]: https://raft.github.io/
+[the architecture]: ../explanation/architecture/
