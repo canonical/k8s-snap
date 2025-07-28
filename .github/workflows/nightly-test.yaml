@@ -40,17 +40,58 @@ jobs:
           # Stable branches
           # Add branches to test here
           # TODO: automatically retrieve the list of channels.
-          - { branch: release-1.30, channel: 1.30-classic/edge }
           - { branch: release-1.31, channel: 1.31-classic/edge }
           - { branch: release-1.32, channel: 1.32-classic/edge }
     uses: ./.github/workflows/security-scan.yaml
     with:
       channel: ${{ matrix.channel }}
       checkout-ref: ${{ matrix.branch }}
+      upload-reports-to-jira: true
+    secrets: inherit
 
   TICS:
+    if: ${{ always() && github.event_name == 'schedule' }}
     permissions:
       contents: read
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - { branch: main }
+    steps:
+      - name: Checking out repo
+        uses: actions/checkout@v4
+      - name: Save tics-scan.sh script
+        run: |
+          # We'll need to scan other branches, let's create a copy of
+          # the TICS scan script.
+          cp tests/tics-scan.sh /tmp/tics-scan.sh
+      - name: Checking out tested repo branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{matrix.branch}}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: './src/k8s/go.mod'
+      - name: go mod download
+        working-directory: src/k8s
+        run: go mod download
+      - name: TICS scan
+        run: |
+          export TICSAUTHTOKEN=${{ secrets.TICSAUTHTOKEN }}
+          /tmp/tics-scan.sh `pwd`
+
+  Mattermost:
+    name: Notify Mattermost
+    # Notify on success or failure but only if the event is a scheduled run.
+    # We don't want to ping people of failed PRs.
+    if: ${{ always() && github.event_name == 'schedule' }}
+    # Note: Update results check below if you change the "needs" list.
+    needs: [test-integration, Trivy, TICS]
     runs-on: ubuntu-latest
     strategy:
       matrix:
