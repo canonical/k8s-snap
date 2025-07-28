@@ -107,14 +107,27 @@ Get the `<NAME>` and `<ADVERTISE_PEER_URLS>` for each node by
 executing the following command:
 
 ```
-args=$(grep -E '^--(name|initial-advertise-peer-urls)=' /var/snap/k8s/common/args/etcd | xargs)
+echo $(grep -E '^--(name|initial-advertise-peer-urls)=' /var/snap/k8s/common/args/etcd | xargs)
+```
+
+for each node the output could be something like:
+
+```
+--initial-advertise-peer-urls=https://10.246.154.125:2380 --name=node-1
 ```
 
 The `<INITIAL_CLUSTER>` will be the comma-separated list of all remaining 
 cluster members fetched from each node by running:
 
 ```
-args=$(grep -E '^--(initial-cluster)=' /var/snap/k8s/common/args/etcd | xargs)
+echo $(grep -E '^--(initial-cluster)=' /var/snap/k8s/common/args/etcd | xargs)
+```
+
+Aggregate the results from all remaining nodes to form the `<INITIAL_CLUSTER>`
+that should have a format like below:
+
+```
+node-1=https://10.246.154.125:2380,node-2=https://10.246.154.126:2380,node-3=https://10.246.154.127:2380
 ```
 
 ### Start the services 
