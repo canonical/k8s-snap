@@ -258,7 +258,7 @@ def setup_k8s_snap(
     if isinstance(which_snap, str) and which_snap.startswith("/"):
         LOG.info("Install k8s snap by path")
         snap_path = (tmp_path / "k8s.snap").as_posix()
-        instance.exec(["mkdir", "-p", tmp_path.as_posix()])
+        instance.exec(["mkdir", "-m", "0777", "-p", tmp_path.as_posix()])
         instance.send_file(which_snap, snap_path)
         cmd += ["--dangerous", snap_path]
     elif _as_int(which_snap):
