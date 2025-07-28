@@ -93,7 +93,7 @@ class MultipassHarness(Harness):
                 # cloud-init very well and the command times out even if
                 # the underlying machine works just fine.
                 # See https://github.com/canonical/multipass/issues/4199
-                # Hence, we disable the check for this call, and manually wait until
+                # Hence, we don't fail on the timeout of this command, and manually wait until
                 # the cloud-init is done.
                 run(
                     cmd + ["--cloud-init", "-"],
