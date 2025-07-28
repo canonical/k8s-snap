@@ -24,6 +24,8 @@ def _get_failure_domain(availability_zone: str) -> int:
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.parametrize("same_az", (False, True))
 @pytest.mark.parametrize("datastore", ("k8s-dqlite", "etcd"))
+# For k8s-dqlite
+@pytest.mark.required_ports(9000)
 def test_node_availability_zone(
     instances: List[harness.Instance],
     same_az: bool,

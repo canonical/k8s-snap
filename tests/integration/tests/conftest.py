@@ -158,6 +158,8 @@ def pytest_configure(config):
         "markers",
         "bootstrap_config: Provide a custom bootstrap config to the bootstrapping node.\n"
         "disable_k8s_bootstrapping: By default, the first k8s node is bootstrapped. This marker disables that.\n"
+        "required_ports: Specify ports that need to be open on the instances for the test to run. \
+            Only required for additional ports. k8s-snap default ports are expected to be open.\n"
         "no_setup: No setup steps (pushing snap, bootstrapping etc.) are performed on any node for this test.\n"
         "containerd_cfgdir: The instance containerd config directory, defaults to /etc/containerd."
         "network_type: Specify network type to use for the infrastructure (IPv4, Dualstack or IPv6).\n"
@@ -202,6 +204,15 @@ def disable_k8s_bootstrapping(request) -> bool:
 
 
 @pytest.fixture(scope="function")
+def required_ports(request) -> List[int]:
+    return (
+        list(request.node.get_closest_marker("required_ports").args)
+        if request.node.get_closest_marker("required_ports")
+        else []
+    )
+
+
+@pytest.fixture(scope="function")
 def no_setup(request) -> bool:
     return bool(request.node.get_closest_marker("no_setup"))
 
@@ -240,6 +251,7 @@ def instances(
     node_count: int,
     tmp_path: Path,
     disable_k8s_bootstrapping: bool,
+    required_ports: List[int],
     no_setup: bool,
     containerd_cfgdir: str,
     bootstrap_config: Union[str, None],
@@ -263,9 +275,14 @@ def instances(
 
         util.preload_snaps(instance)
 
+        h.open_ports(
+            instance.id,
+            required_ports,
+        )
+
         if not no_setup:
             util.setup_core_dumps(instance)
-            util.setup_k8s_snap(instance, tmp_path, snap)
+            util.setup_k8s_snap(instance, snap)
 
             if config.USE_LOCAL_MIRROR:
                 registry.apply_configuration(instance, containerd_cfgdir)

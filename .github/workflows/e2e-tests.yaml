@@ -51,6 +51,9 @@ on:
       UBUNTU_PRO_TOKEN:
         description: An optional Ubuntu Pro token to use for multipass tests
         required: false
+      LAUNCHPAD_K8S_CI_BOT_PASSWORD:
+        description: Password for the k8s-team-ci bot on Launchpad, used for DISA-STIG tests
+        required: false
 
   workflow_dispatch:
     inputs:
@@ -190,6 +193,7 @@ jobs:
           TEST_GH_REF: ${{ github.ref_name }}
           TEST_GH_BASE_REF: ${{ github.base_ref }}
           TEST_UBUNTU_PRO_TOKEN: ${{ secrets.UBUNTU_PRO_TOKEN }}
+          TEST_LAUNCHPAD_K8S_CI_BOT_PASSWORD: ${{ secrets.LAUNCHPAD_K8S_CI_BOT_PASSWORD }}
           TEST_SKIP_CLEANUP: 1
         run: |
           # Parse extra-test-env and export each KEY=VALUE pair
@@ -203,6 +207,11 @@ jobs:
           fi
 
           cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- ${{ inputs.parallel && matrix.test || '' }} ${{ env.PERFORMANCE_FLAGS }} --tags ${{ inputs.test-tags }} ${{ inputs.extra-test-args }}
+      - name: Setup tmate session
+        if: failure()
+        uses: mxschmitt/action-tmate@v3
+        with:
+          detached: true
       - name: Prepare inspection reports
         if: failure()
         run: |

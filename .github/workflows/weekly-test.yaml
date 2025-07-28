@@ -16,8 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Note(ben): FIPS is not yet available for noble.
-        os: ["jammy"]
+        os: ["jammy", "noble"]
         arch: ["amd64"]
         channel: ["latest/edge"]
     uses: ./.github/workflows/e2e-tests.yaml
@@ -27,9 +26,10 @@ jobs:
       channel: ${{ matrix.channel }}
       test-tags: 'up_to_weekly'
       substrate: 'multipass'
-      extra-test-env: 'TEST_MULTIPASS_CLOUD_INIT=ubuntu-pro-fips.yaml,TEST_USE_LOCAL_MIRROR=0,TEST_PRELOAD_SNAPS=0,TEST_SKIP_CLEANUP=1'
+      extra-test-env: 'TEST_MULTIPASS_CLOUD_INIT=ubuntu-pro-fips-stig-${{ matrix.os }}.yaml,TEST_USE_LOCAL_MIRROR=0,TEST_PRELOAD_SNAPS=0,TEST_SKIP_CLEANUP=1'
     secrets:
       UBUNTU_PRO_TOKEN: ${{ secrets.UBUNTU_PRO_TOKEN }}
+      LAUNCHPAD_K8S_CI_BOT_PASSWORD: ${{ secrets.LAUNCHPAD_K8S_CI_BOT_PASSWORD }}
 
   Mattermost:
     name: Notify Mattermost
