@@ -74,7 +74,9 @@ def test_dualstack(instances: List[harness.Instance]):
             or f'--node-ip="{ipv6},{ipv4}"' in p.stdout.decode()
         )
 
-    util.stubbornly(retries=10, delay_s=10).on(main).until(ips_available).exec(["cat", "/var/snap/k8s/common/args/kubelet"])
+    util.stubbornly(retries=10, delay_s=10).on(main).until(ips_available).exec(
+        ["cat", "/var/snap/k8s/common/args/kubelet"]
+    )
 
 
 @pytest.mark.node_count(3)
