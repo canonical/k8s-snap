@@ -6,6 +6,7 @@ import logging
 import shlex
 import subprocess
 from pathlib import Path
+from typing import List
 
 from test_util import config
 from test_util.harness import Harness, HarnessError, Instance
@@ -190,6 +191,11 @@ class JujuHarness(Harness):
         if check:
             completed.check_returncode()
         return completed
+
+    def open_ports(self, instance_id: str, ports: List[int]):
+        raise NotImplementedError(
+            "Opening ports is not yet supported by the Juju harness. "
+        )
 
     def delete_instance(self, instance_id: str):
         if instance_id not in self.instances:

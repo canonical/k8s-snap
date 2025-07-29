@@ -8,6 +8,7 @@ import re
 import shlex
 import subprocess
 from pathlib import Path
+from typing import List
 
 from test_util import config
 from test_util.harness import Harness, HarnessError, Instance
@@ -115,6 +116,8 @@ class MultipassHarness(Harness):
                         "json",
                     ],
                     capture_output=True,
+                    # cloud-init returns 2 even when it is done.
+                    check=False,
                     text=True,
                     timeout=20,
                 )
@@ -226,6 +229,24 @@ class MultipassHarness(Harness):
             ],
             **kwargs,
         )
+
+    def open_ports(self, instance_id: str, ports: List[int]):
+        """Open ports on the instance.
+
+        :param instance_id: The instance_id, as returned by new_instance()
+        :param ports: List of ports to open on the instance.
+
+        Ports will be opened on a best effort basis. If the port is already open,
+        or UFW is not installed, no error will be raised.
+        """
+        if instance_id not in self.instances:
+            raise HarnessError(f"unknown instance {instance_id}")
+
+        for port in ports:
+            LOG.debug("Opening port %s on instance %s", port, instance_id)
+            # UFW might not be installed, if this is the case, then no firewall
+            # is active and nothing needs to be done.
+            self.exec(instance_id, ["sudo", "ufw", "allow", str(port)], check=False)
 
     def delete_instance(self, instance_id: str):
         if instance_id not in self.instances:

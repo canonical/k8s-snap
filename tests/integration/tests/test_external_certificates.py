@@ -193,6 +193,8 @@ def delete_nginx_pod(instance: harness.Instance):
 @pytest.mark.node_count(3)
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.tags(tags.NIGHTLY)
+# For communication with Vault
+@pytest.mark.required_ports(8200)
 def test_vault_intermediate_ca(instances: List[harness.Instance]):
     instance = instances[0]
     cp_node = instances[1]
@@ -251,6 +253,8 @@ def test_vault_intermediate_ca(instances: List[harness.Instance]):
 @pytest.mark.node_count(3)
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.tags(tags.NIGHTLY)
+# For communication with Vault
+@pytest.mark.required_ports(8200)
 def test_vault_certificates(instances: List[harness.Instance]):
     instance = instances[0]
     bootstrap_node_ip = util.get_default_ip(instance)
@@ -454,6 +458,8 @@ def test_vault_certificates(instances: List[harness.Instance]):
 @pytest.mark.node_count(2)
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.tags(tags.NIGHTLY)
+# For communication with Vault
+@pytest.mark.required_ports(8200)
 def test_partial_refresh(instances: List[harness.Instance]):
     instance = instances[0]
     bootstrap_node_ip = util.get_default_ip(instance)
