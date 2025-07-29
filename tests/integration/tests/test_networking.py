@@ -66,10 +66,15 @@ def test_dualstack(instances: List[harness.Instance]):
 
     assert ipv4 and ipv6, "Both IPv4 and IPv6 addresses should be present"
 
-    util.stubbornly(retries=10, delay_s=10).on(main).until(
-        lambda p: f'--node-ip="{ipv4},{ipv6}"' in p.stdout.decode()
-        or f'--node-ip="{ipv6},{ipv4}"' in p.stdout.decode()
-    ).exec(["cat", "/var/snap/k8s/common/args/kubelet"])
+    def ips_available(p):
+        LOG.info("ipv4 = %s, ipv6 = %s", ipv4, ipv6)
+        LOG.info(p.stdout.decode())
+        return (
+            f'--node-ip="{ipv4},{ipv6}"' in p.stdout.decode()
+            or f'--node-ip="{ipv6},{ipv4}"' in p.stdout.decode()
+        )
+
+    util.stubbornly(retries=10, delay_s=10).on(main).until(ips_available).exec(["cat", "/var/snap/k8s/common/args/kubelet"])
 
 
 @pytest.mark.node_count(3)
