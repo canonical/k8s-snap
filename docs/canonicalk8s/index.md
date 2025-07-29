@@ -25,7 +25,7 @@ your needs. If you would like to jump straight in, head to the
 
 ## In this documentation
 <!-- markdownlint-disable -->
-{{product}} can be deployed as a standalone snap, as a charm as part of a
+{{product}} can be deployed and managed as a standalone snap, as a charm as part of a
 Juju cluster or with Cluster API. Find out more about which {{product}}
 deployment method is best for your
 project's needs with
