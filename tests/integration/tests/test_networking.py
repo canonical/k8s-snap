@@ -47,11 +47,14 @@ def test_dualstack(instances: List[harness.Instance]):
         .stdout
     )
 
+    ipv4, ipv6 = "", ""
     for ip in addresses.split():
         addr = ip_address(ip.strip("'"))
         if isinstance(addr, IPv6Address):
+            ipv4 = str(addr)
             address = f"http://[{str(addr)}]"
         elif isinstance(addr, IPv4Address):
+            ipv6 = str(addr)
             address = f"http://{str(addr)}"
         else:
             pytest.fail(f"Unknown IP address type: {addr}")
@@ -60,6 +63,13 @@ def test_dualstack(instances: List[harness.Instance]):
         util.stubbornly(retries=10, delay_s=1).on(main).exec(
             ["curl", address], shell=True
         )
+
+    assert ipv4 and ipv6, "Both IPv4 and IPv6 addresses should be present"
+
+    util.stubbornly(retries=10, delay_s=10).on(main).until(
+        lambda p: f'--node-ip="{ipv4},{ipv6}"' in p.stdout.decode()
+        or f'--node-ip="{ipv6},{ipv4}"' in p.stdout.decode()
+    ).exec(["cat", "/var/snap/k8s/common/args/kubelet"])
 
 
 @pytest.mark.node_count(3)
