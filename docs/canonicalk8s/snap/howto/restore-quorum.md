@@ -76,7 +76,7 @@ lost nodes to "spare". Additionally, verify the addresses and IDs specified
 in ``cluster.yaml``, ``info.yaml`` and ``daemon.yaml`` are correct, 
 especially if database files were moved across nodes.
 
-```note
+```{note}
 By default, `cluster-recover` will recover both Dqlite cluster and Kubernetes 
 datastores. When etcd is used, the ``--skip-k8s-dqlite`` flag is needed to 
 instruct `cluster-recover` to ignore the Dqlite Kubernetes datastore.
