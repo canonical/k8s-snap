@@ -2,6 +2,7 @@
 # Copyright 2025 Canonical, Ltd.
 #
 import logging
+import re
 from ipaddress import IPv4Address, IPv6Address, ip_address
 from typing import List
 
@@ -47,14 +48,11 @@ def test_dualstack(instances: List[harness.Instance]):
         .stdout
     )
 
-    ipv4, ipv6 = "", ""
     for ip in addresses.split():
         addr = ip_address(ip.strip("'"))
         if isinstance(addr, IPv6Address):
-            ipv4 = str(addr)
             address = f"http://[{str(addr)}]"
         elif isinstance(addr, IPv4Address):
-            ipv6 = str(addr)
             address = f"http://{str(addr)}"
         else:
             pytest.fail(f"Unknown IP address type: {addr}")
@@ -64,15 +62,46 @@ def test_dualstack(instances: List[harness.Instance]):
             ["curl", address], shell=True
         )
 
-    assert ipv4 and ipv6, "Both IPv4 and IPv6 addresses should be present"
-
     def ips_available(p):
-        LOG.info("ipv4 = %s, ipv6 = %s", ipv4, ipv6)
-        LOG.info(p.stdout.decode())
-        return (
-            f'--node-ip="{ipv4},{ipv6}"' in p.stdout.decode()
-            or f'--node-ip="{ipv6},{ipv4}"' in p.stdout.decode()
+        # Look for --node-ip="ip1,ip2" pattern
+        node_ip_match = re.search(r'--node-ip="([^"]+)"', p.stdout.decode())
+        if not node_ip_match:
+            LOG.warning("No --node-ip found in stdout")
+            return False
+
+        node_ip_value = node_ip_match.group(1)
+        LOG.info("Found node-ip value: %s", node_ip_value)
+
+        # Split by comma and validate IP addresses
+        ips = [ip.strip() for ip in node_ip_value.split(",")]
+        if len(ips) != 2:
+            LOG.warning("Expected 2 IPs in node-ip, got %d: %s", len(ips), ips)
+            return False
+
+        # Check if we have one IPv4 and one IPv6
+        ipv4_found = False
+        ipv6_found = False
+
+        for ip in ips:
+            try:
+                addr = ip_address(ip)
+                if isinstance(addr, IPv4Address):
+                    ipv4_found = True
+                elif isinstance(addr, IPv6Address):
+                    ipv6_found = True
+                LOG.info("Parsed IP: %s (type: %s)", ip, type(addr).__name__)
+            except ValueError as e:
+                LOG.warning("Invalid IP address '%s': %s", ip, e)
+                return False
+
+        success = ipv4_found and ipv6_found
+        LOG.info(
+            "IP validation result - IPv4 found: %s, IPv6 found: %s, success: %s",
+            ipv4_found,
+            ipv6_found,
+            success,
         )
+        return success
 
     util.stubbornly(retries=10, delay_s=10).on(main).until(ips_available).exec(
         ["cat", "/var/snap/k8s/common/args/kubelet"]
