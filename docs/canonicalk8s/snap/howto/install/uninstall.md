@@ -6,13 +6,19 @@ snap from your system.
 ## Remove the node from the cluster
 
 ```{important}
-You must remove the node from the cluster **before** deleting the snap. Deleting the snap while node is part of the cluster can cause the node to enter an unreachable state.
+You must remove the node from the cluster **before** deleting the snap. Deleting the snap while the node is part of the cluster can cause the node to enter an unreachable state.
 ```
 
-From the control plane node:
+From any control plane node:
 
 ```
 sudo k8s remove-node <NODE_NAME>
+```
+
+Ensure the node has been removed from the cluster:
+
+```
+sudo k8s kubectl get nodes 
 ```
 
 ## Remove the k8s snap
