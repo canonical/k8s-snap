@@ -43,9 +43,9 @@ allows integrations with alternative storage solutions.
 - **Identity management**: Out of the box the K8s snap offers credentials for
 an admin user. The admin user can complete the integration with any identity
 management system available or do user management manually.
-- **External datastore**: By default, Kubernetes uses etcd to keep track of
-state. Our K8s snap comes with [Dqlite] as its datastore. However, we permit
-end client owned datastore installation such as the use of an external `etcd`.
+- **External datastore**: By default, Canonical Kubernetes uses etcd to keep track of
+state. However, users can choose to switch to k8s-dqlite or use an end client
+ owned datastore installation such as the use of an external `etcd`.
 
 ## The k8s snap
 
@@ -59,8 +59,8 @@ The `k8s` snap distribution includes the following:
 and drive the cluster operations.
 - **K8s core components**: These are all the Kubernetes services as well as core
 workloads built from upstream and shipped in the snap.
-- **Kubernetes datastore**: uses Dqlite to store data on the state of the
-cluster. It can be replaced by an external datastore.
+- **Kubernetes datastore**: uses etcd to store data on the state of the
+cluster. It can be replaced by [k8s-dqlite] or an external datastore.
 - **Cluster datastore**: uses Dqlite managed by [Microcluster] as a replicated
 database to store cluster configuration. It is used
 by `k8sd` in order to carry out the orchestration of the additional Kubernetes
@@ -151,5 +151,5 @@ and flexible {{product}} deployment managed through Juju.
 [K8s-Worker charm]:   https://charmhub.io/k8s-worker
 [Juju docs]:          https://juju.is/docs/juju
 [COS docs]:           https://ubuntu.com/observability
-[Dqlite]:             https://github.com/canonical/k8s-dqlite
+[k8s-dqlite]:             https://github.com/canonical/k8s-dqlite
 [Microcluster]:       https://github.com/canonical/microcluster

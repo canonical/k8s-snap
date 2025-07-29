@@ -142,7 +142,7 @@ Services running only on the control-plane nodes:
 * `kube-apiserver`
 * `kube-controller-manager`
 * `kube-scheduler`
-* `k8s-dqlite`
+* `etcd`
 
 Services running only on the worker nodes:
 
