@@ -22,6 +22,7 @@ runcmd:
   - sudo usg fix --tailoring-file /etc/usg/tailoring.xml
   - sudo passwd -d ubuntu
   # Configure Firewall rules
+  - sudo sed -i 's/^DEFAULT_FORWARD_POLICY=.*/DEFAULT_FORWARD_POLICY="ACCEPT"/' /etc/default/ufw
   - sudo sysctl -w net.ipv4.ip_forward=1
   - sudo ufw allow 6443/tcp
   - sudo ufw allow 10250/tcp

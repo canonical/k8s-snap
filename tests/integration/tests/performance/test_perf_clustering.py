@@ -11,7 +11,7 @@ from test_util import harness, tags, util
 @pytest.mark.no_setup()
 @pytest.mark.tags(tags.PERFORMANCE)
 def test_perf_clustering_bootstrap_cli(
-    instances: List[harness.Instance], tmp_path: str, benchmark
+    instances: List[harness.Instance], benchmark
 ):
     node = instances[0]
 
@@ -20,7 +20,7 @@ def test_perf_clustering_bootstrap_cli(
         # in 5.1.0. Once released, we can move this teardown logic in a separate function.
         # See https://github.com/ionelmc/pytest-benchmark/issues/270
         node.exec(["snap", "remove", "k8s", "--purge"])
-        util.setup_k8s_snap(node, tmp_path)
+        util.setup_k8s_snap(node)
 
     def run():
         node.exec(["k8s", "bootstrap"])

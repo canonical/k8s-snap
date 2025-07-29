@@ -282,7 +282,7 @@ def instances(
 
         if not no_setup:
             util.setup_core_dumps(instance)
-            util.setup_k8s_snap(instance, Path("/home/ubuntu"), snap)
+            util.setup_k8s_snap(instance, snap)
 
             if config.USE_LOCAL_MIRROR:
                 registry.apply_configuration(instance, containerd_cfgdir)

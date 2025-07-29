@@ -31,7 +31,7 @@ def test_strict_interfaces(instances: List[harness.Instance], tmp_path):
         channels = snap.get_channels(int(num_channels), flavour, cp.arch, "edge", True)
 
     for channel in channels:
-        util.setup_k8s_snap(cp, tmp_path, channel, connect_interfaces=False)
+        util.setup_k8s_snap(cp, channel, connect_interfaces=False)
 
         # Log the current snap version on the node.
         out = cp.exec(["snap", "list", config.SNAP_NAME], capture_output=True)
