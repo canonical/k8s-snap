@@ -127,7 +127,8 @@ class MultipassHarness(Harness):
 
         self.instances.add(instance_id)
 
-        stubbornly(retries=5, delay_s=5).on(instance_id).exec(
+        instance = Instance(self, instance_id)
+        stubbornly(retries=5, delay_s=5).on(instance).exec(
             ["snap", "wait", "system", "seed.loaded"]
         )
         if network_type in ("IPv6", "dualstack"):
@@ -149,7 +150,7 @@ class MultipassHarness(Harness):
                     f"Failed to configure IPv6 in instance {instance_id}"
                 ) from e
 
-        return Instance(self, instance_id)
+        return instance
 
     def send_file(self, instance_id: str, source: str, destination: str):
         if instance_id not in self.instances:
