@@ -127,7 +127,7 @@ class MultipassHarness(Harness):
 
         self.instances.add(instance_id)
 
-        stubbornly(retries=5, delay_s=5).on(self).exec(
+        stubbornly(retries=5, delay_s=5).on(instance_id).exec(
             ["snap", "wait", "system", "seed.loaded"]
         )
         if network_type in ("IPv6", "dualstack"):
