@@ -4,6 +4,7 @@ Highly available {{product}} clusters are designed to tolerate losing
 one or more nodes. Both [etcd] and [Dqlite] use [Raft] protocol
 where an elected leader holds the definitive copy of the database, which is
 then replicated on two or more secondary nodes.
+
 When the a majority of the nodes are lost, the cluster becomes unavailable.
 If at least one database node survived, the cluster can be recovered using the
 steps outlined in this document.
@@ -14,13 +15,28 @@ which can be either etcd or Dqlite. Persistent volumes on the lost nodes are
 *not* recovered.
 ```
 
-```{note}
-{{product}} relies on two separate distributed datastores. The first 
+{{product}} smoothlyrelies on two separate distributed datastores. The first 
 is a Dqlite-based cluster datastore used to manage the {{product}} itself. 
 The second is the Kubernetes backend datastore, which stores 
 Kubernetes objects' state and can be either etcd (default) or Dqlite, depending 
 on user configuration. For more information, please see [the architecture].
-```
+
+Let's suppose you had a cluster with 7 control plane nodes, and 4 of them lost
+connection to the cluster. At this point, the cluster cannot form a quorum and
+ceases to operate. To bring the cluster back online with the remaining 3 nodes,
+we are going to start by stopping the services on all machines. Then, pick one
+healthy machine to guide the recovery. The recovery process includes
+reconfiguring the cluster membership on both {{product}} datastores to remove
+the 4 lost nodes, instructing the datastores to form a quorum with the 
+remainin 3 nodes, and replicating the most recent Raft log so that all the
+remaining nodes have the same view of the distributed state. There’s a helpful
+tool that will walk you through some of the process. It will create the
+files needed to restore the rest of the machines.
+
+Whether your setup uses etcd or Dqlite, just follow the instructions to
+restore the data safely. Once that’s done, restart the services on each
+machine. The system will reconnect, and before long, your cluster will be up
+and running again.
 
 If you have set Dqlite as the datastore, please consult the 
 [Dqlite configuration reference] before moving forward.
@@ -152,7 +168,8 @@ for each node the output could be something like:
 ```
 
 The `<INITIAL_CLUSTER>` will be the comma-separated list of all remaining 
-cluster members fetched from each node by running:
+cluster members. The list should be created by gathering the results from
+running the following command on each node:
 
 ```
 echo $(grep -E '^--(initial-cluster)=' /var/snap/k8s/common/args/etcd | xargs)
