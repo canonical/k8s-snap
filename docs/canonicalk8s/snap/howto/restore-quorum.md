@@ -1,6 +1,6 @@
 # How to recover a cluster after quorum loss
 
-Highly available {{product}} clusters are designed to tolerate losing 
+Highly available {{product}} clusters are designed to tolerate the loss of 
 one or more nodes. Both [etcd] and [Dqlite] use [Raft] protocol
 where an elected leader holds the definitive copy of the database, which is
 then replicated on two or more secondary nodes.
@@ -9,17 +9,17 @@ When the a majority of the nodes are lost, the cluster becomes unavailable.
 If at least one database node survived, the cluster can be recovered using the
 steps outlined in this document.
 
-```{note}
+```{warning}
 This guide can be used to recover the {{product}} managed datastore,
 which can be either etcd or Dqlite. Persistent volumes on the lost nodes are 
 *not* recovered.
 ```
 
-{{product}} smoothlyrelies on two separate distributed datastores. The first 
-is a Dqlite-based cluster datastore used to manage the {{product}} itself. 
-The second is the Kubernetes backend datastore, which stores 
-Kubernetes objects' state and can be either etcd (default) or Dqlite, depending 
-on user configuration. For more information, please see [the architecture].
+{{product}} relies on two separate distributed datastores. The first 
+is a Dqlite-based cluster datastore used to manage the distribution's state. 
+The second database stores the Kubernetes objects' state and is either etcd 
+by default or Dqlite, depending on user configuration. For more information, 
+please see [the architecture guide].
 
 Let's suppose you had a cluster with 7 control plane nodes, and 4 of them lost
 connection to the cluster. At this point, the cluster cannot form a quorum and
@@ -38,7 +38,7 @@ restore the data safely. Once that’s done, restart the services on each
 machine. The system will reconnect, and before long, your cluster will be up
 and running again.
 
-If you have set Dqlite as the datastore, please consult the 
+If you have set up Dqlite as the datastore, please consult the 
 [Dqlite configuration reference] before moving forward.
 
 ## Stop {{product}} services on all nodes
@@ -228,11 +228,11 @@ For each node, start the {{product}} services by running:
 sudo snap start k8s
 ```
 
-Ensure that the services started successfully by using
+Confirm that the services started successfully by running
 ``sudo snap services k8s``. Use ``sudo k8s status --wait-ready`` to wait for the
 cluster to become ready.
 
-Once a quorum is achieved the cluster will be reported as "highly available":
+Once the nodes are up the cluster will be reported as "highly available" again:
 
 ```
 $ sudo k8s status
@@ -257,4 +257,4 @@ gateway                   enabled
 [upstream instructions]: https://etcd.io/docs/latest/op-guide/recovery/
 [Dqlite configuration reference]: ../reference/dqlite.md
 [Raft]: https://raft.github.io/
-[the architecture]: ../explanation/architecture/
+[the architecture guide]: ../explanation/architecture/
