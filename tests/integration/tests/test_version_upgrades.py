@@ -280,12 +280,13 @@ def test_version_downgrades_with_rollback(
 @pytest.mark.no_setup()
 @pytest.mark.tags(tags.NIGHTLY)
 @pytest.mark.skipif(
+    config.SUBSTRATE == "multipass", reason="runner size too small on multipass"
+)
+@pytest.mark.skipif(
     # TODO(Adam): use TEST_VERSION_UPGRADE_CHANNELS if not set
     not config.SNAP,
     reason="Feature upgrades require a local snap file",
 )
-# Old versions still have the k8s-dqlite datastore
-@pytest.mark.required_ports(9000)
 def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: Path):
     """Verify that feature upgrades function correctly.
 
