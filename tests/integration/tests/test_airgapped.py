@@ -2,7 +2,6 @@
 # Copyright 2025 Canonical, Ltd.
 #
 import time
-from pathlib import Path
 from typing import List
 
 import pytest

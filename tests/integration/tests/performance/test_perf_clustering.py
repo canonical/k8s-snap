@@ -10,9 +10,7 @@ from test_util import harness, tags, util
 @pytest.mark.node_count(1)
 @pytest.mark.no_setup()
 @pytest.mark.tags(tags.PERFORMANCE)
-def test_perf_clustering_bootstrap_cli(
-    instances: List[harness.Instance], benchmark
-):
+def test_perf_clustering_bootstrap_cli(instances: List[harness.Instance], benchmark):
     node = instances[0]
 
     def setup():
