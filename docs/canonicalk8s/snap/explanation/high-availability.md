@@ -58,9 +58,11 @@ even if some nodes fail.
 
 Dqlite and etcd handle quorum formation differently in a two-node 
 cluster configuration. With Dqlite, the second node that joins the cluster 
-initially acts as a follower and is only promoted to a voter once the cluster 
-reaches three nodes. In contrast, etcd adds the second node as a full voter 
-right away, effectively forming a quorum with just two nodes.
+initially acts as a follower, a node that doesn't participate in forming 
+the quorum and is holding a replica of the state, and is only promoted to a 
+voter once the cluster reaches three nodes. In contrast, etcd adds the 
+second node as a full voter right away, effectively forming a quorum with 
+just two nodes.
 
 This design difference impacts cluster behavior during node failure. If one 
 node fails in a Dqlite-backed cluster, the cluster can still operate as 

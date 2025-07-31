@@ -21,16 +21,16 @@ The second database stores the Kubernetes objects' state and is either etcd
 by default or Dqlite, depending on user configuration. For more information, 
 please see [the architecture guide].
 
-Let's suppose you had a cluster with 7 control plane nodes, and 4 of them lost
-connection to the cluster. At this point, the cluster cannot form a quorum and
-ceases to operate. To bring the cluster back online with the remaining 3 nodes,
-we are going to start by stopping the services on all machines. Then, pick one
-healthy machine to guide the recovery. The recovery process includes
-reconfiguring the cluster membership on both {{product}} datastores to remove
+Let's suppose you had a cluster with 7 control plane nodes, and 4 of them lost 
+connection to the cluster. At this point, the cluster cannot form a quorum and 
+ceases to operate. To bring the cluster back online with the remaining 3 
+nodes, we are going to start by stopping the services on all machines. Then, 
+pick one healthy machine to guide the recovery. The recovery process includes 
+reconfiguring the cluster membership on both {{product}} datastores to remove 
 the 4 lost nodes, instructing the datastores to form a quorum with the 
-remainin 3 nodes, and replicating the most recent Raft log so that all the
-remaining nodes have the same view of the distributed state. There’s a helpful
-tool that will walk you through some of the process. It will create the
+remainin 3 nodes, and replicating the most recent Raft log so that all the 
+remaining nodes have the same view of the distributed state. There’s a helpful 
+tool that will walk you through some of the process. It will create the 
 files needed to restore the rest of the machines.
 
 Whether your setup uses etcd or Dqlite, just follow the instructions to
@@ -105,9 +105,9 @@ Adjust the log level for additional debug messages by increasing its
 value. Database backups are created by the command before making any changes.
 
 Copy the generated ``recovery_db.tar.gz`` to all remaining nodes at
-``/var/snap/k8s/common/var/lib/k8sd/state/recovery_db.tar.gz``. When the k8sd
-service starts, it will load the archive and perform the necessary recovery
-steps.
+``/var/snap/k8s/common/var/lib/k8sd/state/recovery_db.tar.gz``. When we 
+restart k8sd in a later step, it will load the archive and perform the 
+necessary recovery steps.
 
 ```{note}
 Non-interactive mode can be requested using the ``--non-interactive`` flag.
@@ -183,6 +183,16 @@ node-1=https://10.246.154.125:2380,node-2=https://10.246.154.126:2380,node-3=htt
 ```
 
 ````
+
+Ultimately you would need to run a command similar to the following:
+
+```
+etcdutl snapshot restore snapshot.db \
+      --name='node-1' \
+      --initial-advertise-peer-urls='https://10.246.154.125:2380' \
+      --initial-cluster='node-1=https://10.246.154.125:2380,node-2=https://10.246.154.126:2380,node-3=https://10.246.154.127:2380' \
+      --data-dir /var/snap/k8s/common/var/lib/etcd/data
+```
 
 ````{group-tab} Dqlite
 
