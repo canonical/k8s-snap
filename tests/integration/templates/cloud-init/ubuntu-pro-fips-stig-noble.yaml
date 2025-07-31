@@ -32,8 +32,8 @@ runcmd:
   - gpg --keyserver keyserver.ubuntu.com --recv-keys 185BA77D9DB344C3
   - gpg --export 185BA77D9DB344C3 | sudo tee /usr/share/keyrings/fips-under-certification.gpg > /dev/null
   - sudo apt update
-  - sudo apt install ubuntu-fips openssh-server --allow-downgrades
-  - sudo apt upgrade
+  - sudo apt install ubuntu-fips openssh-server --allow-downgrades --assume-yes
+  - sudo apt upgrade --assume-yes
 
 
   # enable stig compliance
@@ -45,7 +45,7 @@ runcmd:
   - sudo chmod 0440 /etc/sudoers.d/ubuntu_nopasswd
   - sudo pro attach $TEST_UBUNTU_PRO_TOKEN --no-auto-enable
   - sudo pro enable usg --assume-yes
-  - sudo apt install usg
+  - sudo apt install usg --assume-yes
   - sudo usg fix --tailoring-file /etc/usg/tailoring.xml
   - sudo passwd -d ubuntu
   # Configure Firewall rules
