@@ -17,8 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Note(ben): FIPS is not yet available for noble.
-        os: ["jammy"]
+        os: [ "noble"]
         arch: ["amd64"]
         channel: ["latest/edge"]
     uses: ./.github/workflows/e2e-tests.yaml

@@ -5,23 +5,32 @@ packages:
 runcmd:
   - echo "Installing Ubuntu Pro FIPS STIG Noble template"
   - echo "Setting up FIPS"
-  - export ARTIFACTORY_USER=$TEST_ARTIFACTORY_USER
-  - export ARTIFACTORY_PASS=$TEST_ARTIFACTORY_PASS
-  - curl -u "$ARTIFACTORY_USER:$ARTIFACTORY_PASS" "https://canonical.jfrog.io/artifactory/api/security/keypair/soss-deb-stable-local-signing-keys/public" | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/soss-deb-stable.gpg > /dev/null
+  # FIPS for noble is currently under certification and not yet
+  # published to the public PPA. Hence, we need to setup
+  # the private PPA and use the k8s-team-ci bot credentials.
+  - |
+    cat <<EOF | sudo tee /etc/apt/sources.list.d/fips.sources
+    Types: deb deb-src
+    URIs: https://private-ppa.launchpadcontent.net/fips-cc-stig/fips-under-certification/ubuntu
+    Suites: noble
+    Components: main
+    Architectures: amd64
+    Signed-By: /usr/share/keyrings/fips-under-certification.gpg
+    EOF
   - |
       cat <<EOF | sudo tee /etc/apt/preferences.d/ubuntu-fips
       Package: *
-      Pin: origin "canonical.jfrog.io"
+      Pin: origin private-ppa.launchpadcontent.net
       Pin-Priority: 1001
       EOF
   - |
-      cat <<EOF | sudo tee /etc/apt/auth.conf.d/soss-deb-stable.conf
-      machine https://canonical.jfrog.io
-      login $ARTIFACTORY_USER
-      password $ARTIFACTORY_PASS
+      cat <<EOF | sudo tee /etc/apt/auth.conf.d/launchpad.conf
+      machine private-ppa.launchpadcontent.net
+      login k8s-team-ci
+      password $TEST_LAUNCHPAD_K8S_CI_BOT_PASSWORD
       EOF
-  - sudo chmod 600 /etc/apt/auth.conf.d/soss-deb-stable.conf
-  - sh -c 'REPO=soss-stig-fips RELEASE=noble; echo "deb https://canonical.jfrog.io/artifactory/$REPO/ $RELEASE main" | sudo tee /etc/apt/sources.list.d/$REPO.list'
+  - gpg --keyserver keyserver.ubuntu.com --recv-keys 185BA77D9DB344C3
+  - gpg --export 185BA77D9DB344C3 | sudo tee /usr/share/keyrings/fips-under-certification.gpg > /dev/null
   - sudo apt update
   - sudo apt install ubuntu-fips openssh-server --allow-downgrades
   - sudo apt upgrade
@@ -34,6 +43,8 @@ runcmd:
   - echo "ubuntu:mynewpassword" | sudo chpasswd
   - 'echo "ubuntu ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/ubuntu_nopasswd'
   - sudo chmod 0440 /etc/sudoers.d/ubuntu_nopasswd
+  - sudo pro attach $TEST_UBUNTU_PRO_TOKEN --no-auto-enable
+  - sudo pro enable usg --assume-yes
   - sudo apt install usg
   - sudo usg fix --tailoring-file /etc/usg/tailoring.xml
   - sudo passwd -d ubuntu
