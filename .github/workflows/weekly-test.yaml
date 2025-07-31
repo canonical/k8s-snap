@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ "noble"]
+        os: ["jammy", "noble"]
         arch: ["amd64"]
         channel: ["latest/edge"]
     uses: ./.github/workflows/e2e-tests.yaml
