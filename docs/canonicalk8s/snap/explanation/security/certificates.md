@@ -4,7 +4,7 @@ Certificates are a crucial part of Kubernetes' security infrastructure, serving
 to authenticate and secure communication within the cluster. They play a key
 role in ensuring that communication between various components (such as the
 API server, kubelet, and the datastore) is both encrypted and restricted to
-authorised components only.
+authorized components only.
 
 In Kubernetes, [X.509][] certificates are primarily used for
 [Transport Layer Security][] (TLS), securing the communication between the
@@ -20,7 +20,7 @@ between cluster components, potentially disrupting the functionality of the
 entire cluster.
 
 Regular certificate refreshes ensure that the certificates in use are valid and
-secure, preventing unauthorised access or communication failures.
+secure, preventing unauthorized access or communication failures.
 
 ## Importance of certificate refreshes
 
@@ -33,7 +33,7 @@ are important:
 Certificates are crucial for securing Kubernetes clusters, ensuring encrypted
 and authenticated communication between components. If a certificate expires
 and isn't promptly renewed, it can leave the cluster vulnerable to security
-risks, potentially exposing it to unauthorised access. Regular certificate
+risks, potentially exposing it to unauthorized access. Regular certificate
 refreshes prevent this by ensuring only valid certificates are used,
 maintaining the cluster's security.
 

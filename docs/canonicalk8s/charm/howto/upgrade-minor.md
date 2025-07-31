@@ -84,7 +84,7 @@ rely on deprecated APIs.
 
 ### Decide if an upgrade is available
 
-Juju will contact [charmhub] daily to find new revisions of charms
+Juju will contact [Charmhub] daily to find new revisions of charms
 deployed in your models. To see if the `k8s` or `k8s-worker` charms
 can be upgraded, set with the following:
 
@@ -117,7 +117,7 @@ Otherwise, complete the [Upgrade Patch](upgrade-patch) instructions first.
 
 ```{caution} Only update the charm to the next minor version.
 If the current `charm-channel` is `1.31/stable`, it's critical
-to refresh to the `1.32/stable`. Skipping channels (eg 1.31 -> 1.33)
+to refresh to the `1.32/stable`. Skipping channels (e.g. 1.31 -> 1.33)
 will result in the units blocking and indicating they cannot upgrade.
 
 See Kubernetes' [Version Skew Policy][version-skew-policy]
@@ -209,7 +209,7 @@ to ensure that the cluster is fully functional.
 
 [Kubernetes release page]: https://kubernetes.io/releases/
 [backup-restore]:      ../../snap/howto/backup-restore
-[charmhub]:            https://charmhub.io/k8s
+[Charmhub]:            https://charmhub.io/k8s
 [cluster-validation]:  ./validate
 [juju-docs]:           https://documentation.ubuntu.com/juju/3.6/howto/manage-models/
 [release-notes]:       ../reference/releases

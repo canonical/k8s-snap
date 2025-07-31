@@ -8,9 +8,18 @@ security risks. This how-to will walk you through
 the steps to refresh the certificates for both control plane and worker
 nodes in your {{product}} cluster.
 
+```{warning}
+Only Kubernetes component certificates refreshes are supported with the
+ `k8s refresh-certs` command. Microcluster and k8s-dqlite certificates' expiration
+ is set to 20 years, so renewal is not typically necessary. They are not automatically
+ renewed by the command and currently cannot be refreshed manually.
+ Additionally, like upstream Kubernetes, rotating the Certificate Authority (CA) is not supported.
+```
+
 ## Prerequisites
 
-- A running {{product}} cluster
+- A running {{product}} cluster that has self-signed certificates enabled.
+ This would have been set during the bootstrap process.
 
 ```{note} To refresh the certificates in your cluster, make sure it was
 initially set up with self-signed certificates during the bootstrap process.
@@ -25,6 +34,8 @@ steps on each control plane node in your cluster:
 sudo k8s refresh-certs --expires-in 1y --extra-sans mynode.local
 ```
 
+**`--extra-sans`**
+
 This command refreshes the certificates for the control plane node, adding an
 extra [Subject Alternative Name][] (SAN) to the certificate. Check the
 current SANs on your node by running the following command:
@@ -33,17 +44,26 @@ current SANs on your node by running the following command:
 openssl x509 -in /etc/kubernetes/pki/apiserver.crt -noout -text | grep -A 1 "Subject Alternative Name"
 ```
 
-```{note} If your node setup includes additional SANs, be sure to provide the
+If your node setup includes additional SANs, be sure to provide the
 specific SANs for each node as needed using the `--extra-sans` flag. While this
 is not required, omitting them could impact your node's ability to communicate
 with other components in the cluster.
-```
+
+**`--expires-in`**
 
 The `--expires-in` flag sets the certificate's validity duration, which can
 be specified in years, months, days, or any other unit accepted by the
 [ParseDuration][] function in Go.
 
-The cluster will automatically update the certificates in the control plane
+**`--certificates`**
+
+By default, all internal certificates are refreshed on the control plane node
+when you run `refresh-certs`.
+You can however selectively refresh certificates using the `--certificates` flag
+and specify the certificates to be refreshed. Run `k8s refresh-certs -h` to
+see available options.
+
+2. The cluster will automatically update the certificates in the control plane
 node and restart the necessary services. The new expiration date will be
 displayed in the command output:
 
@@ -60,10 +80,18 @@ each worker node in your cluster:
 sudo k8s refresh-certs --expires-in 10y --timeout 10m
 ```
 
+**`--expires-in`**
+
 This command refreshes the certificates for the worker node. The `--expires-in`
 flag specifies the certificate's validity period, which can be set using any
 units accepted by the [ParseDuration][] function in Go, such as years, months,
 or days.
+
+**`--certificates`**
+
+Worker nodes support selective certificate renewal too. Use the
+`--certificates` flag to choose which certificates to refresh. For details, see
+`k8s refresh-certs -h`.
 
 2. During the certificate refresh, multiple Certificate Signing Requests (CSRs)
 are created. Follow the instructions in the command output to approve the CSRs

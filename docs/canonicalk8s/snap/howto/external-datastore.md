@@ -65,7 +65,7 @@ and is not available in interactive mode.
 
 ## Confirm the cluster is ready
 
-It is recommended to ensure that the cluster initialises properly and is
+It is recommended to ensure that the cluster initializes properly and is
 running without issues. Run the command:
 
 ```
