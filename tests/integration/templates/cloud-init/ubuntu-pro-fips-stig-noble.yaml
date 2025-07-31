@@ -32,8 +32,8 @@ runcmd:
   - gpg --keyserver keyserver.ubuntu.com --recv-keys 185BA77D9DB344C3
   - gpg --export 185BA77D9DB344C3 | sudo tee /usr/share/keyrings/fips-under-certification.gpg > /dev/null
   - sudo apt update
-  - sudo apt install ubuntu-fips openssh-server --allow-downgrades --assume-yes
-  - sudo apt upgrade --assume-yes
+  - DEBIAN_FRONTEND=noninteractive sudo -E apt install ubuntu-fips openssh-server --allow-downgrades --assume-yes
+  - DEBIAN_FRONTEND=noninteractive sudo -E apt upgrade --assume-yes
 
 
   # enable stig compliance
@@ -43,6 +43,7 @@ runcmd:
   - echo "ubuntu:mynewpassword" | sudo chpasswd
   - 'echo "ubuntu ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/ubuntu_nopasswd'
   - sudo chmod 0440 /etc/sudoers.d/ubuntu_nopasswd
+  - 'echo "contract_url: https://contracts.staging.canonical.com" > /etc/ubuntu-advantage/uaclient.conf'
   - sudo pro attach $TEST_UBUNTU_PRO_TOKEN --no-auto-enable
   - sudo pro enable usg --assume-yes
   - sudo apt install usg --assume-yes
