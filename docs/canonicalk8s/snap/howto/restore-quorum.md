@@ -53,7 +53,19 @@ sudo snap stop k8s
 ## Recover the cluster datastore 
 
 Choose one of the remaining healthy cluster nodes that has the most recent
-version of the Raft log. Use the `cluster-recover` command to reconfigure 
+version of the Raft log. 
+
+```{note}
+To find the node with the most recent log entries, navigate to
+/var/snap/k8s/common/var/lib/k8sd/state/database on each node and
+look at all the segment files matching the format 
+`0000000000006145-0000000000006823` (this is just an example).
+For each node, identify the segment file with the highest 
+end-segment index (e.g., 6823 in the example), then compare across 
+nodes and select the one with the highest index overall.
+```
+
+Use the `cluster-recover` command to reconfigure 
 the Raft members and generate recovery tarballs that are used to restore the 
 cluster datastore on lost nodes. The command is an interactive tool that 
 allows you to modify the relevant files and provides useful hints at each step.
