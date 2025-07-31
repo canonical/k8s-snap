@@ -22,12 +22,8 @@ def get_gateway_service_node_port(p):
     gateway_services = [
         svc
         for svc in services["items"]
-        if (
-            svc["metadata"].get("labels").get("projectcontour.io/owning-gateway-name")
-            == "my-gateway"
-            or svc["metadata"].get("labels").get("io.cilium.gateway/owning-gateway")
-            == "my-gateway"
-        )
+        if svc["metadata"].get("labels").get("io.cilium.gateway/owning-gateway")
+        == "my-gateway"
     ]
 
     for svc in gateway_services:
