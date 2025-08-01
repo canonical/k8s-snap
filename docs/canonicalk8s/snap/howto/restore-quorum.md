@@ -21,22 +21,14 @@ managed datastore, which can be either etcd or Dqlite. Persistent volumes on
 the lost nodes are *not* recovered.
 ```
 
-Let's suppose you had a cluster with 7 control plane nodes, and 4 of them lost 
-connection to the cluster. At this point, the cluster cannot form a quorum and 
-ceases to operate. To bring the cluster back online with the remaining 3 
-nodes, we are going to start by stopping the services on all machines. Then, 
-pick one healthy machine to guide the recovery. The recovery process includes 
-reconfiguring the cluster membership on both {{product}} datastores to remove 
-the 4 lost nodes, instructing the datastores to form a quorum with the 
-remainin 3 nodes, and replicating the most recent Raft log so that all the 
-remaining nodes have the same view of the distributed state. There’s a helpful 
-tool that will walk you through some of the process. It will create the 
-files needed to restore the rest of the machines.
-
-Whether your setup uses etcd or Dqlite, just follow the instructions to
-restore the data safely. Once that’s done, restart the services on each
-machine. The system will reconnect, and before long, your cluster will be up
-and running again.
+The recovery process can be roughly described as follow:
+- Stop the services on all nodes.
+- Select one of the remaining cluster nodes.
+- Reconfigure the cluster database membership.
+- Restore the cluster datastore state on all remaining nodes.
+- Reconfigure the Kubernetes database membership.
+- Restore the Kubernetes backend datastore on all remaning nodes.
+- Start the services on all nodes. 
 
 If you have set up Dqlite as the datastore, please consult the 
 [Dqlite configuration reference] before moving forward.
