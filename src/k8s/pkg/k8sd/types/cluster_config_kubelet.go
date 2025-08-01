@@ -54,6 +54,13 @@ func (c Kubelet) ToConfigMap(key *rsa.PrivateKey) (map[string]string, error) {
 	if v := c.ClusterDomain; v != nil {
 		data["cluster-domain"] = *v
 	}
+	if v := c.ControlPlaneTaints; v != nil {
+		taints, err := json.Marshal(*v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal control plane taints: %w", err)
+		}
+		data["control-plane-taints"] = string(taints)
+	}
 
 	if key != nil {
 		hash, err := c.hash()
@@ -87,6 +94,13 @@ func KubeletFromConfigMap(m map[string]string, key *rsa.PublicKey) (Kubelet, err
 	}
 	if v, ok := m["cluster-domain"]; ok {
 		c.ClusterDomain = &v
+	}
+	if v, ok := m["control-plane-taints"]; ok {
+		var taints []string
+		if err := json.Unmarshal([]byte(v), &taints); err != nil {
+			return Kubelet{}, fmt.Errorf("failed to parse control plane taints: %w", err)
+		}
+		c.ControlPlaneTaints = &taints
 	}
 
 	if key != nil {

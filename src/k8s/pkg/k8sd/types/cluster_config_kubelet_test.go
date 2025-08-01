@@ -23,14 +23,16 @@ func TestKubelet(t *testing.T) {
 		{
 			name: "Empty",
 			configmap: map[string]string{
-				"cluster-dns":    "",
-				"cluster-domain": "",
-				"cloud-provider": "",
+				"cluster-dns":          "",
+				"cluster-domain":       "",
+				"cloud-provider":       "",
+				"control-plane-taints": "[]",
 			},
 			kubelet: types.Kubelet{
-				ClusterDNS:    utils.Pointer(""),
-				ClusterDomain: utils.Pointer(""),
-				CloudProvider: utils.Pointer(""),
+				ClusterDNS:         utils.Pointer(""),
+				ClusterDomain:      utils.Pointer(""),
+				CloudProvider:      utils.Pointer(""),
+				ControlPlaneTaints: utils.Pointer([]string{}),
 			},
 		},
 		{
@@ -54,16 +56,27 @@ func TestKubelet(t *testing.T) {
 			},
 		},
 		{
-			name: "All",
+			name: "OnlyControlPlaneTaints",
 			configmap: map[string]string{
-				"cluster-dns":    "1.1.1.1",
-				"cluster-domain": "cluster.local",
-				"cloud-provider": "external",
+				"control-plane-taints": `["node-role.kubernetes.io/control-plane=true:NoSchedule"]`,
 			},
 			kubelet: types.Kubelet{
-				ClusterDNS:    utils.Pointer("1.1.1.1"),
-				ClusterDomain: utils.Pointer("cluster.local"),
-				CloudProvider: utils.Pointer("external"),
+				ControlPlaneTaints: utils.Pointer([]string{"node-role.kubernetes.io/control-plane=true:NoSchedule"}),
+			},
+		},
+		{
+			name: "All",
+			configmap: map[string]string{
+				"cluster-dns":          "1.1.1.1",
+				"cluster-domain":       "cluster.local",
+				"cloud-provider":       "external",
+				"control-plane-taints": `["node-role.kubernetes.io/control-plane=true:NoSchedule"]`,
+			},
+			kubelet: types.Kubelet{
+				ClusterDNS:         utils.Pointer("1.1.1.1"),
+				ClusterDomain:      utils.Pointer("cluster.local"),
+				CloudProvider:      utils.Pointer("external"),
+				ControlPlaneTaints: utils.Pointer([]string{"node-role.kubernetes.io/control-plane=true:NoSchedule"}),
 			},
 		},
 	} {
