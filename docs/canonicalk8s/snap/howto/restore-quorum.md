@@ -194,8 +194,6 @@ that should have a format like below:
 node-1=https://10.246.154.125:2380,node-2=https://10.246.154.126:2380,node-3=https://10.246.154.127:2380
 ```
 
-````
-
 Ultimately you would need to run a command similar to the following:
 
 ```
@@ -205,6 +203,8 @@ etcdutl snapshot restore snapshot.db \
       --initial-cluster='node-1=https://10.246.154.125:2380,node-2=https://10.246.154.126:2380,node-3=https://10.246.154.127:2380' \
       --data-dir /var/snap/k8s/common/var/lib/etcd/data
 ```
+
+````
 
 ````{group-tab} Dqlite
 
