@@ -72,7 +72,7 @@ The `k8s` charms take care of installing, configuring and managing {{product}} o
 :link: capi/
 ### [Canonical Kubernetes and Cluster API ›](/capi/index)
 
-Using the declarative APIs and tooling provided by Cluster API, deploy and manage multiple {{product}} clusters.
+Using Cluster API's declarative tooling, deploy and manage multiple {{product}} clusters.
 ```
 
 ````
