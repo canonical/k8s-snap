@@ -22,6 +22,7 @@ the lost nodes are *not* recovered.
 ```
 
 The recovery process can be roughly described as follow:
+
 - Stop the services on all nodes.
 - Select one of the remaining cluster nodes.
 - Reconfigure the cluster database membership.
