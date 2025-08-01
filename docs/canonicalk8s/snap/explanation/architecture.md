@@ -43,9 +43,10 @@ allows integrations with alternative storage solutions.
 - **Identity management**: Out of the box the K8s snap offers credentials for
 an admin user. The admin user can complete the integration with any identity
 management system available or do user management manually.
-- **External datastore**: By default, Canonical Kubernetes uses etcd to keep track of
-state. However, users can choose to switch to k8s-dqlite or use an end client
- owned datastore installation such as the use of an external `etcd`.
+- **External datastore**: By default, Canonical Kubernetes uses etcd to
+keep track of state. However, users can choose to switch to k8s-dqlite or
+use an end client owned datastore installation such as the use of an
+external `etcd`.
 
 ## The k8s snap
 
