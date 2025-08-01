@@ -10,7 +10,6 @@ sudo snap refresh k8s --channel=1.33/stable
 
 All components will be updated automatically.
 
-<!-- TODO(Hue): To be removed after Cilium 1.17 is backported to 1.32 -->
 ### Additional steps for dual-stack environments
 
 If your cluster is configured with dual stack networking (IPv4 and IPv6), 
