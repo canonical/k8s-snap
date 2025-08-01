@@ -3,10 +3,27 @@
 This guide provides step-by-step instructions for removing the {{ product }}
 snap from your system.
 
+## Remove the node from the cluster
 
-## Removing the k8s snap
+```{important}
+You must remove the node from the cluster **before** deleting the snap. Deleting the snap while the node is part of the cluster can cause the node to enter an unreachable state.
+```
 
-To uninstall the `k8s` snap, run the following command:
+From any control plane node:
+
+```
+sudo k8s remove-node <NODE_NAME>
+```
+
+Ensure the node has been removed from the cluster:
+
+```
+sudo k8s kubectl get nodes 
+```
+
+## Remove the k8s snap
+
+Uninstall the `k8s` snap:
 
 ```
 sudo snap remove k8s
