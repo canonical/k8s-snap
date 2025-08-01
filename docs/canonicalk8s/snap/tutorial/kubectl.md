@@ -124,7 +124,8 @@ pods will have a status of `ContainerCreating`.
 
 ## Next steps
 
-- Continue learning about {{product}} and how to grow your cluster with our [adding and removing nodes tutorial]
+- Continue learning about {{product}} and how to grow your cluster with our
+[adding and removing nodes tutorial]
 - Explore Kubernetes commands with our
   [Command Reference Guide]
 - See the official `kubectl` reference
