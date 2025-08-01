@@ -36,17 +36,17 @@ The bootstrap command initializes your cluster and configures your host system
 as a Kubernetes node. Bootstrapping the cluster is only done once at cluster
 creation.
 
+To explore configurations options available on bootstrap you can run:
+
+```
+sudo k8s bootstrap --help
+```
+
 If you would like to bootstrap a Kubernetes cluster with
 default configuration run:
 
 ```
 sudo k8s bootstrap
-```
-
-For custom configurations, you can explore additional options using:
-
-```
-sudo k8s bootstrap --help
 ```
 
 Once the bootstrap command has been successfully ran, the output should list the
@@ -97,8 +97,8 @@ sudo k8s kubectl get pods -n kube-system
 ```
 
 You will observe at least four pods running. The status of the pods may be in
-`ContainerCreating` while they are being initialized. They should turn to
-`Running` after a few seconds.
+`ContainerCreating` while they are being initialized. Run the command again
+after a few seconds and they should report status as `Running`.
 
 The functions of these pods are:
 
@@ -204,6 +204,8 @@ Begin by removing the pod along with the persistent volume claim:
 sudo k8s kubectl delete pod storage-writer-pod
 sudo k8s kubectl delete pvc myclaim
 ```
+
+This may take a few moments as the cluster cleans up its resources.
 
 Next, disable the local storage:
 
