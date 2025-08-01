@@ -1,4 +1,4 @@
-# Basic operations with Kubernetes using kubectl
+# Basic operations with {{product}} using kubectl
 
 Kubernetes provides a command line tool for communicating with a Kubernetes
 cluster's control plane, using the Kubernetes API. This guide outlines how some
@@ -12,7 +12,7 @@ Before you begin, make sure you have the following:
 - A bootstrapped {{product}} cluster (See
   [Getting Started])
 
-### 1. The kubectl command
+### The kubectl command
 
 The `kubectl` command communicates with the
 [Kubernetes API server][kubernetes-api-server].
@@ -21,7 +21,7 @@ The `kubectl` command communicates with the
 original upstream source into the `k8s` snap you have installed and is
 configured to work with the cluster out of the box.
 
-### 2. How to use kubectl
+### How to use kubectl
 
 To access `kubectl`, run the following:
 
@@ -40,7 +40,7 @@ The format of `kubectl` commands are:
 sudo k8s kubectl <command>
 ```
 
-### 3. Configuration
+### Configuration
 
 In {{product}}, the `kubeconfig` file that is being read to display
 the configuration when you run `kubectl config view` lives at
@@ -51,7 +51,7 @@ command.
 To find out more, you can visit
 [the official kubeconfig documentation][kubeconfig-doc]
 
-### 4. Viewing objects
+### Viewing objects
 
 Let's review what was created in the [Getting Started]
 guide.
@@ -76,7 +76,7 @@ The `kubernetes` service in the `default` namespace is where the Kubernetes API
 server resides, and it's the endpoint with which other nodes in your cluster
 will communicate.
 
-### 5. Creating and managing objects
+### Creating and managing objects
 
 Let's deploy an NGINX server using this command:
 
@@ -122,8 +122,9 @@ The above command deletes all pods in the cluster that are labeled with
 You'll notice the original 3 pods will have a status of `Terminating` and 3 new
 pods will have a status of `ContainerCreating`.
 
-## Further information
+## Next steps
 
+- Continue learning about {{product}} and how to grow your cluster with our [adding and removing nodes tutorial]
 - Explore Kubernetes commands with our
   [Command Reference Guide]
 - See the official `kubectl` reference
@@ -136,3 +137,4 @@ pods will have a status of `ContainerCreating`.
 [kubernetes-api-server]: https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/
 [kubeconfig-doc]: https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/
 [kubectl-reference]: https://kubernetes.io/docs/reference/kubectl/
+[adding and removing nodes tutorial]: add-remove-nodes.md
