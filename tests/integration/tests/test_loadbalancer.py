@@ -22,6 +22,8 @@ class K8sNetType(Enum):
 @pytest.mark.node_count(2)
 @pytest.mark.tags(tags.PULL_REQUEST)
 @pytest.mark.disable_k8s_bootstrapping()
+# For loadbalancer communication
+@pytest.mark.required_ports(80)
 def test_loadbalancer_ipv4(instances: List[harness.Instance]):
     _test_loadbalancer(instances, k8s_net_type=K8sNetType.ipv4)
 
