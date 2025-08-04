@@ -172,8 +172,8 @@ func (c *NodeLabelController) reconcile(ctx context.Context, client *kubernetes.
 
 	var errs []error
 
-	log.FromContext(ctx).Info("Reconciling node failure domain", "nodeName", node.Name)
 	if !isWorker {
+		log.FromContext(ctx).Info("Reconciling node failure domain", "nodeName", node.Name)
 		if err := c.reconcileFailureDomain(ctx, node, getDatastoreType); err != nil {
 			errs = append(errs, fmt.Errorf("failed to reconcile failure domain: %w", err))
 		}
