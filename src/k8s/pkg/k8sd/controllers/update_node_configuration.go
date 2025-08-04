@@ -8,7 +8,6 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
-	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
 )
 
@@ -52,14 +51,6 @@ func (c *UpdateNodeConfigurationController) Run(ctx context.Context, getClusterC
 		case <-ctx.Done():
 			return
 		case <-c.triggerCh:
-		}
-
-		if isWorker, err := snaputil.IsWorker(c.snap); err != nil {
-			log.Error(err, "Failed to check if running on a worker node")
-			continue
-		} else if isWorker {
-			log.Info("Stopping on worker node")
-			return
 		}
 
 		config, err := getClusterConfig(ctx)

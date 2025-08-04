@@ -17,6 +17,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
+	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/microcluster/v2/client"
 	"github.com/canonical/microcluster/v2/microcluster"
@@ -114,21 +115,53 @@ func New(cfg Config) (*App, error) {
 	}
 	app.readyWg.Add(1)
 
-	if !cfg.DisableNodeConfigController {
-		app.nodeConfigController = controllers.NewNodeConfigurationController(
-			cfg.Snap,
-			app.readyWg.Wait,
+	if err := app.setupControllers(); err != nil {
+		return nil, fmt.Errorf("failed to setup controllers: %w", err)
+	}
+
+	return app, nil
+}
+
+// setupControllers initializes the controllers based on the configuration.
+// It sets up common controllers and control plane specific controllers if the node is not a worker.
+func (a *App) setupControllers() error {
+	// Common controllers
+	if err := a.setupCommonControllers(); err != nil {
+		return fmt.Errorf("failed to setup common controllers: %w", err)
+	}
+
+	isWorker, err := snaputil.IsWorker(a.snap)
+	if err != nil {
+		return fmt.Errorf("failed to check if running on a worker node: %w", err)
+	}
+
+	// Control plane specific controllers
+	if !isWorker {
+		if err := a.setupControlPlaneControllers(); err != nil {
+			return fmt.Errorf("failed to setup control plane controllers: %w", err)
+		}
+	}
+
+	return nil
+}
+
+// setupCommonControllers initializes the controllers that are common to both control plane and worker nodes.
+func (a *App) setupCommonControllers() error {
+	if !a.config.DisableNodeConfigController {
+		a.nodeConfigController = controllers.NewNodeConfigurationController(
+			a.config.Snap,
+			a.readyWg.Wait,
 		)
 	} else {
 		log.L().Info("node-config-controller disabled via config")
 	}
 
-	if !cfg.DisableNodeLabelController {
-		app.nodeLabelController = controllers.NewNodeLabelController(
-			cfg.Snap,
-			app.readyWg.Wait,
+	if !a.config.DisableNodeLabelController {
+		a.nodeLabelController = controllers.NewNodeLabelController(
+			a.config.Snap,
+			a.readyWg.Wait,
 			func(ctx context.Context) (string, error) {
-				serverStatus, err := cluster.Status(ctx)
+				serverStatus, err := a.cluster.Status(ctx)
 				if err != nil {
 					return "", fmt.Errorf("failed to retrieve microcluster status: %w", err)
 				}
@@ -139,82 +172,87 @@ func New(cfg Config) (*App, error) {
 		log.L().Info("node-label-controller disabled via config")
 	}
 
-	if !cfg.DisableControlPlaneConfigController {
-		app.controlPlaneConfigController = controllers.NewControlPlaneConfigurationController(
-			cfg.Snap,
-			app.readyWg.Wait,
+	a.triggerFeatureControllerNetworkCh = make(chan struct{}, 1)
+	a.triggerFeatureControllerGatewayCh = make(chan struct{}, 1)
+	a.triggerFeatureControllerIngressCh = make(chan struct{}, 1)
+	a.triggerFeatureControllerLoadBalancerCh = make(chan struct{}, 1)
+	a.triggerFeatureControllerLocalStorageCh = make(chan struct{}, 1)
+	a.triggerFeatureControllerMetricsServerCh = make(chan struct{}, 1)
+	a.triggerFeatureControllerDNSCh = make(chan struct{}, 1)
+
+	if !a.config.DisableFeatureController {
+		a.featureController = controllers.NewFeatureController(controllers.FeatureControllerOpts{
+			Snap:                          a.config.Snap,
+			WaitReady:                     a.readyWg.Wait,
+			TriggerNetworkCh:              a.triggerFeatureControllerNetworkCh,
+			TriggerGatewayCh:              a.triggerFeatureControllerGatewayCh,
+			TriggerIngressCh:              a.triggerFeatureControllerIngressCh,
+			TriggerLoadBalancerCh:         a.triggerFeatureControllerLoadBalancerCh,
+			TriggerDNSCh:                  a.triggerFeatureControllerDNSCh,
+			TriggerLocalStorageCh:         a.triggerFeatureControllerLocalStorageCh,
+			TriggerMetricsServerCh:        a.triggerFeatureControllerMetricsServerCh,
+			ReconcileLoopMaxRetryAttempts: a.config.FeatureControllerMaxRetryAttempts,
+		})
+	} else {
+		log.L().Info("feature-controller disabled via config")
+	}
+
+	return nil
+}
+
+// setupControlPlaneControllers initializes the control plane specific controllers.
+func (a *App) setupControlPlaneControllers() error {
+	if !a.config.DisableControlPlaneConfigController {
+		a.controlPlaneConfigController = controllers.NewControlPlaneConfigurationController(
+			a.config.Snap,
+			a.readyWg.Wait,
 			time.NewTicker(10*time.Second).C,
 		)
 	} else {
 		log.L().Info("control-plane-config-controller disabled via config")
 	}
 
-	app.triggerUpdateNodeConfigControllerCh = make(chan struct{}, 1)
+	a.triggerUpdateNodeConfigControllerCh = make(chan struct{}, 1)
 
-	if !cfg.DisableUpdateNodeConfigController {
-		app.updateNodeConfigController = controllers.NewUpdateNodeConfigurationController(
-			cfg.Snap,
-			app.readyWg.Wait,
-			app.triggerUpdateNodeConfigControllerCh,
+	if !a.config.DisableUpdateNodeConfigController {
+		a.updateNodeConfigController = controllers.NewUpdateNodeConfigurationController(
+			a.config.Snap,
+			a.readyWg.Wait,
+			a.triggerUpdateNodeConfigControllerCh,
 		)
 	} else {
 		log.L().Info("update-node-config-controller disabled via config")
 	}
 
-	app.triggerFeatureControllerNetworkCh = make(chan struct{}, 1)
-	app.triggerFeatureControllerGatewayCh = make(chan struct{}, 1)
-	app.triggerFeatureControllerIngressCh = make(chan struct{}, 1)
-	app.triggerFeatureControllerLoadBalancerCh = make(chan struct{}, 1)
-	app.triggerFeatureControllerLocalStorageCh = make(chan struct{}, 1)
-	app.triggerFeatureControllerMetricsServerCh = make(chan struct{}, 1)
-	app.triggerFeatureControllerDNSCh = make(chan struct{}, 1)
-
-	if !cfg.DisableFeatureController {
-		app.featureController = controllers.NewFeatureController(controllers.FeatureControllerOpts{
-			Snap:                          cfg.Snap,
-			WaitReady:                     app.readyWg.Wait,
-			TriggerNetworkCh:              app.triggerFeatureControllerNetworkCh,
-			TriggerGatewayCh:              app.triggerFeatureControllerGatewayCh,
-			TriggerIngressCh:              app.triggerFeatureControllerIngressCh,
-			TriggerLoadBalancerCh:         app.triggerFeatureControllerLoadBalancerCh,
-			TriggerDNSCh:                  app.triggerFeatureControllerDNSCh,
-			TriggerLocalStorageCh:         app.triggerFeatureControllerLocalStorageCh,
-			TriggerMetricsServerCh:        app.triggerFeatureControllerMetricsServerCh,
-			ReconcileLoopMaxRetryAttempts: cfg.FeatureControllerMaxRetryAttempts,
-		})
-	} else {
-		log.L().Info("feature-controller disabled via config")
-	}
-
-	app.controllerCoordinator = controllers.NewCoordinator(
-		cfg.Snap,
-		app.readyWg.Wait,
-		cfg.DisableUpgradeController,
+	a.controllerCoordinator = controllers.NewCoordinator(
+		a.config.Snap,
+		a.readyWg.Wait,
+		a.config.DisableUpgradeController,
 		upgrade.ControllerOptions{
-			FeatureControllerReadyCh:   app.featureController.ReadyCh(),
-			NotifyNetworkFeature:       app.NotifyNetwork,
-			NotifyGatewayFeature:       app.NotifyGateway,
-			NotifyIngressFeature:       app.NotifyIngress,
-			NotifyLoadBalancerFeature:  app.NotifyLoadBalancer,
-			NotifyLocalStorageFeature:  app.NotifyLocalStorage,
-			NotifyMetricsServerFeature: app.NotifyMetricsServer,
-			NotifyDNSFeature:           app.NotifyDNS,
+			FeatureControllerReadyCh:   a.featureController.ReadyCh(),
+			NotifyNetworkFeature:       a.NotifyNetwork,
+			NotifyGatewayFeature:       a.NotifyGateway,
+			NotifyIngressFeature:       a.NotifyIngress,
+			NotifyLoadBalancerFeature:  a.NotifyLoadBalancer,
+			NotifyLocalStorageFeature:  a.NotifyLocalStorage,
+			NotifyMetricsServerFeature: a.NotifyMetricsServer,
+			NotifyDNSFeature:           a.NotifyDNS,
 			FeatureToReconciledCh: map[types.FeatureName]<-chan struct{}{
-				features.Network:       app.featureController.ReconciledNetworkCh(),
-				features.Gateway:       app.featureController.ReconciledGatewayCh(),
-				features.Ingress:       app.featureController.ReconciledIngressCh(),
-				features.DNS:           app.featureController.ReconciledDNSCh(),
-				features.LoadBalancer:  app.featureController.ReconciledLoadBalancerCh(),
-				features.LocalStorage:  app.featureController.ReconciledLocalStorageCh(),
-				features.MetricsServer: app.featureController.ReconciledMetricsServerCh(),
+				features.Network:       a.featureController.ReconciledNetworkCh(),
+				features.Gateway:       a.featureController.ReconciledGatewayCh(),
+				features.Ingress:       a.featureController.ReconciledIngressCh(),
+				features.DNS:           a.featureController.ReconciledDNSCh(),
+				features.LoadBalancer:  a.featureController.ReconciledLoadBalancerCh(),
+				features.LocalStorage:  a.featureController.ReconciledLocalStorageCh(),
+				features.MetricsServer: a.featureController.ReconciledMetricsServerCh(),
 			},
 			FeatureControllerReadyTimeout:     10 * time.Minute,
 			FeatureControllerReconcileTimeout: 2 * time.Minute,
 		},
-		cfg.DisableCSRSigningController,
+		a.config.DisableCSRSigningController,
 	)
 
-	return app, nil
+	return nil
 }
 
 // Run starts the microcluster node and waits until it terminates.

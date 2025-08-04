@@ -52,14 +52,6 @@ func (c *ControlPlaneConfigurationController) Run(ctx context.Context, getCluste
 		case <-c.triggerCh:
 		}
 
-		if isWorker, err := snaputil.IsWorker(c.snap); err != nil {
-			log.Error(err, "Failed to check if running on a worker node")
-			continue
-		} else if isWorker {
-			log.Info("Stopping on worker node")
-			return
-		}
-
 		config, err := getClusterConfig(ctx)
 		if err != nil {
 			log.Error(err, "Failed to retrieve cluster configuration")
