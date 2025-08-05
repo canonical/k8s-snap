@@ -28,7 +28,7 @@ parts:
   build-deps:
     plugin: nil
     build-snaps:
-      - go/1.23-fips/stable
+      - go/1.24-fips/stable
     build-attributes: [enable-patchelf]
     build-packages:
       - sudo
