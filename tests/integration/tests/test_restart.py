@@ -13,7 +13,6 @@ STATUS_PATTERNS = [
     r"cluster status:\s*ready",
     r"control plane nodes:\s*(\d{1,3}(?:\.\d{1,3}){3}:\d{1,5})\s\(voter\)",
     r"high availability:\s*yes",
-    r"datastore:\s*etcd",
     r"network:\s*enabled",
     r"dns:\s*enabled at (\d{1,3}(?:\.\d{1,3}){3})",
     r"ingress:\s*disabled",
@@ -25,10 +24,11 @@ STATUS_PATTERNS = [
 
 @pytest.mark.tags(tags.WEEKLY)
 @pytest.mark.node_count(3)
-def test_restart(instances: List[harness.Instance]):
+def test_restart(instances: List[harness.Instance], datastore_type: str):
     """
     Test that a restart of the instance does not break the k8s snap.
     """
+    STATUS_PATTERNS.insert(3, r"datastore:\s*{}".format(datastore_type))
 
     main = instances[0]
     for joining in instances[1:]:
