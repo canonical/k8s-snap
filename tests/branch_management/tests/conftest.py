@@ -5,7 +5,8 @@ from pathlib import Path
 from typing import Optional
 
 import pytest
-import requests
+from k8s_test_harness.harness import Harness
+from k8s_test_harness.util.exec_util import stubbornly
 import semver
 
 STABLE_URL = "https://dl.k8s.io/release/stable.txt"
@@ -14,9 +15,16 @@ RELEASE_URL = "https://dl.k8s.io/release/stable-{}.{}.txt"
 
 def _upstream_release(ver: semver.Version) -> Optional[semver.Version]:
     """Semver of the major.minor release if it exists"""
-    r = requests.get(RELEASE_URL.format(ver.major, ver.minor))
-    if r.status_code == 200:
-        return semver.Version.parse(r.content.decode().lstrip("v"))
+    resp = (
+        stubbornly(retries=10, delay_s=6)
+        .exec(
+            ["curl", "-f", "-L", RELEASE_URL.format(ver.major, ver.minor)],
+            text=True,
+            capture_output=True,
+        )
+        .stdout
+    )
+    return semver.Version.parse(resp.lstrip("v"))
 
 
 def _get_max_minor(ver: semver.Version) -> semver.Version:
@@ -42,9 +50,16 @@ def _previous_release(ver: semver.Version) -> semver.Version:
 @pytest.fixture(scope="session")
 def stable_release() -> semver.Version:
     """Return the latest stable k8s in the release series"""
-    r = requests.get(STABLE_URL)
-    r.raise_for_status()
-    return semver.Version.parse(r.content.decode().lstrip("v"))
+    resp = (
+        stubbornly(retries=10, delay_s=6)
+        .exec(
+            ["curl", "-f", "-L", STABLE_URL],
+            text=True,
+            capture_output=True,
+        )
+        .stdout
+    )
+    return semver.Version.parse(resp.lstrip("v"))
 
 
 @pytest.fixture(scope="session")
