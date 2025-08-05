@@ -15,7 +15,6 @@ STATUS_PATTERNS = [
     r"cluster status:\s*ready",
     r"control plane nodes:\s*(\d{1,3}(?:\.\d{1,3}){3}:\d{1,5})\s\(voter\)",
     r"high availability:\s*no",
-    r"datastore:\s*etcd",
     r"network:\s*enabled",
     r"dns:\s*enabled at (\d{1,3}(?:\.\d{1,3}){3})",
     r"ingress:\s*enabled",
@@ -26,10 +25,11 @@ STATUS_PATTERNS = [
 
 
 @pytest.mark.tags(tags.PULL_REQUEST)
-def test_feature_controller(instances: List[harness.Instance]):
+def test_feature_controller(instances: List[harness.Instance], datastore_type: str):
     """
     Verifies that the feature controller won't get stuck in a chaotic situation.
     """
+    STATUS_PATTERNS.insert(3, r"datastore:\s*{}".format(datastore_type))
 
     instance = instances[0]
 
