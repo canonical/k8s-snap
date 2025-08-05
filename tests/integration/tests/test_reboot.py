@@ -30,9 +30,15 @@ def test_reboot(instances: List[harness.Instance]):
     Test that a reboot of the instance does not break the k8s snap.
     """
 
+    main = instances[0]
+    for joining in instances[1:]:
+        token = util.get_join_token(main, joining)
+        util.join_cluster(joining, token)
+
+    LOG.info("Waiting for k8s to be ready")
+    util.wait_until_k8s_ready(main, instances)
     for instance in instances:
         LOG.info("Waiting for the instance %s to be ready", instance.id)
-        util.wait_until_k8s_ready(instance, [instance])
         util.stubbornly(retries=15, delay_s=10).on(instance).until(
             condition=lambda p: util.status_output_matches(p, STATUS_PATTERNS),
         ).exec(["k8s", "status", "--wait-ready"])
@@ -41,13 +47,15 @@ def test_reboot(instances: List[harness.Instance]):
         LOG.info("Rebooting the instance %s", instance.id)
         instance.reboot()
 
+    LOG.info("Waiting for k8s to be ready after reboot")
+    util.wait_until_k8s_ready(instance, [instance])
     for instance in instances:
-        LOG.info("Waiting for the instance to come back up")
-        util.wait_until_k8s_ready(instance, [instance])
+        LOG.info("Waiting for the instance %s to come back up", instance.id)
         util.stubbornly(retries=15, delay_s=10).on(instance).until(
             condition=lambda p: util.status_output_matches(p, STATUS_PATTERNS),
         ).exec(["k8s", "status", "--wait-ready"])
 
+    # An additional check to ensure the cluster is still functional
     assert (
-        len(util.ready_nodes(instances[0])) == 1
+        len(util.ready_nodes(main)) == 1
     ), "Expected exactly one ready node after reboot"

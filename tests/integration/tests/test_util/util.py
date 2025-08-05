@@ -485,14 +485,14 @@ def ready_nodes(control_node: harness.Instance) -> List[Any]:
 
 # Create a token to join a node to an existing cluster
 def get_join_token(
-    initial_node: harness.Instance, joining_cplane_node: harness.Instance, *args: str
+    initial_node: harness.Instance, joining_node: harness.Instance, *args: str
 ) -> str:
     out = (
         stubbornly(retries=5, delay_s=3)
         .on(initial_node)
         .until(lambda p: len(p.stdout.decode().strip()) > 0)
         .exec(
-            ["k8s", "get-join-token", joining_cplane_node.id, *args],
+            ["k8s", "get-join-token", joining_node.id, *args],
             capture_output=True,
         )
     )
