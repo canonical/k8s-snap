@@ -3,8 +3,6 @@
 #
 import json
 import logging
-import re
-import subprocess
 from typing import List
 
 import pytest
@@ -122,23 +120,7 @@ def test_smoke(instances: List[harness.Instance]):
         metadata.get("expiry-date")
     ), "Token not found in the certificate expiry response."
 
-    def status_output_matches(p: subprocess.CompletedProcess) -> bool:
-        result_lines = p.stdout.decode().strip().split("\n")
-        if len(result_lines) != len(STATUS_PATTERNS):
-            LOG.info(
-                f"wrong number of results lines, expected {len(STATUS_PATTERNS)}, got {len(result_lines)}"
-            )
-            return False
-
-        for i in range(len(result_lines)):
-            line, pattern = result_lines[i], STATUS_PATTERNS[i]
-            if not re.search(pattern, line):
-                LOG.info(f"could not match `{line.strip()}` with `{pattern}`")
-                return False
-
-        return True
-
     LOG.info("Verifying the output of `k8s status`")
     util.stubbornly(retries=15, delay_s=10).on(instance).until(
-        condition=status_output_matches,
+        condition=lambda p: util.status_output_matches(p, STATUS_PATTERNS),
     ).exec(["k8s", "status", "--wait-ready"])

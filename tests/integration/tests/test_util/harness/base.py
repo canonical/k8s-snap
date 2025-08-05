@@ -37,6 +37,10 @@ class Instance:
             ["dpkg", "--print-architecture"], text=True, capture_output=True
         ).stdout.strip()
 
+    def reboot(self) -> None:
+        """Reboot the instance"""
+        self.exec(["sudo", "reboot"], check=True)
+
     def __str__(self) -> str:
         return f"{self._h.name}:{self.id}"
 

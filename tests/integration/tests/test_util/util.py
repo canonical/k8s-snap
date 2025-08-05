@@ -994,3 +994,31 @@ def is_fips_enabled(instance: harness.Instance):
         return result.stdout.strip() == "1"
     except subprocess.CalledProcessError:
         return False
+
+
+def status_output_matches(
+    p: subprocess.CompletedProcess, status_pattern: List[str]
+) -> bool:
+    """
+    Check if the output of the `k8s status` command matches the expected pattern.
+    """
+    result_lines = p.stdout.decode().strip().split("\n")
+    if len(result_lines) != len(status_pattern):
+        LOG.info(
+            "wrong number of results lines, expected %s, got %s",
+            len(status_pattern),
+            len(result_lines),
+        )
+        return False
+
+    for i, l in enumerate(result_lines):
+        line, pattern = l, status_pattern[i]
+        if not re.search(pattern, line):
+            LOG.info(
+                "could not match `%s` with `%s`",
+                line.strip(),
+                pattern,
+            )
+            return False
+
+    return True
