@@ -28,5 +28,7 @@ extra-node-kubelet-args:
   --authentication-token-webhook-cache-ttl: 3m
 extra-node-containerd-args:
   --log-level: debug
+extra-node-k8s-dqlite-args:
+  --watch-storage-available-size-interval: 6s
 extra-node-etcd-args:
   --log-level: "info"

@@ -12,7 +12,7 @@ LOG = logging.getLogger(__name__)
 
 @pytest.mark.tags(tags.NIGHTLY)
 @pytest.mark.node_count(2)
-def test_snap_services(instances: List[harness.Instance]):
+def test_snap_services(instances: List[harness.Instance], datastore_type: str):
     """
     Test that snap services are running after a `snap revert` instances.
     """
@@ -42,5 +42,7 @@ def test_snap_services(instances: List[harness.Instance]):
     util.wait_until_k8s_ready(cp, instances)
 
     LOG.info("Checking snap services")
-    util.check_snap_services_ready(cp, node_type="control-plane", datastore_type="etcd")
+    util.check_snap_services_ready(
+        cp, node_type="control-plane", datastore_type=datastore_type
+    )
     util.check_snap_services_ready(worker, node_type="worker")
