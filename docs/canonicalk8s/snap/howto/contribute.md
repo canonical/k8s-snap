@@ -90,7 +90,7 @@ these steps:
 ```
 module github.com/canonical/k8s
 
-go 1.23.0
+go 1.24.4
 
 replace github.com/canonical/k8s-snap-api => /path/to/k8s-snap-api
 
