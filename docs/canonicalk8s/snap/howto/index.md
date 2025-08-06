@@ -98,6 +98,16 @@ exposes technologies such as HugePages, CPU pinning, SR-IOV and more.
 Set up Enhanced Platform Awareness <epa>
 ```
 
+## FIPS
+
+FIPS (Federal Information Processing Standards) ensures security compliance crucial for US government and regulated industries. 
+
+```{toctree}
+:titlesonly:
+Federal Information Processing Standards (FIPS) <fips>
+```
+
+
 ## Contribute
 
 Contribute to the {{product}} project! Add to the code, documentation or both!
