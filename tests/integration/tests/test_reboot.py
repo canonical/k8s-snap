@@ -57,5 +57,5 @@ def test_reboot(instances: List[harness.Instance]):
 
     # An additional check to ensure the cluster is still functional
     assert (
-        len(util.ready_nodes(main)) == 1
-    ), "Expected exactly one ready node after reboot"
+        len(util.ready_nodes(main)) == 3
+    )
