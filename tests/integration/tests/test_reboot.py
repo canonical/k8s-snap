@@ -56,6 +56,4 @@ def test_reboot(instances: List[harness.Instance]):
         ).exec(["k8s", "status", "--wait-ready"])
 
     # An additional check to ensure the cluster is still functional
-    assert (
-        len(util.ready_nodes(main)) == 3
-    )
+    assert len(util.ready_nodes(main)) == 3
