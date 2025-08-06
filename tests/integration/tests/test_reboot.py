@@ -12,7 +12,7 @@ LOG = logging.getLogger(__name__)
 STATUS_PATTERNS = [
     r"cluster status:\s*ready",
     r"control plane nodes:\s*(\d{1,3}(?:\.\d{1,3}){3}:\d{1,5})\s\(voter\)",
-    r"high availability:\s*no",
+    r"high availability:\s*yes",
     r"datastore:\s*etcd",
     r"network:\s*enabled",
     r"dns:\s*enabled at (\d{1,3}(?:\.\d{1,3}){3})",
