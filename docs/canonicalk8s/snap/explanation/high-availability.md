@@ -36,9 +36,11 @@ cluster state. Dqlite leverages the Raft consensus algorithm for leader
 election and voting, ensuring reliable data replication and failover
 capabilities. When a leader node fails, a new leader is elected seamlessly
 without administrative intervention. This mechanism allows the cluster to
-remain operational even in the event of node failures. More details on
+remain operational even in the event of node failures. 
+<!-- TODO: When Dqlite docs are back, uncomment this line
+More details on
 replication and leader elections can be found in
 the [dqlite replication documentation][Dqlite-replication].
-
+-->
 <!-- LINKS -->
-[Dqlite-replication]: https://dqlite.io/docs/explanation/replication
+<!-- [Dqlite-replication]: https://dqlite.io/docs/explanation/replication --> 
