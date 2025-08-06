@@ -93,6 +93,6 @@ def test_build(instances: List[harness.Instance]):
             text=True,
         )
         LOG.info(result.stderr)
-        assert (
-            "can't enable FIPS mode for OpenSSL" in result.stderr
+        assert result.stderr.startswith(
+            "panic: opensslcrypto: FIPS mode requested (environment variable GOFIPS) but not available in OpenSSL"
         ), f"{component} should fail with FIPS enabled on non-compliant system"
