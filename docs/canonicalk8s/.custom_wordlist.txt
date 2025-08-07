@@ -188,6 +188,7 @@ ExternalIP
 failover
 Fi
 filesystem
+fips
 formatter
 FQDNs
 frontend
@@ -534,6 +535,7 @@ Ubuntu Core
 Ubuntu Pro
 Ubuntu Server
 UDP
+UFW
 uid
 UIDs
 unix
