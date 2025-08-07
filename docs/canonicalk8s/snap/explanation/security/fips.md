@@ -11,7 +11,7 @@ and Technology ([NIST]).
 {{ product }} is built with FIPS compliant cryptographic
 modules, ensuring that users can meet the security requirements set forth
 for the use in federal and other regulated environments. All of our components
-including the built-in features such networking or load-balancer are built
+including the built-in features such as networking or load-balancer are built
 with FIPS compliant libraries. By choosing a compliant Kubernetes distribution,
 such as {{ product }}, organizations can minimize their security
 risks and adhere to compliance requirements. When building workloads on top of
