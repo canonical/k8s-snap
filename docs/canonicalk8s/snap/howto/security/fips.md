@@ -2,7 +2,8 @@
 
 FIPS (Federal Information Processing Standards) ensures security compliance
 crucial for US government and regulated industries. This how-to guide provides
-the steps to set up a FIPS-compliant Kubernetes cluster using the {{ product }} snap.
+the steps to set up a FIPS-compliant Kubernetes cluster using the
+{{ product }} snap.
 
 ## Enable FIPS on an Ubuntu host machine
 
@@ -60,11 +61,12 @@ If the output is `1`, your host machine is running in FIPS mode.
 
 ## Firewall configuration for Kubernetes
 
-{{ product }} requires certain firewall rules and guidelines to ensure its operation.
-Additionally, please review your services hosted in Kubernetes and add any
-necessary firewall rules.
+{{ product }} requires certain firewall rules and guidelines to
+ensure its operation. Additionally, please review your services hosted in
+Kubernetes and add any necessary firewall rules.
 
-The following rules are recommended for a {{ product }} cluster with FIPS enabled.
+The following rules are recommended for a {{ product }} cluster
+with FIPS enabled.
 
 ```{warning}
 The presented network rules may be incompatible with your network setup, or you
@@ -77,7 +79,8 @@ according to your network requirements.
 Forwarding is needed as containers typically live in isolated networks and need
 the host to route traffic between their internal network and the outside world.
 
-Configure your firewall (UFW) to allow packet forwarding by editing `/etc/default/ufw`:
+Configure your firewall (UFW) to allow packet forwarding by editing
+`/etc/default/ufw`:
 
 ```
 DEFAULT_FORWARD_POLICY="ACCEPT"
