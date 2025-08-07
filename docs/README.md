@@ -17,7 +17,7 @@ The directories are organized like this:
 
 ## Building the docs
 
-This documentation uses the canonicalk8s/Makefile to generate HTML docs from
+This documentation uses the `canonicalk8s/Makefile` to generate HTML docs from
 the sources. This can also run specific local tests such as spelling and
 link checking.
 
@@ -47,13 +47,13 @@ The file contains both snap and charm install commands. Be sure to **only**
 update the commands related to the release you are doing.
 
 We also use a file for our substitutions. Update the
-`docs/canonicalk8s/reuse/substitutions.yaml` file with the latest version and
+`canonicalk8s/reuse/substitutions.yaml` file with the latest version and
 channel.
 
 ### Update other relevant files
 
-There are certain files that cannot be included in the automated file that
-need to be updated.
+There are certain files that cannot be included in the automated files that
+also need to be updated.
 
 - `README.md`
 - `docs/canonicalk8s/capi/explanation/in-place-upgrades.md`
@@ -63,13 +63,14 @@ need to be updated.
 - `docs/canonicalk8s/conf.py` (update the `sitemap_url_scheme` to match the
 current version)
 
-### Back port to the release branch
+### Update the release branch
 
-If the release branch has already been created before you are updating these
-docs, make sure you back port any changes to the release branch.
+All updates are made to the main branch and then release branch is created from
+main. If the release branch has already been created before you are updating
+these docs, make sure you back port any changes to the release branch.
 
 ### Create a version of the release
 
-Read the Docs (RTD) versions can be created by the technical author. They are
+Read the Docs versions can be created by the technical author. They are
 based on branches. Make sure the branch is set to public and not hidden in order
 for it to show up to all users.
