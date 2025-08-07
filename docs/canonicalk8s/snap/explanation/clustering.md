@@ -48,7 +48,7 @@ plane node's components include:
 - **Controller Manager (kube-controller-manager)**: Runs controller processes
     that regulate the state of the cluster, ensuring the desired state matches
     the observed state.
-- **k8s-dqlite**: A fast, embedded, persistent in-memory key-value store with
+- **etcd**: A fast, embedded, persistent in-memory key-value store with
     Raft consensus used to store all cluster data.
 - **k8sd**: Implements and exposes the operations functionality needed for
     managing the Kubernetes cluster.

@@ -223,13 +223,13 @@ spec:
 
 **Fields:**
 
-| Name                         | Type                | Description                                                   | Default |
-|------------------------------|---------------------|---------------------------------------------------------------|---------|
+| Name                         | Type                | Description                                                  | Default |
+|------------------------------|---------------------|--------------------------------------------------------------|---------|
 | `annotations`                | `map[string]string` | Are used to configure the behavior of the built-in features. | `nil`   |
-| `enableDefaultDNS`           | `bool`              | Specifies whether to enable the default DNS configuration.    | `true`  |
-| `enableDefaultLocalStorage`  | `bool`              | Specifies whether to enable the default local storage.        | `true`  |
-| `enableDefaultMetricsServer` | `bool`              | Specifies whether to enable the default metrics server.       | `true`  |
-| `enableDefaultNetwork`       | `bool`              | Specifies whether to enable the default CNI.                  | `true`  |
+| `enableDefaultDNS`           | `bool`              | Specifies whether to enable the default DNS configuration.   | `true`  |
+| `enableDefaultLocalStorage`  | `bool`              | Specifies whether to enable the default local storage.       | `true`  |
+| `enableDefaultMetricsServer` | `bool`              | Specifies whether to enable the default metrics server.      | `true`  |
+| `enableDefaultNetwork`       | `bool`              | Specifies whether to enable the default CNI.                 | `true`  |
 
 
 **Example usage:**
@@ -438,7 +438,7 @@ spec:
 | `nodeTaints`                | `[]string`                  | Taints to add to the control plane kubelet nodes.                                              | `[]`      |
 | `datastoreType`             | `string`                    | The type of datastore to use for the control plane.                                            | `""`      |
 | `datastoreServersSecretRef` | `struct{name:str, key:str}` | A reference to a secret containing the datastore servers.                                      | `{}`      |
-| `k8sDqlitePort`             | `int`                       | The port to use for k8s-dqlite. If unset, 2379 (etcd) will be used.                            | `2379`    |
+| `etcdPort`                  | `int`                       | The port to use for etcd. If unset, 2379 will be used.                                         | `2379`    |
 | `microclusterAddress`       | `string`                    | The address (or CIDR) to use for Microcluster. If unset, the default node interface is chosen. | `""`      |
 | `microclusterPort`          | `int`                       | The port to use for Microcluster. If unset, ":2380" (etcd peer) will be used.                  | `":2380"` |
 | `extraKubeAPIServerArgs`    | `map[string]string`         | Extra arguments to add to kube-apiserver.                                                      | `map[]`   |
@@ -453,7 +453,7 @@ spec:
     cloudProvider: external
     nodeTaints:
       - myTaint
-    datastoreType: k8s-dqlite
+    datastoreType: etcd
     datastoreServersSecretRef:
       name: sfName
       key: sfKey
