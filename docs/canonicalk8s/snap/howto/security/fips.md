@@ -155,7 +155,7 @@ sudo snap refresh core22 --channel=fips-updates/stable
 
 ### Install Canonical Kubernetes
 
-Inststall {{ product }} on your fips host:
+Install {{ product }} on your FIPS host:
 
 ```
 sudo snap install k8s --channel=1.32-classic/candidate/fips-early-release --classic
