@@ -758,7 +758,7 @@ def previous_track(snap_version: str) -> str:
             LOG.info(
                 "Previous track for %s from branch %s is %s", snap_version, branch, prev
             )
-            return prev
+            return f"{prev}/edge"
         else:
             LOG.info(
                 "Previous track for %s from branch %s is not found -- assume latest",

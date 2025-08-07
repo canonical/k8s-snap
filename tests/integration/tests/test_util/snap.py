@@ -94,10 +94,8 @@ def get_most_stable_channels(
             if _max_release is not None and version_key > _max_release:
                 continue
 
-        if version_key not in channel_map or RISK_LEVELS.index(
-            risk
-        ) < RISK_LEVELS.index(channel_map[version_key][1]):
-            channel_map[version_key] = (channel, risk)
+        if version_key not in channel_map and risk == RISK_LEVELS[3]:
+            channel_map[version_key] = (channel, "edge")
 
     # Sort channels by major and minor version (ascending order)
     sorted_versions = sorted(
