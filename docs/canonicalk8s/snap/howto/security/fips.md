@@ -98,6 +98,19 @@ Alternatively, apply the change immediately with:
 sudo sysctl -w net.ipv4.ip_forward=1
 ```
 
+If you are accessing the node via ssh, configure UFW to allow ssh traffic before
+enabling it. Otherwise you risk being locked out of it:
+
+```
+sudo ufw allow ssh
+```
+
+If necessary, enable UFW if it's not already enabled:
+
+```
+sudo ufw enable
+```
+
 As a last step, reload the firewall rules:
 
 ```
@@ -175,6 +188,20 @@ sudo k8s status
 Your FIPS-compliant Kubernetes cluster is now ready for workload deployment and
 additional node integrations. Please ensure that your workloads are
 FIPS-compliant as well, to maintain the security standards required by FIPS.
+
+## Disable FIPS on an Ubuntu host machine
+
+To disable FIPS on your host machine, run the following command:
+
+```
+sudo pro disable fips-updates
+```
+
+Then reboot your host machine to apply the changes:
+
+```
+sudo reboot
+```
 
 <!-- LINKS -->
 [Ubuntu Pro]: https://ubuntu.com/pro
