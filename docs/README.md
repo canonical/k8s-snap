@@ -69,8 +69,8 @@ All updates are made to the main branch and then release branch is created from
 main. If the release branch has already been created before you are updating
 these docs, make sure you back port any changes to the release branch.
 
-### Create a version of the release
+### Create a new version of our docs
 
 Read the Docs versions can be created by the technical author. They are
-based on branches. Make sure the branch is set to public and not hidden in order
-for it to show up to all users.
+based on branches. Make sure the version is set to public and not hidden in
+order for it to show up to all users.
