@@ -17,7 +17,7 @@ var (
 	// imageRepo is the repository to use for Rawfile LocalPV CSI.
 	imageRepo = "ghcr.io/canonical/rawfile-localpv"
 	// ImageTag is the image tag to use for Rawfile LocalPV CSI.
-	ImageTag = "0.8.2"
+	ImageTag = "0.8.2-ck1"
 
 	// csiNodeDriverImage is the image to use for the CSI node driver.
 	csiNodeDriverImage = "ghcr.io/canonical/k8s-snap/sig-storage/csi-node-driver-registrar:v2.10.1"
