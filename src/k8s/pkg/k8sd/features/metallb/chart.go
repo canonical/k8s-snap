@@ -37,5 +37,5 @@ var (
 	frrImageRepo = "ghcr.io/canonical/frr"
 
 	// frrImageTag is the tag to use for frrouting.
-	frrImageTag = "9.1.3"
+	frrImageTag = "9.1.3-ck1"
 )
