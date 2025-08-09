@@ -6,7 +6,6 @@ import logging
 from typing import List
 
 import pytest
-import yaml
 from test_util import harness, tags, util
 from test_util.etcd import EtcdCluster
 
@@ -20,23 +19,17 @@ LOG = logging.getLogger(__name__)
 def test_external_etcd(instances: List[harness.Instance], etcd_cluster: EtcdCluster):
     k8s_instance = instances[0]
 
-    bootstrap_conf = yaml.safe_dump(
-        {
-            "cluster-config": {"network": {"enabled": True}, "dns": {"enabled": True}},
-            "datastore-type": "external",
-            "datastore-servers": etcd_cluster.client_urls,
-            "datastore-ca-crt": etcd_cluster.ca_cert,
-            "datastore-client-crt": etcd_cluster.cert,
-            "datastore-client-key": etcd_cluster.key,
-        }
-    )
+    bootstrap_conf = {
+        "cluster-config": {"network": {"enabled": True}, "dns": {"enabled": True}},
+        "datastore-servers": etcd_cluster.client_urls,
+        "datastore-ca-crt": etcd_cluster.ca_cert,
+        "datastore-client-crt": etcd_cluster.cert,
+        "datastore-client-key": etcd_cluster.key,
+    }
 
-    k8s_instance.exec(
-        ["dd", "of=/root/config.yaml"],
-        input=str.encode(bootstrap_conf),
+    util.bootstrap(
+        k8s_instance, datastore_type="external", bootstrap_config=bootstrap_conf
     )
-
-    k8s_instance.exec(["k8s", "bootstrap", "--file", "/root/config.yaml"])
     util.wait_for_dns(k8s_instance)
     util.wait_for_network(k8s_instance)
 
