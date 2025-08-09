@@ -1,12 +1,14 @@
 #
 # Copyright 2025 Canonical, Ltd.
 #
+import json
 import logging
 import os
 import re
 import shlex
 import subprocess
 from pathlib import Path
+from typing import List
 
 from test_util import config
 from test_util.harness import Harness, HarnessError, Instance
@@ -91,19 +93,35 @@ class MultipassHarness(Harness):
                 # Note(ben): Multipass does not handle restarts in
                 # cloud-init very well and the command times out even if
                 # the underlying machine works just fine.
-                # Hence, we disable the check for this call, and
-                # instead try to verify that the machine is up and
-                # running by running a simple command.
+                # See https://github.com/canonical/multipass/issues/4199
+                # Hence, we don't fail on the timeout of this command, and manually wait until
+                # the cloud-init is done.
                 run(
                     cmd + ["--cloud-init", "-"],
                     input=cloud_init_content.encode(),
                     sensitive_kwargs=True,
                     check=False,
                 )
-                stubbornly(retries=20, delay_s=5).exec(
-                    ["multipass", "exec", instance_id, "--", "echo", "test"],
+                stubbornly(retries=200, delay_s=10).until(
+                    lambda p: json.loads(p.stdout).get("status") == "done"
+                ).exec(
+                    [
+                        "multipass",
+                        "exec",
+                        instance_id,
+                        "--",
+                        "cloud-init",
+                        "status",
+                        "--format",
+                        "json",
+                    ],
+                    capture_output=True,
+                    # cloud-init returns 2 even when it is done.
+                    check=False,
+                    text=True,
                     timeout=20,
                 )
+
             else:
                 run(cmd)
 
@@ -112,7 +130,10 @@ class MultipassHarness(Harness):
 
         self.instances.add(instance_id)
 
-        self.exec(instance_id, ["snap", "wait", "system", "seed.loaded"])
+        instance = Instance(self, instance_id)
+        stubbornly(retries=5, delay_s=5).on(instance).exec(
+            ["snap", "wait", "system", "seed.loaded"]
+        )
         if network_type in ("IPv6", "dualstack"):
             LOG.debug("Enabling IPv6 support in instance %s", instance_id)
             try:
@@ -132,7 +153,7 @@ class MultipassHarness(Harness):
                     f"Failed to configure IPv6 in instance {instance_id}"
                 ) from e
 
-        return Instance(self, instance_id)
+        return instance
 
     def send_file(self, instance_id: str, source: str, destination: str):
         if instance_id not in self.instances:
@@ -208,6 +229,24 @@ class MultipassHarness(Harness):
             ],
             **kwargs,
         )
+
+    def open_ports(self, instance_id: str, ports: List[int]):
+        """Open ports on the instance.
+
+        :param instance_id: The instance_id, as returned by new_instance()
+        :param ports: List of ports to open on the instance.
+
+        Ports will be opened on a best effort basis. If the port is already open,
+        or UFW is not installed, no error will be raised.
+        """
+        if instance_id not in self.instances:
+            raise HarnessError(f"unknown instance {instance_id}")
+
+        for port in ports:
+            LOG.debug("Opening port %s on instance %s", port, instance_id)
+            # UFW might not be installed, if this is the case, then no firewall
+            # is active and nothing needs to be done.
+            self.exec(instance_id, ["sudo", "ufw", "allow", str(port)], check=False)
 
     def delete_instance(self, instance_id: str):
         if instance_id not in self.instances:

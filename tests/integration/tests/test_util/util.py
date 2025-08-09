@@ -231,20 +231,20 @@ def setup_core_dumps(instance: harness.Instance):
 
 def setup_k8s_snap(
     instance: harness.Instance,
-    tmp_path: Path,
     snap: Optional[str] = None,
     connect_interfaces=True,
+    tmp_path: Optional[Path] = Path("/home/ubuntu"),
 ):
     """Installs and sets up the snap on the given instance and connects the interfaces.
 
     Args:
         instance:   instance on which to install the snap
-        tmp_path:   path to store the snap on the instance
         snap: choice of track, channel, revision, or file path
             a snap track to install
             a snap channel to install
             a snap revision to install
             a path to the snap to install
+        tmp_path:   path to store the snap on the instance (optional, defaults to /home/ubuntu)
     """
     cmd = ["snap", "install", "--classic"]
     which_snap = snap or config.SNAP

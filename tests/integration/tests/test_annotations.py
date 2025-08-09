@@ -102,6 +102,8 @@ def test_skip_services_stop_on_remove(instances: List[harness.Instance]):
 @pytest.mark.node_count(2)
 @pytest.mark.no_setup()
 @pytest.mark.tags(tags.NIGHTLY)
+# Old versions still use k8s-dqlite
+@pytest.mark.required_ports(9000)
 def test_disable_separate_feature_upgrades(
     instances: List[harness.Instance], tmp_path: Path
 ):
@@ -130,7 +132,7 @@ def test_disable_separate_feature_upgrades(
     util.wait_until_k8s_ready(joining_cp, instances)
 
     # Refresh first node, no upgrade CRD should be created.
-    util.setup_k8s_snap(cluster_node, tmp_path, config.SNAP)
+    util.setup_k8s_snap(cluster_node, config.SNAP)
     util.wait_until_k8s_ready(cluster_node, instances)
 
     upgrades = json.loads(

@@ -6,6 +6,7 @@ import os
 import shlex
 import subprocess
 from pathlib import Path
+from typing import List
 
 from test_util import config
 from test_util.harness import Harness, HarnessError, Instance
@@ -238,6 +239,10 @@ class LXDHarness(Harness):
             ["lxc", "shell", instance_id, "--", "bash", "-c", command_str],
             **kwargs,
         )
+
+    def open_ports(self, instance_id: str, ports: List[int]):
+        # Note(Ben): We don't use a firewall in LXD containers, so this is a no-op for now.
+        pass
 
     def delete_instance(self, instance_id: str):
         if instance_id not in self.instances:

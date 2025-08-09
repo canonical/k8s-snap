@@ -66,13 +66,11 @@ jobs:
           # The operator tests expect the charm file name to have the
           # ${charmName}_ prefix and include the arch and ubuntu base.
           # https://github.com/canonical/k8s-operator/blob/eba756ddc723e9aa5242c7804712807495356c6f/tests/integration/helpers.py#L334-L342
-
           # The charm base (e.g. ubuntu@22.04) must match the one used by other
           # related charms (e.g. ceph) used by the k8s-operator tests.
           arch=${{ inputs.arch }}
           k8sCharmFile=${GITHUB_WORKSPACE}/k8s_ubuntu-22.04-${arch}.charm
           k8sWorkerChamFile=${GITHUB_WORKSPACE}/k8s-worker_ubuntu-22.04-${arch}.charm
-
           juju download k8s \
             --channel ${{ inputs.charm-channel }} \
             --filepath $k8sCharmFile \
@@ -96,17 +94,13 @@ jobs:
       - name: Run e2e tests
         run: |
           set -x
-
           arch=${{ inputs.arch }}
           k8sCharmFile=${GITHUB_WORKSPACE}/k8s_ubuntu-22.04-${arch}.charm
           k8sWorkerChamFile=${GITHUB_WORKSPACE}/k8s-worker_ubuntu-22.04-${arch}.charm
           snapInstallRes=${GITHUB_WORKSPACE}/snap_installation.tar.gz
-
           ls -lh $charmFile
           ls -lh $snapInstallRes
-
           cd ${{ env.K8S_OPERATOR }}
-
           tox -r -e integration \
             -- \
             --charm-file $k8sCharmFile \
