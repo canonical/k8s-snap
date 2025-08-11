@@ -4,7 +4,8 @@
 
 * k8s-dqlite – By default, Kubernetes uses etcd as its datastore,
 but you can choose k8s-dqlite as an alternative. Any references to k8s-dqlite
-are relevant only if it has been selected as the Kubernetes datastore.
+are relevant only if it has been selected as the Kubernetes datastore
+on bootstrap.
 * k8sd - Kubernetes cluster management data
 
 ## Database files
