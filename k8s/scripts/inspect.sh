@@ -95,6 +95,7 @@ function collect_cluster_info {
   fi
 
   run_with_timeout "k8s kubectl cluster-info dump $FLAGS --output-directory $INSPECT_DUMP/cluster-info &>/dev/null"
+  run_with_timeout "k8s kubectl get upgrades -ojson $FLAGS > $INSPECT_DUMP/cluster-info/upgrades.json"
 }
 
 function collect_sbom {
