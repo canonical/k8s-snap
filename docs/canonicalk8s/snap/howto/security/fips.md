@@ -38,12 +38,14 @@ Now, enable the FIPS crypto modules on your host machine:
 ```
 sudo pro enable fips-updates
 ```
+
 Now, enable the FIPS crypto modules on your host machine:
 Reboot to apply the changes: 
 
 ```
 sudo reboot
 ```
+
 Reboot to apply the changes:
 Verify your host machine is running in FIPS mode:
 
@@ -116,7 +118,7 @@ sudo ufw reload
 ### Allow access to the Kubernetes services
 
 For detailed information about the ports and services used by {{ product }},
-see the [ports andservices] documentation.
+see the [ports and services] documentation.
 
 Allow the following ports in your firewall:
 
