@@ -1,7 +1,8 @@
 # Etcd database
 
 {{product}} uses **etcd** as the default Kubernetes datastore.
-etcd is a distributed key-value store that holds all Kubernetes cluster state data.
+etcd is a distributed key-value store that holds all Kubernetes
+cluster state data.
 
 ## Database files
 
@@ -11,7 +12,8 @@ The etcd database has its state directory under the snap path:
 
 This directory normally contains:
 
-* `member/` – etcd member data, including the write-ahead log (WAL) and snapshots
+* `member/` – etcd member data, including the write-ahead log (WAL)
+and snapshots
 
   * `snap/` – snapshot files of the key-value store
   * `wal/` – write-ahead logs for durability and recovery
@@ -20,8 +22,10 @@ This directory normally contains:
 
 ## Inspecting the database
 
-The `etcdctl` command-line client can be used to directly interact with etcd. It is **not included** in the {{product}} snap.
-You will need to obtain `etcdctl` separately from the [official etcd releases] or your OS package manager.
+The `etcdctl` command-line client can be used to directly interact with etcd.
+It is **not included** in the {{product}} snap.
+You will need to obtain `etcdctl` separately from the [official etcd releases]
+or your OS package manager.
 
 Once `etcdctl` is available, you can connect to the etcd database as follows:
 
@@ -58,9 +62,12 @@ etcdctl \
 
 ## Notes
 
-* etcd in {{product}} runs with TLS enabled by default to secure communication between members and clients.
-* All Kubernetes API objects are stored as serialized JSON in etcd, indexed by their API path keys.
-* Care should be taken when directly modifying etcd data, as it may corrupt cluster state.
+* etcd in {{product}} runs with TLS enabled by default to secure communication
+between members and clients.
+* All Kubernetes API objects are stored as serialized JSON in etcd, indexed by
+their API path keys.
+* Care should be taken when directly modifying etcd data, as it may corrupt
+cluster state.
 
 <!-- LINKS -->
 
