@@ -11,21 +11,15 @@ To enable FIPS on your host machine, you require an [Ubuntu Pro] subscription.
 Open the [Ubuntu Pro subscription dashboard] to retrieve your Ubuntu Pro token
 required to enable access to FIPS-certified modules on your system.
 
-``` {note}
-If this section leaves open any further questions consult the [enable FIPS with Ubuntu]
-guide for more detailed instructions.
-```
-
-As a first step, ensure that your Ubuntu Pro Client is installed and running at
+Ensure that your Ubuntu Pro Client is installed and running at
 least 27.0:
 
 ```
 pro version
-27.13.5~16.04.1
 ```
 
 If you have not installed the Ubuntu Pro Client yet or have an older version,
-please run:
+run:
 
 ```
 sudo apt update
@@ -39,18 +33,18 @@ Canonical Livepatch services, which are not supported with FIPS:
 sudo pro attach <your_pro_token> --no-auto-enable
 ```
 
-Now, enable the FIPS crypto modules on your host machines:
+Now, enable the FIPS crypto modules on your host machine:
 
 ```
 sudo pro enable fips-updates
 ```
-
-Reboot your host machine to apply the changes:
+Now, enable the FIPS crypto modules on your host machine:
+Reboot to apply the changes: 
 
 ```
 sudo reboot
 ```
-
+Reboot to apply the changes:
 Verify your host machine is running in FIPS mode:
 
 ```
@@ -59,14 +53,16 @@ cat /proc/sys/crypto/fips_enabled
 
 If the output is `1`, your host machine is running in FIPS mode.
 
+``` {note}
+If this section leaves open any further questions consult the [enable FIPS with Ubuntu]
+guide for more detailed instructions.
+```
+
 ## Firewall configuration for Kubernetes
 
 {{ product }} requires certain firewall rules and guidelines to
-ensure its operation. Additionally, please review your services hosted in
-Kubernetes and add any necessary firewall rules.
-
-The following rules are recommended for a {{ product }} cluster
-with FIPS enabled.
+ensure its operation. Additional firewall rules may also be necessary based on
+user deployed workloads and services. 
 
 ```{warning}
 The presented network rules may be incompatible with your network setup, or you
@@ -79,7 +75,7 @@ according to your network requirements.
 Forwarding is needed as containers typically live in isolated networks and need
 the host to route traffic between their internal network and the outside world.
 
-Configure your firewall (UFW) to allow packet forwarding by editing
+Configure your firewall (we will use UFW) to allow packet forwarding by editing
 `/etc/default/ufw`:
 
 ```
@@ -92,26 +88,26 @@ Then, enable IP forwarding in the kernel by editing `/etc/sysctl.conf`:
 net.ipv4.ip_forward=1
 ```
 
-Alternatively, apply the change immediately with:
+Alternatively, apply the change with:
 
 ```
 sudo sysctl -w net.ipv4.ip_forward=1
 ```
 
-If you are accessing the node via ssh, configure UFW to allow ssh traffic before
-enabling it. Otherwise you risk being locked out of it:
+If you are accessing the node via SSH, configure UFW to allow SSH traffic before
+enabling the firewall. Otherwise, you risk being locked out of your machine:
 
 ```
 sudo ufw allow ssh
 ```
 
-If necessary, enable UFW if it's not already enabled:
+Enable UFW if it has not already been enabled: 
 
 ```
 sudo ufw enable
 ```
 
-As a last step, reload the firewall rules:
+Reload the firewall rules:
 
 ```
 sudo ufw reload
@@ -120,7 +116,7 @@ sudo ufw reload
 ### Allow access to the Kubernetes services
 
 For detailed information about the ports and services used by {{ product }},
-see the [ports-and-services] documentation.
+see the [ports andservices] documentation.
 
 Allow the following ports in your firewall:
 
@@ -136,7 +132,7 @@ sudo ufw allow 4240/tcp # cilium-agent
 sudo ufw allow 8472/udp # cilium-agent
 ```
 
-### Ensure runtime with FIPS-certified libraries
+## Ensure runtime with FIPS-certified libraries
 
 Install the [core22] runtime with FIPS-certified libraries. The core22 snap
 offers the fips-updates track, which contains NIST-certified packages along
@@ -153,14 +149,14 @@ to the latest version:
 sudo snap refresh core22 --channel=fips-updates/stable
 ```
 
-### Install Canonical Kubernetes
+## Install Canonical Kubernetes
 
 Install {{ product }} on your FIPS host:
 
 ```
 sudo snap install k8s --channel=1.32-classic/candidate/fips-early-release --classic
 ```
-<!-- TODO: Update once FIPS is in stable -->
+<!-- TODO: Update once FIPS is in stable, add to install.md if necessary -->
 ```{warning}
 This command installs the Kubernetes snap from the FIPS-enabled candidate
 channel. Please note that this is an early release; only Kubernetes services are
@@ -211,4 +207,4 @@ sudo reboot
 <!-- markdownlint-enable MD053 -->
 [core22]: https://snapcraft.io/core22
 [security patches]: <https://ubuntu.com/security/certifications/docs/16-18/fips-updates>
-[ports-and-services]: ../reference/ports-and-services
+[ports and services]: ../reference/ports-and-services
