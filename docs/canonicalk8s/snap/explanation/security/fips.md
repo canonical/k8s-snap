@@ -8,6 +8,7 @@ and Technology ([NIST]).
 
 ## Why is FIPS important for Kubernetes?
 
+<!-- TODO: Update if we choose to build from a separate track -->
 {{ product }} is built with FIPS compliant cryptographic
 modules, ensuring that users can meet the security requirements set forth
 for the use in federal and other regulated environments. All of our components
