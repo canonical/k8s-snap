@@ -21,16 +21,6 @@ managed datastore, which can be either etcd or Dqlite. Persistent volumes on
 the lost nodes are *not* recovered.
 ```
 
-The recovery process can be roughly described as follow:
-
-- Stop the services on all nodes.
-- Select one of the remaining cluster nodes.
-- Reconfigure the cluster database membership.
-- Restore the cluster datastore state on all remaining nodes.
-- Reconfigure the Kubernetes database membership.
-- Restore the Kubernetes backend datastore on all remaning nodes.
-- Start the services on all nodes. 
-
 If you have set up Dqlite as the datastore, please consult the 
 [Dqlite configuration reference] before moving forward.
 
