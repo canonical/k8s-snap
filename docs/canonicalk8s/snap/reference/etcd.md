@@ -8,7 +8,7 @@ cluster state data.
 
 The etcd database has its state directory under the snap path:
 
-* `/var/snap/k8s/common/var/lib/etcd`
+* `/var/snap/k8s/common/var/lib/etcd/data`
 
 This directory normally contains:
 
