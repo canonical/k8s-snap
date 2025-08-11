@@ -1,4 +1,4 @@
-# FIPS Compliance
+# FIPS compliance
 
 [FIPS 140-3] (Federal Information Processing Standard) is a U.S. government
 standard for cryptographic modules. In order to comply with FIPS standards,
