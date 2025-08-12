@@ -209,6 +209,17 @@ class MultipassHarness(Harness):
             **kwargs,
         )
 
+    def restart_instance(self, instance_id):
+        if instance_id not in self.instances:
+            raise HarnessError(f"unknown instance {instance_id}")
+
+        try:
+            stubbornly(delay_s=5, retries=20).exec(
+                ["multipass", "restart", instance_id], timeout=60 * 5
+            )
+        except subprocess.CalledProcessError as e:
+            raise HarnessError(f"failed to restart instance {instance_id}") from e
+
     def delete_instance(self, instance_id: str):
         if instance_id not in self.instances:
             raise HarnessError(f"unknown instance {instance_id}")
