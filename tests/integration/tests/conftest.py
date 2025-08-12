@@ -305,7 +305,7 @@ def instances(
         try:
             util.remove_k8s_snap(instance)
         finally:
-            h.delete_instance(instance.id)
+            instance.delete()
 
 
 @pytest.fixture(scope="function")

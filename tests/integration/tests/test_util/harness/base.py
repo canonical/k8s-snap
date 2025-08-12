@@ -24,7 +24,6 @@ class Instance:
         self.send_file = partial(h.send_file, id)
         self.pull_file = partial(h.pull_file, id)
         self.exec = partial(h.exec, id)
-        self.delete_instance = partial(h.delete_instance, id)
 
     @property
     def id(self) -> str:
@@ -39,7 +38,11 @@ class Instance:
 
     def reboot(self) -> None:
         """Reboot the instance"""
-        self.exec(["sudo", "reboot"], check=True)
+        self._h.restart_instance(self.id)
+
+    def delete(self) -> None:
+        """Delete the instance"""
+        self._h.delete_instance(self.id)
 
     def __str__(self) -> str:
         return f"{self._h.name}:{self.id}"

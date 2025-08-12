@@ -252,7 +252,7 @@ class EtcdCluster:
 
     def cleanup(self):
         for instance in self.instances:
-            self.harness.delete_instance(instance.id)
+            instance.delete()
         self.instances = []
 
     @property
