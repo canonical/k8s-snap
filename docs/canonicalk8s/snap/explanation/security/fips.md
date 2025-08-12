@@ -26,7 +26,8 @@ to be met in order to be fully FIPS compliant.
 
 ## Use FIPS with {{product}}
 
-If you would like to enable FIPS in your Kubernetes cluster see our [how-to guide].
+If you would like to enable FIPS in your Kubernetes cluster see our
+[how-to guide].
 
 <!-- LINKS -->
 [FIPS 140-3]: https://csrc.nist.gov/pubs/fips/140-3/final
