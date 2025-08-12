@@ -3,6 +3,7 @@
 #
 import subprocess
 from functools import cached_property, partial
+from typing import List
 
 
 class HarnessError(Exception):
@@ -36,8 +37,12 @@ class Instance:
             ["dpkg", "--print-architecture"], text=True, capture_output=True
         ).stdout.strip()
 
-    def reboot(self) -> None:
-        """Reboot the instance"""
+    def open_ports(self, ports: List[int]) -> None:
+        """Open ports on the instance"""
+        self._h.open_ports(self.id, ports)
+
+    def restart(self) -> None:
+        """Restart the instance"""
         self._h.restart_instance(self.id)
 
     def delete(self) -> None:
@@ -112,6 +117,17 @@ class Harness:
         :param instance_id: The instance_id, as returned by new_instance()
 
         If the operation fails, a HarnessError is raised.
+        """
+        raise NotImplementedError
+
+    def open_ports(self, instance_id: str, ports: List[int]):
+        """Open ports on the instance.
+
+        :param instance_id: The instance_id, as returned by new_instance()
+        :param ports: List of ports to open on the instance.
+
+        Ports will be opened on a best effort basis. If the port is already open,
+        or no firewall is installed, no error will be raised.
         """
         raise NotImplementedError
 
