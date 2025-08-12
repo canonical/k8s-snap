@@ -1,8 +1,8 @@
-# How to set up a FIPS-compliant Kubernetes cluster
+# How to set up a FIPS compliant Kubernetes cluster
 
 FIPS (Federal Information Processing Standards) ensures security compliance
 crucial for US government and regulated industries. This how-to guide provides
-the steps to set up a FIPS-compliant Kubernetes cluster using the
+the steps to set up a FIPS compliant Kubernetes cluster using the
 {{ product }} snap.
 
 ## Enable FIPS on an Ubuntu host machine
@@ -96,7 +96,7 @@ If you are using an earlier version, you will need to upgrade to the latest
 version of the snap to use FIPS support.
 ```
 
-The snap includes binaries built with FIPS-compliant cryptography. The
+The snap includes binaries built with FIPS compliant cryptography. The
 components will automatically detect if the system is running in FIPS mode and
 activate internal FIPS-related settings accordingly.
 
@@ -114,10 +114,10 @@ sudo k8s status
 
 Your Kubernetes cluster is now ready for workload deployment and
 additional node integrations. Please ensure that your workloads and
-underlying system and hardware are FIPS-compliant as well, to
+underlying system and hardware are FIPS compliant as well, to
 maintain the security standards required by FIPS. For example,
 ensure that your container images used for your applications are
-built with FIPS-compliant libraries and configurations. 
+built with FIPS compliant libraries and configurations. 
 
 
 ## Disable FIPS on an Ubuntu host machine
