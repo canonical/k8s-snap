@@ -39,14 +39,12 @@ Now, enable the FIPS crypto modules on your host machine:
 sudo pro enable fips-updates
 ```
 
-Now, enable the FIPS crypto modules on your host machine:
 Reboot to apply the changes: 
 
 ```
 sudo reboot
 ```
 
-Reboot to apply the changes:
 Verify your host machine is running in FIPS mode:
 
 ```
@@ -64,75 +62,8 @@ guide for more detailed instructions.
 
 {{ product }} requires certain firewall rules and guidelines to
 ensure its operation. Additional firewall rules may also be necessary based on
-user deployed workloads and services. 
-
-```{warning}
-The presented network rules may be incompatible with your network setup, or you
-may find them too permissive or too restrictive. Please review and adjust them
-according to your network requirements.
-```
-
-### Enable package forwarding
-
-Forwarding is needed as containers typically live in isolated networks and need
-the host to route traffic between their internal network and the outside world.
-
-Configure your firewall (we will use UFW) to allow packet forwarding by editing
-`/etc/default/ufw`:
-
-```
-DEFAULT_FORWARD_POLICY="ACCEPT"
-```
-
-Then, enable IP forwarding in the kernel by editing `/etc/sysctl.conf`:
-
-```
-net.ipv4.ip_forward=1
-```
-
-Alternatively, apply the change with:
-
-```
-sudo sysctl -w net.ipv4.ip_forward=1
-```
-
-If you are accessing the node via SSH, configure UFW to allow SSH traffic before
-enabling the firewall. Otherwise, you risk being locked out of your machine:
-
-```
-sudo ufw allow ssh
-```
-
-Enable UFW if it has not already been enabled: 
-
-```
-sudo ufw enable
-```
-
-Reload the firewall rules:
-
-```
-sudo ufw reload
-```
-
-### Allow access to the Kubernetes services
-
-For detailed information about the ports and services used by {{ product }},
-see the [ports and services] documentation.
-
-Allow the following ports in your firewall:
-
-```
-sudo ufw allow 10250/tcp # kubelet
-sudo ufw allow 10257/tcp # kube-controller
-sudo ufw allow 10259/tcp # kube-scheduler
-sudo ufw allow 6443/tcp # coredns
-sudo ufw allow 2379/tcp # etcd
-sudo ufw allow 2380/tcp # etcd
-sudo ufw allow 6400/tcp # k8sd
-sudo ufw allow 4240/tcp # cilium-agent
-sudo ufw allow 8472/udp # cilium-agent
-```
+user deployed workloads and services. Please follow the steps in the 
+[firewall configuration] guide.
 
 ## Ensure runtime with FIPS-certified libraries
 
@@ -156,15 +87,13 @@ sudo snap refresh core22 --channel=fips-updates/stable
 Install {{ product }} on your FIPS host:
 
 ```
-sudo snap install k8s --channel=1.32-classic/candidate/fips-early-release --classic
+sudo snap install k8s --classic
 ```
-<!-- TODO: Update once FIPS is in stable, add to install.md if necessary -->
-```{warning}
-This command installs the Kubernetes snap from the FIPS-enabled candidate
-channel. Please note that this is an early release; only Kubernetes services are
-FIPS-compliant, not the additional features (which are OCI images deployed
-separately when bootstrapping). Once FIPS is fully supported, the channel will
-be updated to stable.
+
+```{note}
+Please note that FIPS is only available in the `k8s` release 1.34 and later.
+If you are using an earlier version, you will need to upgrade to the latest
+version of the snap to use FIPS support.
 ```
 
 The snap includes binaries built with FIPS-compliant cryptography. The
@@ -183,17 +112,28 @@ Then you may wait for the node to be ready, by running:
 sudo k8s status
 ```
 
-Your FIPS-compliant Kubernetes cluster is now ready for workload deployment and
-additional node integrations. Please ensure that your workloads are
-FIPS-compliant as well, to maintain the security standards required by FIPS.
+Your Kubernetes cluster is now ready for workload deployment and
+additional node integrations. Please ensure that your workloads and
+underlying system and hardware are FIPS-compliant as well, to
+maintain the security standards required by FIPS. For example,
+ensure that your container images used for your applications are
+built with FIPS-compliant libraries and configurations. 
+
 
 ## Disable FIPS on an Ubuntu host machine
+
+```{warning}
+Disabling FIPS is not recommended: only enable FIPS on machines intended expressly to be used for FIPS.
+```
 
 To disable FIPS on your host machine, run the following command:
 
 ```
 sudo pro disable fips-updates
 ```
+
+This command removes the APT sources but it will not uninstall existing FIPS-certified packages as
+described in the [disabling FIPS with Ubuntu] guide.
 
 Then reboot your host machine to apply the changes:
 
@@ -207,6 +147,8 @@ sudo reboot
 <!-- markdownlint-disable MD053 -->
 [enable FIPS with Ubuntu]: https://ubuntu.com/tutorials/using-the-ubuntu-pro-client-to-enable-fips#1-overview
 <!-- markdownlint-enable MD053 -->
+[firewall configuration]: ../networking/ufw
 [core22]: https://snapcraft.io/core22
 [security patches]: <https://ubuntu.com/security/certifications/docs/16-18/fips-updates>
 [ports and services]: ../reference/ports-and-services
+[disabling FIPS with Ubuntu]: https://documentation.ubuntu.com/pro-client/en/latest/howtoguides/enable_fips/#how-to-disable-fips
