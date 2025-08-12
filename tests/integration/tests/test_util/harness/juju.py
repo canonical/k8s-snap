@@ -191,6 +191,9 @@ class JujuHarness(Harness):
             completed.check_returncode()
         return completed
 
+    def restart_instance(self, instance_id):
+        self.exec(instance_id, ["sudo", "reboot"])
+
     def delete_instance(self, instance_id: str):
         if instance_id not in self.instances:
             raise HarnessError(f"unknown instance {instance_id}")

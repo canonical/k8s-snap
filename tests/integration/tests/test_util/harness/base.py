@@ -106,6 +106,15 @@ class Harness:
         """
         raise NotImplementedError
 
+    def restart_instance(self, instance_id: str):
+        """Restart an previously created instance.
+
+        :param instance_id: The instance_id, as returned by new_instance()
+
+        If the operation fails, a HarnessError is raised.
+        """
+        raise NotImplementedError
+
     def delete_instance(self, instance_id: str):
         """Delete a previously created instance.
 

@@ -25,9 +25,9 @@ STATUS_PATTERNS = [
 
 @pytest.mark.tags(tags.WEEKLY)
 @pytest.mark.node_count(3)
-def test_reboot(instances: List[harness.Instance]):
+def test_restart(instances: List[harness.Instance]):
     """
-    Test that a reboot of the instance does not break the k8s snap.
+    Test that a restart of the instance does not break the k8s snap.
     """
 
     main = instances[0]
@@ -44,10 +44,10 @@ def test_reboot(instances: List[harness.Instance]):
         ).exec(["k8s", "status", "--wait-ready"])
 
     for instance in instances:
-        LOG.info("Rebooting the instance %s", instance.id)
-        instance.reboot()
+        LOG.info("Restart the instance %s", instance.id)
+        instance.restart()
 
-    LOG.info("Waiting for k8s to be ready after reboot")
+    LOG.info("Waiting for k8s to be ready after restart")
     util.wait_until_k8s_ready(instance, [instance])
     for instance in instances:
         LOG.info("Waiting for the instance %s to come back up", instance.id)
