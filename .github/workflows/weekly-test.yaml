@@ -6,7 +6,6 @@ on:
   pull_request:
     paths:
       - .github/workflows/weekly-test.yaml
-
 permissions:
   contents: read
   actions: read
