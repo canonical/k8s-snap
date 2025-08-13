@@ -459,7 +459,7 @@ spec:
     datastoreServersSecretRef:
       name: sfName
       key: sfKey
-    k8sDqlitePort: 2379
+    etcdPort: 2379
     microclusterAddress: my.address
     microclusterPort: ":2380"
     extraKubeAPIServerArgs:
