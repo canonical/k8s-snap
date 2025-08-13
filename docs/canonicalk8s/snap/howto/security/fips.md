@@ -1,6 +1,6 @@
 # How to set up a FIPS compliant Kubernetes cluster
 
-FIPS (Federal Information Processing Standards) ensures security compliance
+[FIPS 140-3] (Federal Information Processing Standards) ensures security compliance
 crucial for US government and regulated industries. This how-to guide provides
 the steps to set up a FIPS compliant Kubernetes cluster using the
 {{ product }} snap.
@@ -123,7 +123,10 @@ built with FIPS compliant libraries and configurations.
 ## Disable FIPS on an Ubuntu host machine
 
 ```{warning}
-Disabling FIPS is not recommended: only enable FIPS on machines intended expressly to be used for FIPS.
+Disabling FIPS on a host machine is not recommended: only enable FIPS on machines intended expressly to be used for FIPS.
+Changing the FIPS mode may have implications for the
+services running on your live cluster, so ensure you understand the
+consequences of disabling FIPS before proceeding.
 ```
 
 To disable FIPS on your host machine, run the following command:
@@ -143,6 +146,7 @@ sudo reboot
 ```
 
 <!-- LINKS -->
+[FIPS 140-3]: https://csrc.nist.gov/pubs/fips/140-3/final
 [Ubuntu Pro]: https://ubuntu.com/pro
 [Ubuntu Pro subscription dashboard]: https://ubuntu.com/pro/dashboard
 <!-- markdownlint-disable MD053 -->
