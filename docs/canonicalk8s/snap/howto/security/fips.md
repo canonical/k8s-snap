@@ -137,9 +137,8 @@ To disable FIPS on your host machine, run the following command:
 sudo pro disable fips-updates
 ```
 
-This command removes the APT sources but it will not uninstall
-existing FIPS-certified packages as
-described in the [disabling FIPS with Ubuntu] guide.
+For further information on how to disable FIPS on the host,
+consult the [disabling FIPS with Ubuntu] guide.
 
 You can also change the [core22] snap back to the default
 non-FIPS channel:
