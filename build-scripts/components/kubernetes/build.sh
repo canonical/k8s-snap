@@ -9,7 +9,7 @@ for app in kubernetes; do
   export GOTOOLCHAIN=local
   export GOEXPERIMENT=opensslcrypto
   export CGO_ENABLED=1
-  make WHAT="cmd/${app}" KUBE_CGO_OVERRIDES="${app}" GOFLAGS="-tags=providerless,linux,cgo"
+  make WHAT="cmd/${app}" KUBE_CGO_OVERRIDES="${app}" GOFLAGS="-tags=providerless,linux,cgo,ms_tls13kdf"
   cp _output/bin/"${app}" "${INSTALL}/${app}"
 done
 
