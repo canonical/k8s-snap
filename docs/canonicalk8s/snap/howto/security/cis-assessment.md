@@ -376,6 +376,10 @@ permissions=600
 
 ##### CIS Control 1.1.8
 
+`````{tabs}
+
+````{group-tab} k8s-dqlite
+
 **Description:**
 
 Ensure that the dqlite configuration file ownership is set
@@ -400,6 +404,39 @@ Run the following command on the control plane node.
 ```
 root:root
 ```
+
+````
+
+````{group-tab} etcd
+
+**Description:**
+
+Ensure that the etcd configuration file ownership is set
+to root:root
+
+
+**Remediation:**
+
+Run the following command on the control plane node.
+
+`chown root:root /var/snap/k8s/common/args/etcd`
+
+
+**Audit (as root):**
+
+```
+/bin/sh -c 'if test -e /var/snap/k8s/common/args/etcd; then stat -c %U:%G /var/snap/k8s/common/args/etcd; fi'
+```
+
+**Expected output:**
+
+```
+root:root
+```
+
+````
+
+`````{tabs}
 
 ##### CIS Control 1.1.9
 
@@ -458,6 +495,10 @@ root:root
 
 ##### CIS Control 1.1.11
 
+`````{tabs}
+
+````{group-tab} k8s-dqlite
+
 **Description:**
 
 Ensure that the dqlite data directory permissions are set to
@@ -486,7 +527,47 @@ stat -c permissions=%a "$DATA_DIR"
 permissions=700
 ```
 
+````
+
+````{group-tab} etcd
+
+**Description:**
+
+Ensure that the etcd data directory permissions are set to
+700 or more restrictive
+
+
+**Remediation:**
+
+etcd data are kept by default under
+`/var/snap/k8s/common/var/lib/etcd`.
+To comply with the spirit of this CIS recommendation:
+
+`chmod 700 /var/snap/k8s/common/var/lib/etcd`
+
+
+**Audit (as root):**
+
+```
+DATA_DIR='/var/snap/k8s/common/var/lib/etcd'
+stat -c permissions=%a "$DATA_DIR"
+```
+
+**Expected output:**
+
+```
+permissions=700
+```
+
+````
+
+`````
+
 ##### CIS Control 1.1.12
+
+`````{tabs}
+
+````{group-tab} k8s-dqlite
 
 **Description:**
 
@@ -515,6 +596,42 @@ stat -c %U:%G "$DATA_DIR"
 ```
 root:root
 ```
+
+````
+
+````{group-tab} etcd
+
+**Description:**
+
+Ensure that the etcd data directory ownership is set to
+root:root
+
+
+**Remediation:**
+
+etcd data are kept by default under
+`/var/snap/k8s/common/var/lib/etcd`.
+To comply with the spirit of this CIS recommendation:
+
+`chown root:root /var/snap/k8s/common/var/lib/etcd`
+
+
+**Audit (as root):**
+
+```
+DATA_DIR='/var/snap/k8s/common/var/lib/etcd'
+stat -c %U:%G "$DATA_DIR"
+```
+
+**Expected output:**
+
+```
+root:root
+```
+
+````
+
+`````
 
 ##### CIS Control 1.1.13
 
@@ -1496,6 +1613,10 @@ file=/etc/kubernetes/pki/serviceaccount.key
 
 ##### CIS Control 1.2.25
 
+`````{tabs}
+
+````{group-tab} k8s-dqlite
+
 **Description:**
 
 Ensure that the `--etcd-certfile` and `--etcd-keyfile` arguments
@@ -1510,6 +1631,51 @@ local socket
 (`/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`)
 accessible to users with root permissions.
 
+````
+
+````{group-tab} etcd
+
+**Description:**
+
+Ensure that the `--etcd-certfile` and `--etcd-keyfile` arguments
+are set as appropriate
+
+
+**Remediation:**
+
+Edit the API server configuration file 
+`/var/snap/k8s/common/args/kube-apiserver` on the control plane node and set 
+the `--etcd-certfile` and `--etcd-keyfile` parameters to the certificate and 
+private key files respectively. 
+
+```
+--etcd-certfile="/etc/kubernetes/pki/apiserver-etcd-client.crt"
+--etcd-keyfile="/etc/kubernetes/pki/apiserver-etcd-client.key"
+
+```
+
+Restart the `kube-apiserver` service.
+
+```
+snap restart k8s.kube-apiserver
+```
+
+**Audit (as root):**
+
+```
+/bin/ps -ef | grep kube-apiserver | grep -v grep
+```
+
+**Expected output:**
+
+```
+--etcd-certfile="/etc/kubernetes/pki/apiserver-etcd-client.crt"
+--etcd-keyfile="/etc/kubernetes/pki/apiserver-etcd-client.key"
+```
+
+````
+
+`````
 
 ##### CIS Control 1.2.26
 
@@ -1580,6 +1746,10 @@ authority file.
 
 ##### CIS Control 1.2.28
 
+`````{tabs}
+
+````{group-tab} k8s-dqlite
+
 **Description:**
 
 Ensure that the `--etcd-cafile` argument is set as appropriate
@@ -1593,6 +1763,46 @@ local socket
 (`/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`)
 accessible to users with root permissions.
 
+````
+
+````{group-tab} etcd
+
+**Description:**
+
+Ensure that the `--etcd-cafile` argument is set as appropriate
+
+
+**Remediation:**
+
+Edit the API server configuration file 
+`/var/snap/k8s/common/args/kube-apiserver` on the control plane node and set 
+the `--etcd-cafile` parameter to the ca certificate file that is used by etcd. 
+
+```
+--etcd-cafile=/etc/kubernetes/pki/etcd/ca.crt
+```
+
+Restart the `kube-apiserver` service.
+
+```
+snap restart k8s.kube-apiserver
+```
+
+**Audit (as root):**
+
+```
+/bin/ps -ef | grep kube-apiserver | grep -v grep
+```
+
+**Expected output:**
+
+```
+--etcd-cafile=/etc/kubernetes/pki/etcd/ca.crt
+```
+
+````
+
+`````
 
 ##### CIS Control 1.2.29
 
@@ -1982,6 +2192,10 @@ and restart the kube-scheduler service
 
 ##### CIS Control 2.1
 
+`````{tabs}
+
+````{group-tab} k8s-dqlite
+
 **Description:**
 
 Ensure that the `--cert-file` and `--key-file` arguments are set
@@ -1996,8 +2210,54 @@ local socket
 (`/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`)
 accessible to users with root permissions.
 
+````
+
+````{group-tab} etcd
+
+**Description:**
+
+Ensure that the `--cert-file` and `--key-file` arguments are set
+as appropriate
+
+**Remediation:**
+
+Edit the etcd configuration file 
+`/var/snap/k8s/common/args/etcd` on the control plane node and set 
+the `--cert-file` and `--key-file` parameters appropriately. 
+
+```
+--cert-file="/etc/kubernetes/pki/etcd/server.crt"
+--key-file="/etc/kubernetes/pki/etcd/server.key"
+```
+
+Restart the `etcd` service.
+
+```
+snap restart k8s.etcd
+```
+
+**Audit (as root):**
+
+```
+/bin/ps -ef | grep -E 'etcd\s' | grep -v grep
+```
+
+**Expected output:**
+
+```
+--cert-file="/etc/kubernetes/pki/etcd/server.crt"
+--key-file="/etc/kubernetes/pki/etcd/server.key"
+```
+
+````
+
+`````
 
 ##### CIS Control 2.2
+
+`````{tabs}
+
+````{group-tab} k8s-dqlite
 
 **Description:**
 
@@ -2012,8 +2272,45 @@ local socket
 (`/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`)
 accessible to users with root permissions.
 
+````
+
+````{group-tab} etcd
+
+**Description:**
+
+Ensure that the `--client-cert-auth` argument is set to true
+
+**Remediation:**
+
+Edit the etcd configuration file 
+`/var/snap/k8s/common/args/etcd` on the control plane node and set 
+the `--client-cert-auth` argument to true. Then restart the `etcd` service.
+
+```
+snap restart k8s.etcd
+```
+
+**Audit (as root):**
+
+```
+/bin/ps -ef | grep -E 'etcd\s' | grep -v grep
+```
+
+**Expected output:**
+
+```
+--client-cert-auth="true"
+```
+
+````
+
+`````
 
 ##### CIS Control 2.3
+
+`````{tabs}
+
+````{group-tab} k8s-dqlite
 
 **Description:**
 
@@ -2028,8 +2325,43 @@ local socket
 (`/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`)
 accessible to users with root permissions.
 
+````
+
+````{group-tab} etcd
+
+**Description:**
+
+Ensure that the `--auto-tls` argument is not set to true
+
+**Remediation:**
+
+Edit the etcd configuration file 
+`/var/snap/k8s/common/args/etcd` on the control plane node and remove the
+`--auto-tls` argument. Then restart the `etcd` service.
+
+```
+snap restart k8s.etcd
+```
+
+**Audit (as root):**
+
+```
+/bin/ps -ef | grep -E 'etcd\s' | grep -v grep
+```
+
+**Expected output:**
+
+The `--auto-tls` should bot be present or set to `false`
+
+````
+
+`````
 
 ##### CIS Control 2.4
+
+`````{tabs}
+
+````{group-tab} k8s-dqlite
 
 **Description:**
 
@@ -2057,7 +2389,54 @@ if test -e /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.crt && test -e /var/s
 certs-found
 ```
 
+````
+
+````{group-tab} etcd
+
+**Description:**
+
+Ensure that the `--peer-cert-file` and `--peer-key-file`
+arguments are set as appropriate
+
+**Remediation:**
+
+Edit the etcd configuration file 
+`/var/snap/k8s/common/args/etcd` on the control plane node and set 
+the `--peer-cert-file` and `--peer-key-file` parameters appropriately. 
+
+```
+--peer-cert-file="/etc/kubernetes/pki/etcd/peer.crt"
+--peer-key-file="/etc/kubernetes/pki/etcd/peer.key"
+```
+
+Restart the `etcd` service.
+
+```
+snap restart k8s.etcd
+```
+
+**Audit (as root):**
+
+```
+/bin/ps -ef | grep -E 'etcd\s' | grep -v grep
+```
+
+**Expected output:**
+
+```
+--peer-cert-file="/etc/kubernetes/pki/etcd/peer.crt"
+--peer-key-file="/etc/kubernetes/pki/etcd/peer.key"
+```
+
+````
+
+`````
+
 ##### CIS Control 2.5
+
+`````{tabs}
+
+````{group-tab} k8s-dqlite
 
 **Description:**
 
@@ -2084,7 +2463,46 @@ is set to false in
 0
 ```
 
+````
+
+````{group-tab} etcd
+
+**Description:**
+
+Ensure that the `--peer-client-cert-auth` argument is set to
+true
+
+**Remediation:**
+
+Edit the etcd configuration file 
+`/var/snap/k8s/common/args/etcd` on the control plane node and set 
+the `--peer-client-cert-auth` argument to true. Then restart the `etcd` service.
+
+```
+snap restart k8s.etcd
+```
+
+**Audit (as root):**
+
+```
+/bin/ps -ef | grep -E 'etcd\s' | grep -v grep
+```
+
+**Expected output:**
+
+```
+--peer-client-cert-auth="true"
+```
+
+````
+
+`````
+
 ##### CIS Control 2.6
+
+`````{tabs}
+
+````{group-tab} k8s-dqlite
 
 **Description:**
 
@@ -2097,6 +2515,37 @@ Not applicable. Canonical K8s uses dqlite and tls peer
 communication uses the certificates
 created upon the snap creation.
 
+````
+
+````{group-tab} etcd
+
+**Description:**
+
+Ensure that the `--peer-auto-tls` argument is not set to true
+
+**Remediation:**
+
+Edit the etcd configuration file 
+`/var/snap/k8s/common/args/etcd` on the control plane node and remove the
+`--peer-auto-tls` argument. Then restart the `etcd` service.
+
+```
+snap restart k8s.etcd
+```
+
+**Audit (as root):**
+
+```
+/bin/ps -ef | grep -E 'etcd\s' | grep -v grep
+```
+
+**Expected output:**
+
+The `--peer-auto-tls` should not be present or set to `false`.
+
+````
+
+`````
 
 ##### CIS Control 2.7
 
@@ -2105,13 +2554,11 @@ created upon the snap creation.
 Ensure that a unique Certificate Authority is used for the
 datastore
 
-
 **Remediation:**
 
-Not applicable. Canonical K8s uses dqlite and tls peer
-communication uses certificates
-created upon cluster setup.
-
+Not applicable. All Certificates and CAs used by the datastore,
+whether `k8s-dqlite` or `etcd` are created upon cluster setup and 
+therefore are unique.
 
 ### Control plane configuration
 
