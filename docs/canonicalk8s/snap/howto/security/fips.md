@@ -141,6 +141,13 @@ This command removes the APT sources but it will not uninstall
 existing FIPS-certified packages as
 described in the [disabling FIPS with Ubuntu] guide.
 
+You can also change the [core22] snap back to the default
+non-FIPS channel:
+
+```
+sudo snap refresh core22 --channel=latest/stable
+```
+
 Then reboot your host machine to apply the changes:
 
 ```
