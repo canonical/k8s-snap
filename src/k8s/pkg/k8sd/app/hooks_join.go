@@ -246,8 +246,21 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 				// skip self
 				continue
 			}
-			endpoints = append(endpoints, fmt.Sprintf("https://%s", utils.JoinHostPort(member.Address.Addr().String(), cfg.Datastore.GetEtcdPort())))
-			initialClusterMembers[member.Name] = fmt.Sprintf("https://%s", utils.JoinHostPort(member.Address.Addr().String(), cfg.Datastore.GetEtcdPeerPort()))
+			endpoint := utils.JoinHostPort(member.Address.Addr().String(), cfg.Datastore.GetEtcdPort())
+			peerUrl := utils.JoinHostPort(member.Address.Addr().String(), cfg.Datastore.GetEtcdPeerPort())
+
+			// Test each member endpoint before adding it to the list.
+			if _, err := utils.GetRemoteCertificate(endpoint); err != nil {
+				fmt.Errorf("Skipping etcd member - endpoint down %s: %v", member.Name, err)
+				continue
+			}
+			if _, err := utils.GetRemoteCertificate(peerUrl); err != nil {
+				fmt.Errorf("Skipping etcd member - peer down %s: %v", member.Name, err)
+				continue
+			}
+
+			endpoints = append(endpoints, fmt.Sprintf("https://%s", endpoint))
+			initialClusterMembers[member.Name] = fmt.Sprintf("https://%s", peerUrl)
 		}
 
 		etcdClient, err := snap.EtcdClient(endpoints)
