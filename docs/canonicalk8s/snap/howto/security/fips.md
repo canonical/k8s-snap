@@ -96,9 +96,10 @@ If you are using an earlier version, you will need to upgrade to the latest
 version of the snap to use FIPS support.
 ```
 
-The snap includes binaries built with FIPS compliant cryptography. The
-components will automatically detect if the system is running in FIPS mode and
-activate internal FIPS-related settings accordingly.
+The k8s snap can leverage the host's FIPS compliant
+cryptography. The components will automatically detect if the system is
+running in FIPS mode and activate internal FIPS-related settings
+accordingly.
 
 After the snap installation completes, you can bootstrap the node as usual:
 
@@ -116,14 +117,15 @@ Your Kubernetes cluster is now ready for workload deployment and
 additional node integrations. Please ensure that your workloads and
 underlying system and hardware are FIPS compliant as well, to
 maintain the security standards required by FIPS. For example,
-ensure that your container images used for your applications are
-built with FIPS compliant libraries and configurations. 
+ensure that your container images used for your applications can
+be used with the hosts FIPS compliant libraries. 
 
 
 ## Disable FIPS on an Ubuntu host machine
 
 ```{warning}
-Disabling FIPS on a host machine is not recommended: only enable FIPS on machines intended expressly to be used for FIPS.
+Disabling FIPS on a host machine is not recommended: only
+enable FIPS on machines intended expressly to be used for FIPS.
 Changing the FIPS mode may have implications for the
 services running on your live cluster, so ensure you understand the
 consequences of disabling FIPS before proceeding.
@@ -144,6 +146,10 @@ Then reboot your host machine to apply the changes:
 ```
 sudo reboot
 ```
+
+After the reboot, the k8s snap's k8sd service will restart and
+automatically detect that the host is no longer in FIPS mode
+and will revert to the default non-FIPS settings.
 
 <!-- LINKS -->
 [FIPS 140-3]: https://csrc.nist.gov/pubs/fips/140-3/final
