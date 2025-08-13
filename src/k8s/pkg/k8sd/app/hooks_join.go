@@ -251,11 +251,11 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 
 			// Test each member endpoint before adding it to the list.
 			if _, err := utils.GetRemoteCertificate(endpoint); err != nil {
-				fmt.Errorf("Skipping etcd member - endpoint down %s: %v", member.Name, err)
+				log.Error(err, fmt.Sprintf("Skipping etcd member %s - endpoint down %s", member.Name, endpoint))
 				continue
 			}
 			if _, err := utils.GetRemoteCertificate(peerUrl); err != nil {
-				fmt.Errorf("Skipping etcd member - peer down %s: %v", member.Name, err)
+				log.Error(err, fmt.Sprintf("Skipping etcd member %s - peer down %s", member.Name, peerUrl))
 				continue
 			}
 
