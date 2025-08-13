@@ -8,10 +8,10 @@ DEBUG_BUILD=${DEBUG_BUILD:-"n"}
 if [[ "$DEBUG_BUILD" == "y" ]]; then
   go build \
   -gcflags=all="-N -l" \
-  -tags dqlite,libsqlite3 \
+  -tags dqlite,libsqlite3,ms_tls13kdf \
   "${@}"
 else
   go build \
-  -tags dqlite,libsqlite3 \
+  -tags dqlite,libsqlite3,ms_tls13kdf \
   "${@}"
 fi

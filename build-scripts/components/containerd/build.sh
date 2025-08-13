@@ -12,7 +12,7 @@ sed -i "s,^REVISION.*$,REVISION=${REVISION}," Makefile
 export GOTOOLCHAIN=local
 export GOEXPERIMENT=opensslcrypto
 export CGO_ENABLED=1
-export GO_BUILDTAGS="linux cgo"
+export GO_BUILDTAGS="linux cgo ms_tls13kdf"
 for bin in containerd; do
   make "bin/${bin}"
   cp "bin/${bin}" "${INSTALL}/${bin}"
