@@ -123,7 +123,6 @@ jobs:
       artifact: ${{ needs.build-snap.outputs.snap-artifact }}
     permissions:
       contents: read # for actions/checkout to fetch code
-      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
 
   get-charm-channel:
     name: Determine the charm channel
