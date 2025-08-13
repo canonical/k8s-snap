@@ -6,12 +6,14 @@ on:
     types: [opened, edited, synchronize, reopened, ready_for_review, converted_to_draft, labeled, unlabeled]
 
 permissions:
-  pull-requests: write # to comment
-  statuses: write # to set status
+  contents: read
 
 jobs:
   main:
     name: Validate PR title
+    permissions:
+      pull-requests: write # to comment
+      statuses: write # to set status
     runs-on: ubuntu-latest
     steps:
       # no-semantic label is handled by the next step.
