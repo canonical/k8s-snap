@@ -123,6 +123,7 @@ jobs:
       artifact: ${{ needs.build-snap.outputs.snap-artifact }}
     permissions:
       contents: read # for actions/checkout to fetch code
+      security-events: write # for security scan to report findings
 
   get-charm-channel:
     name: Determine the charm channel
