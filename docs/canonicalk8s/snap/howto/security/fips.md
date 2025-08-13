@@ -1,9 +1,9 @@
 # How to set up a FIPS compliant Kubernetes cluster
 
-[FIPS 140-3] (Federal Information Processing Standards) ensures security compliance
-crucial for US government and regulated industries. This how-to guide provides
-the steps to set up a FIPS compliant Kubernetes cluster using the
-{{ product }} snap.
+[FIPS 140-3] (Federal Information Processing Standards) ensures security
+compliance crucial for US government and regulated industries. This
+how-to guide provides the steps to set up a FIPS compliant Kubernetes
+cluster using the {{ product }} snap.
 
 ## Enable FIPS on an Ubuntu host machine
 
