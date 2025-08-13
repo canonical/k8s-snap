@@ -312,6 +312,10 @@ root:root
 
 ##### CIS Control 1.1.7
 
+`````{tabs}
+
+````{group-tab} k8s-dqlite
+
 **Description:**
 
 Ensure that the dqlite configuration file permissions are
@@ -336,6 +340,39 @@ Run the following command on the control plane node.
 ```
 permissions=600
 ```
+
+````
+
+````{group-tab} etcd
+
+**Description:**
+
+Ensure that the etcd configuration file permissions are
+set to 644 or more restrictive
+
+
+**Remediation:**
+
+Run the following command on the control plane node.
+
+`chmod 600 /var/snap/k8s/common/args/etcd`
+
+
+**Audit (as root):**
+
+```
+/bin/sh -c 'if test -e /var/snap/k8s/common/args/etcd; then stat -c permissions=%a /var/snap/k8s/common/args/etcd; fi'
+```
+
+**Expected output:**
+
+```
+permissions=600
+```
+
+````
+
+`````
 
 ##### CIS Control 1.1.8
 
