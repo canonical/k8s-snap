@@ -2957,9 +2957,54 @@ The final line of the output will be `PASS`.
 > Satisfies: SRG-APP-000133-CTR-000310, SRG-APP-000133-CTR-000295,
 > SRG-APP-000516-CTR-001335
 
+`````{tabs}
+
+````{group-tab} etcd
+
+**Comments:**
+
+> The Finding requires checking the permissions of the files within the
+> `/etc/kubernetes/manifests` directory, but the k8s-snap does not use it.
+>
+> The usual manifest files for the k8s-snap are located under:
+>
+>     /var/snap/k8s/common/args
+>
+
+
+### Remediation
+
+Ensure all of the following paths have correct permissions by running:
 
 
 
+    chmod -R 644 /var/snap/k8s/common/args /var/snap/k8s/common/args/conf.d /var/snap/k8s/common/args/kube-apiserver /var/snap/k8s/common/args/kube-controller-manager /var/snap/k8s/common/args/k8sd /var/snap/k8s/common/args/kube-proxy /var/snap/k8s/common/args/kube-scheduler /var/snap/k8s/common/args/kubelet /var/snap/k8s/common/args/containerd /var/snap/k8s/common/args/etcd /var/snap/k8s/common/args/conf.d/auth-token-webhook.conf
+
+### Auditing (as root)
+
+Ensure all required files have permissions '644' (or stricter):
+
+```bash
+stat -c %a '/var/snap/k8s/common/args' | grep -q 700 && echo PASS /var/snap/k8s/common/args: 700 || echo FAIL /var/snap/k8s/common/args: 700
+stat -c %a '/var/snap/k8s/common/args/conf.d' | grep -q 700 && echo PASS /var/snap/k8s/common/args/conf.d: 700 || echo FAIL /var/snap/k8s/common/args/conf.d: 700
+stat -c %a '/var/snap/k8s/common/args/kube-apiserver' | grep -q 600 && echo PASS /var/snap/k8s/common/args/kube-apiserver: 600 || echo FAIL /var/snap/k8s/common/args/kube-apiserver: 600
+stat -c %a '/var/snap/k8s/common/args/kube-controller-manager' | grep -q 600 && echo PASS /var/snap/k8s/common/args/kube-controller-manager: 600 || echo FAIL /var/snap/k8s/common/args/kube-controller-manager: 600
+stat -c %a '/var/snap/k8s/common/args/k8sd' | grep -q 644 && echo PASS /var/snap/k8s/common/args/k8sd: 644 || echo FAIL /var/snap/k8s/common/args/k8sd: 644
+stat -c %a '/var/snap/k8s/common/args/kube-proxy' | grep -q 600 && echo PASS /var/snap/k8s/common/args/kube-proxy: 600 || echo FAIL /var/snap/k8s/common/args/kube-proxy: 600
+stat -c %a '/var/snap/k8s/common/args/kube-scheduler' | grep -q 600 && echo PASS /var/snap/k8s/common/args/kube-scheduler: 600 || echo FAIL /var/snap/k8s/common/args/kube-scheduler: 600
+stat -c %a '/var/snap/k8s/common/args/kubelet' | grep -q 600 && echo PASS /var/snap/k8s/common/args/kubelet: 600 || echo FAIL /var/snap/k8s/common/args/kubelet: 600
+stat -c %a '/var/snap/k8s/common/args/containerd' | grep -q 600 && echo PASS /var/snap/k8s/common/args/containerd: 600 || echo FAIL /var/snap/k8s/common/args/containerd: 600
+stat -c %a '/var/snap/k8s/common/args/etcd' | grep -q 600 && echo PASS /var/snap/k8s/common/args/etcd: 600 || echo FAIL /var/snap/k8s/common/args/etcd: 600
+stat -c %a '/var/snap/k8s/common/args/conf.d/auth-token-webhook.conf' | grep -q 600 && echo PASS /var/snap/k8s/common/args/conf.d/auth-token-webhook.conf: 600 || echo FAIL /var/snap/k8s/common/args/conf.d/auth-token-webhook.conf: 600
+```
+
+In the default configuration of the `k8s-snap`, resulting output lines will
+start with `PASS`.
+
+
+````
+
+````{group-tab} k8s-dqliq
 
 **Comments:**
 
@@ -3001,7 +3046,9 @@ stat -c %a '/var/snap/k8s/common/args/conf.d/auth-token-webhook.conf' | grep -q 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
+````
 
+`````
 
 ## [V-242409]
 
