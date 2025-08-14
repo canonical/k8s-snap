@@ -6,7 +6,7 @@ import (
 	"crypto/x509"
 	"fmt"
 	"net"
-	"net/http"
+	"time"
 )
 
 // SplitIPAndDNSSANs splits a list of SANs into IP and DNS SANs
@@ -55,44 +55,79 @@ func TLSClientConfigWithTrustedCertificate(remoteCert *x509.Certificate, rootCAs
 	return config, nil
 }
 
-// GetRemoteCertificate retrieves the remote certificate from a given address
-// The address should be in the format of "hostname:port"
-// Returns the remote certificate or an error.
-func GetRemoteCertificate(address string) (*x509.Certificate, error) {
-	// validate address
+// Options for TLS handshake checking.
+type TLSCheckOptions struct {
+	Timeout              time.Duration
+	InsecureSkipVerify   bool
+	ClientCertSkipVerify bool
+	ClientCertFile       string
+	ClientKeyFile        string
+}
+
+func TLSHandshakeCheck(address string, opts TLSCheckOptions) (*tls.ConnectionState, error) {
+	// Validates that the address is an active TLS server
+	// even if it requires a client certificate, it will return without error.
+
 	_, _, err := net.SplitHostPort(address)
 	if err != nil {
 		return nil, fmt.Errorf("failed to validate the cluster member address: %w", err)
 	}
 
-	url := fmt.Sprintf("https://%s", address)
+	var serverRequestedCert bool
 
-	httpClient := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true,
-			},
+	var certs []tls.Certificate
+	if opts.ClientCertFile != "" && opts.ClientKeyFile != "" {
+		cert, err := tls.LoadX509KeyPair(opts.ClientCertFile, opts.ClientKeyFile)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load client cert: %w", err)
+		}
+		opts.ClientCertSkipVerify = false
+		certs = []tls.Certificate{cert}
+	}
+
+	tlsConfig := &tls.Config{
+		InsecureSkipVerify: opts.InsecureSkipVerify,
+		GetClientCertificate: func(*tls.CertificateRequestInfo) (*tls.Certificate, error) {
+			serverRequestedCert = true
+			return &certs[0], nil
 		},
 	}
 
-	// Connect
-	req, err := http.NewRequest("GET", url, nil)
+	// Create a dialer with a timeout
+	dialer := &net.Dialer{Timeout: opts.Timeout}
+	// Perform the TLS handshake
+	conn, err := tls.DialWithDialer(dialer, "tcp", address, tlsConfig)
 	if err != nil {
-		return nil, err
+		if serverRequestedCert && opts.ClientCertSkipVerify {
+			// Server requested a client cert, but we are skipping client cert verification
+			// so we ignore this error.
+			return nil, nil
+		}
+		return nil, fmt.Errorf("TLS handshake failed: %w", err)
 	}
+	defer conn.Close()
 
-	resp, err := httpClient.Do(req)
+	state := conn.ConnectionState()
+	return &state, nil
+}
+
+// GetRemoteCertificate retrieves the remote certificate from a given address
+// The address should be in the format of "hostname:port"
+// Returns the remote certificate or an error.
+func GetRemoteCertificate(address string) (*x509.Certificate, error) {
+	conn_state, err := TLSHandshakeCheck(address, TLSCheckOptions{
+		InsecureSkipVerify: true,
+	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to check TLS: %w", err)
 	}
-	defer resp.Body.Close()
 
 	// Retrieve the certificate
-	if resp.TLS == nil || len(resp.TLS.PeerCertificates) == 0 {
+	if conn_state == nil || len(conn_state.PeerCertificates) == 0 {
 		return nil, fmt.Errorf("unable to read remote TLS certificate")
 	}
 
-	return resp.TLS.PeerCertificates[0], nil
+	return conn_state.PeerCertificates[0], nil
 }
 
 // CertFingerprint returns the SHA256 fingerprint of a certificate.

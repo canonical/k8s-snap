@@ -250,11 +250,16 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 			peerUrl := utils.JoinHostPort(member.Address.Addr().String(), cfg.Datastore.GetEtcdPeerPort())
 
 			// Test each member endpoint before adding it to the list.
-			if _, err := utils.GetRemoteCertificate(endpoint); err != nil {
+			opts := utils.TLSCheckOptions{
+				Timeout:              1 * time.Second,
+				InsecureSkipVerify:   true,
+				ClientCertSkipVerify: true,
+			}
+			if _, err := utils.TLSHandshakeCheck(endpoint, opts); err != nil {
 				log.Error(err, fmt.Sprintf("Skipping etcd member %s - endpoint down %s", member.Name, endpoint))
 				continue
 			}
-			if _, err := utils.GetRemoteCertificate(peerUrl); err != nil {
+			if _, err := utils.TLSHandshakeCheck(peerUrl, opts); err != nil {
 				log.Error(err, fmt.Sprintf("Skipping etcd member %s - peer down %s", member.Name, peerUrl))
 				continue
 			}
