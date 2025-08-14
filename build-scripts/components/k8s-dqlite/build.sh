@@ -10,7 +10,7 @@ fi
 export GOTOOLCHAIN=local
 export GOEXPERIMENT=opensslcrypto
 export CGO_ENABLED=1
-# TODO(Hue): export TAGS="libsqlite3,ms_tls13kdf" after https://github.com/canonical/k8s-dqlite/pull/316 is merged
+export TAGS="libsqlite3,ms_tls13kdf"
 make dynamic -j
 
 mkdir -p "${INSTALL}"
