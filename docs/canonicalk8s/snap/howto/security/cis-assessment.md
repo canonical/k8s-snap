@@ -436,7 +436,7 @@ root:root
 
 ````
 
-`````{tabs}
+`````
 
 ##### CIS Control 1.1.9
 
@@ -541,7 +541,7 @@ Ensure that the etcd data directory permissions are set to
 
 etcd data are kept by default under
 `/var/snap/k8s/common/var/lib/etcd`.
-To comply with the spirit of this CIS recommendation:
+Modify the permissions for this directory:
 
 `chmod 700 /var/snap/k8s/common/var/lib/etcd`
 
@@ -611,7 +611,7 @@ root:root
 
 etcd data are kept by default under
 `/var/snap/k8s/common/var/lib/etcd`.
-To comply with the spirit of this CIS recommendation:
+Modify the directory ownership accordingly:
 
 `chown root:root /var/snap/k8s/common/var/lib/etcd`
 
@@ -1625,10 +1625,10 @@ are set as appropriate
 
 **Remediation:**
 
-Not applicable. Canonical K8s uses dqlite and the
-communication to this service is done through a
-local socket
-(`/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`)
+Not applicable when Canonical Kubernetes is set to use dqlite. The 
+communication to this service is done through a 
+local socket 
+(`/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`) 
 accessible to users with root permissions.
 
 ````
@@ -1757,10 +1757,10 @@ Ensure that the `--etcd-cafile` argument is set as appropriate
 
 **Remediation:**
 
-Not applicable. Canonical K8s uses dqlite and the
-communication to this service is done through a
-local socket
-(`/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`)
+Not applicable when Canonical Kubernetes is set to use dqlite. The 
+communication to this service is done through a 
+local socket 
+(`/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`) 
 accessible to users with root permissions.
 
 ````
@@ -1776,7 +1776,7 @@ Ensure that the `--etcd-cafile` argument is set as appropriate
 
 Edit the API server configuration file 
 `/var/snap/k8s/common/args/kube-apiserver` on the control plane node and set 
-the `--etcd-cafile` parameter to the ca certificate file that is used by etcd. 
+the `--etcd-cafile` parameter to the CA certificate file that is used by etcd. 
 
 ```
 --etcd-cafile=/etc/kubernetes/pki/etcd/ca.crt
@@ -2204,10 +2204,10 @@ as appropriate
 
 **Remediation:**
 
-Not applicable. Canonical K8s uses dqlite and the
-communication to this service is done through a
-local socket
-(`/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`)
+Not applicable when Canonical Kubernetes is set to use dqlite. The 
+communication to this service is done through a 
+local socket 
+(`/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`) 
 accessible to users with root permissions.
 
 ````
@@ -2266,10 +2266,10 @@ Ensure that the `--client-cert-auth` argument is set to true
 
 **Remediation:**
 
-Not applicable. Canonical K8s uses dqlite and the
-communication to this service is done through a
-local socket
-(`/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`)
+Not applicable when Canonical Kubernetes is set to use dqlite. The 
+communication to this service is done through a 
+local socket 
+(`/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`) 
 accessible to users with root permissions.
 
 ````
@@ -2319,10 +2319,10 @@ Ensure that the `--auto-tls` argument is not set to true
 
 **Remediation:**
 
-Not applicable. Canonical K8s uses dqlite and the
-communication to this service is done through a
-local socket
-(`/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`)
+Not applicable when Canonical Kubernetes is set to use dqlite. The 
+communication to this service is done through a 
+local socket 
+(`/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`) 
 accessible to users with root permissions.
 
 ````
@@ -2351,7 +2351,7 @@ snap restart k8s.etcd
 
 **Expected output:**
 
-The `--auto-tls` should bot be present or set to `false`
+The `--auto-tls` should not be present or set to `false`
 
 ````
 
@@ -2371,7 +2371,7 @@ arguments are set as appropriate
 
 **Remediation:**
 
-The certificate pair for dqlite and tls peer communication
+The certificate pair for dqlite and TLS peer communication
 is
 `/var/snap/k8s/common/var/lib/k8s-dqlite/cluster.crt` and
 `/var/snap/k8s/common/var/lib/k8s-dqlite/cluster.key`.
@@ -2511,7 +2511,7 @@ Ensure that the `--peer-auto-tls` argument is not set to true
 
 **Remediation:**
 
-Not applicable. Canonical K8s uses dqlite and tls peer
+Not applicable when Canonical Kubernetes is set to use dqlite. The TLS peer
 communication uses the certificates
 created upon the snap creation.
 
