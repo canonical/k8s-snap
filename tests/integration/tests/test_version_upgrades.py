@@ -88,7 +88,7 @@ def test_version_upgrades(
 
     # Setup the k8s snap from the bootstrap channel and setup basic configuration.
     for instance in instances:
-        util.setup_k8s_snap(instance, tmp_path, current_channel)
+        util.setup_k8s_snap(instance, current_channel)
         if config.USE_LOCAL_MIRROR:
             registry.apply_configuration(instance, containerd_cfgdir)
 
@@ -202,7 +202,7 @@ def test_version_downgrades_with_rollback(
 
     # Setup the k8s snap from the bootstrap channel and setup basic configuration.
     for instance in instances:
-        util.setup_k8s_snap(instance, tmp_path, current_channel)
+        util.setup_k8s_snap(instance, current_channel)
         if config.USE_LOCAL_MIRROR:
             registry.apply_configuration(instance, containerd_cfgdir)
 
@@ -280,6 +280,9 @@ def test_version_downgrades_with_rollback(
 @pytest.mark.no_setup()
 @pytest.mark.tags(tags.NIGHTLY)
 @pytest.mark.skipif(
+    config.SUBSTRATE == "multipass", reason="runner size too small on multipass"
+)
+@pytest.mark.skipif(
     # TODO(Adam): use TEST_VERSION_UPGRADE_CHANNELS if not set
     not config.SNAP,
     reason="Feature upgrades require a local snap file",
@@ -339,7 +342,7 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
         if instance.id == worker.id:
             continue
 
-        util.setup_k8s_snap(instance, tmp_path, config.SNAP)
+        util.setup_k8s_snap(instance, config.SNAP)
 
         # The crd will be created once the node is up and ready, so we might need to wait for it.
         expected_instances = [instance.id for instance in instances[: idx + 1]]
@@ -388,7 +391,7 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
                 have been ({initial_releases[name]['updated']}, {release['updated']})"
 
     # perform the final upgrade on the worker node.
-    util.setup_k8s_snap(worker, tmp_path, config.SNAP)
+    util.setup_k8s_snap(worker, config.SNAP)
 
     expected_instances = [instance.id for instance in instances]
     util.stubbornly(retries=15, delay_s=5).on(bootstrap_cp).until(
@@ -509,7 +512,7 @@ def test_feature_upgrades_rollout_upgrade(
         new_instance = instances[3 + idx]
         cluster_node = instances[idx]
 
-        util.setup_k8s_snap(new_instance, tmp_path, config.SNAP)
+        util.setup_k8s_snap(new_instance, config.SNAP)
         token = util.get_join_token(cluster_node, new_instance)
         new_instance.exec(["k8s", "join-cluster", token])
         nodes_in_cluster = instances[idx : idx + 3]  # noqa

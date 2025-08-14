@@ -47,7 +47,7 @@ def test_node_cleanup(instances: List[harness.Instance], tmp_path):
     all_paths = CONTAINERD_PATHS + [CNI_PATH]
     _assert_paths_not_exist(instance, all_paths)
 
-    util.setup_k8s_snap(instance, tmp_path)
+    util.setup_k8s_snap(instance)
     instance.exec(["k8s", "bootstrap"])
 
 

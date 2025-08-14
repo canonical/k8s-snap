@@ -1,6 +1,7 @@
 #
 # Copyright 2025 Canonical, Ltd.
 #
+import json
 import logging
 import os
 import re
@@ -92,19 +93,35 @@ class MultipassHarness(Harness):
                 # Note(ben): Multipass does not handle restarts in
                 # cloud-init very well and the command times out even if
                 # the underlying machine works just fine.
-                # Hence, we disable the check for this call, and
-                # instead try to verify that the machine is up and
-                # running by running a simple command.
+                # See https://github.com/canonical/multipass/issues/4199
+                # Hence, we don't fail on the timeout of this command, and manually wait until
+                # the cloud-init is done.
                 run(
                     cmd + ["--cloud-init", "-"],
                     input=cloud_init_content.encode(),
                     sensitive_kwargs=True,
                     check=False,
                 )
-                stubbornly(retries=20, delay_s=5).exec(
-                    ["multipass", "exec", instance_id, "--", "echo", "test"],
+                stubbornly(retries=200, delay_s=10).until(
+                    lambda p: json.loads(p.stdout).get("status") == "done"
+                ).exec(
+                    [
+                        "multipass",
+                        "exec",
+                        instance_id,
+                        "--",
+                        "cloud-init",
+                        "status",
+                        "--format",
+                        "json",
+                    ],
+                    capture_output=True,
+                    # cloud-init returns 2 even when it is done.
+                    check=False,
+                    text=True,
                     timeout=20,
                 )
+
             else:
                 run(cmd)
 
@@ -113,7 +130,10 @@ class MultipassHarness(Harness):
 
         self.instances.add(instance_id)
 
-        self.exec(instance_id, ["snap", "wait", "system", "seed.loaded"])
+        instance = Instance(self, instance_id)
+        stubbornly(retries=5, delay_s=5).on(instance).exec(
+            ["snap", "wait", "system", "seed.loaded"]
+        )
         if network_type in ("IPv6", "dualstack"):
             LOG.debug("Enabling IPv6 support in instance %s", instance_id)
             try:
@@ -133,7 +153,7 @@ class MultipassHarness(Harness):
                     f"Failed to configure IPv6 in instance {instance_id}"
                 ) from e
 
-        return Instance(self, instance_id)
+        return instance
 
     def send_file(self, instance_id: str, source: str, destination: str):
         if instance_id not in self.instances:
