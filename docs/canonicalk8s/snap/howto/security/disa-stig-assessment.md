@@ -37,8 +37,8 @@ administrator or a user policy needs to be followed.
 | Class | Guideline |
 | ------ | ----- |
 | `Deployment` (70) | V-242379, V-242380, V-242381, V-242382, V-242387, V-242388, V-242389, V-242391, V-242392, V-242397, V-242400, V-242405, V-242406, V-242407, V-242408, V-242409, V-242418, V-242419, V-242420, V-242421, V-242422, V-242423, V-242426, V-242427, V-242428, V-242429, V-242430, V-242431, V-242432, V-242433, V-242434, V-242436, V-242444, V-242445, V-242446, V-242447, V-242448, V-242449, V-242450, V-242451, V-242452, V-242453, V-242456, V-242457, V-242459, V-242460, V-242466, V-242467, V-245542, V-245543, V-245544, V-254801, V-242376, V-242377, V-242378, V-242384, V-242385, V-242390, V-242402, V-242403, V-242404, V-242424, V-242425, V-242438, V-242461, V-242462, V-242463, V-242464, V-242465, V-245541 |
-| `Not Applicable` (13) | V-242386, V-242393, V-242394, V-242395, V-242396, V-242398, V-242399, V-242413, V-242437, V-242442, V-242443, V-242454, V-242455 |
-| `Manual` (8) | V-242383, V-242410, V-242411, V-242412, V-242414, V-242415, V-242417, V-254800 |
+| `Not Applicable` (13) | V-242386, V-242393, V-242394, V-242395, V-242396, V-242398, V-242399, V-242437, V-242442, V-242443, V-242454, V-242455 |
+| `Manual` (8) | V-242383, V-242410, V-242411, V-242412, V-242413, V-242414, V-242415, V-242417, V-254800 |
 
 ## [V-242381]
 
@@ -3215,7 +3215,7 @@ Assurance List (PPSM CAL)
 
 **Severity:** Medium
 
-**Class:** Not Applicable
+**Class:** Manual
 
 **Upstream finding description:**
 
@@ -3223,22 +3223,38 @@ Assurance List (PPSM CAL)
 > that fall outside the PPSM CAL must be blocked. Instructions on the PPSM can
 > be found in DoD Instruction 8551.01 Policy.
 
+`````{tabs}
 
+````{group-tab} etcd
 
+**Comments:**
 
+> This STIG Finding relates to implementing PPSM CAL for etcd, and
+> must be assessed manually by the Auditor.
+>
+> https://www.esd.whs.mil/portals/54/documents/dd/issuances/dodi/855101p.pdf
+>
+> Please, consult the [ports and services] page on the ports, protocols and
+> services used by {{product}}.
+
+````
+
+````{group-tab} k8s-dqlite
 
 **Comments:**
 
 > This STIG Finding relates to implementing PPSM CAL for etcd.
 >
-> The k8s-snap does not use etcd in any way, instead relying on
+> Since k8s-snap is set to rely on
 > [k8s-dqlite](https://github.com/canonical/k8s-dqlite) for its state handling,
-> so this Finding is Not Applicable.
+> this Finding is Not Applicable.
 >
 > https://www.esd.whs.mil/portals/54/documents/dd/issuances/dodi/855101p.pdf
 >
 
+````
 
+`````
 
 ## [V-242414]
 
