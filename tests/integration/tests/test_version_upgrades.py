@@ -342,7 +342,7 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
         if instance.id == worker.id:
             continue
 
-        util.setup_k8s_snap(instance, tmp_path, config.SNAP)
+        util.setup_k8s_snap(instance, config.SNAP)
 
         # The crd will be created once the node is up and ready, so we might need to wait for it.
         expected_instances = [instance.id for instance in instances[: idx + 1]]
