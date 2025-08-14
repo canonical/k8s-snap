@@ -1428,7 +1428,7 @@ Ensure that the argument `--auto-tls` for service etcd is set as appropriate
 in the service’s argument file `/var/snap/k8s/common/args/etcd`.
 
 ```
-grep -E -q  '\-\-anonymous-auth=(false|0)' '/var/snap/k8s/common/args/etcd'
+grep -E -q  '\-\-auto-tls=(false|0)' '/var/snap/k8s/common/args/etcd'
 test $? -eq 0 && echo PASS || echo FAIL
 ```
 
@@ -1531,7 +1531,7 @@ Subsequently restart the etcd service with:
 sudo systemctl restart snap.k8s.etcd
 ```
 
-### Auditing (as root) for Step 3
+### Auditing (as root) for Step 4
 
 Ensure that the argument `--trusted-ca-file` for service etcd is set as appropriate 
 in the service’s argument file `/var/snap/k8s/common/args/etcd`.
@@ -1690,16 +1690,165 @@ of
 > API Server, the setting "--peer-auto-tls" must be set.
 
 
+`````{tabs}
 
+````{group-tab} etcd
 
+### Step 1/4
+
+**Comments:**
+
+> The k8s-snap sets the `--peer-auto-tls` option to false and then generates 
+> the appropriate certificate and key files for TLS communication of etcd peer 
+> nodes upon setup. 
+> The command line arguments of the etcd service in the k8s-snap are defined 
+> in the following file:
+
+>     /var/snap/k8s/common/args/etcd
+>
+
+### Remediation for Step 1
+
+Edit `/var/snap/k8s/common/args/etcd in order to modify the `--peer-auto-tls` 
+argument. Ensure it is set to false or `0`. 
+
+Subsequently restart the etcd service:
+
+```
+sudo systemctl restart snap.k8s.etcd
+```
+
+### Auditing (as root) for Step 1
+
+Ensure that the argument `--peer-auto-tls` for service etcd is set as 
+appropriate in the service’s argument file `/var/snap/k8s/common/args/etcd`.
+
+```
+grep -E -q  '\-\-peer-auto-tls=(false|0)' '/var/snap/k8s/common/args/etcd'
+test $? -eq 0 && echo PASS || echo FAIL
+```
+
+The final line of the output will be `PASS`.
+
+### Step 2/4
+
+**Comments:**
+
+> The command line arguments of the etcd service in the k8s-snap are
+> defined in the following file:
+>
+>     /var/snap/k8s/common/args/etcd
+>
+
+### Remediation for Step 2
+
+Edit `/var/snap/k8s/common/args/etcd` to set the argument of etcd service 
+`--peer-key-file` to the appropriate value.
+
+Ensure it is set to: `/etc/kubernetes/pki/etcd/peer.key`
+
+Subsequently restart the etcd service with:
+
+```
+sudo systemctl restart snap.k8s.etcd
+```
+
+### Auditing (as root) for Step 2
+
+Ensure that the argument `--peer-key-file` for service etcd is set as appropriate 
+in the service’s argument file `/var/snap/k8s/common/args/etcd`.
+
+```
+grep -E -q  '\-\-peer-key-file=("/etc/kubernetes/pki/etcd/peer\.key")' '/var/snap/k8s/common/args/etcd'
+test $? -eq 0 && echo PASS || echo FAIL
+```
+
+In the default configuration of the k8s-snap, resulting output lines will start with `PASS`.
+
+The final line of the output will be `PASS`.
+
+### Step 3/4
+
+**Comments:**
+
+> The command line arguments of the etcd service in the k8s-snap are
+> defined in the following file:
+>
+>     /var/snap/k8s/common/args/etcd
+>
+
+### Remediation for Step 3
+
+Edit `/var/snap/k8s/common/args/etcd` to set the argument of etcd service 
+`--peer-cert-file` to the appropriate value.
+
+Ensure it is set to: `/etc/kubernetes/pki/etcd/peer.crt`
+
+Subsequently restart the etcd service with:
+
+```
+sudo systemctl restart snap.k8s.etcd
+```
+
+### Auditing (as root) for Step 3
+
+Ensure that the argument `--peer-cert-file` for service etcd is set as 
+appropriate in the service’s argument file `/var/snap/k8s/common/args/etcd`.
+
+```
+grep -E -q  '\-\-peer-cert-file=("/etc/kubernetes/pki/etcd/peer\.crt")' '/var/snap/k8s/common/args/etcd'
+test $? -eq 0 && echo PASS || echo FAIL
+```
+
+In the default configuration of the k8s-snap, resulting output lines will start with `PASS`.
+
+The final line of the output will be `PASS`.
+
+### Step 4/4
+
+**Comments:**
+
+> The command line arguments of the etcd service in the k8s-snap are
+> defined in the following file:
+>
+>     /var/snap/k8s/common/args/etcd
+>
+
+### Remediation for Step 4
+
+Edit `/var/snap/k8s/common/args/etcd` to set the argument of etcd service 
+`--peer-trusted-ca-file` to the appropriate value.
+
+Ensure it is set to: `/etc/kubernetes/pki/etcd/ca.crt`
+
+Subsequently restart the etcd service with:
+
+```
+sudo systemctl restart snap.k8s.etcd
+```
+
+### Auditing (as root) for Step 3
+
+Ensure that the argument `--peer-trusted-ca-file` for service etcd is set as appropriate 
+in the service’s argument file `/var/snap/k8s/common/args/etcd`.
+
+```
+grep -E -q  '\-\-peer-trusted-ca-file=("/etc/kubernetes/pki/etcd/ca\.crt")' '/var/snap/k8s/common/args/etcd'
+test $? -eq 0 && echo PASS || echo FAIL
+```
+
+In the default configuration of the k8s-snap, resulting output lines will start with `PASS`.
+
+The final line of the output will be `PASS`.
+
+````
+
+````{group-tab} k8s-dqlite
 
 **Comments:**
 
 > This finding refers to the `--peer-auto-tls` command line argument for the
 > etcd service.
->
-> The k8s-snap does not use etcd in any way, instead relying on
-> [k8s-dqlite](https://github.com/canonical/k8s-dqlite) for its state handling.
 >
 > k8s-dqlite communication defaults to using TLS unless the `--enable-tls`
 > argument is set in k8s-dqlite argument configuration file located at:
@@ -1741,7 +1890,9 @@ start with `UNSET`.
 
 The final line of the output will be `PASS`.
 
+````
 
+`````
 
 ## [V-242382]
 
