@@ -124,16 +124,18 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 	}
 
 	// start controller coordinator
-	go func() {
-		if err := a.controllerCoordinator.Run(
-			ctx,
-			func(ctx context.Context) (types.ClusterConfig, error) {
-				return databaseutil.GetClusterConfig(ctx, s)
-			},
-		); err != nil {
-			log.FromContext(ctx).Error(err, "Failed to start controller coordinator")
-		}
-	}()
+	if a.controllerCoordinator != nil {
+		go func() {
+			if err := a.controllerCoordinator.Run(
+				ctx,
+				func(ctx context.Context) (types.ClusterConfig, error) {
+					return databaseutil.GetClusterConfig(ctx, s)
+				},
+			); err != nil {
+				log.FromContext(ctx).Error(err, "Failed to start controller coordinator")
+			}
+		}()
+	}
 
 	return nil
 }
