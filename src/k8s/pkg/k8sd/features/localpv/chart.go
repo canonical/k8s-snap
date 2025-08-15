@@ -17,14 +17,14 @@ var (
 	// imageRepo is the repository to use for Rawfile LocalPV CSI.
 	imageRepo = "ghcr.io/canonical/rawfile-localpv"
 	// ImageTag is the image tag to use for Rawfile LocalPV CSI.
-	ImageTag = "0.8.2-ck1"
+	ImageTag = "0.8.2-ck2"
 
 	// csiNodeDriverImage is the image to use for the CSI node driver.
-	csiNodeDriverImage = "ghcr.io/canonical/k8s-snap/sig-storage/csi-node-driver-registrar:v2.10.1"
+	csiNodeDriverImage = "ghcr.io/canonical/csi-node-driver-registrar:v2.10.0-ck7"
 	// csiProvisionerImage is the image to use for the CSI provisioner.
-	csiProvisionerImage = "ghcr.io/canonical/k8s-snap/sig-storage/csi-provisioner:v5.0.2"
+	csiProvisionerImage = "ghcr.io/canonical/csi-provisioner:v5.0.2-ck0"
 	// csiResizerImage is the image to use for the CSI resizer.
-	csiResizerImage = "ghcr.io/canonical/k8s-snap/sig-storage/csi-resizer:v1.11.2"
+	csiResizerImage = "ghcr.io/canonical/csi-resizer:v1.11.2-ck0"
 	// csiSnapshotterImage is the image to use for the CSI snapshotter.
-	csiSnapshotterImage = "ghcr.io/canonical/k8s-snap/sig-storage/csi-snapshotter:v8.0.2"
+	csiSnapshotterImage = "ghcr.io/canonical/csi-snapshotter:v8.0.2-ck0"
 )
