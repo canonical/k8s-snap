@@ -14,6 +14,7 @@ require (
 	github.com/onsi/gomega v1.36.2
 	github.com/pelletier/go-toml v1.9.5
 	github.com/spf13/cobra v1.9.1
+	go.etcd.io/etcd/api/v3 v3.6.1
 	go.etcd.io/etcd/client/v3 v3.6.1
 	golang.org/x/mod v0.25.0
 	golang.org/x/net v0.41.0
@@ -36,7 +37,6 @@ require (
 	github.com/coreos/go-semver v0.3.1 // indirect
 	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.0 // indirect
-	go.etcd.io/etcd/api/v3 v3.6.1 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.6.1 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
