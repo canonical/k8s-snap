@@ -3010,7 +3010,7 @@ start with `PASS`.
 
 ````
 
-````{group-tab} k8s-dqliq
+````{group-tab} k8s-dqlite
 
 **Comments:**
 
