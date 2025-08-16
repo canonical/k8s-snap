@@ -223,5 +223,52 @@ Verify that Cilium is now in a running state:
 sudo k8s kubectl get pods -n kube-system
 ```
 
+## Bootstrap config change prevention
+
+### Problem
+
+When upgrading {{product}} or changing `bootstrap-*` configuration options,
+the charm could block and produce a message on each unit:
+
+```
+k8s/0*  blocked  idle  0  10.246.154.22  6443/tcp  Expected bootstrap-datastore='dqlite' not 'managed-etcd'
+```
+
+or
+
+```
+k8s/0*  blocked  idle  0  10.246.154.22  6443/tcp  Expected bootstrap-pod-cidr='10.1.0.0/16' not '10.0.0.0/8'
+```
+
+### Explanation
+
+Juju allows for configuration to be fully mutable; however, some k8s options --
+specifically those starting with `bootstrap-` are
+[immutable](charm_configurations). Juju allows for these options to change in
+time, but it will cause the charm to block if they are adjusted during some
+day-2 operation of the application.
+
+```{note}
+The only exception is `bootstrap-node-taints` which is allowed to be changed on
+`k8s` or `k8s-worker` applications without triggering this blocked condition.
+This configuration is only used when a new unit joins the cluster so changing it
+cannot affect the runtime taints of the node.
+```
+
+### Solution
+
+The juju status reflects the desired action.  If the status message indicates
+
+```
+k8s/0*  blocked  idle  0  10.246.154.22  6443/tcp  Expected bootstrap-datastore='dqlite' not 'managed-etcd'
+```
+
+The appropriate adjustment is to update the configuration value:
+
+```
+juju config k8s bootstrap-datastore='dqlite'
+```
+
 <!-- LINKS -->
 [reported here]: https://github.com/cilium/cilium/issues/30889
+[charm_configuration]: ./charm-configuration
