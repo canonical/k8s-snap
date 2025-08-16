@@ -27,8 +27,9 @@ pod-cidr: 10.100.0.0/16
 service-cidr: 10.200.0.0/16
 disable-rbac: false
 secure-port: 6443
-k8s-dqlite-port: 9090
-datastore-type: k8s-dqlite
+etcd-port: 2390
+etcd-peer-port: 2391
+datastore-type: etcd
 extra-sans:
 - custom.kubernetes
 extra-node-config-files:
@@ -45,5 +46,5 @@ extra-node-kubelet-args:
   --authentication-token-webhook-cache-ttl: 3m
 extra-node-containerd-args:
   --log-level: debug
-extra-node-k8s-dqlite-args:
-  --watch-storage-available-size-interval: 6s
+extra-node-etcd-args:
+  --heartbeat-interval: 200ms
