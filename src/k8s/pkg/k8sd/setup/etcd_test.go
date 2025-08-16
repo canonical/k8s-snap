@@ -57,6 +57,7 @@ func TestEtcd(t *testing.T) {
 			{key: "--peer-trusted-ca-file", expectedVal: filepath.Join(s.EtcdPKIDir(), "ca.crt")},
 			{key: "--peer-cert-file", expectedVal: filepath.Join(s.EtcdPKIDir(), "peer.crt")},
 			{key: "--peer-key-file", expectedVal: filepath.Join(s.EtcdPKIDir(), "peer.key")},
+			{key: "--auto-tls", expectedVal: "true"},
 		}
 		for _, tc := range tests {
 			t.Run(tc.key, func(t *testing.T) {
@@ -100,6 +101,7 @@ func TestEtcd(t *testing.T) {
 			{key: "--peer-trusted-ca-file", expectedVal: filepath.Join(s.EtcdPKIDir(), "ca.crt")},
 			{key: "--peer-cert-file", expectedVal: filepath.Join(s.EtcdPKIDir(), "peer.crt")},
 			{key: "--peer-key-file", expectedVal: filepath.Join(s.EtcdPKIDir(), "peer.key")},
+			{key: "--auto-tls", expectedVal: "true"},
 		}
 		for _, tc := range tests {
 			t.Run(tc.key, func(t *testing.T) {
