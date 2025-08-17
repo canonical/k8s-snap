@@ -82,7 +82,7 @@ type Snap interface {
 
 	EtcdClient(endpoints []string) (*etcd.Client, error) // client for the managed etcd cluster
 
-	K8sdClient(address string) (k8sd.Client, error) // k8sd client
+	K8sdClient() (k8sd.Client, error) // k8sd client
 
 	PreInitChecks(ctx context.Context, config types.ClusterConfig, serviceConfigs types.K8sServiceConfigs, isControlPlane bool) error // pre-init checks before k8s-snap can start
 }

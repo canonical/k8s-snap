@@ -16,7 +16,7 @@ func newLocalNodeStatusCommand(env cmdutil.ExecutionEnvironment) *cobra.Command 
 		PreRun: chainPreRunHooks(hookRequireRoot(env), hookInitializeFormatter(env, &opts.outputFormat)),
 		Args:   cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			client, err := env.Snap.K8sdClient("")
+			client, err := env.Snap.K8sdClient()
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to create a k8sd client. Make sure that the k8sd service is running.\n\nThe error was: %v\n", err)
 				env.Exit(1)

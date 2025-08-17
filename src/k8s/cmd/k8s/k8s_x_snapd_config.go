@@ -57,7 +57,7 @@ func newXSnapdConfigCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			client, err := env.Snap.K8sdClient("")
+			client, err := env.Snap.K8sdClient()
 			if err != nil {
 				cmd.PrintErrf("Error: failed to create k8sd client: %v\n", err)
 				env.Exit(1)

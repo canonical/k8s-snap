@@ -419,8 +419,8 @@ func (s *snap) EtcdClient(endpoints []string) (*etcd.Client, error) {
 	)
 }
 
-func (s *snap) K8sdClient(address string) (k8sd.Client, error) {
-	return k8sd.New(filepath.Join(s.snapCommonDir, "var", "lib", "k8sd", "state"), address)
+func (s *snap) K8sdClient() (k8sd.Client, error) {
+	return k8sd.New(filepath.Join(s.snapCommonDir, "var", "lib", "k8sd", "state"))
 }
 
 func (s *snap) SnapctlGet(ctx context.Context, args ...string) ([]byte, error) {
