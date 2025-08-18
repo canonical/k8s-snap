@@ -67,6 +67,8 @@ func Etcd(snap snap.Snap, name string, nodeIP net.IP, clientPort, peerPort int, 
 		"--peer-trusted-ca-file":        filepath.Join(snap.EtcdPKIDir(), "ca.crt"),
 		"--peer-cert-file":              filepath.Join(snap.EtcdPKIDir(), "peer.crt"),
 		"--peer-key-file":               filepath.Join(snap.EtcdPKIDir(), "peer.key"),
+		"--auto-tls":                    "false",
+		"--peer-auto-tls":               "false",
 	}
 
 	if _, err := snaputil.UpdateServiceArguments(snap, "etcd", args, nil); err != nil {
