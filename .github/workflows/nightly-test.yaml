@@ -8,6 +8,10 @@ on:
       - .github/workflows/e2e-tests.yaml
       - .github/workflows/security-scan.yaml
       - .github/workflows/nightly-test.yaml
+  # TODO: rm me I'm for testing
+  push:
+    branches:
+      - KU-4094/clustering-tests
 
 permissions:
   contents: read
