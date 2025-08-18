@@ -18,7 +18,6 @@ func CheckK8sServicePorts(config types.ClusterConfig, serviceConfigs types.K8sSe
 		"kubelet":           serviceConfigs.GetKubeletPort(),
 		"kubelet-healthz":   serviceConfigs.GetKubeletHealthzPort(),
 		"kubelet-read-only": serviceConfigs.GetKubeletReadOnlyPort(),
-		"k8s-dqlite":        strconv.Itoa(config.Datastore.GetK8sDqlitePort()),
 		"loadbalancer":      strconv.Itoa(config.LoadBalancer.GetBGPPeerPort()),
 	}
 
@@ -38,6 +37,15 @@ func CheckK8sServicePorts(config types.ClusterConfig, serviceConfigs types.K8sSe
 		ports["kube-apiserver"] = strconv.Itoa(config.APIServer.GetSecurePort())
 		ports["kube-scheduler"] = serviceConfigs.GetKubeSchedulerPort()
 		ports["kube-controller-manager"] = serviceConfigs.GetKubeControllerManagerPort()
+
+		switch config.Datastore.GetType() {
+		case "etcd":
+			ports["etcd"] = strconv.Itoa(config.Datastore.GetEtcdPort())
+			ports["etcd-peer"] = strconv.Itoa(config.Datastore.GetEtcdPeerPort())
+		case "k8s-dqlite":
+			ports["k8s-dqlite"] = strconv.Itoa(config.Datastore.GetK8sDqlitePort())
+		}
+
 	} else {
 		ports["kube-apiserver-proxy"] = strconv.Itoa(config.APIServer.GetSecurePort())
 	}
@@ -51,7 +59,7 @@ func CheckK8sServicePorts(config types.ClusterConfig, serviceConfigs types.K8sSe
 			// Could not open port due to error.
 			allErrors = append(allErrors, fmt.Errorf("could not check port %s (needed by: %s): %w", port, service, err))
 		} else if !open {
-			allErrors = append(allErrors, fmt.Errorf("port %s (needed by: %s) is already in use.", port, service))
+			allErrors = append(allErrors, fmt.Errorf("port %s (needed by: %s) is already in use", port, service))
 		}
 	}
 
