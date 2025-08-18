@@ -150,7 +150,7 @@ def test_concurrent_membership_operations(instances: List[harness.Instance]):
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
         executor.submit(cluster_node.exec, ["k8s", "remove-node", joining_cp_A.id])
         executor.submit(cluster_node.exec, ["k8s", "remove-node", joining_cp_B.id])
-        
+
     util.wait_until_k8s_ready(cluster_node, [cluster_node])
 
     nodes = util.ready_nodes(cluster_node)
