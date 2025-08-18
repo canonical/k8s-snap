@@ -231,28 +231,28 @@ When upgrading {{product}} or changing `bootstrap-*` configuration options,
 the charm could block and produce a message on each unit:
 
 ```
-k8s/0*  blocked  idle  0  10.246.154.22  6443/tcp  Expected bootstrap-datastore='dqlite' not 'managed-etcd'
+k8s/0*  blocked  idle  0  10.246.154.22  6443/tcp  bootstrap-datastore is immutable; revert to 'managed-etcd'
 ```
 
 or
 
 ```
-k8s/0*  blocked  idle  0  10.246.154.22  6443/tcp  Expected bootstrap-pod-cidr='10.1.0.0/16' not '10.0.0.0/8'
+k8s/0*  blocked  idle  0  10.246.154.22  6443/tcp  bootstrap-pod-cidr is immutable; revert to '10.0.0.0/8'
 ```
 
 ### Explanation
 
 Juju allows for configuration to be fully mutable; however, some k8s options --
 specifically those starting with `bootstrap-` are
-[immutable](charm_configurations). Juju allows for these options to change in
-time, but it will cause the charm to block if they are adjusted during some
-day-2 operation of the application.
+[immutable](charm_configurations). Juju allows for these options to change over
+time, but it will cause the charm to block if adjusted during day-2 operation
+of the application.
 
 ```{note}
 The only exception is `bootstrap-node-taints` which is allowed to be changed on
 `k8s` or `k8s-worker` applications without triggering this blocked condition.
-This configuration is only used when a new unit joins the cluster so changing it
-cannot affect the runtime taints of the node.
+This configuration is only used when joining a new unit to the cluster; so
+changing it does not affect the runtime taints of a node.
 ```
 
 ### Solution
@@ -260,13 +260,13 @@ cannot affect the runtime taints of the node.
 The juju status reflects the desired action.  If the status message indicates
 
 ```
-k8s/0*  blocked  idle  0  10.246.154.22  6443/tcp  Expected bootstrap-datastore='dqlite' not 'managed-etcd'
+k8s/0*  blocked  idle  0  10.246.154.22  6443/tcp  bootstrap-datastore is immutable; revert to 'managed-etcd'
 ```
 
 The appropriate adjustment is to update the configuration value:
 
 ```
-juju config k8s bootstrap-datastore='dqlite'
+juju config k8s bootstrap-datastore='managed-etcd'
 ```
 
 <!-- LINKS -->
