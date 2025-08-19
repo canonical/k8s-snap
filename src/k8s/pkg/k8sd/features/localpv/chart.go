@@ -20,11 +20,11 @@ var (
 	ImageTag = "0.8.2-ck2"
 
 	// csiNodeDriverImage is the image to use for the CSI node driver.
-	csiNodeDriverImage = "ghcr.io/canonical/csi-node-driver-registrar:v2.10.0-ck7"
+	csiNodeDriverImage = "ghcr.io/canonical/csi-node-driver-registrar:2.10.0-ck7"
 	// csiProvisionerImage is the image to use for the CSI provisioner.
-	csiProvisionerImage = "ghcr.io/canonical/csi-provisioner:v5.0.2-ck0"
+	csiProvisionerImage = "ghcr.io/canonical/csi-provisioner:5.0.2-ck0"
 	// csiResizerImage is the image to use for the CSI resizer.
-	csiResizerImage = "ghcr.io/canonical/csi-resizer:v1.11.2-ck0"
+	csiResizerImage = "ghcr.io/canonical/csi-resizer:1.11.2-ck0"
 	// csiSnapshotterImage is the image to use for the CSI snapshotter.
-	csiSnapshotterImage = "ghcr.io/canonical/csi-snapshotter:v8.0.2-ck0"
+	csiSnapshotterImage = "ghcr.io/canonical/csi-snapshotter:8.0.2-ck0"
 )
