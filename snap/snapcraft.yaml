@@ -28,7 +28,7 @@ parts:
   build-deps:
     plugin: nil
     build-snaps:
-      - go/1.24-fips/stable
+      - go/1.23-fips/stable
     build-attributes: [enable-patchelf]
     build-packages:
       - sudo
@@ -56,9 +56,66 @@ parts:
       - rsync
       - tcl
       - python3-pip
+  
+  libmnl:
+    after: [build-deps]
+    plugin: autotools
+    source: https://www.netfilter.org/pub/libmnl/libmnl-1.0.4.tar.bz2
+    build-attributes: [enable-patchelf]
+    prime:
+      - -usr/local/include
+
+  libnftnl:
+    after: [libmnl]
+    plugin: autotools
+    source: https://www.netfilter.org/projects/libnftnl/files/libnftnl-1.1.8.tar.bz2
+    build-attributes: [enable-patchelf]
+    build-environment:
+      - LIBMNL_LIBS: $CRAFT_STAGE/usr/lib
+    prime:
+      - -usr/local/include
+
+  iptables:
+    after: [libnftnl]
+    source: https://www.netfilter.org/projects/iptables/files/iptables-1.8.6.tar.bz2
+    plugin: autotools
+    build-attributes: [enable-patchelf]
+    build-environment:
+      - LIBMNL_LIBS: $CRAFT_STAGE/usr/lib
+      - LIBNFTNL_LIBS: $CRAFT_STAGE/usr/lib
+    autotools-configure-parameters:
+      - "--prefix=/usr"
+      - "--exec-prefix=/"
+      - "--disable-shared"
+      - "--enable-static"
+    stage:
+      - -usr
+      - -lib/pkgconfig
+      - -bin/iptables-xml
+
+  runc:
+    after: [iptables, build-deps]
+    plugin: nil
+    build-attributes: [enable-patchelf]
+    source: build-scripts/components/runc
+    override-build: $CRAFT_PROJECT_DIR/build-scripts/build-component.sh runc
+
+  containerd:
+    after: [runc]
+    plugin: nil
+    build-attributes: [enable-patchelf]
+    source: build-scripts/components/containerd
+    override-build: $CRAFT_PROJECT_DIR/build-scripts/build-component.sh containerd
+
+  bump-go:
+    after: [containerd]
+    plugin: nil
+    build-snaps:
+      - go/1.24-fips/stable
+    build-attributes: [enable-patchelf]
 
   dqlite:
-    after: [build-deps]
+    after: [bump-go]
     plugin: nil
     source: src/k8s/hack
     build-attributes: [enable-patchelf]
@@ -82,7 +139,7 @@ parts:
     override-build: $CRAFT_PROJECT_DIR/build-scripts/build-component.sh k8s-dqlite
 
   etcd:
-    after: [build-deps]
+    after: [bump-go]
     plugin: nil
     source: build-scripts/components/etcd
     # Note(ben): patchelf messes up the segments when patching etcd
@@ -140,14 +197,14 @@ parts:
       LD_LIBRARY_PATH="${DQLITE_BUILD_SCRIPTS_DIR}/.deps/dynamic/lib" "${INSTALL}/bin/k8s" list-images > "${INSTALL}/images.txt"
 
   cni:
-    after: [build-deps]
+    after: [bump-go]
     plugin: nil
     source: build-scripts/components/cni
     build-attributes: [enable-patchelf]
     override-build: $CRAFT_PROJECT_DIR/build-scripts/build-component.sh cni
 
   kubernetes:
-    after: [build-deps]
+    after: [bump-go]
     plugin: nil
     source: build-scripts
     build-attributes: [enable-patchelf]
@@ -159,61 +216,11 @@ parts:
     override-build: craftctl set version="$(cat ./version)"
 
   helm:
-    after: [build-deps]
+    after: [bump-go]
     build-attributes: [enable-patchelf]
     plugin: nil
     source: build-scripts/components/helm
     override-build: $CRAFT_PROJECT_DIR/build-scripts/build-component.sh helm
-
-  libmnl:
-    after: [build-deps]
-    plugin: autotools
-    source: https://www.netfilter.org/pub/libmnl/libmnl-1.0.4.tar.bz2
-    build-attributes: [enable-patchelf]
-    prime:
-      - -usr/local/include
-
-  libnftnl:
-    after: [libmnl]
-    plugin: autotools
-    source: https://www.netfilter.org/projects/libnftnl/files/libnftnl-1.1.8.tar.bz2
-    build-attributes: [enable-patchelf]
-    build-environment:
-      - LIBMNL_LIBS: $CRAFT_STAGE/usr/lib
-    prime:
-      - -usr/local/include
-
-  iptables:
-    after: [libnftnl]
-    source: https://www.netfilter.org/projects/iptables/files/iptables-1.8.6.tar.bz2
-    plugin: autotools
-    build-attributes: [enable-patchelf]
-    build-environment:
-      - LIBMNL_LIBS: $CRAFT_STAGE/usr/lib
-      - LIBNFTNL_LIBS: $CRAFT_STAGE/usr/lib
-    autotools-configure-parameters:
-      - "--prefix=/usr"
-      - "--exec-prefix=/"
-      - "--disable-shared"
-      - "--enable-static"
-    stage:
-      - -usr
-      - -lib/pkgconfig
-      - -bin/iptables-xml
-
-  containerd:
-    after: [runc]
-    plugin: nil
-    build-attributes: [enable-patchelf]
-    source: build-scripts/components/containerd
-    override-build: $CRAFT_PROJECT_DIR/build-scripts/build-component.sh containerd
-
-  runc:
-    after: [iptables, build-deps]
-    plugin: nil
-    build-attributes: [enable-patchelf]
-    source: build-scripts/components/runc
-    override-build: $CRAFT_PROJECT_DIR/build-scripts/build-component.sh runc
 
   bash-utils:
     plugin: nil
