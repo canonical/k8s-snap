@@ -20,7 +20,7 @@ options. Here's an example configuration, which for this guide we'll save as
 ```yaml
 k8s:
   # Specify the datastore type
-  bootstrap-datastore: dqlite
+  bootstrap-datastore: etcd
 
   # Configure pod and service CIDR ranges
   bootstrap-pod-cidr: "192.168.0.0/16"
