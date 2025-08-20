@@ -1,8 +1,11 @@
 # Dqlite database
 
-{{product}} uses not one, but two Dqlite databases:
+{{product}} may use not one, but two Dqlite databases:
 
-* k8s-dqlite - used by Kubernetes itself (as an ETCD replacement)
+* k8s-dqlite – By default, Kubernetes uses etcd as its datastore,
+but you can choose k8s-dqlite as an alternative. Any references to k8s-dqlite
+are relevant only if it has been selected as the Kubernetes datastore
+on bootstrap.
 * k8sd - Kubernetes cluster management data
 
 ## Database files
