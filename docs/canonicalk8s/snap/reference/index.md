@@ -13,6 +13,7 @@ Overview <self>
 ```{toctree}
 :titlesonly:
 architecture
+etcd
 dqlite
 ```
 

@@ -1,7 +1,7 @@
 # How to use an external datastore
 
 {{product}} supports using an external datastore such as etcd
-instead of the bundled dqlite datastore.
+instead of the bundled etcd datastore.
 This guide walks you through configuring an external etcd datastore.
 
 ## Prerequisites
@@ -16,7 +16,7 @@ This guide assumes the following:
 
 ```{warning}
 The selection of the backing datastore can only be changed during the bootstrap process.
-There is no migration path between the bundled dqlite and the external datastores.
+There is no migration path between the bundled etcd and the external datastores.
 ```
 
 ## Adjust the bootstrap configuration

@@ -41,8 +41,8 @@ The `k8s` snap distribution includes the following:
 and drive the cluster operations.
 - **K8s core components**: the Kubernetes services, as well as core
 workloads built from upstream and shipped in the snap.
-- **Kubernetes datastore**: uses [Dqlite] to store data on the state of the
-cluster. It can be replaced by an external datastore.
+- **Kubernetes datastore**: uses etcd to store data on the state of the
+cluster. It can be replaced by [Dqlite] or an external datastore.
 - **Cluster datastore**: uses Dqlite as a replicated database to store cluster
 configuration.
 - **Container runtime**: `containerd` is the shipped container runtime.
@@ -96,8 +96,8 @@ information between the `k8s` and `k8s-worker` charms
 
 <!-- IMAGES -->
 
-[cluster1]: https://assets.ubuntu.com/v1/de97f360-snap10-04.svg
-[cluster2]: https://assets.ubuntu.com/v1/24ea67c0-k8sd10-04.svg
+[cluster1]: https://assets.ubuntu.com/v1/60234b03-snap-14-08.svg 
+[cluster2]: https://assets.ubuntu.com/v1/b0ae732e-k8sd-13-08.svg
 [cluster4]: https://assets.ubuntu.com/v1/53a083a9-charms.svg
 [cluster5]: https://assets.ubuntu.com/v1/bcfe150f-overview.svg
 
