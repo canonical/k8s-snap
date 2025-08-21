@@ -26,7 +26,7 @@ You should see a command output similar to the following:
 cluster status:           ready
 control plane nodes:      10.94.106.249:6400 (voter), 10.94.106.208:6400 (voter), 10.94.106.99:6400 (voter)
 high availability:        yes
-datastore:                k8s-dqlite
+datastore:                etcd
 network:                  enabled
 dns:                      enabled at 10.152.183.106
 ingress:                  disabled
@@ -121,7 +121,7 @@ Services running only on control-plane nodes:
 * `kube-apiserver`
 * `kube-controller-manager`
 * `kube-scheduler`
-* `k8s-dqlite`
+* `etcd`
 
 Services running only on worker nodes:
 

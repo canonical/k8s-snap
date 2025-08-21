@@ -1,10 +1,12 @@
-# How to integrate {{product}} with etcd
+# How to integrate {{product}} with external etcd
 
 Integrating [etcd][] with your {{product}} deployment provides a
 robust, distributed key-value store that is essential for storing critical
-data needed for Kubernetes' clustering operations. This guide will walk you
-through the process of deploying {{product}} with an external etcd
-cluster.
+data needed for Kubernetes' clustering operations. While {{product}} comes
+with etcd as the default datastore, it can be replaced by an externally-managed
+etcd to have more fine-grained control over the database cluster.
+This guide will walk you through the process of deploying {{product}}
+with an external etcd cluster.
 
 ## Prerequisites
 
