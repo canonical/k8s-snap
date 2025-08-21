@@ -33,12 +33,14 @@ func TestInternalConfig(t *testing.T) {
 				apiv1_annotations.AnnotationDirectRoutingDevice: "eth0",
 				apiv1_annotations.AnnotationVLANBPFBypass:       "1,2,3",
 				apiv1_annotations.AnnotationCNIExclusive:        "true",
+				apiv1_annotations.AnnotationSCTPEnabled:         "true",
 			},
 			expectedConfig: config{
 				devices:             "eth+ lxdbr+",
 				directRoutingDevice: "eth0",
 				vlanBPFBypass:       []int{1, 2, 3},
 				cniExclusive:        true,
+				sctpEnabled:         true,
 				tunnelPort:          ciliumDefaultVXLANPort,
 			},
 			expectError: false,
@@ -64,6 +66,21 @@ func TestInternalConfig(t *testing.T) {
 			},
 			expectedConfig: config{
 				tunnelPort: 8473,
+			},
+			expectError: false,
+		},
+		{
+			name: "Cilum SCTP",
+			annotations: map[string]string{
+				apiv1_annotations.AnnotationSCTPEnabled: "true",
+			},
+			expectedConfig: config{
+				devices:             "",
+				directRoutingDevice: "",
+				vlanBPFBypass:       nil,
+				cniExclusive:        false,
+				sctpEnabled:         true,
+				tunnelPort:          ciliumDefaultVXLANPort,
 			},
 			expectError: false,
 		},

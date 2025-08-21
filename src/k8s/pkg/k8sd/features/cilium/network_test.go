@@ -226,6 +226,44 @@ func TestNetworkEnabled(t *testing.T) {
 			cniValues := callArgs.Values["cni"].(map[string]interface{})
 			g.Expect(cniValues["exclusive"]).To(BeTrue())
 		})
+
+		t.Run("SCTPEnabled", func(t *testing.T) {
+			g := NewWithT(t)
+
+			helmM := &helmmock.Mock{}
+			snapM := &snapmock.Snap{
+				Mock: snapmock.Mock{
+					HelmClient: helmM,
+				},
+			}
+			network := types.Network{
+				Enabled: ptr.To(true),
+				PodCIDR: ptr.To("192.0.2.0/24,2001:db8::/32"),
+			}
+			apiserver := types.APIServer{
+				SecurePort: ptr.To(6443),
+			}
+
+			testAnnotations := types.Annotations{
+				apiv1_annotations.AnnotationDevices:             "eth+ lxdbr+",
+				apiv1_annotations.AnnotationDirectRoutingDevice: "eth0",
+				apiv1_annotations.AnnotationSCTPEnabled:         "true",
+			}
+			status, err := cilium.ApplyNetwork(context.Background(), snapM, s, apiserver, network, testAnnotations)
+
+			g.Expect(err).ToNot(HaveOccurred())
+			g.Expect(status.Enabled).To(BeTrue())
+			g.Expect(status.Message).To(Equal(cilium.EnabledMsg))
+			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+			g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
+
+			callArgs := helmM.ApplyCalledWith[0]
+			g.Expect(callArgs.Chart).To(Equal(cilium.ChartCilium))
+			g.Expect(callArgs.State).To(Equal(helm.StatePresent))
+
+			sctpValues := callArgs.Values["sctp"].(map[string]interface{})
+			g.Expect(sctpValues["enabled"]).To(BeTrue())
+		})
 	})
 }
 
@@ -449,4 +487,8 @@ func validateNetworkValues(g Gomega, values map[string]any, network types.Networ
 	_, exists = annotations.Get(apiv1_annotations.AnnotationCNIExclusive)
 	cniValues := values["cni"].(map[string]interface{})
 	g.Expect(cniValues["exclusive"]).To(Equal(exists))
+
+	_, exists = annotations.Get(apiv1_annotations.AnnotationSCTPEnabled)
+	sctpValues := values["sctp"].(map[string]interface{})
+	g.Expect(sctpValues["enabled"]).To(Equal(exists))
 }
