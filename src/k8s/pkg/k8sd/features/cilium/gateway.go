@@ -52,18 +52,7 @@ func enableGateway(ctx context.Context, snap snap.Snap) (types.FeatureStatus, er
 		}, err
 	}
 
-	values := map[string]any{
-		"gatewayAPI": map[string]any{
-			"enabled": true,
-			"gatewayClass": map[string]any{
-				// This needs to be string, not bool, as the helm chart uses a string
-				// Due to the values of 'auto', 'true' and 'false'
-				"create": "false",
-			},
-		},
-	}
-
-	changed, err := m.Apply(ctx, ChartCilium, helm.StateUpgradeOnly, values)
+	changed, err := m.Apply(ctx, ChartCilium, helm.StateUpgradeOnly, map[string]any{"gatewayAPI": map[string]any{"enabled": true}})
 	if err != nil {
 		err = fmt.Errorf("failed to upgrade Gateway API cilium configuration: %w", err)
 		return types.FeatureStatus{
