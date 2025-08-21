@@ -257,7 +257,7 @@ changing it does not affect the runtime taints of a node.
 
 ### Solution
 
-The juju status reflects the desired action.  If the status message indicates
+`juju status` reflects the desired action. If the status message indicates
 
 ```
 k8s/0*  blocked  idle  0  10.246.154.22  6443/tcp  bootstrap-datastore is immutable; revert to 'managed-etcd'
