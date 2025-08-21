@@ -135,5 +135,10 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 		}
 	}()
 
+	// NOTE(Hue): We notify all features here to ensure that they are
+	// reconciled at least once after the app starts. This is important specifically
+	// when k8sd gets restarted before getting the chance to reconcile features.
+	a.NotifyFeatureController(true, true, true, true, true, true, true)
+
 	return nil
 }
