@@ -80,6 +80,7 @@ func TestInternalConfig(t *testing.T) {
 				vlanBPFBypass:       nil,
 				cniExclusive:        false,
 				sctpEnabled:         true,
+				tunnelPort:          ciliumDefaultVXLANPort,
 			},
 			expectError: false,
 		},
