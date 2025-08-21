@@ -23,6 +23,7 @@ type config struct {
 	directRoutingDevice string
 	vlanBPFBypass       []int
 	cniExclusive        bool
+	sctpEnabled         bool
 	tunnelPort          int
 }
 
@@ -87,6 +88,10 @@ func internalConfig(annotations types.Annotations) (config, error) {
 
 	if _, ok := annotations.Get(apiv1_annotations.AnnotationCNIExclusive); ok {
 		c.cniExclusive = true
+	}
+
+	if _, ok := annotations.Get(apiv1_annotations.AnnotationSCTPEnabled); ok {
+		c.sctpEnabled = true
 	}
 
 	if v, ok := annotations.Get(apiv1_annotations.AnnotationTunnelPort); ok {
