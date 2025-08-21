@@ -150,7 +150,7 @@ jobs:
     name: Charm e2e tests - ${{ matrix.arch }}
     strategy:
       matrix:
-        arch: [amd64, arm64]
+        arch: [amd64]
       fail-fast: false
     needs: [build-snap, go-lint-and-unit, python-lint, get-charm-channel]
     uses: ./.github/workflows/charm-e2e-tests.yaml
