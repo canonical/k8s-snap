@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"path/filepath"
 
@@ -26,12 +27,11 @@ rules:
 	auditLogMaxSize   = "100"
 
 	streamingConnectionIdleTimeout = "5m"
-	secureBindAddress              = "127.0.0.1"
 
 	disableAlphaAPIs = "AllAlpha=false"
 )
 
-func (a *App) ApplyComplianceProfile(profile string, serviceConfigs *types.K8sServiceConfigs, isControlPlane bool) error {
+func (a *App) ApplyComplianceProfile(profile string, serviceConfigs *types.K8sServiceConfigs, nodeIPs []net.IP, isControlPlane bool) error {
 	switch profile {
 	case ComplianceProfileDefault:
 		if err := a.applyDefaultComplianceProfileRules(serviceConfigs); err != nil {
@@ -41,7 +41,7 @@ func (a *App) ApplyComplianceProfile(profile string, serviceConfigs *types.K8sSe
 		if err := a.applyDefaultComplianceProfileRules(serviceConfigs); err != nil {
 			return fmt.Errorf("failed to apply default compliance profile rules: %w", err)
 		}
-		if err := a.applyRecommendedComplianceProfileRules(serviceConfigs, isControlPlane); err != nil {
+		if err := a.applyRecommendedComplianceProfileRules(serviceConfigs, nodeIPs, isControlPlane); err != nil {
 			return fmt.Errorf("failed to apply recommended compliance profile rules: %w", err)
 		}
 	default:
@@ -55,9 +55,9 @@ func (a *App) applyDefaultComplianceProfileRules(serviceConfigs *types.K8sServic
 	return nil
 }
 
-func (a *App) applyRecommendedComplianceProfileRules(serviceConfigs *types.K8sServiceConfigs, isControlPlane bool) error {
+func (a *App) applyRecommendedComplianceProfileRules(serviceConfigs *types.K8sServiceConfigs, nodeIPs []net.IP, isControlPlane bool) error {
 	if isControlPlane {
-		a.applySecureBindingKubeSchedulerControllerManager(serviceConfigs)
+		a.applySecureBindingKubeSchedulerControllerManager(serviceConfigs, nodeIPs)
 		a.applyDisableAlphaAPIs(serviceConfigs)
 		if err := a.applyAuditLogging(serviceConfigs); err != nil {
 			return fmt.Errorf("failed to apply DISA STIG rules related to audit logging: %w", err)
@@ -69,14 +69,14 @@ func (a *App) applyRecommendedComplianceProfileRules(serviceConfigs *types.K8sSe
 }
 
 // Rule V-242384, V-242385
-func (a *App) applySecureBindingKubeSchedulerControllerManager(serviceConfigs *types.K8sServiceConfigs) {
-	// TODO: check IPv6
+func (a *App) applySecureBindingKubeSchedulerControllerManager(serviceConfigs *types.K8sServiceConfigs, nodeIPs []net.IP) {
 	if serviceConfigs.ExtraNodeKubeSchedulerArgs == nil {
 		serviceConfigs.ExtraNodeKubeSchedulerArgs = make(map[string]*string)
 	}
 	if serviceConfigs.ExtraNodeKubeControllerManagerArgs == nil {
 		serviceConfigs.ExtraNodeKubeControllerManagerArgs = make(map[string]*string)
 	}
+	secureBindAddress := getSecureBindAddress(nodeIPs)
 	serviceConfigs.ExtraNodeKubeSchedulerArgs["--secure-bind-address"] = utils.Pointer(secureBindAddress)
 	serviceConfigs.ExtraNodeKubeControllerManagerArgs["--secure-bind-address"] = utils.Pointer(secureBindAddress)
 }
@@ -130,4 +130,26 @@ func (a *App) applyKubectlStreamingConnIdleTimeout(serviceConfigs *types.K8sServ
 		serviceConfigs.ExtraNodeKubeletArgs = make(map[string]*string)
 	}
 	serviceConfigs.ExtraNodeKubeletArgs["--streaming-connection-idle-timeout"] = utils.Pointer(streamingConnectionIdleTimeout)
+}
+
+func getSecureBindAddress(nodeIPs []net.IP) string {
+	hasIPv6 := false
+	hasIPv4 := false
+
+	for _, ip := range nodeIPs {
+		if ip.To4() != nil {
+			hasIPv4 = true
+		} else {
+			hasIPv6 = true
+		}
+	}
+
+	switch {
+	case hasIPv6 && hasIPv4:
+		return "127.0.0.1"
+	case hasIPv6:
+		return "::1"
+	default:
+		return "127.0.0.1"
+	}
 }
