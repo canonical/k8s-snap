@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/canonical/k8s/pkg/k8sd/types"
+	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils"
 )
 
@@ -30,7 +31,8 @@ rules:
 	disableAlphaAPIs = "AllAlpha=false"
 )
 
-func (a *App) ApplyComplianceProfile(profile string, serviceConfigs *types.K8sServiceConfigs, isControlPlane bool) error {
+// ApplyComplianceProfile applies the specified compliance profile to the given service configurations.
+func (a *App) ApplyComplianceProfile(profile string, serviceConfigs *types.K8sServiceConfigs, s snap.Snap, isControlPlane bool) error {
 	switch profile {
 	case ComplianceProfileDefault:
 		if err := a.applyDefaultComplianceProfileRules(serviceConfigs); err != nil {
@@ -40,7 +42,7 @@ func (a *App) ApplyComplianceProfile(profile string, serviceConfigs *types.K8sSe
 		if err := a.applyDefaultComplianceProfileRules(serviceConfigs); err != nil {
 			return fmt.Errorf("failed to apply default compliance profile rules: %w", err)
 		}
-		if err := a.applyRecommendedComplianceProfileRules(serviceConfigs, isControlPlane); err != nil {
+		if err := a.applyRecommendedComplianceProfileRules(serviceConfigs, s, isControlPlane); err != nil {
 			return fmt.Errorf("failed to apply recommended compliance profile rules: %w", err)
 		}
 	default:
@@ -54,13 +56,13 @@ func (a *App) applyDefaultComplianceProfileRules(serviceConfigs *types.K8sServic
 	return nil
 }
 
-func (a *App) applyRecommendedComplianceProfileRules(serviceConfigs *types.K8sServiceConfigs, isControlPlane bool) error {
+func (a *App) applyRecommendedComplianceProfileRules(serviceConfigs *types.K8sServiceConfigs, s snap.Snap, isControlPlane bool) error {
 	if isControlPlane {
 		if err := a.applySecureBindingKubeSchedulerControllerManager(serviceConfigs); err != nil {
 			return fmt.Errorf("failed to apply secure binding for kube-scheduler and kube-controller-manager: %w", err)
 		}
 		a.applyDisableAlphaAPIs(serviceConfigs)
-		if err := a.applyAuditLogging(serviceConfigs); err != nil {
+		if err := a.applyAuditLogging(serviceConfigs, s); err != nil {
 			return fmt.Errorf("failed to apply DISA STIG rules related to audit logging: %w", err)
 		}
 	}
@@ -95,8 +97,8 @@ func (a *App) applyDisableAlphaAPIs(serviceConfigs *types.K8sServiceConfigs) {
 }
 
 // Rules V-242402, V-242403, V-242461, V-242462, V-242463, V-242464, V-242465.
-func (a *App) applyAuditLogging(serviceConfigs *types.K8sServiceConfigs) error {
-	auditPolicyPath := filepath.Join(a.snap.EtcDir(), auditPolicyFileName)
+func (a *App) applyAuditLogging(serviceConfigs *types.K8sServiceConfigs, s snap.Snap) error {
+	auditPolicyPath := filepath.Join(s.EtcDir(), auditPolicyFileName)
 
 	if err := utils.WriteFile(auditPolicyPath, []byte(auditPolicyTemplate), os.FileMode(0o644)); err != nil {
 		return fmt.Errorf("failed to write audit policy file: %w", err)

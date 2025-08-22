@@ -241,7 +241,7 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 		ExtraNodeKubeProxyArgs: joinConfig.ExtraNodeKubeProxyArgs,
 	}
 	// TODO(louise): check if flag is set
-	if err := a.ApplyComplianceProfile("default", &serviceConfigs, false); err != nil {
+	if err := a.ApplyComplianceProfile("default", &serviceConfigs, a.snap, false); err != nil {
 		return fmt.Errorf("failed to apply compliance profile: %w", err)
 	}
 
@@ -485,7 +485,7 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 	}
 
 	// Apply DISA STIG compliance profile
-	if err := a.ApplyComplianceProfile(ComplianceProfileRecommended, &serviceConfigs, true); err != nil {
+	if err := a.ApplyComplianceProfile(ComplianceProfileRecommended, &serviceConfigs, a.snap, true); err != nil {
 		return fmt.Errorf("failed to apply compliance profile: %w", err)
 	}
 
