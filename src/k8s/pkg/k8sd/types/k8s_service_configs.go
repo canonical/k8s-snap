@@ -20,6 +20,7 @@ type K8sServiceConfigs struct {
 	ExtraNodeKubeSchedulerArgs         map[string]*string
 	ExtraNodeKubeletArgs               map[string]*string
 	ExtraNodeKubeProxyArgs             map[string]*string
+	ExtraNodeKubeAPIServerArgs         map[string]*string
 }
 
 func (s *K8sServiceConfigs) GetKubeControllerManagerPort() string {

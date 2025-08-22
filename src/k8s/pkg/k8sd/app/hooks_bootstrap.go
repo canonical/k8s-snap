@@ -241,7 +241,7 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 		ExtraNodeKubeProxyArgs: joinConfig.ExtraNodeKubeProxyArgs,
 	}
 	// TODO: check if flag is set
-	if err := a.ApplyComplianceProfile("default", joinConfig, apiv1.BootstrapConfig{}, true); err != nil {
+	if err := a.ApplyComplianceProfile("default", &serviceConfigs, false); err != nil {
 		return fmt.Errorf("failed to apply compliance profile: %w", err)
 	}
 
@@ -263,7 +263,7 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 	if err := setup.Containerd(snap, joinConfig.ExtraNodeContainerdConfig, joinConfig.ExtraNodeContainerdArgs); err != nil {
 		return fmt.Errorf("failed to configure containerd: %w", err)
 	}
-	if err := setup.KubeletWorker(snap, s.Name(), nodeIPs, response.ClusterDNS, response.ClusterDomain, response.CloudProvider, joinConfig.ExtraNodeKubeletArgs); err != nil {
+	if err := setup.KubeletWorker(snap, s.Name(), nodeIPs, response.ClusterDNS, response.ClusterDomain, response.CloudProvider, serviceConfigs.ExtraNodeKubeletArgs); err != nil {
 		return fmt.Errorf("failed to configure kubelet: %w", err)
 	}
 	if err := setup.KubeProxy(ctx, snap, s.Name(), response.PodCIDR, joinConfig.ExtraNodeKubeProxyArgs); err != nil {
@@ -481,9 +481,11 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 		ExtraNodeKubeControllerManagerArgs: bootstrapConfig.ExtraNodeKubeControllerManagerArgs,
 		ExtraNodeKubeletArgs:               bootstrapConfig.ExtraNodeKubeletArgs,
 		ExtraNodeKubeProxyArgs:             bootstrapConfig.ExtraNodeKubeProxyArgs,
+		ExtraNodeKubeAPIServerArgs:         bootstrapConfig.ExtraNodeKubeAPIServerArgs,
 	}
 
-	if err := a.ApplyComplianceProfile("default", apiv1.WorkerJoinConfig{}, bootstrapConfig, false); err != nil {
+	// Apply DISA STIG compliance profile
+	if err := a.ApplyComplianceProfile(ComplianceProfileRecommended, &serviceConfigs, true); err != nil {
 		return fmt.Errorf("failed to apply compliance profile: %w", err)
 	}
 
@@ -517,19 +519,19 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 	if err := setup.Containerd(snap, bootstrapConfig.ExtraNodeContainerdConfig, bootstrapConfig.ExtraNodeContainerdArgs); err != nil {
 		return fmt.Errorf("failed to configure containerd: %w", err)
 	}
-	if err := setup.KubeletControlPlane(snap, s.Name(), nodeIPs, cfg.Kubelet.GetClusterDNS(), cfg.Kubelet.GetClusterDomain(), cfg.Kubelet.GetCloudProvider(), cfg.Kubelet.GetControlPlaneTaints(), bootstrapConfig.ExtraNodeKubeletArgs); err != nil {
+	if err := setup.KubeletControlPlane(snap, s.Name(), nodeIPs, cfg.Kubelet.GetClusterDNS(), cfg.Kubelet.GetClusterDomain(), cfg.Kubelet.GetCloudProvider(), cfg.Kubelet.GetControlPlaneTaints(), serviceConfigs.ExtraNodeKubeletArgs); err != nil {
 		return fmt.Errorf("failed to configure kubelet: %w", err)
 	}
 	if err := setup.KubeProxy(ctx, snap, s.Name(), cfg.Network.GetPodCIDR(), bootstrapConfig.ExtraNodeKubeProxyArgs); err != nil {
 		return fmt.Errorf("failed to configure kube-proxy: %w", err)
 	}
-	if err := setup.KubeControllerManager(snap, bootstrapConfig.ExtraNodeKubeControllerManagerArgs); err != nil {
+	if err := setup.KubeControllerManager(snap, serviceConfigs.ExtraNodeKubeControllerManagerArgs); err != nil {
 		return fmt.Errorf("failed to configure kube-controller-manager: %w", err)
 	}
-	if err := setup.KubeScheduler(snap, bootstrapConfig.ExtraNodeKubeSchedulerArgs); err != nil {
+	if err := setup.KubeScheduler(snap, serviceConfigs.ExtraNodeKubeSchedulerArgs); err != nil {
 		return fmt.Errorf("failed to configure kube-scheduler: %w", err)
 	}
-	if err := setup.KubeAPIServer(snap, cfg.APIServer.GetSecurePort(), nodeIP, cfg.Network.GetServiceCIDR(), s.Address().Path("1.0", "kubernetes", "auth", "webhook").String(), true, cfg.Datastore, cfg.APIServer.GetAuthorizationMode(), bootstrapConfig.ExtraNodeKubeAPIServerArgs); err != nil {
+	if err := setup.KubeAPIServer(snap, cfg.APIServer.GetSecurePort(), nodeIP, cfg.Network.GetServiceCIDR(), s.Address().Path("1.0", "kubernetes", "auth", "webhook").String(), true, cfg.Datastore, cfg.APIServer.GetAuthorizationMode(), serviceConfigs.ExtraNodeKubeAPIServerArgs); err != nil {
 		return fmt.Errorf("failed to configure kube-apiserver: %w", err)
 	}
 
