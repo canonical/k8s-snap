@@ -1,29 +1,33 @@
 # Backup and restore using the Velero Operator
 
-The [Velero Operator][] is a Juju Kubernetes charm that deploys and manages [Velero][],
-an open-source tool for safely backing up and restoring Kubernetes cluster resources. It provides disaster recovery, cluster migration, and backup and restore for workloads
-across namespaces, including non-Juju-managed ones.
+The [Velero Operator][] is a Juju Kubernetes charm that deploys and manages
+[Velero][], an open-source tool for safely backing up and restoring Kubernetes
+cluster resources. It provides disaster recovery, cluster migration, and backup
+and restore for workloads across namespaces, including non-Juju-managed ones.
 
-This guide shows how to setup Velero Operator with the [s3-integrator charm][] as
-the storage provider and with the [infra-backup-operator] to backup the configuration of **any**
-kind of Kubernetes distribution (Canonical Kubernetes, MicroK8s, EKS, etc.).
+This guide shows how to setup Velero Operator with the [s3-integrator charm][]
+as the storage provider and with the [infra-backup-operator] to backup the
+configuration of **any** kind of Kubernetes distribution (Canonical Kubernetes,
+MicroK8s, EKS, etc.).
 
 ## What the infra backup operator does
-The Infra Backup Operator is a Juju charm designed to work seamlessly with the Velero Operator.
-When related, it automatically applies the necessary configuration to enable backups of Kubernetes
-resources that are **not tied to workloads**, but to the cluster’s own configuration and
+The Infra Backup Operator is a Juju charm designed to work seamlessly with the
+Velero Operator. When related, it automatically applies the necessary
+configuration to enable backups of Kubernetes resources that are
+**not tied to workloads**, but to the cluster’s own configuration and
 infrastructure. The backup is separated into two groups:
 
 - Cluster Infra Backup -> All cluster-scoped resources.
-- Namespaced infra backup -> All namespaced resources for Security and Access Control
-(Role, RoleBinding, NetworkPolicy, etc.) and Configuration and Environment
-(ConfigMap, Secret, etc.)
+- Namespaced infra backup -> All namespaced resources for Security and
+Access Control (Role, RoleBinding, NetworkPolicy, etc.) and Configuration
+and Environment (ConfigMap, Secret, etc.)
 
-Note that because Kubernetes clusters might have different storage providers, the infra-backup-operator does not create backup of PVs or PVCs.
+Note that because Kubernetes clusters might have different storage providers,
+the infra-backup-operator does not create backup of PVs or PVCs.
 
 ## What you will need
 - A kubernetes cluster
-- A bootstrapped K8s controller. See the [Juju documentation] for more information
+- A bootstrapped K8s controller. See the [Juju documentation]
 - An S3 bucket or a S3 compatible bucket like [MinIO] or [microceph]
 
 ### Deploy
@@ -50,14 +54,15 @@ juju run velero-operator/0 create-backup target=infra-backup-operator:namespaced
 ```
 
 ### Restore
-In case of disaster recovery, users can restore the cluster configuration in the same cluster
-or in a different one using the Velero operator juju-action. This will guarantee that the cluster configuration can be easily restored to start receiving the workloads.
+In case of disaster recovery, users can restore the cluster configuration in
+the same cluster or in a different one using the Velero operator juju-action.
+This will guarantee that the cluster configuration can be easily restored to
+start receiving the workloads.
 
-Before restore your cluster must have velero-operator deployed and integrated with the same bucket
-of the backup.
+Before restore your cluster must have velero-operator deployed and integrated
+with the same bucket of the backup.
 
 ```bash
-
 # example output
 juju run velero-operator/0 list-backups
 
