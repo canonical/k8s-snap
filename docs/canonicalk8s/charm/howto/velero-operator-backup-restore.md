@@ -11,6 +11,7 @@ configuration of **any** kind of Kubernetes distribution (Canonical Kubernetes,
 MicroK8s, EKS, etc.).
 
 ## What the infra backup operator does
+
 The Infra Backup Operator is a Juju charm designed to work seamlessly with the
 Velero Operator. When related, it automatically applies the necessary
 configuration to enable backups of Kubernetes resources that are
@@ -26,11 +27,13 @@ Note that because Kubernetes clusters might have different storage providers,
 the infra-backup-operator does not create backup of PVs or PVCs.
 
 ## What you will need
+
 - A kubernetes cluster
 - A bootstrapped K8s controller. See the [Juju documentation]
 - An S3 bucket or a S3 compatible bucket like [MinIO] or [microceph]
 
 ### Deploy
+
 ```bash
 juju add-model velero
 
@@ -40,6 +43,7 @@ juju deploy s3-integrator
 ```
 
 ### Integrate
+
 ```bash
 juju integrate velero-operator s3-integrator
 juju integrate infra-backup-operator:cluster-infra-backup velero-operator
@@ -47,13 +51,16 @@ juju integrate infra-backup-operator:namespaced-infra-backup velero-operator
 ```
 
 ### Create the Backup
+
 At any time users can run a juju action to create a backup
+
 ```bash
 juju run velero-operator/0 create-backup target=infra-backup-operator:cluster-infra-backup
 juju run velero-operator/0 create-backup target=infra-backup-operator:namespaced-infra-backup
 ```
 
 ### Restore
+
 In case of disaster recovery, users can restore the cluster configuration in
 the same cluster or in a different one using the Velero operator juju-action.
 This will guarantee that the cluster configuration can be easily restored to
@@ -90,8 +97,10 @@ juju run velero-operator/0 restore backup-uid=83503892-a24a-409b-b0df-553dcc2465
 ```
 
 ## Workloads
-Each Juju application should be responsible for setting the relation with Velero operator to
-be able to backup the necessary k8s resources and in the right order.
+
+Each Juju application should be responsible for setting the relation with
+Velero operator to be able to backup the necessary k8s resources and in the
+right order.
 
 <!-- Links -->
 
