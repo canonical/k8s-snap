@@ -100,9 +100,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-The final line of the output will be `PASS`.
-
-
 
 ## [V-242383]
 
@@ -166,11 +163,11 @@ disabled
 
 **Comments:**
 
-> This Finding refers to the `--insecure-port` command line argument for the
+> This finding refers to the `--insecure-port` command line argument for the
 > Kubernetes API Server service.
 >
 > Support for the `--insecure-port` flag has been deprecated in Kubernetes
-> 1.10, and completely removed in 1.21, so this Finding is Not Applicable to
+> 1.10, and completely removed in 1.21, so This finding is Not Applicable to
 > any versions of the k8s-snap.
 >
 > https://github.com/kubernetes/kubernetes/issues/91506
@@ -231,7 +228,7 @@ Afterwards restart the `kubelet` service with:
 Ensure that the argument `--read-only-port` for service `kubelet` is set as
 appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
 
-Note: this Finding allows for this argument to be UNSET as well.
+Note: This finding allows for this argument to be UNSET as well.
 
 ```bash
 grep -E -q  '\-\-read-only-port=(0)' '/var/snap/k8s/common/args/kubelet' || echo UNSET
@@ -240,8 +237,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
-
-The final line of the output will be `PASS`.
 
 
 
@@ -302,7 +297,7 @@ Ensure that the argument `--insecure-bind-address` for service `kube-apiserver`
 is set as appropriate in the service's argument file
 `/var/snap/k8s/common/args/kube-apiserver`.
 
-Note: this Finding allows for this argument to be UNSET as well.
+Note: This finding allows for this argument to be UNSET as well.
 
 ```bash
 grep -E -qvz '\-\-insecure-bind-address=(.*)' '/var/snap/k8s/common/args/kube-apiserver' && echo UNSET
@@ -453,9 +448,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-The final line of the output will be `PASS`.
-
-
 
 ## [V-242392]
 
@@ -512,7 +504,7 @@ Afterwards restart the `kubelet` service with:
 Ensure that the argument `--authorization-mode` for service `kubelet` is set as
 appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
 
-Note: this Finding allows for this argument to be UNSET as well.
+Note: This finding allows for this argument to be UNSET as well.
 
 ```bash
 grep -E -q  '\-\-authorization-mode=(Webhook)' '/var/snap/k8s/common/args/kubelet' || echo UNSET
@@ -585,7 +577,7 @@ Afterwards restart the `kubelet` service with:
 Ensure that the argument `--pod-manifest-path` for service `kubelet` is set as
 appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
 
-Note: this Finding allows for this argument to be UNSET as well.
+Note: This finding allows for this argument to be UNSET as well.
 
 ```bash
 grep -E -qvz '\-\-pod-manifest-path=(.*)' '/var/snap/k8s/common/args/kubelet' && echo UNSET
@@ -683,7 +675,7 @@ Ensure that the argument `--protect-kernel-defaults` for service `kubelet` is
 set as appropriate in the service's argument file
 `/var/snap/k8s/common/args/kubelet`.
 
-Note: this Finding allows for this argument to be UNSET as well.
+Note: This finding allows for this argument to be UNSET as well.
 
 ```bash
 grep -E -q  '\-\-protect-kernel-defaults=(true|1)' '/var/snap/k8s/common/args/kubelet' || echo UNSET
@@ -723,13 +715,13 @@ ValidatingAdmissionWebhook enabled
 
 **Comments:**
 
-> This Finding stipulates that the `ValidatingAdmissionWebhook` Admission
+> This finding stipulates that the `ValidatingAdmissionWebhook` Admission
 > Plugin should be enabled.
 >
 > The `ValidatingAdmissionWebhook` Admission Plugin is enabled by default in
 > all modern versions of the k8s-snap.
 >
-> The automated check associated with this Finding is thus meant to verify that
+> The automated check associated with This finding is thus meant to verify that
 > `ValidatingAdmissionWebhook` is NOT disabled through the
 > `--disable-admission-plugins` argument.
 >
@@ -756,7 +748,7 @@ Ensure that the argument `--disable-admission-plugins` for service
 `kube-apiserver` is set as appropriate in the service's argument file
 `/var/snap/k8s/common/args/kube-apiserver`.
 
-Note: this Finding allows for this argument to be UNSET as well.
+Note: This finding allows for this argument to be UNSET as well.
 
 ```bash
 grep -E -qvz '\-\-disable-admission-plugins=(.*ValidatingAdmissionWebhook.*)' '/var/snap/k8s/common/args/kube-apiserver' && echo UNSET
@@ -795,7 +787,7 @@ The final line of the output will be `PASS`.
 
 **Comments:**
 
-> This Finding stipulates some checks on the Pod Security Policy object which
+> This finding stipulates some checks on the Pod Security Policy object which
 > was deprecated in 1.21 and removed in 1.25, so it is Not Applicable to any
 > versions of the k8s-snap.
 >
@@ -856,7 +848,7 @@ Ensure that the argument `--basic-auth-file` for service `kube-apiserver` is
 set as appropriate in the service's argument file
 `/var/snap/k8s/common/args/kube-apiserver`.
 
-Note: this Finding allows for this argument to be UNSET as well.
+Note: This finding allows for this argument to be UNSET as well.
 
 ```bash
 grep -E -qvz '\-\-basic-auth-file=(.*)' '/var/snap/k8s/common/args/kube-apiserver' && echo UNSET
@@ -925,7 +917,7 @@ Ensure that the argument `--token-auth-file` for service `kube-apiserver` is
 set as appropriate in the service's argument file
 `/var/snap/k8s/common/args/kube-apiserver`.
 
-Note: this Finding allows for this argument to be UNSET as well.
+Note: This finding allows for this argument to be UNSET as well.
 
 ```bash
 grep -E -qvz '\-\-token-auth-file=(.*)' '/var/snap/k8s/common/args/kube-apiserver' && echo UNSET
@@ -1013,11 +1005,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-The final line of the output will be `PASS`.
-
-
-
-
 
 ### Step 2/2
 
@@ -1061,11 +1048,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-The final line of the output will be `PASS`.
-
-
-
-
 
 ## [V-254800]
 
@@ -1096,7 +1078,7 @@ configured
 
 **Comments:**
 
-> This Finding stipulates the presence of a Pod Security Admission Control File
+> This finding stipulates the presence of a Pod Security Admission Control File
 > which will need to be manually configured by the Kubernetes System
 > Administrator on a per-organization basis.
 >
@@ -1137,14 +1119,14 @@ pods and Kubelets
 
 **Comments:**
 
-> This Finding refers to setting the `--feature-gates=PodSecurity=true` feature
+> This finding refers to setting the `--feature-gates=PodSecurity=true` feature
 > gate for the Kubernetes API Server.
 >
 > The `PodSecurity` feature gate has been GA and enabled by default since 1.25.
 >
 > https://kubernetes.io/docs/reference/command-line-tools-reference/feature-gates-removed/
 >
-> The automated check associated with this Finding is thus meant to verify that
+> The automated check associated with This finding is thus meant to verify that
 > `PodSecurity` is NOT disabled.
 >
 
@@ -1169,7 +1151,7 @@ Afterwards restart the `kubelet` service with:
 Ensure that the argument `--feature-gates` for service `kubelet` is set as
 appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
 
-Note: this Finding allows for this argument to be UNSET as well.
+Note: This finding allows for this argument to be UNSET as well.
 
 ```bash
 grep -E -qvz '\-\-feature-gates=(.*PodSecurity=false.*|.*PodSecurity=0.*)' '/var/snap/k8s/common/args/kubelet' && echo UNSET
@@ -1413,8 +1395,8 @@ of
 
 ### Remediation for Step 1
 
-Edit `/var/snap/k8s/common/args/etcd in order to modify the `--auto-tls` 
-argument. Ensure it is set to false or `0`. 
+Edit `/var/snap/k8s/common/args/etcd` in order to modify the `--auto-tls` 
+argument. Ensure it is set to `false` or `0`. 
 
 Subsequently restart the etcd service:
 
@@ -1436,20 +1418,10 @@ The final line of the output will be `PASS`.
 
 ### Step 2/4
 
-**Comments:**
-
-> The command line arguments of the etcd service in the k8s-snap are
-> defined in the following file:
->
->     /var/snap/k8s/common/args/etcd
->
-
 ### Remediation for Step 2
 
 Edit `/var/snap/k8s/common/args/etcd` to set the argument of etcd service 
-`--key-file` to the appropriate value.
-
-Ensure it is set to: `/etc/kubernetes/pki/etcd/server.key`
+`--key-file` to `/etc/kubernetes/pki/etcd/server.key`
 
 Subsequently restart the etcd service with:
 
@@ -1470,24 +1442,13 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the k8s-snap, resulting output lines will 
 start with `PASS`.
 
-The final line of the output will be `PASS`.
 
 ### Step 3/4
-
-**Comments:**
-
-> The command line arguments of the etcd service in the k8s-snap are
-> defined in the following file:
->
->     /var/snap/k8s/common/args/etcd
->
 
 ### Remediation for Step 3
 
 Edit `/var/snap/k8s/common/args/etcd` to set the argument of etcd service 
-`--cert-file` to the appropriate value.
-
-Ensure it is set to: `/etc/kubernetes/pki/etcd/server.crt`
+`--cert-file` to `/etc/kubernetes/pki/etcd/server.crt`
 
 Subsequently restart the etcd service with:
 
@@ -1508,24 +1469,13 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the k8s-snap, resulting output lines will 
 start with `PASS`.
 
-The final line of the output will be `PASS`.
 
 ### Step 4/4
-
-**Comments:**
-
-> The command line arguments of the etcd service in the k8s-snap are
-> defined in the following file:
->
->     /var/snap/k8s/common/args/etcd
->
 
 ### Remediation for Step 4
 
 Edit `/var/snap/k8s/common/args/etcd` to set the argument of etcd service 
-`--trusted-ca-file` to the appropriate value.
-
-Ensure it is set to: `/etc/kubernetes/pki/etcd/ca.crt`
+`--trusted-ca-file` to `/etc/kubernetes/pki/etcd/ca.crt`
 
 Subsequently restart the etcd service with:
 
@@ -1546,7 +1496,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the k8s-snap, resulting output lines will 
 start with `PASS`.
 
-The final line of the output will be `PASS`.
 
 ````
 
@@ -1665,7 +1614,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-The final line of the output will be `PASS`.
 
 ````
 
@@ -1712,8 +1660,8 @@ of
 
 ### Remediation for Step 1
 
-Edit `/var/snap/k8s/common/args/etcd in order to modify the `--peer-auto-tls` 
-argument. Ensure it is set to false or `0`. 
+Edit `/var/snap/k8s/common/args/etcd` in order to modify the `--peer-auto-tls` 
+argument. Ensure it is set to `false` or `0`. 
 
 Subsequently restart the etcd service:
 
@@ -1735,20 +1683,11 @@ The final line of the output will be `PASS`.
 
 ### Step 2/4
 
-**Comments:**
-
-> The command line arguments of the etcd service in the k8s-snap are
-> defined in the following file:
->
->     /var/snap/k8s/common/args/etcd
->
 
 ### Remediation for Step 2
 
 Edit `/var/snap/k8s/common/args/etcd` to set the argument of etcd service 
-`--peer-key-file` to the appropriate value.
-
-Ensure it is set to: `/etc/kubernetes/pki/etcd/peer.key`
+`--peer-key-file` to `/etc/kubernetes/pki/etcd/peer.key`
 
 Subsequently restart the etcd service with:
 
@@ -1769,24 +1708,13 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the k8s-snap, resulting output lines will 
 start with `PASS`.
 
-The final line of the output will be `PASS`.
 
 ### Step 3/4
-
-**Comments:**
-
-> The command line arguments of the etcd service in the k8s-snap are
-> defined in the following file:
->
->     /var/snap/k8s/common/args/etcd
->
 
 ### Remediation for Step 3
 
 Edit `/var/snap/k8s/common/args/etcd` to set the argument of etcd service 
-`--peer-cert-file` to the appropriate value.
-
-Ensure it is set to: `/etc/kubernetes/pki/etcd/peer.crt`
+`--peer-cert-file` to `/etc/kubernetes/pki/etcd/peer.crt`
 
 Subsequently restart the etcd service with:
 
@@ -1807,24 +1735,13 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the k8s-snap, resulting output lines will 
 start with `PASS`.
 
-The final line of the output will be `PASS`.
 
 ### Step 4/4
-
-**Comments:**
-
-> The command line arguments of the etcd service in the k8s-snap are
-> defined in the following file:
->
->     /var/snap/k8s/common/args/etcd
->
 
 ### Remediation for Step 4
 
 Edit `/var/snap/k8s/common/args/etcd` to set the argument of etcd service 
-`--peer-trusted-ca-file` to the appropriate value.
-
-Ensure it is set to: `/etc/kubernetes/pki/etcd/ca.crt`
+`--peer-trusted-ca-file` to `/etc/kubernetes/pki/etcd/ca.crt`
 
 Subsequently restart the etcd service with:
 
@@ -1832,7 +1749,7 @@ Subsequently restart the etcd service with:
 sudo systemctl restart snap.k8s.etcd
 ```
 
-### Auditing (as root) for Step 3
+### Auditing (as root) for Step 4
 
 Ensure that the argument `--peer-trusted-ca-file` for service etcd is set as appropriate 
 in the service’s argument file `/var/snap/k8s/common/args/etcd`.
@@ -1845,7 +1762,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the k8s-snap, resulting output lines will 
 start with `PASS`.
 
-The final line of the output will be `PASS`.
 
 ````
 
@@ -1884,7 +1800,7 @@ Ensure that the argument `--enable-tls` for service `k8s-dqlite` is set as
 appropriate in the service's argument file
 `/var/snap/k8s/common/args/k8s-dqlite`.
 
-Note: this Finding allows for this argument to be UNSET as well.
+Note: This finding allows for this argument to be UNSET as well.
 
 ```bash
 grep -E -qvz '\-\-enable-tls=(false|0)' '/var/snap/k8s/common/args/k8s-dqlite' && echo UNSET
@@ -1972,8 +1888,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
-
-The final line of the output will be `PASS`.
 
 
 
@@ -2153,7 +2067,7 @@ Ensure that the argument `--secure-port` for service `kube-apiserver` is set as
 appropriate in the service's argument file
 `/var/snap/k8s/common/args/kube-apiserver`.
 
-Note: this Finding allows for this argument to be UNSET as well.
+Note: This finding allows for this argument to be UNSET as well.
 
 ```bash
 grep -E -qvz '\-\-secure-port=(0)' '/var/snap/k8s/common/args/kube-apiserver' && echo UNSET
@@ -2162,8 +2076,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
-
-The final line of the output will be `PASS`.
 
 
 
@@ -2188,7 +2100,7 @@ The final line of the output will be `PASS`.
 
 **Comments:**
 
-> This Finding aims to completely prohibit the *running* of SSHD on all worker
+> This finding aims to completely prohibit the *running* of SSHD on all worker
 > Nodes, and must be assessed by the Kubernetes System Administrator as
 > applicable.
 >
@@ -2219,7 +2131,7 @@ The final line of the output will be `PASS`.
 
 **Comments:**
 
-> This Finding aims to prohibit the *enabling of the service* for SSHD on all
+> This finding aims to prohibit the *enabling of the service* for SSHD on all
 > worker Nodes, and must be assessed by the Kubernetes System Administrator as
 > applicable.
 >
@@ -2253,7 +2165,7 @@ The final line of the output will be `PASS`.
 **Comments:**
 
 > The k8s-snap does not automatically deploy or configure the Kubernetes
-> Dashboard, so this finding is Not Applicable.
+> Dashboard, so This finding is Not Applicable.
 >
 > You can check whether the Kubernetes Dashboard has been installed
 > post-snap-setup by running:
@@ -2290,7 +2202,7 @@ results
 
 **Comments:**
 
-> This Finding refers to checking the `kubectl version --client` to avoid a
+> This finding refers to checking the `kubectl version --client` to avoid a
 > known security issue with `kubectl cp`.
 >
 > This issue was fixed in 1.12.9, and thus is Not Applicable to any versions of
@@ -2425,7 +2337,7 @@ Ensure that the argument `--feature-gate` for service `kube-apiserver` is set
 as appropriate in the service's argument file
 `/var/snap/k8s/common/args/kube-apiserver`.
 
-Note: this Finding allows for this argument to be UNSET as well.
+Note: This finding allows for this argument to be UNSET as well.
 
 ```bash
 grep -E -q  '\-\-feature-gate=(.*AllAlpha=false.*|.*AllAlpha=0.*)' '/var/snap/k8s/common/args/kube-apiserver' || echo UNSET
@@ -2461,7 +2373,7 @@ The final line of the output will be `PASS`.
 
 **Comments:**
 
-> This Finding refers to the `--audit-log-path` argument of the Kubernetes API
+> This finding refers to the `--audit-log-path` argument of the Kubernetes API
 > Service.
 >
 > The k8s-snap does not configure auditing by default.
@@ -2474,7 +2386,7 @@ The final line of the output will be `PASS`.
 > Please review the [post-deployment hardening] guide for a full description on
 > how to enable auditing for the kube-apiserver.
 >
-> This Finding is basically a duplicate of V-242465.
+> This finding is basically a duplicate of V-242465.
 >
 
 
@@ -2554,7 +2466,7 @@ the event
 
 **Comments:**
 
-> This Finding refers to the `--audit-policy-file` argument of the Kubernetes
+> This finding refers to the `--audit-policy-file` argument of the Kubernetes
 > API Service.
 >
 > The k8s-snap does not configure auditing by default.
@@ -2644,7 +2556,7 @@ Afterwards restart the `kubelet` service with:
 Ensure that the argument `--hostname-override` for service `kubelet` is set as
 appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
 
-Note: this Finding allows for this argument to be UNSET as well.
+Note: This finding allows for this argument to be UNSET as well.
 
 ```bash
 grep -E -qvz '\-\-hostname-override=(.*)' '/var/snap/k8s/common/args/kubelet' && echo UNSET
@@ -2750,7 +2662,7 @@ start with `PASS`.
 
 **Comments:**
 
-> This Finding relates to the ownership of Kubelet's `--config` file.
+> This finding relates to the ownership of Kubelet's `--config` file.
 >
 > The k8s-snap does not pass a `--config` command line argument to the Kubelet
 > service.
@@ -2819,7 +2731,7 @@ Afterwards restart the `kubelet` service with:
 Ensure that the argument `--config` for service `kubelet` is set as appropriate
 in the service's argument file `/var/snap/k8s/common/args/kubelet`.
 
-Note: this Finding allows for this argument to be UNSET as well.
+Note: This finding allows for this argument to be UNSET as well.
 
 ```bash
 grep -E -qvz '\-\-config=(.*)' '/var/snap/k8s/common/args/kubelet' && echo UNSET
@@ -2859,7 +2771,7 @@ permissions set to 644 or more restrictive
 
 **Comments:**
 
-> This Finding relates to the permissions on Kubelet's `--config` file.
+> This finding relates to the permissions on Kubelet's `--config` file.
 >
 > The k8s-snap does not pass a `--config` command line argument to the Kubelet
 > service.
@@ -2929,7 +2841,7 @@ Afterwards restart the `kubelet` service with:
 Ensure that the argument `--config` for service `kubelet` is set as appropriate
 in the service's argument file `/var/snap/k8s/common/args/kubelet`.
 
-Note: this Finding allows for this argument to be UNSET as well.
+Note: This finding allows for this argument to be UNSET as well.
 
 ```bash
 grep -E -qvz '\-\-config=(.*)' '/var/snap/k8s/common/args/kubelet' && echo UNSET
@@ -3113,8 +3025,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-The final line of the output will be `PASS`.
-
 
 
 ## [V-242410]
@@ -3253,7 +3163,7 @@ Assurance List (PPSM CAL)
 >
 > Since k8s-snap is set to rely on
 > [k8s-dqlite](https://github.com/canonical/k8s-dqlite) for its state handling,
-> this Finding is Not Applicable.
+> This finding is Not Applicable.
 >
 > https://www.esd.whs.mil/portals/54/documents/dd/issuances/dodi/855101p.pdf
 >
@@ -3393,8 +3303,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-The final line of the output will be `PASS`.
-
 
 
 ## [V-242419]
@@ -3465,7 +3373,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-The final line of the output will be `PASS`.
 
 
 
@@ -3540,7 +3447,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-The final line of the output will be `PASS`.
 
 
 
@@ -3613,7 +3519,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-The final line of the output will be `PASS`.
 
 
 
@@ -3688,9 +3593,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-The final line of the output will be `PASS`.
-
-
 
 
 
@@ -3735,9 +3637,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
-
-The final line of the output will be `PASS`.
-
 
 
 
@@ -3786,10 +3685,8 @@ service
 
 ### Remediation
 
-Edit `/var/snap/k8s/common/args/etcd in order to modify the 
-`--client-cert-auth` argument. 
-
-Ensure it is set to `true`.
+Edit `/var/snap/k8s/common/args/etcd` in order to set the 
+`--client-cert-auth` argument to `true`. 
 
 Subsequently restart the etcd service:
 
@@ -3923,8 +3820,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
-
-The final line of the output will be `PASS`.
 
 ````
 
@@ -4126,10 +4021,8 @@ service
 
 ### Remediation
 
-Edit `/var/snap/k8s/common/args/etcd in order to modify the 
-`--peer-client-cert-auth` argument. 
-
-Ensure it is set to `true`.
+Edit `/var/snap/k8s/common/args/etcd` in order to set the 
+`--peer-client-cert-auth` argument to `true`.
 
 Subsequently restart the etcd service:
 
@@ -4184,7 +4077,7 @@ Ensure that the argument `--enable-tls` for service `k8s-dqlite` is set as
 appropriate in the service's argument file
 `/var/snap/k8s/common/args/k8s-dqlite`.
 
-Note: this Finding allows for this argument to be UNSET as well.
+Note: This finding allows for this argument to be UNSET as well.
 
 ```bash
 grep -E -qvz '\-\-enable-tls=(false|0)' '/var/snap/k8s/common/args/k8s-dqlite' && echo UNSET
@@ -4244,9 +4137,7 @@ The final line of the output will be `PASS`.
 ### Remediation
 
 Edit `/var/snap/k8s/common/args/etcd` to set the argument of etcd service 
-`--key-file` to the appropriate value.
-
-Ensure it is set to: `/etc/kubernetes/pki/etcd/server.key`
+`--key-file` to `/etc/kubernetes/pki/etcd/server.key`
 
 Subsequently restart the etcd service with:
 
@@ -4266,8 +4157,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the k8s-snap, resulting output lines will 
 start with `PASS`.
-
-The final line of the output will be `PASS`.
 
 ````
 
@@ -4382,7 +4271,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-The final line of the output will be `PASS`.
 
 ````
 
@@ -4432,9 +4320,7 @@ The final line of the output will be `PASS`.
 ### Remediation
 
 Edit `/var/snap/k8s/common/args/etcd` to set the argument of etcd service 
-`--cert-file` to the appropriate value.
-
-Ensure it is set to: `/etc/kubernetes/pki/etcd/server.crt`
+`--cert-file` to `/etc/kubernetes/pki/etcd/server.crt`
 
 Subsequently restart the etcd service with:
 
@@ -4455,7 +4341,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the k8s-snap, resulting output lines will 
 start with `PASS`.
 
-The final line of the output will be `PASS`.
 
 ````
 
@@ -4569,8 +4454,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-The final line of the output will be `PASS`.
-
 ````
 
 `````
@@ -4619,9 +4502,7 @@ The final line of the output will be `PASS`.
 ### Remediation
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` to set the argument of 
-Kubernetes API server `--etcd-cafile` to the appropriate value.
-
-Ensure it is set to: `/etc/kubernetes/pki/etcd/ca.crt`
+Kubernetes API server `--etcd-cafile` to `/etc/kubernetes/pki/etcd/ca.crt`
 
 Subsequently restart the etcd service with:
 
@@ -4642,8 +4523,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the k8s-snap, resulting output lines will 
 start with `PASS`.
-
-The final line of the output will be `PASS`.
 
 ````
 
@@ -4753,8 +4632,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-The final line of the output will be `PASS`.
-
 ````
 
 `````
@@ -4803,9 +4680,8 @@ The final line of the output will be `PASS`.
 ### Remediation
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` to set the argument of 
-Kubernetes API server `--etcd-certfile` to the appropriate value.
-
-Ensure it is set to: `/etc/kubernetes/pki/apiserver-etcd-client.crt`
+Kubernetes API server `--etcd-certfile` to 
+`/etc/kubernetes/pki/apiserver-etcd-client.crt`
 
 Subsequently restart the etcd service with:
 
@@ -4827,7 +4703,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the k8s-snap, resulting output lines will 
 start with `PASS`.
 
-The final line of the output will be `PASS`.
 
 ````
 
@@ -4941,7 +4816,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-The final line of the output will be `PASS`.
 
 ````
 
@@ -4991,9 +4865,8 @@ The final line of the output will be `PASS`.
 ### Remediation
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` to set the argument of 
-Kubernetes API server `--etcd-keyfile` to the appropriate value.
-
-Ensure it is set to: `/etc/kubernetes/pki/apiserver-etcd-client.key`
+Kubernetes API server `--etcd-keyfile` to 
+`/etc/kubernetes/pki/apiserver-etcd-client.key`
 
 Subsequently restart the etcd service with:
 
@@ -5015,7 +4888,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the k8s-snap, resulting output lines will 
 start with `PASS`.
 
-The final line of the output will be `PASS`.
 
 ````
 
@@ -5129,7 +5001,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-The final line of the output will be `PASS`.
 
 ````
 
@@ -5179,9 +5050,7 @@ secure etcd communication.
 ### Remediation
 
 Edit `/var/snap/k8s/common/args/etcd` to set the argument of etcd service 
-`--peer-cert-file` to the appropriate value.
-
-Ensure it is set to: `/etc/kubernetes/pki/etcd/peer.crt`
+`--peer-cert-file` to `/etc/kubernetes/pki/etcd/peer.crt`
 
 Subsequently restart the etcd service with:
 
@@ -5202,7 +5071,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the k8s-snap, resulting output lines will 
 start with `PASS`.
 
-The final line of the output will be `PASS`.
 
 ````
 
@@ -5251,7 +5119,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-The final line of the output will be `PASS`.
 
 ````
 
@@ -5301,9 +5168,7 @@ secure etcd communication.
 ### Remediation
 
 Edit `/var/snap/k8s/common/args/etcd` to set the argument of etcd service 
-`--peer-key-file` to the appropriate value.
-
-Ensure it is set to: `/etc/kubernetes/pki/etcd/peer.key`
+`--peer-key-file` to `/etc/kubernetes/pki/etcd/peer.key`
 
 Subsequently restart the etcd service with:
 
@@ -5323,8 +5188,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the k8s-snap, resulting output lines will 
 start with `PASS`.
-
-The final line of the output will be `PASS`.
 
 ````
 
@@ -5369,8 +5232,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
-
-The final line of the output will be `PASS`.
 
 ````
 
@@ -5454,11 +5315,11 @@ always be at the desired security state.
 
 **Comments:**
 
-> This Finding recommends checking that no residual versions of Kubernetes
+> This finding recommends checking that no residual versions of Kubernetes
 > components are left running following upgrades of the Kubernetes cluster.
 >
 > Thanks to the k8s-snap's distribution and upgrade model, it is not possible
-> for this to occur, so this Finding is Not Applicable.
+> for this to occur, so This finding is Not Applicable.
 >
 
 
@@ -5507,13 +5368,13 @@ authoritative source (e.g., IAVM, CTOs, DTMs, and STIGs).
 
 **Comments:**
 
-> This Finding recommends checking all Kubernetes component versions are
+> This finding recommends checking all Kubernetes component versions are
 > actively supported.
 >
 > https://kubernetes.io/releases/version-skew-policy/#supported-versions
 >
 > Supported versions of the k8s-snap should always ship with supported versions
-> of Kubernetes components within it, so this Finding is Not Applicable.
+> of Kubernetes components within it, so This finding is Not Applicable.
 >
 
 
@@ -5611,7 +5472,7 @@ through this file.
 
 **Comments:**
 
-> This Finding refers to checking the ownership of all etcd-related files under
+> This finding refers to checking the ownership of all etcd-related files under
 > /var/lib/etcd/*. However, k8s-snap stores these file under a different 
 > directory.
 >
@@ -5619,7 +5480,7 @@ through this file.
 >
 >     /var/snap/k8s/common/var/lib/etcd
 >
-> Related Finding V-242459 contains directives on the permissions of the files.
+> Related finding V-242459 contains directives on the permissions of the files.
 >
 
 
@@ -5647,14 +5508,14 @@ start with `PASS`.
 
 **Comments:**
 
-> This Finding refers to checking the ownership of all etcd-related files under
+> This finding refers to checking the ownership of all etcd-related files under
 > /var/lib/etcd/*.
 >
 > The state directory for k8s-dqlite within the k8s-snap is located under:
 >
 >     /var/snap/k8s/common/var/lib/k8s-dqlite
 >
-> Related Finding V-242459 contains directives on the permissions of the files.
+> Related finding V-242459 contains directives on the permissions of the files.
 >
 
 
@@ -5826,9 +5687,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-The final line of the output will be `PASS`.
-
-
 
 ## [V-242448]
 
@@ -5916,9 +5774,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
-
-The final line of the output will be `PASS`.
-
 
 
 ## [V-242449]
@@ -6014,9 +5869,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-The final line of the output will be `PASS`.
-
-
 
 ## [V-242450]
 
@@ -6105,9 +5957,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
-
-The final line of the output will be `PASS`.
-
 
 
 ## [V-242451]
@@ -6256,9 +6105,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-The final line of the output will be `PASS`.
-
-
 
 ## [V-242453]
 
@@ -6341,9 +6187,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-The final line of the output will be `PASS`.
-
-
 
 ## [V-242454]
 
@@ -6363,7 +6206,7 @@ the security settings within the document are implemented through this file.
 
 **Comments:**
 
-> This Finding stipulates the file ownership of the kubeadm executable, which
+> This finding stipulates the file ownership of the kubeadm executable, which
 > does not ship as part of the k8s-snap.
 >
 > The Auditor may check whether the binary was installed separately and its
@@ -6394,7 +6237,7 @@ the security settings within the document are implemented through this file.
 
 **Comments:**
 
-> This Finding stipulates the file ownership of the kubeadm executable, which
+> This finding stipulates the file ownership of the kubeadm executable, which
 > does not ship as part of the k8s-snap.
 >
 > The Auditor may check whether the binary was installed separately and its
@@ -6427,7 +6270,7 @@ information system would be unaware of pod or container degradation.
 
 **Comments:**
 
-> This Finding relates to the permissions on the `/var/lib/kubelet/config.yaml`
+> This finding relates to the permissions on the `/var/lib/kubelet/config.yaml`
 > file.
 >
 > The k8s-snap does not pass a `--config` command line argument to the Kubelet
@@ -6498,7 +6341,7 @@ Afterwards restart the `kubelet` service with:
 Ensure that the argument `--config` for service `kubelet` is set as appropriate
 in the service's argument file `/var/snap/k8s/common/args/kubelet`.
 
-Note: this Finding allows for this argument to be UNSET as well.
+Note: This finding allows for this argument to be UNSET as well.
 
 ```bash
 grep -E -qvz '\-\-config=(.*)' '/var/snap/k8s/common/args/kubelet' && echo UNSET
@@ -6532,7 +6375,7 @@ information system would be unaware of pod or container degradation.
 
 **Comments:**
 
-> This Finding relates to the permissions on the `/var/lib/kubelet/config.yaml`
+> This finding relates to the permissions on the `/var/lib/kubelet/config.yaml`
 > file in relation to it being used by `kubeadm`.
 >
 > The k8s-snap does not pass a `--config` command line argument to the Kubelet
@@ -6597,7 +6440,7 @@ Afterwards restart the `kubelet` service with:
 Ensure that the argument `--config` for service `kubelet` is set as appropriate
 in the service's argument file `/var/snap/k8s/common/args/kubelet`.
 
-Note: this Finding allows for this argument to be UNSET as well.
+Note: This finding allows for this argument to be UNSET as well.
 
 ```bash
 grep -E -qvz '\-\-config=(.*)' '/var/snap/k8s/common/args/kubelet' && echo UNSET
@@ -6633,7 +6476,7 @@ Plane would be compromised.
 
 **Comments:**
 
-> This Finding refers to checking the ownership of all etcd-related files 
+> This finding refers to checking the ownership of all etcd-related files 
 > and directories under /var/lib/etcd/*. However, k8s-snap stores these file 
 > under a different directory.
 >
@@ -6641,7 +6484,7 @@ Plane would be compromised.
 >
 >     /var/snap/k8s/common/var/lib/etcd
 >
-> Related Finding V-242445 contains directives on the ownership of the files.
+> Related finding V-242445 contains directives on the ownership of the files.
 >
 
 ### Remediation for Step 1
@@ -6695,14 +6538,14 @@ start with `PASS`.
 
 **Comments:**
 
-> This Finding refers to checking the ownership of all etcd-related files under
+> This finding refers to checking the ownership of all etcd-related files under
 > /var/lib/etcd/*.
 >
 > The state directory for k8s-dqlite within the k8s-snap is located under:
 >
 >     /var/snap/k8s/common/var/lib/k8s-dqlite
 >
-> Related Finding V-242445 contains directives on the ownership of the files.
+> Related finding V-242445 contains directives on the ownership of the files.
 >
 
 
@@ -6800,7 +6643,7 @@ investigation.
 
 **Comments:**
 
-> This Finding refers to the `--audit-policy-file` argument of the Kubernetes
+> This finding refers to the `--audit-policy-file` argument of the Kubernetes
 > API Service.
 >
 > The k8s-snap does not configure auditing by default.
@@ -6857,7 +6700,7 @@ file size is to set these limits.
 
 **Comments:**
 
-> This Finding refers to the `--audit-log-maxsize` argument of the Kubernetes
+> This finding refers to the `--audit-log-maxsize` argument of the Kubernetes
 > API Service.
 >
 > The k8s-snap does not configure auditing by default.
@@ -6912,7 +6755,7 @@ evidence for cybersecurity investigations.
 
 **Comments:**
 
-> This Finding refers to the `--audit-log-maxbackup` argument of the Kubernetes
+> This finding refers to the `--audit-log-maxbackup` argument of the Kubernetes
 > API Service.
 >
 > The k8s-snap does not configure auditing by default.
@@ -6968,7 +6811,7 @@ evidence for cybersecurity investigations.
 
 **Comments:**
 
-> This Finding refers to the `--audit-log-maxage` argument of the Kubernetes
+> This finding refers to the `--audit-log-maxage` argument of the Kubernetes
 > API Service.
 >
 > The k8s-snap does not configure auditing by default.
@@ -7023,7 +6866,7 @@ events in the audit log the log path value must be set.
 
 **Comments:**
 
-> This Finding refers to the `--audit-log-path` argument of the Kubernetes API
+> This finding refers to the `--audit-log-path` argument of the Kubernetes API
 > Service.
 >
 > The k8s-snap does not configure auditing by default.
@@ -7031,7 +6874,7 @@ events in the audit log the log path value must be set.
 > Please review the [post-deployment hardening] guide for a full description on
 > how to enable auditing for the kube-apiserver.
 >
-> This Finding is basically a duplicate of V-242402.
+> This finding is basically a duplicate of V-242402.
 >
 
 
