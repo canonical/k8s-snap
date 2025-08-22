@@ -15,7 +15,8 @@ LOG = logging.getLogger(__name__)
 @pytest.mark.tags(tags.NIGHTLY)
 def test_build(instances: List[harness.Instance]):
     """
-    Test that all snap components that contain crypto functions are built dynamically.
+    Test that all snap components that contain crypto functions are built dynamically
+    and fail to start when FIPS is enabled on a non-compliant system.
     """
     instance = instances[0]
 
@@ -70,3 +71,30 @@ def test_build(instances: List[harness.Instance]):
             "not a dynamic executable" in result.stderr
             or "statically linked" in result.stdout
         ), f"{component} should be statically built"
+
+    for component in dynamic_components:
+        # Verify that all components are dynamically built
+        result = instance.exec(
+            ["ldd", "/snap/k8s/current/bin/" + component],
+            capture_output=True,
+            check=False,
+            text=True,
+        )
+        LOG.info(result.stdout)
+        assert (
+            "not a dynamic executable" not in result.stdout
+        ), f"{component} should be dynamically built"
+
+        # Verify that the component fails if enabled on a non-FIPS system
+        result = instance.exec(
+            ["GOFIPS=1", "/snap/k8s/current/bin/" + component, "version"],
+            capture_output=True,
+            check=False,
+            text=True,
+        )
+        LOG.info(result.stderr)
+        assert result.stderr.startswith(
+            "panic: opensslcrypto: FIPS mode requested (environment variable GOFIPS) but not available in OpenSSL"
+        ) or result.stderr.startswith(
+            "panic: opensslcrypto: can't enable FIPS mode for OpenSSL"
+        ), f"{component} should fail with FIPS enabled on non-compliant system"

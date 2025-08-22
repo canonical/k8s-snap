@@ -24,7 +24,7 @@ jobs:
       matrix:
         # e.g. strict - right now we only support the classic flavor
         patch: [""]
-        arch: ["amd64"]
+        arch: ["amd64", "arm64"]
     with:
       flavor: ${{ matrix.patch }}
       arch: ${{ matrix.arch }}
@@ -105,7 +105,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [amd64]
+        arch: [amd64, arm64]
     needs: [build-snap, get-e2e-tags, go-lint-and-unit, python-lint]
     uses: ./.github/workflows/e2e-tests.yaml
     with:
