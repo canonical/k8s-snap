@@ -544,7 +544,7 @@ The final line of the output will be `PASS`.
 
 **Comments:**
 
-> The Finding refers to checking the 'staticPodPath' in kubectl's `--config`
+> The finding refers to checking the 'staticPodPath' in kubectl's `--config`
 > file is not set.
 >
 > The k8s-snap does not pass a `--config` command line argument to the Kubelet
@@ -641,7 +641,7 @@ The final line of the output will be `PASS`.
 
 **Comments:**
 
-> The Finding stipulates that `--protect-kernel-defaults` must be set on the
+> The finding stipulates that `--protect-kernel-defaults` must be set on the
 > Kubelet service.
 >
 > This flag is not set by default in the k8s-snap, as it may prevent kubelet
@@ -1737,6 +1737,14 @@ start with `PASS`.
 
 
 ### Step 4/4
+
+**Comments:**
+
+> The command line arguments of the etcd service in the k8s-snap are
+> defined in the following file:
+>
+>     /var/snap/k8s/common/args/etcd
+>
 
 ### Remediation for Step 4
 
@@ -2881,7 +2889,7 @@ The final line of the output will be `PASS`.
 
 **Comments:**
 
-> The Finding requires checking the permissions of the files within the
+> The finding requires checking the permissions of the files within the
 > `/etc/kubernetes/manifests` directory, but the k8s-snap does not use it.
 >
 > The usual manifest files for the k8s-snap are located under:
@@ -2926,7 +2934,7 @@ start with `PASS`.
 
 **Comments:**
 
-> The Finding requires checking the permissions of the files within the
+> The finding requires checking the permissions of the files within the
 > `/etc/kubernetes/manifests` directory, but the k8s-snap does not use it.
 >
 > The usual manifest files for the k8s-snap are located under:
@@ -3047,7 +3055,7 @@ Category Assurance List (PPSM CAL)
 
 **Comments:**
 
-> This STIG Finding relates to implementing PPSM CAL for kube-apiserver, and
+> This STIG finding relates to implementing PPSM CAL for kube-apiserver, and
 > must be assessed manually by the Auditor.
 >
 > https://www.esd.whs.mil/portals/54/documents/dd/issuances/dodi/855101p.pdf
@@ -3080,7 +3088,7 @@ Category Assurance List (PPSM CAL)
 
 **Comments:**
 
-> This STIG Finding relates to implementing PPSM CAL for kube-scheduler, and
+> This STIG finding relates to implementing PPSM CAL for kube-scheduler, and
 > must be assessed manually by the Auditor.
 >
 > https://www.esd.whs.mil/portals/54/documents/dd/issuances/dodi/855101p.pdf
@@ -3113,7 +3121,7 @@ Category Assurance List (PPSM CAL)
 
 **Comments:**
 
-> This STIG Finding relates to implementing PPSM CAL for
+> This STIG finding relates to implementing PPSM CAL for
 > kube-controller-manager, and must be assessed manually by the Auditor.
 >
 > https://www.esd.whs.mil/portals/54/documents/dd/issuances/dodi/855101p.pdf
@@ -3145,7 +3153,7 @@ Assurance List (PPSM CAL)
 
 **Comments:**
 
-> This STIG Finding relates to implementing PPSM CAL for etcd, and
+> This STIG finding relates to implementing PPSM CAL for etcd, and
 > must be assessed manually by the Auditor.
 >
 > https://www.esd.whs.mil/portals/54/documents/dd/issuances/dodi/855101p.pdf
@@ -3159,7 +3167,7 @@ Assurance List (PPSM CAL)
 
 **Comments:**
 
-> This STIG Finding relates to implementing PPSM CAL for etcd.
+> This STIG finding relates to implementing PPSM CAL for etcd.
 >
 > Since k8s-snap is set to rely on
 > [k8s-dqlite](https://github.com/canonical/k8s-dqlite) for its state handling,
@@ -5261,7 +5269,7 @@ set to "0". This disables the request-timeout feature. (By default, the
 
 **Comments:**
 
-> The Finding also allows for setting a timeout larger than 300s.
+> The finding also allows for setting a timeout larger than 300s.
 >
 
 
@@ -5565,7 +5573,7 @@ the security settings within the document are implemented through this file.
 
 **Comments:**
 
-> Note that the original Finding references 'controller-manager.conf', but the
+> Note that the original finding references 'controller-manager.conf', but the
 > k8s-snap uses 'controller.conf'.
 >
 > Finding V-242460 defines the permissions checks for these files.
@@ -6596,7 +6604,7 @@ immediately.
 
 **Comments:**
 
-> Note that the original Finding references 'controller-manager.conf', but the
+> Note that the original finding references 'controller-manager.conf', but the
 > k8s-snap uses 'controller.conf'.
 >
 > Finding V-242446 defines the ownership checks for these files.
