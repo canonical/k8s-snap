@@ -77,7 +77,7 @@ func (a *App) tuneSystemSettings(ctx context.Context, s state.State) error {
 	}
 
 	// Add kubelet Kernel Parameters to override DISA STIG host value if recommended compliance profile is set.
-	// TODO: only if recommended compliance profile is on
+	// TODO(louise): only if recommended compliance profile is on
 	for key, value := range a.snap.SystemComplianceConfig() {
 		newConfig[key] = value
 	}

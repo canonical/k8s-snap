@@ -68,7 +68,7 @@ func (a *App) applyRecommendedComplianceProfileRules(serviceConfigs *types.K8sSe
 	return nil
 }
 
-// Rule V-242384, V-242385
+// Rule V-242384, V-242385.
 func (a *App) applySecureBindingKubeSchedulerControllerManager(serviceConfigs *types.K8sServiceConfigs, nodeIPs []net.IP) {
 	if serviceConfigs.ExtraNodeKubeSchedulerArgs == nil {
 		serviceConfigs.ExtraNodeKubeSchedulerArgs = make(map[string]*string)
@@ -81,7 +81,7 @@ func (a *App) applySecureBindingKubeSchedulerControllerManager(serviceConfigs *t
 	serviceConfigs.ExtraNodeKubeControllerManagerArgs["--secure-bind-address"] = utils.Pointer(secureBindAddress)
 }
 
-// Rule V-242400
+// Rule V-242400.
 func (a *App) applyDisableAlphaAPIs(serviceConfigs *types.K8sServiceConfigs) {
 	if serviceConfigs.ExtraNodeKubeAPIServerArgs == nil {
 		serviceConfigs.ExtraNodeKubeAPIServerArgs = make(map[string]*string)
@@ -89,15 +89,11 @@ func (a *App) applyDisableAlphaAPIs(serviceConfigs *types.K8sServiceConfigs) {
 	serviceConfigs.ExtraNodeKubeAPIServerArgs["--feature-gates"] = utils.Pointer(disableAlphaAPIs)
 }
 
-// Rules V-242402, V-242403, V-242461, V-242462, V-242463, V-242464, V-242465
+// Rules V-242402, V-242403, V-242461, V-242462, V-242463, V-242464, V-242465.
 func (a *App) applyAuditLogging(serviceConfigs *types.K8sServiceConfigs) error {
 	auditPolicyPath := filepath.Join(a.snap.EtcDir(), auditPolicyFileName)
 
-	if err := os.MkdirAll(filepath.Dir(auditPolicyPath), 0755); err != nil {
-		return fmt.Errorf("failed to create directory for audit policy: %w", err)
-	}
-
-	if err := utils.WriteFile(auditPolicyPath, []byte(auditPolicyTemplate), 0644); err != nil {
+	if err := utils.WriteFile(auditPolicyPath, []byte(auditPolicyTemplate), os.FileMode(0o644)); err != nil {
 		return fmt.Errorf("failed to write audit policy file: %w", err)
 	}
 
@@ -114,7 +110,7 @@ func (a *App) applyAuditLogging(serviceConfigs *types.K8sServiceConfigs) error {
 	return nil
 }
 
-// Rule V-242434
+// Rule V-242434.
 func (a *App) applyKubeletEnableKernelProtection(serviceConfigs *types.K8sServiceConfigs) error {
 	// TODO: set sysctl values
 	if serviceConfigs.ExtraNodeKubeletArgs == nil {
@@ -124,7 +120,7 @@ func (a *App) applyKubeletEnableKernelProtection(serviceConfigs *types.K8sServic
 	return nil
 }
 
-// Rule V-245541
+// Rule V-245541.
 func (a *App) applyKubectlStreamingConnIdleTimeout(serviceConfigs *types.K8sServiceConfigs) {
 	if serviceConfigs.ExtraNodeKubeletArgs == nil {
 		serviceConfigs.ExtraNodeKubeletArgs = make(map[string]*string)
