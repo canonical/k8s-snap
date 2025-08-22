@@ -32,9 +32,10 @@ type Snap interface {
 	RefreshStatus(ctx context.Context, changeID string) (*types.RefreshStatus, error) // snap tasks $changeID
 	PostRefreshLockPath() string                                                      // /var/snap/k8s/common/lock/post-refresh - lock file to indicate the first run after a snap refresh
 
-	SystemTuningConfigDir() string      //  /etc/sysctl.d
-	SystemConfigDirs() []string         // /etc/sysctl.d/, /run/sysctl.d/, /usr/local/lib/sysctl.d/, /usr/lib/sysctl.d/, /lib/sysctl.d/, /etc/sysctl.conf
-	SystemMinConfig() map[string]string // system limits: fs.inotify parameters
+	SystemTuningConfigDir() string             //  /etc/sysctl.d
+	SystemConfigDirs() []string                // /etc/sysctl.d/, /run/sysctl.d/, /usr/local/lib/sysctl.d/, /usr/lib/sysctl.d/, /lib/sysctl.d/, /etc/sysctl.conf
+	SystemMinConfig() map[string]string        // system limits: fs.inotify parameters
+	SystemComplianceConfig() map[string]string // system compliance config: vm.overcommit_memory kernel.panic kernel.panic_on_oops
 
 	CNIConfDir() string       // /etc/cni/net.d
 	CNIBinDir() string        // /opt/cni/bin
@@ -68,6 +69,7 @@ type Snap interface {
 	ServiceArgumentsDir() string   // /var/snap/k8s/common/args
 	ServiceExtraConfigDir() string // /var/snap/k8s/common/args/conf.d
 
+	EtcDir() string       // /var/snap/k8s/common/etc
 	LockFilesDir() string // /var/snap/k8s/common/lock
 
 	NodeTokenFile() string                                     // /var/snap/k8s/common/node-token
