@@ -26,6 +26,7 @@ func EnsureAllDirectories(snap snap.Snap) error {
 		snap.KubernetesPKIDir(),
 		snap.EtcdPKIDir(),
 		snap.LockFilesDir(),
+		snap.EtcDir(),
 		snap.ServiceArgumentsDir(),
 		snap.ServiceExtraConfigDir(),
 	} {

@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -29,6 +30,24 @@ import (
 
 const (
 	ContainerdBaseDir = ".containerd-base-dir"
+
+	// VMOvercommitMemoryAlways represents that kernel performs no memory over-commit handling.
+	VMOvercommitMemoryAlways = 1
+	// VMPanicOnOOMInvokeOOMKiller represents that kernel calls the oom_killer function when OOM occurs.
+	VMPanicOnOOMInvokeOOMKiller = 0
+
+	// KernelPanicOnOopsAlways represents that kernel panics on kernel oops.
+	KernelPanicOnOopsAlways = 1
+	// KernelPanicRebootTimeout is the timeout seconds after a panic for the kernel to reboot.
+	KernelPanicRebootTimeout = 10
+
+	// RootMaxKeysSetting is the maximum number of keys that the root user (UID 0 in the root user namespace) may own.
+	// Needed since docker creates a new key per container.
+	RootMaxKeysSetting = 1000000
+	// RootMaxBytesSetting is the maximum number of bytes of data that the root user (UID 0 in the root user namespace)
+	// can hold in the payloads of the keys owned by root.
+	// Allocate 25 bytes per key * number of MaxKeys.
+	RootMaxBytesSetting = RootMaxKeysSetting * 25
 )
 
 type SnapOpts struct {
@@ -244,6 +263,17 @@ func (s *snap) SystemMinConfig() map[string]string {
 	}
 }
 
+func (s *snap) SystemComplianceConfig() map[string]string {
+	return map[string]string{
+		"vm.overcommit_memory":      strconv.Itoa(VMOvercommitMemoryAlways),
+		"vm.panic_on_oom":           strconv.Itoa(VMPanicOnOOMInvokeOOMKiller),
+		"kernel.panic":              strconv.Itoa(KernelPanicRebootTimeout),
+		"kernel.panic_on_oops":      strconv.Itoa(KernelPanicOnOopsAlways),
+		"kernel.keys.root_maxkeys":  strconv.Itoa(RootMaxKeysSetting),
+		"kernel.keys.root_maxbytes": strconv.Itoa(RootMaxKeysSetting * 25),
+	}
+}
+
 func (s *snap) CNIConfDir() string {
 	return "/etc/cni/net.d"
 }
@@ -315,6 +345,10 @@ func (s *snap) ServiceExtraConfigDir() string {
 
 func (s *snap) LockFilesDir() string {
 	return filepath.Join(s.snapCommonDir, "lock")
+}
+
+func (s *snap) EtcDir() string {
+	return filepath.Join(s.snapCommonDir, "etc")
 }
 
 func (s *snap) NodeTokenFile() string {

@@ -240,6 +240,10 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 		ExtraNodeKubeletArgs:   joinConfig.ExtraNodeKubeletArgs,
 		ExtraNodeKubeProxyArgs: joinConfig.ExtraNodeKubeProxyArgs,
 	}
+	// TODO: check if flag is set
+	if err := a.ApplyComplianceProfile("default", joinConfig, apiv1.BootstrapConfig{}, true); err != nil {
+		return fmt.Errorf("failed to apply compliance profile: %w", err)
+	}
 
 	// Pre-init checks
 	if err := snap.PreInitChecks(ctx, cfg, serviceConfigs, false); err != nil {
@@ -477,6 +481,10 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 		ExtraNodeKubeControllerManagerArgs: bootstrapConfig.ExtraNodeKubeControllerManagerArgs,
 		ExtraNodeKubeletArgs:               bootstrapConfig.ExtraNodeKubeletArgs,
 		ExtraNodeKubeProxyArgs:             bootstrapConfig.ExtraNodeKubeProxyArgs,
+	}
+
+	if err := a.ApplyComplianceProfile("default", apiv1.WorkerJoinConfig{}, bootstrapConfig, false); err != nil {
+		return fmt.Errorf("failed to apply compliance profile: %w", err)
 	}
 
 	// Pre-init checks

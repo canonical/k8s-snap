@@ -75,6 +75,13 @@ func (a *App) tuneSystemSettings(ctx context.Context, s state.State) error {
 	if len(newConfig) == 0 {
 		return nil
 	}
+
+	// Add kubelet Kernel Parameters to override DISA STIG host value if recommended compliance profile is set.
+	// TODO: only if recommended compliance profile is on
+	for key, value := range a.snap.SystemComplianceConfig() {
+		newConfig[key] = value
+	}
+
 	// Update the x-k8s.conf file to ensure minimum k8s requirements
 	if err := utils.SerializeArgumentFile(newConfig, confFile, systemConfFileHeader); err != nil {
 		log.Error(err, fmt.Sprintf("failed to update system configuration file %s", confPath[0]))

@@ -29,6 +29,7 @@ type Mock struct {
 	SystemTuningConfigDir       string
 	SystemConfigDirs            []string
 	SystemMinConfig             map[string]string
+	SystemComplianceConfig      map[string]string
 	CNIConfDir                  string
 	CNIBinDir                   string
 	CNIPlugins                  []string
@@ -50,6 +51,7 @@ type Mock struct {
 	EtcdDir                     string
 	ServiceArgumentsDir         string
 	ServiceExtraConfigDir       string
+	EtcDir                      string
 	LockFilesDir                string
 	PostRefreshLockPath         string
 	NodeTokenFile               string
@@ -176,6 +178,10 @@ func (s *Snap) SystemMinConfig() map[string]string {
 	return s.Mock.SystemMinConfig
 }
 
+func (s *Snap) SystemComplianceConfig() map[string]string {
+	return s.Mock.SystemComplianceConfig
+}
+
 func (s *Snap) SetContainerdBaseDir(baseDir string) {
 	s.Mock.ContainerdBaseDir = baseDir
 }
@@ -278,6 +284,10 @@ func (s *Snap) ServiceArgumentsDir() string {
 
 func (s *Snap) ServiceExtraConfigDir() string {
 	return s.Mock.ServiceExtraConfigDir
+}
+
+func (s *Snap) EtcDir() string {
+	return s.Mock.EtcDir
 }
 
 func (s *Snap) LockFilesDir() string {
