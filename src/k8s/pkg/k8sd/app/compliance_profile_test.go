@@ -55,12 +55,12 @@ func TestApplyComplianceProfile(t *testing.T) {
 		g.Expect(*serviceConfigs.ExtraNodeKubeletArgs["--protect-kernel-defaults"]).To(Equal("true"))
 
 		// Check scheduler secure binding
-		g.Expect(serviceConfigs.ExtraNodeKubeSchedulerArgs).To(HaveKey("--secure-bind-address"))
-		g.Expect(*serviceConfigs.ExtraNodeKubeSchedulerArgs["--secure-bind-address"]).To(Equal("127.0.0.1"))
+		g.Expect(serviceConfigs.ExtraNodeKubeSchedulerArgs).To(HaveKey("--bind-address"))
+		g.Expect(*serviceConfigs.ExtraNodeKubeSchedulerArgs["--bind-address"]).To(Equal("127.0.0.1"))
 
 		// Check controller manager secure binding
-		g.Expect(serviceConfigs.ExtraNodeKubeControllerManagerArgs).To(HaveKey("--secure-bind-address"))
-		g.Expect(*serviceConfigs.ExtraNodeKubeControllerManagerArgs["--secure-bind-address"]).To(Equal("127.0.0.1"))
+		g.Expect(serviceConfigs.ExtraNodeKubeControllerManagerArgs).To(HaveKey("--bind-address"))
+		g.Expect(*serviceConfigs.ExtraNodeKubeControllerManagerArgs["--bind-address"]).To(Equal("127.0.0.1"))
 
 		// Check API server args
 		g.Expect(serviceConfigs.ExtraNodeKubeAPIServerArgs).To(HaveKey("--feature-gates"))
@@ -120,10 +120,10 @@ func TestApplyComplianceProfile(t *testing.T) {
 		g.Expect(serviceConfigs.ExtraNodeKubeletArgs).To(HaveKey("--streaming-connection-idle-timeout"))
 
 		g.Expect(serviceConfigs.ExtraNodeKubeSchedulerArgs).NotTo(BeNil())
-		g.Expect(serviceConfigs.ExtraNodeKubeSchedulerArgs).To(HaveKey("--secure-bind-address"))
+		g.Expect(serviceConfigs.ExtraNodeKubeSchedulerArgs).To(HaveKey("--bind-address"))
 
 		g.Expect(serviceConfigs.ExtraNodeKubeControllerManagerArgs).NotTo(BeNil())
-		g.Expect(serviceConfigs.ExtraNodeKubeControllerManagerArgs).To(HaveKey("--secure-bind-address"))
+		g.Expect(serviceConfigs.ExtraNodeKubeControllerManagerArgs).To(HaveKey("--bind-address"))
 
 		g.Expect(serviceConfigs.ExtraNodeKubeAPIServerArgs).NotTo(BeNil())
 		g.Expect(serviceConfigs.ExtraNodeKubeAPIServerArgs).To(HaveKey("--feature-gates"))

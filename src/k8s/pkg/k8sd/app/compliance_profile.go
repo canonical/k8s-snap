@@ -83,8 +83,8 @@ func (a *App) applySecureBindingKubeSchedulerControllerManager(serviceConfigs *t
 	if err != nil {
 		return fmt.Errorf("Failed to get localhost address: %w", err)
 	}
-	serviceConfigs.ExtraNodeKubeSchedulerArgs["--secure-bind-address"] = utils.Pointer(secureBindAddress.String())
-	serviceConfigs.ExtraNodeKubeControllerManagerArgs["--secure-bind-address"] = utils.Pointer(secureBindAddress.String())
+	serviceConfigs.ExtraNodeKubeSchedulerArgs["--bind-address"] = utils.Pointer(secureBindAddress.String())
+	serviceConfigs.ExtraNodeKubeControllerManagerArgs["--bind-address"] = utils.Pointer(secureBindAddress.String())
 	return nil
 }
 
