@@ -167,7 +167,7 @@ disabled
 > Kubernetes API Server service.
 >
 > Support for the `--insecure-port` flag has been deprecated in Kubernetes
-> 1.10, and completely removed in 1.21, so This finding is Not Applicable to
+> 1.10, and completely removed in 1.21, so this finding is Not Applicable to
 > any versions of the k8s-snap.
 >
 > https://github.com/kubernetes/kubernetes/issues/91506
@@ -721,7 +721,7 @@ ValidatingAdmissionWebhook enabled
 > The `ValidatingAdmissionWebhook` Admission Plugin is enabled by default in
 > all modern versions of the k8s-snap.
 >
-> The automated check associated with This finding is thus meant to verify that
+> The automated check associated with this finding is thus meant to verify that
 > `ValidatingAdmissionWebhook` is NOT disabled through the
 > `--disable-admission-plugins` argument.
 >
@@ -1126,7 +1126,7 @@ pods and Kubelets
 >
 > https://kubernetes.io/docs/reference/command-line-tools-reference/feature-gates-removed/
 >
-> The automated check associated with This finding is thus meant to verify that
+> The automated check associated with this finding is thus meant to verify that
 > `PodSecurity` is NOT disabled.
 >
 
@@ -1421,7 +1421,7 @@ The final line of the output will be `PASS`.
 ### Remediation for Step 2
 
 Edit `/var/snap/k8s/common/args/etcd` to set the argument of etcd service 
-`--key-file` to `/etc/kubernetes/pki/etcd/server.key`
+`--key-file` to `/etc/kubernetes/pki/etcd/server.key`.
 
 Subsequently restart the etcd service with:
 
@@ -1714,7 +1714,7 @@ start with `PASS`.
 ### Remediation for Step 3
 
 Edit `/var/snap/k8s/common/args/etcd` to set the argument of etcd service 
-`--peer-cert-file` to `/etc/kubernetes/pki/etcd/peer.crt`
+`--peer-cert-file` to `/etc/kubernetes/pki/etcd/peer.crt`.
 
 Subsequently restart the etcd service with:
 
@@ -1738,18 +1738,11 @@ start with `PASS`.
 
 ### Step 4/4
 
-**Comments:**
-
-> The command line arguments of the etcd service in the k8s-snap are
-> defined in the following file:
->
->     /var/snap/k8s/common/args/etcd
->
 
 ### Remediation for Step 4
 
 Edit `/var/snap/k8s/common/args/etcd` to set the argument of etcd service 
-`--peer-trusted-ca-file` to `/etc/kubernetes/pki/etcd/ca.crt`
+`--peer-trusted-ca-file` to `/etc/kubernetes/pki/etcd/ca.crt`.
 
 Subsequently restart the etcd service with:
 
@@ -2173,7 +2166,7 @@ start with `PASS`.
 **Comments:**
 
 > The k8s-snap does not automatically deploy or configure the Kubernetes
-> Dashboard, so This finding is Not Applicable.
+> Dashboard, so this finding is Not Applicable.
 >
 > You can check whether the Kubernetes Dashboard has been installed
 > post-snap-setup by running:
@@ -2902,9 +2895,9 @@ The final line of the output will be `PASS`.
 
 Ensure all of the following paths have correct permissions by running:
 
-
-
-    chmod -R 644 /var/snap/k8s/common/args /var/snap/k8s/common/args/conf.d /var/snap/k8s/common/args/kube-apiserver /var/snap/k8s/common/args/kube-controller-manager /var/snap/k8s/common/args/k8sd /var/snap/k8s/common/args/kube-proxy /var/snap/k8s/common/args/kube-scheduler /var/snap/k8s/common/args/kubelet /var/snap/k8s/common/args/containerd /var/snap/k8s/common/args/etcd /var/snap/k8s/common/args/conf.d/auth-token-webhook.conf
+```
+chmod -R 644 /var/snap/k8s/common/args /var/snap/k8s/common/args/conf.d /var/snap/k8s/common/args/kube-apiserver /var/snap/k8s/common/args/kube-controller-manager /var/snap/k8s/common/args/k8sd /var/snap/k8s/common/args/kube-proxy /var/snap/k8s/common/args/kube-scheduler /var/snap/k8s/common/args/kubelet /var/snap/k8s/common/args/containerd /var/snap/k8s/common/args/etcd /var/snap/k8s/common/args/conf.d/auth-token-webhook.conf
+```
 
 ### Auditing (as root)
 
@@ -2947,9 +2940,9 @@ start with `PASS`.
 
 Ensure all of the following paths have correct permissions by running:
 
-
-
-    chmod -R 644 /var/snap/k8s/common/args /var/snap/k8s/common/args/conf.d /var/snap/k8s/common/args/kube-apiserver /var/snap/k8s/common/args/kube-controller-manager /var/snap/k8s/common/args/k8sd /var/snap/k8s/common/args/kube-proxy /var/snap/k8s/common/args/kube-scheduler /var/snap/k8s/common/args/kubelet /var/snap/k8s/common/args/containerd /var/snap/k8s/common/args/k8s-dqlite /var/snap/k8s/common/args/conf.d/auth-token-webhook.conf
+```
+chmod -R 644 /var/snap/k8s/common/args /var/snap/k8s/common/args/conf.d /var/snap/k8s/common/args/kube-apiserver /var/snap/k8s/common/args/kube-controller-manager /var/snap/k8s/common/args/k8sd /var/snap/k8s/common/args/kube-proxy /var/snap/k8s/common/args/kube-scheduler /var/snap/k8s/common/args/kubelet /var/snap/k8s/common/args/containerd /var/snap/k8s/common/args/k8s-dqlite /var/snap/k8s/common/args/conf.d/auth-token-webhook.conf
+```
 
 ### Auditing (as root)
 
@@ -3171,7 +3164,7 @@ Assurance List (PPSM CAL)
 >
 > Since k8s-snap is set to rely on
 > [k8s-dqlite](https://github.com/canonical/k8s-dqlite) for its state handling,
-> This finding is Not Applicable.
+> this finding is Not Applicable.
 >
 > https://www.esd.whs.mil/portals/54/documents/dd/issuances/dodi/855101p.pdf
 >
@@ -5058,7 +5051,7 @@ secure etcd communication.
 ### Remediation
 
 Edit `/var/snap/k8s/common/args/etcd` to set the argument of etcd service 
-`--peer-cert-file` to `/etc/kubernetes/pki/etcd/peer.crt`
+`--peer-cert-file` to `/etc/kubernetes/pki/etcd/peer.crt`.
 
 Subsequently restart the etcd service with:
 
@@ -5176,7 +5169,7 @@ secure etcd communication.
 ### Remediation
 
 Edit `/var/snap/k8s/common/args/etcd` to set the argument of etcd service 
-`--peer-key-file` to `/etc/kubernetes/pki/etcd/peer.key`
+`--peer-key-file` to `/etc/kubernetes/pki/etcd/peer.key`.
 
 Subsequently restart the etcd service with:
 
@@ -5188,6 +5181,7 @@ sudo systemctl restart snap.k8s.etcd
 
 Ensure that the argument `--peer-key-file` for service etcd is set as appropriate 
 in the service’s argument file `/var/snap/k8s/common/args/etcd`.
+chmod -R 644 /var/snap/k8s/common/args /var/snap/k8s/common/args/conf.d /var/snap/k8s/common/args/kube-apiserver /var/snap/k8s/common/args/kube-controller-manager /var/snap/k8s/common/args/k8sd /var/snap/k8s/common/args/kube-proxy /var/snap/k8s/common/args/kube-scheduler /var/snap/k8s/common/args/kubelet /var/snap/k8s/common/args/containerd /var/snap/k8s/common/args/k8s-dqlite /var/snap/k8s/common/args/conf.d/auth-token-webhook.conf
 
 ```
 grep -E -q  '\-\-peer-key-file=("/etc/kubernetes/pki/etcd/peer\.key")' '/var/snap/k8s/common/args/etcd'
@@ -5327,7 +5321,7 @@ always be at the desired security state.
 > components are left running following upgrades of the Kubernetes cluster.
 >
 > Thanks to the k8s-snap's distribution and upgrade model, it is not possible
-> for this to occur, so This finding is Not Applicable.
+> for this to occur, so this finding is Not Applicable.
 >
 
 
@@ -5382,7 +5376,7 @@ authoritative source (e.g., IAVM, CTOs, DTMs, and STIGs).
 > https://kubernetes.io/releases/version-skew-policy/#supported-versions
 >
 > Supported versions of the k8s-snap should always ship with supported versions
-> of Kubernetes components within it, so This finding is Not Applicable.
+> of Kubernetes components within it, so this finding is Not Applicable.
 >
 
 
@@ -5401,7 +5395,7 @@ authoritative source (e.g., IAVM, CTOs, DTMs, and STIGs).
 settings for the Control Plane services. These services are etcd, the api
 server, controller, proxy, and scheduler. If these files can be changed, the
 scheduler will be implementing the changes immediately. Many of the security
-settings within the document are implemented through these manifests.
+settings within the V-242444 document are implemented through these manifests.
 
 
 
@@ -5496,8 +5490,9 @@ through this file.
 
 Ensure contents of the etcd directory have correct ownership by running:
 
-
-    chown -R 0:0 /var/snap/k8s/common/var/lib/etcd
+```
+chown -R 0:0 /var/snap/k8s/common/var/lib/etcd
+```
 
 ### Auditing (as root)
 
@@ -6499,8 +6494,9 @@ Plane would be compromised.
 
 Ensure all of the etcd directories have correct permissions by running:
 
-
-    find /var/snap/k8s/common/var/lib/etcd/ -type d -exec chmod 700 {} \;
+```
+find /var/snap/k8s/common/var/lib/etcd/ -type d -exec chmod 700 {} \;
+```
 
 ### Auditing (as root) for Step 1
 
@@ -6515,19 +6511,13 @@ start with `PASS`.
 
 ### Step 2/2
 
-**Comments:**
-
-> The state directory for etcd within the k8s-snap is located under:
->
->     /var/snap/k8s/common/var/lib/etcd
->
-
 ### Remediation for Step 2
 
 Ensure all of the etcd directories have correct permissions by running:
 
-
-    find /var/snap/k8s/common/var/lib/etcd/ -type f -exec chmod 600 {} \;
+```
+find /var/snap/k8s/common/var/lib/etcd/ -type f -exec chmod 600 {} \;
+```
 
 ### Auditing (as root) for Step 2
 
