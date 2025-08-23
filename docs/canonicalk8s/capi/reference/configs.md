@@ -61,7 +61,7 @@ existing files.
 ```yaml
 spec:
   files:
-    path: "/path/to/my-file"
+  - path: "/path/to/my-file"
     content: |
       #!/bin/bash -xe
       echo "hello from my-file
@@ -74,7 +74,7 @@ spec:
 ```yaml
 spec:
   files:
-    path: "/path/to/my-file"
+  - path: "/path/to/my-file"
     contentFrom:
       secret:
         # Name of the secret in the CK8sBootstrapConfig's namespace to use.
