@@ -61,6 +61,7 @@ UI
 UUID
 VM
 webhook
+WAL
 YAML
 
 AAM
