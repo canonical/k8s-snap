@@ -61,14 +61,14 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, ne
 			err = fmt.Errorf("failed to enable ingress: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
-				Version: CiliumAgentImageTag,
+				Version: CiliumAgentImage().Tag,
 				Message: fmt.Sprintf(IngressDeployFailedMsgTmpl, err),
 			}, err
 		} else {
 			err = fmt.Errorf("failed to disable ingress: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
-				Version: CiliumAgentImageTag,
+				Version: CiliumAgentImage().Tag,
 				Message: fmt.Sprintf(IngressDeleteFailedMsgTmpl, err),
 			}, err
 		}
@@ -78,13 +78,13 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, ne
 		if ingress.GetEnabled() {
 			return types.FeatureStatus{
 				Enabled: true,
-				Version: CiliumAgentImageTag,
+				Version: CiliumAgentImage().Tag,
 				Message: EnabledMsg,
 			}, nil
 		} else {
 			return types.FeatureStatus{
 				Enabled: false,
-				Version: CiliumAgentImageTag,
+				Version: CiliumAgentImage().Tag,
 				Message: DisabledMsg,
 			}, nil
 		}
@@ -93,7 +93,7 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, ne
 	if !ingress.GetEnabled() {
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: CiliumAgentImageTag,
+			Version: CiliumAgentImage().Tag,
 			Message: DisabledMsg,
 		}, nil
 	}
@@ -102,14 +102,14 @@ func ApplyIngress(ctx context.Context, snap snap.Snap, ingress types.Ingress, ne
 		err = fmt.Errorf("failed to rollout restart cilium to apply ingress: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: CiliumAgentImageTag,
+			Version: CiliumAgentImage().Tag,
 			Message: fmt.Sprintf(IngressDeployFailedMsgTmpl, err),
 		}, err
 	}
 
 	return types.FeatureStatus{
 		Enabled: true,
-		Version: CiliumAgentImageTag,
+		Version: CiliumAgentImage().Tag,
 		Message: EnabledMsg,
 	}, nil
 }

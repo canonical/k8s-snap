@@ -42,7 +42,7 @@ func TestGatewayEnabled(t *testing.T) {
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImage().Tag))
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium.GatewayDeployFailedMsgTmpl, err)))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 	})
@@ -67,7 +67,7 @@ func TestGatewayEnabled(t *testing.T) {
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
-		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImage().Tag))
 		g.Expect(status.Message).To(Equal(cilium.EnabledMsg))
 
 		helmCiliumArgs := helmM.ApplyCalledWith[2]
@@ -100,7 +100,7 @@ func TestGatewayEnabled(t *testing.T) {
 
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImage().Tag))
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium.GatewayDeployFailedMsgTmpl, err)))
 	})
 
@@ -141,7 +141,7 @@ func TestGatewayEnabled(t *testing.T) {
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
-		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImage().Tag))
 		g.Expect(status.Message).To(Equal(cilium.EnabledMsg))
 	})
 }
@@ -169,7 +169,7 @@ func TestGatewayDisabled(t *testing.T) {
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImage().Tag))
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium.GatewayDeleteFailedMsgTmpl, err)))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 	})
@@ -192,7 +192,7 @@ func TestGatewayDisabled(t *testing.T) {
 		status, err := cilium.ApplyGateway(context.Background(), snapM, gateway, network, nil)
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImage().Tag))
 		g.Expect(status.Message).To(Equal(cilium.DisabledMsg))
 
 		helmCiliumArgs := helmM.ApplyCalledWith[1]
@@ -223,7 +223,7 @@ func TestGatewayDisabled(t *testing.T) {
 		status, err := cilium.ApplyGateway(context.Background(), snapM, gateway, network, nil)
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImage().Tag))
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium.GatewayDeployFailedMsgTmpl, err)))
 	})
 
@@ -264,7 +264,7 @@ func TestGatewayDisabled(t *testing.T) {
 
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImage().Tag))
 		g.Expect(status.Message).To(Equal(cilium.DisabledMsg))
 	})
 }

@@ -12,8 +12,8 @@ type config struct {
 
 func internalConfig(annotations types.Annotations) config {
 	config := config{
-		imageRepo: imageRepo,
-		imageTag:  imageTag,
+		imageRepo: MetricsServerImage().Repository,
+		imageTag:  MetricsServerImage().Tag,
 	}
 
 	if v, ok := annotations.Get(apiv1_annotations.AnnotationImageRepo); ok {

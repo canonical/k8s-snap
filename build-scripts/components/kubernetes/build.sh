@@ -5,11 +5,18 @@ mkdir -p "${INSTALL}"
 
 export KUBE_GIT_VERSION_FILE="${PWD}/.version.sh"
 
-for app in kubernetes; do
-  export GOTOOLCHAIN=local
-  # # export GOEXPERIMENT=opensslcrypto
+export GOTOOLCHAIN=local
+
+export TAGS="providerless"
+
+if [ "${FLAVOR}" = "fips" ]; then
+  export GOEXPERIMENT=opensslcrypto
   export CGO_ENABLED=1
-  make WHAT="cmd/${app}" KUBE_CGO_OVERRIDES="${app}" GOFLAGS="-tags=providerless,linux,cgo"
+  export TAGS="${TAGS},linux,cgo"
+fi
+
+for app in kubernetes; do
+  make WHAT="cmd/${app}" KUBE_STATIC_OVERRIDES="${app}" KUBE_CGO_OVERRIDES="${app}" GOFLAGS="-tags=${TAGS}"
   cp _output/bin/"${app}" "${INSTALL}/${app}"
 done
 

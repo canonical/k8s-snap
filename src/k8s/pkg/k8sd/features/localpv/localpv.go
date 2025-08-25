@@ -37,24 +37,24 @@ func ApplyLocalStorage(ctx context.Context, snap snap.Snap, cfg types.LocalStora
 		"controller": map[string]any{
 			"csiDriverArgs": []string{"--args", "rawfile", "csi-driver", "--disable-metrics"},
 			"image": map[string]any{
-				"repository": imageRepo,
-				"tag":        ImageTag,
+				"repository": LocalPVImage().Repository,
+				"tag":        LocalPVImage().Tag,
 			},
 		},
 		"node": map[string]any{
 			"image": map[string]any{
-				"repository": imageRepo,
-				"tag":        ImageTag,
+				"repository": LocalPVImage().Repository,
+				"tag":        LocalPVImage().Tag,
 			},
 			"storage": map[string]any{
 				"path": cfg.GetLocalPath(),
 			},
 		},
 		"images": map[string]any{
-			"csiNodeDriverRegistrar": csiNodeDriverImage,
-			"csiProvisioner":         csiProvisionerImage,
-			"csiResizer":             csiResizerImage,
-			"csiSnapshotter":         csiSnapshotterImage,
+			"csiNodeDriverRegistrar": CSINodeDriverImage().String(),
+			"csiProvisioner":         CSIProvisionerImage().String(),
+			"csiResizer":             CSIResizerImage().String(),
+			"csiSnapshotter":         CSISnapshotterImage().String(),
 		},
 	}
 
@@ -63,14 +63,14 @@ func ApplyLocalStorage(ctx context.Context, snap snap.Snap, cfg types.LocalStora
 			err = fmt.Errorf("failed to install rawfile-csi helm package: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
-				Version: ImageTag,
+				Version: LocalPVImage().Tag,
 				Message: fmt.Sprintf(deployFailedMsgTmpl, err),
 			}, err
 		} else {
 			err = fmt.Errorf("failed to delete rawfile-csi helm package: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
-				Version: ImageTag,
+				Version: LocalPVImage().Tag,
 				Message: fmt.Sprintf(deleteFailedMsgTmpl, err),
 			}, err
 		}
@@ -79,13 +79,13 @@ func ApplyLocalStorage(ctx context.Context, snap snap.Snap, cfg types.LocalStora
 	if cfg.GetEnabled() {
 		return types.FeatureStatus{
 			Enabled: true,
-			Version: ImageTag,
+			Version: LocalPVImage().Tag,
 			Message: fmt.Sprintf(enabledMsg, cfg.GetLocalPath()),
 		}, nil
 	} else {
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: ImageTag,
+			Version: LocalPVImage().Tag,
 			Message: disabledMsg,
 		}, nil
 	}

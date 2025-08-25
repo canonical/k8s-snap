@@ -8,7 +8,7 @@ import (
 
 func init() {
 	images.Register(
-		fmt.Sprintf("%s:%s", ciliumAgentImageRepo, CiliumAgentImageTag),
-		fmt.Sprintf("%s-generic:%s", ciliumOperatorImageRepo, ciliumOperatorImageTag),
+		CiliumAgentImage().String(),
+		fmt.Sprintf("%s-generic:%s", CiliumOperatorImage().Repository, CiliumOperatorImage().Tag),
 	)
 }

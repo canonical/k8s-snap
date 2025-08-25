@@ -27,13 +27,13 @@ func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.L
 			err = fmt.Errorf("failed to disable LoadBalancer: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
-				Version: ControllerImageTag,
+				Version: MetalLBControllerImage().Tag,
 				Message: fmt.Sprintf(deleteFailedMsgTmpl, err),
 			}, err
 		}
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: ControllerImageTag,
+			Version: MetalLBControllerImage().Tag,
 			Message: DisabledMsg,
 		}, nil
 	}
@@ -42,7 +42,7 @@ func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.L
 		err = fmt.Errorf("failed to enable LoadBalancer: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: ControllerImageTag,
+			Version: MetalLBControllerImage().Tag,
 			Message: fmt.Sprintf(deployFailedMsgTmpl, err),
 		}, err
 	}
@@ -51,19 +51,19 @@ func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.L
 	case loadbalancer.GetBGPMode():
 		return types.FeatureStatus{
 			Enabled: true,
-			Version: ControllerImageTag,
+			Version: MetalLBControllerImage().Tag,
 			Message: fmt.Sprintf(enabledMsgTmpl, "BGP"),
 		}, nil
 	case loadbalancer.GetL2Mode():
 		return types.FeatureStatus{
 			Enabled: true,
-			Version: ControllerImageTag,
+			Version: MetalLBControllerImage().Tag,
 			Message: fmt.Sprintf(enabledMsgTmpl, "L2"),
 		}, nil
 	default:
 		return types.FeatureStatus{
 			Enabled: true,
-			Version: ControllerImageTag,
+			Version: MetalLBControllerImage().Tag,
 			Message: fmt.Sprintf(enabledMsgTmpl, "Unknown"),
 		}, nil
 	}
@@ -88,15 +88,15 @@ func enableLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.
 	metalLBValues := map[string]any{
 		"controller": map[string]any{
 			"image": map[string]any{
-				"repository": controllerImageRepo,
-				"tag":        ControllerImageTag,
+				"repository": MetalLBControllerImage().Repository,
+				"tag":        MetalLBControllerImage().Tag,
 			},
 			"command": "/controller",
 		},
 		"speaker": map[string]any{
 			"image": map[string]any{
-				"repository": speakerImageRepo,
-				"tag":        speakerImageTag,
+				"repository": MetalLBSpeakerImage().Repository,
+				"tag":        MetalLBSpeakerImage().Tag,
 			},
 			"command": "/speaker",
 			// TODO(neoaggelos): make frr enable/disable configurable through an annotation
@@ -104,8 +104,8 @@ func enableLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.
 			"frr": map[string]any{
 				"enabled": false,
 				"image": map[string]any{
-					"repository": frrImageRepo,
-					"tag":        frrImageTag,
+					"repository": FRRImage().Repository,
+					"tag":        FRRImage().Tag,
 				},
 			},
 		},

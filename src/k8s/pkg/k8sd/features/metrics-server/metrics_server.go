@@ -44,14 +44,14 @@ func ApplyMetricsServer(ctx context.Context, snap snap.Snap, cfg types.MetricsSe
 			err = fmt.Errorf("failed to install metrics server chart: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
-				Version: imageTag,
+				Version: MetricsServerImage().Tag,
 				Message: fmt.Sprintf(deployFailedMsgTmpl, err),
 			}, err
 		} else {
 			err = fmt.Errorf("failed to delete metrics server chart: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
-				Version: imageTag,
+				Version: MetricsServerImage().Tag,
 				Message: fmt.Sprintf(deleteFailedMsgTmpl, err),
 			}, err
 		}
@@ -59,13 +59,13 @@ func ApplyMetricsServer(ctx context.Context, snap snap.Snap, cfg types.MetricsSe
 		if cfg.GetEnabled() {
 			return types.FeatureStatus{
 				Enabled: true,
-				Version: imageTag,
+				Version: MetricsServerImage().Tag,
 				Message: enabledMsg,
 			}, nil
 		} else {
 			return types.FeatureStatus{
 				Enabled: false,
-				Version: imageTag,
+				Version: MetricsServerImage().Tag,
 				Message: disabledMsg,
 			}, nil
 		}

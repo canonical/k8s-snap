@@ -1,4 +1,4 @@
-#!/bin/bash -xeu
+#!/bin/bash -xe
 
 DIR="$(realpath `dirname "${0}"`)"
 
@@ -9,11 +9,11 @@ if [[ "$DEBUG_BUILD" == "y" ]]; then
   go build \
     -gcflags=all="-N -l" \
     -tags dqlite,libsqlite3 \
-    -ldflags '--linkmode "external" -extldflags "-static"' \
+    -ldflags "-linkmode 'external' -extldflags '-static' ${EXTRA_LDFLAGS}" \
     "${@}"
 else
   go build \
     -tags dqlite,libsqlite3 \
-    -ldflags '--linkmode "external" -extldflags "-static"' \
+    -ldflags "-linkmode 'external' -extldflags '-static' ${EXTRA_LDFLAGS}" \
     "${@}"
 fi

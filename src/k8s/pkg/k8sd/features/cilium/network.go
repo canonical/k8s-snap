@@ -78,13 +78,13 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 			err = fmt.Errorf("failed to uninstall network: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
-				Version: CiliumAgentImageTag,
+				Version: CiliumAgentImage().Tag,
 				Message: fmt.Sprintf(NetworkDeleteFailedMsgTmpl, err),
 			}, err
 		}
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: CiliumAgentImageTag,
+			Version: CiliumAgentImage().Tag,
 			Message: DisabledMsg,
 		}, nil
 	}
@@ -94,7 +94,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 		err = fmt.Errorf("failed to parse annotations: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: CiliumAgentImageTag,
+			Version: CiliumAgentImage().Tag,
 			Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
 		}, err
 	}
@@ -104,7 +104,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 		err = fmt.Errorf("failed to determine localhost address: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: CiliumAgentImageTag,
+			Version: CiliumAgentImage().Tag,
 			Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
 		}, err
 	}
@@ -114,7 +114,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 		err = fmt.Errorf("failed to parse node IP address %q", s.Address().Hostname())
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: CiliumAgentImageTag,
+			Version: CiliumAgentImage().Tag,
 			Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
 		}, err
 	}
@@ -124,7 +124,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 		err = fmt.Errorf("failed to find cidr of default interface: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: CiliumAgentImageTag,
+			Version: CiliumAgentImage().Tag,
 			Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
 		}, err
 	}
@@ -134,7 +134,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 		err = fmt.Errorf("invalid kube-proxy --cluster-cidr value: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: CiliumAgentImageTag,
+			Version: CiliumAgentImage().Tag,
 			Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
 		}, err
 	}
@@ -152,7 +152,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 	if err := checkAndSanitizeCiliumVXLAN(config.tunnelPort); err != nil {
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: CiliumAgentImageTag,
+			Version: CiliumAgentImage().Tag,
 			Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
 		}, err
 	}
@@ -165,8 +165,8 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 	values := map[string]any{
 		"bpf": bpfValues,
 		"image": map[string]any{
-			"repository": ciliumAgentImageRepo,
-			"tag":        CiliumAgentImageTag,
+			"repository": CiliumAgentImage().Repository,
+			"tag":        CiliumAgentImage().Tag,
 			"useDigest":  false,
 		},
 		"socketLB": map[string]any{
@@ -184,8 +184,8 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 		"operator": map[string]any{
 			"replicas": 1,
 			"image": map[string]any{
-				"repository": ciliumOperatorImageRepo,
-				"tag":        ciliumOperatorImageTag,
+				"repository": CiliumOperatorImage().Repository,
+				"tag":        CiliumOperatorImage().Tag,
 				"useDigest":  false,
 			},
 		},
@@ -239,7 +239,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 			err = fmt.Errorf("failed to get bpf mount path: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
-				Version: CiliumAgentImageTag,
+				Version: CiliumAgentImage().Tag,
 				Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
 			}, err
 		}
@@ -249,7 +249,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 			err = fmt.Errorf("failed to get cgroup2 mount path: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
-				Version: CiliumAgentImageTag,
+				Version: CiliumAgentImage().Tag,
 				Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
 			}, err
 		}
@@ -272,7 +272,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 			err = fmt.Errorf("failed to get mount propagation type for /sys: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
-				Version: CiliumAgentImageTag,
+				Version: CiliumAgentImage().Tag,
 				Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
 			}, err
 		}
@@ -286,7 +286,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 				err := fmt.Errorf("/sys is not a shared mount on the LXD container, this might be resolved by updating LXD on the host to version 5.0.2 or newer")
 				return types.FeatureStatus{
 					Enabled: false,
-					Version: CiliumAgentImageTag,
+					Version: CiliumAgentImage().Tag,
 					Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
 				}, err
 			}
@@ -294,7 +294,7 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 			err = fmt.Errorf("/sys is not a shared mount")
 			return types.FeatureStatus{
 				Enabled: false,
-				Version: CiliumAgentImageTag,
+				Version: CiliumAgentImage().Tag,
 				Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
 			}, err
 		}
@@ -304,14 +304,14 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 		err = fmt.Errorf("failed to enable network: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: CiliumAgentImageTag,
+			Version: CiliumAgentImage().Tag,
 			Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
 		}, err
 	}
 
 	return types.FeatureStatus{
 		Enabled: true,
-		Version: CiliumAgentImageTag,
+		Version: CiliumAgentImage().Tag,
 		Message: EnabledMsg,
 	}, nil
 }

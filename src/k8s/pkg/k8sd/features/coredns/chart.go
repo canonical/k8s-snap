@@ -4,6 +4,8 @@ import (
 	"path/filepath"
 
 	"github.com/canonical/k8s/pkg/client/helm"
+	k8sdConfig "github.com/canonical/k8s/pkg/config"
+	"github.com/canonical/k8s/pkg/k8sd/types"
 )
 
 var (
@@ -13,10 +15,21 @@ var (
 		Namespace:    "kube-system",
 		ManifestPath: filepath.Join("charts", "coredns-1.39.2.tgz"),
 	}
-
-	// imageRepo is the image to use for CoreDNS.
-	imageRepo = "ghcr.io/canonical/coredns"
-
-	// ImageTag is the tag to use for the CoreDNS image.
-	ImageTag = "1.12.0-ck1"
 )
+
+// CoreDNSImage returns the image to use for CoreDNS.
+func CoreDNSImage() types.Image {
+	agentRepo := "ghcr.io/canonical/coredns"
+
+	if k8sdConfig.GetFlavor() == k8sdConfig.FlavorFIPS {
+		return types.Image{
+			Repository: agentRepo,
+			Tag:        "1.12.0-fips-ck0",
+		}
+	}
+
+	return types.Image{
+		Repository: agentRepo,
+		Tag:        "1.12.0-ck1",
+	}
+}

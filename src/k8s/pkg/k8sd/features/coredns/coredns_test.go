@@ -44,7 +44,7 @@ func TestDisabled(t *testing.T) {
 		g.Expect(status.Message).To(ContainSubstring(applyErr.Error()))
 		g.Expect(status.Message).To(ContainSubstring("failed to uninstall coredns"))
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(coredns.ImageTag))
+		g.Expect(status.Version).To(Equal(coredns.CoreDNSImage().Tag))
 
 		callArgs := helmM.ApplyCalledWith[0]
 		g.Expect(callArgs.Chart).To(Equal(coredns.Chart))
@@ -71,7 +71,7 @@ func TestDisabled(t *testing.T) {
 		g.Expect(str).To(BeEmpty())
 		g.Expect(status.Message).To(Equal("disabled"))
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(coredns.ImageTag))
+		g.Expect(status.Version).To(Equal(coredns.CoreDNSImage().Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 		callArgs := helmM.ApplyCalledWith[0]
@@ -106,7 +106,7 @@ func TestEnabled(t *testing.T) {
 		g.Expect(status.Message).To(ContainSubstring(applyErr.Error()))
 		g.Expect(status.Message).To(ContainSubstring("failed to apply coredns"))
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(coredns.ImageTag))
+		g.Expect(status.Version).To(Equal(coredns.CoreDNSImage().Tag))
 
 		callArgs := helmM.ApplyCalledWith[0]
 		g.Expect(callArgs.Chart).To(Equal(coredns.Chart))
@@ -135,7 +135,7 @@ func TestEnabled(t *testing.T) {
 		g.Expect(str).To(BeEmpty())
 		g.Expect(status.Message).To(ContainSubstring("failed to retrieve the coredns service"))
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(coredns.ImageTag))
+		g.Expect(status.Version).To(Equal(coredns.CoreDNSImage().Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 		callArgs := helmM.ApplyCalledWith[0]
@@ -175,7 +175,7 @@ func TestEnabled(t *testing.T) {
 		g.Expect(str).To(Equal(clusterIp))
 		g.Expect(status.Message).To(ContainSubstring("enabled at " + clusterIp))
 		g.Expect(status.Enabled).To(BeTrue())
-		g.Expect(status.Version).To(Equal(coredns.ImageTag))
+		g.Expect(status.Version).To(Equal(coredns.CoreDNSImage().Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 		callArgs := helmM.ApplyCalledWith[0]
