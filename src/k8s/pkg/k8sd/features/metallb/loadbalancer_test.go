@@ -40,7 +40,7 @@ func TestDisabled(t *testing.T) {
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Message).To(ContainSubstring(applyErr.Error()))
-		g.Expect(status.Version).To(Equal(metallb.ControllerImageTag))
+		g.Expect(status.Version).To(Equal(metallb.MetalLBControllerImage().Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 		callArgs := helmM.ApplyCalledWith[0]
@@ -66,7 +66,7 @@ func TestDisabled(t *testing.T) {
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Message).To(Equal(metallb.DisabledMsg))
-		g.Expect(status.Version).To(Equal(metallb.ControllerImageTag))
+		g.Expect(status.Version).To(Equal(metallb.MetalLBControllerImage().Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(2))
 
 		firstCallArgs := helmM.ApplyCalledWith[0]
@@ -103,7 +103,7 @@ func TestEnabled(t *testing.T) {
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Message).To(ContainSubstring(applyErr.Error()))
-		g.Expect(status.Version).To(Equal(metallb.ControllerImageTag))
+		g.Expect(status.Version).To(Equal(metallb.MetalLBControllerImage().Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 		callArgs := helmM.ApplyCalledWith[0]
@@ -164,7 +164,7 @@ func TestEnabled(t *testing.T) {
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
-		g.Expect(status.Version).To(Equal(metallb.ControllerImageTag))
+		g.Expect(status.Version).To(Equal(metallb.MetalLBControllerImage().Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(2))
 
 		firstCallArgs := helmM.ApplyCalledWith[0]

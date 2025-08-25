@@ -33,21 +33,21 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.
 			err = fmt.Errorf("failed to uninstall coredns: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
-				Version: ImageTag,
+				Version: CoreDNSImage().Tag,
 				Message: fmt.Sprintf(deleteFailedMsgTmpl, err),
 			}, "", err
 		}
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: ImageTag,
+			Version: CoreDNSImage().Tag,
 			Message: disabledMsg,
 		}, "", nil
 	}
 
 	values := map[string]any{
 		"image": map[string]any{
-			"repository": imageRepo,
-			"tag":        ImageTag,
+			"repository": CoreDNSImage().Repository,
+			"tag":        CoreDNSImage().Tag,
 		},
 		"service": map[string]any{
 			"name":      "coredns",
@@ -99,7 +99,7 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.
 		err = fmt.Errorf("failed to apply coredns: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: ImageTag,
+			Version: CoreDNSImage().Tag,
 			Message: fmt.Sprintf(deployFailedMsgTmpl, err),
 		}, "", err
 	}
@@ -109,7 +109,7 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.
 		err = fmt.Errorf("failed to create kubernetes client: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: ImageTag,
+			Version: CoreDNSImage().Tag,
 			Message: fmt.Sprintf(deployFailedMsgTmpl, err),
 		}, "", err
 	}
@@ -118,14 +118,14 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.
 		err = fmt.Errorf("failed to retrieve the coredns service: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: ImageTag,
+			Version: CoreDNSImage().Tag,
 			Message: fmt.Sprintf(deployFailedMsgTmpl, err),
 		}, "", err
 	}
 
 	return types.FeatureStatus{
 		Enabled: true,
-		Version: ImageTag,
+		Version: CoreDNSImage().Tag,
 		Message: fmt.Sprintf(enabledMsgTmpl, dnsIP),
 	}, dnsIP, err
 }

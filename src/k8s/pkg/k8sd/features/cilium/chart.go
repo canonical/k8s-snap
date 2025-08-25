@@ -4,6 +4,9 @@ import (
 	"path/filepath"
 
 	"github.com/canonical/k8s/pkg/client/helm"
+	k8sdConfig "github.com/canonical/k8s/pkg/config"
+
+	"github.com/canonical/k8s/pkg/k8sd/types"
 )
 
 var (
@@ -35,19 +38,39 @@ var (
 		ManifestPath: filepath.Join("charts", "ck-gateway-cilium"),
 	}
 
-	// ciliumAgentImageRepo represents the image to use for cilium-agent.
-	ciliumAgentImageRepo = "ghcr.io/canonical/cilium"
-
-	// CiliumAgentImageTag is the tag to use for the cilium-agent image.
-	CiliumAgentImageTag = "1.17.1-ck2"
-
-	// ciliumOperatorImageRepo is the image to use for cilium-operator.
-	ciliumOperatorImageRepo = "ghcr.io/canonical/cilium-operator"
-
-	// ciliumOperatorImageTag is the tag to use for the cilium-operator image.
-	ciliumOperatorImageTag = "1.17.1-ck2"
-
 	ciliumDefaultVXLANPort = 8472
 
 	ciliumVXLANDeviceName = "cilium_vxlan"
 )
+
+func CiliumAgentImage() types.Image {
+	agentRepo := "ghcr.io/canonical/cilium"
+
+	if k8sdConfig.GetFlavor() == k8sdConfig.FlavorFIPS {
+		return types.Image{
+			Repository: agentRepo,
+			Tag:        "1.17.1-fips-ck0",
+		}
+	}
+
+	return types.Image{
+		Repository: agentRepo,
+		Tag:        "1.17.1-ck2",
+	}
+}
+
+func CiliumOperatorImage() types.Image {
+	operatorRepo := "ghcr.io/canonical/cilium-operator"
+
+	if k8sdConfig.GetFlavor() == k8sdConfig.FlavorFIPS {
+		return types.Image{
+			Repository: operatorRepo,
+			Tag:        "1.17.1-fips-ck0",
+		}
+	}
+
+	return types.Image{
+		Repository: operatorRepo,
+		Tag:        "1.17.1-ck2",
+	}
+}

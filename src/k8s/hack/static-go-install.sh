@@ -1,4 +1,4 @@
-#!/bin/bash -xeu
+#!/bin/bash -xe
 
 DIR="$(realpath `dirname "${0}"`)"
 
@@ -6,5 +6,5 @@ DIR="$(realpath `dirname "${0}"`)"
 
 go install \
   -tags dqlite,libsqlite3 \
-  -ldflags '-s -w -linkmode "external" -extldflags "-static"' \
+  -ldflags "-s -w -linkmode 'external' -extldflags '-static' ${EXTRA_LDFLAGS}" \
   "${@}"

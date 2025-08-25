@@ -37,7 +37,7 @@ func enableGateway(ctx context.Context, snap snap.Snap) (types.FeatureStatus, er
 		err = fmt.Errorf("failed to install Gateway API CRDs: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: CiliumAgentImageTag,
+			Version: CiliumAgentImage().Tag,
 			Message: fmt.Sprintf(GatewayDeployFailedMsgTmpl, err),
 		}, err
 	}
@@ -47,7 +47,7 @@ func enableGateway(ctx context.Context, snap snap.Snap) (types.FeatureStatus, er
 		err = fmt.Errorf("failed to install Gateway API GatewayClass: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: CiliumAgentImageTag,
+			Version: CiliumAgentImage().Tag,
 			Message: fmt.Sprintf(GatewayDeployFailedMsgTmpl, err),
 		}, err
 	}
@@ -68,7 +68,7 @@ func enableGateway(ctx context.Context, snap snap.Snap) (types.FeatureStatus, er
 		err = fmt.Errorf("failed to upgrade Gateway API cilium configuration: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: CiliumAgentImageTag,
+			Version: CiliumAgentImage().Tag,
 			Message: fmt.Sprintf(GatewayDeployFailedMsgTmpl, err),
 		}, err
 	}
@@ -76,7 +76,7 @@ func enableGateway(ctx context.Context, snap snap.Snap) (types.FeatureStatus, er
 	if !changed {
 		return types.FeatureStatus{
 			Enabled: true,
-			Version: CiliumAgentImageTag,
+			Version: CiliumAgentImage().Tag,
 			Message: EnabledMsg,
 		}, nil
 	}
@@ -85,14 +85,14 @@ func enableGateway(ctx context.Context, snap snap.Snap) (types.FeatureStatus, er
 		err = fmt.Errorf("failed to rollout restart cilium to enable Gateway API: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: CiliumAgentImageTag,
+			Version: CiliumAgentImage().Tag,
 			Message: fmt.Sprintf(GatewayDeployFailedMsgTmpl, err),
 		}, err
 	}
 
 	return types.FeatureStatus{
 		Enabled: true,
-		Version: CiliumAgentImageTag,
+		Version: CiliumAgentImage().Tag,
 		Message: EnabledMsg,
 	}, nil
 }
@@ -105,7 +105,7 @@ func disableGateway(ctx context.Context, snap snap.Snap, network types.Network) 
 		err = fmt.Errorf("failed to delete Gateway API GatewayClass: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: CiliumAgentImageTag,
+			Version: CiliumAgentImage().Tag,
 			Message: fmt.Sprintf(GatewayDeleteFailedMsgTmpl, err),
 		}, err
 	}
@@ -115,7 +115,7 @@ func disableGateway(ctx context.Context, snap snap.Snap, network types.Network) 
 		err = fmt.Errorf("failed to delete Gateway API cilium configuration: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: CiliumAgentImageTag,
+			Version: CiliumAgentImage().Tag,
 			Message: fmt.Sprintf(GatewayDeleteFailedMsgTmpl, err),
 		}, err
 	}
@@ -126,7 +126,7 @@ func disableGateway(ctx context.Context, snap snap.Snap, network types.Network) 
 		err = fmt.Errorf("failed to delete Gateway API CRDs: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: CiliumAgentImageTag,
+			Version: CiliumAgentImage().Tag,
 			Message: fmt.Sprintf(GatewayDeleteFailedMsgTmpl, err),
 		}, err
 	}
@@ -134,7 +134,7 @@ func disableGateway(ctx context.Context, snap snap.Snap, network types.Network) 
 	if !changed {
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: CiliumAgentImageTag,
+			Version: CiliumAgentImage().Tag,
 			Message: DisabledMsg,
 		}, nil
 	}
@@ -143,14 +143,14 @@ func disableGateway(ctx context.Context, snap snap.Snap, network types.Network) 
 		err = fmt.Errorf("failed to rollout restart cilium to disable Gateway API: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: CiliumAgentImageTag,
+			Version: CiliumAgentImage().Tag,
 			Message: fmt.Sprintf(GatewayDeployFailedMsgTmpl, err),
 		}, err
 	}
 
 	return types.FeatureStatus{
 		Enabled: false,
-		Version: CiliumAgentImageTag,
+		Version: CiliumAgentImage().Tag,
 		Message: DisabledMsg,
 	}, nil
 }

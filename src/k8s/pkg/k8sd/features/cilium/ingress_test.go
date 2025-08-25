@@ -105,7 +105,7 @@ func TestIngress(t *testing.T) {
 			}
 			g.Expect(status.Enabled).To(Equal(tc.statusEnabled))
 			g.Expect(status.Message).To(Equal(tc.statusMsg))
-			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImage().Tag))
 			g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 			callArgs := helmM.ApplyCalledWith[0]
@@ -148,7 +148,7 @@ func TestIngressRollout(t *testing.T) {
 		g.Expect(err).To(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium.IngressDeployFailedMsgTmpl, err)))
-		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImage().Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 		callArgs := helmM.ApplyCalledWith[0]
@@ -194,7 +194,7 @@ func TestIngressRollout(t *testing.T) {
 		g.Expect(err).To(Not(HaveOccurred()))
 		g.Expect(status.Enabled).To(BeTrue())
 		g.Expect(status.Message).To(Equal(cilium.EnabledMsg))
-		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImage().Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 		callArgs := helmM.ApplyCalledWith[0]

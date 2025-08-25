@@ -39,7 +39,7 @@ func TestDisabled(t *testing.T) {
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Message).To(ContainSubstring(applyErr.Error()))
-		g.Expect(status.Version).To(Equal(localpv.ImageTag))
+		g.Expect(status.Version).To(Equal(localpv.LocalPVImage().Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 		callArgs := helmM.ApplyCalledWith[0]
@@ -68,7 +68,7 @@ func TestDisabled(t *testing.T) {
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
-		g.Expect(status.Version).To(Equal(localpv.ImageTag))
+		g.Expect(status.Version).To(Equal(localpv.LocalPVImage().Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 		callArgs := helmM.ApplyCalledWith[0]
@@ -104,7 +104,7 @@ func TestEnabled(t *testing.T) {
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Message).To(ContainSubstring(applyErr.Error()))
-		g.Expect(status.Version).To(Equal(localpv.ImageTag))
+		g.Expect(status.Version).To(Equal(localpv.LocalPVImage().Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 		callArgs := helmM.ApplyCalledWith[0]
@@ -133,7 +133,7 @@ func TestEnabled(t *testing.T) {
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeTrue())
-		g.Expect(status.Version).To(Equal(localpv.ImageTag))
+		g.Expect(status.Version).To(Equal(localpv.LocalPVImage().Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 		callArgs := helmM.ApplyCalledWith[0]

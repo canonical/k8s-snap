@@ -55,7 +55,7 @@ func TestNetworkDisabled(t *testing.T) {
 			g.Expect(err).To(MatchError(applyErr))
 			g.Expect(status.Enabled).To(BeFalse())
 			g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium.NetworkDeleteFailedMsgTmpl, err)))
-			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImage().Tag))
 			g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 			callArgs := helmM.ApplyCalledWith[0]
@@ -85,7 +85,7 @@ func TestNetworkDisabled(t *testing.T) {
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(status.Enabled).To(BeFalse())
 			g.Expect(status.Message).To(Equal(cilium.DisabledMsg))
-			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImage().Tag))
 			g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 			callArgs := helmM.ApplyCalledWith[0]
@@ -119,7 +119,7 @@ func TestNetworkEnabled(t *testing.T) {
 
 			g.Expect(err).To(HaveOccurred())
 			g.Expect(status.Enabled).To(BeFalse())
-			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImage().Tag))
 			g.Expect(helmM.ApplyCalledWith).To(BeEmpty())
 		})
 
@@ -146,7 +146,7 @@ func TestNetworkEnabled(t *testing.T) {
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(status.Enabled).To(BeTrue())
 			g.Expect(status.Message).To(Equal(cilium.EnabledMsg))
-			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImage().Tag))
 			g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 			callArgs := helmM.ApplyCalledWith[0]
@@ -180,7 +180,7 @@ func TestNetworkEnabled(t *testing.T) {
 			g.Expect(err).To(MatchError(applyErr))
 			g.Expect(status.Enabled).To(BeFalse())
 			g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium.NetworkDeployFailedMsgTmpl, err)))
-			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImage().Tag))
 			g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 			callArgs := helmM.ApplyCalledWith[0]
@@ -216,7 +216,7 @@ func TestNetworkEnabled(t *testing.T) {
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(status.Enabled).To(BeTrue())
 			g.Expect(status.Message).To(Equal(cilium.EnabledMsg))
-			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImage().Tag))
 			g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 			callArgs := helmM.ApplyCalledWith[0]
@@ -254,7 +254,7 @@ func TestNetworkEnabled(t *testing.T) {
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(status.Enabled).To(BeTrue())
 			g.Expect(status.Message).To(Equal(cilium.EnabledMsg))
-			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImage().Tag))
 			g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 			callArgs := helmM.ApplyCalledWith[0]
@@ -306,7 +306,7 @@ func TestNetworkMountPath(t *testing.T) {
 				g.Expect(err).To(MatchError(mountPathErr))
 				g.Expect(status.Enabled).To(BeFalse())
 				g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium.NetworkDeployFailedMsgTmpl, err)))
-				g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+				g.Expect(status.Version).To(Equal(cilium.CiliumAgentImage().Tag))
 				g.Expect(helmM.ApplyCalledWith).To(BeEmpty())
 			})
 		}
@@ -344,7 +344,7 @@ func TestNetworkMountPropagationType(t *testing.T) {
 			g.Expect(status.Enabled).To(BeFalse())
 			g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium.NetworkDeployFailedMsgTmpl, err)))
 
-			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImage().Tag))
 			g.Expect(helmM.ApplyCalledWith).To(BeEmpty())
 		})
 
@@ -378,7 +378,7 @@ func TestNetworkMountPropagationType(t *testing.T) {
 			g.Expect(status.Enabled).To(BeFalse())
 			g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium.NetworkDeployFailedMsgTmpl, err)))
 
-			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImage().Tag))
 			g.Expect(helmM.ApplyCalledWith).To(BeEmpty())
 			testingLogger, ok := logger.GetSink().(ktesting.Underlier)
 			if !ok {
@@ -415,7 +415,7 @@ func TestNetworkMountPropagationType(t *testing.T) {
 			g.Expect(status.Enabled).To(BeFalse())
 			g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium.NetworkDeployFailedMsgTmpl, err)))
 
-			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImage().Tag))
 			g.Expect(helmM.ApplyCalledWith).To(BeEmpty())
 		})
 
@@ -446,7 +446,7 @@ func TestNetworkMountPropagationType(t *testing.T) {
 			g.Expect(status.Enabled).To(BeFalse())
 			g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium.NetworkDeployFailedMsgTmpl, err)))
 
-			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImage().Tag))
 			g.Expect(helmM.ApplyCalledWith).To(BeEmpty())
 		})
 	})

@@ -1,4 +1,4 @@
-#!/bin/bash -xeu
+#!/bin/bash -xe
 
 DIR="$(realpath `dirname "${0}"`)"
 
@@ -6,4 +6,5 @@ DIR="$(realpath `dirname "${0}"`)"
 
 go test \
   -tags dqlite,libsqlite3 \
+  -ldflags "${EXTRA_LDFLAGS}" \
   "${@}"

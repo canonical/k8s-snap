@@ -1,19 +1,17 @@
 package localpv
 
 import (
-	"fmt"
-
 	"github.com/canonical/k8s/pkg/k8sd/images"
 )
 
 func init() {
 	images.Register(
 		// Rawfile LocalPV CSI driver images
-		fmt.Sprintf("%s:%s", imageRepo, ImageTag),
+		LocalPVImage().String(),
 		// CSI images
-		csiNodeDriverImage,
-		csiProvisionerImage,
-		csiResizerImage,
-		csiSnapshotterImage,
+		CSINodeDriverImage().String(),
+		CSIProvisionerImage().String(),
+		CSIResizerImage().String(),
+		CSISnapshotterImage().String(),
 	)
 }

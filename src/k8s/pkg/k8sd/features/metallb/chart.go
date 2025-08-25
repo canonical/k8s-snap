@@ -4,6 +4,8 @@ import (
 	"path/filepath"
 
 	"github.com/canonical/k8s/pkg/client/helm"
+	k8sdConfig "github.com/canonical/k8s/pkg/config"
+	"github.com/canonical/k8s/pkg/k8sd/types"
 )
 
 var (
@@ -20,22 +22,52 @@ var (
 		Namespace:    "metallb-system",
 		ManifestPath: filepath.Join("charts", "ck-loadbalancer"),
 	}
-
-	// controllerImageRepo is the image to use for metallb-controller.
-	controllerImageRepo = "ghcr.io/canonical/metallb-controller"
-
-	// ControllerImageTag is the tag to use for metallb-controller.
-	ControllerImageTag = "v0.14.9-ck0"
-
-	// speakerImageRepo is the image to use for metallb-speaker.
-	speakerImageRepo = "ghcr.io/canonical/metallb-speaker"
-
-	// speakerImageTag is the tag to use for metallb-speaker.
-	speakerImageTag = "v0.14.9-ck0"
-
-	// frrImageRepo is the image to use for frrouting.
-	frrImageRepo = "ghcr.io/canonical/frr"
-
-	// frrImageTag is the tag to use for frrouting.
-	frrImageTag = "9.1.3-ck1"
 )
+
+func MetalLBControllerImage() types.Image {
+	imageRepo := "ghcr.io/canonical/metallb-controller"
+
+	if k8sdConfig.GetFlavor() == k8sdConfig.FlavorFIPS {
+		return types.Image{
+			Repository: imageRepo,
+			Tag:        "v0.14.9-fips-ck0",
+		}
+	}
+
+	return types.Image{
+		Repository: imageRepo,
+		Tag:        "v0.14.9-ck0",
+	}
+}
+
+func MetalLBSpeakerImage() types.Image {
+	imageRepo := "ghcr.io/canonical/metallb-speaker"
+
+	if k8sdConfig.GetFlavor() == k8sdConfig.FlavorFIPS {
+		return types.Image{
+			Repository: imageRepo,
+			Tag:        "v0.14.9-fips-ck0",
+		}
+	}
+
+	return types.Image{
+		Repository: imageRepo,
+		Tag:        "v0.14.9-ck0",
+	}
+}
+
+func FRRImage() types.Image {
+	imageRepo := "ghcr.io/canonical/frr"
+
+	if k8sdConfig.GetFlavor() == k8sdConfig.FlavorFIPS {
+		return types.Image{
+			Repository: imageRepo,
+			Tag:        "9.1.3-fips-ck0",
+		}
+	}
+
+	return types.Image{
+		Repository: imageRepo,
+		Tag:        "9.1.3-ck1",
+	}
+}

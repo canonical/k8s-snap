@@ -30,13 +30,13 @@ func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.L
 			err = fmt.Errorf("failed to disable LoadBalancer: %w", err)
 			return types.FeatureStatus{
 				Enabled: false,
-				Version: CiliumAgentImageTag,
+				Version: CiliumAgentImage().Tag,
 				Message: fmt.Sprintf(LbDeleteFailedMsgTmpl, err),
 			}, err
 		}
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: CiliumAgentImageTag,
+			Version: CiliumAgentImage().Tag,
 			Message: DisabledMsg,
 		}, nil
 	}
@@ -45,7 +45,7 @@ func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.L
 		err = fmt.Errorf("failed to enable LoadBalancer: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
-			Version: CiliumAgentImageTag,
+			Version: CiliumAgentImage().Tag,
 			Message: fmt.Sprintf(LbDeployFailedMsgTmpl, err),
 		}, err
 	}
@@ -54,19 +54,19 @@ func ApplyLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.L
 	case loadbalancer.GetBGPMode():
 		return types.FeatureStatus{
 			Enabled: true,
-			Version: CiliumAgentImageTag,
+			Version: CiliumAgentImage().Tag,
 			Message: fmt.Sprintf(lbEnabledMsgTmpl, "BGP"),
 		}, nil
 	case loadbalancer.GetL2Mode():
 		return types.FeatureStatus{
 			Enabled: true,
-			Version: CiliumAgentImageTag,
+			Version: CiliumAgentImage().Tag,
 			Message: fmt.Sprintf(lbEnabledMsgTmpl, "L2"),
 		}, nil
 	default:
 		return types.FeatureStatus{
 			Enabled: true,
-			Version: CiliumAgentImageTag,
+			Version: CiliumAgentImage().Tag,
 			Message: fmt.Sprintf(lbEnabledMsgTmpl, "Unknown"),
 		}, nil
 	}

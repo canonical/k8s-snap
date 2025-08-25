@@ -44,7 +44,7 @@ func TestLoadBalancerDisabled(t *testing.T) {
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium.LbDeleteFailedMsgTmpl, err)))
-		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImage().Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 		callArgs := helmM.ApplyCalledWith[0]
@@ -74,7 +74,7 @@ func TestLoadBalancerDisabled(t *testing.T) {
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Message).To(Equal(cilium.DisabledMsg))
-		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImage().Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(2))
 
 		firstCallArgs := helmM.ApplyCalledWith[0]
@@ -117,7 +117,7 @@ func TestLoadBalancerEnabled(t *testing.T) {
 		g.Expect(err).To(MatchError(applyErr))
 		g.Expect(status.Enabled).To(BeFalse())
 		g.Expect(status.Message).To(Equal(fmt.Sprintf(cilium.LbDeployFailedMsgTmpl, err)))
-		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+		g.Expect(status.Version).To(Equal(cilium.CiliumAgentImage().Tag))
 		g.Expect(helmM.ApplyCalledWith).To(HaveLen(1))
 
 		callArgs := helmM.ApplyCalledWith[0]
@@ -217,7 +217,7 @@ func TestLoadBalancerEnabled(t *testing.T) {
 
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(status.Enabled).To(BeTrue())
-			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImageTag))
+			g.Expect(status.Version).To(Equal(cilium.CiliumAgentImage().Tag))
 			g.Expect(status.Message).To(Equal(tc.statusMessage))
 
 			g.Expect(helmM.ApplyCalledWith).To(HaveLen(2))
