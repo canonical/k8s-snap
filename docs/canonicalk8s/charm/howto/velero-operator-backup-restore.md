@@ -6,7 +6,7 @@ cluster resources. It provides disaster recovery, cluster migration, and backup
 and restore for workloads across namespaces, including non-Juju-managed ones.
 
 This guide shows how to setup Velero Operator with the [s3-integrator charm][]
-as the storage provider and with the [infra-backup-operator] to backup the
+as the storage provider and with the [infra-backup-operator][] to backup the
 configuration of **any** kind of Kubernetes distribution (Canonical Kubernetes,
 MicroK8s, EKS, etc.).
 
@@ -30,7 +30,7 @@ the infra-backup-operator does not create backup of PVs or PVCs.
 
 - A kubernetes cluster
 - A bootstrapped K8s controller. See the [Juju documentation]
-- An S3 bucket or a S3 compatible bucket like [MinIO] or [microceph]
+- An S3 bucket or a S3 compatible bucket like [MinIO] or [MicroCeph]
 
 ### Deploy
 
@@ -110,4 +110,4 @@ right order.
 [infra-backup-operator]: https://charmhub.io/infra-backup-operator/docs/tutorial
 [Juju documentation]: https://documentation.ubuntu.com/juju/3.6/reference/juju-cli/list-of-juju-cli-commands/bootstrap/
 [MinIO]: https://min.io/
-[microceph]: https://canonical-microceph.readthedocs-hosted.com/stable/tutorial/get-started/
+[MicroCeph]: https://canonical-microceph.readthedocs-hosted.com/stable/tutorial/get-started/
