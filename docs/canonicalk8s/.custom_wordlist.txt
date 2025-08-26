@@ -536,6 +536,7 @@ Ubuntu Pro
 Ubuntu Server
 uid
 UIDs
+UDP
 unix
 unoptimized
 unschedulable
