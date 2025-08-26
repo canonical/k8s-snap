@@ -120,11 +120,6 @@ def test_airgapped_with_proxy(instances: List[harness.Instance]):
 @pytest.mark.skipif(
     config.SUBSTRATE == "multipass", reason="runner size too small on multipass"
 )
-@pytest.mark.xfail(
-    reason="""This test is currently failing due to limit space on the runners:
-ctr: failed to extract layer: mount callback failed on /var/lib/containerd/tmpmounts/containerd-mount3646849010: write /var/lib/containerd/tmpmounts/containerd-mount3646849010/usr/lib/python3.10/pdb.py: no space left on device: unknown
-""",  # noqa: E501
-)
 def test_airgapped_with_image_mirror(
     h: harness.Harness,
     instances: List[harness.Instance],
