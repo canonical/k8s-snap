@@ -25,17 +25,17 @@ var (
 	controllerImageRepo = "ghcr.io/canonical/metallb-controller"
 
 	// ControllerImageTag is the tag to use for metallb-controller.
-	ControllerImageTag = "v0.14.9-ck1"
+	ControllerImageTag = "5f6feb3539aed39e881d4d9e7ac797fb1760ff407a297ef55b99d2cf50f4be7a-amd64"
 
 	// speakerImageRepo is the image to use for metallb-speaker.
 	speakerImageRepo = "ghcr.io/canonical/metallb-speaker"
 
 	// speakerImageTag is the tag to use for metallb-speaker.
-	speakerImageTag = "v0.14.9-ck1"
+	speakerImageTag = "3bc7763599138b9c347198c4e9f227c5cdd9a29a73a9f54546d1bfe265edd2f9-amd64"
 
 	// frrImageRepo is the image to use for frrouting.
 	frrImageRepo = "ghcr.io/canonical/frr"
 
 	// frrImageTag is the tag to use for frrouting.
-	frrImageTag = "9.1.3-ck2"
+	frrImageTag = "ede05e1e85736e61b14d3e2f642c3dcb76f2f91fda49447d9cbade9a6d013f1c-amd64"
 )
