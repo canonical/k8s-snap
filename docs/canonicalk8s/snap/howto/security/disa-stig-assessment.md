@@ -2618,6 +2618,13 @@ stat -c %u:%g '/etc/kubernetes/proxy.conf' | grep -q 0:0 && echo PASS /etc/kuber
 stat -c %u:%g '/etc/kubernetes/admin.conf' | grep -q 0:0 && echo PASS /etc/kubernetes/admin.conf: 0:0 || echo FAIL /etc/kubernetes/admin.conf: 0:0
 stat -c %u:%g '/etc/kubernetes/controller.conf' | grep -q 0:0 && echo PASS /etc/kubernetes/controller.conf: 0:0 || echo FAIL /etc/kubernetes/controller.conf: 0:0
 stat -c %u:%g '/etc/kubernetes/pki/etcd' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/etcd: 0:0 || echo FAIL /etc/kubernetes/pki/etcd: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/apiserver-etcd-client.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/apiserver-etcd-client.crt: 0:0 || echo FAIL /etc/kubernetes/pki/apiserver-etcd-client.crt: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/apiserver-etcd-client.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/apiserver-etcd-client.key: 0:0 || echo FAIL /etc/kubernetes/pki/apiserver-etcd-client.key: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/etcd/ca.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/etcd/ca.crt: 0:0 || echo FAIL /etc/kubernetes/pki/etcd/ca.crt: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/etcd/peer.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/etcd/peer.crt: 0:0 || echo FAIL /etc/kubernetes/pki/etcd/peer.crt: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/etcd/peer.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/etcd/peer.key: 0:0 || echo FAIL /etc/kubernetes/pki/etcd/peer.key: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/etcd/server.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/etcd/server.crt: 0:0 || echo FAIL /etc/kubernetes/pki/etcd/server.crt: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/etcd/server.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/etcd/server.key: 0:0 || echo FAIL /etc/kubernetes/pki/etcd/server.key: 0:0
 stat -c %u:%g '/etc/kubernetes/pki/client-ca.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/client-ca.crt: 0:0 || echo FAIL /etc/kubernetes/pki/client-ca.crt: 0:0
 stat -c %u:%g '/etc/kubernetes/pki/front-proxy-ca.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/front-proxy-ca.key: 0:0 || echo FAIL /etc/kubernetes/pki/front-proxy-ca.key: 0:0
 stat -c %u:%g '/etc/kubernetes/pki/apiserver.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/apiserver.key: 0:0 || echo FAIL /etc/kubernetes/pki/apiserver.key: 0:0
@@ -5181,7 +5188,6 @@ sudo systemctl restart snap.k8s.etcd
 
 Ensure that the argument `--peer-key-file` for service etcd is set as appropriate 
 in the service’s argument file `/var/snap/k8s/common/args/etcd`.
-chmod -R 644 /var/snap/k8s/common/args /var/snap/k8s/common/args/conf.d /var/snap/k8s/common/args/kube-apiserver /var/snap/k8s/common/args/kube-controller-manager /var/snap/k8s/common/args/k8sd /var/snap/k8s/common/args/kube-proxy /var/snap/k8s/common/args/kube-scheduler /var/snap/k8s/common/args/kubelet /var/snap/k8s/common/args/containerd /var/snap/k8s/common/args/k8s-dqlite /var/snap/k8s/common/args/conf.d/auth-token-webhook.conf
 
 ```
 grep -E -q  '\-\-peer-key-file=("/etc/kubernetes/pki/etcd/peer\.key")' '/var/snap/k8s/common/args/etcd'
@@ -5416,7 +5422,7 @@ Ensure all of the following paths have correct ownership by running:
 
 
 
-    chown -R 0:0 /etc/kubernetes /etc/kubernetes/pki /etc/kubernetes/kubelet.conf /etc/kubernetes/scheduler.conf /etc/kubernetes/proxy.conf /etc/kubernetes/admin.conf /etc/kubernetes/controller.conf /etc/kubernetes/pki/etcd /etc/kubernetes/pki/client-ca.crt /etc/kubernetes/pki/front-proxy-ca.key /etc/kubernetes/pki/apiserver.key /etc/kubernetes/pki/apiserver.crt /etc/kubernetes/pki/apiserver-kubelet-client.key /etc/kubernetes/pki/front-proxy-client.crt /etc/kubernetes/pki/serviceaccount.key /etc/kubernetes/pki/front-proxy-client.key /etc/kubernetes/pki/kubelet.crt /etc/kubernetes/pki/ca.crt /etc/kubernetes/pki/ca.key /etc/kubernetes/pki/apiserver-kubelet-client.crt /etc/kubernetes/pki/front-proxy-ca.crt /etc/kubernetes/pki/kubelet.key
+    chown -R 0:0 /etc/kubernetes /etc/kubernetes/pki /etc/kubernetes/kubelet.conf /etc/kubernetes/scheduler.conf /etc/kubernetes/proxy.conf /etc/kubernetes/admin.conf /etc/kubernetes/controller.conf /etc/kubernetes/pki/etcd /etc/kubernetes/pki/apiserver-etcd-client.crt /etc/kubernetes/pki/apiserver-etcd-client.key /etc/kubernetes/pki/etcd/ca.crt /etc/kubernetes/pki/etcd/peer.crt /etc/kubernetes/pki/etcd/peer.key /etc/kubernetes/pki/etcd/server.crt /etc/kubernetes/pki/etcd/server.key /etc/kubernetes/pki/client-ca.crt /etc/kubernetes/pki/front-proxy-ca.key /etc/kubernetes/pki/apiserver.key /etc/kubernetes/pki/apiserver.crt /etc/kubernetes/pki/apiserver-kubelet-client.key /etc/kubernetes/pki/front-proxy-client.crt /etc/kubernetes/pki/serviceaccount.key /etc/kubernetes/pki/front-proxy-client.key /etc/kubernetes/pki/kubelet.crt /etc/kubernetes/pki/ca.crt /etc/kubernetes/pki/ca.key /etc/kubernetes/pki/apiserver-kubelet-client.crt /etc/kubernetes/pki/front-proxy-ca.crt /etc/kubernetes/pki/kubelet.key
 
 ### Auditing (as root)
 
@@ -5431,6 +5437,13 @@ stat -c %u:%g '/etc/kubernetes/proxy.conf' | grep -q 0:0 && echo PASS /etc/kuber
 stat -c %u:%g '/etc/kubernetes/admin.conf' | grep -q 0:0 && echo PASS /etc/kubernetes/admin.conf: 0:0 || echo FAIL /etc/kubernetes/admin.conf: 0:0
 stat -c %u:%g '/etc/kubernetes/controller.conf' | grep -q 0:0 && echo PASS /etc/kubernetes/controller.conf: 0:0 || echo FAIL /etc/kubernetes/controller.conf: 0:0
 stat -c %u:%g '/etc/kubernetes/pki/etcd' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/etcd: 0:0 || echo FAIL /etc/kubernetes/pki/etcd: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/apiserver-etcd-client.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/apiserver-etcd-client.crt: 0:0 || echo FAIL /etc/kubernetes/pki/apiserver-etcd-client.crt: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/apiserver-etcd-client.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/apiserver-etcd-client.key: 0:0 || echo FAIL /etc/kubernetes/pki/apiserver-etcd-client.key: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/etcd/ca.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/etcd/ca.crt: 0:0 || echo FAIL /etc/kubernetes/pki/etcd/ca.crt: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/etcd/peer.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/etcd/peer.crt: 0:0 || echo FAIL /etc/kubernetes/pki/etcd/peer.crt: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/etcd/peer.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/etcd/peer.key: 0:0 || echo FAIL /etc/kubernetes/pki/etcd/peer.key: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/etcd/server.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/etcd/server.crt: 0:0 || echo FAIL /etc/kubernetes/pki/etcd/server.crt: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/etcd/server.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/etcd/server.key: 0:0 || echo FAIL /etc/kubernetes/pki/etcd/server.key: 0:0
 stat -c %u:%g '/etc/kubernetes/pki/client-ca.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/client-ca.crt: 0:0 || echo FAIL /etc/kubernetes/pki/client-ca.crt: 0:0
 stat -c %u:%g '/etc/kubernetes/pki/front-proxy-ca.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/front-proxy-ca.key: 0:0 || echo FAIL /etc/kubernetes/pki/front-proxy-ca.key: 0:0
 stat -c %u:%g '/etc/kubernetes/pki/apiserver.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/apiserver.key: 0:0 || echo FAIL /etc/kubernetes/pki/apiserver.key: 0:0
