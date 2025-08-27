@@ -2584,7 +2584,9 @@ The final line of the output will be `PASS`.
 > authorizations inherit within Kubernetes with RBAC implemented.
 
 
+`````{tabs}
 
+````{group-tab} etcd
 
 
 **Comments:**
@@ -2646,6 +2648,65 @@ stat -c %u:%g '/etc/containerd/config.toml' | grep -q 0:0 && echo PASS /etc/cont
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
+````
+
+````{group-tab} k8s-dqlite
+
+**Comments:**
+
+> The manifest files for the Kubernetes services in the k8s-snap are located in
+> the following directories:
+>
+>     /etc/kubernetes
+>     /etc/containerd
+>
+
+
+### Remediation
+
+Ensure all of the following paths have correct ownership by running:
+
+
+
+    chown -R 0:0 /etc/containerd /etc/containerd/config.toml
+
+### Auditing (as root)
+
+Ensure all files exist and have the correct ownership.
+
+```bash
+stat -c %u:%g '/etc/kubernetes' | grep -q 0:0 && echo PASS /etc/kubernetes: 0:0 || echo FAIL /etc/kubernetes: 0:0
+stat -c %u:%g '/etc/kubernetes/pki' | grep -q 0:0 && echo PASS /etc/kubernetes/pki: 0:0 || echo FAIL /etc/kubernetes/pki: 0:0
+stat -c %u:%g '/etc/kubernetes/kubelet.conf' | grep -q 0:0 && echo PASS /etc/kubernetes/kubelet.conf: 0:0 || echo FAIL /etc/kubernetes/kubelet.conf: 0:0
+stat -c %u:%g '/etc/kubernetes/scheduler.conf' | grep -q 0:0 && echo PASS /etc/kubernetes/scheduler.conf: 0:0 || echo FAIL /etc/kubernetes/scheduler.conf: 0:0
+stat -c %u:%g '/etc/kubernetes/proxy.conf' | grep -q 0:0 && echo PASS /etc/kubernetes/proxy.conf: 0:0 || echo FAIL /etc/kubernetes/proxy.conf: 0:0
+stat -c %u:%g '/etc/kubernetes/admin.conf' | grep -q 0:0 && echo PASS /etc/kubernetes/admin.conf: 0:0 || echo FAIL /etc/kubernetes/admin.conf: 0:0
+stat -c %u:%g '/etc/kubernetes/controller.conf' | grep -q 0:0 && echo PASS /etc/kubernetes/controller.conf: 0:0 || echo FAIL /etc/kubernetes/controller.conf: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/etcd' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/etcd: 0:0 || echo FAIL /etc/kubernetes/pki/etcd: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/client-ca.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/client-ca.crt: 0:0 || echo FAIL /etc/kubernetes/pki/client-ca.crt: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/front-proxy-ca.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/front-proxy-ca.key: 0:0 || echo FAIL /etc/kubernetes/pki/front-proxy-ca.key: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/apiserver.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/apiserver.key: 0:0 || echo FAIL /etc/kubernetes/pki/apiserver.key: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/apiserver.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/apiserver.crt: 0:0 || echo FAIL /etc/kubernetes/pki/apiserver.crt: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/apiserver-kubelet-client.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/apiserver-kubelet-client.key: 0:0 || echo FAIL /etc/kubernetes/pki/apiserver-kubelet-client.key: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/front-proxy-client.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/front-proxy-client.crt: 0:0 || echo FAIL /etc/kubernetes/pki/front-proxy-client.crt: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/serviceaccount.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/serviceaccount.key: 0:0 || echo FAIL /etc/kubernetes/pki/serviceaccount.key: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/front-proxy-client.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/front-proxy-client.key: 0:0 || echo FAIL /etc/kubernetes/pki/front-proxy-client.key: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/kubelet.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/kubelet.crt: 0:0 || echo FAIL /etc/kubernetes/pki/kubelet.crt: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/ca.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/ca.crt: 0:0 || echo FAIL /etc/kubernetes/pki/ca.crt: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/ca.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/ca.key: 0:0 || echo FAIL /etc/kubernetes/pki/ca.key: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/apiserver-kubelet-client.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/apiserver-kubelet-client.crt: 0:0 || echo FAIL /etc/kubernetes/pki/apiserver-kubelet-client.crt: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/front-proxy-ca.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/front-proxy-ca.crt: 0:0 || echo FAIL /etc/kubernetes/pki/front-proxy-ca.crt: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/kubelet.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/kubelet.key: 0:0 || echo FAIL /etc/kubernetes/pki/kubelet.key: 0:0
+stat -c %u:%g '/etc/containerd' | grep -q 0:0 && echo PASS /etc/containerd: 0:0 || echo FAIL /etc/containerd: 0:0
+stat -c %u:%g '/etc/containerd/config.toml' | grep -q 0:0 && echo PASS /etc/containerd/config.toml: 0:0 || echo FAIL /etc/containerd/config.toml: 0:0
+```
+
+In the default configuration of the `k8s-snap`, resulting output lines will
+start with `PASS`.
+
+````
+
+`````
 
 ## [V-242406]
 
@@ -5403,9 +5464,9 @@ server, controller, proxy, and scheduler. If these files can be changed, the
 scheduler will be implementing the changes immediately. Many of the security
 settings within the V-242444 document are implemented through these manifests.
 
+`````{tabs}
 
-
-
+````{group-tab} etcd
 
 **Comments:**
 
@@ -5463,7 +5524,62 @@ stat -c %u:%g '/etc/kubernetes/pki/kubelet.key' | grep -q 0:0 && echo PASS /etc/
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
+````
 
+````{group-tab} k8s-dqlite
+
+**Comments:**
+
+> The manifest files for the Kubernetes services in the k8s-snap are located in
+> the following directories:
+>
+>     /etc/kubernetes
+>
+
+
+### Remediation
+
+Ensure all of the following paths have correct ownership by running:
+
+
+
+    chown -R 0:0 /etc/kubernetes /etc/kubernetes/pki /etc/kubernetes/kubelet.conf /etc/kubernetes/scheduler.conf /etc/kubernetes/proxy.conf /etc/kubernetes/admin.conf /etc/kubernetes/controller.conf /etc/kubernetes/pki/etcd /etc/kubernetes/pki/client-ca.crt /etc/kubernetes/pki/front-proxy-ca.key /etc/kubernetes/pki/apiserver.key /etc/kubernetes/pki/apiserver.crt /etc/kubernetes/pki/apiserver-kubelet-client.key /etc/kubernetes/pki/front-proxy-client.crt /etc/kubernetes/pki/serviceaccount.key /etc/kubernetes/pki/front-proxy-client.key /etc/kubernetes/pki/kubelet.crt /etc/kubernetes/pki/ca.crt /etc/kubernetes/pki/ca.key /etc/kubernetes/pki/apiserver-kubelet-client.crt /etc/kubernetes/pki/front-proxy-ca.crt /etc/kubernetes/pki/kubelet.key
+
+### Auditing (as root)
+
+Ensure all files exist and have the correct ownership.
+
+```bash
+stat -c %u:%g '/etc/kubernetes' | grep -q 0:0 && echo PASS /etc/kubernetes: 0:0 || echo FAIL /etc/kubernetes: 0:0
+stat -c %u:%g '/etc/kubernetes/pki' | grep -q 0:0 && echo PASS /etc/kubernetes/pki: 0:0 || echo FAIL /etc/kubernetes/pki: 0:0
+stat -c %u:%g '/etc/kubernetes/kubelet.conf' | grep -q 0:0 && echo PASS /etc/kubernetes/kubelet.conf: 0:0 || echo FAIL /etc/kubernetes/kubelet.conf: 0:0
+stat -c %u:%g '/etc/kubernetes/scheduler.conf' | grep -q 0:0 && echo PASS /etc/kubernetes/scheduler.conf: 0:0 || echo FAIL /etc/kubernetes/scheduler.conf: 0:0
+stat -c %u:%g '/etc/kubernetes/proxy.conf' | grep -q 0:0 && echo PASS /etc/kubernetes/proxy.conf: 0:0 || echo FAIL /etc/kubernetes/proxy.conf: 0:0
+stat -c %u:%g '/etc/kubernetes/admin.conf' | grep -q 0:0 && echo PASS /etc/kubernetes/admin.conf: 0:0 || echo FAIL /etc/kubernetes/admin.conf: 0:0
+stat -c %u:%g '/etc/kubernetes/controller.conf' | grep -q 0:0 && echo PASS /etc/kubernetes/controller.conf: 0:0 || echo FAIL /etc/kubernetes/controller.conf: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/etcd' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/etcd: 0:0 || echo FAIL /etc/kubernetes/pki/etcd: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/client-ca.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/client-ca.crt: 0:0 || echo FAIL /etc/kubernetes/pki/client-ca.crt: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/front-proxy-ca.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/front-proxy-ca.key: 0:0 || echo FAIL /etc/kubernetes/pki/front-proxy-ca.key: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/apiserver.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/apiserver.key: 0:0 || echo FAIL /etc/kubernetes/pki/apiserver.key: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/apiserver.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/apiserver.crt: 0:0 || echo FAIL /etc/kubernetes/pki/apiserver.crt: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/apiserver-kubelet-client.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/apiserver-kubelet-client.key: 0:0 || echo FAIL /etc/kubernetes/pki/apiserver-kubelet-client.key: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/front-proxy-client.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/front-proxy-client.crt: 0:0 || echo FAIL /etc/kubernetes/pki/front-proxy-client.crt: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/serviceaccount.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/serviceaccount.key: 0:0 || echo FAIL /etc/kubernetes/pki/serviceaccount.key: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/front-proxy-client.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/front-proxy-client.key: 0:0 || echo FAIL /etc/kubernetes/pki/front-proxy-client.key: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/kubelet.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/kubelet.crt: 0:0 || echo FAIL /etc/kubernetes/pki/kubelet.crt: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/ca.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/ca.crt: 0:0 || echo FAIL /etc/kubernetes/pki/ca.crt: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/ca.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/ca.key: 0:0 || echo FAIL /etc/kubernetes/pki/ca.key: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/apiserver-kubelet-client.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/apiserver-kubelet-client.crt: 0:0 || echo FAIL /etc/kubernetes/pki/apiserver-kubelet-client.crt: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/front-proxy-ca.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/front-proxy-ca.crt: 0:0 || echo FAIL /etc/kubernetes/pki/front-proxy-ca.crt: 0:0
+stat -c %u:%g '/etc/kubernetes/pki/kubelet.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/kubelet.key: 0:0 || echo FAIL /etc/kubernetes/pki/kubelet.key: 0:0
+```
+
+In the default configuration of the `k8s-snap`, resulting output lines will
+start with `PASS`.
+
+````
+
+`````
 
 ## [V-242445]
 
