@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net"
 	"slices"
-	"strconv"
 	"strings"
 	"time"
 
@@ -59,25 +58,19 @@ func (a *App) postRefreshHook(ctx context.Context, s state.State) error {
 		return fmt.Errorf("failed to get boostrap status: %w", err)
 	}
 
-	if status.Ready {
-		if config.Datastore.GetType() == "k8s-dqlite" {
-			if err := a.updateK8sDqliteFeatureGates(ctx); err != nil {
-				return fmt.Errorf("failed to update k8s-dqlite feature gates: %w", err)
-			}
-		}
-
-		if _, ok := config.Annotations.Get(apiv1_annotations.AnnotationDisableSeparateFeatureUpgrades); !ok {
-			// We don't want to run the upgrade if the cluster is not ready.
-			// The post-refresh hook is run after snap refresh AND install, so we need to make sure the cluster is ready.
+	if _, ok := config.Annotations.Get(apiv1_annotations.AnnotationDisableSeparateFeatureUpgrades); !ok {
+		// We don't want to run the upgrade if the cluster is not ready.
+		// The post-refresh hook is run after snap refresh AND install, so we need to make sure the cluster is ready.
+		if status.Ready {
 			log.Info("Cluster is ready, running post-upgrade.")
 			if err := a.performPostUpgrade(ctx, s); err != nil {
 				return fmt.Errorf("failed to perform post-upgrade: %w", err)
 			}
 		} else {
-			log.Info("Post-upgrade steps skipped due to user annotation override.")
+			log.Info("Node is not yet bootstrapped (was freshly installed), skipping upgrade steps.")
 		}
 	} else {
-		log.Info("Node is not yet bootstrapped (was freshly installed), skipping post-refresh steps.")
+		log.Info("Post-upgrade steps skipped due to user annotation override.")
 	}
 
 	return nil
@@ -173,63 +166,6 @@ func (a *App) updateNodeIPAddresses(ctx context.Context, s state.State) error {
 			}); err != nil {
 				return fmt.Errorf("failed after retry: %w", err)
 			}
-		}
-	}
-
-	return nil
-}
-
-// updateK8sDqliteFeatureGates updates the feature gates for the kube-apiserver to be compatible with k8s-dqlite.
-func (a *App) updateK8sDqliteFeatureGates(ctx context.Context) error {
-	snap := a.Snap()
-
-	// Get existing feature gates to merge our changes
-	featureGates, err := snaputil.GetServiceArgument(snap, "kube-apiserver", "--feature-gates")
-	if err != nil {
-		return fmt.Errorf("failed to get kube-apiserver feature gates: %w", err)
-	}
-
-	featureGatesMap := make(map[string]bool)
-	if featureGates != "" {
-		pairs := strings.Split(featureGates, ",")
-		for _, pair := range pairs {
-			kv := strings.SplitN(pair, "=", 2)
-			if len(kv) == 2 {
-				gate := strings.TrimSpace(kv[0])
-				stringVal := strings.TrimSpace(kv[1])
-				boolVal, err := strconv.ParseBool(stringVal)
-				if err != nil {
-					return fmt.Errorf("failed to parse feature gate value %q for key %q: %w", stringVal, kv[0], err)
-				}
-				featureGatesMap[gate] = boolVal
-			}
-		}
-	}
-
-	// Disable feature gates incompatible with k8s-dqlite introduced in kubernetes 1.34
-	featureGatesMap["ListFromCacheSnapshot"] = false
-	featureGatesMap["SizeBasedListCostEstimate"] = false
-	featureGatesMap["DetectCacheInconsistency"] = false
-
-	var featureGatesList []string
-	for k, v := range featureGatesMap {
-		featureGatesList = append(featureGatesList, fmt.Sprintf("%s=%t", k, v))
-	}
-	args := map[string]string{"--feature-gates": strings.Join(featureGatesList, ",")}
-	mustRestart, err := snaputil.UpdateServiceArguments(snap, "kube-apiserver", args, nil)
-	if err != nil {
-		return fmt.Errorf("failed to render arguments file: %w", err)
-	}
-
-	if mustRestart {
-		// This may fail if other controllers try to restart the services at the same time, hence the retry.
-		if err := control.RetryFor(ctx, 5, 5*time.Second, func() error {
-			if err := snap.RestartServices(ctx, []string{"kube-apiserver"}); err != nil {
-				return fmt.Errorf("failed to restart kube-apiserver to apply feature gates: %w", err)
-			}
-			return nil
-		}); err != nil {
-			return fmt.Errorf("failed after retry: %w", err)
 		}
 	}
 
