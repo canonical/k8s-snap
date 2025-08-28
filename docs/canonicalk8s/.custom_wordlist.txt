@@ -110,6 +110,7 @@ CommonName
 conf
 config
 configMap
+ConfigMap
 ConfigMaps
 ConnectError
 containerd
@@ -457,6 +458,8 @@ rw
 S3
 sandboxed
 SANs
+SARIF
+structs
 SBOM
 scalable
 scalability
