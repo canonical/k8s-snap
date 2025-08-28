@@ -35,6 +35,7 @@ func TestDatastoreToKubeAPIServerArguments(t *testing.T) {
 			expectUpdateArgs: map[string]string{
 				"--etcd-servers":             "unix:///k8s-dqlite/k8s-dqlite.sock",
 				"--etcd-healthcheck-timeout": "4s",
+				"--feature-gates":            "ListFromCacheSnapshot=false,SizeBasedListCostEstimate=false,DetectCacheInconsistency=false",
 			},
 			expectDeleteArgs: []string{"--etcd-cafile", "--etcd-certfile", "--etcd-keyfile"},
 		},
