@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/canonical/k8s/pkg/utils"
@@ -68,7 +69,9 @@ func (c Datastore) ToKubeAPIServerArguments(p DatastorePathsProvider) (map[strin
 	case "k8s-dqlite":
 		updateArgs["--etcd-healthcheck-timeout"] = "4s"
 		updateArgs["--etcd-servers"] = fmt.Sprintf("unix://%s", filepath.Join(p.K8sDqliteStateDir(), "k8s-dqlite.sock"))
-		updateArgs["--feature-gates"] = "ListFromCacheSnapshot=false,SizeBasedListCostEstimate=false,DetectCacheInconsistency=false"
+		featureGates := []string{"ListFromCacheSnapshot=false", "SizeBasedListCostEstimate=false", "DetectCacheInconsistency=false"}
+		sort.Strings(featureGates)
+		updateArgs["--feature-gates"] = strings.Join(featureGates, ",")
 		deleteArgs = []string{"--etcd-cafile", "--etcd-certfile", "--etcd-keyfile"}
 	case "etcd":
 		updateArgs["--etcd-cafile"] = filepath.Join(p.EtcdPKIDir(), "ca.crt")
