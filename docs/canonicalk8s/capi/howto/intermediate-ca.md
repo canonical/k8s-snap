@@ -35,7 +35,7 @@ cat <<EOF > myca/ca-secret.yaml
 apiVersion: v1
 kind: Secret
 metadata:
-  name: mycluster
+  name: mycluster-ca
 type: Opaque
 stringData:
   tls.crt: |
