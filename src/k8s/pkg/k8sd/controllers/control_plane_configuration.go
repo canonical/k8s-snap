@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -144,6 +145,9 @@ func (c *ControlPlaneConfigurationController) reconcile(ctx context.Context, con
 		for k, v := range featureGatesMap {
 			featureGatesList = append(featureGatesList, fmt.Sprintf("%s=%t", k, v))
 		}
+
+		sort.Strings(featureGatesList)
+
 		args := map[string]string{"--feature-gates": strings.Join(featureGatesList, ",")}
 		mustRestart, err := snaputil.UpdateServiceArguments(c.snap, "kube-apiserver", args, nil)
 		if err != nil {
