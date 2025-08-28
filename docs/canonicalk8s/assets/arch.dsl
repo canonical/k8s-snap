@@ -11,13 +11,13 @@ workspace "Canonical K8s Workspace" {
         storage = softwareSystem "Storage" "External storage, offered by the substrate (cloud). Could be replaced by any storage solution." "Extern"
         iam = softwareSystem "Identity Management System" "The external identity system, offered by the substrate (cloud). Could be replaced by any alternative system." "Extern"
         external_datastore = softwareSystem "External datastore" "etcd" "Extern"
-  
+
        k8s_snap = softwareSystem "K8s Snap Distribution" "The Kubernetes distribution in a snap" {
 
             kubectl = container "Kubectl" "kubectl client for accessing the cluster"
 
             kubernetes = container "Kubernetes Services" "API server, kubelet, kube-proxy, scheduler, kube-controller" {
-                systemd = component "systemd daemons" "Daemons holding the k8s services" 
+                systemd = component "systemd daemons" "Daemons holding the k8s services"
                 apiserver = component "API server"
                 kubelet = component "kubelet"
                 kube_proxy = component "kube-proxy"
@@ -42,7 +42,7 @@ workspace "Canonical K8s Workspace" {
 
             state = container "State" "Datastores holding the cluster state" {
                 k8sd_db = component "k8sd-dqlite" "MicroCluster DB"
-                k8s_dqlite = component "k8s-dqlite" "Datastore holding the K8s cluster state"
+                etcd = component "etcd" "Datastore holding the K8s cluster state"
             }
         }
 
@@ -55,7 +55,7 @@ workspace "Canonical K8s Workspace" {
         k8s_snap -> storage "Hosted workloads use storage"
         k8s_snap -> iam "Users identity is retrieved"
 
-        k8s_dqlite -> external_datastore "Stores cluster data" "" "Runtime"
+        etcd -> external_datastore "Stores cluster data" "" "Runtime"
         loadbalancer -> external_lb "Routes client requests" "" "Runtime"
 
         cluster_manager -> systemd "Configures"
@@ -87,7 +87,7 @@ workspace "Canonical K8s Workspace" {
     views {
 
         systemLandscape Overview "K8s Snap Overview" {
-          include * 
+          include *
           autoLayout
         }
 
