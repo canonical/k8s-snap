@@ -48,10 +48,17 @@ jobs:
         run: |
           OLD_VERSION=$(git show ${{ github.event.pull_request.base.sha }}:build-scripts/components/kubernetes/version)
           NEW_VERSION=$(cat build-scripts/components/kubernetes/version)
+          
+          echo "Old Kubernetes version (base): $OLD_VERSION"
+          echo "New Kubernetes version (PR):   $NEW_VERSION"
 
           OLD_MINOR=$(echo $OLD_VERSION | cut -d. -f2)
           NEW_MINOR=$(echo $NEW_VERSION | cut -d. -f2)
 
+          echo "Old Kubernetes minor version (base): $OLD_MINOR"
+          echo "New Kubernetes minor version (PR):   $NEW_MINOR"
+
+          # Only run the branch_management tests if the minor version is the same
           if [ "$OLD_MINOR" = "$NEW_MINOR" ]; then
             echo "kubernetes_minor_same=true" >> $GITHUB_ENV
           else
