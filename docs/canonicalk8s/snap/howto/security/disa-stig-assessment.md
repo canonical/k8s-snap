@@ -1410,7 +1410,7 @@ Ensure that the argument `--auto-tls` for service etcd is set as appropriate
 in the service’s argument file `/var/snap/k8s/common/args/etcd`.
 
 ```
-grep -E -q  '\-\-auto-tls=(false|0)' '/var/snap/k8s/common/args/etcd'
+grep -E -q  '\-\-auto-tls=("false"|0)' '/var/snap/k8s/common/args/etcd'
 test $? -eq 0 && echo PASS || echo FAIL
 ```
 
@@ -1675,7 +1675,7 @@ Ensure that the argument `--peer-auto-tls` for service etcd is set as
 appropriate in the service’s argument file `/var/snap/k8s/common/args/etcd`.
 
 ```
-grep -E -q  '\-\-peer-auto-tls=(false|0)' '/var/snap/k8s/common/args/etcd'
+grep -E -q  '\-\-peer-auto-tls=("false"|0)' '/var/snap/k8s/common/args/etcd'
 test $? -eq 0 && echo PASS || echo FAIL
 ```
 
