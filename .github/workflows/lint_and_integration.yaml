@@ -43,7 +43,23 @@ jobs:
           python-version: '3.8'
       - name: Install tox
         run: sudo apt-get install -y tox
+      - name: Extract Kubernetes versions
+        id: versions
+        run: |
+          OLD_VERSION=$(git show ${{ github.event.pull_request.base.sha }}:build-scripts/components/kubernetes/version)
+          NEW_VERSION=$(cat build-scripts/components/kubernetes/version)
+
+          OLD_MINOR=$(echo $OLD_VERSION | cut -d. -f2)
+          NEW_MINOR=$(echo $NEW_VERSION | cut -d. -f2)
+
+          if [ "$OLD_MINOR" = "$NEW_MINOR" ]; then
+            echo "kubernetes_minor_same=true" >> $GITHUB_ENV
+          else
+            echo "kubernetes_minor_same=false" >> $GITHUB_ENV
+          fi
+
       - name: Run branch_management tests
+        if: env.kubernetes_minor_same == 'true'
         run: |
           tox -c tests/branch_management -e test
   python-lint:
