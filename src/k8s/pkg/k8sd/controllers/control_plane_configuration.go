@@ -3,6 +3,8 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/canonical/k8s/pkg/k8sd/pki"
@@ -11,6 +13,7 @@ import (
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
+	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/k8s/pkg/utils/experimental/snapdconfig"
 )
 
@@ -104,6 +107,58 @@ func (c *ControlPlaneConfigurationController) reconcile(ctx context.Context, con
 		if certificatesChanged || argsChanged {
 			if err := c.snap.RestartServices(ctx, []string{"kube-apiserver"}); err != nil {
 				return fmt.Errorf("failed to restart kube-apiserver to apply configuration: %w", err)
+			}
+		}
+	} else if config.Datastore.GetType() == "k8s-dqlite" {
+		// Get existing feature gates to merge our changes
+		featureGates, err := snaputil.GetServiceArgument(c.snap, "kube-apiserver", "--feature-gates")
+		if err != nil {
+			return fmt.Errorf("failed to get kube-apiserver feature gates: %w", err)
+		}
+
+		// (KU-4140): Look into improving UpdateServiceArguments to handle more complex values
+		// instead of treating everything as a simple string
+		featureGatesMap := make(map[string]bool)
+		if featureGates != "" {
+			pairs := strings.Split(featureGates, ",")
+			for _, pair := range pairs {
+				kv := strings.SplitN(pair, "=", 2)
+				if len(kv) == 2 {
+					gate := strings.TrimSpace(kv[0])
+					stringVal := strings.TrimSpace(kv[1])
+					boolVal, err := strconv.ParseBool(stringVal)
+					if err != nil {
+						return fmt.Errorf("failed to parse feature gate value %q for key %q: %w", stringVal, kv[0], err)
+					}
+					featureGatesMap[gate] = boolVal
+				}
+			}
+		}
+
+		// (KU-4139): Disable feature gates incompatible with k8s-dqlite introduced in kubernetes 1.34
+		featureGatesMap["ListFromCacheSnapshot"] = false
+		featureGatesMap["SizeBasedListCostEstimate"] = false
+		featureGatesMap["DetectCacheInconsistency"] = false
+
+		var featureGatesList []string
+		for k, v := range featureGatesMap {
+			featureGatesList = append(featureGatesList, fmt.Sprintf("%s=%t", k, v))
+		}
+		args := map[string]string{"--feature-gates": strings.Join(featureGatesList, ",")}
+		mustRestart, err := snaputil.UpdateServiceArguments(c.snap, "kube-apiserver", args, nil)
+		if err != nil {
+			return fmt.Errorf("failed to render arguments file: %w", err)
+		}
+
+		if mustRestart {
+			// This may fail if other controllers try to restart the services at the same time, hence the retry.
+			if err := control.RetryFor(ctx, 5, 5*time.Second, func() error {
+				if err := c.snap.RestartServices(ctx, []string{"kube-apiserver"}); err != nil {
+					return fmt.Errorf("failed to restart kube-apiserver to apply feature gates: %w", err)
+				}
+				return nil
+			}); err != nil {
+				return fmt.Errorf("failed after retry: %w", err)
 			}
 		}
 	}
