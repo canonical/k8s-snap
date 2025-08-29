@@ -5,8 +5,8 @@ import datetime
 import logging
 import os
 import subprocess
-from typing import List
 from pathlib import Path
+from typing import List
 
 import pytest
 from cryptography import x509
