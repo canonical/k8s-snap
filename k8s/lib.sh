@@ -43,6 +43,12 @@ k8s::common::is_strict() {
   fi
 }
 
+k8s::common::resources() {
+  mkdir -p "$SNAP_COMMON/etc/"
+  cp -r "$SNAP/etc/templates" "$SNAP_COMMON/etc/"
+  cp -r "$SNAP/etc/configurations" "$SNAP_COMMON/etc/"
+}
+
 # Check if FIPS is enabled on the system
 # Returns 0 (success) if FIPS is enabled, 1 (failure) otherwise
 # Example: 'k8s::common::on_fips_host && echo "FIPS is enabled"'
@@ -85,6 +91,12 @@ k8s::remove::system_tuning() {
       echo "$files_to_remove" | xargs sudo rm -f
       sudo sysctl --system
     fi
+  fi
+}
+
+k8s::remove::resources() {
+  if [ -d "$SNAP_COMMON/etc" ]; then
+    sudo rm -rf "$SNAP_COMMON/etc"
   fi
 }
 

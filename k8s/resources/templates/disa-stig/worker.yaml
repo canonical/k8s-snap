@@ -1,0 +1,3 @@
+extra-node-kubelet-args:
+  --protect-kernel-defaults: true
+  --streaming-connection-idle-timeout: 5m
