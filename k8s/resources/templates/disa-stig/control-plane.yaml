@@ -1,7 +1,7 @@
 extra-node-kube-apiserver-args:
   --feature-gates: AllAlpha=false,
   --audit-log-path: /var/log/kubernetes/audit.log,
-  --audit-policy-file: /var/snap/k8s/common/etc/audit-policy.yaml
+  --audit-policy-file: /var/snap/k8s/common/etc/configurations/disa-stig/audit-policy.yaml
   --audit-log-maxage: 30,
   --audit-log-maxbackup: 10,
   --audit-log-maxsize: 100

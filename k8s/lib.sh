@@ -94,6 +94,12 @@ k8s::remove::system_tuning() {
   fi
 }
 
+k8s::remove::resources() {
+  if [ -d "$SNAP_COMMON/etc" ]; then
+    sudo rm -rf "$SNAP_COMMON/etc"
+  fi
+}
+
 # Run a ctr command against the local containerd socket
 # Example: 'k8s::cmd::ctr image ls -q'
 k8s::cmd::ctr() {
