@@ -14,7 +14,6 @@ STATUS_PATTERNS = [
     r"cluster status:\s*ready",
     r"control plane nodes:\s*(\d{1,3}(?:\.\d{1,3}){3}:\d{1,5})\s\(voter\)",
     r"high availability:\s*no",
-    r"datastore:\s*etcd",
     r"network:\s*enabled",
     r"dns:\s*enabled at (\d{1,3}(?:\.\d{1,3}){3})",
     r"ingress:\s*enabled",
@@ -29,7 +28,9 @@ STATUS_PATTERNS = [
     (config.MANIFESTS_DIR / "bootstrap-smoke.yaml").read_text()
 )
 @pytest.mark.tags(tags.PULL_REQUEST)
-def test_smoke(instances: List[harness.Instance]):
+def test_smoke(instances: List[harness.Instance], datastore_type: str):
+    STATUS_PATTERNS.insert(3, r"datastore:\s*{}".format(datastore_type))
+
     instance = instances[0]
 
     # Verify the functionality of the k8s config command during the smoke test.
@@ -48,16 +49,22 @@ def test_smoke(instances: List[harness.Instance]):
     )
     assert content.stdout.decode() == "extra-args-test-file-content"
 
-    # For each service, verify that the extra arg was written to the args file.
-    for service, value in {
+    args = {
         "kube-apiserver": '--request-timeout="2m"',
         "kube-controller-manager": '--leader-elect-retry-period="3s"',
         "kube-scheduler": '--authorization-webhook-cache-authorized-ttl="11s"',
         "kube-proxy": '--config-sync-period="14m"',
         "kubelet": '--authentication-token-webhook-cache-ttl="3m"',
         "containerd": '--log-level="debug"',
-        "etcd": '--log-level="info"',
-    }.items():
+    }
+
+    if datastore_type == "etcd":
+        args["etcd"] = '--log-level="info"'
+    elif datastore_type == "k8s-dqlite":
+        args["k8s-dqlite"] = '--watch-storage-available-size-interval="6s"'
+
+    # For each service, verify that the extra arg was written to the args file.
+    for service, value in args.items():
         args = instance.exec(
             ["cat", f"/var/snap/k8s/common/args/{service}"], capture_output=True
         )
