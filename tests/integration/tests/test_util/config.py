@@ -11,6 +11,7 @@ DIR = Path(__file__).absolute().parent
 DEFAULT_WAIT_RETRIES = int(os.getenv("TEST_DEFAULT_WAIT_RETRIES") or 120)
 DEFAULT_WAIT_DELAY_S = int(os.getenv("TEST_DEFAULT_WAIT_DELAY_S") or 5)
 
+COMMON_ETC_DIR = DIR / "var/snap/k8s/common/etc"
 MANIFESTS_DIR = DIR / ".." / ".." / "templates"
 CLOUD_INIT_DIR = MANIFESTS_DIR / "cloud-init"
 

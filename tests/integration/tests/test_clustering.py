@@ -73,6 +73,33 @@ def test_worker_nodes(instances: List[harness.Instance]):
 
 
 @pytest.mark.node_count(3)
+@pytest.mark.disable_k8s_bootstrapping()
+@pytest.mark.tags(tags.PULL_REQUEST)
+def test_disa_stig_clustering(instances: List[harness.Instance]):
+    cluster_node = instances[0]
+    joining_cp = instances[1]
+    joining_worker = instances[2]
+
+    bootstrapFile = config.COMMON_ETC_DIR / "templates/disa-stig/bootstrap.yaml"
+    cluster_node.exec(["k8s", "bootstrap", "--file", bootstrapFile])
+
+    util.wait_until_k8s_ready(cluster_node, [cluster_node])
+
+    cp_file = config.COMMON_ETC_DIR / "templates/disa-stig/control-plane.yaml"
+    join_token_cp = util.get_join_token(cluster_node, joining_cp)
+    joining_cp.exec(["k8s", "join-cluster", join_token_cp, "--file", cp_file])
+
+    worker_file = config.COMMON_ETC_DIR / "templates/disa-stig/worker.yaml"
+    join_token_worker = util.get_join_token(cluster_node, joining_worker, "--worker")
+    joining_worker.exec(["k8s", "join-cluster", join_token_worker, "--file", worker_file])
+
+    util.wait_until_k8s_ready(cluster_node, instances)
+    assert "control-plane" in util.get_local_node_status(cluster_node)
+    assert "control-plane" in util.get_local_node_status(joining_cp)
+    assert "worker" in util.get_local_node_status(joining_worker)
+
+
+@pytest.mark.node_count(3)
 @pytest.mark.tags(tags.NIGHTLY)
 def test_join_with_custom_token_name(instances: List[harness.Instance]):
     cluster_node = instances[0]

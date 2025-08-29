@@ -3,10 +3,6 @@ cluster-config:
     enabled: true
   dns:
     enabled: true
-  ingress:
-    enabled: true
-  load-balancer:
-    enabled: true
   local-storage:
     enabled: true
   gateway:
