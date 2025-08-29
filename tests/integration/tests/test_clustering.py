@@ -81,16 +81,16 @@ def test_disa_stig_clustering(instances: List[harness.Instance]):
     joining_cp = instances[1]
     joining_worker = instances[2]
 
-    bootstrapFile = Path(config.COMMON_ETC_DIR) / "templates/disa-stig/bootstrap.yaml"
+    bootstrapFile = config.COMMON_ETC_DIR + "/templates/disa-stig/bootstrap.yaml"
     cluster_node.exec(["k8s", "bootstrap", "--file", bootstrapFile])
 
     util.wait_until_k8s_ready(cluster_node, [cluster_node])
 
-    cp_file = Path(config.COMMON_ETC_DIR) / "templates/disa-stig/control-plane.yaml"
+    cp_file = config.COMMON_ETC_DIR + "/templates/disa-stig/control-plane.yaml"
     join_token_cp = util.get_join_token(cluster_node, joining_cp)
     joining_cp.exec(["k8s", "join-cluster", join_token_cp, "--file", cp_file])
 
-    worker_file = Path(config.COMMON_ETC_DIR) / "templates/disa-stig/worker.yaml"
+    worker_file = config.COMMON_ETC_DIR + "/templates/disa-stig/worker.yaml"
     join_token_worker = util.get_join_token(cluster_node, joining_worker, "--worker")
     joining_worker.exec(
         ["k8s", "join-cluster", join_token_worker, "--file", worker_file]
