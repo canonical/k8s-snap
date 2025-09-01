@@ -264,7 +264,7 @@ def clean_obsolete_git_branches(project_basedir: str, remote="origin"):
         else:
             LOG.debug("Obsolete branch not found, skipping: %s", branch)
 
-def cut_release_branch(project_basedir: str, remote="origin"):
+def cut_release_branch(project_basedir: str, remote="origin", dry_run=False):
     """Cut a new release branch from main.
     
     The new branch is formatted as release-1.XX where XX is the new Kubernetes minor version.
@@ -282,6 +282,11 @@ def cut_release_branch(project_basedir: str, remote="origin"):
         project_basedir=project_basedir,
     ):
         LOG.info("Release branch for %s already exists, skipping.", k8s_version)
+        return
+
+    LOG.info("Cutting a new release branch: %s", branch)
+
+    if dry_run:
         return
 
     _exec(
@@ -333,6 +338,7 @@ if __name__ == "__main__":
         default=os.getcwd(),
     )
     cmd.add_argument("--remote", dest="remote", help="Git remote.", default="origin")
+    cmd.add_argument("--dry-run", action="store_true", help="Dry run mode.", default=False)
 
     kwargs = vars(parser.parse_args())
     f = locals()[kwargs.pop("subparser")]
