@@ -83,8 +83,11 @@ def test_disa_stig_clustering(instances: List[harness.Instance]):
 
     util.setup_k8s_snap(cluster_node)
     bootstrapFile = config.COMMON_ETC_DIR + "/templates/disa-stig/bootstrap.yaml"
-    cluster_node.exec(["k8s", "bootstrap", "--file", bootstrapFile])
+    cluster_node.exec(["sysctl", "-w", "vm.overcommit_memory=1"])
+    cluster_node.exec(["sysctl", "-w", "kernel.panic=10"])
+    cluster_node.exec(["sysctl", "-w", "kernel.panic_on_oops=1"])
 
+    cluster_node.exec(["k8s", "bootstrap", "--file", bootstrapFile])
     util.wait_until_k8s_ready(cluster_node, [cluster_node])
 
     util.setup_k8s_snap(joining_cp)
@@ -93,6 +96,9 @@ def test_disa_stig_clustering(instances: List[harness.Instance]):
 
     with open(cp_file, "r") as file:
         data = yaml.safe_load(file)
+    joining_cp.exec(["sysctl", "-w", "vm.overcommit_memory=1"])
+    joining_cp.exec(["sysctl", "-w", "kernel.panic=10"])
+    joining_cp.exec(["sysctl", "-w", "kernel.panic_on_oops=1"])
     util.join_cluster(joining_cp, join_token_cp, yaml.dump(data))
 
     util.setup_k8s_snap(joining_worker)
@@ -101,6 +107,9 @@ def test_disa_stig_clustering(instances: List[harness.Instance]):
 
     with open(worker_file, "r") as file:
         data = yaml.safe_load(file)
+    joining_worker.exec(["sysctl", "-w", "vm.overcommit_memory=1"])
+    joining_worker.exec(["sysctl", "-w", "kernel.panic=10"])
+    joining_worker.exec(["sysctl", "-w", "kernel.panic_on_oops=1"])
     util.join_cluster(joining_worker, join_token_worker, yaml.dump(data))
 
     util.wait_until_k8s_ready(cluster_node, instances)
