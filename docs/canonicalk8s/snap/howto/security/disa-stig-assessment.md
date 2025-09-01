@@ -6632,7 +6632,7 @@ find /var/snap/k8s/common/var/lib/etcd/ -type d -exec chmod 700 {} \;
 Ensure all directories have permissions '700' (or stricter):
 
 ```bash
-find /var/snap/k8s/common/var/lib/etcd/ -type d -exec sh -c 'stat -c "%a %n" $1 | grep -q 700 && echo PASS $1 || echo FAIL $1' _ {} \;
+find /var/snap/k8s/common/var/lib/etcd/ -type d -exec sh -c '[ "$(stat -c %a $1)" -le 700 ] && echo PASS $1 || echo FAIL $1' _ {} \;
 ```
 
 In the default configuration of the `k8s-snap`, resulting output lines will
@@ -6645,15 +6645,15 @@ start with `PASS`.
 Ensure all of the etcd directories have correct permissions by running:
 
 ```
-find /var/snap/k8s/common/var/lib/etcd/ -type f -exec chmod 600 {} \;
+find /var/snap/k8s/common/var/lib/etcd/ -type f -exec chmod 644 {} \;
 ```
 
 ### Auditing (as root) for Step 2
 
-Ensure all files have permissions '600' (or stricter):
+Ensure all files have permissions '644' (or stricter):
 
 ```bash
-find /var/snap/k8s/common/var/lib/etcd/ -type f -exec sh -c 'stat -c "%a %n" $1 | grep -q 600 && echo PASS $1 || echo FAIL $1' _ {} \;
+find /var/snap/k8s/common/var/lib/etcd/ -type f -exec sh -c '[ "$(stat -c %a $1)" -le 644 ] && echo PASS $1 || echo FAIL $1' _ {} \;
 ```
 
 In the default configuration of the `k8s-snap`, resulting output lines will
