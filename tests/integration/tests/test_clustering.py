@@ -91,18 +91,17 @@ def test_disa_stig_clustering(instances: List[harness.Instance]):
     cp_file = config.COMMON_ETC_DIR + "/templates/disa-stig/control-plane.yaml"
     join_token_cp = util.get_join_token(cluster_node, joining_cp)
 
-    joining_cp.exec(
-        ["k8s", "join-cluster", join_token_cp, "--file", "-"],
-        input=str.encode(yaml.dump(cp_file)),
-    )
+    with open(cp_file, "r") as file:
+        data = yaml.safe_load(file)
+    util.join_cluster(joining_cp, join_token_cp, yaml.dump(data))
 
     util.setup_k8s_snap(joining_worker)
     worker_file = config.COMMON_ETC_DIR + "/templates/disa-stig/worker.yaml"
     join_token_worker = util.get_join_token(cluster_node, joining_worker, "--worker")
-    joining_worker.exec(
-        ["k8s", "join-cluster", join_token_worker, "--file", "-"],
-        input=str.encode(yaml.dump(worker_file)),
-    )
+
+    with open(worker_file, "r") as file:
+        data = yaml.safe_load(file)
+    util.join_cluster(joining_worker, join_token_worker, yaml.dump(data))
 
     util.wait_until_k8s_ready(cluster_node, instances)
     assert "control-plane" in util.get_local_node_status(cluster_node)
