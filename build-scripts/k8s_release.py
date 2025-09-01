@@ -275,9 +275,9 @@ def cut_release_branch(project_basedir: str, remote="origin", dry_run=False):
         return
     
     version = Version(k8s_version.lstrip("v"))
-    branch = f"{remote}/release-{version.major}.{version.minor}"
+    branch = f"release-{version.major}.{version.minor}"
     if _branch_exists(
-        branch,
+        f"{remote}/{branch}",
         remote=True,
         project_basedir=project_basedir,
     ):

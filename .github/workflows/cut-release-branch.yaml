@@ -32,8 +32,8 @@ jobs:
           # Needed to create commits.
           git config --global user.name "Github Actions"
           git config --global user.email "worker@org.com"
-      - name: 'Prepare pre-release git branch'
+      - name: Prepare release git branch
         run: |
-          python3 ./build-scripts/k8s_release.py cut_release_branch
+          python3 ./build-scripts/k8s_release.py cut_release_branch --dry-run
 
     
