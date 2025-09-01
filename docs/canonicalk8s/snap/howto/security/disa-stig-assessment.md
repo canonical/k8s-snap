@@ -2972,17 +2972,17 @@ chmod -R 644 /var/snap/k8s/common/args /var/snap/k8s/common/args/conf.d /var/sna
 Ensure all required files have permissions '644' (or stricter):
 
 ```bash
-stat -c %a '/var/snap/k8s/common/args' | grep -q 700 && echo PASS /var/snap/k8s/common/args: 700 || echo FAIL /var/snap/k8s/common/args: 700
-stat -c %a '/var/snap/k8s/common/args/conf.d' | grep -q 700 && echo PASS /var/snap/k8s/common/args/conf.d: 700 || echo FAIL /var/snap/k8s/common/args/conf.d: 700
-stat -c %a '/var/snap/k8s/common/args/kube-apiserver' | grep -q 600 && echo PASS /var/snap/k8s/common/args/kube-apiserver: 600 || echo FAIL /var/snap/k8s/common/args/kube-apiserver: 600
-stat -c %a '/var/snap/k8s/common/args/kube-controller-manager' | grep -q 600 && echo PASS /var/snap/k8s/common/args/kube-controller-manager: 600 || echo FAIL /var/snap/k8s/common/args/kube-controller-manager: 600
-stat -c %a '/var/snap/k8s/common/args/k8sd' | grep -q 644 && echo PASS /var/snap/k8s/common/args/k8sd: 644 || echo FAIL /var/snap/k8s/common/args/k8sd: 644
-stat -c %a '/var/snap/k8s/common/args/kube-proxy' | grep -q 600 && echo PASS /var/snap/k8s/common/args/kube-proxy: 600 || echo FAIL /var/snap/k8s/common/args/kube-proxy: 600
-stat -c %a '/var/snap/k8s/common/args/kube-scheduler' | grep -q 600 && echo PASS /var/snap/k8s/common/args/kube-scheduler: 600 || echo FAIL /var/snap/k8s/common/args/kube-scheduler: 600
-stat -c %a '/var/snap/k8s/common/args/kubelet' | grep -q 600 && echo PASS /var/snap/k8s/common/args/kubelet: 600 || echo FAIL /var/snap/k8s/common/args/kubelet: 600
-stat -c %a '/var/snap/k8s/common/args/containerd' | grep -q 600 && echo PASS /var/snap/k8s/common/args/containerd: 600 || echo FAIL /var/snap/k8s/common/args/containerd: 600
-stat -c %a '/var/snap/k8s/common/args/etcd' | grep -q 600 && echo PASS /var/snap/k8s/common/args/etcd: 600 || echo FAIL /var/snap/k8s/common/args/etcd: 600
-stat -c %a '/var/snap/k8s/common/args/conf.d/auth-token-webhook.conf' | grep -q 600 && echo PASS /var/snap/k8s/common/args/conf.d/auth-token-webhook.conf: 600 || echo FAIL /var/snap/k8s/common/args/conf.d/auth-token-webhook.conf: 600
+[ "$(stat -c %a '/var/snap/k8s/common/args')" -le 700 ] && echo PASS /var/snap/k8s/common/args: 700 || echo FAIL /var/snap/k8s/common/args: 700
+[ "$(stat -c %a '/var/snap/k8s/common/args/conf.d')" -le 700 ] && echo PASS /var/snap/k8s/common/args/conf.d: 700 || echo FAIL /var/snap/k8s/common/args/conf.d: 700
+[ "$(stat -c %a '/var/snap/k8s/common/args/kube-apiserver')" -le 644 ] && echo PASS /var/snap/k8s/common/args/kube-apiserver: 644 || echo FAIL /var/snap/k8s/common/args/kube-apiserver: 644
+[ "$(stat -c %a '/var/snap/k8s/common/args/kube-controller-manager')" -le 644 ] && echo PASS /var/snap/k8s/common/args/kube-controller-manager: 644 || echo FAIL /var/snap/k8s/common/args/kube-controller-manager: 644
+[ "$(stat -c %a '/var/snap/k8s/common/args/k8sd')" -le 644 ] && echo PASS /var/snap/k8s/common/args/k8sd: 644 || echo FAIL /var/snap/k8s/common/args/k8sd: 644
+[ "$(stat -c %a '/var/snap/k8s/common/args/kube-proxy')" -le 644 ] && echo PASS /var/snap/k8s/common/args/kube-proxy: 644 || echo FAIL /var/snap/k8s/common/args/kube-proxy: 644
+[ "$(stat -c %a '/var/snap/k8s/common/args/kube-scheduler')" -le 644 ] && echo PASS /var/snap/k8s/common/args/kube-scheduler: 644 || echo FAIL /var/snap/k8s/common/args/kube-scheduler: 644
+[ "$(stat -c %a '/var/snap/k8s/common/args/kubelet')" -le 644 ] && echo PASS /var/snap/k8s/common/args/kubelet: 644 || echo FAIL /var/snap/k8s/common/args/kubelet: 644
+[ "$(stat -c %a '/var/snap/k8s/common/args/containerd')" -le 644 ] && echo PASS /var/snap/k8s/common/args/containerd: 644 || echo FAIL /var/snap/k8s/common/args/containerd: 644
+[ "$(stat -c %a '/var/snap/k8s/common/args/etcd')" -le 644 ] && echo PASS /var/snap/k8s/common/args/etcd: 644 || echo FAIL /var/snap/k8s/common/args/etcd: 644
+[ "$(stat -c %a '/var/snap/k8s/common/args/conf.d/auth-token-webhook.conf')" -le 644 ] && echo PASS /var/snap/k8s/common/args/conf.d/auth-token-webhook.conf: 644 || echo FAIL /var/snap/k8s/common/args/conf.d/auth-token-webhook.conf: 644
 ```
 
 In the default configuration of the `k8s-snap`, resulting output lines will
@@ -3017,17 +3017,17 @@ chmod -R 644 /var/snap/k8s/common/args /var/snap/k8s/common/args/conf.d /var/sna
 Ensure all required files have permissions '644' (or stricter):
 
 ```bash
-stat -c %a '/var/snap/k8s/common/args' | grep -q 700 && echo PASS /var/snap/k8s/common/args: 700 || echo FAIL /var/snap/k8s/common/args: 700
-stat -c %a '/var/snap/k8s/common/args/conf.d' | grep -q 700 && echo PASS /var/snap/k8s/common/args/conf.d: 700 || echo FAIL /var/snap/k8s/common/args/conf.d: 700
-stat -c %a '/var/snap/k8s/common/args/kube-apiserver' | grep -q 600 && echo PASS /var/snap/k8s/common/args/kube-apiserver: 600 || echo FAIL /var/snap/k8s/common/args/kube-apiserver: 600
-stat -c %a '/var/snap/k8s/common/args/kube-controller-manager' | grep -q 600 && echo PASS /var/snap/k8s/common/args/kube-controller-manager: 600 || echo FAIL /var/snap/k8s/common/args/kube-controller-manager: 600
-stat -c %a '/var/snap/k8s/common/args/k8sd' | grep -q 644 && echo PASS /var/snap/k8s/common/args/k8sd: 644 || echo FAIL /var/snap/k8s/common/args/k8sd: 644
-stat -c %a '/var/snap/k8s/common/args/kube-proxy' | grep -q 600 && echo PASS /var/snap/k8s/common/args/kube-proxy: 600 || echo FAIL /var/snap/k8s/common/args/kube-proxy: 600
-stat -c %a '/var/snap/k8s/common/args/kube-scheduler' | grep -q 600 && echo PASS /var/snap/k8s/common/args/kube-scheduler: 600 || echo FAIL /var/snap/k8s/common/args/kube-scheduler: 600
-stat -c %a '/var/snap/k8s/common/args/kubelet' | grep -q 600 && echo PASS /var/snap/k8s/common/args/kubelet: 600 || echo FAIL /var/snap/k8s/common/args/kubelet: 600
-stat -c %a '/var/snap/k8s/common/args/containerd' | grep -q 600 && echo PASS /var/snap/k8s/common/args/containerd: 600 || echo FAIL /var/snap/k8s/common/args/containerd: 600
-stat -c %a '/var/snap/k8s/common/args/k8s-dqlite' | grep -q 600 && echo PASS /var/snap/k8s/common/args/k8s-dqlite: 600 || echo FAIL /var/snap/k8s/common/args/k8s-dqlite: 600
-stat -c %a '/var/snap/k8s/common/args/conf.d/auth-token-webhook.conf' | grep -q 600 && echo PASS /var/snap/k8s/common/args/conf.d/auth-token-webhook.conf: 600 || echo FAIL /var/snap/k8s/common/args/conf.d/auth-token-webhook.conf: 600
+[ "$(stat -c %a '/var/snap/k8s/common/args')" -le 700 ] && echo PASS /var/snap/k8s/common/args: 700 || echo FAIL /var/snap/k8s/common/args: 700
+[ "$(stat -c %a '/var/snap/k8s/common/args/conf.d')" -le 700 ] && echo PASS /var/snap/k8s/common/args/conf.d: 700 || echo FAIL /var/snap/k8s/common/args/conf.d: 700
+[ "$(stat -c %a '/var/snap/k8s/common/args/kube-apiserver')" -le 644 ] && echo PASS /var/snap/k8s/common/args/kube-apiserver: 644 || echo FAIL /var/snap/k8s/common/args/kube-apiserver: 644
+[ "$(stat -c %a '/var/snap/k8s/common/args/kube-controller-manager')" -le 644 ] && echo PASS /var/snap/k8s/common/args/kube-controller-manager: 644 || echo FAIL /var/snap/k8s/common/args/kube-controller-manager: 644
+[ "$(stat -c %a '/var/snap/k8s/common/args/k8sd')" -le 644 ] && echo PASS /var/snap/k8s/common/args/k8sd: 644 || echo FAIL /var/snap/k8s/common/args/k8sd: 644
+[ "$(stat -c %a '/var/snap/k8s/common/args/kube-proxy')" -le 644 ] && echo PASS /var/snap/k8s/common/args/kube-proxy: 644 || echo FAIL /var/snap/k8s/common/args/kube-proxy: 644
+[ "$(stat -c %a '/var/snap/k8s/common/args/kube-scheduler')" -le 644 ] && echo PASS /var/snap/k8s/common/args/kube-scheduler: 644 || echo FAIL /var/snap/k8s/common/args/kube-scheduler: 644
+[ "$(stat -c %a '/var/snap/k8s/common/args/kubelet')" -le 644 ] && echo PASS /var/snap/k8s/common/args/kubelet: 644 || echo FAIL /var/snap/k8s/common/args/kubelet: 644
+[ "$(stat -c %a '/var/snap/k8s/common/args/containerd')" -le 644 ] && echo PASS /var/snap/k8s/common/args/containerd: 644 || echo FAIL /var/snap/k8s/common/args/containerd: 644
+[ "$(stat -c %a '/var/snap/k8s/common/args/k8s-dqlite')" -le 644 ] && echo PASS /var/snap/k8s/common/args/k8s-dqlite: 644 || echo FAIL /var/snap/k8s/common/args/k8s-dqlite: 644
+[ "$(stat -c %a '/var/snap/k8s/common/args/conf.d/auth-token-webhook.conf')" -le 644 ] && echo PASS /var/snap/k8s/common/args/conf.d/auth-token-webhook.conf: 644 || echo FAIL /var/snap/k8s/common/args/conf.d/auth-token-webhook.conf: 644
 ```
 
 In the default configuration of the `k8s-snap`, resulting output lines will
