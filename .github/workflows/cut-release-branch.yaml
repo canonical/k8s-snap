@@ -2,8 +2,8 @@ name: Cut release branch
 
 on:
   pull_request:
-    # types:
-    #   - closed
+    types:
+      - closed
     branches:
       - main
     paths:
@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   cut-release-branch:
-    # if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -36,5 +36,3 @@ jobs:
       - name: Prepare release git branch
         run: |
           python3 ./build-scripts/k8s_release.py cut_release_branch
-
-    
