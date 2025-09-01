@@ -5,10 +5,10 @@ import datetime
 import logging
 import os
 import subprocess
-from pathlib import Path
 from typing import List
 
 import pytest
+import yaml
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from test_util import config, harness, tags, util
@@ -81,19 +81,27 @@ def test_disa_stig_clustering(instances: List[harness.Instance]):
     joining_cp = instances[1]
     joining_worker = instances[2]
 
+    util.setup_k8s_snap(cluster_node)
     bootstrapFile = config.COMMON_ETC_DIR + "/templates/disa-stig/bootstrap.yaml"
     cluster_node.exec(["k8s", "bootstrap", "--file", bootstrapFile])
 
     util.wait_until_k8s_ready(cluster_node, [cluster_node])
 
+    util.setup_k8s_snap(joining_cp)
     cp_file = config.COMMON_ETC_DIR + "/templates/disa-stig/control-plane.yaml"
     join_token_cp = util.get_join_token(cluster_node, joining_cp)
-    joining_cp.exec(["k8s", "join-cluster", join_token_cp, "--file", cp_file])
 
+    joining_cp.exec(
+        ["k8s", "join-cluster", join_token_cp, "--file", "-"],
+        input=str.encode(yaml.dump(cp_file)),
+    )
+
+    util.setup_k8s_snap(joining_worker)
     worker_file = config.COMMON_ETC_DIR + "/templates/disa-stig/worker.yaml"
     join_token_worker = util.get_join_token(cluster_node, joining_worker, "--worker")
     joining_worker.exec(
-        ["k8s", "join-cluster", join_token_worker, "--file", worker_file]
+        ["k8s", "join-cluster", join_token_worker, "--file", "-"],
+        input=str.encode(yaml.dump(worker_file)),
     )
 
     util.wait_until_k8s_ready(cluster_node, instances)

@@ -7,6 +7,10 @@ cluster-config:
     enabled: true
   gateway:
     enabled: true
+  ingress:
+    enabled: false
+  load-balancer:
+    enabled: false
   metrics-server:
     enabled: true
 extra-node-kube-apiserver-args:
