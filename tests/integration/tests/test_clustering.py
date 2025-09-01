@@ -94,23 +94,23 @@ def test_disa_stig_clustering(instances: List[harness.Instance]):
     cp_file = config.COMMON_ETC_DIR + "/templates/disa-stig/control-plane.yaml"
     join_token_cp = util.get_join_token(cluster_node, joining_cp)
 
-    with open(cp_file, "r") as file:
-        data = yaml.safe_load(file)
+    cp_file_content = joining_cp.exec(["cat", cp_file], capture_output=True, text=True).stdout
+    cp_data = yaml.safe_load(cp_file_content)
     joining_cp.exec(["sysctl", "-w", "vm.overcommit_memory=1"])
     joining_cp.exec(["sysctl", "-w", "kernel.panic=10"])
     joining_cp.exec(["sysctl", "-w", "kernel.panic_on_oops=1"])
-    util.join_cluster(joining_cp, join_token_cp, yaml.dump(data))
+    util.join_cluster(joining_cp, join_token_cp, yaml.dump(cp_data))
 
     util.setup_k8s_snap(joining_worker)
     worker_file = config.COMMON_ETC_DIR + "/templates/disa-stig/worker.yaml"
     join_token_worker = util.get_join_token(cluster_node, joining_worker, "--worker")
 
-    with open(worker_file, "r") as file:
-        data = yaml.safe_load(file)
+    worker_file_content = joining_worker.exec(["cat", worker_file], capture_output=True, text=True).stdout
+    worker_data = yaml.safe_load(worker_file_content)
     joining_worker.exec(["sysctl", "-w", "vm.overcommit_memory=1"])
     joining_worker.exec(["sysctl", "-w", "kernel.panic=10"])
     joining_worker.exec(["sysctl", "-w", "kernel.panic_on_oops=1"])
-    util.join_cluster(joining_worker, join_token_worker, yaml.dump(data))
+    util.join_cluster(joining_worker, join_token_worker, yaml.dump(worker_data))
 
     util.wait_until_k8s_ready(cluster_node, instances)
     assert "control-plane" in util.get_local_node_status(cluster_node)
