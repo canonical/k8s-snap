@@ -164,6 +164,27 @@ def get_prerelease_git_branch(prerelease: str):
     return re.sub(r"(-[a-zA-Z]+)\.[0-9]+", r"\1", branch)
 
 
+def _get_k8s_component_version(project_basedir: str) -> str:
+    if not project_basedir:
+        raise ValueError("Project base directory unspecified.")
+    k8s_component_path = os.path.join(
+        project_basedir, "build-scripts", "components", "kubernetes", "version"
+    )
+
+    if not os.path.exists(k8s_component_path):
+        raise FileNotFoundError(
+            f"Kubernetes version file not found: {k8s_component_path}"
+        )
+
+    with open(k8s_component_path, "r") as f:
+        version = f.read().strip()
+
+    if not version:
+        raise ValueError(f"Kubernetes version file is empty: {k8s_component_path}")
+
+    return version
+
+
 def _update_prerelease_k8s_component(project_basedir: str, k8s_version: str):
     if not project_basedir:
         raise ValueError("Project base directory unspecified.")
@@ -245,6 +266,44 @@ def clean_obsolete_git_branches(project_basedir: str, remote="origin"):
             LOG.debug("Obsolete branch not found, skipping: %s", branch)
 
 
+def cut_release_branch(project_basedir: str, remote="origin", dry_run=False):
+    """Cut a new release branch from main.
+
+    The new branch is formatted as release-1.XX where XX is the new Kubernetes minor version.
+    """
+    k8s_version = _get_k8s_component_version(project_basedir)
+    if not is_stable_release(k8s_version):
+        LOG.info("The %s realse is not stable, skipping.", k8s_version)
+        return
+
+    version = Version(k8s_version.lstrip("v"))
+    branch = f"release-{version.major}.{version.minor}"
+    if _branch_exists(
+        f"{remote}/{branch}",
+        remote=True,
+        project_basedir=project_basedir,
+    ):
+        LOG.info("Release branch for %s already exists, skipping.", k8s_version)
+        return
+
+    LOG.info("Cutting a new release branch: %s", branch)
+
+    if dry_run:
+        return
+
+    _exec(
+        ["git", "checkout", "-B", branch, f"{remote}/main"],
+        cwd=project_basedir,
+        capture_output=False,
+    )
+
+    _exec(
+        ["git", "push", "-u", remote, branch],
+        cwd=project_basedir,
+        capture_output=False,
+    )
+
+
 if __name__ == "__main__":
     logging.basicConfig(format="%(asctime)s %(message)s", level=logging.DEBUG)
 
@@ -272,6 +331,18 @@ if __name__ == "__main__":
     subparsers.add_parser("get_outstanding_prereleases")
     subparsers.add_parser("get_obsolete_prereleases")
     subparsers.add_parser("remove_obsolete_prereleases")
+
+    cmd = subparsers.add_parser("cut_release_branch")
+    cmd.add_argument(
+        "--project-basedir",
+        dest="project_basedir",
+        help="The k8s-snap project base directory.",
+        default=os.getcwd(),
+    )
+    cmd.add_argument("--remote", dest="remote", help="Git remote.", default="origin")
+    cmd.add_argument(
+        "--dry-run", action="store_true", help="Dry run mode.", default=False
+    )
 
     kwargs = vars(parser.parse_args())
     f = locals()[kwargs.pop("subparser")]
