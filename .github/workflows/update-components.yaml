@@ -24,6 +24,7 @@ jobs:
           # Keep main branch up to date
           - main
           # Supported release branches
+          - release-1.34
           - release-1.33
           - release-1.32
 
