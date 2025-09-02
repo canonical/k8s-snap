@@ -1,0 +1,31 @@
+cluster-config:
+  network:
+    enabled: true
+  dns:
+    enabled: true
+  local-storage:
+    enabled: true
+  gateway:
+    enabled: true
+  ingress:
+    enabled: false
+  load-balancer:
+    enabled: false
+  metrics-server:
+    enabled: true
+extra-node-kube-apiserver-args:
+  --feature-gates: AllAlpha=false
+  --audit-log-path: /var/log/kubernetes/audit.log
+  --audit-policy-file: /var/snap/k8s/common/etc/configurations/audit-policy.yaml
+  --audit-log-maxage: 30
+  --audit-log-maxbackup: 10
+  --audit-log-maxsize: 100
+  --admission-control-config-file: /var/snap/k8s/common/etc/configurations/pod-security-admission-baseline.yaml
+  --enable-admission-plugins: NodeRestriction,ValidatingAdmissionPolicy
+extra-node-kube-controller-manager-args:
+  --bind-address: 127.0.0.1
+extra-node-kube-scheduler-args:
+  --bind-address: 127.0.0.1
+extra-node-kubelet-args:
+  --protect-kernel-defaults: true
+  --streaming-connection-idle-timeout: 5m

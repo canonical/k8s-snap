@@ -277,6 +277,15 @@ parts:
     override-build: |
       ./build-scripts/generate-bom.py > "${CRAFT_PART_INSTALL}/bom.json"
 
+  resources:
+    plugin: dump
+    source: k8s/resources
+    source-type: local
+    organize:
+      "*": etc/
+    stage:
+      - etc/
+
 apps:
   k8s:
     command: k8s/wrappers/commands/k8s
