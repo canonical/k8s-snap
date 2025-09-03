@@ -458,6 +458,7 @@ rw
 S3
 sandboxed
 SANs
+SARIF
 SBOM
 scalable
 scalability
@@ -494,6 +495,7 @@ staticPodPath
 stderr
 stdout
 stgraber
+structs
 STIG
 STIGs
 STONITH
