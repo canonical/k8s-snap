@@ -457,6 +457,7 @@ rw
 S3
 sandboxed
 SANs
+SARIF
 SBOM
 scalable
 scalability
@@ -498,6 +499,7 @@ STIGs
 STONITH
 StorageClass
 streamingConnectionIdleTimeout
+structs
 submodules
 sudo
 sys
