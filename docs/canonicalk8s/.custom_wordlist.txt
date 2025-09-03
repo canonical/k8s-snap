@@ -501,6 +501,7 @@ STIGs
 STONITH
 StorageClass
 streamingConnectionIdleTimeout
+structs
 submodules
 sudo
 sys
