@@ -27,11 +27,11 @@ the Infra Backup Operator does not create backup of PVs or PVCs.
 
 ## What you will need
 
-- A {product} cluster
+- A {{product}} cluster
 - A bootstrapped K8s controller. See the Juju [add-k8s] documentation
 - A S3 bucket or a S3 compatible bucket like [MinIO] or [MicroCeph]
 
-### Deploy and Integrate
+### Deploy and integrate
 
 Velero requires the `--trust` flag when deploying its operator to ensure it has
 the necessary permissions to function properly. Without this flag, Velero will
