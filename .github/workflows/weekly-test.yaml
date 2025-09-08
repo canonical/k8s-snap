@@ -12,7 +12,6 @@ permissions:
 
 jobs:
   test-on-fips:
-    if: false
     name: Integration tests on FIPS machine
     strategy:
       fail-fast: false
