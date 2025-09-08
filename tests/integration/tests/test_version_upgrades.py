@@ -3,7 +3,6 @@
 #
 import json
 import logging
-import subprocess
 from pathlib import Path
 from typing import List
 
@@ -62,11 +61,15 @@ def test_version_upgrades(
 
         # expected: "v1.32.2 classic"
         ver = info["version"].lstrip("v").split()[0].split(".")
+        LOG.info(f"Locally built snap version: {ver}")
+        local_snap_version = (int(ver[0]), int(ver[1]))
         added = False
+
         for i in range(len(channels)):
             # e.g.: 1.32-classic/stable
-            chan_ver = channels[i].split("-")[0].split(".")
-            if len(chan_ver) > 1 and (ver[0], ver[1]) < (chan_ver[0], chan_ver[1]):
+            chan_ver_parts = channels[i].split("-")[0].split(".")
+            chan_ver = (int(chan_ver_parts[0]), int(chan_ver_parts[1]))
+            if local_snap_version < chan_ver:
                 channels.insert(i, snap_path)
                 added = True
                 break
@@ -104,6 +107,7 @@ def test_version_upgrades(
 
     LOG.info(f"Installed {len(instances)} nodes on channel {current_channel}")
 
+    local_installed = False
     for channel in channels[1:]:
         for instance in instances:
             LOG.info(
@@ -116,28 +120,34 @@ def test_version_upgrades(
             LOG.info(f"Current snap version: {latest_version}")
 
             # note: the `--classic` flag will be ignored by snapd for strict snaps.
-            cmd = [
-                "snap",
-                "refresh",
-                config.SNAP_NAME,
-                "--channel",
-                channel,
-                "--classic",
-            ]
             if channel.startswith("/"):
                 LOG.info("Refreshing k8s snap by path")
                 cmd = ["snap", "install", "--classic", "--dangerous", snap_path]
+                local_installed = True
+            else:
+                cmd = [
+                    "snap",
+                    "refresh",
+                    config.SNAP_NAME,
+                    "--channel",
+                    channel,
+                    "--classic",
+                ]
 
-            try:
-                instance.exec(cmd, capture_output=True)
-            except subprocess.CalledProcessError as e:
-                LOG.error("Command failed with exit code %i", e.returncode)
-                LOG.error("stdout: %s", e.stdout.decode())
-                LOG.error("stderr: %s", e.stderr.decode())
-                raise
+                # NOTE: (Mateo): Last refresh included a local snap. Allow snapd to amend
+                # the installation and perform an upgrade to a store owned snap.
+                if local_installed:
+                    cmd.insert(-1, "--amend")
+                    local_installed = False
+
+            instance.exec(cmd)
             util.wait_until_k8s_ready(cp, instances)
-            current_channel = channel
             LOG.info(f"Upgraded {instance.id} on channel {channel}")
+
+        # Set local_installed after all instances have been upgraded.
+        local_installed = True if channel.startswith("/") else False
+        current_channel = channel
+        LOG.info(f"Upgraded all instances to channel {channel}")
 
 
 @pytest.mark.node_count(3)
