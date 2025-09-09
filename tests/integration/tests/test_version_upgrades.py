@@ -61,11 +61,18 @@ def test_version_upgrades(
 
         # expected: "v1.32.2 classic"
         ver = info["version"].lstrip("v").split()[0].split(".")
+        LOG.info(f"Locally built snap version: {ver}")
+        local_snap_version = (int(ver[0]), int(ver[1]))
         added = False
+
         for i in range(len(channels)):
+            if "latest" in channels[i]:
+                continue
+
             # e.g.: 1.32-classic/stable
-            chan_ver = channels[i].split("-")[0].split(".")
-            if len(chan_ver) > 1 and (ver[0], ver[1]) < (chan_ver[0], chan_ver[1]):
+            chan_ver_parts = channels[i].split("-")[0].split(".")
+            chan_ver = (int(chan_ver_parts[0]), int(chan_ver_parts[1]))
+            if local_snap_version < chan_ver:
                 channels.insert(i, snap_path)
                 added = True
                 break
@@ -115,22 +122,26 @@ def test_version_upgrades(
             LOG.info(f"Current snap version: {latest_version}")
 
             # note: the `--classic` flag will be ignored by snapd for strict snaps.
-            cmd = [
-                "snap",
-                "refresh",
-                config.SNAP_NAME,
-                "--channel",
-                channel,
-                "--classic",
-            ]
             if channel.startswith("/"):
                 LOG.info("Refreshing k8s snap by path")
                 cmd = ["snap", "install", "--classic", "--dangerous", snap_path]
+            else:
+                cmd = [
+                    "snap",
+                    "refresh",
+                    config.SNAP_NAME,
+                    "--channel",
+                    channel,
+                    "--amend",
+                    "--classic",
+                ]
 
             instance.exec(cmd)
             util.wait_until_k8s_ready(cp, instances)
-            current_channel = channel
             LOG.info(f"Upgraded {instance.id} on channel {channel}")
+
+        current_channel = channel
+        LOG.info(f"Upgraded all instances to channel {channel}")
 
 
 @pytest.mark.node_count(3)
