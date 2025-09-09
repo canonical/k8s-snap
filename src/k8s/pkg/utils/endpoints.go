@@ -15,7 +15,7 @@ func ParseEndpoints(endpointSlices *discoveryv1.EndpointSliceList) []string {
 	for _, endpointSlice := range endpointSlices.Items {
 		portNumber := 6443
 		for _, port := range endpointSlice.Ports {
-			if *port.Name == "https" {
+			if port.Name != nil && *port.Name == "https" {
 				if port.Port != nil {
 					portNumber = int(*port.Port)
 					break
