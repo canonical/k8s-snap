@@ -2,6 +2,9 @@ package_update: true
 package_upgrade: true
 packages:
   - ubuntu-advantage-tools
+snap:
+  commands:
+    00: 'snap install core22 --channel=fips-updates/stable'
 runcmd:
   # enable fips mode and attach to the ubuntu pro service.
   # we use a staging token here to avoid load on the production contracts service.
