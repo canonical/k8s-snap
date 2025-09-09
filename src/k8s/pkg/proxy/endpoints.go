@@ -20,13 +20,15 @@ func getKubernetesEndpoints(ctx context.Context, kubeconfigFile string) ([]strin
 		return nil, fmt.Errorf("failed to initialize kubernetes client: %w", err)
 	}
 
-	endpoints, err := clientset.CoreV1().Endpoints("default").Get(ctx, "kubernetes", metav1.GetOptions{})
+	endpointSlices, err := clientset.DiscoveryV1().EndpointSlices("default").List(ctx, metav1.ListOptions{
+		LabelSelector: "kubernetes.io/service-name=kubernetes",
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve endpoints for kubernetes service: %w", err)
 	}
-	if endpoints == nil {
+	if endpointSlices == nil {
 		return nil, nil
 	}
 
-	return utils.ParseEndpoints(endpoints), nil
+	return utils.ParseEndpoints(endpointSlices), nil
 }

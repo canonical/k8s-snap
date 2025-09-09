@@ -4,14 +4,16 @@ import (
 	"context"
 	"testing"
 
+	"github.com/canonical/k8s/pkg/utils"
 	. "github.com/onsi/gomega"
-	corev1 "k8s.io/api/core/v1"
+	discoveryv1 "k8s.io/api/discovery/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/fake"
 )
 
 func TestGetKubeAPIServerEndpoints(t *testing.T) {
+	httpsPortName := "https"
 	tests := []struct {
 		name              string
 		objects           []runtime.Object
@@ -25,9 +27,14 @@ func TestGetKubeAPIServerEndpoints(t *testing.T) {
 		{
 			name: "no endpoints",
 			objects: []runtime.Object{
-				&corev1.Endpoints{
-					ObjectMeta: metav1.ObjectMeta{Name: "kubernetes", Namespace: "default"},
-					Subsets:    []corev1.EndpointSubset{},
+				&discoveryv1.EndpointSlice{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "kubernetes",
+						Namespace: "default",
+						Labels:    map[string]string{"kubernetes.io/service-name": "kubernetes"},
+					},
+					AddressType: discoveryv1.AddressTypeIPv4,
+					Endpoints:   []discoveryv1.Endpoint{},
 				},
 			},
 			expectError: true,
@@ -35,10 +42,18 @@ func TestGetKubeAPIServerEndpoints(t *testing.T) {
 		{
 			name: "one",
 			objects: []runtime.Object{
-				&corev1.Endpoints{
-					ObjectMeta: metav1.ObjectMeta{Name: "kubernetes", Namespace: "default"},
-					Subsets: []corev1.EndpointSubset{
-						{Addresses: []corev1.EndpointAddress{{IP: "1.1.1.1"}}},
+				&discoveryv1.EndpointSlice{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "kubernetes",
+						Namespace: "default",
+						Labels:    map[string]string{"kubernetes.io/service-name": "kubernetes"},
+					},
+					AddressType: discoveryv1.AddressTypeIPv4,
+					Endpoints: []discoveryv1.Endpoint{
+						{Addresses: []string{"1.1.1.1"}},
+					},
+					Ports: []discoveryv1.EndpointPort{
+						{Name: &httpsPortName, Port: utils.Pointer(int32(6443))},
 					},
 				},
 			},
@@ -47,23 +62,54 @@ func TestGetKubeAPIServerEndpoints(t *testing.T) {
 		{
 			name: "two",
 			objects: []runtime.Object{
-				&corev1.Endpoints{
-					ObjectMeta: metav1.ObjectMeta{Name: "kubernetes", Namespace: "default"},
-					Subsets: []corev1.EndpointSubset{
-						{Addresses: []corev1.EndpointAddress{{IP: "1.1.1.1"}, {IP: "2.2.2.2"}}},
+				&discoveryv1.EndpointSlice{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "kubernetes",
+						Namespace: "default",
+						Labels:    map[string]string{"kubernetes.io/service-name": "kubernetes"},
+					},
+					AddressType: discoveryv1.AddressTypeIPv4,
+					Endpoints: []discoveryv1.Endpoint{
+						{Addresses: []string{"1.1.1.1"}},
+						{Addresses: []string{"2.2.2.2"}},
+					},
+					Ports: []discoveryv1.EndpointPort{
+						{Name: &httpsPortName, Port: utils.Pointer(int32(6443))},
 					},
 				},
 			},
 			expectedAddresses: []string{"1.1.1.1:6443", "2.2.2.2:6443"},
 		},
 		{
-			name: "multiple-subsets",
+			name: "multiple-slices",
 			objects: []runtime.Object{
-				&corev1.Endpoints{
-					ObjectMeta: metav1.ObjectMeta{Name: "kubernetes", Namespace: "default"},
-					Subsets: []corev1.EndpointSubset{
-						{Addresses: []corev1.EndpointAddress{{IP: "1.1.1.1"}, {IP: "2.2.2.2"}}},
-						{Addresses: []corev1.EndpointAddress{{IP: "3.3.3.3"}}},
+				&discoveryv1.EndpointSlice{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "kubernetes",
+						Namespace: "default",
+						Labels:    map[string]string{"kubernetes.io/service-name": "kubernetes"},
+					},
+					AddressType: discoveryv1.AddressTypeIPv4,
+					Endpoints: []discoveryv1.Endpoint{
+						{Addresses: []string{"1.1.1.1"}},
+						{Addresses: []string{"2.2.2.2"}},
+					},
+					Ports: []discoveryv1.EndpointPort{
+						{Name: &httpsPortName, Port: utils.Pointer(int32(6443))},
+					},
+				},
+				&discoveryv1.EndpointSlice{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "kubernetes-2",
+						Namespace: "default",
+						Labels:    map[string]string{"kubernetes.io/service-name": "kubernetes"},
+					},
+					AddressType: discoveryv1.AddressTypeIPv4,
+					Endpoints: []discoveryv1.Endpoint{
+						{Addresses: []string{"3.3.3.3"}},
+					},
+					Ports: []discoveryv1.EndpointPort{
+						{Name: &httpsPortName, Port: utils.Pointer(int32(6443))},
 					},
 				},
 			},
@@ -72,11 +118,33 @@ func TestGetKubeAPIServerEndpoints(t *testing.T) {
 		{
 			name: "override port",
 			objects: []runtime.Object{
-				&corev1.Endpoints{
-					ObjectMeta: metav1.ObjectMeta{Name: "kubernetes", Namespace: "default"},
-					Subsets: []corev1.EndpointSubset{
-						{Addresses: []corev1.EndpointAddress{{IP: "1.1.1.1"}, {IP: "2.2.2.2"}}},
-						{Addresses: []corev1.EndpointAddress{{IP: "3.3.3.3"}}, Ports: []corev1.EndpointPort{{Port: int32(10000), Name: "https"}}},
+				&discoveryv1.EndpointSlice{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "kubernetes",
+						Namespace: "default",
+						Labels:    map[string]string{"kubernetes.io/service-name": "kubernetes"},
+					},
+					AddressType: discoveryv1.AddressTypeIPv4,
+					Endpoints: []discoveryv1.Endpoint{
+						{Addresses: []string{"1.1.1.1"}},
+						{Addresses: []string{"2.2.2.2"}},
+					},
+					Ports: []discoveryv1.EndpointPort{
+						{Name: &httpsPortName, Port: utils.Pointer(int32(6443))},
+					},
+				},
+				&discoveryv1.EndpointSlice{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "kubernetes-2",
+						Namespace: "default",
+						Labels:    map[string]string{"kubernetes.io/service-name": "kubernetes"},
+					},
+					AddressType: discoveryv1.AddressTypeIPv4,
+					Endpoints: []discoveryv1.Endpoint{
+						{Addresses: []string{"3.3.3.3"}},
+					},
+					Ports: []discoveryv1.EndpointPort{
+						{Name: &httpsPortName, Port: utils.Pointer(int32(10000))},
 					},
 				},
 			},
@@ -85,11 +153,33 @@ func TestGetKubeAPIServerEndpoints(t *testing.T) {
 		{
 			name: "sort",
 			objects: []runtime.Object{
-				&corev1.Endpoints{
-					ObjectMeta: metav1.ObjectMeta{Name: "kubernetes", Namespace: "default"},
-					Subsets: []corev1.EndpointSubset{
-						{Addresses: []corev1.EndpointAddress{{IP: "3.3.3.3"}, {IP: "1.1.1.1"}}},
-						{Addresses: []corev1.EndpointAddress{{IP: "2.2.2.2"}}, Ports: []corev1.EndpointPort{{Port: int32(10000), Name: "https"}}},
+				&discoveryv1.EndpointSlice{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "kubernetes",
+						Namespace: "default",
+						Labels:    map[string]string{"kubernetes.io/service-name": "kubernetes"},
+					},
+					AddressType: discoveryv1.AddressTypeIPv4,
+					Endpoints: []discoveryv1.Endpoint{
+						{Addresses: []string{"3.3.3.3"}},
+						{Addresses: []string{"1.1.1.1"}},
+					},
+					Ports: []discoveryv1.EndpointPort{
+						{Name: &httpsPortName, Port: utils.Pointer(int32(6443))},
+					},
+				},
+				&discoveryv1.EndpointSlice{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "kubernetes-2",
+						Namespace: "default",
+						Labels:    map[string]string{"kubernetes.io/service-name": "kubernetes"},
+					},
+					AddressType: discoveryv1.AddressTypeIPv4,
+					Endpoints: []discoveryv1.Endpoint{
+						{Addresses: []string{"2.2.2.2"}},
+					},
+					Ports: []discoveryv1.EndpointPort{
+						{Name: &httpsPortName, Port: utils.Pointer(int32(10000))},
 					},
 				},
 			},
