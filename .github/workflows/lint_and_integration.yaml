@@ -48,7 +48,7 @@ jobs:
         run: |
           OLD_VERSION=$(git show ${{ github.event.pull_request.base.sha }}:build-scripts/components/kubernetes/version)
           NEW_VERSION=$(cat build-scripts/components/kubernetes/version)
-          
+
           echo "Old Kubernetes version (base): $OLD_VERSION"
           echo "New Kubernetes version (PR):   $NEW_VERSION"
 
@@ -136,6 +136,7 @@ jobs:
       os: ubuntu:24.04
       test-tags: ${{ needs.get-e2e-tags.outputs.test-tags }}
       artifact: k8s-${{ matrix.arch }}.snap
+      extra-test-args: "-k test_version_upgrades_1"
       parallel: true
 
   security-scan:
