@@ -9,7 +9,7 @@ import (
 	"time"
 
 	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations"
-	upgradesv1alpha "github.com/canonical/k8s/pkg/k8sd/crds/upgrades/v1alpha"
+	upgradesv1alpha "github.com/canonical/k8s-snap-api/api/v1alpha"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/log"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"

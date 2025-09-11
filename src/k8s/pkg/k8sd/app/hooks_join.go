@@ -8,8 +8,8 @@ import (
 	"slices"
 	"time"
 
+	upgradesv1alpha "github.com/canonical/k8s-snap-api/api/v1alpha"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
-	upgradesv1alpha "github.com/canonical/k8s/pkg/k8sd/crds/upgrades/v1alpha"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
@@ -338,7 +338,7 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 
 	// This is required for backwards compatibility.
 	log.Info("Applying custom CRDs")
-	if err := k8sClient.ApplyCRDs(ctx, a.snap.K8sCRDDir()); err != nil {
+	if err := k8sClient.ApplyCRDs(ctx); err != nil {
 		log.Error(err, "Failed to apply custom CRDs")
 	}
 
