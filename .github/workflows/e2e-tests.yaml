@@ -47,7 +47,7 @@ on:
           (e.g. use ["self-hosted", "linux", "jammy", "xlarge"] instead of ["self-hosted-linux-amd64-noble-2xlarge"])
         type: string
         required: false
-        default: '{"tests/test_version_upgrades.py::test_version_upgrades_1": ["self-hosted", "linux", "jammy", "large"]}'
+        default: '{"tests/test_version_upgrades.py::test_version_upgrades": ["self-hosted", "linux", "jammy", "large"]}'
       extra-test-env:
         description: 'Additional environment variables in KEY1=VALUE1,KEY2=VALUE2 format'
         type: string

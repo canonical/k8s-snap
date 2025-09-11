@@ -23,7 +23,7 @@ LOG = logging.getLogger(__name__)
     config.SUBSTRATE == "multipass", reason="runner size too small on multipass"
 )
 @pytest.mark.tags(tags.NIGHTLY)
-def test_version_upgrades_1(
+def test_version_upgrades(
     instances: List[harness.Instance],
     tmp_path,
     containerd_cfgdir: str,
@@ -95,7 +95,6 @@ def test_version_upgrades_1(
 
     # Setup the k8s snap from the bootstrap channel and setup basic configuration.
     for instance in instances:
-        instance.exec(["snap", "set", "system", "refresh.retain=2"])
         util.setup_k8s_snap(instance, current_channel)
         if config.USE_LOCAL_MIRROR:
             registry.apply_configuration(instance, containerd_cfgdir)
