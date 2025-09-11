@@ -136,7 +136,6 @@ jobs:
       os: ubuntu:24.04
       test-tags: ${{ needs.get-e2e-tags.outputs.test-tags }}
       artifact: k8s-${{ matrix.arch }}.snap
-      extra-test-args: "-k test_version_upgrades_1"
       parallel: true
 
   security-scan:
