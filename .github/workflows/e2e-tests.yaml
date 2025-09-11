@@ -47,7 +47,7 @@ on:
           (e.g. use ["self-hosted", "linux", "jammy", "xlarge"] instead of ["self-hosted-linux-amd64-noble-2xlarge"])
         type: string
         required: false
-        default: '{"tests/test_version_upgrades.py::test_version_upgrades_1": ["self-hosted", "linux", "jammy", "xlarge"]}'
+        default: '{"tests/test_version_upgrades.py::test_version_upgrades_1": ["self-hosted", "linux", "jammy", "large"]}'
       extra-test-env:
         description: 'Additional environment variables in KEY1=VALUE1,KEY2=VALUE2 format'
         type: string
@@ -111,6 +111,7 @@ jobs:
     runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     outputs:
       tests: ${{ steps.collect-tests.outputs.tests }}
+      test-runners: ${{ steps.compute-test-runners.outputs.test_runners }}
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -120,6 +121,14 @@ jobs:
           python-version: "3.12"
       - name: Install tox
         run: sudo apt-get install -y tox
+      - name: Compute test runners
+        id: compute-test-runners
+        run: |
+          # Github Actions does not support dynamic concatination of lists, so we need to compute the test runners here.
+          # See https://github.com/orgs/community/discussions/11401
+          TEST_RUNNERS=$(jq -n 'reduce inputs as $i ({}; . + $i)' <<< "${{ inputs.runner-tags }}")
+          TEST_RUNNERS=$(echo "$TEST_RUNNERS" | jq 'with_entries(.value += ["${{ inputs.arch }}"])')
+          echo "test_runners=$TEST_RUNNERS" >> $GITHUB_OUTPUT
       - name: Collect tests
         id: collect-tests
         run: |
@@ -144,19 +153,7 @@ jobs:
   run-tests:
     name: ${{ matrix.test }}
     needs: prepare
-    runs-on: >-
-      ${{
-        inputs.parallel &&
-        join(
-          concat(
-            fromJson(inputs.runner-tags)[matrix.test],
-            fromJSON(format('["{0}"]', inputs.arch))
-          ),
-          ','
-        )
-        ||
-        (inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04')
-      }}
+    runs-on: ${{ fromJson(needs.prepare.outputs.test-runners)[matrix.test] || (inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04') }}
     strategy:
       fail-fast: false
       matrix:
