@@ -5,6 +5,7 @@ import datetime
 import logging
 import os
 import subprocess
+import threading
 from typing import List
 
 import pytest
@@ -71,6 +72,55 @@ def test_worker_nodes(instances: List[harness.Instance]):
     ] and other_joining_node.id in [
         node["metadata"]["name"] for node in nodes
     ], f"only {cluster_node.id} should be left in cluster"
+
+
+@pytest.mark.node_count(6)
+@pytest.mark.tags(tags.NIGHTLY)
+def test_concurrent_join(instances: List[harness.Instance]):
+    """Test concurrent joining of control-plane and worker nodes to a cluster.
+
+    This test ensures that nodes can join the cluster concurrently, even if retries
+    are required due to join operations blocking each other."""
+    cluster_node = instances[0]
+    control_plane_nodes = instances[1:3]  # 2 control-plane nodes
+    worker_nodes = instances[3:6]  # 3 worker nodes
+
+    util.wait_until_k8s_ready(cluster_node, [cluster_node])
+
+    # Generate join tokens for control-plane and worker nodes
+    cp_tokens = [util.get_join_token(cluster_node, cp) for cp in control_plane_nodes]
+    worker_tokens = [
+        util.get_join_token(cluster_node, worker, "--worker") for worker in worker_nodes
+    ]
+
+    def join_node(node, token):
+        util.stubbornly(retries=5, delay_s=1).on(node).exec(
+            ["k8s", "join-cluster", token], check=True
+        )
+
+    threads = []
+    for cp, token in zip(control_plane_nodes, cp_tokens):
+        thread = threading.Thread(target=join_node, args=(cp, token))
+        threads.append(thread)
+
+    for worker, token in zip(worker_nodes, worker_tokens):
+        thread = threading.Thread(target=join_node, args=(worker, token))
+        threads.append(thread)
+
+    for thread in threads:
+        thread.start()
+
+    for thread in threads:
+        thread.join()
+
+    util.wait_until_k8s_ready(cluster_node, instances)
+
+    assert "control-plane" in util.get_local_node_status(cluster_node)
+    for cp in control_plane_nodes:
+        assert "control-plane" in util.get_local_node_status(cp)
+
+    for worker in worker_nodes:
+        assert "worker" in util.get_local_node_status(worker)
 
 
 @pytest.mark.node_count(3)
