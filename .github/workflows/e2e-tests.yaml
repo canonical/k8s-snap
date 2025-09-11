@@ -38,6 +38,13 @@ on:
           Additional pytest arguments, use "-k <test_name>" to run a specific test
         default: ""
         type: string
+      runner-tags:
+        description: |
+          Optional dictionary mapping test names to specific runner and tags.
+          Example: {"test_name": ["ubuntu-24.04-arm", "performance"]}
+        type: string
+        required: false
+        default: '{"tests/test_version_upgrades.py::test_version_upgrades_1": ["self-hosted-linux-amd64-noble-2xlarge"]}'
       extra-test-env:
         description: 'Additional environment variables in KEY1=VALUE1,KEY2=VALUE2 format'
         type: string
@@ -134,7 +141,7 @@ jobs:
   run-tests:
     name: ${{ matrix.test }}
     needs: prepare
-    runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    runs-on: ${{ inputs.parallel && fromJson(inputs.runner-tags)[matrix.test][0] || (inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04') }}
     strategy:
       fail-fast: false
       matrix:
