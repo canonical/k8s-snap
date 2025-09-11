@@ -144,7 +144,14 @@ jobs:
   run-tests:
     name: ${{ matrix.test }}
     needs: prepare
-    runs-on: ${{ inputs.parallel && format('{0},{1}', join(fromJson(inputs.runner-tags)[matrix.test], ','), inputs.arch) || (inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04') }}
+    runs-on: ${{ env.runner }}
+    env:
+      runner: >-
+        ${{
+          inputs.parallel &&
+          join(concat(fromJson(inputs.runner-tags)[matrix.test], [inputs.arch]), ',') ||
+          (inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04')
+        }}
     strategy:
       fail-fast: false
       matrix:
