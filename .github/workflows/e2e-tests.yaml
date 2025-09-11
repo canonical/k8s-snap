@@ -124,10 +124,9 @@ jobs:
       - name: Compute test runners
         id: compute-test-runners
         run: |
-          # Github Actions does not support dynamic concatination of lists, so we need to compute the test runners here.
+          # Github Actions does not support dynamic concatination of lists, so we need to add the arch tag here.
           # See https://github.com/orgs/community/discussions/11401
-          TEST_RUNNERS=$(jq -n 'reduce inputs as $i ({}; . + $i)' <<< '{"tests/test_version_upgrades.py::test_version_upgrades_1": ["self-hosted", "linux", "jammy", "large"]}')
-          TEST_RUNNERS=$(echo "$TEST_RUNNERS" | jq 'with_entries(.value += ["amd64"])')
+          TEST_RUNNERS=$(jq -n '${{ inputs.runner-tags }}' | jq 'with_entries(.value += ["${{ inputs.arch }}"])')
           echo "test_runners=$TEST_RUNNERS" >> $GITHUB_OUTPUT
       - name: Collect tests
         id: collect-tests
