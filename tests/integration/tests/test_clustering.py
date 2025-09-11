@@ -87,24 +87,22 @@ def test_concurrent_join(instances: List[harness.Instance]):
 
     util.wait_until_k8s_ready(cluster_node, [cluster_node])
 
-    # Generate join tokens for control-plane and worker nodes
-    cp_tokens = [util.get_join_token(cluster_node, cp) for cp in control_plane_nodes]
-    worker_tokens = [
-        util.get_join_token(cluster_node, worker, "--worker") for worker in worker_nodes
-    ]
+    def create_token_and_join(node, is_worker=False):
+        def attempt_join():
+            token_args = ["--worker"] if is_worker else []
+            token = util.get_join_token(cluster_node, node, *token_args)
 
-    def join_node(node, token):
-        util.stubbornly(retries=5, delay_s=1).on(node).exec(
-            ["k8s", "join-cluster", token], check=True
-        )
+            node.exec(["k8s", "join-cluster", token], check=True)
+
+        util.stubbornly(retries=5, delay_s=1).on(node).run(attempt_join)
 
     threads = []
-    for cp, token in zip(control_plane_nodes, cp_tokens):
-        thread = threading.Thread(target=join_node, args=(cp, token))
+    for cp in control_plane_nodes:
+        thread = threading.Thread(target=create_token_and_join, args=(cp,))
         threads.append(thread)
 
-    for worker, token in zip(worker_nodes, worker_tokens):
-        thread = threading.Thread(target=join_node, args=(worker, token))
+    for worker in worker_nodes:
+        thread = threading.Thread(target=create_token_and_join, args=(worker, True))
         threads.append(thread)
 
     for thread in threads:
