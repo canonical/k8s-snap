@@ -24,11 +24,24 @@ func getKubernetesEndpoints(ctx context.Context, kubeconfigFile string) ([]strin
 		LabelSelector: "kubernetes.io/service-name=kubernetes",
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve endpoints for kubernetes service: %w", err)
+		// Fallback to Endpoints for older clusters that do not support EndpointSlices
+		slicesErr := fmt.Errorf("failed to retrieve endpointSlices for kubernetes service: %w", err)
+
+		endpoints, err := clientset.CoreV1().Endpoints("default").Get(ctx, "kubernetes", metav1.GetOptions{})
+		if err != nil {
+			endpointsErr := fmt.Errorf("failed to retrieve endpoints for kubernetes service: %w", err)
+			return nil, fmt.Errorf("%v; %v", slicesErr, endpointsErr)
+		}
+		if endpoints == nil {
+			return nil, nil
+		}
+
+		return utils.ParseEndpoints(endpoints), nil
 	}
+
 	if endpointSlices == nil {
 		return nil, nil
 	}
 
-	return utils.ParseEndpoints(endpointSlices), nil
+	return utils.ParseEndpointSlices(endpointSlices), nil
 }
