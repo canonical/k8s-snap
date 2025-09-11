@@ -49,7 +49,7 @@ func (a *App) onNodeReady(ctx context.Context, s state.State) error {
 }
 
 func (a *App) applyCustomCRDs(ctx context.Context) error {
-	log := log.FromContext(ctx).WithValues("startup", "applyCustomCRDs", "dir", a.snap.K8sCRDDir())
+	log := log.FromContext(ctx).WithValues("startup", "applyCustomCRDs")
 
 	isWorker, err := snaputil.IsWorker(a.snap)
 	if err != nil {
@@ -65,7 +65,7 @@ func (a *App) applyCustomCRDs(ctx context.Context) error {
 		return fmt.Errorf("failed to create kubernetes client: %w", err)
 	}
 
-	if err := k8sClient.ApplyCRDs(ctx, a.snap.K8sCRDDir()); err != nil {
+	if err := k8sClient.ApplyCRDs(ctx); err != nil {
 		return fmt.Errorf("failed to apply custom CRDs: %w", err)
 	}
 
