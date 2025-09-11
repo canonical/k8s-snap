@@ -41,10 +41,13 @@ on:
       runner-tags:
         description: |
           Optional dictionary mapping test names to specific runner and tags.
-          Example: {"test_name": ["ubuntu-24.04-arm", "performance"]}
+          This is useful if specific tests require more powerful/larger runners, e.g. for version upgrade tests.
+          The amount of self-hosted runners is limited so we should selectively assign tests to them.
+          The arch tag will automatically be assigned based on the 'arch' input, so don't use the full tags here.
+          (e.g. use ["self-hosted", "linux", "jammy", "xlarge"] instead of ["self-hosted-linux-amd64-noble-2xlarge"])
         type: string
         required: false
-        default: '{"tests/test_version_upgrades.py::test_version_upgrades_1": ["self-hosted-linux-amd64-noble-2xlarge"]}'
+        default: '{"tests/test_version_upgrades.py::test_version_upgrades_1": ["self-hosted", "linux", "jammy", "xlarge"]}'
       extra-test-env:
         description: 'Additional environment variables in KEY1=VALUE1,KEY2=VALUE2 format'
         type: string
@@ -141,7 +144,7 @@ jobs:
   run-tests:
     name: ${{ matrix.test }}
     needs: prepare
-    runs-on: ${{ inputs.parallel && fromJson(inputs.runner-tags)[matrix.test][0] || (inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04') }}
+    runs-on: ${{ inputs.parallel && fromJson(inputs.runner-tags)[matrix.test] + [inputs.arch] || (inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04') }}
     strategy:
       fail-fast: false
       matrix:
