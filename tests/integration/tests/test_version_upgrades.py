@@ -110,7 +110,6 @@ def test_version_upgrades(
 
     LOG.info(f"Installed {len(instances)} nodes on channel {current_channel}")
 
-    local_installed = False
     for channel in channels[1:]:
         for instance in instances:
             LOG.info(
