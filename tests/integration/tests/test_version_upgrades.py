@@ -66,6 +66,9 @@ def test_version_upgrades(
         added = False
 
         for i in range(len(channels)):
+            if "latest" in channels[i]:
+                continue
+
             # e.g.: 1.32-classic/stable
             chan_ver_parts = channels[i].split("-")[0].split(".")
             chan_ver = (int(chan_ver_parts[0]), int(chan_ver_parts[1]))
@@ -123,7 +126,6 @@ def test_version_upgrades(
             if channel.startswith("/"):
                 LOG.info("Refreshing k8s snap by path")
                 cmd = ["snap", "install", "--classic", "--dangerous", snap_path]
-                local_installed = True
             else:
                 cmd = [
                     "snap",
@@ -131,21 +133,14 @@ def test_version_upgrades(
                     config.SNAP_NAME,
                     "--channel",
                     channel,
+                    "--amend",
                     "--classic",
                 ]
-
-                # NOTE: (Mateo): Last refresh included a local snap. Allow snapd to amend
-                # the installation and perform an upgrade to a store owned snap.
-                if local_installed:
-                    cmd.insert(-1, "--amend")
-                    local_installed = False
 
             instance.exec(cmd)
             util.wait_until_k8s_ready(cp, instances)
             LOG.info(f"Upgraded {instance.id} on channel {channel}")
 
-        # Set local_installed after all instances have been upgraded.
-        local_installed = True if channel.startswith("/") else False
         current_channel = channel
         LOG.info(f"Upgraded all instances to channel {channel}")
 
