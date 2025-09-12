@@ -23,7 +23,6 @@ contexts:
   name: k8s
 current-context: k8s
 kind: Config
-preferences: {}
 users:
 - name: k8s-user
   user:
