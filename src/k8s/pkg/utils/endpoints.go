@@ -4,46 +4,34 @@ import (
 	"fmt"
 	"sort"
 
-	discoveryv1 "k8s.io/api/discovery/v1"
+	corev1 "k8s.io/api/core/v1"
 )
 
 // ParseEndpoints processes the given kube-apiserver endpoints and returns a list of
 // IPv4:port or [IPv6]:port strings.
-func ParseEndpoints(endpointSlices *discoveryv1.EndpointSliceList) []string {
-	addresses := make([]string, 0, len(endpointSlices.Items))
+func ParseEndpoints(endpoints *corev1.Endpoints) []string {
+	addresses := make([]string, 0, len(endpoints.Subsets))
 
-	for _, endpointSlice := range endpointSlices.Items {
+	for _, subset := range endpoints.Subsets {
 		portNumber := 6443
-		for _, port := range endpointSlice.Ports {
-			if port.Name != nil && *port.Name == "https" {
-				if port.Port != nil {
-					portNumber = int(*port.Port)
-					break
-				}
+		for _, port := range subset.Ports {
+			if port.Name == "https" {
+				portNumber = int(port.Port)
+				break
 			}
 		}
 
-		for _, endpoint := range endpointSlice.Endpoints {
-			for _, addr := range endpoint.Addresses {
-				if addr != "" {
-					var address string
-					switch endpointSlice.AddressType {
-					case discoveryv1.AddressTypeIPv4:
-						address = addr
-					case discoveryv1.AddressTypeIPv6:
-						address = fmt.Sprintf("[%s]", addr)
-					case discoveryv1.AddressTypeFQDN:
-						// Not supported, skip.
-						continue
-					default:
-						// Unknown address type, skip.
-						continue
-					}
-					addresses = append(addresses, fmt.Sprintf("%s:%d", address, portNumber))
+		for _, addr := range subset.Addresses {
+			if addr.IP != "" {
+				var address string
+				if IsIPv4(addr.IP) {
+					address = addr.IP
+				} else {
+					address = fmt.Sprintf("[%s]", addr.IP)
 				}
+				addresses = append(addresses, fmt.Sprintf("%s:%d", address, portNumber))
 			}
 		}
-
 	}
 
 	sort.Strings(addresses)
