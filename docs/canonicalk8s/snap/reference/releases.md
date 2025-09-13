@@ -12,6 +12,7 @@ and backwards-incompatible changes.
 :maxdepth: 2
 /snap/reference/versions/1.32
 /snap/reference/versions/1.33
+/snap/reference/versions/1.34
 ```
 
 ## Upgrade notes

@@ -1,11 +1,31 @@
 # Upgrade notes
 
+## Upgrade 1.33 to 1.34
+
+Simply run:
+
+```bash
+sudo snap refresh k8s --channel=1.34-classic/stable
+```
+
+All components will be updated automatically.
+
+### Verify the upgrade 
+
+Check the `k8s` snap version has been updated and the cluster is back in the 
+`Ready` state.
+
+```
+snap info k8s
+sudo k8s status --wait-ready
+```
+
 ## Upgrade 1.32 to 1.33
 
 If you are not using dual stack networking, you can simply run:
 
 ```bash
-sudo snap refresh k8s --channel=1.33/stable
+sudo snap refresh k8s --channel=1.33-classic/stable
 ```
 
 All components will be updated automatically.

@@ -8,4 +8,7 @@
 <sitemap>
 <loc>https://documentation.ubuntu.com/canonical-kubernetes/release-1.33/sitemap.xml</loc>
 </sitemap>
+<sitemap>
+<loc>https://documentation.ubuntu.com/canonical-kubernetes/release-1.34/sitemap.xml</loc>
+</sitemap>
 </sitemapindex>
