@@ -6,6 +6,6 @@ cluster-config:
      local-storage:
        enabled: true
    extra-node-kubelet-args:
-     --reserved-cpus: "0-31"
+     --reserved-cpus: <reserved CPUs (physical core IDs e.g. 0-2)>
      --cpu-manager-policy: "static"
      --topology-manager-policy: "best-effort"
