@@ -3,7 +3,7 @@ package kubernetes
 import (
 	"fmt"
 
-	upgradesv1alpha "github.com/canonical/k8s/pkg/k8sd/crds/upgrades/v1alpha"
+	upgradesv1alpha "github.com/canonical/k8s-snap-api/api/v1alpha"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 )
