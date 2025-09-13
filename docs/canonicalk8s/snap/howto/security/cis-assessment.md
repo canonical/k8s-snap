@@ -1625,10 +1625,10 @@ are set as appropriate
 
 **Remediation:**
 
-Edit the API server configuration file 
-`/var/snap/k8s/common/args/kube-apiserver` on the control plane node and set 
-the `--etcd-certfile` and `--etcd-keyfile` parameters to the certificate and 
-private key files respectively. 
+Edit the API server configuration file
+`/var/snap/k8s/common/args/kube-apiserver` on the control plane node and set
+the `--etcd-certfile` and `--etcd-keyfile` parameters to the certificate and
+private key files respectively.
 
 ```
 --etcd-certfile="/etc/kubernetes/pki/apiserver-etcd-client.crt"
@@ -1667,10 +1667,10 @@ are set as appropriate
 
 **Remediation:**
 
-Not applicable when Canonical Kubernetes is set to use dqlite. The 
-communication to this service is done through a 
-local socket 
-(`/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`) 
+Not applicable when Canonical Kubernetes is set to use dqlite. The
+communication to this service is done through a
+local socket
+(`/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`)
 accessible to users with root permissions.
 
 ````
@@ -1757,9 +1757,9 @@ Ensure that the `--etcd-cafile` argument is set as appropriate
 
 **Remediation:**
 
-Edit the API server configuration file 
-`/var/snap/k8s/common/args/kube-apiserver` on the control plane node and set 
-the `--etcd-cafile` parameter to the CA certificate file that is used by etcd. 
+Edit the API server configuration file
+`/var/snap/k8s/common/args/kube-apiserver` on the control plane node and set
+the `--etcd-cafile` parameter to the CA certificate file that is used by etcd.
 
 ```
 --etcd-cafile=/etc/kubernetes/pki/etcd/ca.crt
@@ -1794,10 +1794,10 @@ Ensure that the `--etcd-cafile` argument is set as appropriate
 
 **Remediation:**
 
-Not applicable when Canonical Kubernetes is set to use dqlite. The 
-communication to this service is done through a 
-local socket 
-(`/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`) 
+Not applicable when Canonical Kubernetes is set to use dqlite. The
+communication to this service is done through a
+local socket
+(`/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`)
 accessible to users with root permissions.
 
 ````
@@ -1815,12 +1815,12 @@ as appropriate
 **Remediation:**
 
 Follow the Kubernetes documentation and configure a
-`EncryptionConfig` file. Then, edit the API server configuration
+`EncryptionConfiguration` file. Then, edit the API server configuration
 file `/var/snap/k8s/common/args/kube-apiserver`
 on the control plane node and set the `--encryption-provider-config` parameter
 to the path of that file.
 
-`--encryption-provider-config=</path/to/EncryptionConfig/File>`
+`--encryption-provider-config=</path/to/EncryptionConfiguration/File>`
 
 
 **Audit (as root):**
@@ -1846,7 +1846,7 @@ configured
 **Remediation:**
 
 Follow the Kubernetes documentation and configure a
-`EncryptionConfig` file.
+`EncryptionConfiguration` file.
 In this file, choose AES-CBC, KMS or SecretBox as the
 encryption provider.
 
@@ -2203,9 +2203,9 @@ as appropriate
 
 **Remediation:**
 
-Edit the etcd configuration file 
-`/var/snap/k8s/common/args/etcd` on the control plane node and set 
-the `--cert-file` and `--key-file` parameters appropriately. 
+Edit the etcd configuration file
+`/var/snap/k8s/common/args/etcd` on the control plane node and set
+the `--cert-file` and `--key-file` parameters appropriately.
 
 ```
 --cert-file="/etc/kubernetes/pki/etcd/server.crt"
@@ -2243,10 +2243,10 @@ as appropriate
 
 **Remediation:**
 
-Not applicable when Canonical Kubernetes is set to use dqlite. The 
-communication to this service is done through a 
-local socket 
-(`/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`) 
+Not applicable when Canonical Kubernetes is set to use dqlite. The
+communication to this service is done through a
+local socket
+(`/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`)
 accessible to users with root permissions.
 
 ````
@@ -2265,8 +2265,8 @@ Ensure that the `--client-cert-auth` argument is set to true
 
 **Remediation:**
 
-Edit the etcd configuration file 
-`/var/snap/k8s/common/args/etcd` on the control plane node and set 
+Edit the etcd configuration file
+`/var/snap/k8s/common/args/etcd` on the control plane node and set
 the `--client-cert-auth` argument to true. Then restart the `etcd` service.
 
 ```
@@ -2296,10 +2296,10 @@ Ensure that the `--client-cert-auth` argument is set to true
 
 **Remediation:**
 
-Not applicable when Canonical Kubernetes is set to use dqlite. The 
-communication to this service is done through a 
-local socket 
-(`/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`) 
+Not applicable when Canonical Kubernetes is set to use dqlite. The
+communication to this service is done through a
+local socket
+(`/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`)
 accessible to users with root permissions.
 
 ````
@@ -2318,7 +2318,7 @@ Ensure that the `--auto-tls` argument is not set to true
 
 **Remediation:**
 
-Edit the etcd configuration file 
+Edit the etcd configuration file
 `/var/snap/k8s/common/args/etcd` on the control plane node and remove the
 `--auto-tls` argument. Then restart the `etcd` service.
 
@@ -2347,10 +2347,10 @@ Ensure that the `--auto-tls` argument is not set to true
 
 **Remediation:**
 
-Not applicable when Canonical Kubernetes is set to use dqlite. The 
-communication to this service is done through a 
-local socket 
-(`/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`) 
+Not applicable when Canonical Kubernetes is set to use dqlite. The
+communication to this service is done through a
+local socket
+(`/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`)
 accessible to users with root permissions.
 
 ````
@@ -2370,9 +2370,9 @@ arguments are set as appropriate
 
 **Remediation:**
 
-Edit the etcd configuration file 
-`/var/snap/k8s/common/args/etcd` on the control plane node and set 
-the `--peer-cert-file` and `--peer-key-file` parameters appropriately. 
+Edit the etcd configuration file
+`/var/snap/k8s/common/args/etcd` on the control plane node and set
+the `--peer-cert-file` and `--peer-key-file` parameters appropriately.
 
 ```
 --peer-cert-file="/etc/kubernetes/pki/etcd/peer.crt"
@@ -2445,8 +2445,8 @@ true
 
 **Remediation:**
 
-Edit the etcd configuration file 
-`/var/snap/k8s/common/args/etcd` on the control plane node and set 
+Edit the etcd configuration file
+`/var/snap/k8s/common/args/etcd` on the control plane node and set
 the `--peer-client-cert-auth` argument to true. Then restart the `etcd` service.
 
 ```
@@ -2510,7 +2510,7 @@ Ensure that the `--peer-auto-tls` argument is not set to true
 
 **Remediation:**
 
-Edit the etcd configuration file 
+Edit the etcd configuration file
 `/var/snap/k8s/common/args/etcd` on the control plane node and remove the
 `--peer-auto-tls` argument. Then restart the `etcd` service.
 
@@ -2557,7 +2557,7 @@ datastore
 **Remediation:**
 
 Not applicable. All Certificates and CAs used by the datastore,
-whether `k8s-dqlite` or `etcd` are created upon cluster setup and 
+whether `k8s-dqlite` or `etcd` are created upon cluster setup and
 therefore are unique.
 
 ### Control plane configuration
