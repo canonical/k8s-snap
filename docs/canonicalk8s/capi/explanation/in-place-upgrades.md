@@ -65,7 +65,7 @@ A successfully upgraded machine shows the following annotations:
 
 ```yaml
 annotations:
-  v1beta2.k8sd.io/in-place-upgrade-release: "channel=1.31/stable"
+  v1beta2.k8sd.io/in-place-upgrade-release: "channel=1.34-classic/stable"
   v1beta2.k8sd.io/in-place-upgrade-status: "done"
 ```
 
@@ -75,7 +75,7 @@ the upgrade immediately:
 ```yaml
 annotations:
   # the `upgrade-to` causes the retry to happen
-  v1beta2.k8sd.io/in-place-upgrade-to: "channel=1.31/stable"
+  v1beta2.k8sd.io/in-place-upgrade-to: "channel=1.34-classic/stable"
   v1beta2.k8sd.io/in-place-upgrade-status: "failed"
 
   # orchestrator will notice this annotation and knows that the 
