@@ -5,6 +5,7 @@ import datetime
 import logging
 import os
 import subprocess
+import threading
 from typing import List
 
 import pytest
@@ -71,6 +72,53 @@ def test_worker_nodes(instances: List[harness.Instance]):
     ] and other_joining_node.id in [
         node["metadata"]["name"] for node in nodes
     ], f"only {cluster_node.id} should be left in cluster"
+
+
+@pytest.mark.node_count(6)
+@pytest.mark.tags(tags.NIGHTLY)
+def test_concurrent_join(instances: List[harness.Instance]):
+    """Test concurrent joining of control-plane and worker nodes to a cluster.
+
+    This test ensures that nodes can join the cluster concurrently, even if retries
+    are required due to join operations blocking each other."""
+    cluster_node = instances[0]
+    control_plane_nodes = instances[1:3]  # 2 control-plane nodes
+    worker_nodes = instances[3:6]  # 3 worker nodes
+
+    util.wait_until_k8s_ready(cluster_node, [cluster_node])
+
+    def create_token_and_join(node, is_worker=False):
+        def attempt_join():
+            token_args = ["--worker"] if is_worker else []
+            token = util.get_join_token(cluster_node, node, *token_args)
+
+            node.exec(["k8s", "join-cluster", token], check=True)
+
+        util.stubbornly(retries=5, delay_s=1).on(node).run(attempt_join)
+
+    threads = []
+    for cp in control_plane_nodes:
+        thread = threading.Thread(target=create_token_and_join, args=(cp,))
+        threads.append(thread)
+
+    for worker in worker_nodes:
+        thread = threading.Thread(target=create_token_and_join, args=(worker, True))
+        threads.append(thread)
+
+    for thread in threads:
+        thread.start()
+
+    for thread in threads:
+        thread.join()
+
+    util.wait_until_k8s_ready(cluster_node, instances)
+
+    assert "control-plane" in util.get_local_node_status(cluster_node)
+    for cp in control_plane_nodes:
+        assert "control-plane" in util.get_local_node_status(cp)
+
+    for worker in worker_nodes:
+        assert "worker" in util.get_local_node_status(worker)
 
 
 @pytest.mark.node_count(3)
