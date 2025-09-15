@@ -138,10 +138,10 @@ def test_concurrent_membership_operations(instances: List[harness.Instance]):
     assert join_token_A != join_token_B, "Join tokens should be different"
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        util.stubbornly(retries=5, delay_s=1).on(cluster_node).run(
+        util.stubbornly(retries=5, delay_s=1).on(cluster_node).execute(
             executor.submit(util.join_cluster, joining_cp_A, join_token_A)
         )
-        util.stubbornly(retries=5, delay_s=1).on(cluster_node).run(
+        util.stubbornly(retries=5, delay_s=1).on(cluster_node).execute(
             executor.submit(util.join_cluster, joining_cp_B, join_token_B)
         )
 
@@ -152,10 +152,10 @@ def test_concurrent_membership_operations(instances: List[harness.Instance]):
     assert "control-plane" in util.get_local_node_status(joining_cp_B)
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        util.stubbornly(retries=5, delay_s=1).on(cluster_node).run(
+        util.stubbornly(retries=5, delay_s=1).on(cluster_node).execute(
             executor.submit(cluster_node.exec, ["k8s", "remove-node", joining_cp_A.id])
         )
-        util.stubbornly(retries=5, delay_s=1).on(cluster_node).run(
+        util.stubbornly(retries=5, delay_s=1).on(cluster_node).execute(
             executor.submit(cluster_node.exec, ["k8s", "remove-node", joining_cp_B.id])
         )
 
@@ -258,10 +258,10 @@ def test_node_join_succeeds_when_original_control_plane_is_down(
     ), "Join tokens should be different"
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        util.stubbornly(retries=5, delay_s=1).on(cluster_node).run(
+        util.stubbornly(retries=5, delay_s=1).on(cluster_node).execute(
             executor.submit(util.join_cluster, joining_cp_A, join_token_A)
         )
-        util.stubbornly(retries=5, delay_s=1).on(cluster_node).run(
+        util.stubbornly(retries=5, delay_s=1).on(cluster_node).execute(
             executor.submit(util.join_cluster, joining_cp_B, join_token_B)
         )
 
