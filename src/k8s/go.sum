@@ -38,8 +38,8 @@ github.com/bshuster-repo/logrus-logstash-hook v1.0.0 h1:e+C0SB5R1pu//O4MQ3f9cFuP
 github.com/bshuster-repo/logrus-logstash-hook v1.0.0/go.mod h1:zsTqEiSzDgAa/8GZR7E1qaXrhYNDKBYy5/dWPTIflbk=
 github.com/canonical/go-dqlite/v2 v2.0.1 h1:C5A+MioYkjew5rG8apjVYwGYIpKKkkC1FlnL4cBLGaE=
 github.com/canonical/go-dqlite/v2 v2.0.1/go.mod h1:IaIC8u4Z1UmPjuAqPzA2r83YMaMHRLoKZdHKI5uHCJI=
-github.com/canonical/k8s-snap-api v1.1.1-0.20250911173012-8bb770d288a0 h1:ity4P3UIUVIzSnoFAwIS/GacpAvj4Pu0CnXtqoh25pc=
-github.com/canonical/k8s-snap-api v1.1.1-0.20250911173012-8bb770d288a0/go.mod h1:AKPg4cCH8qPUkuojVHBpmX5z+Mc9WuyEJ8fgpKymMCI=
+github.com/canonical/k8s-snap-api v1.2.0 h1:bFddXgrRiMlmwxGh/n12pZYpPzDIr9av5IK8K4D+fss=
+github.com/canonical/k8s-snap-api v1.2.0/go.mod h1:AKPg4cCH8qPUkuojVHBpmX5z+Mc9WuyEJ8fgpKymMCI=
 github.com/canonical/lxd v0.0.0-20250624133916-8079534cf291 h1:pjAvVXNMqYxV0FulodnT5HL0NdUxJvhhxvvcLVlSpHY=
 github.com/canonical/lxd v0.0.0-20250624133916-8079534cf291/go.mod h1:RJUPpezQbDX5APLrGSXotQXcQNshv8s4ZiElxf4zrn4=
 github.com/canonical/microcluster/v2 v2.2.0 h1:JxTnohcJjLLrF8qzTimxvmeCLEgYSSqEu/1giMAWZcA=
