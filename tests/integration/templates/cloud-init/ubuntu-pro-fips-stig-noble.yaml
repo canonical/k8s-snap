@@ -2,6 +2,9 @@ package_update: true
 package_upgrade: true
 packages:
   - ubuntu-advantage-tools
+snap:
+  commands:
+    00: 'snap install core22 --channel=fips-updates/stable'
 runcmd:
   - echo "Installing Ubuntu Pro FIPS STIG Noble template"
   - echo "Setting up FIPS"
@@ -34,7 +37,16 @@ runcmd:
   - sudo apt update
   - DEBIAN_FRONTEND=noninteractive sudo -E apt install ubuntu-fips openssh-server --allow-downgrades --assume-yes
   - DEBIAN_FRONTEND=noninteractive sudo -E apt upgrade --assume-yes
-
+  - |
+      sudo tee /etc/sysctl.d/99-kubelet.conf <<EOF
+      vm.overcommit_memory=1
+      vm.panic_on_oom=0
+      kernel.keys.root_maxbytes=25000000
+      kernel.keys.root_maxkeys=1000000
+      kernel.panic=10
+      kernel.panic_on_oops=1
+      EOF
+  - sudo sed -i '/^net.ipv4.ip_forward/d' /etc/sysctl.conf && echo 'net.ipv4.ip_forward=1' | sudo tee -a /etc/sysctl.conf
 
   # enable stig compliance
   # add nopasswd for ubuntu user *before* the usg fix and password deletion
@@ -93,7 +105,7 @@ write_files:
     content: |
       <?xml version='1.0' encoding='UTF-8'?>
       <Tailoring xmlns="http://checklists.nist.gov/xccdf/1.2" id="xccdf_scap-workbench_tailoring_default">
-        <benchmark href="/usr/share/ubuntu-scap-security-guides/1/benchmarks/ssg-ubuntu2204-xccdf.xml"/>
+      <benchmark href="/usr/share/ubuntu-scap-security-guides/1/benchmarks/ssg-ubuntu2404-xccdf.xml"/>
         <version time="2025-04-01T11:19:07">1</version>
         <Profile id="xccdf_org.ssgproject.content_profile_stig_customized" extends="xccdf_org.ssgproject.content_profile_stig">
           <title xmlns:xhtml="http://www.w3.org/1999/xhtml" xml:lang="en-US" override="true">DISA-STIG Benchmark [CUSTOMIZED]</title>
