@@ -31,7 +31,7 @@ func (c *Client) GetKubeAPIServerEndpoints(ctx context.Context) ([]string, error
 		return nil, fmt.Errorf("endpoints for kubernetes service not found")
 	}
 
-	addresses := utils.ParseEndpoints(endpointSlices)
+	addresses := utils.ParseEndpointSlices(endpointSlices)
 	if len(addresses) == 0 {
 		return nil, fmt.Errorf("empty list of endpoints for the kubernetes service")
 	}
