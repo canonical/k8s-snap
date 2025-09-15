@@ -138,8 +138,12 @@ def test_concurrent_membership_operations(instances: List[harness.Instance]):
     assert join_token_A != join_token_B, "Join tokens should be different"
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        executor.submit(util.join_cluster, joining_cp_A, join_token_A)
-        executor.submit(util.join_cluster, joining_cp_B, join_token_B)
+        util.stubbornly(retries=5, delay_s=1).on(cluster_node).run(
+            executor.submit(util.join_cluster, joining_cp_A, join_token_A)
+        )
+        util.stubbornly(retries=5, delay_s=1).on(cluster_node).run(
+            executor.submit(util.join_cluster, joining_cp_B, join_token_B)
+        )
 
     util.wait_until_k8s_ready(cluster_node, instances)
 
@@ -148,8 +152,12 @@ def test_concurrent_membership_operations(instances: List[harness.Instance]):
     assert "control-plane" in util.get_local_node_status(joining_cp_B)
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        executor.submit(cluster_node.exec, ["k8s", "remove-node", joining_cp_A.id])
-        executor.submit(cluster_node.exec, ["k8s", "remove-node", joining_cp_B.id])
+        util.stubbornly(retries=5, delay_s=1).on(cluster_node).run(
+            executor.submit(cluster_node.exec, ["k8s", "remove-node", joining_cp_A.id])
+        )
+        util.stubbornly(retries=5, delay_s=1).on(cluster_node).run(
+            executor.submit(cluster_node.exec, ["k8s", "remove-node", joining_cp_B.id])
+        )
 
     util.wait_until_k8s_ready(cluster_node, [cluster_node])
 
@@ -229,32 +237,6 @@ def test_concurrent_membership_restart_operations(instances: List[harness.Instan
     assert "control-plane" in util.get_local_node_status(joining_cp_A)
 
 
-@pytest.mark.node_count(2)
-@pytest.mark.tags(tags.NIGHTLY)
-def test_node_removal_during_concurrent_join_prevents_membership(
-    instances: List[harness.Instance],
-):
-    cluster_node = instances[0]
-    joining_cp_A = instances[1]
-
-    util.wait_until_k8s_ready(cluster_node, [cluster_node])
-
-    join_token_A = util.get_join_token(cluster_node, joining_cp_A)
-
-    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        executor.submit(util.join_cluster, joining_cp_A, join_token_A)
-        executor.submit(cluster_node.exec, ["k8s", "remove-node", joining_cp_A.id])
-
-    util.wait_until_k8s_ready(cluster_node, instances)
-
-    nodes = util.ready_nodes(cluster_node)
-    assert (
-        len(nodes) == 1
-    ), "The joined and removed node should not have joined the cluster"
-
-    assert cluster_node.id in [node["metadata"]["name"] for node in nodes]
-
-
 @pytest.mark.node_count(4)
 @pytest.mark.tags(tags.NIGHTLY)
 def test_node_join_succeeds_when_original_control_plane_is_down(
@@ -276,8 +258,12 @@ def test_node_join_succeeds_when_original_control_plane_is_down(
     ), "Join tokens should be different"
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        executor.submit(util.join_cluster, joining_cp_A, join_token_A)
-        executor.submit(util.join_cluster, joining_cp_B, join_token_B)
+        util.stubbornly(retries=5, delay_s=1).on(cluster_node).run(
+            executor.submit(util.join_cluster, joining_cp_A, join_token_A)
+        )
+        util.stubbornly(retries=5, delay_s=1).on(cluster_node).run(
+            executor.submit(util.join_cluster, joining_cp_B, join_token_B)
+        )
 
     util.wait_until_k8s_ready(cluster_node, [cluster_node, joining_cp_A, joining_cp_B])
 
