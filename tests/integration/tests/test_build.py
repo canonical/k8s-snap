@@ -13,13 +13,15 @@ LOG = logging.getLogger(__name__)
 @pytest.mark.node_count(1)
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.tags(tags.NIGHTLY)
-@pytest.mark.skipif(util.is_fips_enabled(), reason="Relies on a non FIPS system")
 def test_build(instances: List[harness.Instance]):
     """
     Test that all snap components that contain crypto functions are built dynamically
     and fail to start when FIPS is enabled on a non-compliant system.
     """
     instance = instances[0]
+
+    if util.is_fips_enabled(instance):
+        pytest.skip("Relies on a non FIPS system")
 
     dynamic_components = [
         "k8sd",
