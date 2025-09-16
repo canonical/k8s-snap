@@ -138,12 +138,16 @@ def test_concurrent_membership_operations(instances: List[harness.Instance]):
     assert join_token_A != join_token_B, "Join tokens should be different"
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        util.stubbornly(retries=5, delay_s=1).on(cluster_node).execute(
-            executor.submit(util.join_cluster, joining_cp_A, join_token_A)
+        future_A = executor.submit(
+            util.stubbornly(retries=5, delay_s=1).on(joining_cp_A).exec,
+            ["k8s", "join-cluster", join_token_A],
         )
-        util.stubbornly(retries=5, delay_s=1).on(cluster_node).execute(
-            executor.submit(util.join_cluster, joining_cp_B, join_token_B)
+        future_B = executor.submit(
+            util.stubbornly(retries=5, delay_s=1).on(joining_cp_B).exec,
+            ["k8s", "join-cluster", join_token_B],
         )
+        # Optionally, wait for both to complete
+        concurrent.futures.wait([future_A, future_B])
 
     util.wait_until_k8s_ready(cluster_node, instances)
 
@@ -219,8 +223,15 @@ def test_concurrent_membership_restart_operations(instances: List[harness.Instan
     join_token_A = util.get_join_token(cluster_node, joining_cp_A)
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        executor.submit(util.join_cluster, joining_cp_A, join_token_A)
-        executor.submit(cluster_node.exec, ["snap", "restart", config.SNAP_NAME])
+        future_join = executor.submit(
+            util.stubbornly(retries=5, delay_s=1).on(joining_cp_A).exec,
+            ["k8s", "join-cluster", join_token_A],
+        )
+        future_restart = executor.submit(
+            util.stubbornly(retries=5, delay_s=1).on(cluster_node).exec,
+            ["snap", "restart", config.SNAP_NAME],
+        )
+        concurrent.futures.wait([future_join, future_restart])
 
     util.wait_until_k8s_ready(cluster_node, instances)
 
