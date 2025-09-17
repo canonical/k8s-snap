@@ -1,12 +1,15 @@
 #!/bin/bash
 
-# Store the current Go snap revision
-INITIAL_GO_REVISION=$(snap list go | grep -E '^go\s' | awk '{print $3}')
-echo "Current Go snap revision: ${INITIAL_GO_REVISION}"
-
-# Refresh to go 1.23-fips/stable channel
-echo "Refreshing to go 1.23-fips/stable channel..."
-snap refresh go --channel=1.23-fips/stable
+# Check if Go is installed via snap
+if snap list go >/dev/null 2>&1; then
+    # Store the current Go snap revision
+    INITIAL_GO_REVISION=$(snap list go | grep -E '^go\s' | awk '{print $3}')
+    echo "Current Go snap revision: ${INITIAL_GO_REVISION}"
+    
+    # Refresh to go 1.23-fips/stable channel
+    echo "Refreshing to go 1.23-fips/stable channel..."
+    snap refresh go --channel=1.23-fips/stable
+fi
 
 INSTALL="${1}/bin"
 mkdir -p "${INSTALL}"
@@ -39,6 +42,9 @@ for bin in ctr containerd-shim containerd-shim-runc-v1 containerd-shim-runc-v2; 
   cp "bin/${bin}" "${INSTALL}/${bin}"
 done
 
-# Restore the initial Go snap revision
-echo "Restoring Go snap to initial revision: ${INITIAL_GO_REVISION}"
-snap revert go --revision="${INITIAL_GO_REVISION}"
+# Restore Go state
+if snap list go >/dev/null 2>&1; then
+    # Restore the initial Go snap revision
+    echo "Restoring Go snap to initial revision: ${INITIAL_GO_REVISION}"
+    snap revert go --revision="${INITIAL_GO_REVISION}"
+fi
