@@ -11,7 +11,7 @@ Create the `EncryptionConfiguration` file under `/var/snap/k8s/common/etc/encryp
 sudo sh -c '
 mkdir -p /var/snap/k8s/common/etc/encryption/
 cat >/var/snap/k8s/common/etc/encryption/enc.yaml << EOL
-kind: "EncryptionConfig"
+kind: "EncryptionConfiguration"
 apiVersion: apiserver.config.k8s.io/v1
 resources:
 - resources: ["secrets"]
@@ -31,7 +31,7 @@ apiserver.
 ```
 sudo sh -c '
 cat >>/var/snap/k8s/common/args/kube-apiserver <<EOL
---encryption-provider-config=/var/snap/k8s/common/etc/enc.yaml
+--encryption-provider-config=/var/snap/k8s/common/etc/encryption/enc.yaml
 EOL'
 ```
 
