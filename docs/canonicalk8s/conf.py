@@ -191,7 +191,7 @@ if 'READTHEDOCS_VERSION' in os.environ:
     version = os.environ["READTHEDOCS_VERSION"]
     sitemap_url_scheme = '{version}{link}'
 else:
-    sitemap_url_scheme = 'latest/{link}'
+    sitemap_url_scheme = 'release-1.34/{link}'
 
 sitemap_show_lastmod = True
 
