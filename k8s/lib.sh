@@ -284,52 +284,56 @@ k8s::containerd::ensure_systemd_defaults() {
 }
 
 # Sanitize feature gates in kube-apiserver arguments
-# Usage: k8s::apiserver::sanitize_feature_gates "flag1" "flag2" "flag3"
-# Example: k8s::apiserver::sanitize_feature_gates "SizeBasedListCostEstimate" "OtherFlag"
+# This removes any feature gates that are not present in the current apiserver version
+# from the --feature-gates argument in /var/snap/k8s/common/args/kube-apiserver.
+# Usage: k8s::apiserver::sanitize_feature_gates
 k8s::apiserver::sanitize_feature_gates() {
   local args_file="/var/snap/k8s/common/args/kube-apiserver"
-  
+
   # Check if the args file exists
   if [ ! -f "$args_file" ]; then
     return 0
   fi
-  
-  # Get the list of feature gates to remove from function arguments
-  local flags_to_remove=("$@")
-  
-  # If no flags specified, return
-  if [ ${#flags_to_remove[@]} -eq 0 ]; then
-    return 0
-  fi
-  
+
   # Process the feature gates line if it exists
   if grep -q "^--feature-gates=" "$args_file"; then
+    # Get the list of supported feature gates from kube-apiserver
+    local supported_gates=""
+    if [ -x "/snap/k8s/current/bin/kube-apiserver" ]; then
+      # Extract feature gate names from help output (format: kube:FeatureName=true|false)
+      supported_gates=$(/snap/k8s/current/bin/kube-apiserver --help 2>/dev/null | awk '/^ *kube:/{print $1}' | sed 's/^kube://' | sed 's/=.*//')
+    fi
+
+    # If we couldn't get supported gates, return without changes
+    if [ -z "$supported_gates" ]; then
+      return 0
+    fi
+
+    # Convert supported gates to array
+    declare -A supported_gates_map
+    while IFS= read -r gate; do
+      [[ -n "$gate" ]] && supported_gates_map["$gate"]=1
+    done <<< "$supported_gates"
+
     # Get the current feature gates line
     local current_line=$(grep "^--feature-gates=" "$args_file")
     local feature_gates_value="${current_line#--feature-gates=}"
-    
+
     # Remove surrounding quotes if present
     feature_gates_value="${feature_gates_value%\"}"
     feature_gates_value="${feature_gates_value#\"}"
-    
+
     local updated_gates=""
-    
-    # Split by comma and filter out unwanted gates
+
+    # Split by comma and filter out unsupported gates
     IFS=',' read -ra gates <<< "$feature_gates_value"
     for gate in "${gates[@]}"; do
       local gate_name="${gate%%=*}"
-      local should_keep=true
-      
-      # Check if this gate should be removed
-      for remove_flag in "${flags_to_remove[@]}"; do
-        if [ "$gate_name" = "$remove_flag" ]; then
-          should_keep=false
-          break
-        fi
-      done
-      
-      # Add to updated gates if we should keep it
-      if [ "$should_keep" = true ]; then
+      local gate_value="${gate#*=}"
+
+      # Check if this gate is supported using associative array lookup
+      if [[ -n "${supported_gates_map[$gate_name]}" ]]; then
+        # Keep the gate if it's supported
         if [ -n "$updated_gates" ]; then
           updated_gates="${updated_gates},${gate}"
         else
@@ -337,7 +341,7 @@ k8s::apiserver::sanitize_feature_gates() {
         fi
       fi
     done
-    
+
     # Update the file in-place
     if [ -n "$updated_gates" ]; then
       # Replace the line with updated gates (add quotes back)
