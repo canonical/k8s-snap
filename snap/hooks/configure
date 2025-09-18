@@ -7,3 +7,6 @@ k8s::common::setup_env
 k8s::cmd::k8s x-snapd-config reconcile
 
 k8s::containerd::ensure_systemd_defaults
+
+# Sanitize kube-apiserver feature gates that don't exist in k8s 1.33
+k8s::apiserver::sanitize_feature_gates "DetectCacheInconsistency" "ListFromCacheSnapshot" "SizeBasedListCostEstimate"
