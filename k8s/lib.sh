@@ -282,3 +282,69 @@ k8s::containerd::ensure_systemd_defaults() {
     cp "$override_file" "$override_dir/"
   fi
 }
+
+# Sanitize feature gates in kube-apiserver arguments
+# Usage: k8s::apiserver::sanitize_feature_gates "flag1" "flag2" "flag3"
+# Example: k8s::apiserver::sanitize_feature_gates "SizeBasedListCostEstimate" "OtherFlag"
+k8s::apiserver::sanitize_feature_gates() {
+  local args_file="/var/snap/k8s/common/args/kube-apiserver"
+  
+  # Check if the args file exists
+  if [ ! -f "$args_file" ]; then
+    return 0
+  fi
+  
+  # Get the list of feature gates to remove from function arguments
+  local flags_to_remove=("$@")
+  
+  # If no flags specified, return
+  if [ ${#flags_to_remove[@]} -eq 0 ]; then
+    return 0
+  fi
+  
+  # Process the feature gates line if it exists
+  if grep -q "^--feature-gates=" "$args_file"; then
+    # Get the current feature gates line
+    local current_line=$(grep "^--feature-gates=" "$args_file")
+    local feature_gates_value="${current_line#--feature-gates=}"
+    
+    # Remove surrounding quotes if present
+    feature_gates_value="${feature_gates_value%\"}"
+    feature_gates_value="${feature_gates_value#\"}"
+    
+    local updated_gates=""
+    
+    # Split by comma and filter out unwanted gates
+    IFS=',' read -ra gates <<< "$feature_gates_value"
+    for gate in "${gates[@]}"; do
+      local gate_name="${gate%%=*}"
+      local should_keep=true
+      
+      # Check if this gate should be removed
+      for remove_flag in "${flags_to_remove[@]}"; do
+        if [ "$gate_name" = "$remove_flag" ]; then
+          should_keep=false
+          break
+        fi
+      done
+      
+      # Add to updated gates if we should keep it
+      if [ "$should_keep" = true ]; then
+        if [ -n "$updated_gates" ]; then
+          updated_gates="${updated_gates},${gate}"
+        else
+          updated_gates="${gate}"
+        fi
+      fi
+    done
+    
+    # Update the file in-place
+    if [ -n "$updated_gates" ]; then
+      # Replace the line with updated gates (add quotes back)
+      sed -i "s/^--feature-gates=.*$/--feature-gates=\"${updated_gates}\"/" "$args_file"
+    else
+      # Remove the line if all gates were removed
+      sed -i '/^--feature-gates=/d' "$args_file"
+    fi
+  fi
+}
