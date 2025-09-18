@@ -5,6 +5,7 @@ import functools
 import logging
 import re
 import subprocess
+import pytest
 from pathlib import Path
 
 import requests
@@ -155,31 +156,40 @@ def _get_k8s_docs_version() -> semver.Version:
         return semver.Version.parse(version_str, optional_minor_and_patch=True)
 
 
-def _check_k8s_channel_version(exp_version: semver.Version, path: Path):
-    with open(path, "r") as f:
-        channel_re = r"channel[ =](\d+)\.(\d+)"
-        for line in f.readlines():
-            matches = re.findall(channel_re, line)
-            for match in matches:
-                assert len(match) == 2
-                assert str(exp_version.major) == match[0]
-                assert str(exp_version.minor) == match[1]
-
-
 def test_k8s_version():
     """Ensure that the k8s component version matches the one from the docs."""
     component_version = _get_k8s_component_version()
     docs_version = _get_k8s_docs_version()
 
     assert (
-        component_version.major == docs_version.major
-        and component_version.minor == docs_version.minor
-    )
+        component_version[:2] == docs_version[:2]
+    ), f"Channel mismatch between {component_version=} and {docs_version=}"
 
-    install_parts_file = (
-        PROJECT_BASE_DIR / "docs" / "canonicalk8s" / "_parts" / "install.md"
-    )
-    readme_file = PROJECT_BASE_DIR / "README.md"
 
-    _check_k8s_channel_version(component_version, install_parts_file)
-    _check_k8s_channel_version(component_version, readme_file)
+
+def _find_k8s_channel_version(path: Path):
+    rel = path.relative_to(PROJECT_BASE_DIR)
+    with open(path, "r") as f:
+        channel_re = r"channel[ =](\d+\.\d+)"
+        for i, line in enumerate(f.readlines()):
+            matches = re.findall(channel_re, line)
+            for found in matches:
+                yield f"{rel}:{i + 1}", found
+
+
+def _all_version_lines():
+    _files_mentioning_k8s_version = (
+        PROJECT_BASE_DIR / "README.md",
+        PROJECT_BASE_DIR / "docs/canonicalk8s/_parts/install.md",
+    )
+    for f in _files_mentioning_k8s_version:
+        yield from _find_k8s_channel_version(f)
+
+
+@pytest.mark.parametrize("path_line_no, found", _all_version_lines())
+def test_k8s_version_in_files(path_line_no, found):
+    """Ensure that the k8s component version is used in all relevant files."""
+    ver = _get_k8s_component_version()
+    found = tuple(map(int, found.split(".")))
+    assert len(found) == 2, f"Invalid channel {found=} in {path_line_no}"
+    assert ver[:2] == found[:2], f"Channel mismatch: expected={ver[:2]} but {found=} on {path_line_no}"
