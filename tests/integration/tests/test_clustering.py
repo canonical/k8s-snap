@@ -6,6 +6,7 @@ import datetime
 import logging
 import os
 import subprocess
+import time
 from typing import List
 
 import pytest
@@ -132,21 +133,24 @@ def test_concurrent_membership_operations(instances: List[harness.Instance]):
 
     util.wait_until_k8s_ready(cluster_node, [cluster_node])
 
-    join_token_A = util.get_join_token(cluster_node, joining_cp_A)
-    join_token_B = util.get_join_token(cluster_node, joining_cp_B)
-
-    assert join_token_A != join_token_B, "Join tokens should be different"
+    def join_node_with_retry(joining_node):
+        """Join cluster with retry, generating a new token on each attempt"""
+        for attempt in range(5):
+            try:
+                join_token = util.get_join_token(cluster_node, joining_node)
+                util.join_cluster(joining_node, join_token)
+                break
+            except Exception as e:
+                if attempt == 4:  # Last attempt
+                    raise
+                LOG.info(
+                    f"Join attempt {attempt + 1} failed, retrying in 1 second: {e}"
+                )
+                time.sleep(1)
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        future_A = executor.submit(
-            util.stubbornly(retries=5, delay_s=1).on(joining_cp_A).exec,
-            ["k8s", "join-cluster", join_token_A],
-        )
-        future_B = executor.submit(
-            util.stubbornly(retries=5, delay_s=1).on(joining_cp_B).exec,
-            ["k8s", "join-cluster", join_token_B],
-        )
-        # Optionally, wait for both to complete
+        future_A = executor.submit(join_node_with_retry, joining_cp_A)
+        future_B = executor.submit(join_node_with_retry, joining_cp_B)
         concurrent.futures.wait([future_A, future_B])
 
     util.wait_until_k8s_ready(cluster_node, instances)
@@ -155,13 +159,24 @@ def test_concurrent_membership_operations(instances: List[harness.Instance]):
     assert "control-plane" in util.get_local_node_status(joining_cp_A)
     assert "control-plane" in util.get_local_node_status(joining_cp_B)
 
+    def remove_node_with_retry(remove_node):
+        """Remove node with retry"""
+        for attempt in range(5):
+            try:
+                cluster_node.exec(["k8s", "remove-node", remove_node.id])
+                break
+            except Exception as e:
+                if attempt == 4:  # Last attempt
+                    raise
+                LOG.info(
+                    f"Remove attempt {attempt + 1} failed, retrying in 1 second: {e}"
+                )
+                time.sleep(1)
+
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        util.stubbornly(retries=5, delay_s=1).on(cluster_node).execute(
-            executor.submit(cluster_node.exec, ["k8s", "remove-node", joining_cp_A.id])
-        )
-        util.stubbornly(retries=5, delay_s=1).on(cluster_node).execute(
-            executor.submit(cluster_node.exec, ["k8s", "remove-node", joining_cp_B.id])
-        )
+        executor.submit(remove_node_with_retry, joining_cp_A)
+        executor.submit(remove_node_with_retry, joining_cp_B)
+        concurrent.futures.wait()
 
     util.wait_until_k8s_ready(cluster_node, [cluster_node])
 
@@ -268,13 +283,8 @@ def test_node_join_succeeds_when_original_control_plane_is_down(
         join_token_A != join_token_B and join_token_B != join_token_C
     ), "Join tokens should be different"
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        util.stubbornly(retries=5, delay_s=1).on(cluster_node).execute(
-            executor.submit(util.join_cluster, joining_cp_A, join_token_A)
-        )
-        util.stubbornly(retries=5, delay_s=1).on(cluster_node).execute(
-            executor.submit(util.join_cluster, joining_cp_B, join_token_B)
-        )
+    util.join_cluster(joining_cp_A, join_token_A)
+    util.join_cluster(joining_cp_B, join_token_B)
 
     util.wait_until_k8s_ready(cluster_node, [cluster_node, joining_cp_A, joining_cp_B])
 
@@ -310,6 +320,67 @@ def test_node_join_succeeds_when_original_control_plane_is_down(
         and joining_cp_B.id in [node["metadata"]["name"] for node in nodes]
         and joining_cp_C.id in [node["metadata"]["name"] for node in nodes]
     ), f"{joining_cp_A.id}, {joining_cp_B.id}, and {joining_cp_C.id} should be ready and in the cluster"
+
+
+@pytest.mark.node_count(3)
+@pytest.mark.tags(tags.NIGHTLY)
+def test_node_removal_during_concurrent_join(
+    instances: List[harness.Instance],
+):
+    cluster_node = instances[0]
+    joining_cp_A = instances[1]
+    joining_cp_B = instances[2]
+
+    util.wait_until_k8s_ready(cluster_node, [cluster_node])
+
+    join_token_A = util.get_join_token(cluster_node, joining_cp_A)
+    join_token_B = util.get_join_token(cluster_node, joining_cp_B)
+    assert join_token_A != join_token_B, "Join tokens should be different"
+
+    util.join_cluster(joining_cp_A, join_token_A)
+    util.wait_until_k8s_ready(cluster_node, [cluster_node, joining_cp_A])
+
+    def join_node_with_retry(joining_node):
+        """Join cluster with retry, generating a new token on each attempt"""
+        for attempt in range(5):
+            try:
+                join_token = util.get_join_token(cluster_node, joining_node)
+                util.join_cluster(joining_node, join_token)
+                break
+            except Exception as e:
+                if attempt == 4:  # Last attempt
+                    raise
+                LOG.info(
+                    f"Join attempt {attempt + 1} failed, retrying in 1 second: {e}"
+                )
+                time.sleep(1)
+
+    def remove_node_with_retry(remove_node):
+        """Remove node with retry"""
+        for attempt in range(5):
+            try:
+                cluster_node.exec(["k8s", "remove-node", remove_node.id])
+                break
+            except Exception as e:
+                if attempt == 4:  # Last attempt
+                    raise
+                LOG.info(
+                    f"Remove attempt {attempt + 1} failed, retrying in 1 second: {e}"
+                )
+                time.sleep(1)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        future_remove = executor.submit(remove_node_with_retry, joining_cp_A)
+        future_join = executor.submit(join_node_with_retry, joining_cp_B)
+        concurrent.futures.wait([future_remove, future_join])
+
+    util.wait_until_k8s_ready(cluster_node, [cluster_node, joining_cp_B])
+
+    nodes = util.ready_nodes(cluster_node)
+    assert len(nodes) == 2, "There should be two control-plane nodes in the cluster"
+
+    assert cluster_node.id in [node["metadata"]["name"] for node in nodes]
+    assert joining_cp_B.id in [node["metadata"]["name"] for node in nodes]
 
 
 @pytest.mark.node_count(3)
