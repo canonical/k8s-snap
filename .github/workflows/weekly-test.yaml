@@ -27,7 +27,7 @@ jobs:
       test-tags: 'up_to_weekly'
       artifact: k8s-${{ matrix.arch }}.snap
       parallel: true
-      runner-tags: '{"arm64": "self-hosted-linux-noble-arm64-fips"}'
+      runner-tags: '{"arm64": "[self-hosted-linux-noble-arm64-fips]"}'
 
   Mattermost:
     name: Notify Mattermost
