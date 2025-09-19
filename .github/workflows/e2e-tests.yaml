@@ -158,9 +158,9 @@ jobs:
     name: ${{ matrix.test }}
     needs: prepare
     runs-on: |
-     ${{
-        fromJson(needs.prepare.outputs.test-runners)[matrix.test] ||
-        fromJson(needs.prepare.outputs.test-runners)[inputs.arch] ||
+      ${{
+        fromJson(needs.prepare.outputs.test-runners || '{}')[matrix.test] ||
+        fromJson(needs.prepare.outputs.test-runners || '{}')[inputs.arch] ||
         (inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04')
       }}
     strategy:
