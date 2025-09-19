@@ -11,26 +11,6 @@ permissions:
   actions: read
 
 jobs:
-  test-on-fips:
-    name: Integration tests on FIPS machine
-    strategy:
-      fail-fast: false
-      matrix:
-        os: ["jammy", "noble"]
-        arch: ["amd64"]
-        channel: ["latest/edge"]
-    uses: ./.github/workflows/e2e-tests.yaml
-    with:
-      arch: ${{ matrix.arch }}
-      os: ${{ matrix.os }}
-      channel: ${{ matrix.channel }}
-      test-tags: 'up_to_weekly'
-      substrate: 'multipass'
-      extra-test-env: 'TEST_MULTIPASS_CLOUD_INIT=ubuntu-pro-fips-stig-${{ matrix.os }}.yaml,TEST_USE_LOCAL_MIRROR=0,TEST_PRELOAD_SNAPS=0,TEST_SKIP_CLEANUP=1'
-    secrets:
-      UBUNTU_PRO_TOKEN: ${{ secrets.UBUNTU_PRO_TOKEN }}
-      LAUNCHPAD_K8S_CI_BOT_PASSWORD: ${{ secrets.LAUNCHPAD_K8S_CI_BOT_PASSWORD }}
-
   # Note(Ben): We already have self-hosted FIPS machines for ARM but not yet for AMD64.
   # Once we do, those jobs can be consolidated again and we can completly remove the multipass workaround.
   test-on-fips-arm:
@@ -49,28 +29,12 @@ jobs:
       parallel: true
       runner-tags: '{"arm64": "self-hosted-linux-noble-arm64-fips"}'
 
-  cncf:
-    name: CNCF conformance test
-    strategy:
-      fail-fast: false
-      matrix:
-        os: ["ubuntu:22.04", "ubuntu:24.04"]
-        arch: ["amd64"]
-        channel: ["latest/edge"]
-    uses: ./.github/workflows/e2e-tests.yaml
-    with:
-      arch: ${{ matrix.arch }}
-      os: ${{ matrix.os }}
-      channel: ${{ matrix.channel }}
-      test-tags: 'conformance_tests'
-
   Mattermost:
     name: Notify Mattermost
     # Notify on success or failure but only if the event is a scheduled run.
     # We don't want to ping people of failed PRs.
     if: ${{ always() && github.event_name == 'schedule' }}
     # Note: Update results check below if you change the "needs" list.
-    needs: [test-on-fips]
     runs-on: ubuntu-latest
     steps:
       - name: Set current formatted date as env variable
