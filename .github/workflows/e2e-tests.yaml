@@ -49,10 +49,10 @@ on:
         type: string
         required: false
         default: |
-          '{
+          {
             "tests/test_version_upgrades.py::test_version_upgrades": ["self-hosted", "linux", "jammy", "large"],
             "tests/test_airgapped.py::test_airgapped_with_image_mirror": ["self-hosted", "linux", "jammy", "large"]
-          }'
+          }
       extra-test-env:
         description: 'Additional environment variables in KEY1=VALUE1,KEY2=VALUE2 format'
         type: string
