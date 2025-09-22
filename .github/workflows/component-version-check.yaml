@@ -1,0 +1,92 @@
+name: Check Component Version Changes on Release branches
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+    branches:
+    - 'release-*'
+
+jobs:
+  validation-changes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      # Checkout the PR branch
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Fetch all labels on the PR
+      - name: Get PR labels
+        id: labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            const labelNames = pr.data.labels.map(l => l.name);
+            return labelNames.join(',');
+          result-encoding: string
+
+      # Skip the diff validation if override label is present
+      - name: Skip if override label present
+        if: contains(steps.labels.outputs.result, 'skip-component-version-check')
+        run: |
+          echo "✅ skip-component-version-check label detected, skipping validation"
+          exit 0
+
+      # Get the diff for this PR
+      - name: Get PR diff
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.ref }}
+          git diff origin/${{ github.event.pull_request.base.ref }}...HEAD > pr.diff
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: pip3 install packaging
+
+      # Validate the diff
+      - name: Validate diff
+        id: validate
+        run: |
+          stderr_file=$(mktemp)
+
+          if python3 ./build-scripts/hack/check-component-versions.py pr.diff 2>"$stderr_file"; then
+            echo "invalid=false" >> $GITHUB_OUTPUT
+            echo "stderr=" >> $GITHUB_OUTPUT
+          else
+            echo "Found invalid change in diff"
+            echo "invalid=true" >> $GITHUB_OUTPUT
+            echo "stderr=$(cat $stderr_file)" >> $GITHUB_OUTPUT
+          fi
+
+      # Comment on the PR if invalid
+      - name: Comment on PR if invalid
+        if: steps.validate.outputs.invalid == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: (
+                "❌ Invalid change detected in PR diff. Please remove it.\n" +
+                "Label this PR with 'skip-component-version-check' to ignore\n\n" +
+                "${{ steps.validate.outputs.stderr }}\n\n" +
+              )
+            })
+
+      # Fail the job if invalid
+      - name: Fail job if invalid
+        if: steps.validate.outputs.invalid == 'true'
+        run: exit 1
