@@ -86,7 +86,7 @@ jobs:
               )
             })
 
-      #Fail the job if invalid
+      # Fail the job if invalid
       - name: Fail job if invalid
         if: steps.validate.outputs.invalid == 'true'
         run: exit 1
