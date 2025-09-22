@@ -36,7 +36,7 @@ CHARTS = DIR.parent.parent / "k8s" / "manifests" / "charts"
 # - "https://dl.k8s.io/release/stable.txt"
 # - "https://dl.k8s.io/release/stable-1.xx.txt"
 # - "https://dl.k8s.io/release/latest-1.xx.txt" (e.g. for release candidate builds)
-KUBERNETES_VERSION_MARKER = "https://dl.k8s.io/release/stable.txt"
+KUBERNETES_VERSION_MARKER = "https://dl.k8s.io/release/stable-1.33.txt"
 
 # Containerd release branch to track. The most recent tag in the branch will be used.
 CONTAINERD_RELEASE_BRANCH = "release/1.7"
@@ -45,7 +45,7 @@ CONTAINERD_RELEASE_BRANCH = "release/1.7"
 #
 # - None for main branch
 # - Version("3.14") (e.g. for release candidate builds)
-HELM_BRANCH, HELM_RELEASE_SEMVER = "main", None
+HELM_BRANCH, HELM_RELEASE_SEMVER = "main", Version("3.18")
 
 # Contour Helm repository and chart version
 CONTOUR_HELM_REPO = "https://charts.bitnami.com/bitnami"
