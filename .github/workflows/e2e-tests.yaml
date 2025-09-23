@@ -116,7 +116,7 @@ jobs:
     runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     outputs:
       tests: ${{ steps.collect-tests.outputs.tests }}
-      test-runners: ${{ steps.compute-test-runners.outputs.test_runners }}
+      test-runners: ${{ steps.compute-test-runners.outputs.test-runners }}
     steps:
       - name: Check out code
         uses: actions/checkout@v4
