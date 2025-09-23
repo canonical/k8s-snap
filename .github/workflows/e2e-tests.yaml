@@ -133,7 +133,7 @@ jobs:
           # See https://github.com/orgs/community/discussions/11401
           TEST_RUNNERS=$(jq -c -n '${{ inputs.runner-tags }}' | jq -c 'with_entries(.value += ["${{ inputs.arch }}"])')
           echo "$TEST_RUNNERS"
-          echo "test_runners=$TEST_RUNNERS" >> $GITHUB_OUTPUT
+          echo "test-runners=$TEST_RUNNERS" >> $GITHUB_OUTPUT
       - name: Collect tests
         id: collect-tests
         run: |
