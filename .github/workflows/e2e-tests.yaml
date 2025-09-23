@@ -160,7 +160,7 @@ jobs:
     needs: prepare
     runs-on: |
       ${{
-        fromJson(needs.prepare.outputs.test-runners || '{}')[matrix.test] ||
+        fromJson(needs.prepare.outputs.test-runners || '{}')[matrix.test]
       }}
     strategy:
       fail-fast: false
