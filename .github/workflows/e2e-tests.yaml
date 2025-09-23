@@ -132,8 +132,13 @@ jobs:
           # Github Actions does not support dynamic concatination of lists, so we need to add the arch tag here.
           # See https://github.com/orgs/community/discussions/11401
           TEST_RUNNERS=$(jq -c -n '${{ inputs.runner-tags }}' | jq -c 'with_entries(.value += ["${{ inputs.arch }}"])')
-          echo "$TEST_RUNNERS"
           echo "test_runners=$TEST_RUNNERS" >> $GITHUB_OUTPUT
+          echo "$TEST_RUNNERS"
+          echo "${{
+            fromJson(test_runners || '{}')[matrix.test] ||
+            fromJson(test_runners || '{}')[inputs.arch] ||
+            (inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04')
+          }}"
       - name: Collect tests
         id: collect-tests
         run: |
