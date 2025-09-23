@@ -158,7 +158,10 @@ jobs:
   run-tests:
     name: ${{ matrix.test }}
     needs: prepare
-    runs-on: ${{fromJson(needs.prepare.outputs.test-runners)[inputs.arch]}}
+    runs-on: |
+      ${{
+        fromJson(needs.prepare.outputs.test-runners || '{}')[matrix.test] ||
+      }}
     strategy:
       fail-fast: false
       matrix:
