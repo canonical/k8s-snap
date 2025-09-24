@@ -159,12 +159,14 @@ jobs:
     name: ${{ matrix.test }}
     needs: prepare
     runs-on: ${{
-      fromJson(
-        fromJson(needs.prepare.outputs.test-runners || '{}')[matrix.test] ||
-        fromJson(needs.prepare.outputs.test-runners || '{}')[inputs.arch] ||
-        (inputs.arch == 'arm64' && '["self-hosted","linux","arm64"]' || '["ubuntu-24.04"]')
-            )
-     }}
+        fromJson(
+          (
+            fromJson(needs.prepare.outputs.test-runners || '{}')[matrix.test] ||
+            fromJson(needs.prepare.outputs.test-runners || '{}')[inputs.arch] ||
+            (inputs.arch == 'arm64' && '["self-hosted-linux-noble-arm64-fips","arm64"]' || '["ubuntu-24.04"]')
+          )
+        )
+      }}
     strategy:
       fail-fast: false
       matrix:
