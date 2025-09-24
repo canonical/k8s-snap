@@ -160,7 +160,9 @@ jobs:
     needs: prepare
     runs-on: |
       ${{
-        fromJson(needs.prepare.outputs.test-runners || '{}')[matrix.test] || [inputs.arch]
+        fromJson(needs.prepare.outputs.test-runners || '{}')[matrix.test] ||
+        fromJson(needs.prepare.outputs.test-runners || '{}')[inputs.arch] ||
+        (inputs.arch == 'arm64' && 'self-hosted-linux-arm64' || 'ubuntu-24.04')
       }}
     strategy:
       fail-fast: false
