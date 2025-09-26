@@ -190,6 +190,9 @@ def test_concurrent_membership_operations(instances: List[harness.Instance]):
 
 @pytest.mark.node_count(3)
 @pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.xfail(
+    reason="The node join whiile there is a dead node does not work currently due to a microcluster bug."
+)
 def test_mixed_concurrent_membership_operations(instances: List[harness.Instance]):
     cluster_node = instances[0]
     joining_cp_A = instances[1]
