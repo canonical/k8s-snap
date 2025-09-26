@@ -174,9 +174,9 @@ def test_concurrent_membership_operations(instances: List[harness.Instance]):
                 time.sleep(1)
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        executor.submit(remove_node_with_retry, joining_cp_A)
-        executor.submit(remove_node_with_retry, joining_cp_B)
-        concurrent.futures.wait()
+        future_A = executor.submit(remove_node_with_retry, joining_cp_A)
+        future_B = executor.submit(remove_node_with_retry, joining_cp_B)
+        concurrent.futures.wait([future_A, future_B])
 
     util.wait_until_k8s_ready(cluster_node, [cluster_node])
 
@@ -309,7 +309,7 @@ def test_node_join_succeeds_when_original_control_plane_is_down(
         and joining_cp_C.id in [node["metadata"]["name"] for node in nodes]
     ), f"{joining_cp_A.id}, {joining_cp_B.id}, and {joining_cp_C.id} should be ready and in the cluster"
 
-    joining_cp_C.exec(["k8s", "remove-node", cluster_node.id])
+    joining_cp_C.exec(["k8s", "remove-node", cluster_node.id, "--force"])
     nodes = util.ready_nodes(joining_cp_C)
     assert (
         len(nodes) == 3
