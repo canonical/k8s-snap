@@ -124,37 +124,44 @@ def test_disa_stig_clustering(instances: List[harness.Instance]):
     assert "worker" in util.get_local_node_status(joining_worker)
 
 
-@pytest.mark.node_count(3)
+@pytest.mark.node_count(4)
 @pytest.mark.tags(tags.NIGHTLY)
 def test_concurrent_membership_operations(instances: List[harness.Instance]):
     cluster_node = instances[0]
     joining_cp_A = instances[1]
     joining_cp_B = instances[2]
+    joining_worker_C = instances[3]
 
     util.wait_until_k8s_ready(cluster_node, [cluster_node])
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
         future_A = executor.submit(join_node_with_retry, cluster_node, joining_cp_A)
         future_B = executor.submit(join_node_with_retry, cluster_node, joining_cp_B)
-        concurrent.futures.wait([future_A, future_B])
+        future_C = executor.submit(
+            join_node_with_retry, cluster_node, joining_worker_C, worker=True
+        )
+        concurrent.futures.wait([future_A, future_B, future_C])
 
     util.wait_until_k8s_ready(cluster_node, instances)
 
-    assert "control-plane" in util.get_local_node_status(cluster_node)
-    assert "control-plane" in util.get_local_node_status(joining_cp_A)
-    assert "control-plane" in util.get_local_node_status(joining_cp_B)
+    for node in [cluster_node, joining_cp_A, joining_cp_B]:
+        assert "control-plane" in util.get_local_node_status(node)
+    assert "worker" in util.get_local_node_status(joining_worker_C)
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
         future_A = executor.submit(remove_node_with_retry, cluster_node, joining_cp_A)
         future_B = executor.submit(remove_node_with_retry, cluster_node, joining_cp_B)
-        concurrent.futures.wait([future_A, future_B])
+        future_C = executor.submit(
+            remove_node_with_retry, cluster_node, joining_worker_C
+        )
+        concurrent.futures.wait([future_A, future_B, future_C])
 
     util.wait_until_k8s_ready(cluster_node, [cluster_node])
 
     nodes = util.ready_nodes(cluster_node)
     assert (
         len(nodes) == 1
-    ), "two control-plane nodes should have been removed from cluster"
+    ), "two control-plane nodes, one worker should have been removed from cluster"
 
     assert cluster_node.id in [node["metadata"]["name"] for node in nodes]
 
@@ -257,9 +264,8 @@ def test_node_join_succeeds_when_original_control_plane_is_down(
 
     util.wait_until_k8s_ready(cluster_node, [cluster_node, joining_cp_A, joining_cp_B])
 
-    assert "control-plane" in util.get_local_node_status(cluster_node)
-    assert "control-plane" in util.get_local_node_status(joining_cp_A)
-    assert "control-plane" in util.get_local_node_status(joining_cp_B)
+    for node in [cluster_node, joining_cp_A, joining_cp_B]:
+        assert "control-plane" in util.get_local_node_status(node)
 
     join_token_C = util.get_join_token(cluster_node, joining_cp_C)
 
@@ -435,11 +441,16 @@ def test_cert_refresh(instances: List[harness.Instance]):
     util.wait_until_k8s_ready(cluster_node, instances)
 
 
-def join_node_with_retry(cluster_node, joining_node, retries=5, delay_s=1):
+def join_node_with_retry(
+    cluster_node, joining_node, retries=15, delay_s=1, worker=False
+):
     """Join cluster with retry, generating a new token on each attempt"""
     for attempt in range(retries):
         try:
-            join_token = util.get_join_token(cluster_node, joining_node)
+            if worker:
+                join_token = util.get_join_token(cluster_node, joining_node, "--worker")
+            else:
+                join_token = util.get_join_token(cluster_node, joining_node)
             util.join_cluster(joining_node, join_token)
             break
         except Exception as e:
