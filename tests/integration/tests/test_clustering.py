@@ -124,44 +124,70 @@ def test_disa_stig_clustering(instances: List[harness.Instance]):
     assert "worker" in util.get_local_node_status(joining_worker)
 
 
-@pytest.mark.node_count(4)
+@pytest.mark.node_count(3)
 @pytest.mark.tags(tags.NIGHTLY)
-def test_concurrent_membership_operations(instances: List[harness.Instance]):
+def test_concurrent_cp_membership_operations(instances: List[harness.Instance]):
     cluster_node = instances[0]
     joining_cp_A = instances[1]
     joining_cp_B = instances[2]
-    joining_worker_C = instances[3]
 
     util.wait_until_k8s_ready(cluster_node, [cluster_node])
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
         future_A = executor.submit(join_node_with_retry, cluster_node, joining_cp_A)
         future_B = executor.submit(join_node_with_retry, cluster_node, joining_cp_B)
-        future_C = executor.submit(
-            join_node_with_retry, cluster_node, joining_worker_C, worker=True
-        )
-        concurrent.futures.wait([future_A, future_B, future_C])
+        concurrent.futures.wait([future_A, future_B])
 
     util.wait_until_k8s_ready(cluster_node, instances)
 
     for node in [cluster_node, joining_cp_A, joining_cp_B]:
         assert "control-plane" in util.get_local_node_status(node)
-    assert "worker" in util.get_local_node_status(joining_worker_C)
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
         future_A = executor.submit(remove_node_with_retry, cluster_node, joining_cp_A)
         future_B = executor.submit(remove_node_with_retry, cluster_node, joining_cp_B)
-        future_C = executor.submit(
-            remove_node_with_retry, cluster_node, joining_worker_C
-        )
-        concurrent.futures.wait([future_A, future_B, future_C])
+        concurrent.futures.wait([future_A, future_B])
 
     util.wait_until_k8s_ready(cluster_node, [cluster_node])
 
     nodes = util.ready_nodes(cluster_node)
     assert (
         len(nodes) == 1
-    ), "two control-plane nodes, one worker should have been removed from cluster"
+    ), "two control-plane nodes, should have been removed from cluster"
+
+    assert cluster_node.id in [node["metadata"]["name"] for node in nodes]
+
+
+@pytest.mark.node_count(3)
+@pytest.mark.tags(tags.NIGHTLY)
+def test_concurrent_worker_membership_operations(instances: List[harness.Instance]):
+    cluster_node = instances[0]
+    joining_worker_A = instances[1]
+    joining_worker_B = instances[2]
+
+    util.wait_until_k8s_ready(cluster_node, [cluster_node])
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        future_A = executor.submit(join_node_with_retry, cluster_node, joining_worker_A, worker=True)
+        future_B = executor.submit(join_node_with_retry, cluster_node, joining_worker_B, worker=True)
+        concurrent.futures.wait([future_A, future_B])
+
+    util.wait_until_k8s_ready(cluster_node, instances)
+
+    for node in [joining_worker_A, joining_worker_B]:
+        assert "worker" in util.get_local_node_status(node)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        future_A = executor.submit(remove_node_with_retry, cluster_node, joining_worker_A)
+        future_B = executor.submit(remove_node_with_retry, cluster_node, joining_worker_B)
+        concurrent.futures.wait([future_A, future_B])
+
+    util.wait_until_k8s_ready(cluster_node, [cluster_node])
+
+    nodes = util.ready_nodes(cluster_node)
+    assert (
+        len(nodes) == 1
+    ), "two worker nodes should have been removed from cluster"
 
     assert cluster_node.id in [node["metadata"]["name"] for node in nodes]
 
