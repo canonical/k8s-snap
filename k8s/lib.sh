@@ -295,60 +295,63 @@ k8s::apiserver::sanitize_feature_gates() {
     return 0
   fi
 
-  # Process the feature gates line if it exists
-  if grep -q "^--feature-gates=" "$args_file"; then
-    # Get the list of supported feature gates from kube-apiserver
-    local supported_gates=""
-    if [ -x "/snap/k8s/current/bin/kube-apiserver" ]; then
-      # Extract feature gate names from help output (format: kube:FeatureName=true|false)
-      supported_gates=$(/snap/k8s/current/bin/kube-apiserver --help 2>/dev/null | awk '/^ *kube:/{print $1}' | sed 's/^kube://' | sed 's/=.*//')
+  # Return early if no feature gates are configured
+  if ! grep -q "^--feature-gates=" "$args_file"; then
+    return 0
+  fi
+
+  # Get the list of supported feature gates from kube-apiserver
+  local supported_gates=""
+  if [ -x "/snap/k8s/current/bin/kube-apiserver" ]; then
+    # Extract feature gate names from help output (format: kube:FeatureName=true|false)
+    supported_gates=$(/snap/k8s/current/bin/kube-apiserver --help 2>/dev/null | awk '/^ *kube:/{print $1}' | sed 's/^kube://' | sed 's/=.*//')
+  fi
+
+  # If we couldn't get supported gates, return without changes
+  if [ -z "$supported_gates" ]; then
+    return 0
+  fi
+
+  # Convert supported gates to array
+  declare -A supported_gates_map
+  while IFS= read -r gate; do
+    [[ -n "$gate" ]] && supported_gates_map["$gate"]=1
+  done <<< "$supported_gates"
+
+  # Get the current feature gates line
+  local current_line=$(grep "^--feature-gates=" "$args_file")
+  local feature_gates_value="${current_line#--feature-gates=}"
+
+  # Remove surrounding quotes if present
+  feature_gates_value="${feature_gates_value%\"}"
+  feature_gates_value="${feature_gates_value#\"}"
+
+  local updated_gates=""
+
+  # Split by comma and filter out unsupported gates
+  IFS=',' read -ra gates <<< "$feature_gates_value"
+  for gate in "${gates[@]}"; do
+    local gate_name="${gate%%=*}"
+
+    # Skip unsupported gates
+    if [[ -z "${supported_gates_map[$gate_name]}" ]]; then
+      continue
     fi
 
-    # If we couldn't get supported gates, return without changes
-    if [ -z "$supported_gates" ]; then
-      return 0
-    fi
-
-    # Convert supported gates to array
-    declare -A supported_gates_map
-    while IFS= read -r gate; do
-      [[ -n "$gate" ]] && supported_gates_map["$gate"]=1
-    done <<< "$supported_gates"
-
-    # Get the current feature gates line
-    local current_line=$(grep "^--feature-gates=" "$args_file")
-    local feature_gates_value="${current_line#--feature-gates=}"
-
-    # Remove surrounding quotes if present
-    feature_gates_value="${feature_gates_value%\"}"
-    feature_gates_value="${feature_gates_value#\"}"
-
-    local updated_gates=""
-
-    # Split by comma and filter out unsupported gates
-    IFS=',' read -ra gates <<< "$feature_gates_value"
-    for gate in "${gates[@]}"; do
-      local gate_name="${gate%%=*}"
-      local gate_value="${gate#*=}"
-
-      # Check if this gate is supported using associative array lookup
-      if [[ -n "${supported_gates_map[$gate_name]}" ]]; then
-        # Keep the gate if it's supported
-        if [ -n "$updated_gates" ]; then
-          updated_gates="${updated_gates},${gate}"
-        else
-          updated_gates="${gate}"
-        fi
-      fi
-    done
-
-    # Update the file in-place
+    # Add the gate to the updated list
     if [ -n "$updated_gates" ]; then
-      # Replace the line with updated gates (add quotes back)
-      sed -i "s/^--feature-gates=.*$/--feature-gates=\"${updated_gates}\"/" "$args_file"
+      updated_gates="${updated_gates},${gate}"
     else
-      # Remove the line if all gates were removed
-      sed -i '/^--feature-gates=/d' "$args_file"
+      updated_gates="${gate}"
     fi
+  done
+
+  # Update the file in-place
+  if [ -n "$updated_gates" ]; then
+    # Replace the line with updated gates (add quotes back)
+    sed -i "s/^--feature-gates=.*$/--feature-gates=\"${updated_gates}\"/" "$args_file"
+  else
+    # Remove the line if all gates were removed
+    sed -i '/^--feature-gates=/d' "$args_file"
   fi
 }
