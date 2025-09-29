@@ -134,7 +134,7 @@ def test_concurrent_membership_operations(instances: List[harness.Instance]):
 
     util.wait_until_k8s_ready(cluster_node, [cluster_node])
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
         future_A = executor.submit(join_node_with_retry, cluster_node, joining_cp_A)
         future_B = executor.submit(join_node_with_retry, cluster_node, joining_cp_B)
         future_C = executor.submit(
@@ -148,7 +148,7 @@ def test_concurrent_membership_operations(instances: List[harness.Instance]):
         assert "control-plane" in util.get_local_node_status(node)
     assert "worker" in util.get_local_node_status(joining_worker_C)
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
         future_A = executor.submit(remove_node_with_retry, cluster_node, joining_cp_A)
         future_B = executor.submit(remove_node_with_retry, cluster_node, joining_cp_B)
         future_C = executor.submit(
