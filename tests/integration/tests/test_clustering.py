@@ -62,8 +62,12 @@ def test_worker_nodes(instances: List[harness.Instance]):
     util.wait_until_k8s_ready(cluster_node, instances)
 
     assert "control-plane" in util.get_local_node_status(cluster_node)
-    assert "worker" in util.get_local_node_status(joining_node)
-    assert "worker" in util.get_local_node_status(other_joining_node)
+    assert "worker" in util.get_local_node_status(
+        joining_node
+    ), f"{joining_node.id} should be ready and in the cluster"
+    assert "worker" in util.get_local_node_status(
+        other_joining_node
+    ), f"{other_joining_node.id} should be ready and in the cluster"
 
     cluster_node.exec(["k8s", "remove-node", joining_node.id])
     nodes = util.ready_nodes(cluster_node)
@@ -119,9 +123,15 @@ def test_disa_stig_clustering(instances: List[harness.Instance]):
     util.join_cluster(joining_worker, join_token_worker, yaml.dump(worker_data))
 
     util.wait_until_k8s_ready(cluster_node, instances)
-    assert "control-plane" in util.get_local_node_status(cluster_node)
-    assert "control-plane" in util.get_local_node_status(joining_cp)
-    assert "worker" in util.get_local_node_status(joining_worker)
+    assert "control-plane" in util.get_local_node_status(
+        cluster_node
+    ), f"{cluster_node.id} should be ready and in the cluster"
+    assert "control-plane" in util.get_local_node_status(
+        joining_cp
+    ), f"{joining_cp.id} should be ready and in the cluster"
+    assert "worker" in util.get_local_node_status(
+        joining_worker
+    ), f"{joining_worker.id} should be ready and in the cluster"
 
 
 @pytest.mark.node_count(3)
@@ -168,8 +178,12 @@ def test_concurrent_worker_membership_operations(instances: List[harness.Instanc
     util.wait_until_k8s_ready(cluster_node, [cluster_node])
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        future_A = executor.submit(join_node_with_retry, cluster_node, joining_worker_A, worker=True)
-        future_B = executor.submit(join_node_with_retry, cluster_node, joining_worker_B, worker=True)
+        future_A = executor.submit(
+            join_node_with_retry, cluster_node, joining_worker_A, worker=True
+        )
+        future_B = executor.submit(
+            join_node_with_retry, cluster_node, joining_worker_B, worker=True
+        )
         concurrent.futures.wait([future_A, future_B])
 
     util.wait_until_k8s_ready(cluster_node, instances)
@@ -178,16 +192,18 @@ def test_concurrent_worker_membership_operations(instances: List[harness.Instanc
         assert "worker" in util.get_local_node_status(node)
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        future_A = executor.submit(remove_node_with_retry, cluster_node, joining_worker_A)
-        future_B = executor.submit(remove_node_with_retry, cluster_node, joining_worker_B)
+        future_A = executor.submit(
+            remove_node_with_retry, cluster_node, joining_worker_A
+        )
+        future_B = executor.submit(
+            remove_node_with_retry, cluster_node, joining_worker_B
+        )
         concurrent.futures.wait([future_A, future_B])
 
     util.wait_until_k8s_ready(cluster_node, [cluster_node])
 
     nodes = util.ready_nodes(cluster_node)
-    assert (
-        len(nodes) == 1
-    ), "two worker nodes should have been removed from cluster"
+    assert len(nodes) == 1, "two worker nodes should have been removed from cluster"
 
     assert cluster_node.id in [node["metadata"]["name"] for node in nodes]
 
@@ -307,10 +323,9 @@ def test_node_join_succeeds_when_original_control_plane_is_down(
         len(nodes) == 3
     ), "three control plane nodes should be ready, original node is still down"
 
-    assert (
-        joining_cp_A.id in [node["metadata"]["name"] for node in nodes]
-        and joining_cp_B.id in [node["metadata"]["name"] for node in nodes]
-        and joining_cp_C.id in [node["metadata"]["name"] for node in nodes]
+    node_names = {node["metadata"]["name"] for node in nodes}
+    assert {joining_cp_A.id, joining_cp_B.id, joining_cp_C.id}.issubset(
+        node_names
     ), f"{joining_cp_A.id}, {joining_cp_B.id}, and {joining_cp_C.id} should be ready and in the cluster"
 
     joining_cp_C.exec(["k8s", "remove-node", cluster_node_id, "--force"])
@@ -319,10 +334,9 @@ def test_node_join_succeeds_when_original_control_plane_is_down(
         len(nodes) == 3
     ), "three control plane nodes should be ready, original node is removed"
 
-    assert (
-        joining_cp_A.id in [node["metadata"]["name"] for node in nodes]
-        and joining_cp_B.id in [node["metadata"]["name"] for node in nodes]
-        and joining_cp_C.id in [node["metadata"]["name"] for node in nodes]
+    node_names = {node["metadata"]["name"] for node in nodes}
+    assert {joining_cp_A.id, joining_cp_B.id, joining_cp_C.id}.issubset(
+        node_names
     ), f"{joining_cp_A.id}, {joining_cp_B.id}, and {joining_cp_C.id} should be ready and in the cluster"
 
 
@@ -356,8 +370,10 @@ def test_node_removal_during_concurrent_join(
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 2, "There should be two control-plane nodes in the cluster"
 
-    assert cluster_node.id in [node["metadata"]["name"] for node in nodes]
-    assert joining_cp_B.id in [node["metadata"]["name"] for node in nodes]
+    node_names = {node["metadata"]["name"] for node in nodes}
+    assert {cluster_node.id, joining_cp_B.id}.issubset(
+        node_names
+    ), f"{cluster_node.id} and {joining_cp_B.id} should be ready and in the cluster"
 
 
 @pytest.mark.node_count(3)
@@ -431,8 +447,12 @@ def test_cert_refresh(instances: List[harness.Instance]):
     util.join_cluster(joining_worker, join_token_worker)
 
     util.wait_until_k8s_ready(cluster_node, instances)
-    assert "control-plane" in util.get_local_node_status(cluster_node)
-    assert "worker" in util.get_local_node_status(joining_worker)
+    assert "control-plane" in util.get_local_node_status(
+        cluster_node
+    ), f"{cluster_node.id} should be ready and in the cluster"
+    assert "worker" in util.get_local_node_status(
+        joining_worker
+    ), f"{joining_worker.id} should be ready and in the cluster"
 
     extra_san = "test_san.local"
 
