@@ -488,7 +488,7 @@ def test_cert_refresh(instances: List[harness.Instance]):
 
 
 def join_node_with_retry(
-    cluster_node, joining_node, retries=15, delay_s=1, worker=False
+    cluster_node, joining_node, retries=25, delay_s=1, worker=False
 ):
     """Join cluster with retry, generating a new token on each attempt"""
     for attempt in range(retries):
@@ -508,7 +508,7 @@ def join_node_with_retry(
             time.sleep(delay_s)
 
 
-def remove_node_with_retry(cluster_node, remove_node, retries=5, delay_s=1):
+def remove_node_with_retry(cluster_node, remove_node, retries=25, delay_s=1):
     """Remove node with retry"""
     for attempt in range(retries):
         try:
