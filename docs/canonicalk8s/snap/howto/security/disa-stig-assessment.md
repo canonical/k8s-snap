@@ -13,7 +13,8 @@ However, additional hardening steps are required to fully meet the standard.
 
 This guide assumes the following:
 
-- You have a bootstrapped {{product}} cluster (see the [getting started] guide)
+- You have a bootstrapped {{product}} cluster using the DISA STIG bootstrap
+template (see the [disa-stig hardening] guide)
 - You have root or sudo access to the machine
 - You have reviewed the [post-deployment hardening] guide and have applied the
   hardening steps that are relevant to your use-case
@@ -34,11 +35,21 @@ does not package, etc.
 administrator or a user policy needs to be followed.
 
 
-| Class | Guideline |
-| ------ | ----- |
-| `Deployment` (70) | V-242379, V-242380, V-242381, V-242382, V-242387, V-242388, V-242389, V-242391, V-242392, V-242397, V-242400, V-242405, V-242406, V-242407, V-242408, V-242409, V-242418, V-242419, V-242420, V-242421, V-242422, V-242423, V-242426, V-242427, V-242428, V-242429, V-242430, V-242431, V-242432, V-242433, V-242434, V-242436, V-242444, V-242445, V-242446, V-242447, V-242448, V-242449, V-242450, V-242451, V-242452, V-242453, V-242456, V-242457, V-242459, V-242460, V-242466, V-242467, V-245542, V-245543, V-245544, V-254801, V-242376, V-242377, V-242378, V-242384, V-242385, V-242390, V-242402, V-242403, V-242404, V-242424, V-242425, V-242438, V-242461, V-242462, V-242463, V-242464, V-242465, V-245541 |
-| `Not Applicable` (13) | V-242386, V-242393, V-242394, V-242395, V-242396, V-242398, V-242399, V-242437, V-242442, V-242443, V-242454, V-242455 |
-| `Manual` (8) | V-242383, V-242410, V-242411, V-242412, V-242413, V-242414, V-242415, V-242417, V-254800 |
+| Class                 | Guideline                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Deployment` (70)     | V-242379, V-242380, V-242381, V-242382, V-242387, V-242388, V-242389, V-242391, V-242392, V-242397, V-242400, V-242405, V-242406, V-242407, V-242408, V-242409, V-242418, V-242419, V-242420, V-242421, V-242422, V-242423, V-242426, V-242427, V-242428, V-242429, V-242430, V-242431, V-242432, V-242433, V-242434, V-242436, V-242444, V-242445, V-242446, V-242447, V-242448, V-242449, V-242450, V-242451, V-242452, V-242453, V-242456, V-242457, V-242459, V-242460, V-242466, V-242467, V-245542, V-245543, V-245544, V-254801, V-242376, V-242377, V-242378, V-242384, V-242385, V-242390, V-242402, V-242403, V-242404, V-242424, V-242425, V-242438, V-242461, V-242462, V-242463, V-242464, V-242465, V-245541 |
+| `Not Applicable` (13) | V-242386, V-242393, V-242394, V-242395, V-242396, V-242398, V-242399, V-242437, V-242442, V-242443, V-242454, V-242455                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `Manual` (8)          | V-242383, V-242410, V-242411, V-242412, V-242413, V-242414, V-242415, V-242417, V-254800                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+
+## Known Limitations
+
+- The Kubernetes cluster upgrade process may require an additional step
+of installing a new core snap before the k8s snap gets refreshed
+- Cluster orchestration with CAPI and Juju are not supported
+- Manually updating the docker image tags used by default on
+{{ product }} may result in a non-FIPS compliant setup
+- {{ product }} services will crash on a host with FIPS kernel
+but not with core22 from the FIPS channel
 
 ## [V-242381]
 
@@ -619,6 +630,32 @@ The final line of the output will be `PASS`.
 > cryptographic keys, API tokens, etc).
 >
 
+### Remediation
+
+Canonical Kubernetes follows this rule by default, but it’s up to users to
+follow in pods they create.
+
+
+### Auditing (as root)
+
+The environment of each user-created pod should be inspected using the
+command below to ensure there is no sensitive information (e.g. passwords,
+cryptographic keys, API tokens, etc).
+
+```bash
+sudo k8s kubectl exec -it <pod-name> -n <namespace> -- env
+```
+
+When creating additional pods, deployments, stateful sets, and daemon sets,
+do not place or reference secrets in their environment. To verify that there
+are no secrets present you should check the output of:
+
+```bash
+sudo k8s kubectl get pods --all-namespaces -o yaml| grep -A5 "env:"
+sudo k8s kubectl get deployments --all-namespaces -o yaml| grep -A5 "env:"
+sudo k8s kubectl get daemonset --all-namespaces -o yaml| grep -A5 "env:"
+sudo k8s kubectl get statefulset --all-namespaces -o yaml| grep -A5 "env:"
+```
 
 
 ## [V-242434]
@@ -647,10 +684,10 @@ The final line of the output will be `PASS`.
 > This flag is not set by default in the k8s-snap, as it may prevent kubelet
 > from starting normally unless the kernel settings are as Kubelet expects.
 >
-> Please review the hardening guide for information on how to properly
+> Please review the disa-stig hardening guide for information on how to properly
 > configure the Node's Operating System for Kubelet.
 >
-> https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/howto/security/hardening/
+> https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/howto/security/disa-stig-hardening/
 >
 
 
@@ -1083,7 +1120,7 @@ configured
 > Administrator on a per-organization basis.
 >
 > Instructions on how to configure an `--admission-control-config-file` for the
-> Kube API Server of the k8s-snap can be found in the [hardening guide page].
+> Kube API Server of the k8s-snap can be found in the [disa-stig hardening] guide.
 >
 
 
@@ -2212,6 +2249,15 @@ results
 > https://discuss.kubernetes.io/t/announce-security-release-of-kubernetes-kubectl-potential-directory-traversal-releases-1-11-9-1-12-7-1-13-5-and-1-14-0-cve-2019-1002101/5712
 >
 
+### Remediation
+
+This requirement can be satisfied by using the kubectl command built into the
+k8s snap (available via `k8s kubectl …`) or the kubectl snap from tracks `1.13+`:
+
+```bash
+snap install kubectl --classic
+```
+
 
 
 ## [V-242398]
@@ -3123,7 +3169,11 @@ Category Assurance List (PPSM CAL)
 >
 > Please, consult the [ports and services] page on the ports, protocols and
 > services used by {{product}}.
-
+>
+> Update the PPSM list for your cluster anytime the list of ports,
+> protocols, and services used by your cluster changes. For instance, this
+> list will need to be updated each time a new service is exposed
+> externally.
 
 
 ## [V-242411]
@@ -3156,6 +3206,11 @@ Category Assurance List (PPSM CAL)
 >
 > Please, consult the [ports and services] page on the ports, protocols and
 > services used by {{product}}.
+>
+> Update the PPSM list for your cluster anytime the list of ports,
+> protocols, and services used by your cluster changes. For instance, this
+> list will need to be updated each time a new service is exposed
+> externally.
 
 
 
@@ -3189,6 +3244,11 @@ Category Assurance List (PPSM CAL)
 >
 > Please, consult the [ports and services] page on the ports, protocols and
 > services used by {{product}}.
+> 
+> Update the PPSM list for your cluster anytime the list of ports,
+> protocols, and services used by your cluster changes. For instance, this
+> list will need to be updated each time a new service is exposed
+> externally.
 
 
 
@@ -3221,6 +3281,12 @@ Assurance List (PPSM CAL)
 >
 > Please, consult the [ports and services] page on the ports, protocols and
 > services used by {{product}}.
+>
+> Update the PPSM list for your cluster anytime the list of ports,
+> protocols, and services used by your cluster changes. For instance, this
+> list will need to be updated each time a new service is exposed
+> externally.
+
 
 ````
 
@@ -3236,6 +3302,13 @@ Assurance List (PPSM CAL)
 >
 > https://www.esd.whs.mil/portals/54/documents/dd/issuances/dodi/855101p.pdf
 >
+> Please, consult the [ports and services] page on the ports, protocols and
+> services used by {{product}}.
+>
+> Update the PPSM list for your cluster anytime the list of ports,
+> protocols, and services used by your cluster changes. For instance, this
+> list will need to be updated each time a new service is exposed
+> externally.
 
 ````
 
@@ -7189,7 +7262,7 @@ The final line of the output will be `PASS`.
 
 
 <!-- Links -->
-[getting started]: ../../tutorial/getting-started
+[disa-stig hardening]: disa-stig-hardening.md
 [ports and services]:/snap/reference/ports-and-services.md
 [post-deployment hardening]: hardening.md
 [Kubernetes STIG]:https://stigviewer.com/stigs/kubernetes/

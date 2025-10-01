@@ -8,9 +8,10 @@ to harden their clusters in accordance with DISA STIG and CIS recommendations.
 :titlesonly:
 
 Hardening guide <hardening.md>
+DISA STIG hardening <disa-stig-hardening.md>
 CIS assessment <cis-assessment.md>
 DISA STIG assessment <disa-stig-assessment.md>
-Report a security issue<report-security-issue.md>
+Report a security issue <report-security-issue.md>
 Refresh external certificates <refresh-external-certs>
 Refresh Kubernetes certificates <refresh-certs>
 Use intermediate CAs with Vault <intermediate-ca.md>
