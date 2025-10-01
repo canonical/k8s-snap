@@ -46,7 +46,8 @@ sudo usg fix disa_stig
 ## Apply DISA Kubernetes STIG host rules
 
 To comply with this guideline, the STIG templates we provide to bootstrap/join
-nodes configure kubelet to run with the argument `--protect-kernel-defaults=true`.
+nodes configure kubelet to run with the argument
+`--protect-kernel-defaults=true`.
 
 Configure the kernel as required for this setting by following the steps below:
 
@@ -70,7 +71,8 @@ overridden by another higher order file.
 ## Deploy and bootstrap stig-compliant nodes
 
 For your convenience, we have provided template configuration files that can be
-used to configure Kubernetes service arguments that align with DISA STIG requirements.
+used to configure Kubernetes service arguments that align with DISA STIG
+requirements.
 
 ### Bootstrap the first control-plane node
 
@@ -94,9 +96,11 @@ Through this configuration file, the following rules are applied:
 
 - [V-242434] Kubernetes Kubelet must enable kernel protection
 - [V-245541] Kubernetes Kubelet must not disable timeouts
-- [V-242402] [V-242403] [V-242461] [V-242462] [V-242463] [V-242464] [V-242465] The
-  Kubernetes API Server must have an audit log configured
-- [V-254800] Kubernetes must have a Pod Security Admission control file configured
+- [V-242402] [V-242403] [V-242461] [V-242462] [V-242463] [V-242464]
+  [V-242465] The Kubernetes API Server must have an audit log
+  configured
+- [V-254800] Kubernetes must have a Pod Security Admission control file
+  configured
 - [V-242400] The Kubernetes API server must have Alpha APIs disabled
 - [V-254800] Kubernetes must have a Pod Security Admission control file
 configured
@@ -238,10 +242,12 @@ audit settings, do one of the following:
    use `/var/snap/k8s/common/etc/configurations/audit-policy-kube-system.yaml`
    rather than the file above. This configures the same level of logging but
    only for events in the kube-system namespace.
-2. Edit `/var/snap/k8s/common/etc/configurations/audit-policy.yaml` to suit your
-   needs based on the [upstream audit instructions] for this policy file.
-3. Create your own audit policy based on the [upstream audit instructions] and adjust
-   the `--audit-policy-file` path used when you bootstrap/join nodes to use it.
+2. Edit `/var/snap/k8s/common/etc/configurations/audit-policy.yaml` to suit
+   your needs based on the [upstream audit instructions] for this policy
+   file.
+3. Create your own audit policy based on the [upstream audit instructions]
+   and adjust the `--audit-policy-file` path used when you bootstrap/join
+   nodes to use it.
 
 Canonical Kubernetes does not enable audit logging by default as it may incur
 performance penalties in the form of increased disk I/O, which can lead to

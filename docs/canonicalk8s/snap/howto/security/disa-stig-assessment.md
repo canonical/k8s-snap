@@ -1120,7 +1120,8 @@ configured
 > Administrator on a per-organization basis.
 >
 > Instructions on how to configure an `--admission-control-config-file` for the
-> Kube API Server of the k8s-snap can be found in the [disa-stig hardening] guide.
+> Kube API Server of the k8s-snap can be found in the [disa-stig hardening]
+> guide.
 >
 
 
@@ -2252,7 +2253,8 @@ results
 ### Remediation
 
 This requirement can be satisfied by using the kubectl command built into the
-k8s snap (available via `k8s kubectl …`) or the kubectl snap from tracks `1.13+`:
+k8s snap (available via `k8s kubectl …`) or the kubectl snap from tracks
+`1.13+`:
 
 ```bash
 snap install kubectl --classic
