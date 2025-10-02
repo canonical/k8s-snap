@@ -9,7 +9,7 @@ This guide assumes the following:
 
 - Ubuntu machine with at least 4GB of RAM and 30 GB disk storage
 - You have root or sudo access to the machine
-- Internete access on the machine
+- Internet access on the machine
 - You have Ubuntu Pro enabled on your system. For more information, see
   [Ubuntu Pro documentation].
 
@@ -211,7 +211,8 @@ the settings would need to be adjusted by doing one of the following:
    `/var/snap/k8s/common/etc/configurations/pod-security-admission-baseline.yaml`
    to suit your needs based on the [upstream instructions].
 3. Create your own audit policy based on the [upstream instructions] and adjust
-   the `--admission-control-config-file` path used when you bootstrap/join nodes.
+   the `--admission-control-config-file` path used when you bootstrap/join
+   nodes.
 
 For more details, see the [Kubernetes Pod Security Admission documentation],
 which provides an overview of Pod Security Standards (PSS), their enforcement

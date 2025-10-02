@@ -41,15 +41,7 @@ administrator or a user policy needs to be followed.
 | `Not Applicable` (13) | V-242386, V-242393, V-242394, V-242395, V-242396, V-242398, V-242399, V-242437, V-242442, V-242443, V-242454, V-242455                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | `Manual` (8)          | V-242383, V-242410, V-242411, V-242412, V-242413, V-242414, V-242415, V-242417, V-254800                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 
-## Known Limitations
 
-- The Kubernetes cluster upgrade process may require an additional step
-of installing a new core snap before the k8s snap gets refreshed
-- Cluster orchestration with CAPI and Juju are not supported
-- Manually updating the docker image tags used by default on
-{{ product }} may result in a non-FIPS compliant setup
-- {{ product }} services will crash on a host with FIPS kernel
-but not with core22 from the FIPS channel
 
 ## [V-242381]
 
@@ -2265,8 +2257,8 @@ results
 ### Remediation
 
 This requirement can be satisfied by using the kubectl command built into the
-k8s snap (available via `k8s kubectl …`) or the kubectl snap from tracks
-`1.13+`:
+k8s snap (available via `k8s kubectl …`) or by installing the kubectl snap
+from tracks `1.13+`:
 
 ```bash
 snap install kubectl --classic
