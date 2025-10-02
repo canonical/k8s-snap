@@ -1022,3 +1022,30 @@ def status_output_matches(
             return False
 
     return True
+
+
+def set_node_labels(
+    instance: harness.Instance,
+    node_name: str,
+    labels: dict[str, str],
+):
+    """Set the given labels on the given node.
+
+    Args:
+        instance:   instance on which to execute the command
+        node_name:  name of the node to label
+        labels:     dictionary of labels to set
+    """
+    labels_str = " ".join(f"{key}={value}" for key, value in labels.items())
+
+    instance.exec(
+        [
+            "k8s",
+            "kubectl",
+            "label",
+            "nodes",
+            node_name,
+            f"{labels_str}",
+        ],
+        check=True,
+    )

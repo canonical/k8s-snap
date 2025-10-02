@@ -206,7 +206,7 @@ jobs:
         if: ${{ inputs.substrate == 'lxd' }}
         uses: canonical/setup-lxd@v0.1.3
         with:
-          bridges: "lxdbr0,dualstack-br0,ipv6-br0"
+          bridges: "lxdbr0,dualstack-br0,ipv6-br0,jumbo-br0"
       - name: Setup Multipass
         if: ${{ inputs.substrate == 'multipass' }}
         uses: ./.github/actions/setup-multipass
