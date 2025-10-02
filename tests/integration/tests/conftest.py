@@ -150,6 +150,14 @@ def pytest_addoption(parser):
         default=None,
         help="Stream subunit results to the specified file.",
     )
+    parser.addoption(
+        "--datastore",
+        dest="datastore_type",
+        action="store",
+        default="etcd",
+        choices=["etcd", "k8s-dqlite"],
+        help="Specify the datastore type to use for the cluster (etcd or k8s-dqlite).",
+    )
 
 
 @pytest.hookimpl(trylast=True)
@@ -162,7 +170,9 @@ def pytest_configure(config):
             Only required for additional ports. k8s-snap default ports are expected to be open.\n"
         "no_setup: No setup steps (pushing snap, bootstrapping etc.) are performed on any node for this test.\n"
         "containerd_cfgdir: The instance containerd config directory, defaults to /etc/containerd."
-        "network_type: Specify network type to use for the infrastructure (IPv4, Dualstack or IPv6).\n"
+        "datastore_type: Specify the datastore type to use for the cluster (etcd or k8s-dqlite).\n"
+        "infra_network_type: Specify network type to use for the infrastructure (IPv4, Dualstack or IPv6).\n"
+        "cluster_network_type: Specify network type to use for the cluster (IPv4, Dualstack or IPv6).\n"
         "etcd_count: Mark a test to specify how many etcd instance nodes need to be created (None by default)\n"
         "node_count: Mark a test to specify how many instance nodes need to be created\n"
         "snap_versions: Mark a test to specify snap_versions for each node\n",
@@ -227,12 +237,28 @@ def bootstrap_config(request) -> Union[str, None]:
 
 
 @pytest.fixture(scope="function")
-def network_type(request) -> Union[str, None]:
-    bootstrap_config_marker = request.node.get_closest_marker("network_type")
-    if not bootstrap_config_marker:
+def datastore_type(request) -> Union[str, None]:
+    return request.config.option.datastore_type
+
+
+@pytest.fixture(scope="function")
+def infra_network_type(request) -> Union[str, None]:
+    infra_network_type_marker = request.node.get_closest_marker("infra_network_type")
+    if not infra_network_type_marker:
         return "IPv4"
-    network_type, *_ = bootstrap_config_marker.args
-    return network_type
+    infra_network_type, *_ = infra_network_type_marker.args
+    return infra_network_type
+
+
+@pytest.fixture(scope="function")
+def cluster_network_type(request) -> Union[str, None]:
+    cluster_network_type_marker = request.node.get_closest_marker(
+        "cluster_network_type"
+    )
+    if not cluster_network_type_marker:
+        return "IPv4"
+    cluster_network_type, *_ = cluster_network_type_marker.args
+    return cluster_network_type
 
 
 @pytest.fixture(scope="function")
@@ -256,7 +282,9 @@ def instances(
     containerd_cfgdir: str,
     bootstrap_config: Union[str, None],
     request,
-    network_type: str,
+    infra_network_type: str,
+    cluster_network_type: str,
+    datastore_type: str,
 ) -> Generator[List[harness.Instance], None, None]:
     """Construct instances for a cluster.
 
@@ -270,7 +298,7 @@ def instances(
 
     for _, snap in zip(range(node_count), snap_versions(request)):
         # Create <node_count> instances and setup the k8s snap in each.
-        instance = h.new_instance(network_type=network_type)
+        instance = h.new_instance(network_type=infra_network_type)
         instances.append(instance)
 
         util.preload_snaps(instance)
@@ -290,13 +318,16 @@ def instances(
     if not disable_k8s_bootstrapping and not no_setup:
         first_node, *_ = instances
 
-        if bootstrap_config:
-            first_node.exec(
-                ["k8s", "bootstrap", "--file", "-"],
-                input=str.encode(bootstrap_config),
-            )
-        else:
-            first_node.exec(["k8s", "bootstrap"])
+        extra_args = []
+        if cluster_network_type == "IPv6":
+            extra_args.extend(["--address", "::/0"])
+
+        util.bootstrap(
+            first_node,
+            datastore_type=datastore_type,
+            bootstrap_config=bootstrap_config,
+            extra_args=extra_args,
+        )
 
     yield instances
 

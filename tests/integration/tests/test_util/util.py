@@ -13,9 +13,10 @@ import urllib.request
 from datetime import datetime
 from functools import partial
 from pathlib import Path
-from typing import Any, Callable, List, Mapping, Optional, Union
+from typing import Any, Callable, Dict, List, Mapping, Optional, Union
 
 import pytest
+import yaml
 from tenacity import (
     RetryCallState,
     Retrying,
@@ -481,6 +482,37 @@ def ready_nodes(control_node: harness.Instance) -> List[Any]:
         for node in get_nodes(control_node)
         if is_node_ready(control_node, node_dict=node)
     ]
+
+
+# Bootstrap the instance
+def bootstrap(
+    instance: harness.Instance,
+    datastore_type: str,
+    bootstrap_config: Optional[Dict[str, Any] | str] = None,
+    extra_args: Optional[List[str]] = None,
+    **kwargs,
+):
+    if bootstrap_config:
+        if isinstance(bootstrap_config, str):
+            # If bootstrap_config is a string, assume it's a YAML string
+            bootstrap_config = yaml.safe_load(bootstrap_config)
+    else:
+        # Use bootstrap-default.yaml as the base config
+        default_config_path = config.MANIFESTS_DIR / "bootstrap-default.yaml"
+        bootstrap_config = yaml.safe_load(default_config_path.read_text())
+
+    if not extra_args:
+        extra_args = []
+
+    # Add/update datastore-type and convert to YAML
+    bootstrap_config["datastore-type"] = datastore_type
+    modified_config = yaml.dump(bootstrap_config, default_flow_style=False)
+
+    return instance.exec(
+        ["k8s", "bootstrap", "--file", "-", *extra_args],
+        input=str.encode(modified_config),
+        **kwargs,
+    )
 
 
 # Create a token to join a node to an existing cluster
