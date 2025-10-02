@@ -1,0 +1,6 @@
+description: "LXD profile for Canonical Kubernetes with jumbo frames"
+devices:
+  eth0:
+    name: eth0
+    network: LXD_JUMBO_NETWORK
+    type: nic
