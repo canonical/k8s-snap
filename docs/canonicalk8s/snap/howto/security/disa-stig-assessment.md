@@ -2021,9 +2021,21 @@ The final line of the output will be `PASS`.
 >
 >     /var/snap/k8s/common/args/kube-controller-manager
 >
+> The necessary argument is already set when following the [disa-stig hardening]
+> guide.
 
 
 ### Remediation
+
+Pre deployment:
+
+Use the template presented in the [disa-stig hardening] guide to apply the
+argument automatically to the kube-controller-manager.
+
+Post-deployment:
+
+Alternatively, if you have already deployed the k8s-snap, you can manually
+apply the argument by editing the appropriate file.
 
 Edit `/var/snap/k8s/common/args/kube-controller-manager` in order to set the
 argument `--bind-address` for service `kube-controller-manager` as appropriate.
@@ -2360,9 +2372,21 @@ snap install kubectl --classic
 
 > The k8s-snap does not set the `--feature-gate` flag on the `kube-apiserver`.
 >
+> The necessary argument is already set when following the [disa-stig hardening]
+> guide.
 
 
 ### Remediation
+
+Pre-deployment:
+
+Use the template presented in the [disa-stig hardening] guide to apply the
+argument automatically to the kube-apiserver.
+
+Post-deployment:
+
+Alternatively, if you have already deployed the k8s-snap, you can manually
+apply the argument by editing the appropriate file.
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--feature-gate` for service `kube-apiserver` as appropriate.
@@ -2432,14 +2456,21 @@ The final line of the output will be `PASS`.
 > the audit log is only sent to **stdout** (not studio) if the value is set to
 > '-'
 >
-> Please review the [post-deployment hardening] guide for a full description on
-> how to enable auditing for the kube-apiserver.
+> The necessary argument is already set when following the [disa-stig hardening]
+> guide.
 >
 > This finding is basically a duplicate of V-242465.
->
 
 
-### Remediation
+Pre-deployment:
+
+Use the template presented in the [disa-stig hardening] guide to apply the
+argument automatically to the kube-api-server.
+
+Post-deployment:
+
+Alternatively, if you have already deployed the k8s-snap, you can manually
+apply the argument by editing the appropriate file.
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--audit-log-path` for service `kube-apiserver` as appropriate.
@@ -2520,12 +2551,21 @@ the event
 >
 > The k8s-snap does not configure auditing by default.
 >
-> Please review the [post-deployment hardening] guide for a full description on
-> how to enable auditing for the kube-apiserver.
->
+> The necessary argument is already set when following the [disa-stig hardening]
+> guide.
 
 
 ### Remediation
+
+Pre-deployment:
+
+Use the template presented in the [disa-stig hardening] guide to apply the
+argument automatically to the kube-api-server.
+
+Post-deployment:
+
+Alternatively, if you have already deployed the k8s-snap, you can manually
+apply the argument by editing the appropriate file.
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--audit-policy-file` for service `kube-apiserver` as appropriate.
@@ -6850,12 +6890,21 @@ investigation.
 >
 > The k8s-snap does not configure auditing by default.
 >
-> Please review the [post-deployment hardening] guide for a full description on
-> how to enable auditing for the kube-apiserver.
->
+> The necessary argument is already set when following the [disa-stig hardening]
+> guide.
 
 
 ### Remediation
+
+Pre-deployment:
+
+Use the template presented in the [disa-stig hardening] guide to apply the
+argument automatically to the kube-apiserver.
+
+Post-deployment:
+
+Alternatively, if you have already deployed the k8s-snap, you can manually
+apply the argument by editing the appropriate file.
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--audit-policy-file` for service `kube-apiserver` as appropriate.
@@ -6907,12 +6956,21 @@ file size is to set these limits.
 >
 > The k8s-snap does not configure auditing by default.
 >
-> Please review the [post-deployment hardening] guide for a full description on
-> how to enable auditing for the kube-apiserver.
->
+> The necessary argument is already set when following the [disa-stig hardening]
+> guide.
 
 
 ### Remediation
+
+Pre-deployment:
+
+Use the template presented in the [disa-stig hardening] guide to apply the
+argument automatically to the kube-apiserver.
+
+Post-deployment:
+
+Alternatively, if you have already deployed the k8s-snap, you can manually
+apply the argument by editing the appropriate file.
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--audit-log-maxsize` for service `kube-apiserver` as appropriate.
@@ -6962,12 +7020,21 @@ evidence for cybersecurity investigations.
 >
 > The k8s-snap does not configure auditing by default.
 >
-> Please review the [post-deployment hardening] guide for a full description on
-> how to enable auditing for the kube-apiserver.
->
+> The necessary argument is already set when following the [disa-stig hardening]
+> guide.
 
 
 ### Remediation
+
+Pre-deployment:
+
+Use the template presented in the [disa-stig hardening] guide to apply the
+argument automatically to the kube-apiserver.
+
+Post-deployment:
+
+Alternatively, if you have already deployed the k8s-snap, you can manually
+apply the argument by editing the appropriate file.
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--audit-log-maxbackup` for service `kube-apiserver` as appropriate.
@@ -7018,12 +7085,21 @@ evidence for cybersecurity investigations.
 >
 > The k8s-snap does not configure auditing by default.
 >
-> Please review the [post-deployment hardening] guide for a full description on
-> how to enable auditing for the kube-apiserver.
->
+> The necessary argument is already set when following the [disa-stig hardening]
+> guide.
 
 
 ### Remediation
+
+Pre-deployment:
+
+Use the template presented in the [disa-stig hardening] guide to apply the
+argument automatically to the kube-apiserver.
+
+Post-deployment:
+
+Alternatively, if you have already deployed the k8s-snap, you can manually
+apply the argument by editing the appropriate file.
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--audit-log-maxage` for service `kube-apiserver` as appropriate.
@@ -7073,14 +7149,23 @@ events in the audit log the log path value must be set.
 >
 > The k8s-snap does not configure auditing by default.
 >
-> Please review the [post-deployment hardening] guide for a full description on
-> how to enable auditing for the kube-apiserver.
+> The necessary argument is already set when following the [disa-stig hardening]
+> guide.
 >
 > This finding is basically a duplicate of V-242402.
->
 
 
 ### Remediation
+
+Pre-deployment:
+
+Use the template presented in the [disa-stig hardening] guide to apply the
+argument automatically to the kube-apiserver.
+
+Post-deployment:
+
+Alternatively, if you have already deployed the k8s-snap, you can manually
+apply the argument by editing the appropriate file.
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--audit-log-path` for service `kube-apiserver` as appropriate.
@@ -7235,9 +7320,21 @@ must never be set to "0" and should be defined at "5m" (the default is 4hr).
 >
 >     /var/snap/k8s/common/args/kubelet
 >
+> The necessary argument is already set when following the [disa-stig hardening]
+> guide.
 
 
 ### Remediation
+
+Pre-deployment:
+
+Use the template presented in the [disa-stig hardening] guide to apply the
+argument automatically to the kubelet.
+
+Post-deployment:
+
+Alternatively, if you have already deployed the k8s-snap, you can manually
+apply the argument by editing the appropriate file.
 
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
 `--streaming-connection-idle-timeout` for service `kubelet` as appropriate.

@@ -1,13 +1,15 @@
-# DISA STIG Hardening
+# How to install {{ product }} with DISA STIG Hardening
 
-This guide iterates over the steps necessary to apply DISA STIG hardening to a
-{{ product }} cluster.
+This guide iterates over the steps necessary to apply manual rules for
+DISA STIG hardening to a {{ product }} cluster.
 
 ## Prerequisites
 
 This guide assumes the following:
 
+- Ubuntu machine with at least 4GB of RAM and 30 GB disk storage
 - You have root or sudo access to the machine
+- Internete access on the machine
 - You have Ubuntu Pro enabled on your system. For more information, see
   [Ubuntu Pro documentation].
 
@@ -131,12 +133,13 @@ Through this configuration file, the following rules are applied:
 
 - [V-242434] Kubernetes Kubelet must enable kernel protection
 - [V-245541] Kubernetes Kubelet must not disable timeouts
-- [V-242402] [V-242403] [V-242461] [V-242462] [V-242463] [V-242464] [V-242465] The
-  Kubernetes API Server must have an audit log configured
-- [V-254800] Kubernetes must have a Pod Security Admission control file configured
+- [V-242402] [V-242403] [V-242461] [V-242462] [V-242463] [V-242464]
+  [V-242465] The Kubernetes API Server must have an audit log configured
+- [V-254800] Kubernetes must have a Pod Security Admission control
+  file configured
 - [V-242400] The Kubernetes API server must have Alpha APIs disabled
 - [V-254800] Kubernetes must have a Pod Security Admission control file
-configured
+  configured
 - [V-242384] The Kubernetes Scheduler must have secure binding
 - [V-242385] The Kubernetes Controller Manager must have secure binding
 
@@ -254,7 +257,15 @@ performance penalties in the form of increased disk I/O, which can lead to
 slower response times and reduced overall cluster efficiency, especially under
 heavy workloads.
 
+## Next steps
+
+Please assess your cluster for compliance using the [DISA STIG assessment page].
+Review all findings and apply any necessary remediations to be fully DISA STIG
+compliant. Be aware that some rules need to be upheld when you add workloads
+to your cluster.
+
 <!-- Links -->
+[DISA STIG assessment page]: ../security/disa-stig-assessment.md
 [usg tool]: https://documentation.ubuntu.com/security/docs/compliance/usg/
 [Ubuntu Pro documentation]: https://documentation.ubuntu.com/pro/start-here/#start-here
 [Kubernetes Pod Security Admission documentation]: https://kubernetes.io/docs/concepts/security/pod-security-admission/

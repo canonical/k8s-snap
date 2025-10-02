@@ -8,7 +8,6 @@ to harden their clusters in accordance with DISA STIG and CIS recommendations.
 :titlesonly:
 
 Hardening guide <hardening.md>
-DISA STIG hardening <disa-stig-hardening.md>
 CIS assessment <cis-assessment.md>
 DISA STIG assessment <disa-stig-assessment.md>
 Report a security issue <report-security-issue.md>
