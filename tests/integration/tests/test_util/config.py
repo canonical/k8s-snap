@@ -98,6 +98,20 @@ LXD_IPV6_PROFILE = (
     or (DIR / ".." / ".." / "lxd-ipv6-profile.yaml").read_text()
 )
 
+# LXD_JUMBO_NETWORK is the network with MTU set to 9000 to be used in LXD containers.
+LXD_JUMBO_NETWORK = os.getenv("TEST_LXD_JUMBO_NETWORK") or "jumbo-br0"
+
+# LXD_JUMBO_PROFILE_NAME is the profile name to use for LXD containers attached to a network with MTU set to 9000.
+LXD_JUMBO_PROFILE_NAME = (
+    os.getenv("TEST_LXD_JUMBO_PROFILE_NAME") or "k8s-integration-jumbo"
+)
+
+# LXD_JUMBO_PROFILE is the profile to use for LXD containers attached to a network with MTU set to 9000.
+LXD_JUMBO_PROFILE = (
+    os.getenv("TEST_LXD_JUMBO_PROFILE")
+    or (DIR / ".." / ".." / "lxd-jumbo-profile.yaml").read_text()
+)
+
 # LXD_IMAGE is the image to use for LXD containers.
 LXD_IMAGE = os.getenv("TEST_LXD_IMAGE") or "ubuntu:22.04"
 
