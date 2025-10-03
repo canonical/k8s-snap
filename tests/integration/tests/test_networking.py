@@ -273,12 +273,13 @@ def test_jumbo(instances: List[harness.Instance]):
         capture_output=True,
     )
 
+    # Sample output:
     # 50 packets transmitted, 40 received, 20% packet loss, time 9109ms
     assert "50 packets transmitted" in result.stdout.decode()
-    packet_loss_percentage = int(result.stdout.decode().split(", ")[1].split(" ")[0])
+    packets_received = int(result.stdout.decode().split(", ")[1].split(" ")[0])
     assert (
-        packet_loss_percentage > 45
-    ), "Expected ping packet loss to be less than 10 percent"
+        packets_received > 45
+    ), "Expected at least 45 packets out of 50 to be recevied in running ping"
 
 
 def get_pod_ip(instance: harness.Instance, pod_name, namespace="default"):
