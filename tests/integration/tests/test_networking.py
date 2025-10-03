@@ -377,4 +377,4 @@ def test_dual_nic(instances: List[harness.Instance]):
         capture_output=True,
     )
 
-    assert number_of_devices.stdout.decode() == "2"
+    assert number_of_devices.stdout.strip() == "2"
