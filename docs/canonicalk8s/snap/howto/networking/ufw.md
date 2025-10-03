@@ -1,24 +1,18 @@
 # How to configure Uncomplicated Firewall (UFW)
 
-In this how-to we present a set of firewall rules/guidelines
-you should consider when setting up {{product}}.
-Be aware that these rules may be incompatible with your network setup
-and we recommend you review and tune them to match your needs.  
-
-Also, be aware that for each service hosted in Kubernetes,
-the firewall rules need to be reviewed as there might be
-special requirements for each.
-
+This how-to presents a set of firewall rules/guidelines
+that should be considered when setting up {{product}}.
+These rules may be incompatible with your network setup,
+so we recommend you review and tune them to match your needs.
 
 ## Prerequisites
 
 This guide assumes the following:
 
-- A machine with Ubuntu where you have installed
-  or you plan to install {{product}}.
-- You have root or sudo access to the machine.
+- An ubuntu machine where {{product}} is installed or will be installed.
+- Root or sudo access to the machine.
 
-## Install and enable UFW 
+## Install UFW 
 
 Uncomplicated Firewall needs to be configured on all nodes of {{product}}.
 To do so try:
@@ -41,23 +35,13 @@ UFW to allow `OpenSSH` before enabling it:
 sudo ufw allow OpenSSH
 ```
 
-Now you are ready to enable UFW:
-
-```sh
-sudo ufw enable
-```
-
 ## Allow forwarding
 
 Forwarding is needed because containers typically live in isolated networks
 and expect the host-to-route traffic between their internal network and the
 outside world to be allowed.
 
-First edit `/etc/default/ufw` and allow UFW to route/forward packets:
-
-```sh
-DEFAULT_FORWARD_POLICY="ACCEPT"
-```
+### Enable IP forwarding
 
 Enable IP forwarding by editing `/etc/sysctl.conf` so it persists through
 system reboots:
@@ -73,11 +57,23 @@ without rebooting the system:
 sudo sysctl -w net.ipv4.ip_forward=1
 ```
 
-Reload UFW:
+### Set forwarding rules
+
+Set UFW forwarding rules using one of the following methods.
+
+#### Allow system wide
+
+Packet forwarding can be allowed system wide by editing `/etc/default/ufw`:
 
 ```sh
-sudo ufw reload
+DEFAULT_FORWARD_POLICY="ACCEPT"
 ```
+
+By subnet
+A less permissive approach would be to allow forward traffic only between the subnets of the pods and the hosts. For example, assuming the pods CIDR is 10.1.0.0/16 and the cluster nodes are in 10.0.20/24, one could set:
+sudo ufw route allow from 10.1.0.0/16 to 10.0.20.0/24
+sudo ufw route allow from 10.1.0.0/16 to 10.1.0.0/16
+
 
 ## Allow access to the Kubernetes services
 
@@ -112,19 +108,24 @@ sudo ufw allow 10259/tcp
 
 To form a High Availability (HA) cluster the datastore used by Kubernetes
 (dqlite/etcd) needs to establish a direct connection among its peers.
-In dqlite this is done through port 9000 while on etcd port 2380 is used.
 
-Allow traffic on port 9000 on control plane nodes with dqlite:
-
-```sh
-sudo ufw allow 9000/tcp
-```
-
+`````{tabs}
+````{group-tab} etcd
 Allow traffic on port 2380 on control plane nodes with etcd:
 
 ```sh
 sudo ufw allow 2380/tcp
 ```
+````
+
+````{group-tab} Dqlite
+Allow traffic on port 9000 on control plane nodes with dqlite:
+
+```sh
+sudo ufw allow 9000/tcp
+```
+````
+`````
 
 Cluster formation is overseen by a Kubernetes daemon running on all nodes
 on port 6400.
@@ -137,8 +138,8 @@ sudo ufw allow 6400/tcp
 
 ## Allow CNI specific communication
 
-If you are using the default network plugin (Cilium),
-you should consider the following firewall rules.
+When using the default network plugin (Cilium),
+consider the following firewall rules.
 
 Allow cluster-wide Cilium agent health checks and VXLAN traffic:
 
@@ -146,6 +147,15 @@ Allow cluster-wide Cilium agent health checks and VXLAN traffic:
 sudo ufw allow 4240/tcp
 sudo ufw allow 8472/udp
 ```
+
+## Enable UFW
+
+Now you are ready to enable UFW with:
+
+```sh
+sudo ufw enable
+```
+
 
 ## UFW troubleshooting
 
@@ -165,10 +175,11 @@ tail -f /var/log/ufw.log
 
 The logs will show you which packets are dropped, their destination
 and source as well as the protocol used and the destination port.
-This information may help you identify any other ports or services
+This information helps you identify any other ports or services
 you need to enable within UFW.
 
-To keep the resources used by UFW to a minimum you can disable logging:
+After troubleshooting, keep the resources used by UFW to a minimum
+by disabling logging:
 
 ```sh
 sudo ufw logging off
