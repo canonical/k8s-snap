@@ -504,6 +504,8 @@ STONITH
 StorageClass
 streamingConnectionIdleTimeout
 submodules
+subnet
+subnets
 sudo
 sys
 systemd
@@ -538,6 +540,7 @@ ubuntu
 Ubuntu Core
 Ubuntu Pro
 Ubuntu Server
+UFW
 UDP
 uid
 UIDs
