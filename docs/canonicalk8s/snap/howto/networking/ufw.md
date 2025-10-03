@@ -61,17 +61,17 @@ sudo sysctl -w net.ipv4.ip_forward=1
 
 Set UFW forwarding rules using one of the following methods.
 
-#### Allow system wide
-
+`````{tabs}
+````{group-tab} Allow system wide
 Packet forwarding can be allowed system wide by editing `/etc/default/ufw`
 and adding:
 
 ```sh
 DEFAULT_FORWARD_POLICY="ACCEPT"
 ```
+````
 
-#### By subnet
-
+````{group-tab} By subnet
 A less permissive approach would be to allow forward traffic only between
 the subnets of the pods and the hosts.
 For example, assuming the pods CIDR is `10.1.0.0/16` and the cluster nodes
@@ -81,6 +81,8 @@ are in `10.0.20/24`, you could:
 sudo ufw route allow from 10.1.0.0/16 to 10.0.20.0/24
 sudo ufw route allow from 10.1.0.0/16 to 10.1.0.0/16
 ```
+````
+`````
 
 ## Allow access to the Kubernetes services
 
