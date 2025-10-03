@@ -279,7 +279,7 @@ def test_jumbo(instances: List[harness.Instance]):
     packets_received = int(result.stdout.decode().split(", ")[1].split(" ")[0])
     assert (
         packets_received > 45
-    ), "Expected at least 45 packets out of 50 to be recevied in running ping"
+    ), "Expected at least 45 packets out of 50 to be received in running ping"
 
 
 def get_pod_ip(instance: harness.Instance, pod_name, namespace="default"):
