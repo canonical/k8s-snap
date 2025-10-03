@@ -184,8 +184,8 @@ and formatting contained in the [_parts][] directory of the docs.
 ### Local testing
 
 To test your changes locally, you can build a local version of the
-documentation. Open a terminal and go to the `/docs/tools` directory. From
-there you can run the command:
+documentation. Open a terminal and go to the `/docs/canonicalk8s` directory.
+From there you can run the command:
 
 ```
 make run
