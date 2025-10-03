@@ -15,7 +15,7 @@ This guide assumes the following:
 ## Install UFW 
 
 Uncomplicated Firewall needs to be configured on all nodes of {{product}}.
-To do so try:
+To do this, try:
 
 ```sh
 sudo apt update
@@ -28,8 +28,8 @@ To verify UFW is installed try:
 sudo ufw status verbose
 ```
 
-If you need to maintain ssh access to the machine, make sure you configure
-UFW to allow `OpenSSH` before enabling it:
+To maintain SSH access to the machine, allow `OpenSSH` through
+UFW before enabling the firewall:
 
 ```sh
 sudo ufw allow OpenSSH
@@ -37,20 +37,20 @@ sudo ufw allow OpenSSH
 
 ## Allow forwarding
 
-Forwarding is needed because containers typically live in isolated networks
-and expect the host-to-route traffic between their internal network and the
-outside world to be allowed.
+Package forwarding is needed because containers typically live in isolated
+networks and expect the host-to-route traffic between their internal network
+and the outside world to be allowed.
 
 ### Enable IP forwarding
 
-Enable IP forwarding by editing `/etc/sysctl.conf` so it persists through
-system reboots:
+If you want the forwarding rules to persist through system reboots,
+enable IP forwarding by editing `/etc/sysctl.conf`:
 
 ```sh
 net.ipv4.ip_forward=1
 ```
 
-Or use `sysctl` directly so forwarding is applied immediately,
+Otherwise, use `sysctl` directly to apply the forwarding rules immediately
 without rebooting the system:
 
 ```sh
@@ -63,17 +63,24 @@ Set UFW forwarding rules using one of the following methods.
 
 #### Allow system wide
 
-Packet forwarding can be allowed system wide by editing `/etc/default/ufw`:
+Packet forwarding can be allowed system wide by editing `/etc/default/ufw`
+and adding:
 
 ```sh
 DEFAULT_FORWARD_POLICY="ACCEPT"
 ```
 
-By subnet
-A less permissive approach would be to allow forward traffic only between the subnets of the pods and the hosts. For example, assuming the pods CIDR is 10.1.0.0/16 and the cluster nodes are in 10.0.20/24, one could set:
+#### By subnet
+
+A less permissive approach would be to allow forward traffic only between
+the subnets of the pods and the hosts.
+For example, assuming the pods CIDR is `10.1.0.0/16` and the cluster nodes
+are in `10.0.20/24`, you could:
+
+```sh
 sudo ufw route allow from 10.1.0.0/16 to 10.0.20.0/24
 sudo ufw route allow from 10.1.0.0/16 to 10.1.0.0/16
-
+```
 
 ## Allow access to the Kubernetes services
 
@@ -95,9 +102,9 @@ Kubelet runs on all nodes, so allow traffic on port 10250 on all nodes:
 sudo ufw allow 10250/tcp
 ```
 
-The kube-controller-manager and kube-scheduler run only on
-the control plane so allow traffic on ports 10257 and 10259
-on control plane nodes:
+The kube-controller-manager and kube-scheduler only run on
+the control plane, therefore permit traffic on ports 10257 and 10259
+of the control plane nodes:
 
 ```sh
 sudo ufw allow 10257/tcp
@@ -107,7 +114,7 @@ sudo ufw allow 10259/tcp
 ## Allow cluster formation
 
 To form a High Availability (HA) cluster the datastore used by Kubernetes
-(dqlite/etcd) needs to establish a direct connection among its peers.
+(Dqlite/etcd) needs to establish a direct connection among its peers.
 
 `````{tabs}
 ````{group-tab} etcd
@@ -119,7 +126,7 @@ sudo ufw allow 2380/tcp
 ````
 
 ````{group-tab} Dqlite
-Allow traffic on port 9000 on control plane nodes with dqlite:
+Allow traffic on port 9000 on control plane nodes with Dqlite:
 
 ```sh
 sudo ufw allow 9000/tcp
@@ -130,13 +137,13 @@ sudo ufw allow 9000/tcp
 Cluster formation is overseen by a Kubernetes daemon running on all nodes
 on port 6400.
 
-Allow traffic on port 6400:
+Open port 6400 to permit cluster formation traffic:
 
 ```sh
 sudo ufw allow 6400/tcp
 ```
 
-## Allow CNI specific communication
+## Enable CNI specific communication
 
 When using the default network plugin (Cilium),
 consider the following firewall rules.
