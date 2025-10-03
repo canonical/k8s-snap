@@ -8,8 +8,9 @@ if [ -d "${SNAPCRAFT_STAGE}/dynamic-dqlite-deps" ]; then
 fi
 
 export GOTOOLCHAIN=local
-# # export GOEXPERIMENT=opensslcrypto
+export GOEXPERIMENT=opensslcrypto
 export CGO_ENABLED=1
+export TAGS="libsqlite3,ms_tls13kdf"
 make dynamic -j
 
 mkdir -p "${INSTALL}"

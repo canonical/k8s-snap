@@ -32,6 +32,10 @@ type Snap interface {
 	RefreshStatus(ctx context.Context, changeID string) (*types.RefreshStatus, error) // snap tasks $changeID
 	PostRefreshLockPath() string                                                      // /var/snap/k8s/common/lock/post-refresh - lock file to indicate the first run after a snap refresh
 
+	SystemTuningConfigDir() string      //  /etc/sysctl.d
+	SystemConfigDirs() []string         // /etc/sysctl.d/, /run/sysctl.d/, /usr/local/lib/sysctl.d/, /usr/lib/sysctl.d/, /lib/sysctl.d/, /etc/sysctl.conf
+	SystemMinConfig() map[string]string // system limits: fs.inotify parameters
+
 	CNIConfDir() string       // /etc/cni/net.d
 	CNIBinDir() string        // /opt/cni/bin
 	CNIPluginsBinary() string // /snap/k8s/current/bin/cni
@@ -52,7 +56,6 @@ type Snap interface {
 	ContainerdSocketPath() string        // classic confinement: /run/containerd/containerd.sock, strict confinement: /var/snap/k8s/common/run/containerd/containerd.sock
 	ContainerdStateDir() string          // classic confinement: /run/containerd, strict confinement: /var/snap/k8s/common/run/containerd
 
-	K8sCRDDir() string            //  /snap/k8s/current/k8s/crds
 	K8sScriptsDir() string        //  /snap/k8s/current/k8s/scripts
 	K8sBinDir() string            //  /snap/k8s/current/bin
 	K8sInspectScriptPath() string //  /snap/k8s/current/k8s/scripts/inspect.sh

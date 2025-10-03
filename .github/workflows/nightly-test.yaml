@@ -54,10 +54,9 @@ jobs:
          # Stable branches
          # Add branches to test here
          # TODO: automatically retrieve the list of channels.
-         - { branch: release-1.30, channel: 1.30-classic/edge }
-         - { branch: release-1.31, channel: 1.31-classic/edge }
          - { branch: release-1.32, channel: 1.32-classic/edge }
          - { branch: release-1.33, channel: 1.33-classic/edge }
+         - { branch: release-1.34, channel: 1.34-classic/edge }
    uses: ./.github/workflows/security-scan.yaml
    with:
      channel: ${{ matrix.channel }}
@@ -79,7 +78,6 @@ jobs:
      - name: Test results
        run: |
          RESULTS=$(echo '${{ toJson(needs) }}' | jq -c '[.[] | .result]')
-
          if echo $RESULTS | jq -e 'all(. == "success")'; then
            echo "RESULT=success" >> $GITHUB_ENV
          else

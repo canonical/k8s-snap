@@ -6,6 +6,7 @@ import logging
 import shlex
 import subprocess
 from pathlib import Path
+from typing import List
 
 from test_util import config
 from test_util.harness import Harness, HarnessError, Instance
@@ -190,6 +191,13 @@ class JujuHarness(Harness):
         if check:
             completed.check_returncode()
         return completed
+
+    def restart_instance(self, instance_id):
+        self.exec(instance_id, ["sudo", "reboot"])
+
+    def open_ports(self, instance_id: str, ports: List[int]):
+        for port in ports:
+            self.exec(instance_id, ["open-port", port])
 
     def delete_instance(self, instance_id: str):
         if instance_id not in self.instances:

@@ -118,24 +118,28 @@ EOF
 
 ````
 
-## Increased memory usage in Dqlite
+## Increased memory usage using a Dqlite backend
 
-The datastore used for {{product}} Dqlite, reported an [issue #196] of increased
-memory usage over time. This was particularly evident in smaller clusters.
+While increased memory usage can be a symptom of many issues, it is possible
+that you can improve the memory usage of your {{product}} cluster by tuning
+parameters related to creating snapshots in Dqlite. An [issue #196] reports
+increased memory usage over time. This was particularly evident in smaller
+clusters. In the future, we will use a Dqlite release which dynamically
+adjusts the parameters for optimized performance.
 
 ````{dropdown} Explanation
 
 This issue was caused due to an inefficient resource configuration of
-Dqlite for smaller clusters. The threshold and trailing parameters are
+Dqlite for smaller/ medium sized clusters. The threshold and trailing parameters are
 related to Dqlite transactions and must be adjusted. The threshold is
 the number of transactions we allow before a snapshot is taken of the
 leader. The trailing is the number of transactions we allow the follower
 node to lag behind the leader before it consumes the updated snapshot of the
 leader. Currently, the default snapshot configuration is 1024 for the
-threshold and 8192 for trailing which is too large for small clusters. Only
-setting the trailing parameter in a configuration yaml automatically sets the
+threshold and 8192 for trailing which is too large for small to medium sized clusters.
+Only setting the trailing parameter in a configuration yaml automatically sets the
 threshold to 0. This leads to a snapshot being taken every transaction and
-increased CPU usage.
+increases CPU usage.
 
 ````
 
@@ -143,7 +147,11 @@ increased CPU usage.
 
 Apply a tuning.yaml custom configuration to the Dqlite datastore in order to
 adjust the trailing and threshold snapshot values. The trailing parameter
-should be twice the threshold value. Create the tuning.yaml
+should be twice the threshold value. We do not recommend setting the trailing
+below 512 and the threshold below 384 as Dqlite will be pre-occupied creating
+snapshots and struggling to make progress with these settings.
+
+Create the tuning.yaml
 file and place it in the Dqlite directory
 `/var/snap/k8s/common/var/lib/k8s-dqlite/tuning.yaml`:
 
@@ -152,6 +160,9 @@ snapshot:
   trailing: 1024
   threshold: 512
 ```
+
+These values are a good starting point that should balance memory usage without
+inhibiting workloads from making progress for small to medium sized clusters.
 
 Restart Dqlite:
 

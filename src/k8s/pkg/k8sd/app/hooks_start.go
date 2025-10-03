@@ -24,6 +24,13 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 		}
 	}()
 
+	// tune system settings if enabled and necessary
+	if !a.snap.Strict() {
+		if err := a.tuneSystemSettings(ctx, s); err != nil {
+			log.FromContext(ctx).Error(err, "failed to tune system settings")
+		}
+	}
+
 	// start node config controller
 	if a.nodeConfigController != nil {
 		go a.nodeConfigController.Run(ctx, func(ctx context.Context) (*rsa.PublicKey, error) {
@@ -123,11 +130,15 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 			func(ctx context.Context) (types.ClusterConfig, error) {
 				return databaseutil.GetClusterConfig(ctx, s)
 			},
-			func() state.State { return s },
 		); err != nil {
 			log.FromContext(ctx).Error(err, "Failed to start controller coordinator")
 		}
 	}()
+
+	// NOTE(Hue): We notify all features here to ensure that they are
+	// reconciled at least once after the app starts. This is important specifically
+	// when k8sd gets restarted before getting the chance to reconcile features.
+	a.NotifyFeatureController(true, true, true, true, true, true, true)
 
 	return nil
 }

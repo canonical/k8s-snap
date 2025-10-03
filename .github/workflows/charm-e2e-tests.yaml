@@ -43,13 +43,19 @@ jobs:
           artifact: ${{ inputs.artifact }}
       - name: Setup LXD
         uses: canonical/setup-lxd@v0.1.3
-      - name: Install tox
-        run: sudo apt-get install -y tox
+      - name: Install virtualenv
+        run: sudo apt install -y python3.10-venv
       - name: Generate snap tarball
         run: |
           mkdir snap_installation
           mv ${{ steps.download-snap.outputs.snap-path }} snap_installation/k8s.snap
           tar cvzf snap_installation.tar.gz -C snap_installation/ .
+      - name: Setup Astral UV
+        uses: astral-sh/setup-uv@v6.4.1
+        with:
+          python-version: ${{ env.python-version }}
+      - name: Install tox with UV
+        run: uv tool install tox --with tox-uv
       - name: Install charmcraft, juju, juju-crashdump
         run: |
           sudo snap install charmcraft --classic
@@ -60,13 +66,11 @@ jobs:
           # The operator tests expect the charm file name to have the
           # ${charmName}_ prefix and include the arch and ubuntu base.
           # https://github.com/canonical/k8s-operator/blob/eba756ddc723e9aa5242c7804712807495356c6f/tests/integration/helpers.py#L334-L342
-
           # The charm base (e.g. ubuntu@22.04) must match the one used by other
           # related charms (e.g. ceph) used by the k8s-operator tests.
           arch=${{ inputs.arch }}
           k8sCharmFile=${GITHUB_WORKSPACE}/k8s_ubuntu-22.04-${arch}.charm
           k8sWorkerChamFile=${GITHUB_WORKSPACE}/k8s-worker_ubuntu-22.04-${arch}.charm
-
           juju download k8s \
             --channel ${{ inputs.charm-channel }} \
             --filepath $k8sCharmFile \
@@ -81,7 +85,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: canonical/k8s-operator
-          ref: main
+          ref: ${{ github.base_ref || github.ref_name }}
           path: ${{ env.K8S_OPERATOR }}
       - name: Disable lxd ipv6
         run: |
@@ -90,20 +94,14 @@ jobs:
       - name: Run e2e tests
         run: |
           set -x
-
           arch=${{ inputs.arch }}
           k8sCharmFile=${GITHUB_WORKSPACE}/k8s_ubuntu-22.04-${arch}.charm
           k8sWorkerChamFile=${GITHUB_WORKSPACE}/k8s-worker_ubuntu-22.04-${arch}.charm
           snapInstallRes=${GITHUB_WORKSPACE}/snap_installation.tar.gz
-
           ls -lh $charmFile
           ls -lh $snapInstallRes
-
           cd ${{ env.K8S_OPERATOR }}
-
-          sudo --user "$USER" --preserve-env --preserve-env=PATH \
-            -- env -- \
-            tox -e integration \
+          tox -r -e integration \
             -- \
             --charm-file $k8sCharmFile \
             --charm-file $k8sWorkerChamFile \
@@ -124,5 +122,5 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: test-run-artifacts
+          name: charm-e2e-tests-${{ inputs.arch }}
           path: ${{ steps.collect-juju-status.outputs.path }}

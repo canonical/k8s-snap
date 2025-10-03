@@ -108,13 +108,11 @@ The steps are to be followed in-order, each task must be completed by the person
   - [ ] Create PR against `main` with the changes and request review from **Reviewer**. Make sure to update the issue information with a link to the PR.
 - [ ] **Reviewer**: On merge, confirm [Auto-update strict branch] action runs to completion and that the `autoupdate/release-1.xx-*` flavor branches are created.
    - [ ] autoupdate/release-1.xx-strict
-   - [ ] autoupdate/release-1.xx-moonray
 - [ ] **Owner**: Create launchpad builders for `release-1.xx` and flavors
   - [ ] Run the [Confirm Snap Builds][] Action
 - [ ] **Reviewer**: Ensure snap recipes are created in [lp:k8s/+snaps][]
   - [ ] look for `k8s-snap-1.xx-classic`
   - [ ] look for `k8s-snap-1.xx-strict`
-  - [ ] look for `k8s-snap-1.xx-moonray`
   - [ ] make sure each is "Authorized for Store Upload"
 
 #### After release

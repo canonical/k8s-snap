@@ -9,3 +9,7 @@ k8s::remove::containers
 k8s::remove::network
 
 k8s::remove::containerd
+
+k8s::remove::system_tuning
+
+k8s::remove::resources

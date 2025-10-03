@@ -4,7 +4,6 @@
 import logging
 import os
 import subprocess
-from pathlib import Path
 from string import Template
 from typing import List, Optional
 
@@ -86,9 +85,7 @@ class Registry:
         # This would fail if the `TEST_SNAP` environment variable is not set which however has
         # valid use cases, e.g. in the promotion scenarios.
         util.preload_snaps(self.instance)
-        util.setup_k8s_snap(
-            self.instance, Path("/"), config.SNAP or "latest/edge/classic"
-        )
+        util.setup_k8s_snap(self.instance, config.SNAP or "latest/edge/classic")
 
     def get_configured_mirrors(self) -> List[Mirror]:
         mirrors: List[Mirror] = []
@@ -201,7 +198,7 @@ class Registry:
     def cleanup(self):
         if self.instance:
             LOG.info("Cleaning up registry instance: %s", self.instance.id)
-            self.harness.delete_instance(self.instance.id)
+            self.instance.delete()
             self.instance = None
         else:
             LOG.info("Registry instance already cleaned up.")

@@ -147,6 +147,16 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 		return fmt.Errorf("failed to create directories: %w", err)
 	}
 
+	// Create system tuning file if desired
+	if !a.snap.Strict() && !joinConfig.GetDisableSystemTuning() {
+		if err := a.ensureSystemTuningConfigFile(ctx); err != nil {
+			log.Error(err, "failed to create system tuning file")
+		}
+		if err := a.tuneSystemSettings(ctx, s); err != nil {
+			log.Error(err, "failed to tune system settings")
+		}
+	}
+
 	// Certificates
 	certificates := &pki.WorkerNodePKI{
 		CACert:              response.CACert,
@@ -310,6 +320,16 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 	// Create directories
 	if err := setup.EnsureAllDirectories(snap); err != nil {
 		return fmt.Errorf("failed to create directories: %w", err)
+	}
+
+	// Create system tuning file if desired
+	if !a.snap.Strict() && !bootstrapConfig.GetDisableSystemTuning() {
+		if err := a.ensureSystemTuningConfigFile(ctx); err != nil {
+			log.Error(err, "failed to create system tuning file")
+		}
+		if err := a.tuneSystemSettings(ctx, s); err != nil {
+			log.Error(err, "failed to tune system settings")
+		}
 	}
 
 	// cfg.Network.ServiceCIDR may be "IPv4CIDR[,IPv6CIDR]". get the first ip from CIDR(s).

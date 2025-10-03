@@ -26,6 +26,9 @@ type Mock struct {
 	KubernetesPKIDir            string
 	EtcdPKIDir                  string
 	KubeletRootDir              string
+	SystemTuningConfigDir       string
+	SystemConfigDirs            []string
+	SystemMinConfig             map[string]string
 	CNIConfDir                  string
 	CNIBinDir                   string
 	CNIPlugins                  []string
@@ -38,7 +41,6 @@ type Mock struct {
 	ContainerdSocketDir         string
 	ContainerdSocketPath        string
 	ContainerdStateDir          string
-	K8sCRDDir                   string
 	K8sScriptsDir               string
 	K8sBinDir                   string
 	K8sInspectScriptPath        string
@@ -161,6 +163,18 @@ func (s *Snap) Hostname() string {
 	return s.Mock.Hostname
 }
 
+func (s *Snap) SystemTuningConfigDir() string {
+	return s.Mock.SystemTuningConfigDir
+}
+
+func (s *Snap) SystemConfigDirs() []string {
+	return s.Mock.SystemConfigDirs
+}
+
+func (s *Snap) SystemMinConfig() map[string]string {
+	return s.Mock.SystemMinConfig
+}
+
 func (s *Snap) SetContainerdBaseDir(baseDir string) {
 	s.Mock.ContainerdBaseDir = baseDir
 }
@@ -195,10 +209,6 @@ func (s *Snap) ContainerdExtraConfigDir() string {
 
 func (s *Snap) ContainerdRegistryConfigDir() string {
 	return s.Mock.ContainerdRegistryConfigDir
-}
-
-func (s *Snap) K8sCRDDir() string {
-	return s.Mock.K8sCRDDir
 }
 
 func (s *Snap) K8sScriptsDir() string {

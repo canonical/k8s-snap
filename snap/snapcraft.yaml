@@ -8,11 +8,17 @@ description: |-
 license: GPL-3.0
 grade: stable
 confinement: classic
+# Note(ben): Snapcraft does not expose its base for part builds, so we need to set it manually.
+# Feature request tracked in https://github.com/canonical/snapcraft/issues/5614
+# For now, remember to also update OPENSSL_MODULES and etcd part BASE when bumping this version.
 base: core22
 environment:
   REAL_PATH: $PATH
   REAL_LD_LIBRARY_PATH: $LD_LIBRARY_PATH
-  SNAPCRAFT_ARCH_TRIPLET: $SNAPCRAFT_ARCH_TRIPLET
+  CRAFT_ARCH_TRIPLET_BUILD_FOR: $CRAFT_ARCH_TRIPLET_BUILD_FOR
+  # Note(ben): Needs to be changed to /snap/core24/current/usr/lib/x86_64-linux-gnu/ossl-modules/
+  # when base is updated to core24 (mind the removed "-3").
+  OPENSSL_MODULES: /snap/core22/current/usr/lib/x86_64-linux-gnu/ossl-modules-3/
 
 architectures:
   - build-on: [amd64]
@@ -22,7 +28,7 @@ parts:
   build-deps:
     plugin: nil
     build-snaps:
-      - go/1.24/stable
+      - go/1.24-fips/stable
     build-attributes: [enable-patchelf]
     build-packages:
       - sudo
@@ -45,9 +51,11 @@ parts:
       - libseccomp-dev
       - libtool
       - libssl-dev
+      - patchelf
       - pkg-config
       - rsync
       - tcl
+      - python3-pip
 
   dqlite:
     after: [build-deps]
@@ -77,8 +85,35 @@ parts:
     after: [build-deps]
     plugin: nil
     source: build-scripts/components/etcd
-    build-attributes: [enable-patchelf]
-    override-build: $CRAFT_PROJECT_DIR/build-scripts/build-component.sh etcd
+    # Note(ben): patchelf messes up the segments when patching etcd
+    # due to https://github.com/NixOS/patchelf/issues/446.
+    # Instead, we use a custom script based on LIEF to manually patch the rpath and interpreter.
+    build-attributes: [no-patchelf]
+    override-build: |
+      # Note(Ben): This field must match the base field above.
+      BASE=core22
+
+      $CRAFT_PROJECT_DIR/build-scripts/build-component.sh etcd
+
+      pip3 install -r $CRAFT_PROJECT_DIR/build-scripts/hack/requirements.txt
+      case "$CRAFT_ARCH_TRIPLET_BUILD_FOR" in
+        x86_64-linux-gnu)
+          python3 $CRAFT_PROJECT_DIR/build-scripts/hack/patchelf.py $CRAFT_PART_INSTALL/bin/etcd \
+            --set-rpath /snap/$BASE/current/lib/x86_64-linux-gnu/ \
+            --set-interpreter /snap/$BASE/current/lib64/ld-linux-x86-64.so.2
+          ;;
+        aarch64-linux-gnu)
+          python3 $CRAFT_PROJECT_DIR/build-scripts/hack/patchelf.py $CRAFT_PART_INSTALL/bin/etcd \
+            --set-rpath /snap/$BASE/current/lib/aarch64-linux-gnu/ \
+            --set-interpreter /snap/$BASE/current/lib/ld-linux-aarch64.so.1
+          ;;
+        *)
+          echo "Unknown architecture: $CRAFT_ARCH_TRIPLET_BUILD_FOR"
+          exit 1
+          ;;
+      esac
+    stage:
+      - bin/etcd
 
   k8s-binaries:
     after: [dqlite]
@@ -91,7 +126,7 @@ parts:
       export DQLITE_BUILD_SCRIPTS_DIR="${CRAFT_STAGE}/static-dqlite-deps"
       export CGO_ENABLED=1
       export GOTOOLCHAIN=local
-      # export GOEXPERIMENT=opensslcrypto
+      export GOEXPERIMENT=opensslcrypto
 
       make dynamic -j
 
@@ -103,7 +138,6 @@ parts:
       cp -P bin/dynamic/lib/*.so* "${INSTALL}/lib/"
 
       LD_LIBRARY_PATH="${DQLITE_BUILD_SCRIPTS_DIR}/.deps/dynamic/lib" "${INSTALL}/bin/k8s" list-images > "${INSTALL}/images.txt"
-
 
   cni:
     after: [build-deps]
@@ -242,6 +276,15 @@ parts:
       - python3-yaml
     override-build: |
       ./build-scripts/generate-bom.py > "${CRAFT_PART_INSTALL}/bom.json"
+
+  resources:
+    plugin: dump
+    source: k8s/resources
+    source-type: local
+    organize:
+      "*": etc/
+    stage:
+      - etc/
 
 apps:
   k8s:

@@ -5,10 +5,10 @@ import datetime
 import logging
 import os
 import subprocess
-import tempfile
 from typing import List
 
 import pytest
+import yaml
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from test_util import config, harness, tags, util
@@ -71,6 +71,55 @@ def test_worker_nodes(instances: List[harness.Instance]):
     ] and other_joining_node.id in [
         node["metadata"]["name"] for node in nodes
     ], f"only {cluster_node.id} should be left in cluster"
+
+
+@pytest.mark.node_count(3)
+@pytest.mark.disable_k8s_bootstrapping()
+@pytest.mark.tags(tags.PULL_REQUEST)
+def test_disa_stig_clustering(instances: List[harness.Instance]):
+    cluster_node = instances[0]
+    joining_cp = instances[1]
+    joining_worker = instances[2]
+
+    util.setup_k8s_snap(cluster_node)
+    bootstrapFile = config.COMMON_ETC_DIR + "/templates/disa-stig/bootstrap.yaml"
+    cluster_node.exec(["sysctl", "-w", "vm.overcommit_memory=1"])
+    cluster_node.exec(["sysctl", "-w", "kernel.panic=10"])
+    cluster_node.exec(["sysctl", "-w", "kernel.panic_on_oops=1"])
+
+    cluster_node.exec(["k8s", "bootstrap", "--file", bootstrapFile])
+    util.wait_until_k8s_ready(cluster_node, [cluster_node])
+
+    util.setup_k8s_snap(joining_cp)
+    cp_file = config.COMMON_ETC_DIR + "/templates/disa-stig/control-plane.yaml"
+    join_token_cp = util.get_join_token(cluster_node, joining_cp)
+
+    cp_file_content = joining_cp.exec(
+        ["cat", cp_file], capture_output=True, text=True
+    ).stdout
+    cp_data = yaml.safe_load(cp_file_content)
+    joining_cp.exec(["sysctl", "-w", "vm.overcommit_memory=1"])
+    joining_cp.exec(["sysctl", "-w", "kernel.panic=10"])
+    joining_cp.exec(["sysctl", "-w", "kernel.panic_on_oops=1"])
+    util.join_cluster(joining_cp, join_token_cp, yaml.dump(cp_data))
+
+    util.setup_k8s_snap(joining_worker)
+    worker_file = config.COMMON_ETC_DIR + "/templates/disa-stig/worker.yaml"
+    join_token_worker = util.get_join_token(cluster_node, joining_worker, "--worker")
+
+    worker_file_content = joining_worker.exec(
+        ["cat", worker_file], capture_output=True, text=True
+    ).stdout
+    worker_data = yaml.safe_load(worker_file_content)
+    joining_worker.exec(["sysctl", "-w", "vm.overcommit_memory=1"])
+    joining_worker.exec(["sysctl", "-w", "kernel.panic=10"])
+    joining_worker.exec(["sysctl", "-w", "kernel.panic_on_oops=1"])
+    util.join_cluster(joining_worker, join_token_worker, yaml.dump(worker_data))
+
+    util.wait_until_k8s_ready(cluster_node, instances)
+    assert "control-plane" in util.get_local_node_status(cluster_node)
+    assert "control-plane" in util.get_local_node_status(joining_cp)
+    assert "worker" in util.get_local_node_status(joining_worker)
 
 
 @pytest.mark.node_count(3)
@@ -203,9 +252,7 @@ def _instance_path_exists(instance: harness.Instance, remote_path: str):
 def _get_instance_cert(
     instance: harness.Instance, remote_path: str
 ) -> x509.Certificate:
-    with tempfile.NamedTemporaryFile() as fp:
-        instance.pull_file(remote_path, fp.name)
-
-        pem = fp.read()
-        cert = x509.load_pem_x509_certificate(pem, default_backend())
-        return cert
+    result = instance.exec(["cat", remote_path], capture_output=True)
+    pem = result.stdout
+    cert = x509.load_pem_x509_certificate(pem, default_backend())
+    return cert

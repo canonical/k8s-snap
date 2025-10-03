@@ -13,7 +13,7 @@ k8s::common::setup_env() {
 
   # Configure PATH, LD_LIBRARY_PATH
   export PATH="$SNAP_CURRENT/usr/bin:$SNAP_CURRENT/bin:$SNAP_CURRENT/usr/sbin:$SNAP_CURRENT/sbin:$REAL_PATH"
-  export LD_LIBRARY_PATH="$SNAP_LIBRARY_PATH:$SNAP_CURRENT/lib:$SNAP_CURRENT/usr/lib:$SNAP_CURRENT/lib/$SNAPCRAFT_ARCH_TRIPLET:$SNAP_CURRENT/usr/lib/$SNAPCRAFT_ARCH_TRIPLET:$SNAP_CURRENT/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/ceph:${REAL_LD_LIBRARY_PATH:-}"
+  export LD_LIBRARY_PATH="$SNAP_LIBRARY_PATH:$SNAP_CURRENT/lib:$SNAP_CURRENT/usr/lib:$SNAP_CURRENT/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP_CURRENT/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP_CURRENT/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/ceph:${REAL_LD_LIBRARY_PATH:-}"
 
   # NOTE(neoaggelos/2023-08-14):
   # we cannot list system locales from snap. instead, we attempt
@@ -41,6 +41,12 @@ k8s::common::is_strict() {
   else
     return 1
   fi
+}
+
+k8s::common::resources() {
+  mkdir -p "$SNAP_COMMON/etc/"
+  cp -r "$SNAP/etc/templates" "$SNAP_COMMON/etc/"
+  cp -r "$SNAP/etc/configurations" "$SNAP_COMMON/etc/"
 }
 
 # Check if FIPS is enabled on the system
@@ -72,6 +78,26 @@ k8s::remove::containerd() {
   k8s::common::setup_env
 
   k8s::cmd::k8s x-cleanup containerd || true
+}
+
+# Cleanup systemd overrides
+k8s::remove::system_tuning() {
+  if ! k8s::common::is_strict; then
+    # Find files matching pattern: digits followed by '-k8s.conf'
+    files_to_remove=$(find /etc/sysctl.d/ -maxdepth 1 -type f -regextype posix-extended -regex '.*/[0-9]+-k8s\.conf')
+
+
+    if [ -n "$files_to_remove" ]; then
+      echo "$files_to_remove" | xargs sudo rm -f
+      sudo sysctl --system
+    fi
+  fi
+}
+
+k8s::remove::resources() {
+  if [ -d "$SNAP_COMMON/etc" ]; then
+    sudo rm -rf "$SNAP_COMMON/etc"
+  fi
 }
 
 # Run a ctr command against the local containerd socket
@@ -254,5 +280,78 @@ k8s::containerd::ensure_systemd_defaults() {
   if ! [ -f "$override_dir/containerd-defaults.conf" ]; then
     mkdir -p "$override_dir"
     cp "$override_file" "$override_dir/"
+  fi
+}
+
+# Sanitize feature gates in kube-apiserver arguments
+# This removes any feature gates that are not present in the current apiserver version
+# from the --feature-gates argument in /var/snap/k8s/common/args/kube-apiserver.
+# Usage: k8s::apiserver::sanitize_feature_gates
+k8s::apiserver::sanitize_feature_gates() {
+  local args_file="/var/snap/k8s/common/args/kube-apiserver"
+
+  # Check if the args file exists
+  if [ ! -f "$args_file" ]; then
+    return 0
+  fi
+
+  # Return early if no feature gates are configured
+  if ! grep -q "^--feature-gates=" "$args_file"; then
+    return 0
+  fi
+
+  # Get the list of supported feature gates from kube-apiserver
+  local supported_gates=""
+  if [ -x "/snap/k8s/current/bin/kube-apiserver" ]; then
+    # Extract feature gate names from help output (format: kube:FeatureName=true|false)
+    supported_gates=$(/snap/k8s/current/bin/kube-apiserver --help 2>/dev/null | awk '/^ *kube:/{print $1}' | sed 's/^kube://' | sed 's/=.*//')
+  fi
+
+  # If we couldn't get supported gates, return without changes
+  if [ -z "$supported_gates" ]; then
+    return 0
+  fi
+
+  # Convert supported gates to array
+  declare -A supported_gates_map
+  while IFS= read -r gate; do
+    [[ -n "$gate" ]] && supported_gates_map["$gate"]=1
+  done <<< "$supported_gates"
+
+  # Get the current feature gates line
+  local current_line=$(grep "^--feature-gates=" "$args_file")
+  local feature_gates_value="${current_line#--feature-gates=}"
+
+  # Remove surrounding quotes if present
+  feature_gates_value="${feature_gates_value%\"}"
+  feature_gates_value="${feature_gates_value#\"}"
+
+  local updated_gates=""
+
+  # Split by comma and filter out unsupported gates
+  IFS=',' read -ra gates <<< "$feature_gates_value"
+  for gate in "${gates[@]}"; do
+    local gate_name="${gate%%=*}"
+
+    # Skip unsupported gates
+    if [[ -z "${supported_gates_map[$gate_name]}" ]]; then
+      continue
+    fi
+
+    # Add the gate to the updated list
+    if [ -n "$updated_gates" ]; then
+      updated_gates="${updated_gates},${gate}"
+    else
+      updated_gates="${gate}"
+    fi
+  done
+
+  # Update the file in-place
+  if [ -n "$updated_gates" ]; then
+    # Replace the line with updated gates (add quotes back)
+    sed -i "s/^--feature-gates=.*$/--feature-gates=\"${updated_gates}\"/" "$args_file"
+  else
+    # Remove the line if all gates were removed
+    sed -i '/^--feature-gates=/d' "$args_file"
   fi
 }

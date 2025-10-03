@@ -14,6 +14,10 @@ on:
         description: LXD image to use when running e2e tests
         default: ubuntu:24.04
         type: string
+      substrate:
+        description: Substrate to use when running e2e tests
+        default: lxd
+        type: string
       # Download k8s-snap using either a GH action artifact or a snap channel.
       artifact:
         description: The name of a GH action artifact
@@ -26,7 +30,7 @@ on:
         default: pull_request
         type: string
       flavor:
-        description: Test flavor (e.g. moonray or strict), leave empty for classic
+        description: Test flavor (e.g. strict), leave empty for classic
         default: ""
         type: string
       extra-test-args:
@@ -34,10 +38,32 @@ on:
           Additional pytest arguments, use "-k <test_name>" to run a specific test
         default: ""
         type: string
+      runner-tags:
+        description: |
+          Optional dictionary mapping test names to specific runner and tags.
+          This is useful if specific tests require more powerful/larger runners, e.g. for version upgrade tests.
+          The amount of self-hosted runners is limited so we should selectively assign tests to them.
+          The arch tag will automatically be assigned based on the 'arch' input, so don't use the full tags here.
+          (e.g. use ["self-hosted", "linux", "jammy", "xlarge"] instead of ["self-hosted-linux-amd64-noble-2xlarge"])
+        type: string
+        required: false
+        default: '{"tests/test_version_upgrades.py::test_version_upgrades": ["self-hosted", "linux", "jammy", "large"], "tests/test_airgapped.py::test_airgapped_with_image_mirror": ["self-hosted", "linux", "jammy", "large"]}'
+      extra-test-env:
+        description: 'Additional environment variables in KEY1=VALUE1,KEY2=VALUE2 format'
+        type: string
+        required: false
+        default: ''
       parallel:
         description: Run tests in parallel using GitHub Actions matrix
         type: boolean
         default: true
+    secrets:
+      UBUNTU_PRO_TOKEN:
+        description: An optional Ubuntu Pro token to use for multipass tests
+        required: false
+      LAUNCHPAD_K8S_CI_BOT_PASSWORD:
+        description: Password for the k8s-team-ci bot on Launchpad, used for DISA-STIG tests
+        required: false
 
   workflow_dispatch:
     inputs:
@@ -49,6 +75,10 @@ on:
         description: LXD image to use when running e2e tests
         default: ubuntu:24.04
         type: string
+      substrate:
+        description: Substrate to use when running e2e tests
+        default: lxd
+        type: string
       channel:
         description: k8s snap channel
         type: string
@@ -58,18 +88,18 @@ on:
         default: pull_request
         type: string
       flavor:
-        description: Test flavor (e.g. moonray or strict). Leave empty for classic
+        description: Test flavor (e.g. strict). Leave empty for classic
         default: ""
         type: string
       extra-test-args:
         description: Additional pytest arguments
         default: ""
         type: string
-      tmate_enabled:
-        type: boolean
-        description: Start a tmate session before running the tests
+      extra-test-env:
+        description: 'Additional environment variables in KEY1=VALUE1,KEY2=VALUE2 format'
+        type: string
         required: false
-        default: false
+        default: ''
       parallel:
         description: Run tests in parallel using GitHub Actions matrix
         type: boolean
@@ -81,6 +111,7 @@ jobs:
     runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     outputs:
       tests: ${{ steps.collect-tests.outputs.tests }}
+      test-runners: ${{ steps.compute-test-runners.outputs.test_runners }}
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -90,6 +121,13 @@ jobs:
           python-version: "3.12"
       - name: Install tox
         run: sudo apt-get install -y tox
+      - name: Compute test runners
+        id: compute-test-runners
+        run: |
+          # Github Actions does not support dynamic concatination of lists, so we need to add the arch tag here.
+          # See https://github.com/orgs/community/discussions/11401
+          TEST_RUNNERS=$(jq -c -n '${{ inputs.runner-tags }}' | jq -c 'with_entries(.value += ["${{ inputs.arch }}"])')
+          echo "test_runners=$TEST_RUNNERS" >> $GITHUB_OUTPUT
       - name: Collect tests
         id: collect-tests
         run: |
@@ -114,7 +152,7 @@ jobs:
   run-tests:
     name: ${{ matrix.test }}
     needs: prepare
-    runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    runs-on: ${{ fromJson(needs.prepare.outputs.test-runners)[matrix.test] || (inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04') }}
     strategy:
       fail-fast: false
       matrix:
@@ -133,14 +171,15 @@ jobs:
           channel: ${{ inputs.channel }}
           artifact: ${{ inputs.artifact }}
       - name: Setup LXD
+        if: ${{ inputs.substrate == 'lxd' }}
         uses: canonical/setup-lxd@v0.1.3
         with:
           bridges: "lxdbr0,dualstack-br0,ipv6-br0"
+      - name: Setup Multipass
+        if: ${{ inputs.substrate == 'multipass' }}
+        uses: ./.github/actions/setup-multipass
       - name: Install tox
         run: sudo apt-get install -y tox
-      - name: Setup tmate session
-        uses: canonical/action-tmate@main
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.tmate_enabled }}
       - name: Generate names for step and artifacts
         run: |
           FULL_TEST_NODE_ID="${{ matrix.test }}"
@@ -159,8 +198,9 @@ jobs:
       - name: Run ${{ inputs.parallel && env.short_test_name || 'all tests' }}
         env:
           TEST_SNAP: ${{ steps.download-snap.outputs.snap-path }}
-          TEST_SUBSTRATE: lxd
+          TEST_SUBSTRATE: ${{ inputs.substrate }}
           TEST_LXD_IMAGE: ${{ inputs.os }}
+          TEST_MULTIPASS_IMAGE: ${{ inputs.os }}
           TEST_FLAVOR: ${{ inputs.flavor }}
           TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports/${{ inputs.parallel && env.test_name || '' }}
           TEST_VERSION_UPGRADE_CHANNELS: "recent 6"
@@ -170,8 +210,26 @@ jobs:
           TEST_MIRROR_LIST: '[{"name": "ghcr.io", "port": 5000, "remote": "https://ghcr.io", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}, {"name": "docker.io", "port": 5001, "remote": "https://registry-1.docker.io", "username": "", "password": ""}, {"name": "rocks.canonical.com", "port": 5002, "remote": "https://rocks.canonical.com/cdk"}]'
           TEST_GH_REF: ${{ github.ref_name }}
           TEST_GH_BASE_REF: ${{ github.base_ref }}
+          TEST_UBUNTU_PRO_TOKEN: ${{ secrets.UBUNTU_PRO_TOKEN }}
+          TEST_LAUNCHPAD_K8S_CI_BOT_PASSWORD: ${{ secrets.LAUNCHPAD_K8S_CI_BOT_PASSWORD }}
+          TEST_SKIP_CLEANUP: 1
         run: |
+          # Parse extra-test-env and export each KEY=VALUE pair
+          ESCAPED_ENV=$(echo "${{ inputs.extra-test-env }}" | sed 's/"/\\"/g')
+          if [ -n "${ESCAPED_ENV}" ]; then
+            IFS=',' read -ra ENV_VARS <<< "${ESCAPED_ENV}"
+            for kv in "${ENV_VARS[@]}"; do
+              echo "Exporting $kv"
+              export "$kv"
+            done
+          fi
+
           cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- ${{ inputs.parallel && matrix.test || '' }} ${{ env.PERFORMANCE_FLAGS }} --tags ${{ inputs.test-tags }} ${{ inputs.extra-test-args }}
+      - name: Setup tmate session
+        if: failure()
+        uses: mxschmitt/action-tmate@v3
+        with:
+          detached: true
       - name: Prepare inspection reports
         if: failure()
         run: |

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/canonical/k8s/pkg/utils"
-	v1 "k8s.io/api/core/v1"
+	discoveryv1 "k8s.io/api/discovery/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/util/retry"
 )
@@ -13,10 +13,12 @@ import (
 // GetKubeAPIServerEndpoints retrieves the known kube-apiserver endpoints of the cluster.
 // GetKubeAPIServerEndpoints returns an error if the list of endpoints is empty.
 func (c *Client) GetKubeAPIServerEndpoints(ctx context.Context) ([]string, error) {
-	var endpoints *v1.Endpoints
+	var endpointSlices *discoveryv1.EndpointSliceList
 	var err error
 	err = retry.OnError(retry.DefaultBackoff, func(err error) bool { return true }, func() error {
-		endpoints, err = c.CoreV1().Endpoints("default").Get(ctx, "kubernetes", metav1.GetOptions{})
+		endpointSlices, err = c.DiscoveryV1().EndpointSlices("default").List(ctx, metav1.ListOptions{
+			LabelSelector: "kubernetes.io/service-name=kubernetes",
+		})
 		if err != nil {
 			return err
 		}
@@ -25,11 +27,11 @@ func (c *Client) GetKubeAPIServerEndpoints(ctx context.Context) ([]string, error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get endpoints for kubernetes service: %w", err)
 	}
-	if endpoints == nil {
+	if endpointSlices == nil {
 		return nil, fmt.Errorf("endpoints for kubernetes service not found")
 	}
 
-	addresses := utils.ParseEndpoints(endpoints)
+	addresses := utils.ParseEndpointSlices(endpointSlices)
 	if len(addresses) == 0 {
 		return nil, fmt.Errorf("empty list of endpoints for the kubernetes service")
 	}

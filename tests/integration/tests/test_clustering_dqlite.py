@@ -15,6 +15,8 @@ LOG = logging.getLogger(__name__)
 @pytest.mark.bootstrap_config(
     (config.MANIFESTS_DIR / "bootstrap-k8s-dqlite.yaml").read_text()
 )
+# For k8s-dqlite
+@pytest.mark.required_ports(9000)
 def test_control_plane_nodes_dqlite(instances: List[harness.Instance]):
     cluster_node = instances[0]
     joining_node = instances[1]

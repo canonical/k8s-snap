@@ -34,6 +34,7 @@ Anbox
 Anbox Cloud
 api
 APIs
+API's
 apiserver
 apparmor
 args
@@ -109,6 +110,7 @@ CommonName
 conf
 config
 configMap
+ConfigMap
 ConfigMaps
 ConnectError
 containerd
@@ -293,6 +295,7 @@ kubernetes
 Kubernetes's
 kwmonroe
 Kyuubi
+Keyspace
 Landscape
 latencies
 Launchpad
@@ -339,7 +342,6 @@ Mir
 misconfiguration
 mitigations
 modprobe
-Moonray
 mq
 mTLS
 mtu
@@ -367,6 +369,7 @@ no_proxy
 NodeInternalIP
 NodePort
 NodeRestriction
+NodeStatus
 nohz
 Nota
 NUMA
@@ -415,12 +418,14 @@ PreInitChecks
 prev
 proc
 programmatically
+proxied
 provisioner
 PRs
 PSP
 Pushgateway
 PV
 PVCs
+py
 Pydantic
 Python
 qdisc
@@ -455,6 +460,8 @@ rw
 S3
 sandboxed
 SANs
+SARIF
+structs
 SBOM
 scalable
 scalability
@@ -477,6 +484,7 @@ Spark
 Spark History Server
 Spark Job
 Spark Submit
+SQLite
 Squashfs
 SR-IOV
 src
@@ -531,6 +539,7 @@ Ubuntu Core
 Ubuntu Pro
 Ubuntu Server
 UFW
+UDP
 uid
 UIDs
 unix

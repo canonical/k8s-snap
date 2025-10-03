@@ -3,14 +3,21 @@ package app
 import (
 	"context"
 	"fmt"
+	"net"
 	"slices"
+	"strings"
+	"time"
 
 	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations"
-	upgradesv1alpha "github.com/canonical/k8s/pkg/k8sd/crds/upgrades/v1alpha"
+	upgradesv1alpha "github.com/canonical/k8s-snap-api/api/v1alpha"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/log"
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
+	upgradepkg "github.com/canonical/k8s/pkg/upgrade"
+	"github.com/canonical/k8s/pkg/utils"
+	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/k8s/pkg/utils/experimental/snapdconfig"
+	"github.com/canonical/k8s/pkg/version"
 	"github.com/canonical/microcluster/v2/state"
 )
 
@@ -21,6 +28,10 @@ import (
 func (a *App) postRefreshHook(ctx context.Context, s state.State) error {
 	log := log.FromContext(ctx).WithValues("hook", "post-refresh")
 	log.Info("Running post-refresh hook")
+
+	if err := a.updateNodeIPAddresses(ctx, s); err != nil {
+		return fmt.Errorf("failed to update node IP addresses: %w", err)
+	}
 
 	isWorker, err := snaputil.IsWorker(a.snap)
 	if err != nil {
@@ -86,7 +97,8 @@ func (a *App) performPostUpgrade(ctx context.Context, s state.State) error {
 		}
 		// TODO(ben): Add more metadata to the upgrade.
 		// e.g. initial revision, target revision, name of the node that started the upgrade, etc.
-		upgrade = upgradesv1alpha.NewUpgrade(fmt.Sprintf("cluster-upgrade-to-rev-%s", rev))
+		versionData := version.Info{Revision: rev}
+		upgrade = upgradesv1alpha.NewUpgrade(upgradepkg.GetName(versionData))
 		if err := k8sClient.Create(ctx, upgrade); err != nil {
 			return fmt.Errorf("failed to create upgrade: %w", err)
 		}
@@ -113,6 +125,49 @@ func (a *App) performPostUpgrade(ctx context.Context, s state.State) error {
 	}
 
 	log.Info("Marked node as upgraded.", "status", upgrade.Status)
+
+	return nil
+}
+
+func (a *App) updateNodeIPAddresses(ctx context.Context, s state.State) error {
+	snap := a.Snap()
+	nodeIP := net.ParseIP(s.Address().Hostname())
+	if nodeIP == nil {
+		return fmt.Errorf("failed to parse node IP address %s", s.Address().Hostname())
+	}
+
+	// nodeIPs will be passed to kubelet as the --node-ip parameter, allowing it to have multiple node IPs,
+	// including IPv4 and IPv6 addresses for dualstacks.
+	nodeIPs, err := utils.GetIPv46Addresses(nodeIP)
+	if err != nil {
+		return fmt.Errorf("failed to get local node IPs for kubelet: %w", err)
+	}
+
+	ips := []string{}
+	for _, nodeIP := range nodeIPs {
+		if !nodeIP.IsLoopback() {
+			ips = append(ips, nodeIP.String())
+		}
+	}
+	if len(ips) > 0 {
+		args := map[string]string{"--node-ip": strings.Join(ips, ",")}
+		mustRestartKubelet, err := snaputil.UpdateServiceArguments(snap, "kubelet", args, nil)
+		if err != nil {
+			return fmt.Errorf("failed to render arguments file: %w", err)
+		}
+
+		if mustRestartKubelet {
+			// This may fail if other controllers try to restart the services at the same time, hence the retry.
+			if err := control.RetryFor(ctx, 5, 5*time.Second, func() error {
+				if err := snap.RestartServices(ctx, []string{"kubelet"}); err != nil {
+					return fmt.Errorf("failed to restart kubelet to apply node ip addresses: %w", err)
+				}
+				return nil
+			}); err != nil {
+				return fmt.Errorf("failed after retry: %w", err)
+			}
+		}
+	}
 
 	return nil
 }

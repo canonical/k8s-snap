@@ -15,7 +15,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var apiserverTLSCipherSuites = "TLS_AES_128_GCM_SHA256,TLS_AES_256_GCM_SHA384,TLS_CHACHA20_POLY1305_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_RSA_WITH_3DES_EDE_CBC_SHA,TLS_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_CBC_SHA,TLS_RSA_WITH_AES_256_GCM_SHA384"
+var apiserverTLSCipherSuites = "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305"
 
 func setKubeAPIServerMock(s *mock.Snap, dir string) {
 	s.Mock = mock.Mock{
@@ -55,7 +55,7 @@ func TestKubeAPIServer(t *testing.T) {
 			{key: "--kubelet-client-certificate", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "apiserver-kubelet-client.crt")},
 			{key: "--kubelet-client-key", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "apiserver-kubelet-client.key")},
 			{key: "--kubelet-preferred-address-types", expectedVal: "InternalIP,Hostname,InternalDNS,ExternalDNS,ExternalIP"},
-			{key: "--feature-gates", expectedVal: "WatchList=false"},
+			{key: "--feature-gates", expectedVal: "DetectCacheInconsistency=false,ListFromCacheSnapshot=false,SizeBasedListCostEstimate=false"},
 			{key: "--etcd-healthcheck-timeout", expectedVal: "4s"},
 			{key: "--profiling", expectedVal: "false"},
 			{key: "--secure-port", expectedVal: "6443"},
@@ -117,7 +117,7 @@ func TestKubeAPIServer(t *testing.T) {
 			{key: "--kubelet-client-certificate", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "apiserver-kubelet-client.crt")},
 			{key: "--kubelet-client-key", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "apiserver-kubelet-client.key")},
 			{key: "--kubelet-preferred-address-types", expectedVal: "InternalIP,Hostname,InternalDNS,ExternalDNS,ExternalIP"},
-			{key: "--feature-gates", expectedVal: "WatchList=false"},
+			{key: "--feature-gates", expectedVal: "DetectCacheInconsistency=false,ListFromCacheSnapshot=false,SizeBasedListCostEstimate=false"},
 			{key: "--etcd-healthcheck-timeout", expectedVal: "4s"},
 			{key: "--profiling", expectedVal: "false"},
 			{key: "--request-timeout", expectedVal: "300s"},
@@ -176,8 +176,8 @@ func TestKubeAPIServer(t *testing.T) {
 			{key: "--kubelet-client-certificate", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "apiserver-kubelet-client.crt")},
 			{key: "--kubelet-client-key", expectedVal: filepath.Join(s.Mock.KubernetesPKIDir, "apiserver-kubelet-client.key")},
 			{key: "--kubelet-preferred-address-types", expectedVal: "InternalIP,Hostname,InternalDNS,ExternalDNS,ExternalIP"},
-			{key: "--feature-gates", expectedVal: "WatchList=false"},
 			{key: "--etcd-healthcheck-timeout", expectedVal: "4s"},
+			{key: "--feature-gates", expectedVal: "DetectCacheInconsistency=false,ListFromCacheSnapshot=false,SizeBasedListCostEstimate=false"},
 			{key: "--profiling", expectedVal: "false"},
 			{key: "--secure-port", expectedVal: "1337"},
 			{key: "--service-account-issuer", expectedVal: "https://kubernetes.default.svc"},

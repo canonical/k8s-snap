@@ -35,8 +35,9 @@ The command output is similar to the following:
 Collecting service information
 Running inspection on a control-plane node
  INFO:  Service k8s.containerd is running
+ INFO:  Service k8s.etcd is not-running
  INFO:  Service k8s.kube-proxy is running
- INFO:  Service k8s.k8s-dqlite is running
+ INFO:  Service k8s.etcd is running
  INFO:  Service k8s.k8sd is running
  INFO:  Service k8s.kube-apiserver is running
  INFO:  Service k8s.kube-controller-manager is running

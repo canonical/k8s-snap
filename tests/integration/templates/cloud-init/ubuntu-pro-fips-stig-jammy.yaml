@@ -1,0 +1,331 @@
+package_update: true
+package_upgrade: true
+packages:
+  - ubuntu-advantage-tools
+snap:
+  commands:
+    00: 'snap install core22 --channel=fips-updates/stable'
+runcmd:
+  # enable fips mode and attach to the ubuntu pro service.
+  # we use a staging token here to avoid load on the production contracts service.
+  - echo "Update the contract URL to the staging environment"
+  - 'echo "contract_url: https://contracts.staging.canonical.com" > /etc/ubuntu-advantage/uaclient.conf'
+  - echo "Attaching to Ubuntu Pro with token"
+  - sudo pro attach $TEST_UBUNTU_PRO_TOKEN --no-auto-enable
+  - echo "Enabling FIPS updates"
+  - sudo pro enable fips-updates --assume-yes
+  - |
+      sudo tee /etc/sysctl.d/99-kubelet.conf <<EOF
+      vm.overcommit_memory=1
+      vm.panic_on_oom=0
+      kernel.keys.root_maxbytes=25000000
+      kernel.keys.root_maxkeys=1000000
+      kernel.panic=10
+      kernel.panic_on_oops=1
+      EOF
+  - sudo sed -i '/^net.ipv4.ip_forward/d' /etc/sysctl.conf && echo 'net.ipv4.ip_forward=1' | sudo tee -a /etc/sysctl.conf
+  # enable stig compliance
+  # add nopasswd for ubuntu user *before* the usg fix and password deletion
+  # This creates a file in /etc/sudoers.d/ that allows 'ubuntu' to run all sudo commands without a password
+  # Each command must be a single string in runcmd's list
+  - echo "ubuntu:mynewpassword" | sudo chpasswd
+  - 'echo "ubuntu ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/ubuntu_nopasswd'
+  - sudo chmod 0440 /etc/sudoers.d/ubuntu_nopasswd
+  - sudo pro enable usg --assume-yes
+  - sudo usg fix --tailoring-file /etc/usg/tailoring.xml
+  - sudo passwd -d ubuntu
+  # Configure Firewall rules
+  - sudo sed -i 's/^DEFAULT_FORWARD_POLICY=.*/DEFAULT_FORWARD_POLICY="ACCEPT"/' /etc/default/ufw
+  - sudo sysctl -w net.ipv4.ip_forward=1
+  - sudo ufw allow 6443/tcp
+  - sudo ufw allow 10250/tcp
+  - sudo ufw allow 10257/tcp
+  - sudo ufw allow 10259/tcp
+  - sudo ufw allow 2379/tcp
+  - sudo ufw allow 2380/tcp
+  - sudo ufw allow 6400/tcp
+  - sudo ufw allow 4240/tcp
+  - sudo ufw allow 8472/udp
+  - sudo ufw allow in ssh
+  - sudo ufw allow in 22
+  - sudo ufw enable
+  - sudo reboot
+
+write_files:
+  # This file is used to customize the USG tailoring for the DISA-STIG benchmark.
+  # It is derived from the official DISA-STIG benchmark for Ubuntu 22.04 by running
+  # `sudo usg generate-tailoring disa_stig tailor.xml``
+  # and disabling all rules that may cause issues with block connection to multipass:
+  # xccdf_org.ssgproject.content_rule_accounts_passwords_pam_faillock_audit
+  # xccdf_org.ssgproject.content_rule_accounts_passwords_pam_faillock_deny
+  # xccdf_org.ssgproject.content_rule_accounts_passwords_pam_faillock_interval
+  # xccdf_org.ssgproject.content_rule_accounts_passwords_pam_faillock_silent
+  # xccdf_org.ssgproject.content_rule_accounts_passwords_pam_faillock_unlock_time
+  # xccdf_org.ssgproject.content_rule_smartcard_pam_enabled
+  # xccdf_org.ssgproject.content_rule_smartcard_configure_cert_checking
+  # xccdf_org.ssgproject.content_rule_smartcard_configure_crl
+  # xccdf_org.ssgproject.content_rule_install_smartcard_packages
+  # xccdf_org.ssgproject.content_rule_sssd_enable_smartcards
+  # xccdf_org.ssgproject.content_rule_sssd_enable_user_cert
+  # xccdf_org.ssgproject.content_rule_prevent_direct_root_logins
+  # xccdf_org.ssgproject.content_rule_accounts_max_concurrent_login_sessions
+  # xccdf_org.ssgproject.content_rule_account_disable_post_pw_expiration
+  # xccdf_org.ssgproject.content_rule_account_temp_expire_date
+  # xccdf_org.ssgproject.content_rule_ensure_sudo_group_restricted
+  - path: /etc/usg/tailoring.xml
+    owner: root:root
+    permissions: "755"
+    content: |
+      <?xml version='1.0' encoding='UTF-8'?>
+      <Tailoring xmlns="http://checklists.nist.gov/xccdf/1.2" id="xccdf_scap-workbench_tailoring_default">
+        <benchmark href="/usr/share/ubuntu-scap-security-guides/1/benchmarks/ssg-ubuntu2204-xccdf.xml"/>
+        <version time="2025-04-01T11:19:07">1</version>
+        <Profile id="xccdf_org.ssgproject.content_profile_stig_customized" extends="xccdf_org.ssgproject.content_profile_stig">
+          <title xmlns:xhtml="http://www.w3.org/1999/xhtml" xml:lang="en-US" override="true">DISA-STIG Benchmark [CUSTOMIZED]</title>
+          <description xmlns:xhtml="http://www.w3.org/1999/xhtml" xml:lang="en-US" override="true">This baseline aligns to the DISA-STIG v.1, rel.1, released 2024-04-10.</description>
+          <select idref="xccdf_org.ssgproject.content_rule_dconf_gnome_banner_enabled" selected="true"/>
+          <set-value idref="xccdf_org.ssgproject.content_value_login_banner_text">^(You[\s\n]+are[\s\n]+accessing[\s\n]+a[\s\n]+U\.S\.[\s\n]+Government[\s\n]+\(USG\)[\s\n]+Information[\s\n]+System[\s\n]+\(IS\)[\s\n]+that[\s\n]+is[\s\n]+provided[\s\n]+for[\s\n]+USG\-authorized[\s\n]+use[\s\n]+only\.[\s\n]+By[\s\n]+using[\s\n]+this[\s\n]+IS[\s\n]+\(which[\s\n]+includes[\s\n]+any[\s\n]+device[\s\n]+attached[\s\n]+to[\s\n]+this[\s\n]+IS\),[\s\n]+you[\s\n]+consent[\s\n]+to[\s\n]+the[\s\n]+following[\s\n]+conditions\:(?:[\n]+|(?:\\n)+)\-The[\s\n]+USG[\s\n]+routinely[\s\n]+intercepts[\s\n]+and[\s\n]+monitors[\s\n]+communications[\s\n]+on[\s\n]+this[\s\n]+IS[\s\n]+for[\s\n]+purposes[\s\n]+including,[\s\n]+but[\s\n]+not[\s\n]+limited[\s\n]+to,[\s\n]+penetration[\s\n]+testing,[\s\n]+COMSEC[\s\n]+monitoring,[\s\n]+network[\s\n]+operations[\s\n]+and[\s\n]+defense,[\s\n]+personnel[\s\n]+misconduct[\s\n]+\(PM\),[\s\n]+law[\s\n]+enforcement[\s\n]+\(LE\),[\s\n]+and[\s\n]+counterintelligence[\s\n]+\(CI\)[\s\n]+investigations\.(?:[\n]+|(?:\\n)+)\-At[\s\n]+any[\s\n]+time,[\s\n]+the[\s\n]+USG[\s\n]+may[\s\n]+inspect[\s\n]+and[\s\n]+seize[\s\n]+data[\s\n]+stored[\s\n]+on[\s\n]+this[\s\n]+IS\.(?:[\n]+|(?:\\n)+)\-Communications[\s\n]+using,[\s\n]+or[\s\n]+data[\s\n]+stored[\s\n]+on,[\s\n]+this[\s\n]+IS[\s\n]+are[\s\n]+not[\s\n]+private,[\s\n]+are[\s\n]+subject[\s\n]+to[\s\n]+routine[\s\n]+monitoring,[\s\n]+interception,[\s\n]+and[\s\n]+search,[\s\n]+and[\s\n]+may[\s\n]+be[\s\n]+disclosed[\s\n]+or[\s\n]+used[\s\n]+for[\s\n]+any[\s\n]+USG\-authorized[\s\n]+purpose\.(?:[\n]+|(?:\\n)+)\-This[\s\n]+IS[\s\n]+includes[\s\n]+security[\s\n]+measures[\s\n]+\(e\.g\.,[\s\n]+authentication[\s\n]+and[\s\n]+access[\s\n]+controls\)[\s\n]+to[\s\n]+protect[\s\n]+USG[\s\n]+interests\-\-not[\s\n]+for[\s\n]+your[\s\n]+personal[\s\n]+benefit[\s\n]+or[\s\n]+privacy\.(?:[\n]+|(?:\\n)+)\-Notwithstanding[\s\n]+the[\s\n]+above,[\s\n]+using[\s\n]+this[\s\n]+IS[\s\n]+does[\s\n]+not[\s\n]+constitute[\s\n]+consent[\s\n]+to[\s\n]+PM,[\s\n]+LE[\s\n]+or[\s\n]+CI[\s\n]+investigative[\s\n]+searching[\s\n]+or[\s\n]+monitoring[\s\n]+of[\s\n]+the[\s\n]+content[\s\n]+of[\s\n]+privileged[\s\n]+communications,[\s\n]+or[\s\n]+work[\s\n]+product,[\s\n]+related[\s\n]+to[\s\n]+personal[\s\n]+representation[\s\n]+or[\s\n]+services[\s\n]+by[\s\n]+attorneys,[\s\n]+psychotherapists,[\s\n]+or[\s\n]+clergy,[\s\n]+and[\s\n]+their[\s\n]+assistants\.[\s\n]+Such[\s\n]+communications[\s\n]+and[\s\n]+work[\s\n]+product[\s\n]+are[\s\n]+private[\s\n]+and[\s\n]+confidential\.[\s\n]+See[\s\n]+User[\s\n]+Agreement[\s\n]+for[\s\n]+details\.|I've[\s\n]+read[\s\n]+\&amp;[\s\n]+consent[\s\n]+to[\s\n]+terms[\s\n]+in[\s\n]+IS[\s\n]+user[\s\n]+agreem't\.)$</set-value>
+          <select idref="xccdf_org.ssgproject.content_rule_dconf_gnome_login_banner_text" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_dconf_gnome_screensaver_lock_enabled" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_vlock_installed" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_verify_use_mappers" selected="true"/>
+          <set-value idref="xccdf_org.ssgproject.content_value_var_accounts_minimum_age_login_defs">1</set-value>
+          <select idref="xccdf_org.ssgproject.content_rule_accounts_minimum_age_login_defs" selected="false"/>
+          <set-value idref="xccdf_org.ssgproject.content_value_var_accounts_maximum_age_login_defs">60</set-value>
+          <select idref="xccdf_org.ssgproject.content_rule_accounts_maximum_age_login_defs" selected="false"/>
+          <select idref="xccdf_org.ssgproject.content_rule_grub2_uefi_password" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_grub2_password" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_no_duplicate_uids" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_ensure_sudo_group_restricted" selected="false"/>
+          <set-value idref="xccdf_org.ssgproject.content_value_var_accounts_tmout">900</set-value>
+          <select idref="xccdf_org.ssgproject.content_rule_accounts_tmout" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_sudo_require_authentication" selected="true"/>
+          <set-value idref="xccdf_org.ssgproject.content_value_var_accounts_user_umask">077</set-value>
+          <select idref="xccdf_org.ssgproject.content_rule_accounts_umask_etc_login_defs" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_install_smartcard_packages" selected="false"/>
+          <select idref="xccdf_org.ssgproject.content_rule_sshd_enable_pubkey_auth" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_smartcard_pam_enabled" selected="false"/>
+          <select idref="xccdf_org.ssgproject.content_rule_sshd_enable_pam" selected="true"/>
+          <set-value idref="xccdf_org.ssgproject.content_value_var_sshd_set_keepalive">1</set-value>
+          <select idref="xccdf_org.ssgproject.content_rule_sshd_set_keepalive" selected="true"/>
+          <set-value idref="xccdf_org.ssgproject.content_value_sshd_idle_timeout_value">600</set-value>
+          <select idref="xccdf_org.ssgproject.content_rule_sshd_set_idle_timeout" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_package_openssh-server_installed" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_service_sshd_enabled" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_banner_etc_issue_net" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_sshd_enable_warning_banner_net" selected="true"/>
+          <set-value idref="xccdf_org.ssgproject.content_value_sshd_approved_macs">hmac-sha2-512,hmac-sha2-512-etm@openssh.com,hmac-sha2-256,hmac-sha2-256-etm@openssh.com</set-value>
+          <select idref="xccdf_org.ssgproject.content_rule_sshd_use_approved_macs_ordered_stig" selected="true"/>
+          <set-value idref="xccdf_org.ssgproject.content_value_sshd_approved_ciphers">aes256-ctr,aes256-gcm@openssh.com,aes192-ctr,aes128-ctr,aes128-gcm@openssh.com</set-value>
+          <select idref="xccdf_org.ssgproject.content_rule_sshd_use_approved_ciphers_ordered_stig" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_sshd_use_approved_kex_ordered_stig" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_sshd_disable_empty_passwords" selected="false"/>
+          <select idref="xccdf_org.ssgproject.content_rule_sshd_do_not_permit_user_env" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_sshd_disable_x11_forwarding" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_sshd_x11_use_localhost" selected="true"/>
+          <set-value idref="xccdf_org.ssgproject.content_value_var_password_pam_ucredit">-1</set-value>
+          <select idref="xccdf_org.ssgproject.content_rule_accounts_password_pam_ucredit" selected="false"/>
+          <set-value idref="xccdf_org.ssgproject.content_value_var_password_pam_lcredit">-1</set-value>
+          <select idref="xccdf_org.ssgproject.content_rule_accounts_password_pam_lcredit" selected="false"/>
+          <set-value idref="xccdf_org.ssgproject.content_value_var_password_pam_dcredit">-1</set-value>
+          <select idref="xccdf_org.ssgproject.content_rule_accounts_password_pam_dcredit" selected="false"/>
+          <set-value idref="xccdf_org.ssgproject.content_value_var_password_pam_difok">8</set-value>
+          <select idref="xccdf_org.ssgproject.content_rule_accounts_password_pam_difok" selected="false"/>
+          <set-value idref="xccdf_org.ssgproject.content_value_var_password_pam_minlen">15</set-value>
+          <select idref="xccdf_org.ssgproject.content_rule_accounts_password_pam_minlen" selected="false"/>
+          <set-value idref="xccdf_org.ssgproject.content_value_var_password_pam_ocredit">-1</set-value>
+          <select idref="xccdf_org.ssgproject.content_rule_accounts_password_pam_ocredit" selected="false"/>
+          <set-value idref="xccdf_org.ssgproject.content_value_var_password_pam_dictcheck">1</set-value>
+          <select idref="xccdf_org.ssgproject.content_rule_accounts_password_pam_dictcheck" selected="false"/>
+          <select idref="xccdf_org.ssgproject.content_rule_package_pam_pwquality_installed" selected="false"/>
+          <set-value idref="xccdf_org.ssgproject.content_value_var_password_pam_retry">3</set-value>
+          <select idref="xccdf_org.ssgproject.content_rule_accounts_password_pam_enforcing" selected="false"/>
+          <select idref="xccdf_org.ssgproject.content_rule_accounts_password_pam_retry" selected="false"/>
+          <select idref="xccdf_org.ssgproject.content_rule_smartcard_configure_ca" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_package_opensc_installed" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_smartcard_configure_cert_checking" selected="false"/>
+          <select idref="xccdf_org.ssgproject.content_rule_smartcard_configure_crl" selected="false"/>
+          <set-value idref="xccdf_org.ssgproject.content_value_var_accounts_passwords_pam_faillock_deny">3</set-value>
+          <set-value idref="xccdf_org.ssgproject.content_value_var_accounts_passwords_pam_faillock_fail_interval">900</set-value>
+          <set-value idref="xccdf_org.ssgproject.content_value_var_accounts_passwords_pam_faillock_unlock_time">0</set-value>
+          <select idref="xccdf_org.ssgproject.content_rule_accounts_passwords_pam_faillock_audit" selected="false"/>
+          <select idref="xccdf_org.ssgproject.content_rule_accounts_passwords_pam_faillock_silent" selected="false"/>
+          <select idref="xccdf_org.ssgproject.content_rule_accounts_passwords_pam_faillock_deny" selected="false"/>
+          <select idref="xccdf_org.ssgproject.content_rule_accounts_passwords_pam_faillock_interval" selected="false"/>
+          <select idref="xccdf_org.ssgproject.content_rule_accounts_passwords_pam_faillock_unlock_time" selected="false"/>
+          <select idref="xccdf_org.ssgproject.content_rule_aide_periodic_cron_checking" selected="true"/>
+          <set-value idref="xccdf_org.ssgproject.content_value_var_password_pam_delay">4000000</set-value>
+          <select idref="xccdf_org.ssgproject.content_rule_accounts_passwords_pam_faildelay_delay" selected="false"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_usergroup_modification_passwd" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_usergroup_modification_group" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_usergroup_modification_shadow" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_usergroup_modification_gshadow" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_usergroup_modification_opasswd" selected="true"/>
+          <set-value idref="xccdf_org.ssgproject.content_value_var_auditd_action_mail_acct">root</set-value>
+          <select idref="xccdf_org.ssgproject.content_rule_auditd_data_retention_action_mail_acct" selected="true"/>
+          <set-value idref="xccdf_org.ssgproject.content_value_var_auditd_disk_full_action">halt</set-value>
+          <select idref="xccdf_org.ssgproject.content_rule_auditd_data_disk_full_action" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_file_permissions_var_log_audit_stig" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_file_ownership_var_log_audit_stig" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_file_group_ownership_var_log_audit_stig" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_directory_permissions_var_log_audit" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_file_permissions_etc_audit_rules" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_file_permissions_etc_audit_rulesd" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_file_permissions_etc_audit_auditd" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_file_ownership_audit_configuration" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_file_groupownership_audit_configuration" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_privileged_commands_su" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_privileged_commands_chfn" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_privileged_commands_mount" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_privileged_commands_umount" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_privileged_commands_ssh_agent" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_privileged_commands_ssh_keysign" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_dac_modification_setxattr" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_dac_modification_lsetxattr" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_dac_modification_fsetxattr" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_dac_modification_removexattr" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_dac_modification_lremovexattr" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_dac_modification_fremovexattr" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_dac_modification_chown" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_dac_modification_fchown" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_dac_modification_fchownat" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_dac_modification_lchown" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_dac_modification_chmod" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_dac_modification_fchmod" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_dac_modification_fchmodat" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_unsuccessful_file_modification_open" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_unsuccessful_file_modification_truncate" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_unsuccessful_file_modification_ftruncate" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_unsuccessful_file_modification_creat" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_unsuccessful_file_modification_openat" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_unsuccessful_file_modification_open_by_handle_at" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_privileged_commands_sudo" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_privileged_commands_sudoedit" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_privileged_commands_chsh" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_privileged_commands_newgrp" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_execution_chcon" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_privileged_commands_apparmor_parser" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_execution_setfacl" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_execution_chacl" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_login_events_faillog" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_login_events_lastlog" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_privileged_commands_passwd" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_privileged_commands_unix_update" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_privileged_commands_gpasswd" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_privileged_commands_chage" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_privileged_commands_usermod" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_privileged_commands_crontab" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_privileged_commands_pam_timestamp_check" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_kernel_module_loading_init" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_kernel_module_loading_finit" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_kernel_module_loading_delete" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_package_audit_installed" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_service_auditd_enabled" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_grub2_audit_argument" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_file_permissions_audit_binaries" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_file_ownership_audit_binaries" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_aide_check_audit_tools" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_suid_privilege_function" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_auditd_audispd_configure_sufficiently_large_partition" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_package_audit-audispd-plugins_installed" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_auditd_audispd_configure_remote_server" selected="true"/>
+          <set-value idref="xccdf_org.ssgproject.content_value_var_auditd_space_left_percentage">25</set-value>
+          <set-value idref="xccdf_org.ssgproject.content_value_var_auditd_space_left_action">email</set-value>
+          <select idref="xccdf_org.ssgproject.content_rule_auditd_data_retention_space_left_action" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_auditd_data_retention_space_left_percentage" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_ensure_rtc_utc_configuration" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_sudo_log_events" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_file_deletion_events_unlink" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_file_deletion_events_rmdir" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_file_deletion_events_renameat" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_file_deletion_events_rename" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_file_deletion_events_unlinkat" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_session_events_wtmp" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_session_events_utmp" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_session_events_btmp" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_privileged_commands_modprobe" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_privileged_commands_kmod" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_privileged_commands_fdisk" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_auditd_offload_logs" selected="true"/>
+          <set-value idref="xccdf_org.ssgproject.content_value_var_accounts_max_concurrent_login_sessions">10</set-value>
+          <select idref="xccdf_org.ssgproject.content_rule_accounts_max_concurrent_login_sessions" selected="false"/>
+          <select idref="xccdf_org.ssgproject.content_rule_sysctl_kernel_dmesg_restrict" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_rsyslog_remote_access_monitoring" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_set_password_hashing_algorithm_logindefs" selected="false"/>
+          <select idref="xccdf_org.ssgproject.content_rule_package_telnetd_removed" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_package_rsh-server_removed" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_ufw_only_required_services" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_prevent_direct_root_logins" selected="false"/>
+          <select idref="xccdf_org.ssgproject.content_rule_account_disable_post_pw_expiration" selected="false"/>
+          <select idref="xccdf_org.ssgproject.content_rule_account_temp_expire_date" selected="false"/>
+          <select idref="xccdf_org.ssgproject.content_rule_dir_perms_world_writable_sticky_bits" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_sysctl_net_ipv4_tcp_syncookies" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_service_kdump_disabled" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_encrypt_partitions" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_permissions_local_var_log" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_file_groupowner_var_log" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_file_owner_var_log" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_file_permissions_var_log" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_file_groupowner_var_log_syslog" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_file_owner_var_log_syslog" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_file_permissions_var_log_syslog" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_dir_permissions_binary_dirs" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_dir_ownership_binary_dirs" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_dir_groupownership_binary_dirs" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_file_permissions_library_dirs" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_file_ownership_library_dirs" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_dir_ownership_library_dirs" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_root_permissions_syslibrary_files" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_dir_group_ownership_library_dirs" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_service_rsyslog_enabled" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_package_ufw_installed" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_package_chrony_installed" selected="true"/>
+          <set-value idref="xccdf_org.ssgproject.content_value_var_time_service_set_maxpoll">16</set-value>
+          <select idref="xccdf_org.ssgproject.content_rule_chronyd_or_ntpd_set_maxpoll" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_chronyd_sync_clock" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_aide_disable_silentreports" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_apt_conf_disallow_unauthenticated" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_package_apparmor_installed" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_apparmor_configured" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_sssd_offline_cred_expiration" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_is_fips_mode_enabled" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_only_allow_dod_certs" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_ufw_rate_limit" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_bios_enable_execution_restrictions" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_sysctl_kernel_randomize_va_space" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_clean_components_post_updating" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_package_aide_installed" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_aide_build_database" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_display_login_attempts" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_check_ufw_active" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_service_ufw_enabled" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_wireless_disable_interfaces" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_file_permissions_binary_dirs" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_file_ownership_binary_dirs" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_file_groupownership_system_commands_dirs" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_dconf_gnome_disable_ctrlaltdel_reboot" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_disable_ctrlaltdel_reboot" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_kernel_module_usb-storage_disabled" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_no_empty_passwords_etc_shadow" selected="false"/>
+          <select idref="xccdf_org.ssgproject.content_rule_no_empty_passwords" selected="false"/>
+          <set-value idref="xccdf_org.ssgproject.content_value_inactivity_timeout_value">900</set-value>
+          <set-value idref="xccdf_org.ssgproject.content_value_var_screensaver_lock_delay">0</set-value>
+          <select idref="xccdf_org.ssgproject.content_rule_dconf_gnome_screensaver_lock_delay" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_dconf_gnome_screensaver_idle_delay" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_sudoers" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_sudoers_d" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_set_password_hashing_algorithm_systemauth" selected="false"/>
+          <select idref="xccdf_org.ssgproject.content_rule_audit_rules_var_log_journal" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_package_timesyncd_removed" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_package_ntp_removed" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_file_permissions_system_journal" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_dir_permissions_system_journal" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_dir_owner_system_journal" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_dir_groupowner_system_journal" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_file_owner_system_journal" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_file_groupowner_system_journal" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_file_owner_journalctl" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_file_groupowner_journalctl" selected="true"/>
+          <select idref="xccdf_org.ssgproject.content_rule_file_permissions_journalctl" selected="true"/>
+        </Profile>
+      </Tailoring>

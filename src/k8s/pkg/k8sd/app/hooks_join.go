@@ -2,23 +2,27 @@ package app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"slices"
 	"time"
 
+	upgradesv1alpha "github.com/canonical/k8s-snap-api/api/v1alpha"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
-	upgradesv1alpha "github.com/canonical/k8s/pkg/k8sd/crds/upgrades/v1alpha"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
 	"github.com/canonical/k8s/pkg/k8sd/setup"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
+	upgradepkg "github.com/canonical/k8s/pkg/upgrade"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/k8s/pkg/utils/experimental/snapdconfig"
+	"github.com/canonical/k8s/pkg/version"
 	"github.com/canonical/microcluster/v2/state"
+	"go.etcd.io/etcd/api/v3/v3rpc/rpctypes"
 	versionutil "k8s.io/apimachinery/pkg/util/version"
 )
 
@@ -235,17 +239,15 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		if err != nil {
 			return fmt.Errorf("failed to get microcluster members: %w", err)
 		}
-		initialClusterMembers := make(map[string]string)
 
+		// Build endpoints from microcluster members (excluding self)
 		endpoints := make([]string, 0, len(members)-1)
-
 		for _, member := range members {
 			if member.Name == s.Name() {
 				// skip self
 				continue
 			}
 			endpoints = append(endpoints, fmt.Sprintf("https://%s", utils.JoinHostPort(member.Address.Addr().String(), cfg.Datastore.GetEtcdPort())))
-			initialClusterMembers[member.Name] = fmt.Sprintf("https://%s", utils.JoinHostPort(member.Address.Addr().String(), cfg.Datastore.GetEtcdPeerPort()))
 		}
 
 		etcdClient, err := snap.EtcdClient(endpoints)
@@ -254,8 +256,25 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		}
 		defer etcdClient.Close()
 
-		if _, err := etcdClient.MemberAdd(ctx, []string{fmt.Sprintf("https://%s", utils.JoinHostPort(nodeIP.String(), cfg.Datastore.GetEtcdPeerPort()))}); err != nil {
+		memberAddResp, err := etcdClient.MemberAdd(ctx, []string{fmt.Sprintf("https://%s", utils.JoinHostPort(nodeIP.String(), cfg.Datastore.GetEtcdPeerPort()))})
+		if err != nil {
+			if errors.Is(err, rpctypes.ErrMemberNotEnoughStarted) || errors.Is(err, rpctypes.ErrUnhealthy) {
+				return fmt.Errorf("failed to add member %s to etcd cluster: cluster is unhealthy or another node is currently joining the cluster", s.Name())
+			}
 			return fmt.Errorf("failed to add member %s to etcd cluster: %w", s.Name(), err)
+		}
+
+		// Build initial cluster members map from etcd members
+		initialClusterMembers := make(map[string]string)
+		for _, member := range memberAddResp.Members {
+			// Below check excludes learners, joiner nodes that didn't start yet(this should include self)
+			if member.IsLearner || len(member.PeerURLs) == 0 || member.Name == "" {
+				log.Info("Excluding etcd member from initial-cluster", "name", member.Name, "isLearner", member.IsLearner, "peerURLs", member.PeerURLs)
+				continue
+			}
+
+			// Use the first peer URL for each member
+			initialClusterMembers[member.Name] = member.PeerURLs[0]
 		}
 
 		if err := setup.Etcd(snap, s.Name(), nodeIP, cfg.Datastore.GetEtcdPort(), cfg.Datastore.GetEtcdPeerPort(), initialClusterMembers, joinConfig.ExtraNodeEtcdArgs); err != nil {
@@ -319,7 +338,7 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 
 	// This is required for backwards compatibility.
 	log.Info("Applying custom CRDs")
-	if err := k8sClient.ApplyCRDs(ctx, a.snap.K8sCRDDir()); err != nil {
+	if err := k8sClient.ApplyCRDs(ctx); err != nil {
 		log.Error(err, "Failed to apply custom CRDs")
 	}
 
@@ -422,7 +441,8 @@ func initiateRollingUpgrade(ctx context.Context, snap snap.Snap, s state.State, 
 		strategy = upgradesv1alpha.UpgradeStrategyRollingDowngrade
 	}
 
-	newUpgrade := upgradesv1alpha.NewUpgrade(fmt.Sprintf("cluster-upgrade-to-rev-%s", rev))
+	versionData := version.Info{Revision: rev}
+	newUpgrade := upgradesv1alpha.NewUpgrade(upgradepkg.GetName(versionData))
 	if err := k8sClient.Create(ctx, newUpgrade); err != nil {
 		return fmt.Errorf("failed to create upgrade: %w", err)
 	}

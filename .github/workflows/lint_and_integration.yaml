@@ -7,7 +7,6 @@ on:
     branches:
       - main
       - autoupdate/strict
-      - autoupdate/moonray
       - 'release-[0-9]+.[0-9]+'
       - 'autoupdate/release-[0-9]+.[0-9]+-strict'
   pull_request:
@@ -23,9 +22,9 @@ jobs:
     uses: ./.github/workflows/build-snap.yaml
     strategy:
       matrix:
-        # e.g. moonray, strict - right now we only support the classic flavor
+        # e.g. strict - right now we only support the classic flavor
         patch: [""]
-        arch: ["amd64"]
+        arch: ["amd64", "arm64"]
     with:
       flavor: ${{ matrix.patch }}
       arch: ${{ matrix.arch }}
@@ -44,10 +43,32 @@ jobs:
           python-version: '3.8'
       - name: Install tox
         run: sudo apt-get install -y tox
+      - name: Extract Kubernetes versions
+        id: versions
+        run: |
+          OLD_VERSION=$(git show ${{ github.event.pull_request.base.sha }}:build-scripts/components/kubernetes/version)
+          NEW_VERSION=$(cat build-scripts/components/kubernetes/version)
+
+          echo "Old Kubernetes version (base): $OLD_VERSION"
+          echo "New Kubernetes version (PR):   $NEW_VERSION"
+
+          OLD_MINOR=$(echo $OLD_VERSION | cut -d. -f2)
+          NEW_MINOR=$(echo $NEW_VERSION | cut -d. -f2)
+
+          echo "Old Kubernetes minor version (base): $OLD_MINOR"
+          echo "New Kubernetes minor version (PR):   $NEW_MINOR"
+
+          # Only run the branch_management tests if the minor version is the same
+          if [ "$OLD_MINOR" = "$NEW_MINOR" ]; then
+            echo "kubernetes_minor_same=true" >> $GITHUB_ENV
+          else
+            echo "kubernetes_minor_same=false" >> $GITHUB_ENV
+          fi
+
       - name: Run branch_management tests
+        if: env.kubernetes_minor_same == 'true'
         run: |
           tox -c tests/branch_management -e test
-
   python-lint:
     name: Python lint
     runs-on: ubuntu-latest
@@ -63,7 +84,6 @@ jobs:
       - name: Lint
         run: |
           cd tests/integration && tox -e lint
-
   go-lint-and-unit:
     name: Go lint and unit tests
     uses: ./.github/workflows/go.yaml
@@ -102,15 +122,13 @@ jobs:
               tags="up_to_weekly"
             fi
           fi
-
           echo "test-tags=$tags" >> "$GITHUB_OUTPUT"
-
   test-integration:
     name: Integration
     strategy:
       fail-fast: false
       matrix:
-        arch: [amd64]
+        arch: [amd64, arm64]
     needs: [build-snap, get-e2e-tags, go-lint-and-unit, python-lint]
     uses: ./.github/workflows/e2e-tests.yaml
     with:
@@ -151,7 +169,6 @@ jobs:
             channel=latest/edge
           fi
           echo "charm-channel=$channel" >> "$GITHUB_OUTPUT"
-
   charm-e2e-tests:
     name: Charm e2e tests - ${{ matrix.arch }}
     strategy:

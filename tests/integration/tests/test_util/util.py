@@ -231,20 +231,20 @@ def setup_core_dumps(instance: harness.Instance):
 
 def setup_k8s_snap(
     instance: harness.Instance,
-    tmp_path: Path,
     snap: Optional[str] = None,
     connect_interfaces=True,
+    tmp_path: Optional[Path] = Path("/home/ubuntu"),
 ):
     """Installs and sets up the snap on the given instance and connects the interfaces.
 
     Args:
         instance:   instance on which to install the snap
-        tmp_path:   path to store the snap on the instance
         snap: choice of track, channel, revision, or file path
             a snap track to install
             a snap channel to install
             a snap revision to install
             a path to the snap to install
+        tmp_path:   path to store the snap on the instance (optional, defaults to /home/ubuntu)
     """
     cmd = ["snap", "install", "--classic"]
     which_snap = snap or config.SNAP
@@ -485,14 +485,14 @@ def ready_nodes(control_node: harness.Instance) -> List[Any]:
 
 # Create a token to join a node to an existing cluster
 def get_join_token(
-    initial_node: harness.Instance, joining_cplane_node: harness.Instance, *args: str
+    initial_node: harness.Instance, joining_node: harness.Instance, *args: str
 ) -> str:
     out = (
         stubbornly(retries=5, delay_s=3)
         .on(initial_node)
         .until(lambda p: len(p.stdout.decode().strip()) > 0)
         .exec(
-            ["k8s", "get-join-token", joining_cplane_node.id, *args],
+            ["k8s", "get-join-token", joining_node.id, *args],
             capture_output=True,
         )
     )
@@ -540,6 +540,10 @@ def get_default_ip(instance: harness.Instance, ipv6=False):
             capture_output=True,
         )
         addr_json = json.loads(p.stdout.decode())
+        if not addr_json or not addr_json[0].get("addr_info"):
+            raise ValueError(
+                "No IPv6 address found in the output of 'ip -json -6 addr show scope global'"
+            )
         return addr_json[0]["addr_info"][0]["local"]
     else:
         p = instance.exec(
@@ -980,13 +984,41 @@ def check_snap_services_ready(
             ), f"Unexpected service {service} is {status} but should be inactive"
 
 
-def host_is_fips_enabled():
+def is_fips_enabled(instance: harness.Instance):
     """
-    Returns True if the host is running with FIPS enabled, False otherwise.
+    Returns True if the provided instance is running with FIPS enabled, False otherwise.
     """
     fips_path = "/proc/sys/crypto/fips_enabled"
     try:
-        with open(fips_path) as f:
-            return f.read().strip() == "1"
-    except (FileNotFoundError, PermissionError):
+        result = instance.exec(["cat", fips_path], capture_output=True, text=True)
+        return result.stdout.strip() == "1"
+    except subprocess.CalledProcessError:
         return False
+
+
+def status_output_matches(
+    p: subprocess.CompletedProcess, status_pattern: List[str]
+) -> bool:
+    """
+    Check if the output of the `k8s status` command matches the expected pattern.
+    """
+    result_lines = p.stdout.decode().strip().split("\n")
+    if len(result_lines) != len(status_pattern):
+        LOG.info(
+            "wrong number of results lines, expected %s, got %s",
+            len(status_pattern),
+            len(result_lines),
+        )
+        return False
+
+    for i, l in enumerate(result_lines):
+        line, pattern = l, status_pattern[i]
+        if not re.search(pattern, line):
+            LOG.info(
+                "could not match `%s` with `%s`",
+                line.strip(),
+                pattern,
+            )
+            return False
+
+    return True

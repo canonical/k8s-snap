@@ -13,7 +13,7 @@ robust protection for sensitive data in transit. By default, {{product}} uses
 self-signed certificates, but users are able to use an intermediate CA or
 provide their own certificates instead.
 
-## Dqlite encryption at rest
+## Encryption at rest
 
 {{product}} uses AES-256-GCM (Advanced Encryption Standard - Galois/Counter
 Mode) to encrypt cluster data at rest.

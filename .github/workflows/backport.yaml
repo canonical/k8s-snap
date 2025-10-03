@@ -4,13 +4,17 @@ on:
     types: [closed]
   issue_comment:
     types: [created]
+
 permissions:
-  contents: write # so it can comment
-  pull-requests: write # so it can create pull requests
+  contents: read
+
 jobs:
   backport:
     name: Backport pull request
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # so it can comment
+      pull-requests: write # so it can create pull requests
 
     # Only run when pull request is merged
     # or when a comment containing `/backport` is created by someone other than the

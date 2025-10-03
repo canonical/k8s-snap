@@ -1,0 +1,38 @@
+name: Cut release branch
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+    paths:
+      - build-scripts/components/kubernetes/version
+
+permissions:
+  contents: read
+
+jobs:
+  cut-release-branch:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ssh-key: ${{ secrets.BOT_SSH_KEY }}
+          fetch-depth: 0
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install Python dependencies
+        run: pip3 install packaging requests
+      - name: Define git credentials
+        run: |
+          # Needed to create commits.
+          git config --global user.name "Github Actions"
+          git config --global user.email "worker@org.com"
+      - name: Prepare release git branch
+        run: |
+          python3 ./build-scripts/k8s_release.py cut_release_branch

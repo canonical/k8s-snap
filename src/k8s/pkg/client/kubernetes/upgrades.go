@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"sort"
 
-	upgradesv1alpha "github.com/canonical/k8s/pkg/k8sd/crds/upgrades/v1alpha"
+	upgradesv1alpha "github.com/canonical/k8s-snap-api/api/v1alpha"
 	"github.com/canonical/k8s/pkg/log"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// TODO(ben): (KU-3218) Maybe make this more generic, e.g. GetUpgrade(filterFunc func(Upgrade) bool) (*Upgrade, error).
 // GetInProgressUpgrade returns the upgrade CR that is currently in progress.
-// TODO(ben): (KU-3218) Maybe make this more generic, e.g. GetUpgrade(filterFunc func(Upgrade) bool) (*Upgrade, error)
 func (c *Client) GetInProgressUpgrade(ctx context.Context) (*upgradesv1alpha.Upgrade, error) {
 	log := log.FromContext(ctx).WithValues("upgrades", "GetInProgressUpgrade")
 

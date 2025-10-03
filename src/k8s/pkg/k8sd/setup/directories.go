@@ -18,6 +18,7 @@ func EnsureAllDirectories(snap snap.Snap) error {
 	}
 
 	for _, dir := range []string{
+		snap.SystemTuningConfigDir(),
 		snap.CNIConfDir(),
 		snap.K8sDqliteStateDir(),
 		snap.EtcdDir(),

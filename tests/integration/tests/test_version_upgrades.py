@@ -19,6 +19,9 @@ LOG = logging.getLogger(__name__)
 @pytest.mark.skipif(
     not config.VERSION_UPGRADE_CHANNELS, reason="No upgrade channels configured"
 )
+@pytest.mark.skipif(
+    config.SUBSTRATE == "multipass", reason="runner size too small on multipass"
+)
 @pytest.mark.tags(tags.NIGHTLY)
 def test_version_upgrades(
     instances: List[harness.Instance],
@@ -61,11 +64,18 @@ def test_version_upgrades(
 
         # expected: "v1.32.2 classic"
         ver = info["version"].lstrip("v").split()[0].split(".")
+        LOG.info(f"Locally built snap version: {ver}")
+        local_snap_version = (int(ver[0]), int(ver[1]))
         added = False
+
         for i in range(len(channels)):
+            if "latest" in channels[i]:
+                continue
+
             # e.g.: 1.32-classic/stable
-            chan_ver = channels[i].split("-")[0].split(".")
-            if len(chan_ver) > 1 and (ver[0], ver[1]) < (chan_ver[0], chan_ver[1]):
+            chan_ver_parts = channels[i].split("-")[0].split(".")
+            chan_ver = (int(chan_ver_parts[0]), int(chan_ver_parts[1]))
+            if local_snap_version < chan_ver:
                 channels.insert(i, snap_path)
                 added = True
                 break
@@ -85,7 +95,7 @@ def test_version_upgrades(
 
     # Setup the k8s snap from the bootstrap channel and setup basic configuration.
     for instance in instances:
-        util.setup_k8s_snap(instance, tmp_path, current_channel)
+        util.setup_k8s_snap(instance, current_channel)
         if config.USE_LOCAL_MIRROR:
             registry.apply_configuration(instance, containerd_cfgdir)
 
@@ -115,28 +125,35 @@ def test_version_upgrades(
             LOG.info(f"Current snap version: {latest_version}")
 
             # note: the `--classic` flag will be ignored by snapd for strict snaps.
-            cmd = [
-                "snap",
-                "refresh",
-                config.SNAP_NAME,
-                "--channel",
-                channel,
-                "--classic",
-            ]
             if channel.startswith("/"):
                 LOG.info("Refreshing k8s snap by path")
                 cmd = ["snap", "install", "--classic", "--dangerous", snap_path]
+            else:
+                cmd = [
+                    "snap",
+                    "refresh",
+                    config.SNAP_NAME,
+                    "--channel",
+                    channel,
+                    "--amend",
+                    "--classic",
+                ]
 
             instance.exec(cmd)
             util.wait_until_k8s_ready(cp, instances)
-            current_channel = channel
             LOG.info(f"Upgraded {instance.id} on channel {channel}")
+
+        current_channel = channel
+        LOG.info(f"Upgraded all instances to channel {channel}")
 
 
 @pytest.mark.node_count(3)
 @pytest.mark.no_setup()
 @pytest.mark.skipif(
     not config.VERSION_DOWNGRADE_CHANNELS, reason="No downgrade channels configured"
+)
+@pytest.mark.skipif(
+    config.SUBSTRATE == "multipass", reason="runner size too small on multipass"
 )
 @pytest.mark.tags(tags.NIGHTLY)
 def test_version_downgrades_with_rollback(
@@ -196,7 +213,7 @@ def test_version_downgrades_with_rollback(
 
     # Setup the k8s snap from the bootstrap channel and setup basic configuration.
     for instance in instances:
-        util.setup_k8s_snap(instance, tmp_path, current_channel)
+        util.setup_k8s_snap(instance, current_channel)
         if config.USE_LOCAL_MIRROR:
             registry.apply_configuration(instance, containerd_cfgdir)
 
@@ -270,9 +287,12 @@ def test_version_downgrades_with_rollback(
     LOG.info("Rollback test complete. All downgrade segments verified.")
 
 
-@pytest.mark.node_count(3)
+@pytest.mark.node_count(4)
 @pytest.mark.no_setup()
 @pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.skipif(
+    config.SUBSTRATE == "multipass", reason="runner size too small on multipass"
+)
 @pytest.mark.skipif(
     # TODO(Adam): use TEST_VERSION_UPGRADE_CHANNELS if not set
     not config.SNAP,
@@ -291,21 +311,27 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
     """
 
     start_branch = util.previous_track(config.SNAP)
-    main = instances[0]
+    bootstrap_cp = instances[0]
+    worker = instances[-1]
 
     for instance in instances:
         instance.exec(f"snap install k8s --classic --channel={start_branch}".split())
 
-    main.exec(["k8s", "bootstrap"])
-    for instance in instances[1:]:
-        token = util.get_join_token(main, instance)
+    bootstrap_cp.exec(["k8s", "bootstrap"])
+    for instance in instances:
+        if instance.id in [bootstrap_cp.id, worker.id]:
+            continue
+        token = util.get_join_token(bootstrap_cp, instance)
         instance.exec(["k8s", "join-cluster", token])
+
+    token = util.get_join_token(bootstrap_cp, worker, "--worker")
+    worker.exec(["k8s", "join-cluster", token])
 
     # Get initial helm releases to track if they are updated correctly.
     initial_releases = {
         release["name"]: release
         for release in json.loads(
-            main.exec(
+            bootstrap_cp.exec(
                 [
                     "/snap/k8s/current/bin/helm",
                     "--kubeconfig",
@@ -322,9 +348,12 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
         )
     }
 
-    # Refresh each node after each other and verify that the upgrade CR is updated correctly.
+    # Refresh each CP node after each other and verify that the upgrade CR is updated correctly.
     for idx, instance in enumerate(instances):
-        util.setup_k8s_snap(instance, tmp_path, config.SNAP)
+        if instance.id == worker.id:
+            continue
+
+        util.setup_k8s_snap(instance, config.SNAP)
 
         # The crd will be created once the node is up and ready, so we might need to wait for it.
         expected_instances = [instance.id for instance in instances[: idx + 1]]
@@ -344,84 +373,89 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
             text=True,
         ).stdout
 
-        if idx == len(instances) - 1:
-            assert phase in [
-                "FeatureUpgrade",
-                "Completed",
-            ], f"Right after the last upgrade, expected phase to be FeatureUpgrade or Complete but got {phase}"
+        assert (
+            phase == "NodeUpgrade"
+        ), f"While upgrading, expected phase to be NodeUpgrade but got {phase}"
 
-            # TODO(ben): Check that new fields are set in the feature config.
-            # TODO(ben): Check that connectivity (e.g. for gateway) is working during the upgrade.
+        current_helm_releases = instance.exec(
+            [
+                "/snap/k8s/current/bin/helm",
+                "--kubeconfig",
+                "/etc/kubernetes/admin.conf",
+                "list",
+                "-n",
+                "kube-system",
+                "-o",
+                "json",
+            ],
+            capture_output=True,
+            text=True,
+        ).stdout
 
-            util.stubbornly(retries=15, delay_s=5).on(instance).until(
-                lambda p: p.stdout == "Completed",
-            ).exec(
-                "k8s kubectl get upgrade -o=jsonpath={.items[0].status.phase}".split(),
-                capture_output=True,
-                text=True,
-            )
-
-            p = instance.exec(
-                [
-                    "/snap/k8s/current/bin/helm",
-                    "--kubeconfig",
-                    "/etc/kubernetes/admin.conf",
-                    "list",
-                    "-n",
-                    "kube-system",
-                    "-o",
-                    "json",
-                ],
-                capture_output=True,
-                text=True,
-            )
-
-            current_releases = json.loads(p.stdout)
-            for name, initial_rel in initial_releases.items():
-                new_rel = None
-                for r in current_releases:
-                    if r["name"] == name:
-                        new_rel = r
-                        break
-                assert new_rel, f"Release {name} not in helm output"
-                if initial_rel["updated"] == new_rel["updated"]:
-                    LOG.warning(
-                        "Release %s was not updated during upgrade. "
-                        "This might be due to a skipped helm apply due to same values or chart versions",
-                        name,
-                    )
-
-        else:
+        for release in json.loads(current_helm_releases):
+            LOG.info(json.dumps(json.loads(current_helm_releases), indent=2))
+            LOG.info("Checking helm release %s", release["name"])
+            name = release["name"]
             assert (
-                phase == "NodeUpgrade"
-            ), f"While upgrading, expected phase to be NodeUpgrade but got {phase}"
+                release["updated"] == initial_releases[name]["updated"]
+            ), f"{release['name']} was updated while upgrading {instance.id} but should not \
+                have been ({initial_releases[name]['updated']}, {release['updated']})"
 
-            current_helm_releases = instance.exec(
-                [
-                    "/snap/k8s/current/bin/helm",
-                    "--kubeconfig",
-                    "/etc/kubernetes/admin.conf",
-                    "list",
-                    "-n",
-                    "kube-system",
-                    "-o",
-                    "json",
-                ],
-                capture_output=True,
-                text=True,
-            ).stdout
+    # perform the final upgrade on the worker node.
+    util.setup_k8s_snap(worker, config.SNAP)
 
-            for release in json.loads(current_helm_releases):
-                LOG.info(json.dumps(json.loads(current_helm_releases), indent=2))
-                LOG.info("Checking helm release %s", release["name"])
-                name = release["name"]
-                assert (
-                    release["updated"] == initial_releases[name]["updated"]
-                ), f"{release['name']} was updated while upgrading {instance.id} but should not \
-                    have been ({initial_releases[name]['updated']}, {release['updated']})"
+    expected_instances = [instance.id for instance in instances]
+    util.stubbornly(retries=15, delay_s=5).on(bootstrap_cp).until(
+        lambda p: _waiting_for_upgraded_nodes(json.loads(p.stdout), expected_instances),
+    ).exec(
+        "k8s kubectl get upgrade -o=jsonpath={.items[0].status.upgradedNodes}".split(),
+        capture_output=True,
+        text=True,
+    )
+
+    # TODO(ben): Check that new fields are set in the feature config.
+    # TODO(ben): Check that connectivity (e.g. for gateway) is working during the upgrade.
+
+    util.stubbornly(retries=15, delay_s=5).on(bootstrap_cp).until(
+        lambda p: p.stdout == "Completed",
+    ).exec(
+        "k8s kubectl get upgrade -o=jsonpath={.items[0].status.phase}".split(),
+        capture_output=True,
+        text=True,
+    )
+
+    p = bootstrap_cp.exec(
+        [
+            "/snap/k8s/current/bin/helm",
+            "--kubeconfig",
+            "/etc/kubernetes/admin.conf",
+            "list",
+            "-n",
+            "kube-system",
+            "-o",
+            "json",
+        ],
+        capture_output=True,
+        text=True,
+    )
+
+    current_releases = json.loads(p.stdout)
+    for name, initial_rel in initial_releases.items():
+        new_rel = None
+        for r in current_releases:
+            if r["name"] == name:
+                new_rel = r
+                break
+        assert new_rel, f"Release {name} not in helm output"
+        if initial_rel["updated"] == new_rel["updated"]:
+            LOG.warning(
+                "Release %s was not updated during upgrade. "
+                "This might be due to a skipped helm apply due to same values or chart versions",
+                name,
+            )
 
 
-def _waiting_for_upgraded_nodes(upgraded_nodes, expected_nodes) -> True:
+def _waiting_for_upgraded_nodes(upgraded_nodes, expected_nodes) -> bool:
     LOG.info("Waiting for upgraded nodes %s to be: %s", upgraded_nodes, expected_nodes)
     return set(upgraded_nodes) == set(expected_nodes)
 
@@ -489,7 +523,7 @@ def test_feature_upgrades_rollout_upgrade(
         new_instance = instances[3 + idx]
         cluster_node = instances[idx]
 
-        util.setup_k8s_snap(new_instance, tmp_path, config.SNAP)
+        util.setup_k8s_snap(new_instance, config.SNAP)
         token = util.get_join_token(cluster_node, new_instance)
         new_instance.exec(["k8s", "join-cluster", token])
         nodes_in_cluster = instances[idx : idx + 3]  # noqa

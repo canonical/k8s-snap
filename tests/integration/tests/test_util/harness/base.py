@@ -3,6 +3,7 @@
 #
 import subprocess
 from functools import cached_property, partial
+from typing import List
 
 
 class HarnessError(Exception):
@@ -24,7 +25,6 @@ class Instance:
         self.send_file = partial(h.send_file, id)
         self.pull_file = partial(h.pull_file, id)
         self.exec = partial(h.exec, id)
-        self.delete_instance = partial(h.delete_instance, id)
 
     @property
     def id(self) -> str:
@@ -36,6 +36,18 @@ class Instance:
         return self.exec(
             ["dpkg", "--print-architecture"], text=True, capture_output=True
         ).stdout.strip()
+
+    def open_ports(self, ports: List[int]) -> None:
+        """Open ports on the instance"""
+        self._h.open_ports(self.id, ports)
+
+    def restart(self) -> None:
+        """Restart the instance"""
+        self._h.restart_instance(self.id)
+
+    def delete(self) -> None:
+        """Delete the instance"""
+        self._h.delete_instance(self.id)
 
     def __str__(self) -> str:
         return f"{self._h.name}:{self.id}"
@@ -96,6 +108,26 @@ class Harness:
         :param kwargs: Keyword args compatible with subprocess.run()
 
         If the operation fails, a subprocesss.CalledProcessError is raised.
+        """
+        raise NotImplementedError
+
+    def restart_instance(self, instance_id: str):
+        """Restart an previously created instance.
+
+        :param instance_id: The instance_id, as returned by new_instance()
+
+        If the operation fails, a HarnessError is raised.
+        """
+        raise NotImplementedError
+
+    def open_ports(self, instance_id: str, ports: List[int]):
+        """Open ports on the instance.
+
+        :param instance_id: The instance_id, as returned by new_instance()
+        :param ports: List of ports to open on the instance.
+
+        Ports will be opened on a best effort basis. If the port is already open,
+        or no firewall is installed, no error will be raised.
         """
         raise NotImplementedError
 

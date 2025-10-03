@@ -95,6 +95,7 @@ function collect_cluster_info {
   fi
 
   run_with_timeout "k8s kubectl cluster-info dump $FLAGS --output-directory $INSPECT_DUMP/cluster-info &>/dev/null"
+  run_with_timeout "k8s kubectl get upgrades -ojson $FLAGS > $INSPECT_DUMP/cluster-info/upgrades.json"
 }
 
 function collect_sbom {
@@ -293,7 +294,7 @@ mkdir -p "$INSPECT_DUMP"
 
 printf -- 'Collecting service information\n'
 
-control_plane_services=("k8s.containerd" "k8s.kube-proxy" "k8s.k8s-dqlite" "k8s.k8sd" "k8s.kube-apiserver" "k8s.kube-controller-manager" "k8s.kube-scheduler" "k8s.kubelet")
+control_plane_services=("k8s.containerd" "k8s.etcd" "k8s.kube-proxy" "k8s.k8s-dqlite" "k8s.k8sd" "k8s.kube-apiserver" "k8s.kube-controller-manager" "k8s.kube-scheduler" "k8s.kubelet")
 worker_services=("k8s.containerd" "k8s.k8s-apiserver-proxy" "k8s.kubelet" "k8s.k8sd" "k8s.kube-proxy")
 
 if is_worker_node; then

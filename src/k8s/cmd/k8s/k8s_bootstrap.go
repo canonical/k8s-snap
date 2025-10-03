@@ -51,13 +51,13 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			snapdClient, err := snapd.NewClient()
 			if err != nil {
-				cmd.PrintErrln("Error: failed to create snapd client: %w", err)
+				cmd.PrintErrf("Error: failed to create snapd client: %v", err)
 				env.Exit(1)
 				return
 			}
 			microk8sInfo, err := snapdClient.GetSnapInfo("microk8s")
 			if err != nil {
-				cmd.PrintErrln("Warning: failed to check if microk8s is installed: %w", err)
+				cmd.PrintErrf("Warning: failed to check if microk8s is installed: %v", err)
 			} else if microk8sInfo.StatusCode == 200 && microk8sInfo.HasInstallDate() {
 				cmd.PrintErrln("Error: microk8s snap is installed. Please remove it using the following command and try again:\n\n  sudo snap remove microk8s")
 				env.Exit(1)
