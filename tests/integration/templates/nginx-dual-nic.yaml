@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: nginx
+  name: nginx
+  namespace: default
+  annotations:
+    k8s.v1.cni.cncf.io/networks: second-nic-macvlan
+spec:
+  containers:
+    - name: nginx
+      image: ghcr.io/containerd/nginx:1.27.0
+  restartPolicy: Always
