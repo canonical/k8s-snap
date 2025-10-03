@@ -504,6 +504,8 @@ STONITH
 StorageClass
 streamingConnectionIdleTimeout
 submodules
+subnet
+subnets
 sudo
 sys
 systemd
