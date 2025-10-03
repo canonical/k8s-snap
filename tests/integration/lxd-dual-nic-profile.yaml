@@ -1,0 +1,14 @@
+description: "LXD profile for Canonical Kubernetes with dual NIC setup"
+devices:
+  eth1:
+    name: eth1
+    network: LXD_DUAL_NIC_NETWORK
+    type: nic
+config:
+  user.network-config: |
+    version: 2
+    ethernets:
+      eth0:
+        dhcp4: true
+      eth1:
+        dhcp4: true
