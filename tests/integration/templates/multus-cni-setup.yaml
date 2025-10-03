@@ -158,11 +158,11 @@ spec:
           command: [ "/usr/src/multus-cni/bin/multus-daemon" ]
           resources:
             requests:
-              cpu: "100m"
-              memory: "50Mi"
+              cpu: "200m"
+              memory: "500Mi"
             limits:
-              cpu: "100m"
-              memory: "50Mi"
+              cpu: "200m"
+              memory: "500Mi"
           securityContext:
             privileged: true
           terminationMessagePolicy: FallbackToLogsOnError
