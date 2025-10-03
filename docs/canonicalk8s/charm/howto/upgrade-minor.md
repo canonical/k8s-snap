@@ -214,5 +214,5 @@ to ensure that the cluster is fully functional.
 [juju-docs]:           https://documentation.ubuntu.com/juju/3.6/howto/manage-models/
 [release-notes]:       ../reference/releases
 [upgrade-notes]:       ../reference/upgrade-notes
-[upstream-notes]:      https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.32.md#deprecation
+[upstream-notes]:      https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.33.md#deprecation
 [version-skew-policy]: https://kubernetes.io/releases/version-skew-policy/
