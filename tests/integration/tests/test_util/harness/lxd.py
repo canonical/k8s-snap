@@ -67,6 +67,20 @@ class LXDHarness(Harness):
             ),
         )
 
+        self._configure_network(
+            config.LXD_JUMBO_NETWORK,
+            "ipv4.address=auto",
+            "ipv4.nat=true",
+            "bridge.mtu=9000",
+        )
+        self.dual_nic_profile = config.LXD_DUAL_NIC_PROFILE_NAME
+        self._configure_profile(
+            self.dual_nic_profile,
+            config.LXD_DUAL_NIC_PROFILE.replace(
+                "LXD_JUMBO_NETWORK", config.LXD_JUMBO_NETWORK
+            ),
+        )
+
         LOG.debug(
             "Configured LXD substrate (profile %s, image %s)", self.profile, self.image
         )
@@ -90,9 +104,9 @@ class LXDHarness(Harness):
             self.profile,
         ]
 
-        if network_type.lower() not in ["ipv4", "dualstack", "ipv6"]:
+        if network_type.lower() not in ["ipv4", "dualstack", "ipv6", "dualnic"]:
             raise HarnessError(
-                f"unknown network type {network_type}, need to be one of 'IPv4', 'IPv6', 'dualstack'"
+                f"unknown network type {network_type}, need to be one of 'IPv4', 'IPv6', 'dualstack', 'dualnic'"
             )
 
         if network_type.lower() == "dualstack":
@@ -104,6 +118,9 @@ class LXDHarness(Harness):
 
         if network_type.lower() == "ipv6":
             launch_lxd_command.extend(["-p", self.ipv6_profile])
+
+        if network_type.lower() == "dualnic":
+            launch_lxd_command.extend(["-p", self.dual_nic_profile])
 
         try:
             stubbornly(retries=3, delay_s=1).exec(launch_lxd_command)
