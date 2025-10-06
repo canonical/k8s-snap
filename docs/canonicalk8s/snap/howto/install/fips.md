@@ -5,6 +5,11 @@ compliance crucial for US government and regulated industries. This
 how-to guide provides the steps to set up a FIPS compliant Kubernetes
 cluster using the {{ product }} snap.
 
+Please note that FIPS is only available in the `k8s` release 1.34 and later.
+If you are using an earlier version, you will need to upgrade to the latest
+version of the snap to use FIPS support.
+
+
 ## Enable FIPS on an Ubuntu host machine
 
 To enable FIPS on your host machine, you require an [Ubuntu Pro] subscription.
@@ -68,7 +73,7 @@ user deployed workloads and services. Please follow the steps in the
 ## Ensure runtime with FIPS-certified libraries
 
 Install the [core22] runtime with FIPS-certified libraries. The core22 snap
-offers the fips-updates track, which contains NIST-certified packages along
+offers the `fips-updates` track, which contains NIST-certified packages along
 with [security patches].
 
 ```
@@ -82,7 +87,7 @@ to the latest version:
 sudo snap refresh core22 --channel=fips-updates/stable
 ```
 
-## Install Canonical Kubernetes
+## Install {{product}}
 
 Install {{ product }} on your FIPS host:
 
@@ -90,20 +95,13 @@ Install {{ product }} on your FIPS host:
 sudo snap install k8s --classic
 ```
 
-```{note}
-Please note that FIPS is only available in the `k8s` release 1.34 and later.
-If you are using an earlier version, you will need to upgrade to the latest
-version of the snap to use FIPS support.
-```
-
 The k8s snap can leverage the host's FIPS compliant
 cryptography. The components will automatically detect if the system is
 running in FIPS mode and activate internal FIPS-related settings
 accordingly.
 
-TODO reword
 ```{attention}
-If you intend to apply DISA STIG hardening to your cluster, go to the DISA STIG deployment guide to get detailed steps on deploying with a strciter config bootstrap file
+If you intend to apply DISA STIG hardening to your cluster, go to the [Canonical Kubernetes DISA STIG deployment guide] to get detailed instructions on deploying with a stricter bootstrap configuration file.
 ```
 
 After the snap installation completes, you can bootstrap the node as usual:
@@ -169,8 +167,9 @@ and will revert to the default non-FIPS settings.
 <!-- markdownlint-disable MD053 -->
 [enable FIPS with Ubuntu]: https://ubuntu.com/tutorials/using-the-ubuntu-pro-client-to-enable-fips#1-overview
 <!-- markdownlint-enable MD053 -->
-[firewall configuration]: ../networking/ufw
+[firewall configuration]: /snap/howto/networking/ufw.md
 [core22]: https://snapcraft.io/core22
 [security patches]: <https://ubuntu.com/security/certifications/docs/16-18/fips-updates>
 [disabling FIPS with Ubuntu]: https://documentation.ubuntu.com/pro-client/en/latest/howtoguides/enable_fips/#how-to-disable-fips
+[Canonical Kubernetes DISA STIG deployment guide]: disa-stig.md
 
