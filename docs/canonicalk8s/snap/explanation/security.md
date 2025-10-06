@@ -30,12 +30,6 @@ and overcoming the issues of stale images with known vulnerabilities. For more
 information on how these images are maintained and published, see the
 [Rockcraft documentation][rocks-security].
 
-<!-- ## Kubernetes security
-
-The Kubernetes cluster deployed by {{product}} can be secured using
-any of the methods and options described by the upstream
-[Kubernetes Security Documentation][] or by our [hardening guide]. -->
-
 ## Authentication and authorization
 
 {{product}} leverages upstream Kubernetes security primitives for both
