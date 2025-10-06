@@ -5,9 +5,9 @@ import functools
 import logging
 import re
 import subprocess
-import pytest
 from pathlib import Path
 
+import pytest
 import requests
 import semver
 import yaml
@@ -166,15 +166,15 @@ def test_k8s_version():
     ), f"Channel mismatch between {component_version=} and {docs_version=}"
 
 
-
 def _find_k8s_channel_version(path: Path):
+    """Yields (path:line_no, line, found_version) for each line containing a k8s channel version in the file."""
     rel = path.relative_to(PROJECT_BASE_DIR)
     with open(path, "r") as f:
         channel_re = r"channel[ =](\d+\.\d+)"
         for i, line in enumerate(f.readlines()):
             matches = re.findall(channel_re, line)
             for found in matches:
-                yield f"{rel}:{i + 1}", found
+                yield f"{rel}:{i + 1}", line, found
 
 
 def _all_version_lines():
@@ -186,10 +186,30 @@ def _all_version_lines():
         yield from _find_k8s_channel_version(f)
 
 
-@pytest.mark.parametrize("path_line_no, found", _all_version_lines())
-def test_k8s_version_in_files(path_line_no, found):
+def _stable_channel_exists(channel: str) -> bool:
+    url = f"https://charmhub.io/k8s?channel={channel}/stable"
+    headers = {"Accept": "application/json", "Snap-Device-Series": "16"}
+    r = requests.get(url, headers=headers)
+    return r.status_code == 200
+
+
+@pytest.mark.parametrize("path_line_no, line, found", _all_version_lines())
+def test_k8s_version_in_files(path_line_no, line, found):
     """Ensure that the k8s component version is used in all relevant files."""
     ver = _get_k8s_component_version()
+    ver_major_minor = f"{ver.major}.{ver.minor}"
+
+    if "juju" in line and not _stable_channel_exists(ver_major_minor):
+        # A k8s-operator release might be released weeks after a k8s-snap release.
+        # In that case, we skip the test for this particular line until the channel
+        # is released.
+        pytest.skip(
+            f"Skipping check for {ver_major_minor=} in {path_line_no} as k8s-operator "
+            f"is not yet released for this version."
+        )
+
     found = tuple(map(int, found.split(".")))
     assert len(found) == 2, f"Invalid channel {found=} in {path_line_no}"
-    assert ver[:2] == found[:2], f"Channel mismatch: expected={ver[:2]} but {found=} on {path_line_no}"
+    assert (
+        ver[:2] == found[:2]
+    ), f"Channel mismatch: expected={ver[:2]} but {found=} on {path_line_no}"
