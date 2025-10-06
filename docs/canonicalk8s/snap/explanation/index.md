@@ -62,7 +62,7 @@ done to strive for compliance with industry standards.
 
 ```{toctree}
 :titlesonly:
-Security <security/index>
+Security <security.md>
 ```
 
 ---
