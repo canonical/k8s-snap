@@ -6,21 +6,7 @@ Information System Agency (DISA) for the U.S. Department of Defense (DoD).
 The [Kubernetes STIG] contains guidelines on how to check and remediate various
 potential security concerns for a Kubernetes deployment. Here we have tailored
 these checks to work for our {{product}} cluster that is deployed using the
-[deploying Canonical Kubernetes with FIPS and DISA STIG] guide.
-
-
-<!-- {{product}} aligns with many DISA STIG compliance recommendations by default.
-However, additional hardening steps are required to fully meet the standard. -->
-
-<!-- ## Prerequisites
-
-This guide assumes the following:
-
-- You have a bootstrapped {{product}} cluster using the DISA STIG bootstrap
-template (see the [disa-stig hardening] guide)
-- You have root or sudo access to the machine
-- You have reviewed the [post-deployment hardening] guide and have applied the
-  hardening steps that are relevant to your use-case -->
+[deploying a DISA STIG hardened cluster] guide.
 
 ## Guideline classes overview
 
@@ -7452,4 +7438,4 @@ The final line of the output will be `PASS`.
 [V-242466]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242466
 [V-242467]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242467
 [V-245541]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-245541
-
+[deploying a DISA STIG hardened cluster]: TODO
