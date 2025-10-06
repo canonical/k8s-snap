@@ -21,6 +21,7 @@ DISA STIG host compliance is achieved by running the [usg tool]
 of the PRO tool set. To install the usg tool, run:
 
 ```
+sudo pro enable usg
 sudo apt update
 sudo apt install usg 
 ```
@@ -36,7 +37,8 @@ sudo usg audit disa_stig
 
 ```{warning}
 The following command applies rule [V-270714] which will cause issues using
-accounts with an empty password.
+accounts with an empty password to access your machine. To avoid being locked
+out use an RSA key to access your machine.
 ```
 
 To automatically apply the recommended hardening changes:
@@ -70,7 +72,7 @@ Please ensure that the configuration of `/etc/sysctl.d/99-kubelet.conf` is not
 overridden by another higher order file.
 ```
 
-## Deploy and bootstrap stig-compliant nodes
+## Deploy and bootstrap STIG-compliant nodes
 
 For your convenience, we have provided template configuration files that can be
 used to configure Kubernetes service arguments that align with DISA STIG
@@ -79,7 +81,7 @@ requirements.
 ### Bootstrap the first control-plane node
 
 To initialize the first control plane node with the necessary arguments for
-disa-stig compliance, run:
+DISA-STIG compliance, run:
 
 ```{literalinclude} ../../../_parts/install.md
 :start-after: <!-- snap start -->

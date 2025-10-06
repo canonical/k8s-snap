@@ -206,6 +206,7 @@ RADOS
 RAG
 RBAC
 RDMA
+remediations
 RTOS
 SDK
 SDR
