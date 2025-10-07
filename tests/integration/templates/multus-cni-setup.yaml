@@ -1,3 +1,6 @@
+# Lifted and modified to use fixed Multus image tags from:
+# https://raw.githubusercontent.com/k8snetworkplumbingwg/multus-cni/v4.2.2/deployments/multus-daemonset-thick.yml
+
 # Note:
 #   This deployment file is designed for 'quickstart' of multus, easy installation to test it,
 #   hence this deployment yaml does not care about following things intentionally.
