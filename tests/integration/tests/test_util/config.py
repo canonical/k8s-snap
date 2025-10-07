@@ -98,6 +98,20 @@ LXD_IPV6_PROFILE = (
     or (DIR / ".." / ".." / "lxd-ipv6-profile.yaml").read_text()
 )
 
+# LXD_JUMBO_NETWORK is the network with MTU set to 9000 to be used in LXD containers with dual NIC.
+LXD_JUMBO_NETWORK = os.getenv("TEST_LXD_JUMBO_NETWORK") or "jumbo-br0"
+
+# LXD_DUAL_NIC_PROFILE_NAME is the profile name to use for LXD containers with dual NIC setup.
+LXD_DUAL_NIC_PROFILE_NAME = (
+    os.getenv("LXD_DUAL_NIC_PROFILE_NAME") or "k8s-integration-dual-nic"
+)
+
+# LXD_DUAL_NIC_PROFILE is the profile to use for LXD containers with dual NIC setup.
+LXD_DUAL_NIC_PROFILE = (
+    os.getenv("LXD_DUAL_NIC_PROFILE")
+    or (DIR / ".." / ".." / "lxd-dual-nic-profile.yaml").read_text()
+)
+
 # LXD_IMAGE is the image to use for LXD containers.
 LXD_IMAGE = os.getenv("TEST_LXD_IMAGE") or "ubuntu:22.04"
 
