@@ -9,7 +9,7 @@ the current How-to guides below.
 
 ... from a snap <snap.md>
 ... with a custom bootstrap configuration <custom-bootstrap-config>
-... with DISA STIG hardening <disa-stig-hardening.md>
+... with DISA STIG hardening <disa-stig.md>
 ... with Multipass <multipass>
 ... in LXD <lxd.md>
 ... in air-gapped environments <offline.md>
