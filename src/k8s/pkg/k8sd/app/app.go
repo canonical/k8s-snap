@@ -189,29 +189,31 @@ func New(cfg Config) (*App, error) {
 	app.controllerCoordinator = controllers.NewCoordinator(
 		cfg.Snap,
 		app.readyWg.Wait,
-		cfg.DisableUpgradeController,
-		upgrade.ControllerOptions{
-			FeatureControllerReadyCh:   app.featureController.ReadyCh(),
-			NotifyNetworkFeature:       app.NotifyNetwork,
-			NotifyGatewayFeature:       app.NotifyGateway,
-			NotifyIngressFeature:       app.NotifyIngress,
-			NotifyLoadBalancerFeature:  app.NotifyLoadBalancer,
-			NotifyLocalStorageFeature:  app.NotifyLocalStorage,
-			NotifyMetricsServerFeature: app.NotifyMetricsServer,
-			NotifyDNSFeature:           app.NotifyDNS,
-			FeatureToReconciledCh: map[types.FeatureName]<-chan struct{}{
-				features.Network:       app.featureController.ReconciledNetworkCh(),
-				features.Gateway:       app.featureController.ReconciledGatewayCh(),
-				features.Ingress:       app.featureController.ReconciledIngressCh(),
-				features.DNS:           app.featureController.ReconciledDNSCh(),
-				features.LoadBalancer:  app.featureController.ReconciledLoadBalancerCh(),
-				features.LocalStorage:  app.featureController.ReconciledLocalStorageCh(),
-				features.MetricsServer: app.featureController.ReconciledMetricsServerCh(),
+		controllers.UpgradeControllerOptions{
+			Disable: cfg.DisableUpgradeController,
+			ControllerOptions: upgrade.ControllerOptions{
+				FeatureControllerReadyCh:   app.featureController.ReadyCh(),
+				NotifyNetworkFeature:       app.NotifyNetwork,
+				NotifyGatewayFeature:       app.NotifyGateway,
+				NotifyIngressFeature:       app.NotifyIngress,
+				NotifyLoadBalancerFeature:  app.NotifyLoadBalancer,
+				NotifyLocalStorageFeature:  app.NotifyLocalStorage,
+				NotifyMetricsServerFeature: app.NotifyMetricsServer,
+				NotifyDNSFeature:           app.NotifyDNS,
+				FeatureToReconciledCh: map[types.FeatureName]<-chan struct{}{
+					features.Network:       app.featureController.ReconciledNetworkCh(),
+					features.Gateway:       app.featureController.ReconciledGatewayCh(),
+					features.Ingress:       app.featureController.ReconciledIngressCh(),
+					features.DNS:           app.featureController.ReconciledDNSCh(),
+					features.LoadBalancer:  app.featureController.ReconciledLoadBalancerCh(),
+					features.LocalStorage:  app.featureController.ReconciledLocalStorageCh(),
+					features.MetricsServer: app.featureController.ReconciledMetricsServerCh(),
+				},
 			},
-			FeatureControllerReadyTimeout:     10 * time.Minute,
-			FeatureControllerReconcileTimeout: 2 * time.Minute,
 		},
-		cfg.DisableCSRSigningController,
+		controllers.CSRSigningControllerOptions{
+			Disable: cfg.DisableCSRSigningController,
+		},
 	)
 
 	return app, nil
