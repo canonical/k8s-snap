@@ -9,6 +9,7 @@ import (
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 )
 
+// startControlPlaneServices starts the control plane services based on the datastore type.
 func startControlPlaneServices(ctx context.Context, snap snap.Snap, datastore string) error {
 	// Start services
 	switch datastore {
