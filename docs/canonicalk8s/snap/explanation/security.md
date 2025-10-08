@@ -295,22 +295,6 @@ If you would like to apply CIS hardening to your cluster see our
 [hardening guide] and follow our [CIS assessment] guide to assess your
 compliance.
 
-### Kubernetes DISA STIG
-
-Security Technical Implementation Guides (STIGs) are developed by the Defense
-Information System Agency (DISA) and are comprehensive frameworks of security
-requirements designed to protect U.S. Department of Defense (DoD) systems and
-networks from cybersecurity threats.
-The [Kubernetes STIG] contains guidelines on how to check and remediate various
-potential security concerns for a Kubernetes deployment, both on the host and
-within the cluster itself.
-
-In our [deploy with DISA STIG] guide, {{product}} provides configuration files
-to harden your cluster and host set up in accordance with DISA STIG Kubernetes
-guidelines. {{product}} aligns with many DISA STIG compliance recommendations by
-default. However, additional hardening steps are required to fully meet the
-standard.
-
 ### FIPS compliance
 
 [FIPS 140-3] (Federal Information Processing Standard) is a U.S. government
@@ -327,6 +311,22 @@ the system and hardware that have to be met in order to be fully FIPS compliant.
 
 If you would like to enable FIPS in your Kubernetes cluster see our
 [Canonical Kubernetes FIPS installation] guide.
+
+### Kubernetes DISA STIG
+
+Security Technical Implementation Guides (STIGs) are developed by the Defense
+Information System Agency (DISA) and are comprehensive frameworks of security
+requirements designed to protect U.S. Department of Defense (DoD) systems and
+networks from cybersecurity threats.
+The [Kubernetes STIG] contains guidelines on how to check and remediate various
+potential security concerns for a Kubernetes deployment, both on the host and
+within the cluster itself.
+
+In our [deploy with DISA STIG] guide, {{product}} provides configuration files
+to harden your cluster and host set up in accordance with DISA STIG Kubernetes
+guidelines. {{product}} aligns with many DISA STIG compliance recommendations by
+default. However, additional hardening steps are required to fully meet the
+standard.
 
 ## Cloud security
 
@@ -372,10 +372,9 @@ useful.
 [FIPS 140-3]: https://csrc.nist.gov/pubs/fips/140-3/final
 [NIST]: https://www.nist.gov/
 
-<!-- TODO -->
-[Canonical Kubernetes FIPS installation]:
-[deploy with DISA STIG]:
 
+[Canonical Kubernetes FIPS installation]: /snap/howto/install/fips.md
+[deploy with DISA STIG]: /snap/howto/install/disa-stig.md
 [Kubernetes Authentication]: https://kubernetes.io/docs/reference/access-authn-authz/authentication/
 [Kubernetes RBAC]: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
 [Default roles and role bindings]: https://kubernetes.io/docs/reference/access-authn-authz/rbac/#default-roles-and-role-bindings
