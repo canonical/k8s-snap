@@ -12,6 +12,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
+	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils"
 	timeutils "github.com/canonical/k8s/pkg/utils/time"
 	"github.com/canonical/microcluster/v2/state"
@@ -142,6 +143,17 @@ func (c *FeatureController) Run(
 ) {
 	ctx = log.NewContext(ctx, log.FromContext(ctx).WithValues("controller", "feature"))
 	log := log.FromContext(ctx)
+
+	isWorker, err := snaputil.IsWorker(c.snap)
+	if err != nil {
+		log.Error(err, "Failed to determine if the node is a worker")
+	}
+
+	if isWorker {
+		log.Info("Node is a worker - skipping feature controllers")
+		return
+	}
+
 	log.Info("Starting feature controller")
 	c.waitReady()
 
