@@ -35,25 +35,23 @@ func NewClient(pkiDir string, endpoints []string) (*Client, error) {
 	}, nil
 }
 
-func (c *Client) RemoveNodeByAddress(ctx context.Context, peerURL string) error {
+func (c *Client) RemoveNodeByName(ctx context.Context, name string) error {
 	resp, err := c.MemberList(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to list etcd members: %w", err)
 	}
 
-	// Find the member with the matching peerURL
+	// Find the member with the matching name
 	var memberID uint64
 	for _, m := range resp.Members {
-		for _, url := range m.PeerURLs {
-			if url == peerURL {
-				memberID = m.ID
-				break
-			}
+		if m.Name == name {
+			memberID = m.ID
+			break
 		}
 	}
 
 	if memberID == 0 {
-		return fmt.Errorf("no etcd member found with peer URL: %s", peerURL)
+		return fmt.Errorf("no etcd member found with name: %s", name)
 	}
 
 	if _, err = c.MemberRemove(ctx, memberID); err != nil {
