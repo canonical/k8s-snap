@@ -1,3 +1,4 @@
+<!-- Start -->
 # Security in {{product}}
 
 This page provides an insight into the various aspects of security to be
@@ -18,6 +19,8 @@ refreshes taking place several times a day. The `k8s` snap is deployed with
 order to be able to deploy the cluster successfully. See the
 [Snapcraft documentation] for more
 information on confinement levels and security in snaps.
+
+<!-- First charm end here -->
 
 ## Security of the OCI images
 
@@ -263,11 +266,11 @@ assured that the default configuration is appropriate for most use-cases. If
 your security needs are not met by the default configuration, we recommend you
 [deploy an intermediate CA fine-tuned to your liking][intermediate-ca]. If you
 require the use of FIPS compliant cryptographic libraries, continue reading
-about security compliance in {{product}}.
+about security compliance in {{product}} snap.
 
 ## Security compliance
 
-{{product}} aims to comply with industry security standards by default
+{{product}} snap aims to comply with industry security standards by default
 and has applied majority of the recommended hardening steps for standards such
 as the CIS Kubernetes benchmark and Defense Information System Agency (DISA)
 Security Technical Implementation Guides (STIG) for Kubernetes.
@@ -291,9 +294,9 @@ in a distributed environment. This complexity can introduce numerous security
 risks if not properly managed such as unauthorized access, data breaches and
 service disruption.
 
-If you would like to apply CIS hardening to your cluster see our
-[hardening guide] and follow our [CIS assessment] guide to assess your
-compliance.
+If you would like to apply CIS hardening to your {{product}} snap see our
+[hardening guide] and follow our [CIS assessment] guide to assess your snap
+deployment for compliance.
 
 ### FIPS compliance
 
@@ -302,15 +305,16 @@ standard for cryptographic modules. In order to comply with FIPS standards,
 each cryptographic module must meet specific security requirements and must
 undergo testing and validation by the U.S. National Institute of Standards
 and Technology ([NIST]). All of our components including the built-in features
-such as networking or load-balancer can be configured to use host systems
-FIPS compliant libraries instead of the non-compliant internal go cryptographic
+such as networking or load-balancer can be configured in snap deployments to
+use host systems FIPS compliant libraries instead of the non-compliant internal
+go cryptographic
 modules. When building workloads on top of {{ product }}, it is essential that
 organizations build these in a FIPS compliant manner to comply with the FIPS
 security requirements. In addition, FIPS 140-3 has additional requirements to
 the system and hardware that have to be met in order to be fully FIPS compliant.
 
 If you would like to enable FIPS in your Kubernetes cluster see our
-[Canonical Kubernetes FIPS installation] guide.
+[Canonical Kubernetes snap FIPS installation] guide.
 
 ### Kubernetes DISA STIG
 
@@ -322,11 +326,11 @@ The [Kubernetes STIG] contains guidelines on how to check and remediate various
 potential security concerns for a Kubernetes deployment, both on the host and
 within the cluster itself.
 
-In our [deploy with DISA STIG] guide, {{product}} provides configuration files
-to harden your cluster and host set up in accordance with DISA STIG Kubernetes
-guidelines. {{product}} aligns with many DISA STIG compliance recommendations by
-default. However, additional hardening steps are required to fully meet the
-standard.
+The [deploy Canonical Kubernetes snap with DISA STIG hardening] guide provides
+configuration files to harden your cluster and host set up in accordance with
+DISA STIG Kubernetes guidelines. {{product}} snap aligns with many DISA STIG
+compliance recommendations by default. However, additional hardening steps are
+required to fully meet the standard.
 
 ## Cloud security
 
@@ -342,9 +346,7 @@ useful.
 - [Microsoft Azure security][]
 - [VMware VSphere hardening guides][]
 
-
 <!-- LINKS -->
-<!-- [certificates]: certificates.md -->
 [intermediate-ca]: /snap/howto/security/intermediate-ca.md
 [openssl]: https://packages.ubuntu.com/jammy/openssl
 [linux-generic]: https://packages.ubuntu.com/jammy/linux-generic
@@ -373,8 +375,8 @@ useful.
 [NIST]: https://www.nist.gov/
 
 
-[Canonical Kubernetes FIPS installation]: /snap/howto/install/fips.md
-[deploy with DISA STIG]: /snap/howto/install/disa-stig.md
+[Canonical Kubernetes snap FIPS installation]: /snap/howto/install/fips.md
+[deploy Canonical Kubernetes snap with DISA STIG hardening]: /snap/howto/install/disa-stig.md
 [Kubernetes Authentication]: https://kubernetes.io/docs/reference/access-authn-authz/authentication/
 [Kubernetes RBAC]: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
 [Default roles and role bindings]: https://kubernetes.io/docs/reference/access-authn-authz/rbac/#default-roles-and-role-bindings
