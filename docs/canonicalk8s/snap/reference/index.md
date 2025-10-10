@@ -51,6 +51,8 @@ releases
 :titlesonly:
 Security <security>
 certificates
+DISA STIG audit <disa-stig-audit.md>
+CIS audit <cis-audit.md>
 ```
 
 ## Annotations

@@ -5,7 +5,7 @@ have security implications on {{product}}.
 
 ## Security pages
 
-- [Security overview explanation]
+- [Security explanation]
 - [How to report a security issue]
 - [How to harden your cluster]
 - [Cryptography in Canonical Kubernetes explanation]
@@ -21,8 +21,11 @@ have security implications on {{product}}.
 ## Compliance
 
 - [CIS hardening explanation]
-- [How to assess for CIS compliance]
-- [How to assess for DISA STIG compliance]
+- [Audit for CIS compliance]
+- [How to install a DISA STIG cluster]
+- [DISA STIG for Kubernetes explanation]
+- [Audit for DISA STIG compliance]
+- [How to deploy a cluster with FIPS]
 
 ## Updates
 
@@ -56,14 +59,17 @@ and much more.
 [Cluster certificates and configuration reference]: /snap/reference/certificates/
 [How to refresh Kubernetes certificates]:/snap/howto/security/refresh-certs.md
 [How to use intermediate CAs with Vault]:/snap/howto/security/intermediate-ca.md
-[How to assess for DISA STIG compliance]:/snap/howto/security/disa-stig-assessment.md
-[How to assess for CIS compliance]: /snap/howto/security/cis-assessment.md
+[Audit for DISA STIG compliance]:/snap/reference/disa-stig-audit.md
+[DISA STIG for Kubernetes explanation]: /snap/explanation/security/#kubernetes-disa-stig
+[How to install a DISA STIG cluster]: TODO
+[Audit for CIS compliance]: /snap/reference/cis-audit.md
+[How to deploy a cluster with FIPS]: TODO
 [Release notes]:/snap/reference/releases.md
 [How to upgrade the Canonical Kubernetes snap]:/snap/howto/upgrades.md
-[Certificates explanation]: /snap/explanation/security/certificates
-[CIS hardening explanation]: /snap/explanation/security/cis
+[Certificates explanation]: /snap/explanation/security/#certificates
+[CIS hardening explanation]: /snap/explanation/security/#cis-hardening
 [How to install in air-gapped environments]:/snap/howto/install/offline/
 [How to harden your cluster]: /snap/howto/security/hardening.md
-[Security overview explanation]: /snap/explanation/security/security-overview
+[Security explanation]: /snap/explanation/security.md
 [CIS hardening]: /snap/explanation/security/cis
-[Cryptography in Canonical Kubernetes explanation]: /snap/explanation/security/crypto.md
+[Cryptography in Canonical Kubernetes explanation]: /snap/explanation/security/#cryptography
