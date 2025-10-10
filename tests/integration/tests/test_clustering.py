@@ -278,12 +278,12 @@ def test_concurrent_membership_restart_operations(instances: List[harness.Instan
 
 @pytest.mark.node_count(4)
 @pytest.mark.tags(tags.NIGHTLY)
-@pytest.mark.xfail(
-    reason="The node join while there is a dead node does not work currently due to a microcluster bug."
-)
 def test_node_join_succeeds_when_original_control_plane_is_down(
     instances: List[harness.Instance],
 ):
+    """Test that joining a permanently down control plane node can
+    completely be removed from the cluster and does not affect future joins."""
+
     cluster_node = instances[0]
     joining_cp_A = instances[1]
     joining_cp_B = instances[2]
@@ -302,27 +302,21 @@ def test_node_join_succeeds_when_original_control_plane_is_down(
     for node in [cluster_node, joining_cp_A, joining_cp_B]:
         assert "control-plane" in util.get_local_node_status(node)
 
-    join_token_C = util.get_join_token(cluster_node, joining_cp_C)
-
-    cluster_node_id = cluster_node.id
     cluster_node.delete()
 
+    util.stubbornly(retries=5, delay_s=10).on(joining_cp_A).until(
+        lambda p: "NotReady" in p.stdout.decode()
+    ).exec(["k8s", "kubectl", "get", "node", cluster_node.id])
+
+    joining_cp_A.exec(["k8s", "remove-node", cluster_node.id, "--force"])
+
+    # Now join a new node to verify that the cluster is still functional.
+    join_token_C = util.get_join_token(joining_cp_A, joining_cp_C)
     util.join_cluster(joining_cp_C, join_token_C)
 
     util.wait_until_k8s_ready(joining_cp_A, [joining_cp_A, joining_cp_B, joining_cp_C])
 
     nodes = util.ready_nodes(joining_cp_A)
-    assert (
-        len(nodes) == 3
-    ), "three control plane nodes should be ready, original node is still down"
-
-    node_names = {node["metadata"]["name"] for node in nodes}
-    assert {joining_cp_A.id, joining_cp_B.id, joining_cp_C.id}.issubset(
-        node_names
-    ), f"{joining_cp_A.id}, {joining_cp_B.id}, and {joining_cp_C.id} should be ready and in the cluster"
-
-    joining_cp_C.exec(["k8s", "remove-node", cluster_node_id, "--force"])
-    nodes = util.ready_nodes(joining_cp_C)
     assert (
         len(nodes) == 3
     ), "three control plane nodes should be ready, original node is removed"
