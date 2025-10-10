@@ -317,6 +317,36 @@ Verify the Cilium pod has restarted and is now in the running state:
 sudo k8s kubectl get pods -n kube-system
 ````
 
+## Remove a permanently lost node from the cluster
+
+A node that is permanently lost cannot be removed with `k8s remove-node`:
+
+```sh
+Error: Failed to remove node "t1" from the cluster.
+
+The error was: failed after potential retry: wait check failed: failed to POST /k8sd/cluster/remove:
+failed to delete cluster member t1: Post "https://10.23.245.80:6400/core/internal/hooks/pre-remove?target=t1":
+Unable to connect to "10.23.245.80:6400": dial tcp 10.23.245.80:6400: connect: no route to host
+```
+
+````{dropdown} Explanation
+By default, `k8s remove-node` attempts to contact the node being removed
+to execute cleanup routines.
+If the node is unreachable, the command fails with the error shown above.
+This can also happen if the node membership tracked by `k8sd` becomes
+inconsistent with the Kubernetes datastore.
+
+````
+
+````{dropdown} Solution
+
+Use the `--force` flag to forcibly remove the node:
+
+```
+sudo k8s remove-node --force <node-name>
+```
+````
+
 <!-- Links -->
 
 [troubleshooting how-to guide]: ../howto/troubleshooting.md
