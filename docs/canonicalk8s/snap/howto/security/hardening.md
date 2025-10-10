@@ -8,7 +8,8 @@ with industry-standard frameworks such as CIS.
 default. However, since implementing all security recommendations
 would come at the expense of compatibility and/or performance we expect
 cluster administrators to follow post deployment hardening steps based on their
-needs. Please evaluate the implications of each configuration before applying it.
+needs. Please evaluate the implications of each configuration before applying
+it.
 
 ```{note}
 For DISA STIG or FIPS 140-3 compliance, please see our [how to set up a FIPS

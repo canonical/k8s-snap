@@ -20,7 +20,8 @@ This guide assumes the following:
 - Internet access on the machine
 - You have Ubuntu Pro enabled on your system. For more information, see
   [Ubuntu Pro documentation]
-- You have FIPS enabled on your machine. See our [FIPS installation guide] for guideance
+- You have FIPS enabled on your machine. See our [FIPS installation guide] for
+guidance
 
 ## DISA STIG host compliance
 
@@ -107,7 +108,6 @@ Through this configuration file, the following rules are applied:
 | [V-242402], [V-242403], [V-242461], [V-242462], [V-242463], [V-242464], [V-242465] |The Kubernetes API Server must have an audit log configured|
 | [V-254800] | Kubernetes must have a Pod Security Admission control file configured |
 | [V-242400] | The Kubernetes API server must have Alpha APIs disabled|
-| [V-254800] | Kubernetes must have a Pod Security Admission control file configured |
 | [V-242384] | The Kubernetes Scheduler must have secure binding |
 | [V-242385] | The Kubernetes Controller Manager must have secure binding |
 
@@ -133,18 +133,8 @@ and join the cluster with the DISA STIG control plane configuration file:
 sudo k8s join-cluster --file=/var/snap/k8s/common/etc/templates/disa-stig/control-plane.yaml <join-token>
 ```
 
-Through this configuration file, the following rules are applied:
-
-| STIG | Summary |
-|------|---------|
-| [V-242434] | Kubernetes Kubelet must enable kernel protection |
-| [V-245541] | Kubernetes Kubelet must not disable timeouts |
-| [V-242402], [V-242403], [V-242461], [V-242462], [V-242463], [V-242464],[V-242465] | The Kubernetes API Server must have an audit log configured |
-| [V-254800] | Kubernetes must have a Pod Security Admission control file configured|
-| [V-242400] | The Kubernetes API server must have Alpha APIs disabled |
-| [V-254800] | Kubernetes must have a Pod Security Admission control file configured |
-| [V-242384] | The Kubernetes Scheduler must have secure binding |
-| [V-242385] | The Kubernetes Controller Manager must have secure binding |
+Through this configuration file, the same rules that were applied to the first
+control plane node have been applied.
 
 ### Join worker nodes
 
