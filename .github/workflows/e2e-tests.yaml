@@ -73,6 +73,18 @@ on:
               "jammy",
               "large"
             ],
+            "tests/test_node_availability_zone.py::test_node_availability_zone[etcd-True]": [
+              "self-hosted",
+              "linux",
+              "jammy",
+              "large"
+            ],
+            "tests/test_node_availability_zone.py::test_node_availability_zone[etcd-False]": [
+              "self-hosted",
+              "linux",
+              "jammy",
+              "large"
+            ],
             "tests/test_version_upgrades.py::test_version_downgrades_with_rollback": [
               "self-hosted",
               "linux",
@@ -206,7 +218,7 @@ jobs:
         if: ${{ inputs.substrate == 'lxd' }}
         uses: canonical/setup-lxd@v0.1.3
         with:
-          bridges: "lxdbr0,dualstack-br0,ipv6-br0"
+          bridges: "lxdbr0,dualstack-br0,ipv6-br0,jumbo-br0"
       - name: Setup Multipass
         if: ${{ inputs.substrate == 'multipass' }}
         uses: ./.github/actions/setup-multipass
