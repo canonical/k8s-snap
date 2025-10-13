@@ -73,6 +73,18 @@ on:
               "jammy",
               "large"
             ],
+            "tests/test_node_availability_zone.py::test_node_availability_zone[etcd-True]": [
+              "self-hosted",
+              "linux",
+              "jammy",
+              "large"
+            ],
+            "tests/test_node_availability_zone.py::test_node_availability_zone[etcd-False]": [
+              "self-hosted",
+              "linux",
+              "jammy",
+              "large"
+            ],
             "tests/test_version_upgrades.py::test_version_downgrades_with_rollback": [
               "self-hosted",
               "linux",
