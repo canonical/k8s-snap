@@ -291,3 +291,90 @@ def get_pod_ip(instance: harness.Instance, pod_name, namespace="default"):
     )
     pod_info = json.loads(result.stdout)
     return pod_info["status"]["podIP"]
+
+
+@pytest.mark.node_count(2)
+@pytest.mark.disable_k8s_bootstrapping()
+@pytest.mark.network_type("dualnic")
+@pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.skipif(
+    config.SUBSTRATE == "multipass", reason="Not implemented for multipass"
+)
+def test_dual_nic(instances: List[harness.Instance]):
+    cp_instance = instances[0]
+    worker_instance = instances[1]
+
+    cp_instance.exec(["k8s", "bootstrap"])
+
+    join_token_worker = util.get_join_token(cp_instance, worker_instance, "--worker")
+    worker_instance.exec(["k8s", "join-cluster", join_token_worker])
+
+    util.wait_until_k8s_ready(cp_instance, instances)
+    util.wait_for_network(cp_instance)
+
+    # set up multus-cni and wait for it to be ready
+    manifest = MANIFESTS_DIR / "multus-cni-setup.yaml"
+    cp_instance.exec(
+        ["k8s", "kubectl", "apply", "-f", "-"],
+        input=manifest.read_bytes(),
+    )
+
+    util.stubbornly(retries=3, delay_s=1).on(cp_instance).exec(
+        [
+            "k8s",
+            "kubectl",
+            "wait",
+            "--for=condition=ready",
+            "pod",
+            "-l",
+            "name=multus",
+            "--timeout",
+            "180s",
+            "-n",
+            "kube-system",
+        ]
+    )
+
+    # define a network attachment for the second nic
+    manifest = MANIFESTS_DIR / "multus-network-attachment.yaml"
+    cp_instance.exec(
+        ["k8s", "kubectl", "apply", "-f", "-"],
+        input=manifest.read_bytes(),
+    )
+
+    manifest = MANIFESTS_DIR / "nginx-dual-nic.yaml"
+    cp_instance.exec(
+        ["k8s", "kubectl", "apply", "-f", "-"],
+        input=manifest.read_bytes(),
+    )
+
+    util.stubbornly(retries=3, delay_s=1).on(cp_instance).exec(
+        [
+            "k8s",
+            "kubectl",
+            "wait",
+            "--for=condition=ready",
+            "pod",
+            "-l",
+            "app=nginx",
+            "--timeout",
+            "180s",
+        ]
+    )
+
+    number_of_devices = cp_instance.exec(
+        [
+            "k8s",
+            "kubectl",
+            "exec",
+            "nginx",
+            "--",
+            "/bin/bash",
+            "-c",
+            "ls /sys/class/net | grep -v lo | wc -l",
+        ],
+        text=True,
+        capture_output=True,
+    )
+
+    assert number_of_devices.stdout.strip() == "2"
