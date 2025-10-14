@@ -1,0 +1,9 @@
+Created a PR for sqa builds results
+Looked into CNCF tests 
+    1) at least some of them were out of disk
+    2) Looked into GH runners: they have prebaked tools like for android
+    3) Removed them added approximately 16G to the previous 21G
+    4) Now tests are generally passing
+Wanted to test CNCF to see it solves the problem
+    1) Created another PR to fix e2e workflow dispatch inputs
+    2) Testing it right now

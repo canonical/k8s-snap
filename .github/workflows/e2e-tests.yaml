@@ -6,15 +6,15 @@ permissions:
 on:
   workflow_call:
     inputs:
-      arch:
+      arch: &arch
         description: Job runner architecture (amd64 or arm64)
         default: amd64
         type: string
-      os:
+      os: &os
         description: LXD image to use when running e2e tests
         default: ubuntu:24.04
         type: string
-      substrate:
+      substrate: &substrate
         description: Substrate to use when running e2e tests
         default: lxd
         type: string
@@ -25,20 +25,20 @@ on:
       channel:
         description: k8s snap channel
         type: string
-      test-tags:
+      test-tags: &test-tags
         description: Integration test filter tags (e.g. pull_request, up_to_weekly)
         default: pull_request
         type: string
-      flavor:
+      flavor: &flavor
         description: Test flavor (e.g. strict), leave empty for classic
         default: ""
         type: string
-      extra-test-args:
+      extra-test-args: &extra-test-args
         description: |
           Additional pytest arguments, use "-k <test_name>" to run a specific test
         default: ""
         type: string
-      runner-tags:
+      runner-tags: &runner-tags
         description: |
           Optional dictionary mapping test names to specific runner and tags.
           This is useful if specific tests require more powerful/larger runners, e.g. for version upgrade tests.
@@ -55,49 +55,19 @@ on:
               "jammy",
               "large"
             ],
-            "tests/test_airgapped.py::test_airgapped_with_image_mirror": [
-              "self-hosted",
-              "linux",
-              "jammy",
-              "large"
-            ],
-            "tests/test_node_availability_zone.py::test_node_availability_zone[k8s-dqlite-False]": [
-              "self-hosted",
-              "linux",
-              "jammy",
-              "large"
-            ],
-            "tests/test_node_availability_zone.py::test_node_availability_zone[k8s-dqlite-True]": [
-              "self-hosted",
-              "linux",
-              "jammy",
-              "large"
-            ],
-            "tests/test_node_availability_zone.py::test_node_availability_zone[etcd-True]": [
-              "self-hosted",
-              "linux",
-              "jammy",
-              "large"
-            ],
-            "tests/test_node_availability_zone.py::test_node_availability_zone[etcd-False]": [
-              "self-hosted",
-              "linux",
-              "jammy",
-              "large"
-            ],
             "tests/test_version_upgrades.py::test_version_downgrades_with_rollback": [
               "self-hosted",
               "linux",
               "jammy",
               "large"
-            ],
+            ]
           }
-      extra-test-env:
+      extra-test-env: &extra-test-env
         description: 'Additional environment variables in KEY1=VALUE1,KEY2=VALUE2 format'
         type: string
         required: false
         default: ''
-      parallel:
+      parallel: &parallel
         description: Run tests in parallel using GitHub Actions matrix
         type: boolean
         default: true
@@ -111,43 +81,19 @@ on:
 
   workflow_dispatch:
     inputs:
-      arch:
-        description: Job runner architecture (amd64 or arm64)
-        default: amd64
-        type: string
-      os:
-        description: LXD image to use when running e2e tests
-        default: ubuntu:24.04
-        type: string
-      substrate:
-        description: Substrate to use when running e2e tests
-        default: lxd
-        type: string
+      arch: *arch
+      os: *os
+      substrate: *substrate
       channel:
         description: k8s snap channel
         type: string
         default: latest/edge
-      test-tags:
-        description: Integration test filter tags (e.g. pull_request, up_to_weekly)
-        default: pull_request
-        type: string
-      flavor:
-        description: Test flavor (e.g. strict). Leave empty for classic
-        default: ""
-        type: string
-      extra-test-args:
-        description: Additional pytest arguments
-        default: ""
-        type: string
-      extra-test-env:
-        description: 'Additional environment variables in KEY1=VALUE1,KEY2=VALUE2 format'
-        type: string
-        required: false
-        default: ''
-      parallel:
-        description: Run tests in parallel using GitHub Actions matrix
-        type: boolean
-        default: true
+      runner-tags: *runner-tags
+      test-tags: *test-tags
+      flavor: *flavor
+      extra-test-args: *extra-test-args
+      extra-test-env: *extra-test-env
+      parallel: *parallel
 
 jobs:
   prepare:
