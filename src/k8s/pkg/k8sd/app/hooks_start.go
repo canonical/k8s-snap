@@ -19,16 +19,16 @@ import (
 )
 
 func (a *App) onStart(ctx context.Context, s state.State) error {
+	if err := a.ensureRunningServices(ctx); err != nil {
+		return fmt.Errorf("failed to ensure running services: %w", err)
+	}
+
 	// start a goroutine to mark the node as running
 	go func() {
 		if err := a.markNodeReady(ctx, s); err != nil {
 			log.FromContext(ctx).Error(err, "Failed to mark node as ready")
 		}
 	}()
-
-	if err := a.ensureRunningServices(ctx); err != nil {
-		return fmt.Errorf("failed to ensure running services: %w", err)
-	}
 
 	// tune system settings if enabled and necessary
 	if !a.snap.Strict() {
@@ -175,10 +175,7 @@ func (a *App) ensureRunningServices(ctx context.Context) error {
 	if isWorker {
 		log.Info("Starting worker services")
 		if err := control.RetryFor(ctx, 5, 5*time.Second, func() error {
-			if err := snaputil.StartWorkerServices(ctx, a.snap); err != nil {
-				return fmt.Errorf("failed to start services: %w", err)
-			}
-			return nil
+			return snaputil.StartWorkerServices(ctx, a.snap)
 		}); err != nil {
 			return fmt.Errorf("failed to start worker services after retry: %w", err)
 		}
@@ -193,10 +190,7 @@ func (a *App) ensureRunningServices(ctx context.Context) error {
 		log.Info("Starting control-plane services")
 
 		if err := control.RetryFor(ctx, 5, 5*time.Second, func() error {
-			if err := startControlPlaneServices(ctx, a.snap, cfg.Datastore.GetType()); err != nil {
-				return fmt.Errorf("failed to start services: %w", err)
-			}
-			return nil
+			return startControlPlaneServices(ctx, a.snap, cfg.Datastore.GetType())
 		}); err != nil {
 			return fmt.Errorf("failed to start control-plane services: %w", err)
 		}
