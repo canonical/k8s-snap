@@ -111,6 +111,10 @@ jobs:
       matrix:
         test: ${{ fromJson(needs.prepare.outputs.tests) }}
     steps:
+      - name: Node Cleanup
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force
       - name: Check out code
         uses: actions/checkout@v4
       - name: Setup Python
