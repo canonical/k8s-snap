@@ -202,14 +202,10 @@ jobs:
       matrix:
         test: ${{ inputs.parallel && fromJson(needs.prepare.outputs.tests) || fromJson('["e2e-test"]') }}
     steps:
-      - name: Node disk size before clean up
-        run: df -h
       - name: Node Cleanup
         run: |
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
           sudo docker image prune --all --force
-      - name: Node disk size after clean up
-        run: df -h
       - name: Check out code
         uses: actions/checkout@v4
       - name: Setup Python
