@@ -206,7 +206,7 @@ levels, and configuration options.
 ### Kubernetes API Server audit log
 
 This applies to rules [V-242402], [V-242403], [V-242461], [V-242462],
-[V-242463],[V-242464], [V-242465]. The STIG templates we provide to
+[V-242463],[V-242464] and [V-242465]. The STIG templates we provide to
 bootstrap/join nodes configures the Kubernetes
 API servers audit settings and policy to comply with these recommendations.
 
@@ -226,10 +226,31 @@ namespace is more suited to your needs
 [upstream audit instructions] and adjust the `--audit-policy-file` path used
 when you bootstrap/join nodes to use it.
 
-Canonical Kubernetes does not enable audit logging by default as it may incur
+In the default bootstrap configuration, Canonical Kubernetes does not enable
+audit logging as it may incur
 performance penalties in the form of increased disk I/O, which can lead to
 slower response times and reduced overall cluster efficiency, especially under
 heavy workloads.
+
+## Manual checks
+
+There are certain rules that must be completed manually in order to achieve
+DISA STIG compliance.
+
+- [V-242383]  User-managed resources must be created in dedicated namespaces so
+you must manually inspect all services in the default namespace
+- [V-242410], [V-242411], [V-242412], [V-242413] The Kubernetes API Server,
+Scheduler, Controllers and etcd must enforce ports, protocols, and services
+(PPS) that adhere to the Ports, Protocols, and Services Management Category
+Assurance List (PPSM CAL). The {{product}} [ports and services] must be
+manually reviewed in accordance with this policy
+- [V-242414] The Kubernetes cluster must use non-privileged host ports for user
+pods so you must manually inspect all pods in the default namespace
+- [V-242415] Secrets in Kubernetes must not be stored as environment variables
+so you must manually inspect all pods in the default namespace
+- [V-242417] Kubernetes must separate user functionality
+so you must manually inspect all pods in the default namespace
+
 
 ## Next steps
 
@@ -239,6 +260,7 @@ compliant. Be aware that some rules need to be upheld when you add workloads
 to your cluster.
 
 <!-- Links -->
+[ports and services]: /snap/reference/ports-and-services/
 [FIPS installation guide]: fips.md
 [Kubernetes STIG]: https://www.stigviewer.com/stig/kubernetes/
 [DISA STIG auditing page]: snap/reference/disa-stig-audit.md
@@ -264,3 +286,11 @@ to your cluster.
 [V-242385]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242385
 [V-242393]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242393
 [V-242394]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242394
+[V-242383]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242383
+[V-242410]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242410
+[V-242411]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242411
+[V-242412]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242412
+[V-242413]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242413
+[V-242414]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242414
+[V-242415]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242415
+[V-242417]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242417
