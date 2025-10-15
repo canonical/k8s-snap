@@ -302,13 +302,14 @@ def test_node_join_succeeds_when_original_control_plane_is_down(
     for node in [cluster_node, joining_cp_A, joining_cp_B]:
         assert "control-plane" in util.get_local_node_status(node)
 
+    cluster_node_id = cluster_node.id
     cluster_node.delete()
 
     util.stubbornly(retries=5, delay_s=10).on(joining_cp_A).until(
         lambda p: "NotReady" in p.stdout.decode()
-    ).exec(["k8s", "kubectl", "get", "node", cluster_node.id])
+    ).exec(["k8s", "kubectl", "get", "node", cluster_node_id])
 
-    joining_cp_A.exec(["k8s", "remove-node", cluster_node.id, "--force"])
+    joining_cp_A.exec(["k8s", "remove-node", cluster_node_id, "--force"])
 
     # Now join a new node to verify that the cluster is still functional.
     join_token_C = util.get_join_token(joining_cp_A, joining_cp_C)
