@@ -101,7 +101,7 @@ running in FIPS mode and activate internal FIPS-related settings
 accordingly.
 
 ```{attention}
-If you intend to apply DISA STIG hardening to your cluster, go to the [Canonical Kubernetes DISA STIG deployment guide] to get detailed instructions on deploying with a stricter bootstrap configuration file or joining the cluster with a stricter join configuration file.
+If you intend to apply DISA STIG hardening to your cluster, go to the [Canonical Kubernetes DISA STIG deployment guide](disa-stig.md) to get detailed instructions on deploying with a stricter bootstrap configuration file or joining the cluster with a stricter join configuration file.
 ```
 
 After the snap installation completes, you can bootstrap the node as usual:
@@ -171,5 +171,4 @@ and will revert to the default non-FIPS settings.
 [core22]: https://snapcraft.io/core22
 [security patches]: <https://ubuntu.com/security/certifications/docs/16-18/fips-updates>
 [disabling FIPS with Ubuntu]: https://documentation.ubuntu.com/pro-client/en/latest/howtoguides/enable_fips/#how-to-disable-fips
-[Canonical Kubernetes DISA STIG deployment guide]: disa-stig.md
 
