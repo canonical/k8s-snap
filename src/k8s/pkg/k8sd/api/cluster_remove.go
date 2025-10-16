@@ -57,6 +57,22 @@ func (e *Endpoints) postClusterRemove(s state.State, r *http.Request) response.R
 		}
 	}
 
+	if _, ok := cfg.Annotations[apiv1_annotations.AnnotationSkipCleanupKubernetesNodeOnRemove]; !ok {
+		log.Info("Remove node from Kubernetes cluster")
+		if err := removeNodeFromKubernetes(ctx, snap, req.Name); err != nil {
+			if req.Force {
+				// With force=true, we want to cleanup all out-of-sync mentions of this node.
+				// It might be that the node is already gone from k8s, but not from microcluster.
+				// So we log the error, but continue.
+				log.Error(err, "Failed to remove node from Kubernetes, but continuing due to force=true")
+			} else {
+				return response.InternalError(fmt.Errorf("failed to remove node from Kubernetes: %w", err))
+			}
+		}
+	} else {
+		log.Info("Skipping Kubernetes node removal as per annotation")
+	}
+
 	// The control-plane check relies on the microcluster membership being correct. If the membership is out-of-sync, we might
 	// mis-classify a control-plane node as a worker node. Hence we always proceed with the removal
 	// if force=true, regardless of the role of the node.
@@ -80,23 +96,6 @@ func (e *Endpoints) postClusterRemove(s state.State, r *http.Request) response.R
 				return response.InternalError(fmt.Errorf("failed to delete node from microcluster: %w", err))
 			}
 		}
-	}
-
-	if _, ok := cfg.Annotations[apiv1_annotations.AnnotationSkipCleanupKubernetesNodeOnRemove]; !ok {
-		log.Info("Remove node from Kubernetes cluster")
-		if err := removeNodeFromKubernetes(ctx, snap, req.Name); err != nil {
-			if req.Force {
-				// With force=true, we want to cleanup all out-of-sync mentions of this node.
-				// It might be that the node is already gone from k8s, but not from microcluster.
-				// So we log the error, but continue.
-				log.Error(err, "Failed to remove node from Kubernetes, but continuing due to force=true")
-			} else {
-				return response.InternalError(fmt.Errorf("failed to remove node from Kubernetes: %w", err))
-			}
-		}
-		return response.SyncResponse(true, nil)
-	} else {
-		log.Info("Skipping Kubernetes node removal as per annotation")
 	}
 
 	return response.SyncResponse(true, &apiv1.RemoveNodeResponse{})
