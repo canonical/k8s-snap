@@ -48,7 +48,8 @@ claim to be. The following methods are included by default:
 
 - The Kubernetes API server is configured to trust specific client certificates.
 - Certificates are issued to admin users during cluster creation.
-- These can be seen by running `k8s config` on a control plane node.
+- These can be seen on the snap by running `k8s config` on a control plane 
+node.
 
 #### Service accounts
 
