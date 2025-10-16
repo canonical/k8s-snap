@@ -11,7 +11,7 @@ permissions:
 jobs:
   documentation-checks:
     #    uses: canonical/documentation-workflows/.github/workflows/documentation-checks.yaml@main
-    with:
+    #    with:
       #   working-directory: "docs/canonicalk8s"
       #  fetch-depth: 0
     runs-on: ubuntu-latest
