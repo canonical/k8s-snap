@@ -42,4 +42,3 @@ func StartSpinner(ctx context.Context, w io.Writer, msg string) func() {
 		<-done
 	}
 }
-
