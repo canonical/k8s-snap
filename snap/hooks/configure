@@ -7,3 +7,7 @@ k8s::common::setup_env
 k8s::cmd::k8s x-snapd-config reconcile
 
 k8s::containerd::ensure_systemd_defaults
+
+# Sanitize kube-apiserver feature gates that
+# do not apply to this version of Kubernetes.
+k8s::apiserver::sanitize_feature_gates
