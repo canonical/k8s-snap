@@ -262,8 +262,8 @@ to your cluster.
 <!-- Links -->
 [ports and services]: /snap/reference/ports-and-services/
 [FIPS installation guide]: fips.md
-[Kubernetes STIG]: https://www.stigviewer.com/stig/kubernetes/
-[DISA STIG auditing page]: snap/reference/disa-stig-audit.md
+[Kubernetes STIG]: https://stigviewer.com/stigs/kubernetes
+[DISA STIG auditing page]: /snap/reference/disa-stig-audit.md
 [usg tool]: https://documentation.ubuntu.com/security/docs/compliance/usg/
 [Ubuntu Pro documentation]: https://documentation.ubuntu.com/pro/start-here/#start-here
 [Kubernetes Pod Security Admission documentation]: https://kubernetes.io/docs/concepts/security/pod-security-admission/
