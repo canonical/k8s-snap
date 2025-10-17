@@ -108,6 +108,9 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			}
 
 			cmd.PrintErrln("Joining the cluster. This may take a few seconds, please wait.")
+
+			stopHB := cmdutil.StartSpinner(cmd.Context(), cmd.ErrOrStderr(), "Still working...")
+
 			if err := client.JoinCluster(cmd.Context(), apiv1.JoinClusterRequest{
 				Name:    opts.name,
 				Address: address,
@@ -119,6 +122,9 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				env.Exit(1)
 				return
 			}
+
+			// stop spinner before printing final output
+			stopHB()
 
 			outputFormatter.Print(JoinClusterResult{Name: opts.name})
 		},

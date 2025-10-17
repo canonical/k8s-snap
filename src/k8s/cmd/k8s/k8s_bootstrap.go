@@ -152,12 +152,17 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 
 			cmd.PrintErrln("Bootstrapping the cluster. This may take a few seconds, please wait.")
 
+			stopHB := cmdutil.StartSpinner(cmd.Context(), cmd.ErrOrStderr(), "Still working...")
+
 			response, err := client.BootstrapCluster(cmd.Context(), apiv1.BootstrapClusterRequest{
 				Name:    opts.name,
 				Address: address,
 				Config:  bootstrapConfig,
 				Timeout: opts.timeout,
 			})
+			// stop spinner before printing final output to avoid in-line interleaving
+			stopHB()
+
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to bootstrap the cluster.\n\nThe error was: %v\n", err)
 				env.Exit(1)

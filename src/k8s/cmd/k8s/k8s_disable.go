@@ -85,6 +85,9 @@ func newDisableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			}
 
 			cmd.PrintErrf("Disabling %s from the cluster. This may take a few seconds, please wait.\n", strings.Join(args, ", "))
+
+			stopHB := cmdutil.StartSpinner(cmd.Context(), cmd.ErrOrStderr(), "Still working...")
+
 			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
 			cobra.OnFinalize(cancel)
 
@@ -99,10 +102,15 @@ func newDisableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			}
 
 			if err := client.SetClusterConfig(ctx, apiv1.SetClusterConfigRequest{Config: config}); err != nil {
+				// stop spinner before printing error
+				stopHB()
 				cmd.PrintErrf("Error: Failed to disable %s from the cluster.\n\nThe error was: %v\n", strings.Join(args, ", "), err)
 				env.Exit(1)
 				return
 			}
+
+			// stop spinner before printing final output
+			stopHB()
 
 			outputFormatter.Print(DisableResult{Features: args})
 		},
