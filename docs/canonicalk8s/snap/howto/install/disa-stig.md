@@ -25,8 +25,8 @@ guidance
 
 ## DISA STIG host compliance
 
-DISA STIG host compliance is achieved by running the [usg tool] that is also
-part of the PRO tool set. To install the usg tool:
+DISA STIG host compliance is achieved by running the [USG tool] that is also
+part of the PRO tool set. To install the USG tool:
 
 ```
 sudo pro enable usg
@@ -262,9 +262,9 @@ to your cluster.
 <!-- Links -->
 [ports and services]: /snap/reference/ports-and-services/
 [FIPS installation guide]: fips.md
-[Kubernetes STIG]: https://www.stigviewer.com/stig/kubernetes/
-[DISA STIG auditing page]: snap/reference/disa-stig-audit.md
-[usg tool]: https://documentation.ubuntu.com/security/docs/compliance/usg/
+[Kubernetes STIG]: https://stigviewer.com/stigs/kubernetes
+[DISA STIG auditing page]: /snap/reference/disa-stig-audit.md
+[USG tool]: https://documentation.ubuntu.com/security/docs/compliance/usg/
 [Ubuntu Pro documentation]: https://documentation.ubuntu.com/pro/start-here/#start-here
 [Kubernetes Pod Security Admission documentation]: https://kubernetes.io/docs/concepts/security/pod-security-admission/
 [upstream instructions]: https://kubernetes.io/docs/tasks/configure-pod-container/enforce-standards-admission-controller/

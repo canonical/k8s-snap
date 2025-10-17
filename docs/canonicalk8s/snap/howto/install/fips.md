@@ -1,4 +1,4 @@
-# How to set up a FIPS compliant Kubernetes cluster
+# How to install a FIPS compliant Kubernetes cluster
 
 [FIPS 140-3] (Federal Information Processing Standards) ensures security
 compliance crucial for US government and regulated industries. This
@@ -143,7 +143,7 @@ sudo pro disable fips-updates
 For further information on how to disable FIPS on the host,
 consult the [disabling FIPS with Ubuntu] guide.
 
-You can also change the [core22] snap back to the default
+You can also change the core22 snap back to the default
 non-FIPS channel:
 
 ```

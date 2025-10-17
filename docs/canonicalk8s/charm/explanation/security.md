@@ -28,4 +28,3 @@ with multiple Juju users.
 [Machine authentication]: https://canonical-juju.readthedocs-hosted.com/en/latest/user/reference/ssh-key/
 [Working with multiple users]: https://canonical-juju.readthedocs-hosted.com/en/latest/user/howto/manage-users
 [Juju user types]: https://canonical-juju.readthedocs-hosted.com/en/latest/user/reference/user/
-[Snapcraft documentation]: https://snapcraft.io/docs/security-policies

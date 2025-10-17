@@ -153,6 +153,7 @@ deprecations
 deprovisioned
 dir
 DISA
+disa
 discoverable
 Diátaxis
 DMA
@@ -422,6 +423,7 @@ proxied
 provisioner
 PRs
 PSP
+PSS
 Pushgateway
 PV
 PVCs
@@ -442,6 +444,7 @@ README
 readOnlyPort
 regctl
 regsync
+remediations
 reources
 RequestResponse
 Requirer
@@ -494,10 +497,12 @@ sshd
 SSL
 SSLv
 stackexchange
+stateful
 staticPodPath
 stderr
 stdout
 stgraber
+stig
 STIG
 STIGs
 STONITH
@@ -549,6 +554,7 @@ unoptimized
 unschedulable
 unsquashed
 upgrader
+USG
 url
 uuid
 UV
