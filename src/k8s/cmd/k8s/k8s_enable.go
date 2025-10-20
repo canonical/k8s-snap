@@ -83,18 +83,18 @@ func newEnableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			cmd.PrintErrf("Enabling %s on the cluster. This may take a few seconds, please wait.\n", strings.Join(args, ", "))
-
-			stopHB := cmdutil.StartSpinner(cmd.Context(), cmd.ErrOrStderr(), "Still working...")
+			stopHB := cmdutil.StartSpinner(cmd.Context(), cmd.ErrOrStderr(), fmt.Sprintf("Enabling %s on the cluster. This may take a few seconds, please wait.", strings.Join(args, ", ")))
 
 			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
 			cobra.OnFinalize(cancel)
 
 			if _, initialized, err := client.NodeStatus(cmd.Context()); err != nil {
+				stopHB()
 				cmd.PrintErrf("Error: Failed to check the current node status.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			} else if !initialized {
+				stopHB()
 				cmd.PrintErrln("Error: The node is not part of a Kubernetes cluster. You can bootstrap a new cluster with:\n\n  sudo k8s bootstrap")
 				env.Exit(1)
 				return

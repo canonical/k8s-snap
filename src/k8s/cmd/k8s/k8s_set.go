@@ -58,7 +58,7 @@ func newSetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
 			cobra.OnFinalize(cancel)
 
-			stopHB := cmdutil.StartSpinner(ctx, cmd.ErrOrStderr(), "Still working...")
+			stopHB := cmdutil.StartSpinner(ctx, cmd.ErrOrStderr(), "Applying config changes...")
 
 			if err := client.SetClusterConfig(ctx, apiv1.SetClusterConfigRequest{Config: config}); err != nil {
 				// stop spinner before printing error

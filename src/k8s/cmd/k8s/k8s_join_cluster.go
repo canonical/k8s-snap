@@ -107,9 +107,7 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			cmd.PrintErrln("Joining the cluster. This may take a few seconds, please wait.")
-
-			stopHB := cmdutil.StartSpinner(cmd.Context(), cmd.ErrOrStderr(), "Still working...")
+			stopHB := cmdutil.StartSpinner(cmd.Context(), cmd.ErrOrStderr(), "Joining the cluster. This may take a few seconds, please wait.")
 
 			if err := client.JoinCluster(cmd.Context(), apiv1.JoinClusterRequest{
 				Name:    opts.name,
@@ -118,6 +116,7 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				Config:  joinClusterConfig,
 				Timeout: opts.timeout,
 			}); err != nil {
+				stopHB()
 				cmd.PrintErrf("Error: Failed to join the cluster using the provided token.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return

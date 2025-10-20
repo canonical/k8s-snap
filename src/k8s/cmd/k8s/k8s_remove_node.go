@@ -53,10 +53,8 @@ func newRemoveNodeCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 
 			name := args[0]
 
-			cmd.PrintErrf("Removing %q from the Kubernetes cluster. This may take a few seconds, please wait.\n", name)
-
 			// Start a heartbeat to give users feedback while the blocking RPC runs.
-			stopHB := cmdutil.StartSpinner(cmd.Context(), cmd.ErrOrStderr(), "Still working...")
+			stopHB := cmdutil.StartSpinner(cmd.Context(), cmd.ErrOrStderr(), fmt.Sprintf("Removing %q from the cluster. This may take a few seconds, please wait.", name))
 
 			if err := client.RemoveNode(cmd.Context(), apiv1.RemoveNodeRequest{Name: name, Force: opts.force, Timeout: opts.timeout}); err != nil {
 				// Stop spinner before printing the error to avoid interleaving.

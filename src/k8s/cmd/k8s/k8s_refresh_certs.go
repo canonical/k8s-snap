@@ -112,9 +112,7 @@ func newRefreshCertsCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				ExtraSANs:         opts.extraSANs,
 			}
 
-			cmd.Println("Waiting for certificates to be created...")
-
-			stopHB := cmdutil.StartSpinner(ctx, cmd.ErrOrStderr(), "Still working...")
+			stopHB := cmdutil.StartSpinner(ctx, cmd.ErrOrStderr(), "Waiting for certificates to be created...")
 
 			runResponse, err := client.RefreshCertificatesRun(ctx, runRequest)
 			// stop spinner before printing final output or error
