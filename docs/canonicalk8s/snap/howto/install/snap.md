@@ -86,5 +86,5 @@ ready state.
 [channels page]: ../../explanation/channels
 [snap]: https://snapcraft.io/docs
 [snapd support]: https://snapcraft.io/docs/installing-snapd
-[bootstrap]: ../../reference/bootstrap-config-reference
+[bootstrap]: ../../reference/config-files/bootstrap-config
 [development env guide]: ./dev-env.md
