@@ -123,6 +123,48 @@ maintain the security standards required by FIPS. For example,
 ensure that your container images used for your applications can
 be used with the hosts FIPS compliant libraries.
 
+## Python FIPS compliance for workloads
+
+```{warning}
+Python FIPS compliance requires using system OpenSSL for cryptographic
+operations over non-FIPS compliant algorithms.
+```
+
+Python links to the system OpenSSL by default. On a FIPS-enabled host,
+algorithms that use the OpenSSL implementation will be FIPS compliant.
+However, Python contains builtin
+hashing algorithms that are not FIPS compliant (e.g. [MD5]). Building Python with
+`--without-builtin-hashlib-hashes` will remove these non-FIPS compliant algorithms.
+
+In order to confirm Python is referencing the system OpenSSL, run the following
+command to find the location of the _ssl module:
+
+```
+python3 -c 'import _ssl; print(_ssl.__file__)'
+```
+
+You will get an output similar to this:
+
+```
+/usr/lib/python3.13/lib-dynload/_ssl.cpython-313-x86_64-linux-gnu.so
+```
+
+Run [ldd] to print the shared libraries and look for libssl.so and libcrypto.so:
+
+```
+ldd /usr/lib/python3.13/lib-dynload/_ssl.cpython-313-x86_64-linux-gnu.so | grep -E 'libssl|libcrypto'
+```
+
+
+The output should be similar to this:
+```
+libssl.so.3 => /lib/x86_64-linux-gnu/libssl.so.3 (0x000075b68a51f000)
+libcrypto.so.3 => /lib/x86_64-linux-gnu/libcrypto.so.3 (0x000075b689e00000)
+```
+
+In cases where your output does not show the system's libssl and libcrypto,
+you need to ensure that your [ROCK] or docker image is either built with a FIPS-compliant
+OpenSSL, or is referencing the host's OpenSSL.
 
 ## Disable FIPS on an Ubuntu host machine
 
@@ -169,6 +211,8 @@ and will revert to the default non-FIPS settings.
 <!-- markdownlint-enable MD053 -->
 [firewall configuration]: /snap/howto/networking/ufw.md
 [core22]: https://snapcraft.io/core22
+[ldd]: https://man7.org/linux/man-pages/man1/ldd.1.html
+[ROCK]: https://documentation.ubuntu.com/rockcraft/stable/explanation/rocks/
 [security patches]: <https://ubuntu.com/security/certifications/docs/16-18/fips-updates>
 [disabling FIPS with Ubuntu]: https://documentation.ubuntu.com/pro-client/en/latest/howtoguides/enable_fips/#how-to-disable-fips
 
