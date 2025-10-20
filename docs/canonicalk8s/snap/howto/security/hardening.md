@@ -90,7 +90,7 @@ By default, the value is `Node,RBAC`
   to kubelets based on the pods they are scheduled to run.
 
  To apply RBAC to other cluster resources, see the upstream Kubernetes
- [RBAC guide][access_authn_authz].
+ [RBAC guide].
 
 
 #### Configure log auditing
@@ -334,7 +334,7 @@ assessment page].
 [upstream instructions]:https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
 [rate limits]:https://kubernetes.io/docs/reference/config-api/apiserver-eventratelimit.v1alpha1
 [controlling_access]: https://kubernetes.io/docs/concepts/security/controlling-access/
-[access_authn_authz]: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+[RBAC guide]: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
 [encryption_at_rest]: https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/
 [authorization_mode]: https://kubernetes.io/docs/reference/access-authn-authz/authorization/#authorization-modules
 [how to set up a FIPS compliant Kubernetes cluster]:/snap/howto/install/fips.md
