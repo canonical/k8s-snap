@@ -6,7 +6,7 @@ Information System Agency (DISA) for the U.S. Department of Defense (DoD).
 The [Kubernetes STIG] contains guidelines on how to check and remediate various
 potential security concerns for a Kubernetes deployment. Here we have tailored
 these checks to work for our {{product}} cluster that is deployed using the
-[deploying a DISA STIG hardened cluster] guide.
+[deploy a DISA STIG hardened cluster] guide.
 
 ## Guideline classes overview
 
@@ -7347,7 +7347,7 @@ The final line of the output will be `PASS`.
 <!-- Links -->
 [DISA STIG hardening deployment guide]: /snap/howto/install/disa-stig.md
 [ports and services]:/snap/reference/ports-and-services.md
-[post-deployment hardening]: hardening.md
+[post-deployment hardening]: /snap/howto/security/hardening.md
 [Kubernetes STIG]:https://stigviewer.com/stigs/kubernetes/
 [hardening guide page]: hardening.md#set-event-rate-limits
 [V-242381]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242381
@@ -7441,4 +7441,4 @@ The final line of the output will be `PASS`.
 [V-242466]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242466
 [V-242467]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-242467
 [V-245541]:https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-245541
-[deploying a DISA STIG hardened cluster]: TODO
+[deploy a DISA STIG hardened cluster]: /snap/howto/install/disa-stig.md
