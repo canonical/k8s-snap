@@ -8,7 +8,7 @@ would come at the expense of compatibility and/or performance we expect
 cluster administrators to follow [post-deployment hardening steps] based on
 their needs. This guide covers using [kube-bench] to automatically check whether
 your Kubernetes clusters are configured according to the
-[CIS Kubernetes Benchmark]
+[CIS Kubernetes Benchmark].
 
 
 ## Prerequisites
@@ -129,5 +129,5 @@ Review the warnings detected and address any failing checks you see fit.
 [kube-bench]:https://aquasecurity.github.io/kube-bench/v0.6.15/
 [CIS Kubernetes Benchmark]:https://www.cisecurity.org/benchmark/kubernetes
 [getting started]: /snap/tutorial/getting-started
-[post-deployment hardening steps]: hardening.md
+[post-deployment hardening]: hardening.md
 [kube-bench release]: https://github.com/aquasecurity/kube-bench/releases
