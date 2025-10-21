@@ -6,6 +6,7 @@ import (
 
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/k8sd/types"
+	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils/control"
 )
@@ -147,7 +148,7 @@ func enableLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.
 			},
 		},
 	}
-
+	log.FromContext(ctx).Info("Applying MetalLB LoadBalancer with values: %+v", values)
 	if _, err := m.Apply(ctx, ChartMetalLBLoadBalancer, helm.StatePresent, values); err != nil {
 		return fmt.Errorf("failed to apply MetalLB LoadBalancer configuration: %w", err)
 	}
