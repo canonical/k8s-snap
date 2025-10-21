@@ -43,7 +43,7 @@ func StartSpinner(ctx context.Context, w io.Writer, msg string) func() {
 		}
 	}()
 
-	//sync catch allows for idempotent stopping
+	// Sync catch allows for idempotent stopping
 	stop := func() {
 		once.Do(func() {
 			cancel()
