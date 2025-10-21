@@ -1,6 +1,7 @@
 package k8s
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -53,19 +54,15 @@ func newRemoveNodeCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 
 			name := args[0]
 
-			// Start a heartbeat to give users feedback while the blocking RPC runs.
-			stopHB := cmdutil.StartSpinner(cmd.Context(), cmd.ErrOrStderr(), fmt.Sprintf("Removing %q from the cluster. This may take a few seconds, please wait.", name))
+			err = cmdutil.WithSpinner(cmd.Context(), cmd.ErrOrStderr(), fmt.Sprintf("Removing %q from the cluster. This may take a few seconds, please wait.", name), func(ctx context.Context) error {
+				return client.RemoveNode(ctx, apiv1.RemoveNodeRequest{Name: name, Force: opts.force, Timeout: opts.timeout})
+			})
 
-			if err := client.RemoveNode(cmd.Context(), apiv1.RemoveNodeRequest{Name: name, Force: opts.force, Timeout: opts.timeout}); err != nil {
-				// Stop spinner before printing the error to avoid interleaving.
-				stopHB()
+			if err != nil {
 				cmd.PrintErrf("Error: Failed to remove node %q from the cluster.\n\nThe error was: %v\n", name, err)
 				env.Exit(1)
 				return
 			}
-
-			// stop spinner before printing final output
-			stopHB()
 
 			outputFormatter.Print(RemoveNodeResult{Name: name})
 		},

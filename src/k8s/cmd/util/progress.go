@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -12,8 +13,13 @@ import (
 // The spinner continues until either the context is cancelled or the returned
 // stop function is called.
 func StartSpinner(ctx context.Context, w io.Writer, msg string) func() {
+
+	// msg should not have any new lines because this will break the spinner display.
+	msg = strings.ReplaceAll(msg, "\n", " ")
+
 	ctx, cancel := context.WithCancel(ctx)
 	done := make(chan struct{})
+	var once sync.Once
 
 	frames := []rune{'|', '/', '-', '\\'}
 	// animation tick; small interval for smooth spinner
@@ -37,8 +43,22 @@ func StartSpinner(ctx context.Context, w io.Writer, msg string) func() {
 		}
 	}()
 
-	return func() {
-		cancel()
-		<-done
+	//sync catch allows for idempotent stopping
+	stop := func() {
+		once.Do(func() {
+			cancel()
+			<-done
+		})
 	}
+
+	return stop
+}
+
+// WithSpinner is a execution env wrapper that starts a spinner, runs the provided action, and ensures the
+// spinner is stopped once the action completes or panics. It returns the action's returned error (if any).
+func WithSpinner(ctx context.Context, w io.Writer, msg string, action func(context.Context) error) (err error) {
+	stop := StartSpinner(ctx, w, msg)
+	defer stop()
+
+	return action(ctx)
 }

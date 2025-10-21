@@ -3,6 +3,7 @@ package k8s
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -150,16 +151,20 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			stopHB := cmdutil.StartSpinner(cmd.Context(), cmd.ErrOrStderr(), "Bootstrapping the cluster. This may take some time, please wait.")
-
-			response, err := client.BootstrapCluster(cmd.Context(), apiv1.BootstrapClusterRequest{
-				Name:    opts.name,
-				Address: address,
-				Config:  bootstrapConfig,
-				Timeout: opts.timeout,
+			var response apiv1.BootstrapClusterResponse
+			err = cmdutil.WithSpinner(cmd.Context(), cmd.ErrOrStderr(), "Bootstrapping the cluster. This may take some time, please wait.", func(ctx context.Context) error {
+				resp, err := client.BootstrapCluster(ctx, apiv1.BootstrapClusterRequest{
+					Name:    opts.name,
+					Address: address,
+					Config:  bootstrapConfig,
+					Timeout: opts.timeout,
+				})
+				if err != nil {
+					return err
+				}
+				response = resp
+				return nil
 			})
-			// stop spinner before printing final output to avoid in-line interleaving
-			stopHB()
 
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to bootstrap the cluster.\n\nThe error was: %v\n", err)

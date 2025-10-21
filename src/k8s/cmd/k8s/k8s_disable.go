@@ -84,33 +84,28 @@ func newDisableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			stopHB := cmdutil.StartSpinner(cmd.Context(), cmd.ErrOrStderr(), fmt.Sprintf("Disabling %s from the cluster. This may take a few seconds, please wait.", strings.Join(args, ", ")))
-
 			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
 			cobra.OnFinalize(cancel)
 
-			if _, initialized, err := client.NodeStatus(cmd.Context()); err != nil {
-				stopHB()
+			if _, initialized, err := client.NodeStatus(ctx); err != nil {
 				cmd.PrintErrf("Error: Failed to check the current node status.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			} else if !initialized {
-				stopHB()
 				cmd.PrintErrln("Error: The node is not part of a Kubernetes cluster. You can bootstrap a new cluster with:\n\n  sudo k8s bootstrap")
 				env.Exit(1)
 				return
 			}
 
-			if err := client.SetClusterConfig(ctx, apiv1.SetClusterConfigRequest{Config: config}); err != nil {
-				// stop spinner before printing error
-				stopHB()
+			err = cmdutil.WithSpinner(ctx, cmd.ErrOrStderr(), fmt.Sprintf("Disabling %s from the cluster...", strings.Join(args, ", ")), func(ctx context.Context) error {
+				return client.SetClusterConfig(ctx, apiv1.SetClusterConfigRequest{Config: config})
+			})
+
+			if err != nil {
 				cmd.PrintErrf("Error: Failed to disable %s from the cluster.\n\nThe error was: %v\n", strings.Join(args, ", "), err)
 				env.Exit(1)
 				return
 			}
-
-			// stop spinner before printing final output
-			stopHB()
 
 			outputFormatter.Print(DisableResult{Features: args})
 		},

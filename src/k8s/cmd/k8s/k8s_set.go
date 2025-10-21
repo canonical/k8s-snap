@@ -58,18 +58,14 @@ func newSetCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
 			cobra.OnFinalize(cancel)
 
-			stopHB := cmdutil.StartSpinner(ctx, cmd.ErrOrStderr(), "Applying config changes...")
-
-			if err := client.SetClusterConfig(ctx, apiv1.SetClusterConfigRequest{Config: config}); err != nil {
-				// stop spinner before printing error
-				stopHB()
+			if err := cmdutil.WithSpinner(ctx, cmd.ErrOrStderr(), "Applying config changes...", func(ctx context.Context) error {
+				return client.SetClusterConfig(ctx, apiv1.SetClusterConfigRequest{Config: config})
+			}); err != nil {
 				cmd.PrintErrf("Error: Failed to apply requested cluster configuration changes.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
 			}
 
-			// stop spinner before printing final output
-			stopHB()
 			outputFormatter.Print(SetResult{ClusterConfig: config})
 		},
 	}
