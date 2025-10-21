@@ -13,7 +13,6 @@ import (
 // The spinner continues until either the context is cancelled or the returned
 // stop function is called.
 func StartSpinner(ctx context.Context, w io.Writer, msg string) func() {
-
 	// msg should not have any new lines because this will break the spinner display.
 	msg = strings.ReplaceAll(msg, "\n", " ")
 

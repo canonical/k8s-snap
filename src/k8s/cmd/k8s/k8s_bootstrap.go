@@ -165,7 +165,6 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				response = resp
 				return nil
 			})
-
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to bootstrap the cluster.\n\nThe error was: %v\n", err)
 				env.Exit(1)

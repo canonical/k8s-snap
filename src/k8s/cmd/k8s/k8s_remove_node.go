@@ -57,7 +57,6 @@ func newRemoveNodeCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			err = cmdutil.WithSpinner(cmd.Context(), cmd.ErrOrStderr(), fmt.Sprintf("Removing %q from the cluster. This may take a few seconds, please wait.", name), func(ctx context.Context) error {
 				return client.RemoveNode(ctx, apiv1.RemoveNodeRequest{Name: name, Force: opts.force, Timeout: opts.timeout})
 			})
-
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to remove node %q from the cluster.\n\nThe error was: %v\n", name, err)
 				env.Exit(1)

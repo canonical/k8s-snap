@@ -117,7 +117,6 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 					Timeout: opts.timeout,
 				})
 			})
-
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to join the cluster using the provided token.\n\nThe error was: %v\n", err)
 				env.Exit(1)
