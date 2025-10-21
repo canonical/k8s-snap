@@ -9,6 +9,13 @@ Please note that FIPS is only available in the `k8s` release 1.34 and later.
 If you are using an earlier version, you will need to upgrade to the latest
 version of the snap to use FIPS support.
 
+## Prerequisites
+
+This guide assumes the following:
+
+- Ubuntu 22.04 machine with at least 4GB of RAM and 30 GB disk storage
+- You have root or sudo access to the machine
+- Internet access on the machine
 
 ## Enable FIPS on an Ubuntu host machine
 
