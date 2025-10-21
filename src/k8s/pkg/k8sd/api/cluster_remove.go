@@ -9,6 +9,7 @@ import (
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations"
+	"github.com/canonical/k8s/pkg/client/kubernetes"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/utils"
@@ -36,6 +37,37 @@ func (e *Endpoints) postClusterRemove(s state.State, r *http.Request) response.R
 	}
 
 	log := log.FromContext(ctx).WithValues("name", req.Name)
+
+	client, err := snap.KubernetesClient("")
+	if err != nil {
+		return response.InternalError(fmt.Errorf("failed to create k8s client: %w", err))
+	}
+
+	// Cordon the node to prevent new pods from being scheduled
+	log.Info("Cordoning node")
+	if err := client.CordonNode(ctx, req.Name); err != nil {
+		if !req.Force {
+			response.SmartError(fmt.Errorf("failed to cordon node %q: %w", req.Name, err))
+		} else {
+			log.Error(err, "Failed to cordon node, but continuing due to force flag")
+		}
+	}
+
+	// Drain the node by evicting (or eventually deleting) all pods
+	log.Info("Draining node")
+	if err := client.DrainNode(ctx, req.Name, kubernetes.DrainOpts{
+		DeleteEmptydirData: true,
+		Force:              true,
+		GracePeriodSeconds: 10,
+		IgnoreDaemonsets:   true,
+		AllowDeletion:      true,
+	}); err != nil {
+		if !req.Force {
+			response.SmartError(fmt.Errorf("failed to drain node %q: %w", req.Name, err))
+		} else {
+			log.Error(err, "Failed to drain node, but continuing due to force flag")
+		}
+	}
 
 	isControlPlane, err := nodeutil.IsControlPlaneNode(ctx, s, req.Name)
 	if err != nil {
@@ -93,10 +125,6 @@ func (e *Endpoints) postClusterRemove(s state.State, r *http.Request) response.R
 		return response.SyncResponse(true, nil)
 	}
 
-	client, err := snap.KubernetesClient("")
-	if err != nil {
-		return response.InternalError(fmt.Errorf("failed to create k8s client: %w", err))
-	}
 	if node, err := client.CoreV1().Nodes().Get(ctx, req.Name, metav1.GetOptions{}); err != nil {
 		return NodeUnavailable(fmt.Errorf("node %q is not part of the cluster: %w", req.Name, err))
 	} else if v, ok := node.Labels["k8sd.io/role"]; !ok || v != "worker" {
