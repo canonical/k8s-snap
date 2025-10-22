@@ -172,6 +172,43 @@ sudo snap restart snap.k8s.k8s-dqlite
 
 ````
 
+## High disk usage for log files
+
+When using {{product}} for a longer period of time, the disk usage for
+log files can grow significantly.
+
+````{dropdown} Solution
+
+Check your system's journald configuration to limit log retention and disk usage
+by looking at the following parameters in `/etc/systemd/journald.conf`:
+
+- `SystemMaxUse` - Maximum disk space for all journal files
+- `SystemMaxFileSize` - Maximum size per journal file
+- `MaxRetentionSec` - Delete logs older than this time period
+- `ForwardToSyslog` - Prevent double logging to syslog and journalctl
+
+We recommend setting the following parameters either by editing the file directly
+or by creating an override file:
+
+```bash
+# Limit disk usage
+SystemMaxUse=500M
+SystemMaxFileSize=100M
+SystemMaxFiles=100
+MaxRetentionSec=1week
+
+# Don't forward to syslog (prevents double-logging)
+ForwardToSyslog=no
+```
+
+After making changes, restart the journald service:
+
+```
+sudo systemctl restart systemd-journald
+```
+
+````
+
 ## Bootstrap issues on a host with custom routing policy rules
 
 {{product}} bootstrap process might fail or face networking issues when
