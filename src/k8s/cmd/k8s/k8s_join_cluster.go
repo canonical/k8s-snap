@@ -1,6 +1,7 @@
 package k8s
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -107,14 +108,16 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			cmd.PrintErrln("Joining the cluster. This may take a few seconds, please wait.")
-			if err := client.JoinCluster(cmd.Context(), apiv1.JoinClusterRequest{
-				Name:    opts.name,
-				Address: address,
-				Token:   token,
-				Config:  joinClusterConfig,
-				Timeout: opts.timeout,
-			}); err != nil {
+			err = cmdutil.WithSpinner(cmd.Context(), cmd.ErrOrStderr(), "Joining the cluster. This may take some time, please wait.", func(ctx context.Context) error {
+				return client.JoinCluster(ctx, apiv1.JoinClusterRequest{
+					Name:    opts.name,
+					Address: address,
+					Token:   token,
+					Config:  joinClusterConfig,
+					Timeout: opts.timeout,
+				})
+			})
+			if err != nil {
 				cmd.PrintErrf("Error: Failed to join the cluster using the provided token.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return

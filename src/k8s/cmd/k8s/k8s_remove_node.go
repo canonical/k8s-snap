@@ -1,6 +1,7 @@
 package k8s
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -53,8 +54,10 @@ func newRemoveNodeCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 
 			name := args[0]
 
-			cmd.PrintErrf("Removing %q from the Kubernetes cluster. This may take a few seconds, please wait.\n", name)
-			if err := client.RemoveNode(cmd.Context(), apiv1.RemoveNodeRequest{Name: name, Force: opts.force, Timeout: opts.timeout}); err != nil {
+			err = cmdutil.WithSpinner(cmd.Context(), cmd.ErrOrStderr(), fmt.Sprintf("Removing %q from the cluster. This may take some time, please wait.", name), func(ctx context.Context) error {
+				return client.RemoveNode(ctx, apiv1.RemoveNodeRequest{Name: name, Force: opts.force, Timeout: opts.timeout})
+			})
+			if err != nil {
 				cmd.PrintErrf("Error: Failed to remove node %q from the cluster.\n\nThe error was: %v\n", name, err)
 				env.Exit(1)
 				return
