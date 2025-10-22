@@ -20,6 +20,7 @@
 package proxy
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -172,9 +173,12 @@ func (tp *tcpproxy) serve(in net.Conn) {
 		if remote == nil {
 			break
 		}
-		// TODO: add timeout
-		out, err = net.Dial("tcp", remote.addr)
+		var d net.Dialer
+		dialCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		out, err = d.DialContext(dialCtx, "tcp", remote.addr)
+		cancel()
 		if err == nil {
+			log.Printf("picked endpoint %v\n", remote.addr)
 			break
 		}
 		remote.inactivate()
@@ -182,6 +186,7 @@ func (tp *tcpproxy) serve(in net.Conn) {
 	}
 
 	if out == nil {
+		log.Println("no available endpoints to proxy request to")
 		in.Close()
 		return
 	}

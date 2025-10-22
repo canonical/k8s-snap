@@ -103,7 +103,7 @@ func (p *APIServerProxy) watchForNewEndpoints(ctx context.Context, cancel func()
 		case len(newEndpoints) == len(endpoints) && reflect.DeepEqual(newEndpoints, endpoints):
 			continue
 		}
-		log = log.WithValues("endpoints", endpoints)
+		log = log.WithValues("endpoints", newEndpoints)
 		log.Info("Updating endpoints")
 
 		if err := WriteEndpointsConfig(newEndpoints, p.EndpointsConfigFile); err != nil {
