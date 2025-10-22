@@ -100,6 +100,18 @@ k8s::remove::resources() {
   fi
 }
 
+k8s::remove::kubelet_logs() {
+  if ! k8s::common::is_strict; then
+    if [ -d "$SNAP_COMMON/var/log/pods" ]; then
+        sudo rm -rf "$SNAP_COMMON/var/log/pods"
+    fi
+
+    if [ -d "$SNAP_COMMON/var/log/containers" ]; then
+      sudo rm -rf "$SNAP_COMMON/var/log/containers"
+    fi
+  fi
+}
+
 # Run a ctr command against the local containerd socket
 # Example: 'k8s::cmd::ctr image ls -q'
 k8s::cmd::ctr() {
