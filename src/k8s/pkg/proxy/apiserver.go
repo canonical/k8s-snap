@@ -69,7 +69,30 @@ func (p *APIServerProxy) watchForNewEndpoints(ctx context.Context, cancel func()
 		}
 
 		// TODO: use k8s.GetKubernetesEndpoints instead
-		newEndpoints, err := getKubernetesEndpoints(ctx, p.KubeconfigFile)
+		var (
+			newEndpoints []string
+			err          error
+		)
+		retryTicker := time.NewTicker(2 * time.Second)
+		for range 10 {
+			select {
+			case <-ctx.Done():
+				log.Info("Stop getting kubernetes endpoints due to context cancellation")
+				return
+			case <-retryTicker.C:
+			}
+
+			log.Info("Getting kubernetes endpoints")
+			retryCtx, retryCancel := context.WithTimeout(ctx, 10*time.Second)
+			newEndpoints, err = getKubernetesEndpoints(retryCtx, p.KubeconfigFile)
+			if err == nil {
+				retryCancel()
+				break
+			}
+			retryCancel()
+			log.Error(err, "Failed to get kubernetes endpoints, retrying")
+		}
+
 		switch {
 		case err != nil:
 			log.Error(err, "Failed to retrieve Kubernetes endpoints")
