@@ -108,7 +108,7 @@ func newJoinClusterCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			err = cmdutil.WithSpinner(cmd.Context(), cmd.ErrOrStderr(), "Joining the cluster. This may take a few seconds, please wait.", func(ctx context.Context) error {
+			err = cmdutil.WithSpinner(cmd.Context(), cmd.ErrOrStderr(), "Joining the cluster. This may take some time, please wait.", func(ctx context.Context) error {
 				return client.JoinCluster(ctx, apiv1.JoinClusterRequest{
 					Name:    opts.name,
 					Address: address,

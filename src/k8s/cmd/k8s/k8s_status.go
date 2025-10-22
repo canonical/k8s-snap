@@ -48,7 +48,7 @@ func newStatusCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			}
 
 			var response apiv1.ClusterStatusResponse
-			if err := cmdutil.WithSpinner(ctx, cmd.ErrOrStderr(), "Waiting for cluster to become ready...", func(ctx context.Context) error {
+			if err := cmdutil.WithSpinner(ctx, cmd.ErrOrStderr(), "Waiting for the cluster to become ready...", func(ctx context.Context) error {
 				var err error
 				response, err = client.ClusterStatus(ctx, opts.waitReady)
 				return err

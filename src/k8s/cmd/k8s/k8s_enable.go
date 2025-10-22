@@ -96,11 +96,11 @@ func newEnableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			err = cmdutil.WithSpinner(ctx, cmd.ErrOrStderr(), fmt.Sprintf("Enabling %s on the cluster...", strings.Join(args, ", ")), func(ctx context.Context) error {
+			err = cmdutil.WithSpinner(ctx, cmd.ErrOrStderr(), fmt.Sprintf("Enabling %s...", strings.Join(args, ", ")), func(ctx context.Context) error {
 				return client.SetClusterConfig(ctx, apiv1.SetClusterConfigRequest{Config: config})
 			})
 			if err != nil {
-				cmd.PrintErrf("Error: Failed to enable %s on the cluster.\n\nThe error was: %v\n", strings.Join(args, ", "), err)
+				cmd.PrintErrf("Error: Failed to enable %s.\n\nThe error was: %v\n", strings.Join(args, ", "), err)
 				env.Exit(1)
 				return
 			}

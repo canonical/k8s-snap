@@ -9,10 +9,19 @@ import (
 	"time"
 )
 
+// WithSpinner is a execution env wrapper that starts a spinner, runs the provided action, and ensures the
+// spinner is stopped once the action completes or panics. It returns the action's returned error (if any).
+func WithSpinner(ctx context.Context, w io.Writer, msg string, action func(context.Context) error) (err error) {
+	stop := startSpinner(ctx, w, msg)
+	defer stop()
+
+	return action(ctx)
+}
+
 // StartSpinner displays a message with an animated spinner that updates in-place.
 // The spinner continues until either the context is cancelled or the returned
 // stop function is called.
-func StartSpinner(ctx context.Context, w io.Writer, msg string) func() {
+func startSpinner(ctx context.Context, w io.Writer, msg string) func() {
 	// msg should not have any new lines because this will break the spinner display.
 	msg = strings.ReplaceAll(msg, "\n", " ")
 
@@ -51,13 +60,4 @@ func StartSpinner(ctx context.Context, w io.Writer, msg string) func() {
 	}
 
 	return stop
-}
-
-// WithSpinner is a execution env wrapper that starts a spinner, runs the provided action, and ensures the
-// spinner is stopped once the action completes or panics. It returns the action's returned error (if any).
-func WithSpinner(ctx context.Context, w io.Writer, msg string, action func(context.Context) error) (err error) {
-	stop := StartSpinner(ctx, w, msg)
-	defer stop()
-
-	return action(ctx)
 }
