@@ -134,7 +134,7 @@ sudo k8s join-cluster --file=/var/snap/k8s/common/etc/templates/disa-stig/contro
 ```
 
 Through this configuration file, the same rules that were applied to the first
-control plane node have been applied.
+control plane node have also been applied.
 
 ### Join worker nodes
 

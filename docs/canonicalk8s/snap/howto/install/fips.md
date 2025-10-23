@@ -98,8 +98,9 @@ sudo snap refresh core22 --channel=fips-updates/stable
 
 Install {{ product }} on your FIPS host:
 
-```
-sudo snap install k8s --classic
+```{literalinclude} /_parts/install.md
+:start-after: <!-- snap start -->
+:end-before: <!-- snap end -->
 ```
 
 The k8s snap can leverage the host's FIPS compliant
