@@ -74,7 +74,9 @@ func (p *APIServerProxy) watchForNewEndpoints(ctx context.Context, cancel func()
 			err          error
 		)
 		for _, ep := range endpoints {
-			newEndpoints, err = getKubernetesEndpoints(ctx, p.KubeconfigFile, ep)
+			epCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+			newEndpoints, err = getKubernetesEndpoints(epCtx, p.KubeconfigFile, ep)
+			cancel()
 			if err == nil {
 				break
 			}
