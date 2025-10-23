@@ -71,6 +71,10 @@ on:
         description: Run tests in parallel using GitHub Actions matrix
         type: boolean
         default: true
+      upload-results:
+        description: Whether to upload per-test JSON artifacts
+        type: boolean
+        default: false
     secrets:
       UBUNTU_PRO_TOKEN:
         description: An optional Ubuntu Pro token to use for multipass tests
@@ -266,3 +270,21 @@ jobs:
         with:
           name: performance-test-results-${{ env.test_name }}
           path: performance-test-results
+      - name: Upload test metadata
+        if: ${{ inputs.upload-results && always() }}
+        run: |
+          mkdir -p results
+          jq -n \
+            --arg os "${{ inputs.os }}" \
+            --arg arch "${{ inputs.arch }}" \
+            --arg channel "${{ inputs.channel }}" \
+            --arg test "${{ matrix.test }}" \
+            --arg status "${{ job.status }}" \
+            '{os:$os, arch:$arch, channel:$channel, test:$test, status:$status}' > results/result.json
+        shell: bash
+      - uses: actions/upload-artifact@v4
+        if: ${{ inputs.upload-results && always() }}
+        with:
+          name: result-${{ inputs.os }}-${{ inputs.arch }}-${{ inputs.channel }}-${{ matrix.test }}
+          path: results/result.json
+          if-no-files-found: warn
