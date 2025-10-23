@@ -69,7 +69,18 @@ func (p *APIServerProxy) watchForNewEndpoints(ctx context.Context, cancel func()
 		}
 
 		// TODO: use k8s.GetKubernetesEndpoints instead
-		newEndpoints, err := getKubernetesEndpoints(ctx, p.KubeconfigFile)
+		var (
+			newEndpoints []string
+			err          error
+		)
+		for _, ep := range endpoints {
+			newEndpoints, err = getKubernetesEndpoints(ctx, p.KubeconfigFile, ep)
+			if err == nil {
+				break
+			}
+			log.Error(err, "Failed to get kubernetes endpoints", "server", ep)
+		}
+
 		switch {
 		case err != nil:
 			log.Error(err, "Failed to retrieve Kubernetes endpoints")
@@ -80,7 +91,7 @@ func (p *APIServerProxy) watchForNewEndpoints(ctx context.Context, cancel func()
 		case len(newEndpoints) == len(endpoints) && reflect.DeepEqual(newEndpoints, endpoints):
 			continue
 		}
-		log = log.WithValues("endpoints", endpoints)
+		log = log.WithValues("endpoints", newEndpoints)
 		log.Info("Updating endpoints")
 
 		if err := WriteEndpointsConfig(newEndpoints, p.EndpointsConfigFile); err != nil {

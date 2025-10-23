@@ -11,11 +11,12 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-func getKubernetesEndpoints(ctx context.Context, kubeconfigFile string) ([]string, error) {
+func getKubernetesEndpoints(ctx context.Context, kubeconfigFile string, server string) ([]string, error) {
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfigFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read load kubeconfig: %w", err)
 	}
+	config.ServerName = fmt.Sprintf("https://%s", server)
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize kubernetes client: %w", err)
