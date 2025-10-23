@@ -20,14 +20,16 @@ jobs:
       matrix:
         os: ["ubuntu:22.04", "ubuntu:24.04"]
         arch: ["amd64", "arm64"]
-        channel: ["latest/edge"]
-      fail-fast: false # TODO: remove once we no longer have flaky tests.
+        # TODO: Automatically fetch all supported releases.
+        channel: ["latest/edge", "1.34-classic/edge", "1.33-classic/edge", "1.32-classic/edge"]
+      fail-fast: false
     uses: ./.github/workflows/e2e-tests.yaml
     with:
       arch: ${{ matrix.arch }}
       os: ${{ matrix.os }}
       channel: ${{ matrix.channel }}
       test-tags: 'up_to_nightly'
+      upload-results: true
 
   test-performance:
     name: Run performance tests for ${{ matrix.os }}-${{ matrix.arch }}
