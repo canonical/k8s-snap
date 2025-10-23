@@ -49,7 +49,6 @@ Deploy with Juju </charm/index.md>
 Deploy with Cluster API </capi/index.md>
 Community </community.md>
 Release notes </releases.md>
-
 ```
 
 ````{grid} 3
