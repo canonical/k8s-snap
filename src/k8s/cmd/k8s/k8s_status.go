@@ -48,11 +48,17 @@ func newStatusCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 			}
 
 			var response apiv1.ClusterStatusResponse
-			if err := cmdutil.WithSpinner(ctx, cmd.ErrOrStderr(), "Waiting for the cluster to become ready...", func(ctx context.Context) error {
-				var err error
+			if opts.waitReady {
+				err = cmdutil.WithSpinner(ctx, cmd.ErrOrStderr(), "Waiting for cluster to become ready...", func(ctx context.Context) error {
+					var e error
+					response, e = client.ClusterStatus(ctx, opts.waitReady)
+					return e
+				})
+			} else {
 				response, err = client.ClusterStatus(ctx, opts.waitReady)
-				return err
-			}); err != nil {
+			}
+
+			if err != nil {
 				cmd.PrintErrf("Error: Failed to retrieve the cluster status.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
