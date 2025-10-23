@@ -7,6 +7,7 @@ import (
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
+	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/control"
 )
 
@@ -130,21 +131,21 @@ func enableLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.
 		"driver": "metallb",
 		"l2": map[string]any{
 			"enabled":    loadbalancer.GetL2Mode(),
-			"interfaces": loadbalancer.GetL2Interfaces(),
+			"interfaces": utils.EnsureAnySlice(loadbalancer.GetL2Interfaces()),
 		},
 		"ipPool": map[string]any{
-			"cidrs": cidrs,
+			"cidrs": utils.EnsureAnySlice(cidrs),
 		},
 		"bgp": map[string]any{
 			"enabled":  loadbalancer.GetBGPMode(),
 			"localASN": loadbalancer.GetBGPLocalASN(),
-			"neighbors": []map[string]any{
+			"neighbors": utils.EnsureAnySlice([]map[string]any{
 				{
 					"peerAddress": loadbalancer.GetBGPPeerAddress(),
 					"peerASN":     loadbalancer.GetBGPPeerASN(),
 					"peerPort":    loadbalancer.GetBGPPeerPort(),
 				},
-			},
+			}),
 		},
 	}
 	if _, err := m.Apply(ctx, ChartMetalLBLoadBalancer, helm.StatePresent, values); err != nil {
