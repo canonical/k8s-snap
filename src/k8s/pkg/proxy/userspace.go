@@ -31,6 +31,146 @@ import (
 	"github.com/canonical/k8s/pkg/utils"
 )
 
+// Connection pool structures
+type pooledConn struct {
+	conn     net.Conn
+	lastUsed time.Time
+	inUse    bool
+}
+
+type connPool struct {
+	mu          sync.Mutex
+	connections map[string][]*pooledConn
+	maxPerAddr  int
+	maxIdleTime time.Duration
+}
+
+func newConnPool(maxPerAddr int, maxIdleTime time.Duration) *connPool {
+	return &connPool{
+		connections: make(map[string][]*pooledConn),
+		maxPerAddr:  maxPerAddr,
+		maxIdleTime: maxIdleTime,
+	}
+}
+
+func (cp *connPool) get(addr string) (net.Conn, error) {
+	cp.mu.Lock()
+	defer cp.mu.Unlock()
+
+	// Clean up expired connections first
+	cp.cleanupExpired(addr)
+
+	// Try to find an available connection
+	if conns, exists := cp.connections[addr]; exists {
+		for i, pc := range conns {
+			if !pc.inUse {
+				pc.inUse = true
+				pc.lastUsed = time.Now()
+				return &poolConnWrapper{pc, cp, addr, i}, nil
+			}
+		}
+	}
+
+	// No available connection, create a new one
+	conn, err := net.Dial("tcp", addr)
+	if err != nil {
+		return nil, err
+	}
+
+	pc := &pooledConn{
+		conn:     conn,
+		lastUsed: time.Now(),
+		inUse:    true,
+	}
+
+	if cp.connections[addr] == nil {
+		cp.connections[addr] = make([]*pooledConn, 0, cp.maxPerAddr)
+	}
+
+	if len(cp.connections[addr]) < cp.maxPerAddr {
+		cp.connections[addr] = append(cp.connections[addr], pc)
+		return &poolConnWrapper{pc, cp, addr, len(cp.connections[addr]) - 1}, nil
+	}
+
+	// Pool is full, return direct connection
+	return conn, nil
+}
+
+func (cp *connPool) release(addr string, index int) {
+	cp.mu.Lock()
+	defer cp.mu.Unlock()
+
+	if conns, exists := cp.connections[addr]; exists && index < len(conns) {
+		conns[index].inUse = false
+		conns[index].lastUsed = time.Now()
+	}
+}
+
+func (cp *connPool) cleanupExpired(addr string) {
+	if conns, exists := cp.connections[addr]; exists {
+		now := time.Now()
+		for i := len(conns) - 1; i >= 0; i-- {
+			pc := conns[i]
+			if !pc.inUse && now.Sub(pc.lastUsed) > cp.maxIdleTime {
+				pc.conn.Close()
+				cp.connections[addr] = append(conns[:i], conns[i+1:]...)
+			}
+		}
+	}
+}
+
+func (cp *connPool) close() {
+	cp.mu.Lock()
+	defer cp.mu.Unlock()
+
+	for _, conns := range cp.connections {
+		for _, pc := range conns {
+			pc.conn.Close()
+		}
+	}
+	cp.connections = make(map[string][]*pooledConn)
+}
+
+type poolConnWrapper struct {
+	*pooledConn
+	pool  *connPool
+	addr  string
+	index int
+}
+
+func (pcw *poolConnWrapper) Read(b []byte) (n int, err error) {
+	return pcw.conn.Read(b)
+}
+
+func (pcw *poolConnWrapper) Write(b []byte) (n int, err error) {
+	return pcw.conn.Write(b)
+}
+
+func (pcw *poolConnWrapper) Close() error {
+	pcw.pool.release(pcw.addr, pcw.index)
+	return nil // Don't actually close the underlying connection
+}
+
+func (pcw *poolConnWrapper) LocalAddr() net.Addr {
+	return pcw.conn.LocalAddr()
+}
+
+func (pcw *poolConnWrapper) RemoteAddr() net.Addr {
+	return pcw.conn.RemoteAddr()
+}
+
+func (pcw *poolConnWrapper) SetDeadline(t time.Time) error {
+	return pcw.conn.SetDeadline(t)
+}
+
+func (pcw *poolConnWrapper) SetReadDeadline(t time.Time) error {
+	return pcw.conn.SetReadDeadline(t)
+}
+
+func (pcw *poolConnWrapper) SetWriteDeadline(t time.Time) error {
+	return pcw.conn.SetWriteDeadline(t)
+}
+
 type remote struct {
 	mu       sync.Mutex
 	srv      *net.SRV
@@ -68,6 +208,7 @@ type tcpproxy struct {
 	MonitorInterval time.Duration
 
 	donec chan struct{}
+	pool  *connPool
 
 	mu        sync.Mutex // guards the following fields
 	remotes   []*remote
@@ -76,6 +217,8 @@ type tcpproxy struct {
 
 func (tp *tcpproxy) Run() error {
 	tp.donec = make(chan struct{})
+	tp.pool = newConnPool(10, 5*time.Minute) // 10 conns per addr, 5min idle timeout
+
 	if tp.MonitorInterval == 0 {
 		tp.MonitorInterval = 5 * time.Minute
 	}
@@ -92,6 +235,7 @@ func (tp *tcpproxy) Run() error {
 	log.Printf("ready to proxy client requests to %v\n", eps)
 
 	go tp.runMonitor()
+	go tp.runPoolCleaner()
 	for {
 		in, err := tp.Listener.Accept()
 		if err != nil {
@@ -172,8 +316,8 @@ func (tp *tcpproxy) serve(in net.Conn) {
 		if remote == nil {
 			break
 		}
-		// TODO: add timeout
-		out, err = net.Dial("tcp", remote.addr)
+		// Use connection pool instead of direct dial
+		out, err = tp.pool.get(remote.addr)
 		if err == nil {
 			break
 		}
@@ -221,9 +365,30 @@ func (tp *tcpproxy) runMonitor() {
 	}
 }
 
+func (tp *tcpproxy) runPoolCleaner() {
+	ticker := time.NewTicker(1 * time.Minute)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			tp.pool.mu.Lock()
+			for addr := range tp.pool.connections {
+				tp.pool.cleanupExpired(addr)
+			}
+			tp.pool.mu.Unlock()
+		case <-tp.donec:
+			return
+		}
+	}
+}
+
 func (tp *tcpproxy) Stop() {
 	// graceful shutdown?
 	// shutdown current connections?
 	tp.Listener.Close()
+	if tp.pool != nil {
+		tp.pool.close()
+	}
 	close(tp.donec)
 }
