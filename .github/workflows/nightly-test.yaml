@@ -159,7 +159,7 @@ jobs:
               "attachments": [
                 {
                   "fallback": "k8s-snap Nightly CI Status",
-                  "color": ${{ fromJSON('{"success":"good","failure":"danger"}')[ (env.MM_TEXT != '' && contains(env.MM_TEXT, ':x:')) && 'failure' || 'success' ] }}
+                  "color": "${{ fromJSON('{"success":"good","failure":"danger"}')[ (env.MM_TEXT != '' && contains(env.MM_TEXT, ':x:')) && 'failure' || 'success' ] }}",
                   "title": "k8s-snap Nightly CI Status - ${{ env.FORMATTED_DATE }}",
                   "text": "${{ env.MM_TEXT }}"
                 }
