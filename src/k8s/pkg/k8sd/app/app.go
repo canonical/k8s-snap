@@ -286,6 +286,7 @@ func (a *App) Run(ctx context.Context, customHooks *state.Hooks) error {
 // - the microcluster database is accessible
 // - the kubernetes endpoint is reachable.
 // - the onNodeReady hook succeeds.
+// - snap services are started.
 func (a *App) markNodeReady(ctx context.Context, s state.State) error {
 	log := log.FromContext(ctx).WithValues("startup", "waitForReady")
 
