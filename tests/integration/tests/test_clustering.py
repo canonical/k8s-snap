@@ -16,30 +16,47 @@ from test_util import config, harness, tags, util
 LOG = logging.getLogger(__name__)
 
 
-@pytest.mark.node_count(2)
+@pytest.mark.node_count(4)
 @pytest.mark.tags(tags.PULL_REQUEST)
 def test_control_plane_nodes(instances: List[harness.Instance]):
     cluster_node = instances[0]
-    joining_node = instances[1]
+    joining_node_1 = instances[1]
+    joining_node_2 = instances[2]
+    joining_node_3 = instances[3]
 
     util.wait_until_k8s_ready(cluster_node, [cluster_node])
 
-    join_token = util.get_join_token(cluster_node, joining_node)
-    util.join_cluster(joining_node, join_token)
+    join_token = util.get_join_token(cluster_node, joining_node_1)
+    util.join_cluster(joining_node_1, join_token)
+
+    join_token = util.get_join_token(cluster_node, joining_node_2)
+    util.join_cluster(joining_node_2, join_token)
+
+    join_token = util.get_join_token(cluster_node, joining_node_3)
+    util.join_cluster(joining_node_3, join_token)
 
     util.wait_until_k8s_ready(cluster_node, instances)
-    nodes = util.ready_nodes(cluster_node)
-    assert len(nodes) == 2, "node should have joined cluster"
-
     assert "control-plane" in util.get_local_node_status(cluster_node)
-    assert "control-plane" in util.get_local_node_status(joining_node)
+    assert "control-plane" in util.get_local_node_status(joining_node_1)
+    assert "control-plane" in util.get_local_node_status(joining_node_2)
+    assert "control-plane" in util.get_local_node_status(joining_node_3)
 
-    cluster_node.exec(["k8s", "remove-node", joining_node.id])
-    nodes = util.ready_nodes(cluster_node)
-    assert len(nodes) == 1, "node should have been removed from cluster"
-    assert (
-        nodes[0]["metadata"]["name"] == cluster_node.id
-    ), f"only {cluster_node.id} should be left in cluster"
+    # Verify that the initial node can be removed
+    # Verify that the initial node can be removed
+    joining_node_1.exec(["k8s", "remove-node", cluster_node.id])
+    util.stubbornly(retries=5, delay_s=3).until(
+        lambda _: not util.diverged_cluster_memberships(
+            joining_node_1, [joining_node_1, joining_node_2, joining_node_3]
+        )
+    )
+
+    # Verify that a node can remove itself
+    joining_node_2.exec(["k8s", "remove-node", joining_node_1.id])
+    util.stubbornly(retries=5, delay_s=3).until(
+        lambda _: not util.diverged_cluster_memberships(
+            joining_node_2, [joining_node_2, joining_node_3]
+        )
+    )
 
 
 @pytest.mark.node_count(3)

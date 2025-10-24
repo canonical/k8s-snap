@@ -15,6 +15,7 @@ import (
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/v2/state"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 func (e *Endpoints) postWorkerInfo(s state.State, r *http.Request) response.Response {
@@ -58,6 +59,16 @@ func (e *Endpoints) postWorkerInfo(s state.State, r *http.Request) response.Resp
 	if err := client.WaitKubernetesEndpointAvailable(r.Context()); err != nil {
 		return response.InternalError(fmt.Errorf("kubernetes endpoints not ready yet: %w", err))
 	}
+
+	// Check if the node name already exists in the cluster.
+	_, err = client.GetNode(r.Context(), workerName)
+	if err == nil {
+		return response.BadRequest(fmt.Errorf("node name already exists: %s", workerName))
+	} else if !apierrors.IsNotFound(err) {
+		// Request to fetch node failed for some other reason
+		return response.InternalError(fmt.Errorf("failed to check whether worker node name is available %s: %w", workerName, err))
+	}
+
 	servers, err := client.GetKubeAPIServerEndpoints(r.Context())
 	if err != nil {
 		return response.InternalError(fmt.Errorf("failed to retrieve list of known kube-apiserver endpoints: %w", err))
