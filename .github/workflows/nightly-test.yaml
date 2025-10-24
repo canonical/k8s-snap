@@ -91,46 +91,77 @@ jobs:
 
       - name: Aggregate per-channel results
         id: aggregate
+        shell: bash
         run: |
-          RESULTS_JSON=$(jq -s '.' aggregated-results.json)
+          RESULTS_JSON=$(jq -s 'add' aggregated-results.json)
           MESSAGE=""
 
-          for channel in $(echo "$RESULTS_JSON" | jq -r '.[].channel' | sort -u); do
-            MESSAGE="${MESSAGE}\n* $channel"
-            for os in $(echo "$RESULTS_JSON" | jq -r --arg channel "$channel" '.[] | select(.channel==$channel) | .os' | sort -u); do
-              MESSAGE="${MESSAGE}\n    $os"
-              for arch in $(echo "$RESULTS_JSON" | jq -r --arg channel "$channel" --arg os "$os" '.[] | select(.channel==$channel and .os==$os) | .arch' | sort -u); do
-                ENTRY=$(echo "$RESULTS_JSON" | jq -r --arg channel "$channel" --arg os "$os" --arg arch "$arch" '.[] | select(.channel==$channel and .os==$os and .arch==$arch)')
-                STATUS=$(echo "$ENTRY" | jq -r '.status')
-                NUM_FAILED=$(echo "$ENTRY" | jq -r '.failed_tests // 0')
-                EMOJI=":white_check_mark:"
-                LABEL="Succeeded"
-                if [[ "$STATUS" != "success" ]]; then
-                  EMOJI=":x:"
-                  LABEL="Failed"
-                fi
-                RUN_LINK="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-                MESSAGE="${MESSAGE}\n      $arch: $EMOJI$LABEL ($NUM_FAILED tests failed) <$RUN_LINK|Run>"
+          channels=($(echo "$RESULTS_JSON" | jq -r '.[].channel' | sort -u))
+          last_channel_index=$((${#channels[@]} - 1))
+
+          for ci in "${!channels[@]}"; do
+              channel="${channels[$ci]}"
+              is_last_channel=$([ "$ci" -eq "$last_channel_index" ] && echo true || echo false)
+              MESSAGE="${MESSAGE}\n* $channel"
+
+              os_list=($(echo "$RESULTS_JSON" | jq -r --arg channel "$channel" '.[] | select(.channel==$channel) | .os' | sort -u))
+              last_os_index=$((${#os_list[@]} - 1))
+
+              for oi in "${!os_list[@]}"; do
+                  os="${os_list[$oi]}"
+                  is_last_os=$([ "$oi" -eq "$last_os_index" ] && echo true || echo false)
+                  os_prefix=$([ "$is_last_os" = true ] && echo "└──" || echo "├──")
+                  MESSAGE="${MESSAGE}\n    ${os_prefix} $os"
+
+                  arch_list=($(echo "$RESULTS_JSON" | jq -r --arg channel "$channel" --arg os "$os" '.[] | select(.channel==$channel and .os==$os) | .arch' | sort -u))
+                  last_arch_index=$((${#arch_list[@]} - 1))
+
+                  for ai in "${!arch_list[@]}"; do
+                      arch="${arch_list[$ai]}"
+                      is_last_arch=$([ "$ai" -eq "$last_arch_index" ] && echo true || echo false)
+                      arch_prefix=$([ "$is_last_arch" = true ] && echo "└──" || echo "├──")
+
+                      ENTRY=$(echo "$RESULTS_JSON" | jq -r --arg channel "$channel" --arg os "$os" --arg arch "$arch" '[.[] | select(.channel==$channel and .os==$os and .arch==$arch)][0]')
+                      STATUS=$(echo "$ENTRY" | jq -r '.status')
+                      NUM_FAILED=$(echo "$ENTRY" | jq -r '.failed_tests // 0')
+
+                      EMOJI=":white_check_mark:"
+                      LABEL="Succeeded"
+                      if [[ "$STATUS" != "success" ]]; then
+                          EMOJI=":x:"
+                          LABEL="Failed"
+                      fi
+                      RUN_LINK="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+                      if [ "$is_last_os" = true ]; then
+                          indent="        "
+                      else
+                          indent="    │   "
+                      fi
+
+                      MESSAGE="${MESSAGE}\n${indent}${arch_prefix} $arch: $EMOJI$LABEL ($NUM_FAILED tests failed) [Run]($RUN_LINK)"
+                  done
               done
-            done
           done
+
+          echo -e "$MESSAGE"
 
           echo "MM_TEXT<<EOF" >> $GITHUB_ENV
           echo -e "$MESSAGE" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      #- name: Notify Mattermost
-      #  uses: mattermost/action-mattermost-notify@master
-      #  with:
-      #    MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }}
-      #    PAYLOAD: |
-      #      {
-      #        "attachments": [
-      #          {
-      #            "fallback": "k8s-snap Nightly CI Status",
-      #            "color": "${{ fromJSON('{"success":"good","failure":"danger"}')[(env.MM_TEXT | contains(":x:") && "failure" || "success")] }}",
-      #            "title": "k8s-snap Nightly CI Status - ${{ env.FORMATTED_DATE }}",
-      #            "text": "${{ env.MM_TEXT }}"
-      #          }
-      #        ]
-      #      }
+      - name: Notify Mattermost
+        uses: mattermost/action-mattermost-notify@master
+        with:
+          MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }}
+          PAYLOAD: |
+            {
+              "attachments": [
+                {
+                  "fallback": "k8s-snap Nightly CI Status",
+                  "color": "${{ fromJSON('{"success":"good","failure":"danger"}')[(env.MM_TEXT | contains(":x:") && "failure" || "success")] }}",
+                  "title": "k8s-snap Nightly CI Status - ${{ env.FORMATTED_DATE }}",
+                  "text": "${{ env.MM_TEXT }}"
+                }
+              ]
+            }
