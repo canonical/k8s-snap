@@ -71,8 +71,24 @@ jobs:
           name: aggregated-results
           path: aggregated-results.json
 
+  Mattermost:
+    name: Notify Mattermost
+    # Notify on success or failure but only if the event is a scheduled run.
+    # We don't want to ping people of failed PRs.
+    if: ${{ always() }} #&& github.event_name == 'schedule' }}
+    # Note: Update results check below if you change the "needs" list.
+    needs: [test-integration, collect-results]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set current formatted date as env variable
+        run: echo "FORMATTED_DATE=$(date +'%d/%m/%Y')" >> $GITHUB_ENV
+
+      - name: Download integration test results
+        uses: actions/download-artifact@v4
+        with:
+          name: aggregated-results
+
       - name: Aggregate per-channel results
-        id: aggregate
         shell: bash
         run: |
           RESULTS_JSON=$(jq -s 'add' aggregated-results.json)
