@@ -20,68 +20,166 @@ jobs:
       matrix:
         os: ["ubuntu:22.04", "ubuntu:24.04"]
         arch: ["amd64", "arm64"]
-        channel: ["latest/edge"]
-      fail-fast: false # TODO: remove once we no longer have flaky tests.
+        # TODO: Automatically fetch all supported releases.
+        channel:
+          [
+            "latest/edge",
+            "1.34-classic/edge",
+            "1.33-classic/edge",
+            "1.32-classic/edge",
+          ]
+      fail-fast: false
     uses: ./.github/workflows/e2e-tests.yaml
     with:
       arch: ${{ matrix.arch }}
       os: ${{ matrix.os }}
       channel: ${{ matrix.channel }}
-      test-tags: 'up_to_nightly'
+      test-tags: "up_to_nightly"
+      # parallel: false
+      upload-results: true
 
-  test-performance:
-    name: Run performance tests for ${{ matrix.os }}-${{ matrix.arch }}
-    strategy:
-      matrix:
-        os: ["ubuntu:22.04", "ubuntu:24.04"]
-        arch: ["amd64", "arm64"]
-    uses: ./.github/workflows/compare-performance.yaml
-    with:
-      arch: ${{ matrix.arch }}
-      os: ${{ matrix.os }}
-      channel-1: latest/edge
-      channel-2: 1.32-classic/stable
+
+ #test-performance:
+ #  name: Run performance tests for ${{ matrix.os }}-${{ matrix.arch }}
+ #  strategy:
+ #    matrix:
+ #      os: ["ubuntu:22.04", "ubuntu:24.04"]
+ #      arch: ["amd64", "arm64"]
+ #  uses: ./.github/workflows/compare-performance.yaml
+ #  with:
+ #    arch: ${{ matrix.arch }}
+ #    os: ${{ matrix.os }}
+ #    channel-1: latest/edge
+ #    channel-2: 1.32-classic/stable
+
+  collect-results:
+    name: Collect integration test results
+    if: ${{ always() }}
+    runs-on: ubuntu-24.04
+    needs: [test-integration]
+    outputs:
+      matrix: ${{ steps.aggregate.outputs.matrix }}
+    steps:
+      - uses: actions/download-artifact@v4
+      - run: |
+          results=$(find . -type f -name 'result.json' -exec cat {} \; | jq -c --slurp .)
+          echo "$results" > aggregated-results.json
+          echo "matrix=$results" >> $GITHUB_OUTPUT
+        id: aggregate
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aggregated-results
+          path: aggregated-results.json
 
   Mattermost:
-   name: Notify Mattermost
-   # Notify on success or failure but only if the event is a scheduled run.
-   # We don't want to ping people of failed PRs.
-   if: ${{ always() && github.event_name == 'schedule' }}
-   # Note: Update results check below if you change the "needs" list.
-   needs: [test-integration, test-performance]
-   runs-on: ubuntu-latest
-   steps:
-     - name: Set current formatted date as env variable
-       run: echo "FORMATTED_DATE=$(date +'%d/%m/%Y')" >> $GITHUB_ENV
-     - name: Test results
-       run: |
-         RESULTS=$(echo '${{ toJson(needs) }}' | jq -c '[.[] | .result]')
-         if echo $RESULTS | jq -e 'all(. == "success")'; then
-           echo "RESULT=success" >> $GITHUB_ENV
-         else
-           echo "RESULT=failure" >> $GITHUB_ENV
-         fi
-     - name: Generate Mattermost Message
-       run: |
-         if [[ "${{ env.RESULT }}" == "success" ]]; then
-           echo "MM_TEXT=:white_check_mark: *Success!* CI completed successfully. [View Run](${{
-             github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_ENV
-         else
-           echo "MM_TEXT=:x: *Failure!* CI failed, @k8s-engineers please fix ASAP. [View Run](${{
-             github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_ENV
-         fi
-     - name: Notify Mattermost
-       uses: mattermost/action-mattermost-notify@master
-       with:
-         MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }}
-         PAYLOAD: |
-           {
-             "attachments": [
-               {
-                 "fallback": "k8s-snap Nightly CI Status",
-                 "color": "${{ env.RESULT == 'success' && 'good' || 'danger' }}",
-                 "title": "k8s-snap Nightly CI Status - ${{ env.FORMATTED_DATE }}",
-                 "text": "${{ env.MM_TEXT }}"
-               }
-             ]
-           }
+    name: Notify Mattermost
+    # Notify on success or failure but only if the event is a scheduled run.
+    # We don't want to ping people of failed PRs.
+    if: ${{ always() }} #&& github.event_name == 'schedule' }}
+    # Note: Update results check below if you change the "needs" list.
+    needs: [test-integration, collect-results]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set current formatted date as env variable
+      run: echo "FORMATTED_DATE=$(date +'%d/%m/%Y')" >> $GITHUB_ENV
+
+    - name: Download integration test results
+      uses: actions/download-artifact@v4
+      with:
+        name: aggregated-results
+
+    - name: Aggregate per-channel results (write message.txt with real newlines)
+      id: aggregate
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        RESULTS_JSON=$(jq -s 'add' aggregated-results.json)
+
+        : > message.txt
+
+        channels=($(echo "$RESULTS_JSON" | jq -r '.[].channel' | sort -u))
+        last_channel_index=$((${#channels[@]} - 1))
+
+        for ci in "${!channels[@]}"; do
+          channel="${channels[$ci]}"
+          printf '%s\n' "${channel}" >> message.txt
+
+          os_list=($(echo "$RESULTS_JSON" | jq -r --arg channel "$channel" '.[] | select(.channel==$channel) | .os' | sort -u))
+          last_os_index=$((${#os_list[@]} - 1))
+
+          for oi in "${!os_list[@]}"; do
+            os="${os_list[$oi]}"
+            is_last_os=$([ "$oi" -eq "$last_os_index" ] && echo true || echo false)
+            os_prefix=$([ "$is_last_os" = true ] && echo "└──" || echo "├──")
+            printf '    %s %s\n' "$os_prefix" "$os" >> message.txt
+
+            arch_list=($(echo "$RESULTS_JSON" | jq -r --arg channel "$channel" --arg os "$os" '.[] | select(.channel==$channel and .os==$os) | .arch' | sort -u))
+            last_arch_index=$((${#arch_list[@]} - 1))
+
+            for ai in "${!arch_list[@]}"; do
+              arch="${arch_list[$ai]}"
+              is_last_arch=$([ "$ai" -eq "$last_arch_index" ] && echo true || echo false)
+              arch_prefix=$([ "$is_last_arch" = true ] && echo "└──" || echo "├──")
+
+              ENTRY=$(echo "$RESULTS_JSON" | jq -r --arg channel "$channel" --arg os "$os" --arg arch "$arch" '[.[] | select(.channel==$channel and .os==$os and .arch==$arch)][0]')
+              STATUS=$(echo "$ENTRY" | jq -r '.status')
+              NUM_FAILED=$(echo "$ENTRY" | jq -r '.failed_tests // 0')
+
+              EMOJI=":white_check_mark:"
+              LABEL="Succeeded"
+              if [[ "$STATUS" != "success" ]]; then
+                EMOJI=":x:"
+                LABEL="Failed"
+              fi
+
+              RUN_LINK="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+
+              if [ "$is_last_os" = true ]; then
+                indent="        "
+              else
+                indent="    │   "
+              fi
+
+              printf '%s%s %s: %s%s (%s tests failed) [Run](%s)\n' "$indent" "$arch_prefix" "$arch" "$EMOJI" "$LABEL" "$NUM_FAILED" "$RUN_LINK" >> message.txt
+            done
+          done
+        done
+
+        sed -i '1{/^$/d;}' message.txt
+        tr -d '\r' < message.txt > message.normalized.txt
+        mv message.normalized.txt message.txt
+        echo "message-file=message.txt" >> $GITHUB_OUTPUT
+
+    - name: Build payload and post to Mattermost (curl)
+      shell: bash
+      env:
+        WEBHOOK: ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }}
+        FORMATTED_DATE: ${{ env.FORMATTED_DATE }}
+      run: |
+        set -euo pipefail
+
+        MESSAGE_FILE=message.txt
+        MESSAGE_CONTENT=$(cat "$MESSAGE_FILE")
+
+        if grep -q ':x:' <<<"$MESSAGE_CONTENT"; then
+          COLOR="danger"
+        else
+          COLOR="good"
+        fi
+
+        TITLE="k8s-snap Nightly CI Status - ${FORMATTED_DATE}"
+        PAYLOAD_FILE=mattermost.json
+
+        jq -n --rawfile text "$MESSAGE_FILE" --arg title "$TITLE" --arg color "$COLOR" '{
+          attachments: [
+            {
+              fallback: "k8s-snap Nightly CI Status",
+              color: $color,
+              title: $title,
+              text: $text
+            }
+          ]
+        }' > "$PAYLOAD_FILE"
+
+        curl -fsS -X POST -H 'Content-Type: application/json' --data-binary @"$PAYLOAD_FILE" "$WEBHOOK"
