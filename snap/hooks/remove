@@ -12,4 +12,6 @@ k8s::remove::containerd
 
 k8s::remove::system_tuning
 
+k8s::remove::kubelet_logs
+
 k8s::remove::resources

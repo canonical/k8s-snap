@@ -23,6 +23,8 @@ IAM
 installable
 JSON
 Juju
+journalctl
+journald
 Kubeflow
 Kubernetes
 Launchpad
@@ -55,6 +57,7 @@ RTD
 subdirectories
 subfolders
 subtree
+syslog
 TODO
 Ubuntu
 UI
