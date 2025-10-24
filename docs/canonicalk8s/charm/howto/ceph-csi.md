@@ -150,7 +150,11 @@ can be deployed again as separate Juju applications with different names.
 Deploy an alternate Ceph cluster containing one monitor and one storage unit
 (OSDs) -- again limiting the resources allocated.
 
-```{note} The alternate ceph drivers will need a new namespace to deploy into.
+```{note}
+The alternate ceph drivers will need a new namespace and resource names in the
+deployment.
+* Failure to configure a unique namespace will result in namespace collisions.
+* Failure to configure each formatter could result in resource collisions.
 ```
 
 ```
@@ -165,6 +169,10 @@ juju deploy -n 1 ceph-osd-alt ceph-osd \
 juju deploy ceph-csi-alt ceph-csi \
     --config create-namespace=true \
     --config namespace=${CEPH_NS_ALT} \
+    --config ceph-xfs-storage-class-name-formatter="ceph-xfs-{app}" \
+    --config ceph-ext4-storage-class-name-formatter="ceph-ext4-{app}" \
+    --config cephfs-storage-class-name-formatter="cephfs-{name}-{app}" \
+    --config ceph-rbac-name-formatter="{name}-{app}"
     --config provisioner-replicas=1
 juju integrate ceph-csi-alt k8s:ceph-k8s-info
 juju integrate ceph-csi-alt ceph-mon-alt:client
@@ -175,11 +183,11 @@ These applications still uses the same charms, but represent new application
 instances.  A new ceph-cluster via `ceph-mon-alt` and `ceph-osd-alt` and a new
 integration with Kubernetes by `ceph-csi-alt`.
 
-There are some Kubernetes Resources which collide in this deployment style.
-The `ceph-csi-alt` application may enter a blocked state with a status
-detailing the resource conflicts it detects:
+There are some Kubernetes Resources which can collide in this deployment style.
+If collisions occur, the `ceph-csi-alt` application enters a blocked state with
+status detailing the resource conflicts it detects:
 
-example)
+for example)
 `10 Kubernetes resource collisions (action: list-resources)`
 
 ### Resolving collisions
@@ -217,7 +225,7 @@ For each of the supported StorageClass types, there is an independent formatter.
 
 * `ext4`, see [ceph-ext4-storage-class-name-formatter]
 * `xfs`, see [ceph-xfs-storage-class-name-formatter]
-* `cephfs`, see [CephFS-storage-class-name-formatter]
+* `cephfs`, see [cephfs-storage-class-name-formatter]
 
 Each formatter has similar, but distinct formatting rules, so take care to plan
 the storage-class names accordingly.
@@ -250,4 +258,4 @@ juju config ceph-csi-alt ceph-rbac-name-formatter="{name}-{app}"
 [ceph-rbac-name-formatter]: https://charmhub.io/ceph-csi/configurations?channel=latest/edge#ceph-rbac-name-formatter
 [ceph-ext4-storage-class-name-formatter]: https://charmhub.io/ceph-csi/configurations?channel=latest/edge#ceph-ext4-storage-class-name-formatter
 [ceph-xfs-storage-class-name-formatter]: https://charmhub.io/ceph-csi/configurations?channel=latest/edge#ceph-xfs-storage-class-name-formatter
-[CephFS-storage-class-name-formatter]: https://charmhub.io/ceph-csi/configurations?channel=latest/edge#cephfs-storage-class-name-formatter
+[cephfs-storage-class-name-formatter]: https://charmhub.io/ceph-csi/configurations?channel=latest/edge#cephfs-storage-class-name-formatter

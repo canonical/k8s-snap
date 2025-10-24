@@ -71,6 +71,7 @@ CCM
 Center
 ceph
 cephcsi
+cephfs
 CephFS
 cephx
 certfile
