@@ -9,12 +9,13 @@
           "type": "boolean"
         },
         "interfaces": {
-          "type": [ "array", "null" ],
-          "items": [
-            {
-              "type": "string"
-            }
-          ]
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
@@ -23,33 +24,38 @@
       "properties": {
         "cidrs": {
           "type": "array",
-          "items": [
-            {
-              "type": "object",
-              "properties": {
-                "cidr": {
-                  "type": "string"
-                },
-                "start": {
-                  "type": "string"
-                },
-                "stop": {
-                  "type": "string"
-                }
-	      },
-	      "anyOf": [
-		{
-		  "required": ["cidr"]
-		},
-		{
-		  "required": ["start", "stop"]
-		}
-	      ]
-	    }
-	  ]
-	}
+          "items": {
+            "type": "object",
+            "properties": {
+              "cidr": {
+                "type": "string"
+              },
+              "start": {
+                "type": "string"
+              },
+              "stop": {
+                "type": "string"
+              }
+            },
+            "anyOf": [
+              {
+                "required": [
+                  "cidr"
+                ]
+              },
+              {
+                "required": [
+                  "start",
+                  "stop"
+                ]
+              }
+            ]
+          }
+        }
       },
-      "required": ["cidrs"]
+      "required": [
+        "cidrs"
+      ]
     },
     "bgp": {
       "type": "object",
@@ -62,27 +68,36 @@
         },
         "neighbors": {
           "type": "array",
-          "items": [
-            {
-              "type": "object",
-              "properties": {
-                "peerAddress": {
-                  "type": "string"
-                },
-                "peerASN": {
-                  "type": "integer"
-                },
-                "peerPort": {
-                  "type": "integer"
-                }
+          "items": {
+            "type": "object",
+            "properties": {
+              "peerAddress": {
+                "type": "string"
               },
-              "required": ["peerAddress", "peerASN", "peerPort"]
-            }
-          ]
+              "peerASN": {
+                "type": "integer"
+              },
+              "peerPort": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "peerAddress",
+              "peerASN",
+              "peerPort"
+            ]
+          }
         }
       },
-      "required": ["localASN", "neighbors"]
+      "required": [
+        "localASN",
+        "neighbors"
+      ]
     }
   },
-  "required": ["l2", "ipPool", "bgp"]
+  "required": [
+    "l2",
+    "ipPool",
+    "bgp"
+  ]
 }
