@@ -71,24 +71,6 @@ jobs:
           name: aggregated-results
           path: aggregated-results.json
 
-  Mattermost:
-    name: Notify Mattermost
-    # Notify on success or failure but only if the event is a scheduled run.
-    # We don't want to ping people of failed PRs.
-    # TODO revert before merge
-    if: ${{ always() }} #&& github.event_name == 'schedule' }}
-    # Note: Update results check below if you change the "needs" list.
-    needs: [test-integration, collect-results]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Set current formatted date as env variable
-        run: echo "FORMATTED_DATE=$(date +'%d/%m/%Y')" >> $GITHUB_ENV
-
-      - name: Download integration test results
-        uses: actions/download-artifact@v4
-        with:
-          name: aggregated-results
-
       - name: Aggregate per-channel results
         id: aggregate
         shell: bash
@@ -144,11 +126,10 @@ jobs:
               done
           done
 
-          echo -e "$MESSAGE"
+          # Escape MESSAGE for JSON
+          PAYLOAD_TEXT=$(echo "$MESSAGE" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))')
 
-          echo "MM_TEXT<<EOF" >> $GITHUB_ENV
-          echo -e "$MESSAGE" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          echo "MM_TEXT=$PAYLOAD_TEXT" >> $GITHUB_ENV
 
       - name: Notify Mattermost
         uses: mattermost/action-mattermost-notify@master
@@ -159,9 +140,9 @@ jobs:
               "attachments": [
                 {
                   "fallback": "k8s-snap Nightly CI Status",
-                  "color": "${{ fromJSON('{"success":"good","failure":"danger"}')[ (env.MM_TEXT != '' && contains(env.MM_TEXT, ':x:')) && 'failure' || 'success' ] }}",
+                  "color": "${{ fromJSON('{"success":"good","failure":"danger"}')[ (contains(env.MM_TEXT, '\"\\:x:\\\"')) && 'failure' || 'success' ] }}",
                   "title": "k8s-snap Nightly CI Status - ${{ env.FORMATTED_DATE }}",
-                  "text": "${{ env.MM_TEXT }}"
+                  "text": ${{ env.MM_TEXT }}
                 }
               ]
             }
