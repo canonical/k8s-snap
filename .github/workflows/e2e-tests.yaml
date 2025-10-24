@@ -231,7 +231,7 @@ jobs:
 
           cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- ${{ inputs.parallel && matrix.test || '' }} ${{ env.PERFORMANCE_FLAGS }} --tags ${{ inputs.test-tags }} ${{ inputs.extra-test-args }}
       - name: Setup tmate session
-        if: failure()
+        if: false
         uses: mxschmitt/action-tmate@v3
         with:
           detached: true
