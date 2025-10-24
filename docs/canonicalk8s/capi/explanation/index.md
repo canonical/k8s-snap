@@ -50,7 +50,7 @@ Understand how security plays a vital role in {{product}}.
 ```{toctree}
 :titlesonly:
 :glob:
-security
+Security <security.md>
 ```
 
 

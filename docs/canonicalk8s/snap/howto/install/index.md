@@ -14,5 +14,7 @@ the current How-to guides below.
 ... in air-gapped environments <offline.md>
 ... in development environments <dev-env.md>
 ... with custom worker configuration <custom-worker.md>
+... in FIPS mode <fips.md>
+... a DISA STIG hardened cluster <disa-stig.md>
 Uninstall the snap <uninstall.md>
 ```
