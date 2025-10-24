@@ -11,12 +11,18 @@ import (
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
+	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils"
+	"github.com/canonical/k8s/pkg/utils/control"
 	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
 	"github.com/canonical/microcluster/v2/state"
 )
 
 func (a *App) onStart(ctx context.Context, s state.State) error {
+	if err := a.ensureRunningServices(ctx); err != nil {
+		return fmt.Errorf("failed to ensure running services: %w", err)
+	}
+
 	// start a goroutine to mark the node as running
 	go func() {
 		if err := a.markNodeReady(ctx, s); err != nil {
@@ -132,6 +138,58 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 	// reconciled at least once after the app starts. This is important specifically
 	// when k8sd gets restarted before getting the chance to reconcile features.
 	a.NotifyFeatureController(true, true, true, true, true, true, true)
+
+	return nil
+}
+
+// ensureRunningServices ensures that the snap services are running if node is initialized.
+func (a *App) ensureRunningServices(ctx context.Context) error {
+	log := log.FromContext(ctx).WithValues("func", "ensureRunningServices")
+
+	client, err := a.snap.K8sdClient("")
+	if err != nil {
+		return fmt.Errorf("failed to create a k8sd client: %w", err)
+	}
+
+	if _, initialized, err := client.NodeStatus(ctx); err != nil {
+		return fmt.Errorf("failed to check the current node status: %w", err)
+	} else if !initialized {
+		log.Info("Node is not initialized, skipping service start")
+		return nil
+	}
+
+	isWorker, err := snaputil.IsWorker(a.snap)
+	if err != nil {
+		return fmt.Errorf("failed to determine if the node is a worker: %w", err)
+	}
+
+	// Start services
+	// This may fail if the node controllers try to restart the services at the same time, hence the retry.
+	if isWorker {
+		log.Info("Starting worker services")
+		if err := control.RetryFor(ctx, 5, 5*time.Second, func() error {
+			return snaputil.StartWorkerServices(ctx, a.snap)
+		}); err != nil {
+			return fmt.Errorf("failed to start worker services after retry: %w", err)
+		}
+	} else {
+		log.Info("Retrieving cluster configuration")
+
+		cfg, err := client.GetClusterConfig(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to retrieve cluster configuration: %w", err)
+		}
+
+		log.Info("Starting control-plane services")
+
+		if err := control.RetryFor(ctx, 5, 5*time.Second, func() error {
+			return startControlPlaneServices(ctx, a.snap, cfg.Datastore.GetType())
+		}); err != nil {
+			return fmt.Errorf("failed to start control-plane services: %w", err)
+		}
+	}
+
+	log.Info("Successfully started services")
 
 	return nil
 }
