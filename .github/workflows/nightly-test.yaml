@@ -88,19 +88,21 @@ jobs:
       with:
         name: aggregated-results
 
-    - name: Aggregate per-channel results (produce MESSAGE)
+    - name: Aggregate per-channel results (write message.txt with real newlines)
       id: aggregate
       shell: bash
       run: |
         RESULTS_JSON=$(jq -s 'add' aggregated-results.json)
-        MESSAGE=""
+
+        # start with an empty file (preserves real newlines)
+        : > message.txt
 
         channels=($(echo "$RESULTS_JSON" | jq -r '.[].channel' | sort -u))
         last_channel_index=$((${#channels[@]} - 1))
 
         for ci in "${!channels[@]}"; do
             channel="${channels[$ci]}"
-            MESSAGE="${MESSAGE}\n* $channel"
+            printf '%s\n' "* $channel" >> message.txt
 
             os_list=($(echo "$RESULTS_JSON" | jq -r --arg channel "$channel" '.[] | select(.channel==$channel) | .os' | sort -u))
             last_os_index=$((${#os_list[@]} - 1))
@@ -109,7 +111,7 @@ jobs:
                 os="${os_list[$oi]}"
                 is_last_os=$([ "$oi" -eq "$last_os_index" ] && echo true || echo false)
                 os_prefix=$([ "$is_last_os" = true ] && echo "└──" || echo "├──")
-                MESSAGE="${MESSAGE}\n    ${os_prefix} $os"
+                printf '    %s %s\n' "$os_prefix" "$os" >> message.txt
 
                 arch_list=($(echo "$RESULTS_JSON" | jq -r --arg channel "$channel" --arg os "$os" '.[] | select(.channel==$channel and .os==$os) | .arch' | sort -u))
                 last_arch_index=$((${#arch_list[@]} - 1))
@@ -129,6 +131,7 @@ jobs:
                         EMOJI=":x:"
                         LABEL="Failed"
                     fi
+
                     RUN_LINK="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
 
                     if [ "$is_last_os" = true ]; then
@@ -137,33 +140,25 @@ jobs:
                         indent="    │   "
                     fi
 
-                    MESSAGE="${MESSAGE}\n${indent}${arch_prefix} $arch: $EMOJI$LABEL ($NUM_FAILED tests failed) [Run]($RUN_LINK)"
+                    printf '%s%s %s: %s%s (%s tests failed) [Run](%s)\n' "$indent" "$arch_prefix" "$arch" "$EMOJI" "$LABEL" "$NUM_FAILED" "$RUN_LINK" >> message.txt
                 done
             done
         done
 
-        # strip leading newline
-        MESSAGE="${MESSAGE#\\n}"
+        # remove possible leading blank line
+        sed -i '1{/^$/d;}' message.txt
 
-        # expose MESSAGE for debugging if needed
-        echo "MESSAGE length: ${#MESSAGE}"
+        # expose file path for next step
+        echo "message-file=message.txt" >> $GITHUB_OUTPUT
 
-        # write MESSAGE to file for next step (raw newlines preserved)
-        printf '%s\n' "$MESSAGE" > message.txt
-
-        # make message available as output (not strictly required)
-        echo "::set-output name=message-file::message.txt"
-
-    - name: Build Mattermost payload and post
+    - name: Build payload and post to Mattermost (curl)
       shell: bash
       env:
         WEBHOOK: ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }}
         FORMATTED_DATE: ${{ env.FORMATTED_DATE }}
       run: |
-        # read message with literal newlines
         MESSAGE=$(cat message.txt)
 
-        # determine color
         if grep -q ':x:' <<<"$MESSAGE"; then
           COLOR="danger"
         else
@@ -172,8 +167,9 @@ jobs:
 
         TITLE="k8s-snap Nightly CI Status - ${FORMATTED_DATE}"
 
-        # build valid JSON payload; jq will escape newlines into \n properly
-        PAYLOAD=$(jq -n --arg text "$MESSAGE" --arg title "$TITLE" --arg color "$COLOR" '{
+        PAYLOAD_FILE=mattermost.json
+
+        jq -n --arg text "$MESSAGE" --arg title "$TITLE" --arg color "$COLOR" '{
           attachments: [
             {
               fallback: "k8s-snap Nightly CI Status",
@@ -182,9 +178,7 @@ jobs:
               text: $text
             }
           ]
-        }')
+        }' > "$PAYLOAD_FILE"
 
-        echo "$PAYLOAD" > mattermost.json
-
-        # POST to Mattermost webhook
-        curl -fsS -X POST -H 'Content-Type: application/json' --data @mattermost.json "$WEBHOOK"
+        # send JSON payload as-is; server will parse \n into real newlines when rendering
+        curl -fsS -X POST -H 'Content-Type: application/json' --data-binary @"$PAYLOAD_FILE" "$WEBHOOK"
