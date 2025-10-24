@@ -21,69 +21,114 @@ jobs:
         os: ["ubuntu:22.04", "ubuntu:24.04"]
         arch: ["amd64", "arm64"]
         # TODO: Automatically fetch all supported releases.
-        channel: ["latest/edge", "1.34-classic/edge", "1.33-classic/edge", "1.32-classic/edge"]
+        channel:
+          [
+            "latest/edge",
+            "1.34-classic/edge",
+            "1.33-classic/edge",
+            "1.32-classic/edge",
+          ]
       fail-fast: false
     uses: ./.github/workflows/e2e-tests.yaml
     with:
       arch: ${{ matrix.arch }}
       os: ${{ matrix.os }}
       channel: ${{ matrix.channel }}
-      test-tags: 'up_to_nightly'
+      test-tags: "up_to_nightly"
       upload-results: true
 
-  test-performance:
-    name: Run performance tests for ${{ matrix.os }}-${{ matrix.arch }}
-    strategy:
-      matrix:
-        os: ["ubuntu:22.04", "ubuntu:24.04"]
-        arch: ["amd64", "arm64"]
-    uses: ./.github/workflows/compare-performance.yaml
-    with:
-      arch: ${{ matrix.arch }}
-      os: ${{ matrix.os }}
-      channel-1: latest/edge
-      channel-2: 1.32-classic/stable
+
+ #test-performance:
+ #  name: Run performance tests for ${{ matrix.os }}-${{ matrix.arch }}
+ #  strategy:
+ #    matrix:
+ #      os: ["ubuntu:22.04", "ubuntu:24.04"]
+ #      arch: ["amd64", "arm64"]
+ #  uses: ./.github/workflows/compare-performance.yaml
+ #  with:
+ #    arch: ${{ matrix.arch }}
+ #    os: ${{ matrix.os }}
+ #    channel-1: latest/edge
+ #    channel-2: 1.32-classic/stable
+
+  collect-results:
+    name: Collect integration test results
+    runs-on: ubuntu-24.04
+    needs: [test-integration]
+    outputs:
+      matrix: ${{ steps.aggregate.outputs.matrix }}
+    steps:
+      - uses: actions/download-artifact@v4
+      - run: |
+          results=$(find . -type f -name 'result.json' -exec cat {} \; | jq -c --slurp .)
+          echo "$results" > aggregated-results.json
+          echo "matrix=$results" >> $GITHUB_OUTPUT
+        id: aggregate
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aggregated-results
+          path: aggregated-results.json
 
   Mattermost:
-   name: Notify Mattermost
-   # Notify on success or failure but only if the event is a scheduled run.
-   # We don't want to ping people of failed PRs.
-   if: ${{ always() && github.event_name == 'schedule' }}
-   # Note: Update results check below if you change the "needs" list.
-   needs: [test-integration, test-performance]
-   runs-on: ubuntu-latest
-   steps:
-     - name: Set current formatted date as env variable
-       run: echo "FORMATTED_DATE=$(date +'%d/%m/%Y')" >> $GITHUB_ENV
-     - name: Test results
-       run: |
-         RESULTS=$(echo '${{ toJson(needs) }}' | jq -c '[.[] | .result]')
-         if echo $RESULTS | jq -e 'all(. == "success")'; then
-           echo "RESULT=success" >> $GITHUB_ENV
-         else
-           echo "RESULT=failure" >> $GITHUB_ENV
-         fi
-     - name: Generate Mattermost Message
-       run: |
-         if [[ "${{ env.RESULT }}" == "success" ]]; then
-           echo "MM_TEXT=:white_check_mark: *Success!* CI completed successfully. [View Run](${{
-             github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_ENV
-         else
-           echo "MM_TEXT=:x: *Failure!* CI failed, @k8s-engineers please fix ASAP. [View Run](${{
-             github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_ENV
-         fi
-     - name: Notify Mattermost
-       uses: mattermost/action-mattermost-notify@master
-       with:
-         MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }}
-         PAYLOAD: |
-           {
-             "attachments": [
-               {
-                 "fallback": "k8s-snap Nightly CI Status",
-                 "color": "${{ env.RESULT == 'success' && 'good' || 'danger' }}",
-                 "title": "k8s-snap Nightly CI Status - ${{ env.FORMATTED_DATE }}",
-                 "text": "${{ env.MM_TEXT }}"
-               }
-             ]
-           }
+    name: Notify Mattermost
+    # Notify on success or failure but only if the event is a scheduled run.
+    # We don't want to ping people of failed PRs.
+    # TODO revert before merge
+    if: ${{ always() }} #&& github.event_name == 'schedule' }}
+    # Note: Update results check below if you change the "needs" list.
+    needs: [test-integration, collect-results]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set current formatted date as env variable
+        run: echo "FORMATTED_DATE=$(date +'%d/%m/%Y')" >> $GITHUB_ENV
+
+      - name: Download integration test results
+        uses: actions/download-artifact@v4
+        with:
+          name: aggregated-results
+
+      - name: Aggregate per-channel results
+        id: aggregate
+        run: |
+          RESULTS_JSON=$(jq -s '.' aggregated-results.json)
+          MESSAGE=""
+
+          for channel in $(echo "$RESULTS_JSON" | jq -r '.[].channel' | sort -u); do
+            MESSAGE="${MESSAGE}\n* $channel"
+            for os in $(echo "$RESULTS_JSON" | jq -r --arg channel "$channel" '.[] | select(.channel==$channel) | .os' | sort -u); do
+              MESSAGE="${MESSAGE}\n    $os"
+              for arch in $(echo "$RESULTS_JSON" | jq -r --arg channel "$channel" --arg os "$os" '.[] | select(.channel==$channel and .os==$os) | .arch' | sort -u); do
+                ENTRY=$(echo "$RESULTS_JSON" | jq -r --arg channel "$channel" --arg os "$os" --arg arch "$arch" '.[] | select(.channel==$channel and .os==$os and .arch==$arch)')
+                STATUS=$(echo "$ENTRY" | jq -r '.status')
+                NUM_FAILED=$(echo "$ENTRY" | jq -r '.failed_tests // 0')
+                EMOJI=":white_check_mark:"
+                LABEL="Succeeded"
+                if [[ "$STATUS" != "success" ]]; then
+                  EMOJI=":x:"
+                  LABEL="Failed"
+                fi
+                RUN_LINK="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                MESSAGE="${MESSAGE}\n      $arch: $EMOJI$LABEL ($NUM_FAILED tests failed) <$RUN_LINK|Run>"
+              done
+            done
+          done
+
+          echo "MM_TEXT<<EOF" >> $GITHUB_ENV
+          echo -e "$MESSAGE" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      #- name: Notify Mattermost
+      #  uses: mattermost/action-mattermost-notify@master
+      #  with:
+      #    MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }}
+      #    PAYLOAD: |
+      #      {
+      #        "attachments": [
+      #          {
+      #            "fallback": "k8s-snap Nightly CI Status",
+      #            "color": "${{ fromJSON('{"success":"good","failure":"danger"}')[(env.MM_TEXT | contains(":x:") && "failure" || "success")] }}",
+      #            "title": "k8s-snap Nightly CI Status - ${{ env.FORMATTED_DATE }}",
+      #            "text": "${{ env.MM_TEXT }}"
+      #          }
+      #        ]
+      #      }
