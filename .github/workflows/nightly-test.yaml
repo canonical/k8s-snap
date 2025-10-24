@@ -92,63 +92,63 @@ jobs:
       id: aggregate
       shell: bash
       run: |
+        set -euo pipefail
+
         RESULTS_JSON=$(jq -s 'add' aggregated-results.json)
 
-        # start with an empty file (preserves real newlines)
         : > message.txt
 
         channels=($(echo "$RESULTS_JSON" | jq -r '.[].channel' | sort -u))
         last_channel_index=$((${#channels[@]} - 1))
 
         for ci in "${!channels[@]}"; do
-            channel="${channels[$ci]}"
-            printf '%s\n' "* $channel" >> message.txt
+          channel="${channels[$ci]}"
+          printf '%s\n' "${channel}" >> message.txt
 
-            os_list=($(echo "$RESULTS_JSON" | jq -r --arg channel "$channel" '.[] | select(.channel==$channel) | .os' | sort -u))
-            last_os_index=$((${#os_list[@]} - 1))
+          os_list=($(echo "$RESULTS_JSON" | jq -r --arg channel "$channel" '.[] | select(.channel==$channel) | .os' | sort -u))
+          last_os_index=$((${#os_list[@]} - 1))
 
-            for oi in "${!os_list[@]}"; do
-                os="${os_list[$oi]}"
-                is_last_os=$([ "$oi" -eq "$last_os_index" ] && echo true || echo false)
-                os_prefix=$([ "$is_last_os" = true ] && echo "└──" || echo "├──")
-                printf '    %s %s\n' "$os_prefix" "$os" >> message.txt
+          for oi in "${!os_list[@]}"; do
+            os="${os_list[$oi]}"
+            is_last_os=$([ "$oi" -eq "$last_os_index" ] && echo true || echo false)
+            os_prefix=$([ "$is_last_os" = true ] && echo "└──" || echo "├──")
+            printf '    %s %s\n' "$os_prefix" "$os" >> message.txt
 
-                arch_list=($(echo "$RESULTS_JSON" | jq -r --arg channel "$channel" --arg os "$os" '.[] | select(.channel==$channel and .os==$os) | .arch' | sort -u))
-                last_arch_index=$((${#arch_list[@]} - 1))
+            arch_list=($(echo "$RESULTS_JSON" | jq -r --arg channel "$channel" --arg os "$os" '.[] | select(.channel==$channel and .os==$os) | .arch' | sort -u))
+            last_arch_index=$((${#arch_list[@]} - 1))
 
-                for ai in "${!arch_list[@]}"; do
-                    arch="${arch_list[$ai]}"
-                    is_last_arch=$([ "$ai" -eq "$last_arch_index" ] && echo true || echo false)
-                    arch_prefix=$([ "$is_last_arch" = true ] && echo "└──" || echo "├──")
+            for ai in "${!arch_list[@]}"; do
+              arch="${arch_list[$ai]}"
+              is_last_arch=$([ "$ai" -eq "$last_arch_index" ] && echo true || echo false)
+              arch_prefix=$([ "$is_last_arch" = true ] && echo "└──" || echo "├──")
 
-                    ENTRY=$(echo "$RESULTS_JSON" | jq -r --arg channel "$channel" --arg os "$os" --arg arch "$arch" '[.[] | select(.channel==$channel and .os==$os and .arch==$arch)][0]')
-                    STATUS=$(echo "$ENTRY" | jq -r '.status')
-                    NUM_FAILED=$(echo "$ENTRY" | jq -r '.failed_tests // 0')
+              ENTRY=$(echo "$RESULTS_JSON" | jq -r --arg channel "$channel" --arg os "$os" --arg arch "$arch" '[.[] | select(.channel==$channel and .os==$os and .arch==$arch)][0]')
+              STATUS=$(echo "$ENTRY" | jq -r '.status')
+              NUM_FAILED=$(echo "$ENTRY" | jq -r '.failed_tests // 0')
 
-                    EMOJI=":white_check_mark:"
-                    LABEL="Succeeded"
-                    if [[ "$STATUS" != "success" ]]; then
-                        EMOJI=":x:"
-                        LABEL="Failed"
-                    fi
+              EMOJI=":white_check_mark:"
+              LABEL="Succeeded"
+              if [[ "$STATUS" != "success" ]]; then
+                EMOJI=":x:"
+                LABEL="Failed"
+              fi
 
-                    RUN_LINK="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+              RUN_LINK="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
 
-                    if [ "$is_last_os" = true ]; then
-                        indent="        "
-                    else
-                        indent="    │   "
-                    fi
+              if [ "$is_last_os" = true ]; then
+                indent="        "
+              else
+                indent="    │   "
+              fi
 
-                    printf '%s%s %s: %s%s (%s tests failed) [Run](%s)\n' "$indent" "$arch_prefix" "$arch" "$EMOJI" "$LABEL" "$NUM_FAILED" "$RUN_LINK" >> message.txt
-                done
+              printf '%s%s %s: %s%s (%s tests failed) [Run](%s)\n' "$indent" "$arch_prefix" "$arch" "$EMOJI" "$LABEL" "$NUM_FAILED" "$RUN_LINK" >> message.txt
             done
+          done
         done
 
-        # remove possible leading blank line
         sed -i '1{/^$/d;}' message.txt
-
-        # expose file path for next step
+        tr -d '\r' < message.txt > message.normalized.txt
+        mv message.normalized.txt message.txt
         echo "message-file=message.txt" >> $GITHUB_OUTPUT
 
     - name: Build payload and post to Mattermost (curl)
@@ -157,19 +157,21 @@ jobs:
         WEBHOOK: ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }}
         FORMATTED_DATE: ${{ env.FORMATTED_DATE }}
       run: |
-        MESSAGE=$(cat message.txt)
+        set -euo pipefail
 
-        if grep -q ':x:' <<<"$MESSAGE"; then
+        MESSAGE_FILE=message.txt
+        MESSAGE_CONTENT=$(cat "$MESSAGE_FILE")
+
+        if grep -q ':x:' <<<"$MESSAGE_CONTENT"; then
           COLOR="danger"
         else
           COLOR="good"
         fi
 
         TITLE="k8s-snap Nightly CI Status - ${FORMATTED_DATE}"
-
         PAYLOAD_FILE=mattermost.json
 
-        jq -n --arg text "$MESSAGE" --arg title "$TITLE" --arg color "$COLOR" '{
+        jq -n --rawfile text "$MESSAGE_FILE" --arg title "$TITLE" --arg color "$COLOR" '{
           attachments: [
             {
               fallback: "k8s-snap Nightly CI Status",
@@ -180,5 +182,4 @@ jobs:
           ]
         }' > "$PAYLOAD_FILE"
 
-        # send JSON payload as-is; server will parse \n into real newlines when rendering
         curl -fsS -X POST -H 'Content-Type: application/json' --data-binary @"$PAYLOAD_FILE" "$WEBHOOK"
