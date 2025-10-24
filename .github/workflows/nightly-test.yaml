@@ -88,7 +88,7 @@ jobs:
       with:
         name: aggregated-results
 
-    - name: Aggregate per-channel results
+    - name: Aggregate per-channel results (produce MESSAGE)
       id: aggregate
       shell: bash
       run: |
@@ -100,7 +100,6 @@ jobs:
 
         for ci in "${!channels[@]}"; do
             channel="${channels[$ci]}"
-            is_last_channel=$([ "$ci" -eq "$last_channel_index" ] && echo true || echo false)
             MESSAGE="${MESSAGE}\n* $channel"
 
             os_list=($(echo "$RESULTS_JSON" | jq -r --arg channel "$channel" '.[] | select(.channel==$channel) | .os' | sort -u))
@@ -130,7 +129,7 @@ jobs:
                         EMOJI=":x:"
                         LABEL="Failed"
                     fi
-                    RUN_LINK="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    RUN_LINK="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
 
                     if [ "$is_last_os" = true ]; then
                         indent="        "
@@ -143,22 +142,49 @@ jobs:
             done
         done
 
-        echo "MM_TEXT<<EOF" >> $GITHUB_ENV
-        echo -e "$MESSAGE" >> $GITHUB_ENV
-        echo "EOF" >> $GITHUB_ENV
+        # strip leading newline
+        MESSAGE="${MESSAGE#\\n}"
 
-    - name: Notify Mattermost
-      uses: mattermost/action-mattermost-notify@master
-      with:
-        MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }}
-        PAYLOAD: |
-          {
-            "attachments": [
-              {
-                "fallback": "k8s-snap Nightly CI Status",
-                "color": "${{ contains(env.MM_TEXT, ':x:') && 'danger' || 'good' }}",
-                "title": "k8s-snap Nightly CI Status - ${{ env.FORMATTED_DATE }}",
-                "text": "${{ env.MM_TEXT }}"
-              }
-            ]
-          }
+        # expose MESSAGE for debugging if needed
+        echo "MESSAGE length: ${#MESSAGE}"
+
+        # write MESSAGE to file for next step (raw newlines preserved)
+        printf '%s\n' "$MESSAGE" > message.txt
+
+        # make message available as output (not strictly required)
+        echo "::set-output name=message-file::message.txt"
+
+    - name: Build Mattermost payload and post
+      shell: bash
+      env:
+        WEBHOOK: ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }}
+        FORMATTED_DATE: ${{ env.FORMATTED_DATE }}
+      run: |
+        # read message with literal newlines
+        MESSAGE=$(cat message.txt)
+
+        # determine color
+        if grep -q ':x:' <<<"$MESSAGE"; then
+          COLOR="danger"
+        else
+          COLOR="good"
+        fi
+
+        TITLE="k8s-snap Nightly CI Status - ${FORMATTED_DATE}"
+
+        # build valid JSON payload; jq will escape newlines into \n properly
+        PAYLOAD=$(jq -n --arg text "$MESSAGE" --arg title "$TITLE" --arg color "$COLOR" '{
+          attachments: [
+            {
+              fallback: "k8s-snap Nightly CI Status",
+              color: $color,
+              title: $title,
+              text: $text
+            }
+          ]
+        }')
+
+        echo "$PAYLOAD" > mattermost.json
+
+        # POST to Mattermost webhook
+        curl -fsS -X POST -H 'Content-Type: application/json' --data @mattermost.json "$WEBHOOK"
