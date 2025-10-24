@@ -100,6 +100,11 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 		}
 	}
 
+	sanitizedValues, err := sanitizeHelmValues(values)
+	if err != nil {
+		return false, fmt.Errorf("failed to convert values: %w", err)
+	}
+
 	switch {
 	case !isInstalled && desired == StateDeleted:
 		// no-op
@@ -120,7 +125,7 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 			return false, fmt.Errorf("failed to load manifest for %s: %w", c.Name, err)
 		}
 
-		if _, err := install.RunWithContext(ctx, chart, values); err != nil {
+		if _, err := install.RunWithContext(ctx, chart, sanitizedValues); err != nil {
 			return false, fmt.Errorf("failed to install %s: %w", c.Name, err)
 		}
 		return true, nil
@@ -134,7 +139,7 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 		// NOTE(Hue) (KU-3592): We are ignoring the values that are overwritten by the user.
 		// The user can change some values in the chart, but we will revert them back upon an upgrade.
 		// NOTE(Hue): We clone the values map to avoid modifying the original user provided values.
-		clonedValues, err := cloneMap(values)
+		clonedValues, err := cloneMap(sanitizedValues)
 		if err != nil {
 			return false, fmt.Errorf("failed to clone values for %s: %w", c.Name, err)
 		}
@@ -168,7 +173,7 @@ func (h *client) Apply(ctx context.Context, c InstallableChart, desired State, v
 		// cfg.Releases.MaxHistory value.
 		upgrade.MaxHistory = h.maxHistory
 
-		if _, err := upgrade.RunWithContext(ctx, c.Name, chart, values); err != nil {
+		if _, err := upgrade.RunWithContext(ctx, c.Name, chart, sanitizedValues); err != nil {
 			return false, fmt.Errorf("failed to upgrade %s: %w", c.Name, err)
 		}
 
@@ -205,4 +210,26 @@ func cloneMap(m map[string]any) (map[string]any, error) {
 		return nil, fmt.Errorf("failed to unmarshal map: %w", err)
 	}
 	return cloned, nil
+}
+
+// sanitizeHelmValues converts a map[string]any to map[string]any with properly
+// typed nested structures for compatibility with Helm's JSON schema validator.
+//
+// NOTE: The Helm library (specifically santhosh-tekuri/jsonschema v6) expects
+// arrays as []any and maps as map[string]any. Go's typed slices like []string
+// or []map[string]any are not recognized as valid JSON types by the
+// validator, causing "invalid jsonType" errors.
+// https://github.com/santhosh-tekuri/jsonschema/issues/238
+func sanitizeHelmValues(values map[string]any) (map[string]any, error) {
+	jsonBytes, err := json.Marshal(values)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert Helm values to JSON for schema validation: %w", err)
+	}
+
+	var result map[string]any
+	if err := json.Unmarshal(jsonBytes, &result); err != nil {
+		return nil, fmt.Errorf("failed to convert JSON back to Helm-compatible value types: %w", err)
+	}
+
+	return result, nil
 }
