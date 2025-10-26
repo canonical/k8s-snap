@@ -35,7 +35,7 @@ jobs:
       os: ${{ matrix.os }}
       channel: ${{ matrix.channel }}
       test-tags: "up_to_nightly"
-      # parallel: false
+      parallel: false
       upload-results: true
 
 
