@@ -20,6 +20,7 @@
 package proxy
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -45,7 +46,7 @@ func (r *remote) inactivate() {
 }
 
 func (r *remote) tryReactivate() error {
-	conn, err := net.Dial("tcp", r.addr)
+	conn, err := r.connect()
 	if err != nil {
 		return err
 	}
@@ -60,6 +61,20 @@ func (r *remote) isActive() bool {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	return !r.inactive
+}
+
+// connect establishes a TCP connection to the remote endpoint.
+// closing the returned connection is the caller's responsibility.
+func (r *remote) connect() (net.Conn, error) {
+	var d net.Dialer
+	dialCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	out, err := d.DialContext(dialCtx, "tcp", r.addr)
+	cancel()
+	if err != nil {
+		return nil, fmt.Errorf("failed to establish tcp connection: %w", err)
+	}
+
+	return out, nil
 }
 
 type tcpproxy struct {
@@ -172,8 +187,7 @@ func (tp *tcpproxy) serve(in net.Conn) {
 		if remote == nil {
 			break
 		}
-		// TODO: add timeout
-		out, err = net.Dial("tcp", remote.addr)
+		out, err = remote.connect()
 		if err == nil {
 			break
 		}
