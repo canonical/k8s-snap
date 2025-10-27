@@ -94,5 +94,8 @@ jobs:
         name: aggregated-results
     - name: Aggregate and post results
       working-directory: k8s/scripts/k8s-ci
+      shell: bash
       run: |
-        tox -e k8s-ci -- mattermost results-message --webhook ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }} --file aggregated-results.json
+        ls
+        ls ${{ github.workspace }}
+        tox -e k8s-ci -- mattermost results-message --webhook ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }} --file ${{ github.workspace }}/aggregated-results.json
