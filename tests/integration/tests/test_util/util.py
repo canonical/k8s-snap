@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any, Callable, List, Mapping, Optional, Union
 
 import pytest
+import yaml
 from tenacity import (
     RetryCallState,
     Retrying,
@@ -965,3 +966,93 @@ def check_snap_services_ready(
             assert (
                 status == "inactive"
             ), f"Unexpected service {service} is {status} but should be inactive"
+
+
+def diverged_cluster_memberships(
+    control_node: harness.Instance,
+    expected_members: List[harness.Instance],
+):
+    """Verify the integrity of the cluster membership and returns a list of divergences.
+
+    For that it verifies that only the expected members are part of the:
+    * microcluster
+    * etcd/k8s-dqlite
+    * Kubernetes
+
+    Args:
+        control_node:          instance on which to execute the command
+        expected_members:      expected list of member instances
+
+    Returns:
+        List of divergences found (["kubernetes", "microcluster", "etcd", "k8s-dqlite"] or empty)
+    """
+    divergences = []
+
+    # Kubernetes membership
+    nodes = ready_nodes(control_node)
+    node_names = [node["metadata"]["name"] for node in nodes]
+    expected_node_names = [instance.id for instance in expected_members]
+    if set(expected_node_names) != set(node_names):
+        LOG.info("Kubernetes membership diverges from expected")
+        divergences.append("kubernetes")
+
+    status = json.loads(
+        control_node.exec(
+            ["k8s", "status", "--output-format", "json"], capture_output=True, text=True
+        ).stdout
+    )
+
+    # microcluster membership
+    microcluster_members = [member["name"] for member in status.get("members", [])]
+    LOG.info(
+        f"Microcluster members: {microcluster_members}, expected: {expected_node_names}"
+    )
+    if set(expected_node_names) != set(microcluster_members):
+        LOG.info("Microcluster membership diverges from expected")
+        divergences.append("microcluster")
+
+    # datastore membership
+    datastore = status.get("datastore", {}).get("type")
+    if datastore == "etcd":
+        proc = control_node.exec(
+            [
+                "curl",
+                "--cacert",
+                "/etc/kubernetes/pki/etcd/ca.crt",
+                "--cert",
+                "/etc/kubernetes/pki/apiserver-etcd-client.crt",
+                "--key",
+                "/etc/kubernetes/pki/apiserver-etcd-client.key",
+                "https://127.0.0.1:2379/v3/cluster/member/list",
+                "-X",
+                "POST",
+                "-H",
+                "'Content-Type: application/json'",
+            ],
+            capture_output=True,
+            text=True,
+        )
+        etcd_members = json.loads(proc.stdout).get("members", [])
+        etcd_member_names = [member["name"] for member in etcd_members]
+        LOG.info(f"etcd members: {etcd_member_names}, expected: {expected_node_names}")
+        if set(expected_node_names) != set(etcd_member_names):
+            LOG.info("etcd membership diverges from expected")
+            divergences.append("etcd")
+    elif datastore == "k8s-dqlite":
+        expected_addresses = [get_default_ip(instance) for instance in expected_members]
+        proc = control_node.exec(
+            ["cat", "/var/snap/k8s/common/var/lib/k8s-dqlite/cluster.yaml"],
+            capture_output=True,
+            text=True,
+        ).stdout
+        dqlite_addresses = [
+            member["Address"].split(":")[0] for member in yaml.safe_load(proc)
+        ]
+        LOG.info(
+            f"k8s-dqlite members: {dqlite_addresses}, expected: {expected_addresses}"
+        )
+        if set(expected_addresses) != set(dqlite_addresses):
+            LOG.info("k8s-dqlite membership diverges from expected")
+            divergences.append("k8s-dqlite")
+
+    return divergences

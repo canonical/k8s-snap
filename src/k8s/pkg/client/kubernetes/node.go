@@ -12,6 +12,10 @@ import (
 	"k8s.io/client-go/util/retry"
 )
 
+func (c *Client) GetNode(ctx context.Context, nodeName string) (*v1.Node, error) {
+	return c.CoreV1().Nodes().Get(ctx, nodeName, metav1.GetOptions{})
+}
+
 // DeleteNode will remove a node from the kubernetes cluster.
 // DeleteNode will retry if there is a conflict on the resource
 // DeleteNode will retry if an internal server error occured (maximum of 5 times).
