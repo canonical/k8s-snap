@@ -44,6 +44,7 @@ jobs:
       matrix:
         os: ["ubuntu:22.04", "ubuntu:24.04"]
         arch: ["amd64", "arm64"]
+      fail-fast: false
     uses: ./.github/workflows/compare-performance.yaml
     with:
       arch: ${{ matrix.arch }}
