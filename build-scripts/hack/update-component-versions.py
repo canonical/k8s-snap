@@ -40,7 +40,7 @@ KUBERNETES_VERSION_MARKER = "https://dl.k8s.io/release/stable-1.32.txt"
 CONTAINERD_RELEASE_BRANCH = "release/1.6"
 
 # Helm release branch to track. The most recent tag in the branch will be used.
-HELM_RELEASE_BRANCH = "release-3.14"
+HELM_RELEASE_BRANCH = "release-3.18"
 
 # Contour Helm repository and chart version
 CONTOUR_HELM_REPO = "https://charts.bitnami.com/bitnami"
