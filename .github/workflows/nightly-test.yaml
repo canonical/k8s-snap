@@ -56,6 +56,7 @@ jobs:
          # TODO: automatically retrieve the list of channels.
          - { branch: release-1.32, channel: 1.32-classic/edge }
          - { branch: release-1.33, channel: 1.33-classic/edge }
+         - { branch: release-1.34, channel: 1.34-classic/edge }
    uses: ./.github/workflows/security-scan.yaml
    with:
      channel: ${{ matrix.channel }}
