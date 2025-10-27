@@ -38,19 +38,18 @@ jobs:
       parallel: false
       upload-results: true
 
-
- #test-performance:
- #  name: Run performance tests for ${{ matrix.os }}-${{ matrix.arch }}
- #  strategy:
- #    matrix:
- #      os: ["ubuntu:22.04", "ubuntu:24.04"]
- #      arch: ["amd64", "arm64"]
- #  uses: ./.github/workflows/compare-performance.yaml
- #  with:
- #    arch: ${{ matrix.arch }}
- #    os: ${{ matrix.os }}
- #    channel-1: latest/edge
- #    channel-2: 1.32-classic/stable
+  test-performance:
+    name: Run performance tests for ${{ matrix.os }}-${{ matrix.arch }}
+    strategy:
+      matrix:
+        os: ["ubuntu:22.04", "ubuntu:24.04"]
+        arch: ["amd64", "arm64"]
+    uses: ./.github/workflows/compare-performance.yaml
+    with:
+      arch: ${{ matrix.arch }}
+      os: ${{ matrix.os }}
+      channel-1: latest/edge
+      channel-2: 1.32-classic/stable
 
   collect-results:
     name: Collect integration test results
@@ -76,8 +75,7 @@ jobs:
     # Notify on success or failure but only if the event is a scheduled run.
     # We don't want to ping people of failed PRs.
     if: ${{ always() }} #&& github.event_name == 'schedule' }}
-    # Note: Update results check below if you change the "needs" list.
-    needs: [test-integration, collect-results]
+    needs: [test-integration, test-performance, collect-results]
     runs-on: ubuntu-latest
     steps:
     - name: Check out code
@@ -96,6 +94,6 @@ jobs:
       working-directory: k8s/scripts/k8s-ci
       shell: bash
       run: |
-        ls
-        ls ${{ github.workspace }}
-        tox -e k8s-ci -- mattermost results-message --webhook ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }} --file ${{ github.workspace }}/aggregated-results.json
+        tox -e k8s-ci -- mattermost results-message \
+          --webhook ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }} \
+          --file ${{ github.workspace }}/aggregated-results.json

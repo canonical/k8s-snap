@@ -58,7 +58,7 @@ def add_mattermost_cmds(parser: argparse.ArgumentParser) -> None:
     p.set_defaults(func=cmd_post)
 
 
-def load_json(path: Optional[str]) -> List[Dict[str, Any]]:
+def _load_flattened_json(path: Optional[str]) -> List[Dict[str, Any]]:
     if path == "-":
         data = json.load(sys.stdin)
     elif path:
@@ -102,7 +102,7 @@ def _build_tree_message(entries: List[Dict[str, Any]]) -> str:
         tree.setdefault(ch, {}).setdefault(osn, {})[arch] = e
 
     lines: List[str] = []
-    for ch in sorted(tree.keys()):
+    for ch in sorted(tree.keys(), reverse=True):
         lines.append(f"{ch}")
         os_list = sorted(tree[ch].keys())
         for oi, osn in enumerate(os_list):
@@ -113,15 +113,12 @@ def _build_tree_message(entries: List[Dict[str, Any]]) -> str:
                 arch_prefix = "└──" if ai == len(arch_list) - 1 else "├──"
                 entry = tree[ch][osn][arch]
                 status = str(entry.get("status", "")).lower()
-                num_failed = entry.get("failed_tests", 0) or 0
                 emoji = ":white_check_mark:" if status == "success" else ":x:"
                 label = "Succeeded" if status == "success" else "Failed"
                 run_link = _determine_run_link(entry)
                 indent = "        " if oi == len(os_list) - 1 else "    │   "
                 run_part = f" [Run]({run_link})" if run_link else " Run"
-                lines.append(
-                    f"{indent}{arch_prefix} {arch}: {emoji}{label} ({num_failed} tests failed){run_part}"
-                )
+                lines.append(f"{indent}{arch_prefix} {arch}: {emoji}{label} {run_part}")
     return "\n".join(lines)
 
 
@@ -172,12 +169,9 @@ def _post_to_mattermost(webhook: str, payload: Dict[str, Any]) -> None:
 
 
 def cmd_results_message(args: argparse.Namespace) -> int:
-    entries = load_json(args.file)
+    entries = _load_flattened_json(args.file)
     message = _build_tree_message(entries)
-    title = (
-        args.title
-        or f"k8s-snap Nightly CI Status - {os.environ.get('FORMATTED_DATE', '')}"
-    )
+    title = args.title or ""
     color = _determine_color(entries, message)
     payload = _build_payload(message, title.strip(), color)
     webhook = (
