@@ -301,7 +301,7 @@ deployment for compliance.
 
 ### FIPS compliance
 
-[FIPS 140-3] (Federal Information Processing Standard) is a U.S. government
+The [Federal Information Processing Standard] (FIPS) 140-3 is a U.S. government
 standard for cryptographic modules. In order to comply with FIPS standards,
 each cryptographic module must meet specific security requirements and must
 undergo testing and validation by the U.S. National Institute of Standards
@@ -372,7 +372,7 @@ useful.
 [Transport Layer Security]: https://datatracker.ietf.org/doc/html/rfc8446
 [X.509]: https://datatracker.ietf.org/doc/html/rfc5280
 [refreshing certificates how-to guide]: /snap/howto/security/refresh-certs.md
-[FIPS 140-3]: https://csrc.nist.gov/pubs/fips/140-3/final
+[Federal Information Processing Standard]: https://csrc.nist.gov/pubs/fips/140-3/final
 [NIST]: https://www.nist.gov/
 
 

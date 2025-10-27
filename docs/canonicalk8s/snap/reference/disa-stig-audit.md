@@ -6,7 +6,7 @@ Information System Agency (DISA) for the U.S. Department of Defense (DoD).
 The [Kubernetes STIG] contains guidelines on how to check and remediate various
 potential security concerns for a Kubernetes deployment. Here we have tailored
 these checks to work for our {{product}} cluster that is deployed using the
-[deploy a DISA STIG hardened cluster] guide.
+guide to [deploy a DISA STIG hardened cluster].
 
 ## Guideline classes overview
 
