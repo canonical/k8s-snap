@@ -73,3 +73,16 @@ func getField[T any](val *T) T {
 	var zero T
 	return zero
 }
+
+func boolFieldRemainedEnabled(old *bool, new *bool) bool {
+	// check if a boolean field was enabled and remained enabled.
+	oldVal := getField(old)
+	newVal := false
+
+	if new != nil {
+		newVal = *new
+	} else {
+		newVal = oldVal
+	}
+	return oldVal && newVal
+}
