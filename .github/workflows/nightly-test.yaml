@@ -35,7 +35,7 @@ jobs:
       os: ${{ matrix.os }}
       channel: ${{ matrix.channel }}
       test-tags: "up_to_nightly"
-      runner-tags: '{"e2e-test": ["self-hosted", "linux", "xlarge", "jammy"}'
+      runner-tags: '{"e2e-test": ["self-hosted", "linux", "xlarge", "jammy"]}'
       parallel: false
       upload-results: true
 
