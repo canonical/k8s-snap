@@ -18,5 +18,5 @@ var (
 	imageRepo = "ghcr.io/canonical/coredns"
 
 	// ImageTag is the tag to use for the CoreDNS image.
-	ImageTag = "1.12.3-ck1"
+	ImageTag = "1.13.1-ck0"
 )
