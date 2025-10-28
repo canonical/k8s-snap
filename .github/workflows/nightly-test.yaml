@@ -20,7 +20,7 @@ jobs:
       matrix:
         os: ["ubuntu:22.04", "ubuntu:24.04"]
         arch: ["amd64", "arm64"]
-        # TODO: Automatically fetch all supported releases.
+        # TODO(ben): Automatically fetch all supported releases.
         channel:
           [
             "latest/edge",
@@ -35,6 +35,7 @@ jobs:
       os: ${{ matrix.os }}
       channel: ${{ matrix.channel }}
       test-tags: "up_to_nightly"
+      runner-tags: '{"e2e-test": ["self-hosted", "linux", "xlarge", "jammy"}'
       parallel: false
       upload-results: true
 
