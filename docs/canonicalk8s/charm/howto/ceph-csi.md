@@ -151,7 +151,7 @@ sudo k8s kubectl wait pod/pv-writer-test \
 
 ## Relate to multiple Ceph clusters
 
-So far, this guide demonstrates to how to integrate with a single Ceph cluster.
+So far, this guide demonstrates how to integrate with a single Ceph cluster.
 However, {{product}} supports multiple Ceph clusters. The same `ceph-mon`,
 `ceph-osd`, and `ceph-csi` charms can be deployed again as separate Juju
 applications with different names.
