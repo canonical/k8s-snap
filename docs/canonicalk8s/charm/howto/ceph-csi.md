@@ -226,7 +226,7 @@ juju integrate ceph-osd-alt:mon ceph-mon-alt:osd
 
 There are some Kubernetes Resources which can collide when deploying multiple
 Ceph clusters in the same Kubernetes cluster if the names are not
-specified correctly. If collisions occur, the new Ceph cluster (`ceph-csi-alt`
+specified correctly. If collisions occur, the new CephCSI application (`ceph-csi-alt`
 in our example) enters a blocked state with status detailing the resource
 conflicts it detects. For example:
 
