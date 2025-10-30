@@ -122,18 +122,18 @@ jobs:
           # See https://github.com/orgs/community/discussions/11401
           TEST_RUNNERS=$(jq -c -n '${{ inputs.runner-tags }}' | jq -c 'with_entries(.value += ["${{ inputs.arch }}"])')
           echo "test_runners=$TEST_RUNNERS" >> $GITHUB_OUTPUT
-      - name: Compute branch
-        id: compute-branch
+      - name: Compute ref
+        id: compute-ref
         run: |
-          # Determine branch from channel: if channel is set and starts with 1.XX-classic,
+          # Determine ref from channel: if channel is set and starts with 1.XX-classic,
           # write release-1.XX to GITHUB_ENV, otherwise use main.
-          # This is to ensure to run tests from the correct branch when testing older releases.
+          # This is to ensure to run tests from the correct ref when testing older releases.
           CHANNEL="${{ inputs.channel }}"
-          BRANCH="main"
+          REF="main"
           if [ -n "$CHANNEL" ] && [[ "$CHANNEL" =~ ^1\.([0-9]+)-classic ]]; then
-            BRANCH="release-1.${BASH_REMATCH[1]}"
+            REF="release-1.${BASH_REMATCH[1]}"
           fi
-          echo "branch=$BRANCH" >> $GITHUB_ENV
+          echo "ref=$REF" >> $GITHUB_ENV
       - name: Collect tests
         id: collect-tests
         run: |
@@ -171,7 +171,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
         with:
-          branch: ${{ env.branch }}
+          ref: ${{ env.ref }}
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
