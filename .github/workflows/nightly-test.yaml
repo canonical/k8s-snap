@@ -29,7 +29,7 @@ jobs:
             "1.32-classic/edge",
           ]
         # We need to split the tests otherwise we hit timeouts on the self-hosted runners.
-        test-tags: ["pull_request", "up_to_nightly"]
+        test-tags: ["pull_request", "nightly"]
       fail-fast: false
     uses: ./.github/workflows/e2e-tests.yaml
     with:
