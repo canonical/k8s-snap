@@ -150,7 +150,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        test: ${{ inputs.parallel && fromJson(needs.prepare.outputs.tests) || fromJson('["e2e-test"]') }}
+        test: ${{ inputs.parallel && fromJson(needs.prepare.outputs.tests) || fromJson('["e2e-test-${{ inputs.test-tags }}"]') }}
     steps:
       - name: Node Cleanup
         run: |
