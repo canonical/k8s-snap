@@ -164,8 +164,6 @@ deployment.
 * Failure to configure each formatter could result in resource collisions.
 ```
 
-<!-- ### Deploy Ceph monitor and OSD units -->
-
 Deploy an alternate Ceph cluster containing one monitor and one storage unit
 (OSDs) -- again limiting the resources allocated.
 
@@ -181,8 +179,6 @@ juju deploy -n 1 ceph-osd-alt ceph-osd \
     --constraints "cores=2 mem=4G root-disk=16G" \
     --storage osd-devices=1G,1 --storage osd-journals=1G,1
 ```
-<!--
-### Deploy Ceph CSI -->
 
 Deploy `ceph-csi` again with a unique name, in this example `ceph-csi-alt`. We
 have also provided a unique namespace for the additional cluster, `ceph-ns-alt`
@@ -226,10 +222,6 @@ juju integrate ceph-csi-alt ceph-mon-alt:client
 juju integrate ceph-osd-alt:mon ceph-mon-alt:osd
 ```
 
-<!-- These applications still uses the same charms, but represent new application
-instances.  A new ceph-cluster via `ceph-mon-alt` and `ceph-osd-alt` and a new
-integration with Kubernetes by `ceph-csi-alt`. -->
-
 ## Resolve collisions
 
 There are some Kubernetes Resources which can collide when deploying multiple
@@ -252,37 +244,13 @@ Resolve namespace collisions by ensuring the configuration for the two Ceph
 drivers (`ceph-csi` and `ceph-csi-alt` in our example) are configured in
 separate namespaces.
 
-<!-- Many of the Kubernetes Resources managed by the `ceph-csi` charm have an
-associated namespace. Ensure the configuration for the `ceph-csi-alt`
-application doesn't collide with `ceph-csi`.
-
-If both `ceph-csi` and `ceph-csi-alt` were configured with `namespace=default`,
-then one of the charms will be in a blocked state. Assign `ceph-csi-alt` to an
-alternate namespace. -->
-
 ```
 CEPH_NS_ALT=ceph-ns-alt  # kubernetes namespace for the alternate ceph driver
 juju config ceph-csi-alt namespace=${CEPH_NS_ALT} create-namespace=true
 ```
 
-<!-- After this, the number of collisions between the two applications drop off,
-but there could still be collisions to investigate. -->
-
 Mitigate Storage Class collisions by ensuring these resources are named in
 accordance with the upstream formatting rules linked above. For example:
-
-
-<!-- StorageClass Kubernetes Resources managed by the `ceph-csi` charm are
-cluster-wide resources and have no namespace.
-
-For each of the supported StorageClass types, there is an independent formatter.
-
-* `ext4`, see [ceph-ext4-storage-class-name-formatter]
-* `xfs`, see [ceph-xfs-storage-class-name-formatter]
-* `cephfs`, see [cephfs-storage-class-name-formatter]
-
-Each formatter has similar, but distinct formatting rules, so take care to plan
-the storage-class names accordingly. Example: -->
 
 ```
 juju config ceph-csi-alt cephfs-storage-class-name-formatter="cephfs-{name}-{app}"
@@ -290,15 +258,6 @@ juju config ceph-csi-alt cephfs-storage-class-name-formatter="cephfs-{name}-{app
 
 Resolve RBAC collisions by ensuring these resources are named in accordance with
 the Ceph RBAC formatting rules linked above. For example:
-
-<!-- RBAC Kubernetes Resources managed by the `ceph-csi` charm are cluster-wide
-resources and have no namespace. Two such resources are `ClusterRole` and
-`ClusterRoleBinding`.
-
-The charm can be configured to craft separate names for these resources.  The
-Juju admin can format the names of these objects using a custom formatter.
-
-See [ceph-rbac-name-formatter] docs for more details. -->
 
 ```
 juju config ceph-csi-alt ceph-rbac-name-formatter="{name}-{app}"
