@@ -483,12 +483,9 @@ func handleUpgradeInProgress(ctx context.Context, s state.State, k8sClient *kube
 
 	log.Info("Marking node as upgraded", "node", nodeName)
 
-	upgradedNodes := upgrade.Status.UpgradedNodes
-	if !slices.Contains(upgradedNodes, nodeName) {
-		upgradedNodes = append(upgradedNodes, nodeName)
-	}
-	status := upgradesv1alpha.UpgradeStatus{
-		UpgradedNodes: append(upgrade.Status.UpgradedNodes, nodeName),
+	status := upgrade.Status
+	if !slices.Contains(status.UpgradedNodes, nodeName) {
+		status.UpgradedNodes = append(status.UpgradedNodes, nodeName)
 	}
 
 	return k8sClient.PatchUpgradeStatus(ctx, upgrade, status)
