@@ -173,8 +173,7 @@ jobs:
   check-charm-operator-release:
     name: Check if k8s-operator has matching release
     outputs:
-      has-matching-release: >-
-        ${{ steps.check-release.outputs.has-matching-release }}
+      has-matching-release: ${{ steps.check-release.outputs.has-matching-release }}
       release-version: ${{ steps.check-release.outputs.release-version }}
     runs-on: ubuntu-latest
     steps:
@@ -200,12 +199,12 @@ jobs:
 
             # Check for branch
             if git ls-remote --heads https://github.com/canonical/k8s-operator \
-               | grep -q "refs/heads/release-$release_version$"; then
+               2>/dev/null | grep -q "refs/heads/release-$release_version$"; then
               echo "Found matching k8s-operator branch: release-$release_version"
               echo "has-matching-release=true" >> "$GITHUB_OUTPUT"
             # Check for tag
             elif git ls-remote --tags https://github.com/canonical/k8s-operator \
-                 | grep -q "refs/tags/release-$release_version$"; then
+                 2>/dev/null | grep -q "refs/tags/release-$release_version$"; then
               echo "Found matching k8s-operator tag: release-$release_version"
               echo "has-matching-release=true" >> "$GITHUB_OUTPUT"
             else
@@ -222,8 +221,7 @@ jobs:
       fail-fast: false
     needs: [build-snap, go-lint-and-unit, python-lint, get-charm-channel,
             check-charm-operator-release]
-    if: >-
-      needs.check-charm-operator-release.outputs.has-matching-release == 'true'
+    if: needs.check-charm-operator-release.outputs.has-matching-release == 'true'
     uses: ./.github/workflows/charm-e2e-tests.yaml
     with:
       arch: ${{ matrix.arch }}
