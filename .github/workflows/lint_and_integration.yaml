@@ -169,15 +169,87 @@ jobs:
             channel=latest/edge
           fi
           echo "charm-channel=$channel" >> "$GITHUB_OUTPUT"
+
+  check-charm-operator-release:
+    name: Check if k8s-operator has matching release
+    outputs:
+      has-matching-release: >-
+        ${{ steps.check-release.outputs.has-matching-release }}
+      release-version: ${{ steps.check-release.outputs.release-version }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check k8s-operator release
+        id: check-release
+        env:
+          BRANCH_NAME: ${{ github.base_ref || github.ref_name }}
+        run: |
+          # Parse the k8s-snap release version (e.g., release-1.30 -> 1.30)
+          release_version=$(echo "$BRANCH_NAME" | grep -Po "release-\K\d+\.\d+")
+
+          if [[ -z $release_version ]]; then
+            # Not a release branch, assume main/latest - always run tests
+            echo "Not a release branch, will run charm e2e tests"
+            echo "has-matching-release=true" >> "$GITHUB_OUTPUT"
+            echo "release-version=main" >> "$GITHUB_OUTPUT"
+          else
+            echo "Detected k8s-snap release version: $release_version"
+            echo "release-version=$release_version" >> "$GITHUB_OUTPUT"
+
+            # Check if k8s-operator has a matching release branch or tag
+            echo "Checking k8s-operator for release-$release_version..."
+
+            # Check for branch
+            if git ls-remote --heads https://github.com/canonical/k8s-operator \
+               | grep -q "refs/heads/release-$release_version$"; then
+              echo "Found matching k8s-operator branch: release-$release_version"
+              echo "has-matching-release=true" >> "$GITHUB_OUTPUT"
+            # Check for tag
+            elif git ls-remote --tags https://github.com/canonical/k8s-operator \
+                 | grep -q "refs/tags/release-$release_version$"; then
+              echo "Found matching k8s-operator tag: release-$release_version"
+              echo "has-matching-release=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "No matching k8s-operator release found for $release_version"
+              echo "has-matching-release=false" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
   charm-e2e-tests:
     name: Charm e2e tests - ${{ matrix.arch }}
     strategy:
       matrix:
         arch: [amd64]
       fail-fast: false
-    needs: [build-snap, go-lint-and-unit, python-lint, get-charm-channel]
+    needs: [build-snap, go-lint-and-unit, python-lint, get-charm-channel,
+            check-charm-operator-release]
+    if: >-
+      needs.check-charm-operator-release.outputs.has-matching-release == 'true'
     uses: ./.github/workflows/charm-e2e-tests.yaml
     with:
       arch: ${{ matrix.arch }}
       artifact: k8s-${{ matrix.arch }}.snap
       charm-channel: ${{ needs.get-charm-channel.outputs.charm-channel }}
+
+  charm-e2e-tests-summary:
+    name: Charm e2e tests summary
+    runs-on: ubuntu-latest
+    needs: [check-charm-operator-release, charm-e2e-tests]
+    if: always()
+    steps:
+      - name: Report status
+        run: |
+          has_release="${{ needs.check-charm-operator-release.outputs.has-matching-release }}"
+          if [[ "$has_release" == "false" ]]; then
+            release_ver="${{ needs.check-charm-operator-release.outputs.release-version }}"
+            echo "::notice::Skipping charm e2e tests: no matching k8s-operator version for release $release_ver"
+            echo "Charm e2e tests were skipped because k8s-operator does not have a matching release."
+          elif [[ "${{ needs.charm-e2e-tests.result }}" == "skipped" ]]; then
+            echo "::notice::Charm e2e tests were skipped"
+          elif [[ "${{ needs.charm-e2e-tests.result }}" == "success" ]]; then
+            echo "Charm e2e tests completed successfully"
+          elif [[ "${{ needs.charm-e2e-tests.result }}" == "failure" ]]; then
+            echo "::error::Charm e2e tests failed"
+            exit 1
+          else
+            echo "Charm e2e tests status: ${{ needs.charm-e2e-tests.result }}"
+          fi
