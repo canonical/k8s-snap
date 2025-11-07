@@ -227,27 +227,3 @@ jobs:
       arch: ${{ matrix.arch }}
       artifact: k8s-${{ matrix.arch }}.snap
       charm-channel: ${{ needs.get-charm-channel.outputs.charm-channel }}
-
-  charm-e2e-tests-summary:
-    name: Charm e2e tests summary
-    runs-on: ubuntu-latest
-    needs: [check-charm-operator-release, charm-e2e-tests]
-    if: always()
-    steps:
-      - name: Report status
-        run: |
-          has_release="${{ needs.check-charm-operator-release.outputs.has-matching-release }}"
-          if [[ "$has_release" == "false" ]]; then
-            release_ver="${{ needs.check-charm-operator-release.outputs.release-version }}"
-            echo "::notice::Skipping charm e2e tests: no matching k8s-operator version for release $release_ver"
-            echo "Charm e2e tests were skipped because k8s-operator does not have a matching release."
-          elif [[ "${{ needs.charm-e2e-tests.result }}" == "skipped" ]]; then
-            echo "::notice::Charm e2e tests were skipped"
-          elif [[ "${{ needs.charm-e2e-tests.result }}" == "success" ]]; then
-            echo "Charm e2e tests completed successfully"
-          elif [[ "${{ needs.charm-e2e-tests.result }}" == "failure" ]]; then
-            echo "::error::Charm e2e tests failed"
-            exit 1
-          else
-            echo "Charm e2e tests status: ${{ needs.charm-e2e-tests.result }}"
-          fi
