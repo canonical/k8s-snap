@@ -29,16 +29,14 @@ jobs:
             "1.32-classic/edge",
           ]
         # We need to split the tests otherwise we hit timeouts on the self-hosted runners.
-        test-tags: ["pull_request", "nightly"]
+      max-parallel: 100
       fail-fast: false
     uses: ./.github/workflows/e2e-tests.yaml
     with:
       arch: ${{ matrix.arch }}
       os: ${{ matrix.os }}
       channel: ${{ matrix.channel }}
-      test-tags: ${{ matrix.test-tags }}
-      runner-tags: '{"e2e-test": ["self-hosted", "linux", "xlarge", "jammy"]}'
-      parallel: false
+      parallel: true
       upload-results: true
 
   test-performance:
