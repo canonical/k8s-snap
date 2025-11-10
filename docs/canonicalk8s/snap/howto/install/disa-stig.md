@@ -175,9 +175,9 @@ order to maintain DISA STIG compliance.
 `/var/snap/k8s/common/etc/templates/disa-stig/bootstrap.yaml` is the template
 for [bootstrapping](#bootstrap-the-first-control-plane-node) and
 `/var/snap/k8s/common/etc/templates/disa-stig/control-plane.yaml` is the
-template for [joining additional control plane nodes](#join-control-plane-nodes).
-Both of these templates apply configuration to align with the following
-recommendations:
+template for [joining additional control plane
+nodes](#join-control-plane-nodes). Both of these templates apply configuration
+to align with the following recommendations:
 
 | STIG                                                                               | Summary                                                               |
 | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
@@ -203,8 +203,9 @@ It applies configuration to align with the following recommendations:
 
 ### Alternative control plane configurations
 
-The STIG templates provided to [set up control plane nodes](#set-up-control-plane-nodes)
-may need adjusted to suit your specific needs.
+The STIG templates provided to [set up control plane
+nodes](#set-up-control-plane-nodes) may need adjusted to suit your specific
+needs.
 
 #### Pod Security Admission control file
 
