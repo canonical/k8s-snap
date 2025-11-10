@@ -9,7 +9,7 @@ match your needs.
 
 This guide assumes the following:
 
-- An ubuntu machine where {{product}} is or will be installed.
+- An Ubuntu machine where {{product}} is or will be installed.
 - Root or sudo access to the machine.
 
 ## Install UFW

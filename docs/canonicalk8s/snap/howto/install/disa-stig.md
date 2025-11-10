@@ -82,11 +82,11 @@ configuration needed to fully align with DISA STIG requirements.
 ### Set up control plane nodes
 
 ```{attention}
-Before bootstrapping or joining control-plane nodes, review the [templates]
-(#control-plane-templates) and [alternative configurations]
-(#alternative-control-plane-configurations). Once a node is bootstrapped,
-changing certain settings is more difficult and may require re-deploying the
-node or cluster.
+Before bootstrapping or joining control-plane nodes, review the
+[templates](#control-plane-templates) and
+[alternative configurations](#alternative-control-plane-configurations).
+Once a node is bootstrapped, changing certain settings is more difficult
+and may require re-deploying the node or cluster.
 ```
 
 #### Bootstrap the first control-plane node
@@ -134,7 +134,7 @@ sudo systemctl disable ssh.service ssh.socket
 ```
 
 ```{note}
-According to rule [V-242393] and [V-242394] Kubernetes Worker Nodes must not
+According to rule [V-242393] and [V-242394] Kubernetes worker nodes must not
 have sshd service running or enabled. The host STIG rule [V-270665] on the
 other hand expects sshd to be installed on the host. To comply with both
 rules, leave SSH installed, but disable the service. It is probably acceptable
