@@ -141,28 +141,25 @@ rules, leave SSH installed, but disable the service. It is probably acceptable
 however to remove SSH if it is not needed.
 ```
 
-## Required Documentation
-
-[V-242410], [V-242411], [V-242412], and [V-242413] require that the Kubernetes
-API Server, Scheduler, and Controllers as well as etcd enforce ports,
-protocols, and services (PPS) that adhere to the Ports, Protocols, and
-Services Management Category Assurance List (PPSM CAL). The {{product}}
-[ports and services] must be manually audited in accordance with this policy.
-These ports, protocols, and services will need to be added to your specific
-PPSM list and the list will need to be updated anytime the list of ports,
-protocols, and services used by your cluster changes. For instance, this list
-will need to be updated each time a new service is exposed externally.
-
 ## Post-Deployment Requirements
 
 In addition to the above deployment steps, there are some guidelines that must
-be followed by users and administrators throughout the life of the cluster in
-order to maintain DISA STIG compliance.
+be followed by users and administrators post-deployment and throughout the
+life of the cluster in order to achieve and maintain DISA STIG compliance.
 
-- [V-242383] User-managed resources must be created in dedicated namespaces
-- [V-242414] User pods must only use non-privileged host ports
-- [V-242415] Secrets must not be stored as environment variables
-- [V-242417] User functionality must be separate from management functions
+- [V-242383]: User-managed resources must be created in dedicated namespaces
+- [V-242410], [V-242411], [V-242412], and [V-242413]: The Kubernetes
+API Server, Scheduler, and Controllers as well as etcd must enforce ports,
+protocols, and services (PPS) that adhere to the Ports, Protocols, and
+Services Management Category Assurance List (PPSM CAL). The {{product}}
+[ports and services] must be audited in accordance with this list. Those ports,
+protocols, and services that fall outside the PPSM CAL must be blocked or
+registered. This step needs followed after the initial deployment and anytime
+the list of ports, protocols, and services used by your cluster changes (for
+instance each time a new service is exposed externally).
+- [V-242414]: User pods must only use non-privileged host ports
+- [V-242415]: Secrets must not be stored as environment variables
+- [V-242417]: User functionality must be separate from management functions
    meaning all user pods must be in user specific namespaces rather than system
    namespaces
 
@@ -181,13 +178,13 @@ to align with the following recommendations:
 
 | STIG                                                                               | Summary                                                               |
 | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| [V-242434]                                                                         | Kubernetes Kubelet must enable kernel protection                      |
-| [V-245541]                                                                         | Kubernetes Kubelet must not disable timeouts                          |
-| [V-242402], [V-242403], [V-242461], [V-242462], [V-242463], [V-242464], [V-242465] | The Kubernetes API Server must have an audit log configured           |
-| [V-254800]                                                                         | Kubernetes must have a Pod Security Admission control file configured |
-| [V-242400]                                                                         | The Kubernetes API server must have Alpha APIs disabled               |
 | [V-242384]                                                                         | The Kubernetes Scheduler must have secure binding                     |
 | [V-242385]                                                                         | The Kubernetes Controller Manager must have secure binding            |
+| [V-242400]                                                                         | The Kubernetes API server must have Alpha APIs disabled               |
+| [V-242402], [V-242403], [V-242461], [V-242462], [V-242463], [V-242464], [V-242465] | The Kubernetes API Server must have an audit log configured           |
+| [V-242434]                                                                         | Kubernetes Kubelet must enable kernel protection                      |
+| [V-245541]                                                                         | Kubernetes Kubelet must not disable timeouts                          |
+| [V-254800]                                                                         | Kubernetes must have a Pod Security Admission control file configured |
 
 #### Worker node templates
 
@@ -199,7 +196,6 @@ It applies configuration to align with the following recommendations:
 | ---------- | ------------------------------------------------ |
 | [V-242434] | Kubernetes Kubelet must enable kernel protection |
 | [V-245541] | Kubernetes Kubelet must not disable timeouts     |
-
 
 ### Alternative control plane configurations
 
