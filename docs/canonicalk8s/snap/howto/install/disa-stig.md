@@ -55,7 +55,7 @@ sudo usg fix disa_stig
 
 DISA STIG recommends enabling `--protect-kernel-defaults=true` so that kubelet
 will not modify kernel flags. This requires that the kernel be configured in
-advanced as shown below:
+advance as shown below:
 
 ```
 sudo tee /etc/sysctl.d/99-kubelet.conf <<EOF

@@ -23,7 +23,7 @@ This guide assumes the following:
 Canonical K8s uses the core22 base snap which includes certified crypto
 libraries from Ubuntu 22.04. Strictly speaking FIPS compliance requires
 deploying on a matching certified kernel (Ubuntu 22.04). In practice auditors
-sometime accept mixing different kernel and user space library versions as long
+sometimes accept mixing different kernel and user space library versions as long
 as both are certified. From a technical perspective, FIPS mode should work on
 other OS versions just like the k8s snap.
 ```

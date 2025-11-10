@@ -76,7 +76,7 @@ sudo ufw route allow from 10.1.0.0/16 to 10.1.0.0/16
 
 ## Allow access to the Kubernetes services
 
-Allow access the API server on control plane nodes:
+Allow access to the API server on control plane nodes:
 
 ```sh
 sudo ufw allow 6443/tcp
