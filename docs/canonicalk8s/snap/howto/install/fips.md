@@ -41,12 +41,12 @@ Ensure that your Ubuntu Pro Client is installed and running at least 27.0:
 pro version
 ```
 
-If you have not installed the Ubuntu Pro Client yet or have an older version,
+If you have not installed the [Ubuntu Pro Client] yet or have an older version,
 run:
 
 ```
 sudo apt update
-sudo apt install ubuntu-advantage-tools
+sudo apt install ubuntu-pro-client
 ```
 
 Attach the Ubuntu Pro token with the `--no-auto-enable` option to prevent
@@ -76,14 +76,9 @@ cat /proc/sys/crypto/fips_enabled
 
 If the output is `1`, your host machine is running in FIPS mode.
 
-``` {note}
-If this section leaves open any further questions consult the [enable FIPS with
-Ubuntu] guide for more detailed instructions.
-```
-
 ## Install dependencies
 
-Install the [core22] base snap containing FIPS certified libraries from the
+Install the [core22] base snap containing the FIPS certified libraries from the
 [`fips-updates` track].
 
 ```
@@ -143,11 +138,8 @@ Otherwise, you can [add it] to an existing cluster.
 [Federal Information Processing Standard (FIPS) 140-3]:
 https://csrc.nist.gov/pubs/fips/140-3/final
 [Ubuntu Pro]: https://ubuntu.com/pro
+[Ubuntu Pro Client]: https://documentation.ubuntu.com/pro-client/en/latest/tutorials/
 [Ubuntu Pro subscription dashboard]: https://ubuntu.com/pro/dashboard
-<!-- markdownlint-disable MD053 -->
-[enable FIPS with Ubuntu]:
-https://ubuntu.com/tutorials/using-the-ubuntu-pro-client-to-enable-fips#1-overview
-<!-- markdownlint-enable MD053 -->
 [core22]: https://snapcraft.io/core22
 [`fips-updates` track]:
 https://documentation.ubuntu.com/pro-client/en/latest/howtoguides/enable_fips
