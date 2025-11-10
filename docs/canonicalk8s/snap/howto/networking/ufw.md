@@ -1,9 +1,9 @@
 # How to configure Uncomplicated Firewall (UFW)
 
-This how-to presents a set of firewall rules/guidelines
-that should be considered when setting up {{product}}.
-These rules may be incompatible with some network setups,
-so we recommend you review and tune them to match your needs.
+This how-to presents a set of firewall rules/guidelines that should be
+considered when setting up {{product}}. These rules may be incompatible
+with some network setups, so we recommend you review and tune them to
+match your needs.
 
 ## Prerequisites
 
@@ -12,7 +12,7 @@ This guide assumes the following:
 - An ubuntu machine where {{product}} is or will be installed.
 - Root or sudo access to the machine.
 
-## Install UFW 
+## Install UFW
 
 Install Uncomplicated Firewall:
 
@@ -27,8 +27,8 @@ To verify UFW is installed try:
 sudo ufw status verbose
 ```
 
-To maintain SSH access to the machine, allow `OpenSSH` through
-UFW before enabling the firewall:
+To maintain SSH access to the machine, allow `OpenSSH` through UFW
+before enabling the firewall:
 
 ```sh
 sudo ufw allow OpenSSH
@@ -36,9 +36,9 @@ sudo ufw allow OpenSSH
 
 ## Allow packet forwarding
 
-Packet forwarding is needed because containers typically live in isolated
-networks and expect the host to route traffic between their internal network
-and the outside world.
+Packet forwarding is needed because containers typically live in
+isolated networks and expect the host to route traffic between their
+internal network and the outside world.
 
 To enable IP forwarding:
 
@@ -62,10 +62,10 @@ DEFAULT_FORWARD_POLICY="ACCEPT"
 ````
 
 ````{group-tab} By subnet
-A less permissive approach would be to allow forwarding traffic only between
-the subnets of the pods and the hosts.
-For example, assuming the pods CIDR is `10.1.0.0/16` and the cluster nodes
-are in `10.0.20/24`, you could:
+A less permissive approach would be to allow forwarding traffic only
+between the subnets of the pods and the hosts. For example, assuming the
+pods CIDR is `10.1.0.0/16` and the cluster nodes are in `10.0.20/24`, you
+could:
 
 ```sh
 sudo ufw route allow from 10.1.0.0/16 to 10.0.20.0/24
@@ -77,8 +77,8 @@ sudo ufw route allow from 10.1.0.0/16 to 10.1.0.0/16
 ## Allow access to the Kubernetes services
 
 Allow access the API server on control plane nodes:
- 
-``` sh
+
+```sh
 sudo ufw allow 6443/tcp
 ```
 
@@ -88,8 +88,8 @@ Allow access to kubelet on all nodes:
 sudo ufw allow 10250/tcp
 ```
 
-Allow access to kube-controller-manager and kube-scheduler on
-control plane nodes (e.g. for metrics gathering):
+Allow access to kube-controller-manager and kube-scheduler on control
+plane nodes (e.g. for metrics gathering):
 
 ```sh
 sudo ufw allow 10257/tcp
@@ -98,8 +98,9 @@ sudo ufw allow 10259/tcp
 
 ## Allow cluster formation
 
-To form a High Availability (HA) cluster the datastore used by Kubernetes
-(etcd or k8s-dqlite) needs to establish a direct connection among its peers.
+To form a High Availability (HA) cluster the datastore used by
+Kubernetes (etcd or k8s-dqlite) needs to establish a direct connection
+among its peers.
 
 `````{tabs}
 ````{group-tab} etcd
@@ -119,7 +120,8 @@ sudo ufw allow 9000/tcp
 ````
 `````
 
-Allow access to the {{product}} daemon running on all nodes (required for cluster formation):
+Allow access to the {{product}} daemon running on all nodes (required for
+cluster formation):
 
 ```sh
 sudo ufw allow 6400/tcp
@@ -127,7 +129,8 @@ sudo ufw allow 6400/tcp
 
 ## Enable CNI specific communication
 
-Allow the cluster-wide Cilium agent health checks and VXLAN traffic on all nodes:
+Allow the cluster-wide Cilium agent health checks and VXLAN traffic on
+all nodes:
 
 ```sh
 sudo ufw allow 4240/tcp
@@ -141,7 +144,6 @@ Now enable UFW:
 ```sh
 sudo ufw enable
 ```
-
 
 ## UFW troubleshooting
 
@@ -159,18 +161,17 @@ Monitor the firewall logs with:
 tail -f /var/log/ufw.log
 ```
 
-The logs will show you which packets are dropped, their destination
-and source as well as the protocol used and the destination port.
-This information helps you identify any other ports or services
-you need to enable within UFW.
+The logs will show you which packets are dropped, their destination and
+source as well as the protocol used and the destination port. This
+information helps you identify any other ports or services you need to
+enable within UFW.
 
-After troubleshooting, keep the resources used by UFW to a minimum
-by disabling logging:
+After troubleshooting, keep the resources used by UFW to a minimum by
+disabling logging:
 
 ```sh
 sudo ufw logging off
 ```
-
 
 <!-- LINKS -->
 

@@ -3,13 +3,12 @@
 The [Federal Information Processing Standard (FIPS) 140-3] is a US government
 security standard regulating the use of cryptography. Compliance is crucial for
 US government and regulated industries. This how-to guide provides the steps to
-set up a FIPS compliant Kubernetes cluster using the
-{{ product }} snap.
+set up a FIPS compliant Kubernetes cluster using the {{ product }} snap.
 
 ```{note}
-FIPS is only available in the `k8s` snap release 1.34 and
-later. If you are using an earlier version, you will need to upgrade to
-a newer version of the snap to use FIPS mode.
+FIPS is only available in the `k8s` snap release 1.34 and later. If you are
+using an earlier version, you will need to upgrade to a newer version of the
+snap to use FIPS mode.
 ```
 
 ## Prerequisites
@@ -21,21 +20,22 @@ This guide assumes the following:
 - Internet access on the machine
 
 ```{note}
-Canonical K8s uses the core22 base snap which includes certified crypto libraries
-from Ubuntu 22.04. Strictly speaking FIPS compliance requires deploying on a matching
-certified kernel (Ubuntu 22.04). In practice auditors sometime accept mixing different
-kernel and user space library versions as long as both are certified. From a technical
-perspective, FIPS mode should work on other OS versions just like the k8s snap.
+Canonical K8s uses the core22 base snap which includes certified crypto
+libraries from Ubuntu 22.04. Strictly speaking FIPS compliance requires
+deploying on a matching certified kernel (Ubuntu 22.04). In practice auditors
+sometime accept mixing different kernel and user space library versions as long
+as both are certified. From a technical perspective, FIPS mode should work on
+other OS versions just like the k8s snap.
 ```
 
 ## Enable FIPS
 
-To enable FIPS on your host machine, you must have an [Ubuntu Pro] subscription.
-Open the [Ubuntu Pro subscription dashboard] to retrieve your Ubuntu Pro token
-required to enable access to FIPS-certified modules on your system.
+To enable FIPS on your host machine, you must have an [Ubuntu Pro]
+subscription. Open the [Ubuntu Pro subscription dashboard] to retrieve your
+Ubuntu Pro token required to enable access to FIPS-certified modules on your
+system.
 
-Ensure that your Ubuntu Pro Client is installed and running at
-least 27.0:
+Ensure that your Ubuntu Pro Client is installed and running at least 27.0:
 
 ```
 pro version
@@ -77,21 +77,22 @@ cat /proc/sys/crypto/fips_enabled
 If the output is `1`, your host machine is running in FIPS mode.
 
 ``` {note}
-If this section leaves open any further questions consult the [enable FIPS with Ubuntu]
-guide for more detailed instructions.
+If this section leaves open any further questions consult the [enable FIPS with
+Ubuntu] guide for more detailed instructions.
 ```
 
 ## Install dependencies
 
-Install the [core22] base snap containing FIPS certified libraries from the [`fips-updates` track].
+Install the [core22] base snap containing FIPS certified libraries from the
+[`fips-updates` track].
 
 ```
 sudo snap install core22 --channel=fips-updates/stable
 ```
 
 If core22 is already installed, a message will be displayed:
-`snap "core22" is already installed, see 'snap help refresh'`.
-In this case, use the refresh command instead of install.
+`snap "core22" is already installed, see 'snap help refresh'`. In this case,
+use the refresh command instead of install.
 
 ```
 sudo snap refresh core22 --channel=fips-updates/stable
@@ -106,13 +107,12 @@ Install the {{ product }} snap on your FIPS host:
 :end-before: <!-- snap end -->
 ```
 
-The components will automatically detect if the system is
-running in FIPS mode and activate internal FIPS-related settings
-accordingly.
+The components will automatically detect if the system is running in FIPS mode
+and activate internal FIPS-related settings accordingly.
 
 ```{note}
-Each node in the cluster must be installed following these instructions in order
-for the whole cluster to be FIPS compliant.
+Each node in the cluster must be installed following these instructions in
+order for the whole cluster to be FIPS compliant.
 ```
 
 ## Next steps
@@ -120,8 +120,9 @@ for the whole cluster to be FIPS compliant.
 ```{attention}
 If you are deploying a DISA STIG hardened cluster, stop here and instead
 continue following the
-[Canonical Kubernetes DISA STIG deployment guide](disa-stig.md) to get detailed
-instructions on deploying with a stricter bootstrap or join configuration file.
+[Canonical Kubernetes DISA STIG deployment guide](disa-stig.md)
+to get detailed instructions on deploying with a stricter bootstrap or join
+configuration file.
 ```
 
 If this is the first node in your cluster, you can bootstrap it as usual:
@@ -139,12 +140,15 @@ sudo k8s status --wait-ready
 Otherwise, you can [add it] to an existing cluster.
 
 <!-- LINKS -->
-[Federal Information Processing Standard (FIPS) 140-3]: https://csrc.nist.gov/pubs/fips/140-3/final
+[Federal Information Processing Standard (FIPS) 140-3]:
+https://csrc.nist.gov/pubs/fips/140-3/final
 [Ubuntu Pro]: https://ubuntu.com/pro
 [Ubuntu Pro subscription dashboard]: https://ubuntu.com/pro/dashboard
 <!-- markdownlint-disable MD053 -->
-[enable FIPS with Ubuntu]: https://ubuntu.com/tutorials/using-the-ubuntu-pro-client-to-enable-fips#1-overview
+[enable FIPS with Ubuntu]:
+https://ubuntu.com/tutorials/using-the-ubuntu-pro-client-to-enable-fips#1-overview
 <!-- markdownlint-enable MD053 -->
 [core22]: https://snapcraft.io/core22
-[`fips-updates` track]: https://documentation.ubuntu.com/pro-client/en/latest/howtoguides/enable_fips
+[`fips-updates` track]:
+https://documentation.ubuntu.com/pro-client/en/latest/howtoguides/enable_fips
 [add it]: snap/tutorial/add-remove-nodes
