@@ -14,7 +14,7 @@ guide to [deploy a DISA STIG hardened cluster].
 
 **Default**: complies with by default.
 
-**Bootstrap**: can be conifgured during bootstrap per the deployment guide.
+**Bootstrap**: can be configured during bootstrap per the deployment guide.
 
 **Post-Deployment**: must be followed by users and administrators
 post-deployment and throughout the life of the cluster in order to achieve
