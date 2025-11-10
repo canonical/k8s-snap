@@ -16,9 +16,9 @@ already followed our [FIPS installation guide], but stopped after installing
 continue here to first complete additional steps needed for DISA STIG
 compliance.
 
-## Configure Firewall
+## Configure UFW (Firewall)
 
-The host STIG will recommend enabling the host firewall (UFW), but does not do
+The host STIG recommends enabling the host firewall (UFW), but does not do
 so automatically. We recommend following our guide to [configure UFW]. This can
 be done before applying the host STIG and will help avoid connectivity issues
 that often happen when enabling UFW with the default configuration.
@@ -40,9 +40,12 @@ To generate a compliance audit report (without applying changes):
 sudo usg audit disa_stig
 ```
 
-```{warning}
-The following command applies rule [V-270714] which will disallow using
-accounts with an empty password to access your machine.
+```{attention}
+The following command applies rule [V-270714], which will prevent using accounts
+with empty passwords to access this machine.
+
+You can check whether the current account has an empty password by running
+`passwd --status` and looking for "NP" in the second field of the output.
 ```
 
 To automatically apply the recommended hardening changes:

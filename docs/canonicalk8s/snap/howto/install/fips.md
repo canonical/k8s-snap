@@ -138,7 +138,7 @@ Otherwise, you can [add it] to an existing cluster.
 [Federal Information Processing Standard (FIPS) 140-3]:
 https://csrc.nist.gov/pubs/fips/140-3/final
 [Ubuntu Pro]: https://ubuntu.com/pro
-[Ubuntu Pro Client]: https://documentation.ubuntu.com/pro-client/en/latest/tutorials/
+[Ubuntu Pro Client]: https://documentation.ubuntu.com/pro-client/en/latest/tutorials/basic_commands/#tutorial-commands
 [Ubuntu Pro subscription dashboard]: https://ubuntu.com/pro/dashboard
 [core22]: https://snapcraft.io/core22
 [`fips-updates` track]:
