@@ -13,4 +13,4 @@ plugins:
         warn: "restricted"
         warn-version: "latest"
       exemptions:
-        namespaces: ["kube-system", "kube-public"]
+        namespaces: ["kube-system", "kube-public", "metallb-system"]
