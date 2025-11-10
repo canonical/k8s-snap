@@ -124,15 +124,16 @@ jobs:
           echo "test_runners=$TEST_RUNNERS" >> $GITHUB_OUTPUT
       - name: Compute ref
         id: compute-ref
+        shell: bash
         run: |
-          # Determine ref from channel: if channel is set and starts with 1.XX-classic,
-          # write release-1.XX to GITHUB_ENV, otherwise use main.
-          # This is to ensure to run tests from the correct ref when testing older releases.
-          CHANNEL="${{ inputs.channel }}"
           REF="main"
-          if [ -n "$CHANNEL" ] && [[ "$CHANNEL" =~ ^1\.([0-9]+)-classic ]]; then
-            REF="release-1.${BASH_REMATCH[1]}"
+          # Match X.YY or X.YY-classic to release-1.XX
+          # This is to ensure to run tests from the correct ref when testing older releases.
+          if [[ -n "$CHANNEL" && "$CHANNEL" =~ ^([0-9]+)\.([0-9]+)(-classic)?$ ]]; then
+              REF="release-${BASH_REMATCH[1]}.${BASH_REMATCH[2]}"
           fi
+
+          echo "Using git ref: $REF"
           echo "ref=$REF" >> $GITHUB_ENV
       - name: Collect tests
         id: collect-tests
