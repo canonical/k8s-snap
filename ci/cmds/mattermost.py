@@ -156,12 +156,14 @@ def _build_payload(
 
 def _post_webhook(webhook: str, payload: Dict[str, Any]) -> Dict[str, Any]:
     body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    print(f"Body: {body.decode('utf-8')}", file=sys.stderr)
     req = Request(
         webhook, data=body, headers={"Content-Type": "application/json; charset=utf-8"}
     )
     try:
         with urlopen(req, timeout=20) as resp:
             resp_body = resp.read().decode("utf-8", errors="ignore")
+            print(f"Webhook response: {resp_body}", file=sys.stderr)
             if resp_body.strip():
                 return json.loads(resp_body)
             return {}
