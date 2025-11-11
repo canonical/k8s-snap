@@ -13,8 +13,8 @@ on how to best achieve a certain goal or maybe some aspect of your Kubernetes
 doesn't behave the way you expect. Perhaps you'd just like some advice from
 more experienced users. There are a number of ways to get in touch:
 
-- Using the [Kubernetes slack][slack]: find us in the #canonical-kubernetes
-  channel
+- Using the [Kubernetes slack][slack]: find us in the 
+  [#canonical-kubernetes][canonical-k8s] channel
 - On the [Ubuntu Discourse][discourse]
 
 For more formal support, please see the support options available to you on the
@@ -64,6 +64,7 @@ the guidelines for participation.
 <!-- LINKS -->
 
 [slack]: http://slack.kubernetes.io/
+[canonical-k8s]: https://kubernetes.slack.com/archives/CG1V2CAMB
 [Discourse]: https://discourse.ubuntu.com/c/kubernetes/180
 [bugs]: https://github.com/canonical/k8s-snap/issues
 [Contributing guide]: /snap/howto/contribute.md
