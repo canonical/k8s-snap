@@ -42,8 +42,7 @@ sudo k8s kubectl get pods -A
 
 If you want to explore the possibilities of what you can do with Canonical
 Kubernetes, be sure to check out its
-[how-to guides](https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/howto/)
-.
+[how-to guides](https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/howto/).
 
 ## Installation
 
@@ -64,8 +63,7 @@ sudo k8s bootstrap
 ```
 
 If you would like to customize the deployment, see our
-[installation guides](https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/howto/install/)
-.
+[installation guides](https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/howto/install/).
 
 ## Documentation
 
@@ -80,8 +78,8 @@ automatically, backing up your cluster, and much more.
 Do you have questions about Canonical Kubernetes? Perhaps you'd like some advice
 from more experienced users or discuss how to achieve a certain goal? Get in
 touch on the
-[#canonical-kubernetes channel on the Kubenetes Slack workspace](http://slack.kubernetes.io/)
-.
+[#canonical-kubernetes](https://kubernetes.slack.com/archives/CG1V2CAMB)
+channel on the [Kubenetes Slack workspace](http://slack.kubernetes.io/).
 
 You can report any bugs or issues you find on
 [GitHub](https://github.com/canonical/k8s-snap/issues).
@@ -91,7 +89,7 @@ Canonical Kubernetes is covered by the
 
 ## Contribute to Canonical Kubernetes
 
-Canonical Kubernetes is a proudly open source project and we welcome and
+Canonical Kubernetes is a proudly open source project, and we welcome and
 encourage contributions to the code and documentation. If you are interested,
 take a look at our
 [contributing guide](https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/howto/contribute/)
