@@ -33,6 +33,11 @@ on:
         description: Test flavor (e.g. strict), leave empty for classic
         default: ""
         type: string
+      max-parallel: &max-parallel
+        description: |
+          Maximum number of parallel jobs to run
+        default: 100
+        type: number
       extra-test-args: &extra-test-args
         description: |
           Additional pytest arguments, use "-k <test_name>" to run a specific test
@@ -95,6 +100,7 @@ on:
       runner-tags: *runner-tags
       test-tags: *test-tags
       flavor: *flavor
+      max-parallel: *max-parallel
       extra-test-args: *extra-test-args
       extra-test-env: *extra-test-env
       parallel: *parallel
@@ -163,6 +169,7 @@ jobs:
     runs-on: ${{ fromJson(needs.prepare.outputs.test-runners)[matrix.test] || (inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04') }}
     strategy:
       fail-fast: false
+      max-parallel: ${{ inputs.max_parallel }}
       matrix:
         test: ${{ inputs.parallel && fromJson(needs.prepare.outputs.tests) || fromJson('["e2e-tests"]') }}
     steps:

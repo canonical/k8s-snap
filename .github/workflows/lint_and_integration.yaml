@@ -85,7 +85,7 @@ jobs:
       - name: Lint
         run: |
           cd tests/integration && tox -e lint
-          cd ../../ci/k8s-ci && tox -e lint
+          cd ../../ci && tox -e lint
   go-lint-and-unit:
     name: Go lint and unit tests
     uses: ./.github/workflows/go.yaml
