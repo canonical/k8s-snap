@@ -39,6 +39,16 @@ def add_mattermost_cmds(parser: argparse.ArgumentParser) -> None:
     )
     p.add_argument("--title", "-t", default=None, help="message title")
     p.add_argument("--dry-run", action="store_true", help="print payload and exit")
+    p.add_argument(
+        "--bot-token",
+        default=None,
+        help="Mattermost bot token for posting threaded comment (or set MATTERMOST_BOT_TOKEN)",
+    )
+    p.add_argument(
+        "--server",
+        default=None,
+        help="Mattermost server URL for posting threaded comment (or set MATTERMOST_SERVER)",
+    )
     p.set_defaults(func=cmd_results_message)
 
     p = mattermost_sub.add_parser(
@@ -200,11 +210,7 @@ def cmd_results_message(args: argparse.Namespace) -> int:
 
     payload = _build_payload(summary, title.strip(), color)
 
-    webhook = (
-        args.webhook
-        or os.environ.get("MATTERMOST_WEBHOOK_URL")
-        or os.environ.get("MATTERMOST_BOT_WEBHOOK_URL")
-    )
+    webhook = args.webhook or os.environ.get("MATTERMOST_BOT_WEBHOOK_URL")
     if not webhook:
         print(
             "Error: webhook required via --webhook or MATTERMOST_WEBHOOK_URL",
@@ -219,12 +225,14 @@ def cmd_results_message(args: argparse.Namespace) -> int:
         print(tree_text)
         return 0
 
-
-    token = os.environ.get("MATTERMOST_BOT_TOKEN")
-    server = os.environ.get("MATTERMOST_SERVER")
+    # Prefer flags --bot-token and --server, fall back to environment variables if not provided.
+    token = args.bot_token or os.environ.get("MATTERMOST_BOT_TOKEN")
+    server = args.server or os.environ.get("MATTERMOST_SERVER")
     if not token or not server:
         print(
-            f"Error: MATTERMOST_BOT_TOKEN ({token}) and MATTERMOST_SERVER ({server}) required for threaded comment",
+            "Error: MATTERMOST bot token and server required for \
+                threaded comment. Provide --bot-token and --server or \
+                    set MATTERMOST_BOT_TOKEN and MATTERMOST_SERVER",
             file=sys.stderr,
         )
         return 2

@@ -95,8 +95,14 @@ jobs:
       - name: Aggregate and post results
         working-directory: ci/
         shell: bash
+        env:
+          MATTERMOST_BOT_WEBHOOK_URL: ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }}
+          MATTERMOST_BOT_TOKEN: ${{ secrets.MATTERMOST_BOT_TOKEN }}
+          MATTERMOST_SERVER: ${{ secrets.MATTERMOST_SERVER }}
         run: |
           tox -e k8s-ci -- mattermost results-message \
-            --webhook ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }} \
+            --webhook $MATTERMOST_BOT_WEBHOOK_URL \
+            --bot-token $MATTERMOST_BOT_TOKEN \
+            --server $MATTERMOST_SERVER \
             --file ${{ github.workspace }}/aggregated-results.json \
             --title "k8s-snap Nightly CI Status - $(date +'%d/%m/%Y')"
