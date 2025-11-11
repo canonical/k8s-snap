@@ -3,10 +3,14 @@
 # Copyright 2025 Canonical, Ltd.
 #
 """
-Subcommand implementation for `k8s-ci mattermost`.
-This module exposes `add_mattermost_cmds(subparsers)` which
-registers mattermost subcommands to the passed cli parser.
+Mattermost subcommands for `k8s-ci`.
+
+This module provides functionality to post aggregated CI results or raw messages
+to a Mattermost channel via incoming webhooks or bot accounts. It supports
+posting a concise summary via webhook (with color support) and then posting
+detailed results as a threaded comment using a bot.
 """
+
 import argparse
 import json
 import os
@@ -17,7 +21,12 @@ from urllib.request import Request, urlopen
 
 
 def add_mattermost_cmds(parser: argparse.ArgumentParser) -> None:
-    """Register the `mattermost` subcommand and its actions."""
+    """
+    Register Mattermost-related subcommands to the given CLI parser.
+
+    Args:
+        parser: The parent argparse.ArgumentParser to which subcommands will be added.
+    """
     mattermost_parser = parser.add_parser(
         "mattermost", help="Post results or messages to Mattermost."
     )
@@ -25,53 +34,53 @@ def add_mattermost_cmds(parser: argparse.ArgumentParser) -> None:
         dest="mattermost_command", required=True, title="mattermost commands"
     )
 
+    # Results-message command
     p = mattermost_sub.add_parser(
         "results-message",
-        help="Aggregate a list of results to a Mattermost message and post it.",
+        help="Aggregate a list of results and post to Mattermost.",
     )
     p.add_argument(
-        "--file", "-f", default=None, help="results file (json) or '-' for stdin."
+        "--file", "-f", default=None, help="Results file (JSON) or '-' for stdin."
     )
     p.add_argument(
-        "--webhook",
-        "-w",
-        help="Mattermost incoming webhook URL (or set MATTERMOST_WEBHOOK_URL)",
+        "--webhook", "-w", help="Incoming webhook URL (or MATTERMOST_WEBHOOK_URL)"
     )
-    p.add_argument("--title", "-t", default=None, help="message title")
-    p.add_argument("--dry-run", action="store_true", help="print payload and exit")
+    p.add_argument("--title", "-t", default=None, help="Message title")
+    p.add_argument("--dry-run", action="store_true", help="Print payload and exit")
     p.add_argument(
-        "--bot-token",
-        default=None,
-        help="Mattermost bot token for posting threaded comment (or set MATTERMOST_BOT_TOKEN)",
+        "--bot-token", default=None, help="Bot token (or MATTERMOST_BOT_TOKEN)"
     )
+    p.add_argument("--server", default=None, help="Server URL (or MATTERMOST_SERVER)")
     p.add_argument(
-        "--server",
-        default=None,
-        help="Mattermost server URL for posting threaded comment (or set MATTERMOST_SERVER)",
-    )
-    p.add_argument(
-        "--channel-id",
-        default=None,
-        help="Mattermost channel ID for posting threaded comment (or set MATTERMOST_CHANNEL_ID)",
+        "--channel-id", default=None, help="Channel ID (or MATTERMOST_CHANNEL_ID)"
     )
     p.set_defaults(func=cmd_results_message)
 
-    p = mattermost_sub.add_parser(
-        "post", help="Post a raw JSON message to a Mattermost channel."
+    # Post raw JSON command
+    p = mattermost_sub.add_parser("post", help="Post raw JSON to a Mattermost channel.")
+    p.add_argument(
+        "--file", "-f", default=None, help="Message file (JSON) or '-' for stdin."
     )
     p.add_argument(
-        "--file", "-f", default=None, help="message file (json) or '-' for stdin."
+        "--webhook", "-w", help="Incoming webhook URL (or MATTERMOST_WEBHOOK_URL)"
     )
-    p.add_argument(
-        "--webhook",
-        "-w",
-        help="Mattermost incoming webhook URL (or set MATTERMOST_WEBHOOK_URL)",
-    )
-    p.add_argument("--dry-run", action="store_true", help="print payload and exit")
+    p.add_argument("--dry-run", action="store_true", help="Print payload and exit")
     p.set_defaults(func=cmd_post)
 
 
 def _load_flattened_json(path: Optional[str]) -> List[Dict[str, Any]]:
+    """
+    Load JSON results from a file or stdin and flatten nested arrays.
+
+    Args:
+        path: File path or '-' for stdin.
+
+    Returns:
+        List of flattened result entries.
+
+    Raises:
+        SystemExit if input is invalid or missing.
+    """
     if path == "-":
         data = json.load(sys.stdin)
     elif path:
@@ -80,11 +89,12 @@ def _load_flattened_json(path: Optional[str]) -> List[Dict[str, Any]]:
     else:
         raise SystemExit("Error: must provide --file or '-' for stdin")
 
+    # Flatten nested lists
     if isinstance(data, list) and len(data) == 1 and isinstance(data[0], list):
         data = data[0]
 
     if isinstance(data, list) and any(isinstance(x, list) for x in data):
-        flat = []
+        flat: List[Any] = []
         for x in data:
             flat.extend(x if isinstance(x, list) else [x])
         data = flat
@@ -96,6 +106,7 @@ def _load_flattened_json(path: Optional[str]) -> List[Dict[str, Any]]:
 
 
 def _determine_run_link(entry: Dict[str, Any]) -> Optional[str]:
+    """Return the URL for the CI run associated with an entry, if available."""
     run_url = entry.get("run_url") or entry.get("runLink") or entry.get("run_link")
     if run_url:
         return str(run_url)
@@ -107,14 +118,23 @@ def _determine_run_link(entry: Dict[str, Any]) -> Optional[str]:
 
 
 def _build_tree_message(entries: List[Dict[str, Any]]) -> str:
-    tree = {}
+    """
+    Build a tree-formatted string of all test results.
+
+    Args:
+        entries: List of result dictionaries.
+
+    Returns:
+        Formatted tree string.
+    """
+    tree: Dict[str, Dict[str, Dict[str, Dict[str, Any]]]] = {}
     for e in entries:
         ch = str(e.get("channel", "unknown"))
         osn = str(e.get("os", "unknown"))
         arch = str(e.get("arch", "unknown"))
         tree.setdefault(ch, {}).setdefault(osn, {})[arch] = e
 
-    lines = []
+    lines: List[str] = []
     for ch in sorted(tree.keys(), reverse=True):
         lines.append(f"{ch}")
         os_list = sorted(tree[ch].keys())
@@ -127,15 +147,51 @@ def _build_tree_message(entries: List[Dict[str, Any]]) -> str:
                 entry = tree[ch][osn][arch]
                 status = str(entry.get("status", "")).lower()
                 emoji = ":white_check_mark:" if status == "success" else ":x:"
-                label = "Succeeded" if status == "success" else "Failed"
                 run_link = _determine_run_link(entry)
                 indent = "        " if oi == len(os_list) - 1 else "    │   "
                 run_part = f" [Run]({run_link})" if run_link else " Run"
-                lines.append(f"{indent}{arch_prefix} {arch}: {emoji}{label} {run_part}")
+                lines.append(f"{indent}{arch_prefix} {arch}: {emoji} {run_part}")
     return "\n".join(lines)
 
 
+def _build_summary_payload(
+    channel_id: str, entries: List[Dict[str, Any]], title: str, color: str
+) -> Dict[str, Any]:
+    """
+    Build a concise summary payload for an incoming webhook.
+
+    Args:
+        channel_id: Channel ID to post to.
+        entries: List of result entries.
+        title: Title of the message.
+        color: Color code ('good', 'warning', 'danger').
+
+    Returns:
+        Payload dictionary ready to post.
+    """
+    total = len(entries)
+    successes = sum(1 for e in entries if str(e.get("status", "")).lower() == "success")
+    skipped = sum(1 for e in entries if str(e.get("status", "")).lower() == "skipped")
+    failures = total - successes - skipped
+    pass_pct = (successes / total * 100) if total else 0.0
+    emoji = ":white_check_mark:" if failures == 0 else ":x:"
+    title = f"{emoji} {title}"
+    text = f"{successes}/{total} passed ({pass_pct:.0f}%) — Skipped: {skipped}"
+    return {
+        "channel_id": channel_id,
+        "attachments": [
+            {"fallback": text, "title": title, "text": text, "color": color}
+        ],
+    }
+
+
 def _determine_color(entries: List[Dict[str, Any]], text: str) -> str:
+    """
+    Determine color for webhook attachment based on test statuses.
+
+    Returns:
+        'good' if all success, 'danger' if any failed.
+    """
     for e in entries:
         if str(e.get("status", "")).lower() != "success":
             return "danger"
@@ -144,19 +200,18 @@ def _determine_color(entries: List[Dict[str, Any]], text: str) -> str:
     return "good"
 
 
-def _build_payload(
-    text: str, title: str, color: str, fallback: str = ""
-) -> Dict[str, Any]:
-    return {
-        "attachments": [
-            {
-                "fallback": fallback or title,
-                "color": color,
-                "title": title,
-                "text": text,
-            }
-        ]
-    }
+def _post_webhook(webhook: str, payload: Dict[str, Any]) -> None:
+    """Post payload to Mattermost using an incoming webhook."""
+    body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    req = Request(
+        webhook, data=body, headers={"Content-Type": "application/json; charset=utf-8"}
+    )
+    try:
+        with urlopen(req, timeout=20) as resp:
+            resp.read()  # webhook returns plain "ok"
+    except (HTTPError, URLError) as e:
+        print(f"Webhook error: {e}", file=sys.stderr)
+        raise SystemExit(2)
 
 
 def _post_bot(
@@ -165,12 +220,25 @@ def _post_bot(
     channel_id: str,
     message: str,
     root_id: Optional[str] = None,
-) -> Dict[str, Any]:
+) -> dict:
+    """
+    Post a message using a Mattermost bot account.
+
+    Args:
+        server: Base server URL.
+        token: Bot token.
+        channel_id: Channel to post in.
+        message: Message content.
+        root_id: Optional parent post ID to thread under.
+
+    Returns:
+        JSON response from server.
+    """
     body = {"channel_id": channel_id, "message": message}
     if root_id:
         body["root_id"] = root_id
     req = Request(
-        f"{server}/api/v4/posts",
+        f"{server.rstrip('/')}/api/v4/posts",
         data=json.dumps(body).encode("utf-8"),
         headers={
             "Content-Type": "application/json",
@@ -179,79 +247,88 @@ def _post_bot(
     )
     try:
         with urlopen(req, timeout=20) as resp:
-            resp_body = resp.read().decode("utf-8")
-            return json.loads(resp_body)
-    except HTTPError as e:
-        print(
-            f"HTTP error: {e.code} {e.read().decode('utf-8', errors='ignore')}",
-            file=sys.stderr,
-        )
-        raise SystemExit(2)
-    except URLError as e:
-        print(f"Network error: {e.reason}", file=sys.stderr)
+            return json.loads(resp.read().decode("utf-8"))
+    except (HTTPError, URLError) as e:
+        print(f"Bot post error: {e}", file=sys.stderr)
         raise SystemExit(2)
 
 
 def cmd_results_message(args: argparse.Namespace) -> int:
-    title = args.title or ""
-
+    """Command to post CI results summary via webhook and details as bot-threaded comment."""
     entries = _load_flattened_json(args.file)
     tree_text = _build_tree_message(entries)
     color = _determine_color(entries, tree_text)
-    summary = _build_payload(tree_text, title, color)
 
+    webhook = args.webhook or os.environ.get("MATTERMOST_WEBHOOK_URL")
     token = args.bot_token or os.environ.get("MATTERMOST_BOT_TOKEN")
     server = args.server or os.environ.get("MATTERMOST_SERVER")
     channel_id = args.channel_id or os.environ.get("MATTERMOST_CHANNEL_ID")
-    if not token or not server or not channel_id:
-        print(
-            "Error: bot token, server URL, and MATTERMOST_CHANNEL_ID required",
-            file=sys.stderr,
-        )
-        return 2
+    title = args.title or "CI results"
 
     if args.dry_run:
         print("=== SUMMARY ===")
-        print(summary)
+        print(_build_summary_payload(channel_id, entries, title, color))
         print("=== TREE ===")
         print(tree_text)
         return 0
 
-    # Post summary
-    resp = _post_bot(server, token, channel_id, summary)
-    root_id = resp.get("id")
-    if not root_id:
-        print("Error: failed to create parent post", file=sys.stderr)
+    if not webhook or not token or not server or not channel_id:
+        print(
+            "Error: webhook, bot token, server, and channel ID are required",
+            file=sys.stderr,
+        )
         return 2
 
-    # Post tree as thread reply
+    # Post summary via webhook
+    summary_payload = _build_summary_payload(channel_id, entries, title, color)
+    _post_webhook(webhook, summary_payload)
+
+    # Fetch last post ID for threading
+    req = Request(
+        f"{server.rstrip('/')}/api/v4/channels/{channel_id}/posts?page=0&per_page=1",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    try:
+        with urlopen(req, timeout=20) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            post_order = data.get("order", [])
+            if not post_order:
+                print("Error: no post found for threading", file=sys.stderr)
+                return 2
+            root_id = post_order[0]
+    except (HTTPError, URLError) as e:
+        print(f"Error fetching last post: {e}", file=sys.stderr)
+        return 2
+
+    # Post detailed tree as threaded comment
     _post_bot(server, token, channel_id, tree_text, root_id=root_id)
     return 0
 
 
 def cmd_post(args: argparse.Namespace) -> int:
+    """Post a raw JSON message either via webhook or bot account."""
     if args.file == "-":
         payload = json.load(sys.stdin)
     else:
         with open(args.file, "r", encoding="utf-8") as fh:
             payload = json.load(fh)
 
+    webhook = args.webhook or os.environ.get("MATTERMOST_WEBHOOK_URL")
     token = args.bot_token or os.environ.get("MATTERMOST_BOT_TOKEN")
     server = args.server or os.environ.get("MATTERMOST_SERVER")
-    channel_id = os.environ.get("MATTERMOST_CHANNEL_ID")
-    if not token or not server or not channel_id:
-        print(
-            "Error: bot token, server URL, and MATTERMOST_CHANNEL_ID required",
-            file=sys.stderr,
-        )
-        return 2
+    channel_id = args.channel_id or os.environ.get("MATTERMOST_CHANNEL_ID")
 
     if args.dry_run:
         print(json.dumps(payload, indent=2, ensure_ascii=False))
         return 0
 
-    message = json.dumps(payload, ensure_ascii=False)
-    _post_bot(server, token, channel_id, message)
+    if webhook:
+        _post_webhook(webhook, payload)
+    elif token:
+        _post_bot(server, token, channel_id, json.dumps(payload, ensure_ascii=False))
+    else:
+        print("Error: webhook or bot token required", file=sys.stderr)
+        return 2
     return 0
 
 
