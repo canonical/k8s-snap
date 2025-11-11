@@ -49,6 +49,11 @@ def add_mattermost_cmds(parser: argparse.ArgumentParser) -> None:
         default=None,
         help="Mattermost server URL for posting threaded comment (or set MATTERMOST_SERVER)",
     )
+    p.add_argument(
+        "--channel-id",
+        default=None,
+        help="Mattermost channel ID for posting threaded comment (or set MATTERMOST_CHANNEL_ID)",
+    )
     p.set_defaults(func=cmd_results_message)
 
     p = mattermost_sub.add_parser(
@@ -197,7 +202,7 @@ def cmd_results_message(args: argparse.Namespace) -> int:
 
     token = args.bot_token or os.environ.get("MATTERMOST_BOT_TOKEN")
     server = args.server or os.environ.get("MATTERMOST_SERVER")
-    channel_id = os.environ.get("MATTERMOST_CHANNEL_ID")
+    channel_id = args.channel_id or os.environ.get("MATTERMOST_CHANNEL_ID")
     if not token or not server or not channel_id:
         print(
             "Error: bot token, server URL, and MATTERMOST_CHANNEL_ID required",

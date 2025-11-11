@@ -99,10 +99,13 @@ jobs:
           MATTERMOST_BOT_WEBHOOK_URL: ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }}
           MATTERMOST_BOT_TOKEN: ${{ secrets.MATTERMOST_BOT_TOKEN }}
           MATTERMOST_SERVER: ${{ secrets.MATTERMOST_SERVER }}
+          # Kubernetes CI Night's watch channel
+          MATTERMOST_CHANNEL_ID: "4axiydhyxfr8px4phe9d5wgx7w"
         run: |
           tox -e k8s-ci -- mattermost results-message \
             --webhook $MATTERMOST_BOT_WEBHOOK_URL \
-            --bot-token $MATTERMOST_BOT_TOKEN \
             --server $MATTERMOST_SERVER \
+            --bot-token $MATTERMOST_BOT_TOKEN \
+            --channel-id $MATTERMOST_CHANNEL_ID \
             --file ${{ github.workspace }}/aggregated-results.json \
             --title "k8s-snap Nightly CI Status - $(date +'%d/%m/%Y')"
