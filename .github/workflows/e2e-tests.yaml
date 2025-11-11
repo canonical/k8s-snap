@@ -106,6 +106,7 @@ jobs:
     outputs:
       tests: ${{ steps.collect-tests.outputs.tests }}
       test-runners: ${{ steps.compute-test-runners.outputs.test_runners }}
+      ref: ${{ steps.compute-ref.outputs.ref }}
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -134,7 +135,7 @@ jobs:
           fi
 
           echo "Using git ref: $REF"
-          echo "ref=$REF" >> $GITHUB_ENV
+          echo "ref=$REF" >> $GITHUB_OUTPUT
       - name: Collect tests
         id: collect-tests
         run: |
@@ -172,7 +173,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
         with:
-          ref: ${{ env.ref }}
+          ref: ${{ needs.prepare.outputs.ref }}
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -201,10 +202,9 @@ jobs:
           echo "short_test_name=${SHORT_TEST_NAME}" >> $GITHUB_ENV
 
           CHANNEL="${{ inputs.channel }}"
-          if [ -n "$CHANNEL" ]; then
-           RAW_ARTIFACT_NAME_BASE="${{ inputs.os }}-${{ inputs.arch }}-${CHANNEL}-${FULL_TEST_NODE_ID}-$(uuidgen)"
+            RAW_ARTIFACT_NAME_BASE="${{ inputs.os }}-${{ inputs.arch }}-${CHANNEL}-${FULL_TEST_NODE_ID}-$(uuidgen)"
           else
-           RAW_ARTIFACT_NAME_BASE="${{ inputs.os }}-${{ inputs.arch }}-${FULL_TEST_NODE_ID}-$(uuidgen)"
+            RAW_ARTIFACT_NAME_BASE="${{ inputs.os }}-${{ inputs.arch }}-${FULL_TEST_NODE_ID}-$(uuidgen)"
           fi
           SANITIZED_ARTIFACT_NAME=$(echo "$RAW_ARTIFACT_NAME_BASE" | sed 's/[\/:\.\]/-/g' | sed 's/\s//g')
           echo "test_name=${SANITIZED_ARTIFACT_NAME}" >> $GITHUB_ENV

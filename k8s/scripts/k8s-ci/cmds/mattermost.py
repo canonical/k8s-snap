@@ -2,11 +2,7 @@
 #
 # Copyright 2025 Canonical, Ltd.
 #
-"""
-Subcommand implementation for `k8s-ci mattermost`.
-This module exposes `add_mattermost_cmds(subparsers)` which
-registers mattermost subcommands to the passed cli parser.
-"""
+
 import argparse
 import json
 import os
@@ -17,10 +13,8 @@ from urllib.request import Request, urlopen
 
 
 def add_mattermost_cmds(parser: argparse.ArgumentParser) -> None:
-    """Register the `mattermost` subcommand and its actions."""
     mattermost_parser = parser.add_parser(
-        "mattermost",
-        help="Post results or messages to Mattermost.",
+        "mattermost", help="Post results or messages to Mattermost."
     )
     mattermost_sub = mattermost_parser.add_subparsers(
         dest="mattermost_command", required=True, title="mattermost commands"
@@ -43,8 +37,7 @@ def add_mattermost_cmds(parser: argparse.ArgumentParser) -> None:
     p.set_defaults(func=cmd_results_message)
 
     p = mattermost_sub.add_parser(
-        "post",
-        help="Post a raw JSON message to a Mattermost channel.",
+        "post", help="Post a raw JSON message to a Mattermost channel."
     )
     p.add_argument(
         "--file", "-f", default=None, help="message file (json) or '-' for stdin."
@@ -71,7 +64,7 @@ def _load_flattened_json(path: Optional[str]) -> List[Dict[str, Any]]:
         data = data[0]
 
     if isinstance(data, list) and any(isinstance(x, list) for x in data):
-        flat: List[Any] = []
+        flat = []
         for x in data:
             flat.extend(x if isinstance(x, list) else [x])
         data = flat
@@ -94,14 +87,14 @@ def _determine_run_link(entry: Dict[str, Any]) -> Optional[str]:
 
 
 def _build_tree_message(entries: List[Dict[str, Any]]) -> str:
-    tree: Dict[str, Dict[str, Dict[str, Dict[str, Any]]]] = {}
+    tree = {}
     for e in entries:
         ch = str(e.get("channel", "unknown"))
         osn = str(e.get("os", "unknown"))
         arch = str(e.get("arch", "unknown"))
         tree.setdefault(ch, {}).setdefault(osn, {})[arch] = e
 
-    lines: List[str] = []
+    lines = []
     for ch in sorted(tree.keys(), reverse=True):
         lines.append(f"{ch}")
         os_list = sorted(tree[ch].keys())
@@ -146,17 +139,41 @@ def _build_payload(
     }
 
 
-def _post_to_mattermost(webhook: str, payload: Dict[str, Any]) -> None:
+def _post_webhook(webhook: str, payload: Dict[str, Any]) -> Dict[str, Any]:
     body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
     req = Request(
         webhook, data=body, headers={"Content-Type": "application/json; charset=utf-8"}
     )
     try:
         with urlopen(req, timeout=20) as resp:
-            print(f"Posted payload: HTTP {resp.getcode()}")
-            body = resp.read().decode("utf-8", errors="ignore")
-            if body:
-                print(body)
+            resp_body = resp.read().decode("utf-8", errors="ignore")
+            if resp_body.strip():
+                return json.loads(resp_body)
+            return {}
+    except HTTPError as e:
+        print(
+            f"HTTP error: {e.code} {e.read().decode('utf-8', errors='ignore')}",
+            file=sys.stderr,
+        )
+        raise SystemExit(2)
+    except URLError as e:
+        print(f"Network error: {e.reason}", file=sys.stderr)
+        raise SystemExit(2)
+
+
+def _post_comment(server: str, token: str, root_id: str, text: str) -> None:
+    body = {"message": text, "root_id": root_id}
+    req = Request(
+        f"{server}/api/v4/posts",
+        data=json.dumps(body).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {token}",
+        },
+    )
+    try:
+        with urlopen(req, timeout=20) as resp:
+            resp.read()
     except HTTPError as e:
         print(
             f"HTTP error: {e.code} {e.read().decode('utf-8', errors='ignore')}",
@@ -170,46 +187,81 @@ def _post_to_mattermost(webhook: str, payload: Dict[str, Any]) -> None:
 
 def cmd_results_message(args: argparse.Namespace) -> int:
     entries = _load_flattened_json(args.file)
-    message = _build_tree_message(entries)
+    tree_text = _build_tree_message(entries)
+
+    summary = "Results summary available. See thread for details."
     title = args.title or ""
-    color = _determine_color(entries, message)
-    payload = _build_payload(message, title.strip(), color)
+    color = _determine_color(entries, tree_text)
+
+    payload = _build_payload(summary, title.strip(), color)
+
     webhook = (
         args.webhook
         or os.environ.get("MATTERMOST_WEBHOOK_URL")
         or os.environ.get("MATTERMOST_BOT_WEBHOOK_URL")
     )
-    if args.dry_run:
-        print("=== MESSAGE ===")
-        print(message)
-        print("=== PAYLOAD ===")
-        print(json.dumps(payload, indent=2, ensure_ascii=False))
-        return 0
     if not webhook:
         print(
             "Error: webhook required via --webhook or MATTERMOST_WEBHOOK_URL",
             file=sys.stderr,
         )
         return 2
-    _post_to_mattermost(webhook, payload)
+
+    token = os.environ.get("MATTERMOST_BOT_TOKEN")
+    server = os.environ.get("MATTERMOST_SERVER")
+    if not token or not server:
+        print(
+            "Error: MATTERMOST_BOT_TOKEN and MATTERMOST_SERVER required for threaded comment",
+            file=sys.stderr,
+        )
+        return 2
+
+    if args.dry_run:
+        print("=== SUMMARY PAYLOAD ===")
+        print(json.dumps(payload, indent=2, ensure_ascii=False))
+        print("=== TREE ===")
+        print(tree_text)
+        return 0
+
+    resp = _post_webhook(webhook, payload)
+    root_id = resp.get("id")
+    if not root_id:
+        print("Error: webhook response missing post id", file=sys.stderr)
+        return 2
+
+    _post_comment(server, token, root_id, tree_text)
     return 0
 
 
 def cmd_post(args: argparse.Namespace) -> int:
-    payload = json.load(sys.stdin if args.file == "-" else open(args.file))
+    if args.file == "-":
+        payload = json.load(sys.stdin)
+    else:
+        with open(args.file, "r", encoding="utf-8") as fh:
+            payload = json.load(fh)
+
     webhook = (
         args.webhook
         or os.environ.get("MATTERMOST_WEBHOOK_URL")
         or os.environ.get("MATTERMOST_BOT_WEBHOOK_URL")
     )
-    if args.dry_run:
-        print(json.dumps(payload, indent=2, ensure_ascii=False))
-        return 0
     if not webhook:
         print(
             "Error: webhook required via --webhook or MATTERMOST_WEBHOOK_URL",
             file=sys.stderr,
         )
         return 2
-    _post_to_mattermost(webhook, payload)
+
+    if args.dry_run:
+        print(json.dumps(payload, indent=2, ensure_ascii=False))
+        return 0
+
+    _post_webhook(webhook, payload)
     return 0
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    add_mattermost_cmds(parser)
+    args = parser.parse_args()
+    sys.exit(args.func(args))
