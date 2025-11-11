@@ -89,6 +89,9 @@ on:
         required: false
 
   workflow_dispatch:
+    # Note(ben): workflow_dispatch only supports up to 10 parameters.
+    # So, we cannot duplicate all inputs here. See:
+    # https://github.com/orgs/community/discussions/8774
     inputs:
       arch: *arch
       os: *os
@@ -99,7 +102,6 @@ on:
         default: latest/edge
       runner-tags: *runner-tags
       test-tags: *test-tags
-      flavor: *flavor
       max-parallel: *max-parallel
       extra-test-args: *extra-test-args
       extra-test-env: *extra-test-env
