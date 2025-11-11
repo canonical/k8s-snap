@@ -29,15 +29,10 @@ on:
         description: Integration test filter tags (e.g. pull_request, up_to_weekly)
         default: pull_request
         type: string
-      flavor: &flavor
+      flavor:
         description: Test flavor (e.g. strict), leave empty for classic
         default: ""
         type: string
-      max-parallel: &max-parallel
-        description: |
-          Maximum number of parallel jobs to run
-        default: 100
-        type: number
       extra-test-args: &extra-test-args
         description: |
           Additional pytest arguments, use "-k <test_name>" to run a specific test
@@ -76,6 +71,11 @@ on:
         description: Run tests in parallel using GitHub Actions matrix
         type: boolean
         default: true
+      max-parallel: &max-parallel
+        description: |
+          Maximum number of parallel jobs to run
+        default: 100
+        type: number
       upload-results:
         description: Whether to upload per-test JSON artifacts
         type: boolean
@@ -135,14 +135,15 @@ jobs:
         id: compute-ref
         shell: bash
         run: |
+          CHANNEL="${{ inputs.channel }}"
           REF="main"
-          # Match X.YY or X.YY-classic to release-1.XX
-          # This is to ensure to run tests from the correct ref when testing older releases.
-          if [[ -n "$CHANNEL" && "$CHANNEL" =~ ^([0-9]+)\.([0-9]+)(-classic)?$ ]]; then
-              REF="release-${BASH_REMATCH[1]}.${BASH_REMATCH[2]}"
+          # Match X.YY or X.YY-classic, optionally followed by a risk suffix like /edge or /candidate
+          # e.g. "1.33-classic/edge" or "1.33/edge"
+          if [[ -n "$CHANNEL" && "$CHANNEL" =~ ^([0-9]+)\.([0-9]+)(-classic)?(/.*)?$ ]]; then
+            REF="release-${BASH_REMATCH[1]}.${BASH_REMATCH[2]}"
           fi
 
-          echo "Using git ref: $REF"
+          echo "Using git ref $REF for channel: $CHANNEL"
           echo "ref=$REF" >> $GITHUB_OUTPUT
       - name: Collect tests
         id: collect-tests
@@ -171,7 +172,7 @@ jobs:
     runs-on: ${{ fromJson(needs.prepare.outputs.test-runners)[matrix.test] || (inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04') }}
     strategy:
       fail-fast: false
-      max-parallel: ${{ inputs.max_parallel }}
+      max-parallel: ${{ inputs.max-parallel }}
       matrix:
         test: ${{ inputs.parallel && fromJson(needs.prepare.outputs.tests) || fromJson('["e2e-tests"]') }}
     steps:
