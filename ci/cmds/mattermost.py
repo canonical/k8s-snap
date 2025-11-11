@@ -2,7 +2,11 @@
 #
 # Copyright 2025 Canonical, Ltd.
 #
-
+"""
+Subcommand implementation for `k8s-ci mattermost`.
+This module exposes `add_mattermost_cmds(subparsers)` which
+registers mattermost subcommands to the passed cli parser.
+"""
 import argparse
 import json
 import os
@@ -13,6 +17,7 @@ from urllib.request import Request, urlopen
 
 
 def add_mattermost_cmds(parser: argparse.ArgumentParser) -> None:
+    """Register the `mattermost` subcommand and its actions."""
     mattermost_parser = parser.add_parser(
         "mattermost", help="Post results or messages to Mattermost."
     )
@@ -207,21 +212,22 @@ def cmd_results_message(args: argparse.Namespace) -> int:
         )
         return 2
 
-    token = os.environ.get("MATTERMOST_BOT_TOKEN")
-    server = os.environ.get("MATTERMOST_SERVER")
-    if not token or not server:
-        print(
-            "Error: MATTERMOST_BOT_TOKEN and MATTERMOST_SERVER required for threaded comment",
-            file=sys.stderr,
-        )
-        return 2
-
     if args.dry_run:
         print("=== SUMMARY PAYLOAD ===")
         print(json.dumps(payload, indent=2, ensure_ascii=False))
         print("=== TREE ===")
         print(tree_text)
         return 0
+
+
+    token = os.environ.get("MATTERMOST_BOT_TOKEN")
+    server = os.environ.get("MATTERMOST_SERVER")
+    if not token or not server:
+        print(
+            f"Error: MATTERMOST_BOT_TOKEN ({token}) and MATTERMOST_SERVER ({server}) required for threaded comment",
+            file=sys.stderr,
+        )
+        return 2
 
     resp = _post_webhook(webhook, payload)
     root_id = resp.get("id")

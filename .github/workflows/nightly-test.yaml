@@ -93,7 +93,7 @@ jobs:
         with:
           name: aggregated-results
       - name: Aggregate and post results
-        working-directory: k8s/scripts/k8s-ci
+        working-directory: ci/
         shell: bash
         run: |
           tox -e k8s-ci -- mattermost results-message \

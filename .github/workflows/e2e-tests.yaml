@@ -202,6 +202,7 @@ jobs:
           echo "short_test_name=${SHORT_TEST_NAME}" >> $GITHUB_ENV
 
           CHANNEL="${{ inputs.channel }}"
+          if [ -n "$CHANNEL" ]; then
             RAW_ARTIFACT_NAME_BASE="${{ inputs.os }}-${{ inputs.arch }}-${CHANNEL}-${FULL_TEST_NODE_ID}-$(uuidgen)"
           else
             RAW_ARTIFACT_NAME_BASE="${{ inputs.os }}-${{ inputs.arch }}-${FULL_TEST_NODE_ID}-$(uuidgen)"
