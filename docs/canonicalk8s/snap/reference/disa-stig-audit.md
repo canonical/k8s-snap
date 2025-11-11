@@ -3,34 +3,32 @@
 Security Technical Implementation Guides (STIGs) are developed by the Defense
 Information System Agency (DISA) for the U.S. Department of Defense (DoD).
 
-The [Kubernetes STIG] contains guidelines on how to check and remediate various
+The [Kubernetes STIG] contains guidelines on how to check and remediate
 potential security concerns for a Kubernetes deployment. Here we have tailored
-these checks to work for our {{product}} cluster that is deployed using the
+these checks to work for a {{product}} cluster that is deployed using the
 guide to [deploy a DISA STIG hardened cluster].
 
 ## Guideline classes overview
 
-Each DISA STIG guideline can be in one of the following three categories:
+{{product}} groups each DISA STIG guideline into one of the following classes:
 
-**Deployment**: A {{product}} deployment complies with the
-guideline by default, or there is a [post-deployment hardening] step available.
+**Default**: complies with by default.
 
-**Not Applicable**: The guideline is not applicable to {{product}}. Some
-reasons for this may include: a check on a Kubernetes feature that was removed
-prior to {{product}}'s first release, a check for a component that {{product}}
-does not package, etc.
+**Bootstrap**: can be configured during bootstrap per the deployment guide.
 
-**Manual**: The guideline requires manual intervention from a cluster
-administrator or a user policy needs to be followed.
+**Post-Deployment**: must be followed by users and administrators
+post-deployment and throughout the life of the cluster in order to achieve
+and maintain DISA STIG compliance.
+
+**Not Applicable**: is not applicable to this version {{product}}.
 
 
 | Class                 | Guideline                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Deployment` (70)     | V-242379, V-242380, V-242381, V-242382, V-242387, V-242388, V-242389, V-242391, V-242392, V-242397, V-242400, V-242405, V-242406, V-242407, V-242408, V-242409, V-242418, V-242419, V-242420, V-242421, V-242422, V-242423, V-242426, V-242427, V-242428, V-242429, V-242430, V-242431, V-242432, V-242433, V-242434, V-242436, V-242444, V-242445, V-242446, V-242447, V-242448, V-242449, V-242450, V-242451, V-242452, V-242453, V-242456, V-242457, V-242459, V-242460, V-242466, V-242467, V-245542, V-245543, V-245544, V-254801, V-242376, V-242377, V-242378, V-242384, V-242385, V-242390, V-242402, V-242403, V-242404, V-242424, V-242425, V-242438, V-242461, V-242462, V-242463, V-242464, V-242465, V-245541 |
-| `Not Applicable` (13) | V-242386, V-242393, V-242394, V-242395, V-242396, V-242398, V-242399, V-242437, V-242442, V-242443, V-242454, V-242455                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `Manual` (8)          | V-242383, V-242410, V-242411, V-242412, V-242413, V-242414, V-242415, V-242417, V-254800                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-
-
+| `Default` (62) | V-242376, V-242377, V-242378, V-242379, V-242380, V-242381, V-242382, V-242387, V-242388, V-242389, V-242390, V-242391, V-242392, V-242395, V-242396, V-242397, V-242404, V-242405, V-242406, V-242407, V-242408, V-242409, V-242418, V-242419, V-242420, V-242421, V-242422, V-242423, V-242424, V-242425, V-242426, V-242427, V-242428, V-242429, V-242430, V-242431, V-242432, V-242433, V-242436, V-242438, V-242442, V-242443, V-242444, V-242445, V-242446, V-242447, V-242448, V-242449, V-242450, V-242451, V-242452, V-242453, V-242456, V-242457, V-242459, V-242460, V-242466, V-242467, V-245542, V-245543, V-245544, V-254801 |
+| `Bootstrap` (13) | V-242384, V-242385, V-242400, V-242402, V-242403, V-242434, V-242461, V-242462, V-242463, V-242464, V-242465, V-245541, V-254800 |
+| `Post-Deployment` (10) | V-242383, V-242393, V-242394, V-242410, V-242411, V-242412, V-242413, V-242414, V-242415, V-242417 |
+| `Not Applicable` (6) | V-242386, V-242398, V-242399, V-242437, V-242454, V-242455 |
 
 ## [V-242381]
 
@@ -39,7 +37,7 @@ accounts for each work payload
 
 **Severity**: High
 
-**Class**: Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -99,7 +97,7 @@ start with `PASS`.
 
 **Severity:** High
 
-**Class:** Manual
+**Class**: Post-Deployment
 
 **Upstream finding description:**
 
@@ -134,7 +132,7 @@ disabled
 
 **Severity:** High
 
-**Class:** Not Applicable
+**Class**: Not Applicable
 
 **Upstream finding description:**
 
@@ -173,7 +171,7 @@ disabled
 
 **Severity:** High
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -239,7 +237,7 @@ not set
 
 **Severity:** High
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -310,7 +308,7 @@ disabled
 
 **Severity:** High
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -378,7 +376,7 @@ disabled
 
 **Severity:** High
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -447,7 +445,7 @@ start with `PASS`.
 
 **Severity:** High
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -516,7 +514,7 @@ The final line of the output will be `PASS`.
 
 **Severity:** High
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -589,7 +587,7 @@ The final line of the output will be `PASS`.
 
 **Severity:** High
 
-**Class:** Manual
+**Class**: Post-Deployment
 
 **Upstream finding description:**
 
@@ -645,7 +643,7 @@ sudo k8s kubectl get statefulset --all-namespaces -o yaml| grep -A5 "env:"
 
 **Severity:** High
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -713,7 +711,7 @@ ValidatingAdmissionWebhook enabled
 
 **Severity:** High
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -785,7 +783,7 @@ The final line of the output will be `PASS`.
 
 **Severity:** High
 
-**Class:** Not Applicable
+**Class**: Not Applicable
 
 **Upstream finding description:**
 
@@ -820,7 +818,7 @@ protect information in transit
 
 **Severity:** High
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -886,7 +884,7 @@ protect information in transit
 
 **Severity:** High
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -955,7 +953,7 @@ and key pair to protect information in transit
 
 **Severity:** High
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -1073,7 +1071,7 @@ configured
 
 **Severity:** High
 
-**Class:** Manual
+**Class**: Bootstrap
 
 **Upstream finding description:**
 
@@ -1113,7 +1111,7 @@ pods and Kubelets
 
 **Severity:** High
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -1190,7 +1188,7 @@ to protect the confidentiality of sensitive data during electronic dissemination
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -1254,7 +1252,7 @@ protect the confidentiality of sensitive data during electronic dissemination
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -1318,7 +1316,7 @@ protect the confidentiality of sensitive data during electronic dissemination
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -1379,7 +1377,7 @@ of sensitive data during electronic dissemination
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -1642,7 +1640,7 @@ of sensitive data during electronic dissemination
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -1839,7 +1837,7 @@ authorization mode
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -1913,7 +1911,7 @@ start with `PASS`.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -1988,7 +1986,7 @@ The final line of the output will be `PASS`.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -2060,7 +2058,7 @@ The final line of the output will be `PASS`.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -2125,7 +2123,7 @@ start with `PASS`.
 
 **Severity:** Medium
 
-**Class:** Not Applicable
+**Class**: Post-Deployment
 
 **Upstream finding description:**
 
@@ -2156,7 +2154,7 @@ start with `PASS`.
 
 **Severity:** Medium
 
-**Class:** Not Applicable
+**Class**: Post-Deployment
 
 **Upstream finding description:**
 
@@ -2187,7 +2185,7 @@ start with `PASS`.
 
 **Severity:** Medium
 
-**Class:** Not Applicable
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -2205,7 +2203,7 @@ start with `PASS`.
 **Comments:**
 
 > The k8s-snap does not automatically deploy or configure the Kubernetes
-> Dashboard, so this finding is Not Applicable.
+> Dashboard.
 >
 > You can check whether the Kubernetes Dashboard has been installed
 > post-snap-setup by running:
@@ -2222,7 +2220,7 @@ results
 
 **Severity:** Medium
 
-**Class:** Not Applicable
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -2269,7 +2267,7 @@ snap install kubectl --classic
 
 **Severity:** Medium
 
-**Class:** Not Applicable
+**Class**: Not Applicable
 
 **Upstream finding description:**
 
@@ -2308,7 +2306,7 @@ snap install kubectl --classic
 
 **Severity:** Medium
 
-**Class:** Not Applicable
+**Class**: Not Applicable
 
 **Upstream finding description:**
 
@@ -2343,7 +2341,7 @@ snap install kubectl --classic
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -2419,7 +2417,7 @@ The final line of the output will be `PASS`.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Bootstrap
 
 **Upstream finding description:**
 
@@ -2496,7 +2494,7 @@ the event
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Bootstrap
 
 **Upstream finding description:**
 
@@ -2587,7 +2585,7 @@ The final line of the output will be `PASS`.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -2648,7 +2646,7 @@ The final line of the output will be `PASS`.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -2788,7 +2786,7 @@ start with `PASS`.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -2897,7 +2895,7 @@ permissions set to 644 or more restrictive
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -3006,7 +3004,7 @@ The final line of the output will be `PASS`.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -3117,7 +3115,7 @@ start with `PASS`.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -3178,7 +3176,7 @@ Category Assurance List (PPSM CAL)
 
 **Severity:** Medium
 
-**Class:** Manual
+**Class**: Post-Deployment
 
 **Upstream finding description:**
 
@@ -3212,7 +3210,7 @@ Category Assurance List (PPSM CAL)
 
 **Severity:** Medium
 
-**Class:** Manual
+**Class**: Post-Deployment
 
 **Upstream finding description:**
 
@@ -3250,7 +3248,7 @@ Category Assurance List (PPSM CAL)
 
 **Severity:** Medium
 
-**Class:** Manual
+**Class**: Post-Deployment
 
 **Upstream finding description:**
 
@@ -3288,7 +3286,7 @@ Assurance List (PPSM CAL)
 
 **Severity:** Medium
 
-**Class:** Manual
+**Class**: Post-Deployment
 
 **Upstream finding description:**
 
@@ -3349,7 +3347,7 @@ user pods
 
 **Severity:** Medium
 
-**Class:** Manual
+**Class**: Post-Deployment
 
 **Upstream finding description:**
 
@@ -3383,7 +3381,7 @@ user pods
 
 **Severity:** Medium
 
-**Class:** Manual
+**Class**: Post-Deployment
 
 **Upstream finding description:**
 
@@ -3417,7 +3415,7 @@ user pods
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -3481,7 +3479,7 @@ start with `PASS`.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -3552,7 +3550,7 @@ start with `PASS`.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -3627,7 +3625,7 @@ Authority set
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -3698,7 +3696,7 @@ start with `PASS`.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -3818,7 +3816,7 @@ service
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -4001,7 +3999,7 @@ authentication to secure service
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -4076,7 +4074,7 @@ authentication to secure service
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -4149,7 +4147,7 @@ service
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -4267,7 +4265,7 @@ The final line of the output will be `PASS`.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -4450,7 +4448,7 @@ start with `PASS`.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -4632,7 +4630,7 @@ start with `PASS`.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -4810,7 +4808,7 @@ start with `PASS`.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -4995,7 +4993,7 @@ start with `PASS`.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -5181,7 +5179,7 @@ communication
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -5299,7 +5297,7 @@ communication
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -5412,7 +5410,7 @@ surface
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -5470,7 +5468,7 @@ have been installed
 
 **Severity:** Medium
 
-**Class:** Not Applicable
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -5487,7 +5485,7 @@ always be at the desired security state.
 > components are left running following upgrades of the Kubernetes cluster.
 >
 > Thanks to the k8s-snap's distribution and upgrade model, it is not possible
-> for this to occur, so this finding is Not Applicable.
+> for this to occur.
 >
 
 
@@ -5499,7 +5497,7 @@ IAVMs, CTOs, DTMs, and STIGs
 
 **Severity:** Medium
 
-**Class:** Not Applicable
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -5541,8 +5539,7 @@ authoritative source (e.g., IAVM, CTOs, DTMs, and STIGs).
 >
 > https://kubernetes.io/releases/version-skew-policy/#supported-versions
 >
-> Supported versions of the k8s-snap should always ship with supported versions
-> of Kubernetes components within it, so this finding is Not Applicable.
+> Supported versions of the k8s-snap are security maintained by Canonical.
 >
 
 
@@ -5553,7 +5550,7 @@ authoritative source (e.g., IAVM, CTOs, DTMs, and STIGs).
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -5686,7 +5683,7 @@ start with `PASS`.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -5784,7 +5781,7 @@ start with `PASS`.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -5832,7 +5829,7 @@ set to 644 or more restrictive
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -5925,7 +5922,7 @@ start with `PASS`.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -6014,7 +6011,7 @@ permissions set to 644 or more restrictive
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -6108,7 +6105,7 @@ root
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -6196,7 +6193,7 @@ start with `PASS`.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -6260,7 +6257,7 @@ to 644 or more restrictive
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -6343,7 +6340,7 @@ start with `PASS`.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -6425,7 +6422,7 @@ start with `PASS`.
 
 **Severity:** Medium
 
-**Class:** Not Applicable
+**Class**: Not Applicable
 
 **Upstream finding description:**
 
@@ -6456,7 +6453,7 @@ the security settings within the document are implemented through this file.
 
 **Severity:** Medium
 
-**Class:** Not Applicable
+**Class**: Not Applicable
 
 **Upstream finding description:**
 
@@ -6487,7 +6484,7 @@ the security settings within the document are implemented through this file.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -6592,7 +6589,7 @@ The final line of the output will be `PASS`.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -6691,7 +6688,7 @@ more restrictive
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -6810,7 +6807,7 @@ to 644 or more restrictive
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -6855,7 +6852,7 @@ start with `PASS`.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Bootstrap
 
 **Upstream finding description:**
 
@@ -6923,7 +6920,7 @@ The final line of the output will be `PASS`.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Bootstrap
 
 **Upstream finding description:**
 
@@ -6989,7 +6986,7 @@ equal to `100`.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Bootstrap
 
 **Upstream finding description:**
 
@@ -7054,7 +7051,7 @@ equal to `10`.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Bootstrap
 
 **Upstream finding description:**
 
@@ -7116,7 +7113,7 @@ The output should indicate a `audit-log-maxage` value of 30.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Bootstrap
 
 **Upstream finding description:**
 
@@ -7182,7 +7179,7 @@ The final line of the output will be `PASS`.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -7231,7 +7228,7 @@ more restrictive
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Default
 
 **Upstream finding description:**
 
@@ -7281,7 +7278,7 @@ start with `PASS`.
 
 **Severity:** Medium
 
-**Class:** Deployment
+**Class**: Bootstrap
 
 **Upstream finding description:**
 
