@@ -150,4 +150,4 @@ https://csrc.nist.gov/pubs/fips/140-3/final
 [core22]: https://snapcraft.io/core22
 [`fips-updates` track]:
 https://documentation.ubuntu.com/pro-client/en/latest/howtoguides/enable_fips
-[add it]: snap/tutorial/add-remove-nodes
+[add it]: /snap/tutorial/add-remove-nodes
