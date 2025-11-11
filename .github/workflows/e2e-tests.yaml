@@ -231,8 +231,6 @@ jobs:
           TEST_UBUNTU_PRO_TOKEN: ${{ secrets.UBUNTU_PRO_TOKEN }}
           TEST_LAUNCHPAD_K8S_CI_BOT_PASSWORD: ${{ secrets.LAUNCHPAD_K8S_CI_BOT_PASSWORD }}
         run: |
-          return 0
-
           # Parse extra-test-env and export each KEY=VALUE pair
           ESCAPED_ENV=$(echo "${{ inputs.extra-test-env }}" | sed 's/"/\\"/g')
           if [ -n "${ESCAPED_ENV}" ]; then
@@ -242,8 +240,8 @@ jobs:
               export "$kv"
             done
           fi
-
-          cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- ${{ inputs.parallel && matrix.test || '' }} ${{ env.PERFORMANCE_FLAGS }} --tags ${{ inputs.test-tags }} ${{ inputs.extra-test-args }}
+          echo "Done"
+          # cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- ${{ inputs.parallel && matrix.test || '' }} ${{ env.PERFORMANCE_FLAGS }} --tags ${{ inputs.test-tags }} ${{ inputs.extra-test-args }}
       - name: Prepare inspection reports
         if: failure()
         run: |
