@@ -154,32 +154,16 @@ def _build_payload(
     }
 
 
-def _post_webhook(webhook: str, payload: Dict[str, Any]) -> Dict[str, Any]:
-    body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-    print(f"Body: {body.decode('utf-8')}", file=sys.stderr)
-    req = Request(
-        webhook, data=body, headers={"Content-Type": "application/json; charset=utf-8"}
-    )
-    try:
-        with urlopen(req, timeout=20) as resp:
-            resp_body = resp.read().decode("utf-8", errors="ignore")
-            print(f"Webhook response: {resp_body}", file=sys.stderr)
-            if resp_body.strip():
-                return json.loads(resp_body)
-            return {}
-    except HTTPError as e:
-        print(
-            f"HTTP error: {e.code} {e.read().decode('utf-8', errors='ignore')}",
-            file=sys.stderr,
-        )
-        raise SystemExit(2)
-    except URLError as e:
-        print(f"Network error: {e.reason}", file=sys.stderr)
-        raise SystemExit(2)
-
-
-def _post_comment(server: str, token: str, root_id: str, text: str) -> None:
-    body = {"message": text, "root_id": root_id}
+def _post_bot(
+    server: str,
+    token: str,
+    channel_id: str,
+    message: str,
+    root_id: Optional[str] = None,
+) -> Dict[str, Any]:
+    body = {"channel_id": channel_id, "message": message}
+    if root_id:
+        body["root_id"] = root_id
     req = Request(
         f"{server}/api/v4/posts",
         data=json.dumps(body).encode("utf-8"),
@@ -190,7 +174,8 @@ def _post_comment(server: str, token: str, root_id: str, text: str) -> None:
     )
     try:
         with urlopen(req, timeout=20) as resp:
-            resp.read()
+            resp_body = resp.read().decode("utf-8")
+            return json.loads(resp_body)
     except HTTPError as e:
         print(
             f"HTTP error: {e.code} {e.read().decode('utf-8', errors='ignore')}",
@@ -203,49 +188,39 @@ def _post_comment(server: str, token: str, root_id: str, text: str) -> None:
 
 
 def cmd_results_message(args: argparse.Namespace) -> int:
+    title = args.title or ""
+
     entries = _load_flattened_json(args.file)
     tree_text = _build_tree_message(entries)
-
-    summary = "Results summary available. See thread for details."
-    title = args.title or ""
     color = _determine_color(entries, tree_text)
+    summary = _build_payload(tree_text, title, color)
 
-    payload = _build_payload(summary, title.strip(), color)
-
-    webhook = args.webhook or os.environ.get("MATTERMOST_BOT_WEBHOOK_URL")
-    if not webhook:
+    token = args.bot_token or os.environ.get("MATTERMOST_BOT_TOKEN")
+    server = args.server or os.environ.get("MATTERMOST_SERVER")
+    channel_id = os.environ.get("MATTERMOST_CHANNEL_ID")
+    if not token or not server or not channel_id:
         print(
-            "Error: webhook required via --webhook or MATTERMOST_WEBHOOK_URL",
+            "Error: bot token, server URL, and MATTERMOST_CHANNEL_ID required",
             file=sys.stderr,
         )
         return 2
 
     if args.dry_run:
-        print("=== SUMMARY PAYLOAD ===")
-        print(json.dumps(payload, indent=2, ensure_ascii=False))
+        print("=== SUMMARY ===")
+        print(summary)
         print("=== TREE ===")
         print(tree_text)
         return 0
 
-    # Prefer flags --bot-token and --server, fall back to environment variables if not provided.
-    token = args.bot_token or os.environ.get("MATTERMOST_BOT_TOKEN")
-    server = args.server or os.environ.get("MATTERMOST_SERVER")
-    if not token or not server:
-        print(
-            "Error: MATTERMOST bot token and server required for \
-                threaded comment. Provide --bot-token and --server or \
-                    set MATTERMOST_BOT_TOKEN and MATTERMOST_SERVER",
-            file=sys.stderr,
-        )
-        return 2
-
-    resp = _post_webhook(webhook, payload)
+    # Post summary
+    resp = _post_bot(server, token, channel_id, summary)
     root_id = resp.get("id")
     if not root_id:
-        print("Error: webhook response missing post id", file=sys.stderr)
+        print("Error: failed to create parent post", file=sys.stderr)
         return 2
 
-    _post_comment(server, token, root_id, tree_text)
+    # Post tree as thread reply
+    _post_bot(server, token, channel_id, tree_text, root_id=root_id)
     return 0
 
 
@@ -256,14 +231,12 @@ def cmd_post(args: argparse.Namespace) -> int:
         with open(args.file, "r", encoding="utf-8") as fh:
             payload = json.load(fh)
 
-    webhook = (
-        args.webhook
-        or os.environ.get("MATTERMOST_WEBHOOK_URL")
-        or os.environ.get("MATTERMOST_BOT_WEBHOOK_URL")
-    )
-    if not webhook:
+    token = args.bot_token or os.environ.get("MATTERMOST_BOT_TOKEN")
+    server = args.server or os.environ.get("MATTERMOST_SERVER")
+    channel_id = os.environ.get("MATTERMOST_CHANNEL_ID")
+    if not token or not server or not channel_id:
         print(
-            "Error: webhook required via --webhook or MATTERMOST_WEBHOOK_URL",
+            "Error: bot token, server URL, and MATTERMOST_CHANNEL_ID required",
             file=sys.stderr,
         )
         return 2
@@ -272,7 +245,8 @@ def cmd_post(args: argparse.Namespace) -> int:
         print(json.dumps(payload, indent=2, ensure_ascii=False))
         return 0
 
-    _post_webhook(webhook, payload)
+    message = json.dumps(payload, ensure_ascii=False)
+    _post_bot(server, token, channel_id, message)
     return 0
 
 
