@@ -116,21 +116,6 @@ jobs:
       test-runners: ${{ steps.compute-test-runners.outputs.test_runners }}
       ref: ${{ steps.compute-ref.outputs.ref }}
     steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install tox
-        run: sudo apt-get install -y tox
-      - name: Compute test runners
-        id: compute-test-runners
-        run: |
-          # Github Actions does not support dynamic concatination of lists, so we need to add the arch tag here.
-          # See https://github.com/orgs/community/discussions/11401
-          TEST_RUNNERS=$(jq -c -n '${{ inputs.runner-tags }}' | jq -c 'with_entries(.value += ["${{ inputs.arch }}"])')
-          echo "test_runners=$TEST_RUNNERS" >> $GITHUB_OUTPUT
       - name: Compute ref
         id: compute-ref
         shell: bash
@@ -145,6 +130,23 @@ jobs:
 
           echo "Using git ref $REF for channel: $CHANNEL"
           echo "ref=$REF" >> $GITHUB_OUTPUT
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.compute-ref.outputs.ref }}
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install tox
+        run: sudo apt-get install -y tox
+      - name: Compute test runners
+        id: compute-test-runners
+        run: |
+          # Github Actions does not support dynamic concatination of lists, so we need to add the arch tag here.
+          # See https://github.com/orgs/community/discussions/11401
+          TEST_RUNNERS=$(jq -c -n '${{ inputs.runner-tags }}' | jq -c 'with_entries(.value += ["${{ inputs.arch }}"])')
+          echo "test_runners=$TEST_RUNNERS" >> $GITHUB_OUTPUT
       - name: Collect tests
         id: collect-tests
         run: |

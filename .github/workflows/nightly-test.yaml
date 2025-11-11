@@ -36,7 +36,9 @@ jobs:
       channel: ${{ matrix.channel }}
       test-tags: "up_to_nightly"
       parallel: true
-      max-parallel: 100
+      # We need to reduce the max parallelism here to avoid occupying all runners.
+      # os * arch * channel * max-parallel = 160 jobs
+      max-parallel: 10
       upload-results: true
 
   test-performance:
