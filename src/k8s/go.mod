@@ -13,13 +13,15 @@ require (
 	github.com/moby/sys/mountinfo v0.7.1
 	github.com/onsi/gomega v1.36.2
 	github.com/pelletier/go-toml v1.9.5
-	github.com/spf13/cobra v1.10.1
-	go.etcd.io/etcd/api/v3 v3.6.4
-	go.etcd.io/etcd/client/v3 v3.6.4
-	golang.org/x/mod v0.29.0
-	golang.org/x/net v0.46.0
-	golang.org/x/sync v0.17.0
-	golang.org/x/sys v0.37.0
+	github.com/spf13/cobra v1.9.1
+	go.etcd.io/etcd/api/v3 v3.6.1
+	go.etcd.io/etcd/client/v3 v3.6.1
+
+
+	golang.org/x/mod v0.25.0
+	golang.org/x/net v0.41.0
+	golang.org/x/sync v0.16.0
+	golang.org/x/sys v0.34.0
 	gopkg.in/yaml.v2 v2.4.0
 	helm.sh/helm/v3 v3.18.6
 	k8s.io/api v0.34.0
