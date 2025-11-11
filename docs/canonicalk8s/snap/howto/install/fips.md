@@ -62,6 +62,13 @@ Now, enable the FIPS crypto modules on your host machine:
 sudo pro enable fips-updates
 ```
 
+```{note}
+If you are deploying a [DISA STIG hardened cluster](disa-stig.md), you can skip
+rebooting here since you will need reboot anyway after running `usg fix
+disa_stig`. `/proc/sys/crypto/fips_enabled` will not update though until after
+rebooting.
+```
+
 Reboot to apply the changes:
 
 ```

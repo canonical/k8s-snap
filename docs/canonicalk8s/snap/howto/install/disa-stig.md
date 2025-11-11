@@ -54,6 +54,12 @@ To automatically apply the recommended hardening changes:
 sudo usg fix disa_stig
 ```
 
+Reboot to apply the changes:
+
+```
+sudo reboot
+```
+
 ## Configure kernel
 
 DISA STIG recommends enabling `--protect-kernel-defaults=true` so that kubelet
