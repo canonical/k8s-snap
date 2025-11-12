@@ -106,7 +106,8 @@ Allow access to kubelet:
 sudo ufw allow 10250/tcp
 ```
 
-Allow access to kube-controller-manager and kube-scheduler (e.g. for metrics gathering):
+Allow access to kube-controller-manager and kube-scheduler
+(e.g. for metrics gathering):
 
 ```sh
 sudo ufw allow 10257/tcp
