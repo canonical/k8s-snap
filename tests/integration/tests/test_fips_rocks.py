@@ -75,7 +75,7 @@ def test_fips_rocks(instances: List[harness.Instance]):
                 # Check if any container uses a rocks.canonical.com image
                 containers = item["spec"]["template"]["spec"].get("containers", [])
                 has_rock_image = any(
-                    "rocks.canonical.com" in container.get("image", "")
+                    container.get("image", "").startswith("rocks.canonical.com/")
                     for container in containers
                 )
 
@@ -128,7 +128,7 @@ def test_fips_rocks(instances: List[harness.Instance]):
         patches = []
         for i, container in enumerate(containers):
             # Only patch containers with ROCK images
-            if "rocks.canonical.com" not in container.get("image", ""):
+            if not container.get("image", "").startswith("rocks.canonical.com/"):
                 continue
 
             env = container.get("env", [])
