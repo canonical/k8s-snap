@@ -126,6 +126,12 @@ Allow access to etcd on all control plane nodes:
 sudo ufw allow 2380/tcp
 sudo ufw allow 2379/tcp
 ```
+
+Both etcd ports need to be allowed: port 2380 for peer communication between
+etcd nodes, and port 2379 for client communication. Note that the client port
+(2379) does not need to be exposed publicly—it only needs to be accessible
+within the cluster.
+
 ````
 
 ````{group-tab} k8s-dqlite
