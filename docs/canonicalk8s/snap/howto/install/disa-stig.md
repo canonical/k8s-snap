@@ -46,6 +46,7 @@ with empty passwords to access this machine.
 
 You can check whether the current account has an empty password by running
 `passwd --status` and looking for "NP" in the second field of the output.
+To add a password to your account use `passwd` and follow the prompts.
 ```
 
 To automatically apply the recommended hardening changes:
@@ -85,22 +86,25 @@ overridden by another higher order file.
 
 ## Apply Kubernetes STIG
 
-{{product}} provides [templates](#templates-information) to apply additional
+{{product}} provides [bootstrap configuration template files]
+(#bootstrap-configuration-template-files) to apply additional
 configuration needed to fully align with DISA STIG requirements.
 
 ### Set up control plane nodes
 
 ```{attention}
 Before bootstrapping or joining control-plane nodes, review the
-[templates](#control-plane-templates) and
-[alternative configurations](#alternative-control-plane-configurations).
+[bootstrap configuration template
+files](#control-plane-bootstrap-configuration-template-file)
+and [alternative configurations](#alternative-control-plane-configurations).
 Once a node is bootstrapped, changing certain settings is more difficult
 and may require re-deploying the node or cluster.
 ```
 
 #### Bootstrap the first control-plane node
 
-To initialize the first control plane node using the template:
+To initialize the first control plane node using the
+bootstrap configuration template file:
 
 ```
 sudo k8s bootstrap --file /var/snap/k8s/common/etc/templates/disa-stig/bootstrap.yaml
@@ -115,7 +119,7 @@ First retrieve a join token from an existing control plane node:
 sudo k8s get-join-token <joining-node-hostname>
 ```
 
-Then join the new control plane node using the template:
+Then join the new control plane node using the bootstrap configuration template file:
 
 ```
 sudo k8s join-cluster --file=/var/snap/k8s/common/etc/templates/disa-stig/control-plane.yaml <join-token>
@@ -129,7 +133,7 @@ First retrieve a join token from an existing control plane node:
 sudo k8s get-join-token <joining-node-hostname> --worker
 ```
 
-Then join the new worker node using the template:
+Then join the new worker node using the bootstrap configuration template file:
 
 ```
 sudo k8s join-cluster --file=/var/snap/k8s/common/etc/templates/disa-stig/worker.yaml <join-token>
@@ -146,8 +150,7 @@ sudo systemctl disable ssh.service ssh.socket
 According to rule {ref}`242393` and {ref}`242394` Kubernetes worker nodes must not
 have sshd service running or enabled. The host STIG rule [V-270665] on the
 other hand expects sshd to be installed on the host. To comply with both
-rules, leave SSH installed, but disable the service. It is probably acceptable
-however to remove SSH if it is not needed.
+rules, leave SSH installed, but disable the service.
 ```
 
 ## Post-Deployment Requirements
@@ -179,16 +182,18 @@ instance each time a new service is exposed externally).
 
 ## Appendix
 
-### Templates Information
+### Bootstrap Configuration Template Files
 
-#### Control plane templates
+#### Control plane bootstrap configuration template file
 
-`/var/snap/k8s/common/etc/templates/disa-stig/bootstrap.yaml` is the template
-for [bootstrapping](#bootstrap-the-first-control-plane-node) and
+`/var/snap/k8s/common/etc/templates/disa-stig/bootstrap.yaml` is the
+configuration file for 
+[bootstrapping](#bootstrap-the-first-control-plane-node) the first node
+of a cluster and
 `/var/snap/k8s/common/etc/templates/disa-stig/control-plane.yaml` is the
-template for [joining additional control plane
-nodes](#join-control-plane-nodes). Both of these templates apply configuration
-to align with the following recommendations:
+bootstrap configuration file for [joining additional control plane
+nodes](#join-control-plane-nodes). Both of these bootstrap files
+apply configuration to align with the following recommendations:
 
 | STIG                                                                               | Summary                                                               |
 | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
@@ -200,9 +205,10 @@ to align with the following recommendations:
 | {ref}`245541`                                                                         | Kubernetes Kubelet must not disable timeouts                          |
 | {ref}`254800`                                                                         | Kubernetes must have a Pod Security Admission control file configured |
 
-#### Worker node templates
+#### Worker node bootstrap configuration template file
 
-`/var/snap/k8s/common/etc/templates/disa-stig/worker.yaml` is the template
+`/var/snap/k8s/common/etc/templates/disa-stig/worker.yaml` is the
+bootstrap configuration file template
 for [joining worker nodes](#join-worker-nodes).
 It applies configuration to align with the following recommendations:
 
@@ -211,33 +217,36 @@ It applies configuration to align with the following recommendations:
 | {ref}`242434` | Kubernetes Kubelet must enable kernel protection |
 | {ref}`245541` | Kubernetes Kubelet must not disable timeouts     |
 
-### Alternative control plane configurations
+### Tuning the control plane configuration
 
-The STIG templates provided to [set up control plane
-nodes](#set-up-control-plane-nodes) may need adjusted to suit your specific
-needs.
+The STIG bootstrap configuration template files provided
+to [set up control plane nodes](#set-up-control-plane-nodes) can be
+adjusted to suit your specific needs.
 
 #### Pod Security Admission control file
 
 To comply with rule {ref}`254800`, you must configure a Pod Security Admission
 control file for your Kubernetes cluster. This file defines the Pod Security
 Standards (PSS) that are enforced at the namespace level. By default, the
-templates point to
+bootstrap configuration template files point to
 `/var/snap/k8s/common/etc/configurations/pod-security-admission-baseline.yaml`,
 which sets the pod security policy to “baseline”, a minimally restrictive
 policy that prevents known privilege escalations.
 
 This policy may be insufficient or impractical in some situations, in which
-case the templates would need to be adjusted by doing one of the following:
+case the bootstrap configuration file templates
+would need to be adjusted by doing one of the following:
 
-1. Adjust the `--admission-control-config-file` path in the templates to
+1. Adjust the `--admission-control-config-file` path in
+    the bootstrap configuration file to
     `/var/snap/k8s/common/etc/configurations/pod-security-admission-restricted.yaml`
     rather than the file above. This sets a more restrictive policy.
 2. Edit
     `/var/snap/k8s/common/etc/configurations/pod-security-admission-baseline.yaml`
     to suit your needs based on the [upstream instructions].
 3. Create your own audit policy based on the [upstream instructions] and
-    adjust the `--admission-control-config-file` path used in the templates.
+    adjust the `--admission-control-config-file` path used in the
+    bootstrap configuration file templates.
 
 For more details, see the [Kubernetes Pod Security Admission documentation],
 which provides an overview of Pod Security Standards (PSS), their enforcement
