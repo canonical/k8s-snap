@@ -119,7 +119,8 @@ First retrieve a join token from an existing control plane node:
 sudo k8s get-join-token <joining-node-hostname>
 ```
 
-Then join the new control plane node using the bootstrap configuration template file:
+Then join the new control plane node using the
+bootstrap configuration template file:
 
 ```
 sudo k8s join-cluster --file=/var/snap/k8s/common/etc/templates/disa-stig/control-plane.yaml <join-token>
