@@ -129,7 +129,7 @@ needs to establish direct connections among control plane nodes.
 
 `````{tabs}
 ````{group-tab} etcd
-Allow access to etcd's peer and client port:
+Allow access to the etcd peer and client port:
 
 ```sh
 sudo ufw allow 2380/tcp
@@ -138,7 +138,7 @@ sudo ufw allow 2379/tcp
 ````
 
 ````{group-tab} k8s-dqlite
-Allow access to k8s-dqlite's port:
+Allow access to the k8s-dqlite port:
 
 ```sh
 sudo ufw allow 9000/tcp
