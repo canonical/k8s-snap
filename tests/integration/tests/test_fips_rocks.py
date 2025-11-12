@@ -17,13 +17,13 @@ LOG = logging.getLogger(__name__)
 @pytest.mark.tags(tags.NIGHTLY)
 def test_fips_rocks(instances: List[harness.Instance]):
     """
-    Test that all ROCK images are FIPS-compiled by verifying they fail to start
+    Test that all container images are FIPS-compiled by verifying they fail to start
     when GOFIPS=1 is set on a non-FIPS system.
 
     This test:
     1. Bootstraps a Canonical Kubernetes cluster normally
-    2. Identifies all ROCK-based deployments and daemonsets
-    3. Sequentially patches each to add GOFIPS=1 environment variable
+    2. Identifies all deployments and daemonsets in kube-system and metallb-system
+    3. Sequentially patches each to add GOFIPS=1 environment variable to all containers
     4. Verifies that pods fail to start with expected FIPS panic message
     """
     instance = instances[0]
@@ -40,7 +40,7 @@ def test_fips_rocks(instances: List[harness.Instance]):
     namespaces_to_check = ["kube-system", "metallb-system"]
     resource_types = ["daemonset", "deployment"]
 
-    # Collect all resources that use ROCK images
+    # Collect all resources in the specified namespaces
     rock_resources = []
 
     for namespace in namespaces_to_check:
@@ -72,14 +72,11 @@ def test_fips_rocks(instances: List[harness.Instance]):
 
             for item in resources.get("items", []):
                 name = item["metadata"]["name"]
-                # Check if any container uses a rocks.canonical.com image
+                # Check all containers in the resource
                 containers = item["spec"]["template"]["spec"].get("containers", [])
-                has_rock_image = any(
-                    container.get("image", "").startswith("rocks.canonical.com/")
-                    for container in containers
-                )
 
-                if has_rock_image:
+                # Include all resources that have containers
+                if containers:
                     rock_resources.append(
                         {
                             "namespace": namespace,
@@ -87,15 +84,13 @@ def test_fips_rocks(instances: List[harness.Instance]):
                             "name": name,
                         }
                     )
-                    LOG.info(
-                        f"Found ROCK resource: {resource_type}/{name} in {namespace}"
-                    )
+                    LOG.info(f"Found resource: {resource_type}/{name} in {namespace}")
 
-    assert len(rock_resources) > 0, "No ROCK-based resources found in the cluster"
+    assert len(rock_resources) > 0, "No resources found in the specified namespaces"
 
-    LOG.info(f"Found {len(rock_resources)} ROCK-based resources to test")
+    LOG.info(f"Found {len(rock_resources)} resources to test")
 
-    # For each ROCK resource, patch it to add GOFIPS=1 and verify it fails
+    # For each resource, patch it to add GOFIPS=1 and verify it fails
     for resource in rock_resources:
         namespace = resource["namespace"]
         resource_type = resource["type"]
@@ -127,10 +122,7 @@ def test_fips_rocks(instances: List[harness.Instance]):
         # Build JSON patch for each container
         patches = []
         for i, container in enumerate(containers):
-            # Only patch containers with ROCK images
-            if not container.get("image", "").startswith("rocks.canonical.com/"):
-                continue
-
+            # Patch all containers to add GOFIPS=1
             env = container.get("env", [])
             # Check if GOFIPS already exists
             gofips_exists = any(e.get("name") == "GOFIPS" for e in env)
@@ -166,7 +158,7 @@ def test_fips_rocks(instances: List[harness.Instance]):
                     )
 
         if not patches:
-            LOG.warning(f"No ROCK containers found in {resource_type}/{name}")
+            LOG.warning(f"No containers found in {resource_type}/{name}")
             continue
 
         # Apply the patch
@@ -351,4 +343,4 @@ def test_fips_rocks(instances: List[harness.Instance]):
 
         LOG.info(f"Verified FIPS error for {resource_type}/{name}")
 
-    LOG.info("All ROCK images successfully verified as FIPS-compiled")
+    LOG.info("All container images successfully verified as FIPS-compiled")
