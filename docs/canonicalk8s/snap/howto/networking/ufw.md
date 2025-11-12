@@ -108,6 +108,7 @@ Allow access to etcd on all control plane nodes:
 
 ```sh
 sudo ufw allow 2380/tcp
+sudo ufw allow 2379/tcp
 ```
 ````
 
