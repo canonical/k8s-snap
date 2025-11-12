@@ -114,28 +114,21 @@ sudo ufw allow 10257/tcp
 sudo ufw allow 10259/tcp
 ```
 
-To form a High Availability (HA) cluster the datastore used by
-Kubernetes (etcd or k8s-dqlite) needs to establish a direct connection
-among its peers.
+To form a High Availability (HA) cluster, the datastore (etcd or k8s-dqlite)
+needs to establish direct connections among control plane nodes.
 
 `````{tabs}
 ````{group-tab} etcd
-Allow access to etcd on all control plane nodes:
+Allow access to etcd's peer and client port:
 
 ```sh
 sudo ufw allow 2380/tcp
 sudo ufw allow 2379/tcp
 ```
-
-Both etcd ports need to be allowed: port 2380 for peer communication between
-etcd nodes, and port 2379 for client communication. Note that the client port
-(2379) does not need to be exposed publicly—it only needs to be accessible
-within the cluster.
-
 ````
 
 ````{group-tab} k8s-dqlite
-Allow access to k8s-dqlite on all control plane nodes:
+Allow access to k8s-dqlite's port:
 
 ```sh
 sudo ufw allow 9000/tcp
