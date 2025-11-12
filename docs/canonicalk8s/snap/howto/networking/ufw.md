@@ -14,14 +14,14 @@ This guide assumes the following:
 
 ## Install UFW
 
-Install Uncomplicated Firewall:
+Install the Uncomplicated Firewall:
 
 ```sh
 sudo apt update
 sudo apt install ufw
 ```
 
-To verify UFW is installed try:
+Verify that UFW is installed:
 
 ```sh
 sudo ufw status verbose
@@ -76,11 +76,31 @@ sudo ufw route allow from 10.1.0.0/16 to 10.1.0.0/16
 
 ## Allow access to the Kubernetes services
 
-Allow access to the API server on control plane nodes:
+`````{tabs}
+````{group-tab} Control plane nodes
+
+Allow access to the API server:
 
 ```sh
 sudo ufw allow 6443/tcp
 ```
+
+Allow access to kubelet:
+
+```sh
+sudo ufw allow 10250/tcp
+```
+
+Allow access to kube-controller-manager and kube-scheduler (e.g. for metrics gathering):
+
+```sh
+sudo ufw allow 10257/tcp
+sudo ufw allow 10259/tcp
+```
+
+````
+
+````{group-tab} Worker nodes
 
 Allow access to kubelet on all nodes:
 
@@ -88,13 +108,8 @@ Allow access to kubelet on all nodes:
 sudo ufw allow 10250/tcp
 ```
 
-Allow access to kube-controller-manager and kube-scheduler on control
-plane nodes (e.g. for metrics gathering):
-
-```sh
-sudo ufw allow 10257/tcp
-sudo ufw allow 10259/tcp
-```
+````
+`````
 
 ## Allow cluster formation
 
@@ -108,6 +123,7 @@ Allow access to etcd on all control plane nodes:
 
 ```sh
 sudo ufw allow 2380/tcp
+sudo ufw allow 2379/tcp
 ```
 ````
 
