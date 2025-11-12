@@ -74,10 +74,25 @@ sudo ufw route allow from 10.1.0.0/16 to 10.1.0.0/16
 ````
 `````
 
-## Allow access to the Kubernetes services
+## Firewall rules for ALL nodes
 
-`````{tabs}
-````{group-tab} Control plane nodes
+Allow access to the kubernetes' service kubelet:
+
+```sh
+sudo ufw allow 10250/tcp
+```
+
+Allow access to the {{product}} daemon running on all nodes (required for
+cluster formation):
+
+```sh
+sudo ufw allow 6400/tcp
+```
+
+## Firewall rules for control plane nodes
+
+The following Kubernetes services need to be accessible on control plane
+nodes.
 
 Allow access to the API server:
 
@@ -97,21 +112,6 @@ Allow access to kube-controller-manager and kube-scheduler (e.g. for metrics gat
 sudo ufw allow 10257/tcp
 sudo ufw allow 10259/tcp
 ```
-
-````
-
-````{group-tab} Worker nodes
-
-Allow access to kubelet on all nodes:
-
-```sh
-sudo ufw allow 10250/tcp
-```
-
-````
-`````
-
-## Allow cluster formation
 
 To form a High Availability (HA) cluster the datastore used by
 Kubernetes (etcd or k8s-dqlite) needs to establish a direct connection
@@ -135,13 +135,6 @@ sudo ufw allow 9000/tcp
 ```
 ````
 `````
-
-Allow access to the {{product}} daemon running on all nodes (required for
-cluster formation):
-
-```sh
-sudo ufw allow 6400/tcp
-```
 
 ## Enable CNI specific communication
 
