@@ -14,7 +14,7 @@ This guide assumes the following:
 
 ## Install UFW
 
-Install the Uncomplicated Firewall:
+Install Uncomplicated Firewall:
 
 ```sh
 sudo apt update
