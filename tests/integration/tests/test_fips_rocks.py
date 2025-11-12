@@ -260,6 +260,7 @@ def test_fips_rocks(instances: List[harness.Instance]):
                 LOG.info(f"Checking pod {pod_name} for FIPS errors")
 
                 # Try to get logs (pods might be in CrashLoopBackOff)
+                # First try current logs
                 log_result = instance.exec(
                     [
                         "k8s",
@@ -283,6 +284,36 @@ def test_fips_rocks(instances: List[harness.Instance]):
                         or "opensslcrypto" in logs
                     ):
                         LOG.info(f"Found FIPS error in logs for pod {pod_name}")
+                        found_fips_error = True
+                        break
+
+                # Also try previous logs if container crashed
+                log_result_prev = instance.exec(
+                    [
+                        "k8s",
+                        "kubectl",
+                        "logs",
+                        pod_name,
+                        "-n",
+                        namespace,
+                        "--previous",
+                        "--tail=50",
+                    ],
+                    capture_output=True,
+                    check=False,
+                    text=True,
+                )
+
+                if log_result_prev.returncode == 0:
+                    logs = log_result_prev.stdout
+                    if (
+                        "FIPS mode requested" in logs
+                        or "FIPS mode" in logs
+                        or "opensslcrypto" in logs
+                    ):
+                        LOG.info(
+                            f"Found FIPS error in previous logs for pod {pod_name}"
+                        )
                         found_fips_error = True
                         break
 
