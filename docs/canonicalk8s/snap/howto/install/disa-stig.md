@@ -282,7 +282,7 @@ audit settings, do one of the following:
 [ports and services]: /snap/reference/ports-and-services/
 [FIPS installation guide]: fips.md
 [configure UFW]: /snap/howto/networking/ufw.md
-[configuration files]: /snap/reference/conf-files/index.md
+[configuration files]: /snap/reference/config-files/index.md
 [USG tool]: https://documentation.ubuntu.com/security/docs/compliance/usg/
 [Kubernetes Pod Security Admission documentation]: https://kubernetes.io/docs/concepts/security/pod-security-admission/
 [upstream instructions]: https://kubernetes.io/docs/tasks/configure-pod-container/enforce-standards-admission-controller/
