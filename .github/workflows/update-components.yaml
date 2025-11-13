@@ -36,7 +36,7 @@ jobs:
           ssh-key: ${{ secrets.BOT_SSH_KEY }}
           path: repo
 
-      - name: Checking out main branch (for latest script)
+      - name: Checking out main branch
         uses: actions/checkout@v4
         with:
           ref: main
@@ -53,10 +53,11 @@ jobs:
 
       - name: Check for component updates
         id: check-updates
+        working-directory: ${{ github.workspace }}/script-repo
         run: |
           # Check for component updates using the script from main but pointing to release branch
           cd repo
-          JSON_OUTPUT=$(../script-repo/build-scripts/hack/update-component-versions.py --json-output --repo-dir .)
+          JSON_OUTPUT=$(./build-scripts/hack/update-component-versions.py --json-output --repo-dir ${{ github.workspace }}/repo)
           echo "$JSON_OUTPUT" | jq . || echo "No JSON output or failed"
 
           # Extract title and description
