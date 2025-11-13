@@ -267,9 +267,12 @@ The following patch version bump deviates from parent requirements:
 - runc: {current_runc} → {new_version}
 
 The parent (containerd {containerd_version}) does not yet require this version. Please verify compatibility and approve manually."""
+                LOG.info("Found independent runc update: %s -> %s (parent requires: %s)", 
+                        current_runc, new_version, parent_required_runc)
             else:
                 title = f"Update runc to {new_version}"
                 description = f"Update runc from {current_runc} to {new_version}"
+                LOG.info("Found regular runc update: %s -> %s", current_runc, new_version)
             
             updates.append({
                 "dependency": "runc",
@@ -281,8 +284,9 @@ The parent (containerd {containerd_version}) does not yet require this version. 
                 "title": title,
                 "description": description
             })
-            LOG.info("Found runc update: %s -> %s (independent: %s)", 
-                    current_runc, new_version, is_independent)
+        else:
+            LOG.info("No runc update needed (current: %s, upstream: %s, parent requires: %s)",
+                    current_runc, upstream_runc, parent_required_runc)
     except Exception as e:
         LOG.warning("Failed to check runc updates: %s", e)
     
@@ -299,6 +303,10 @@ def update_component_versions(dry_run: bool, json_output: bool = False):
     if json_output:
         # Generate JSON output for workflow to create PRs
         updates = collect_component_updates()
+        if updates:
+            LOG.info("Found %d update(s) to propose", len(updates))
+        else:
+            LOG.info("No independent updates found")
         print(json.dumps(updates, indent=2))
         return
     

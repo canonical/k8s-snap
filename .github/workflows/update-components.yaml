@@ -76,7 +76,7 @@ jobs:
           fi
 
       - name: Create PR for independent updates
-        if: steps.check-independent.outputs.count > 0
+        if: steps.check-independent.outputs.count != '0'
         uses: peter-evans/create-pull-request@v6
         with:
           commit-message: "${{ steps.check-independent.outputs.pr_title }}"
@@ -91,12 +91,12 @@ jobs:
           author: "K8s builder bot <k8s-bot@canonical.com>"
 
       - name: Check for new component versions
-        if: steps.check-independent.outputs.count == 0
+        if: steps.check-independent.outputs.count == '0'
         run: |
           ./build-scripts/hack/update-component-versions.py
 
       - name: Create pull request for regular updates
-        if: steps.check-independent.outputs.count == 0
+        if: steps.check-independent.outputs.count == '0'
         uses: peter-evans/create-pull-request@v6
         with:
           commit-message: "[${{ matrix.branch }}] Update component versions"
