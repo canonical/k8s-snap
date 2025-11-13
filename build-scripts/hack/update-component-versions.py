@@ -182,115 +182,123 @@ def get_latest_upstream_version(repo_url: str, current_version: str) -> Optional
     return None
 
 
-def check_independent_update(
-    dependency: str,
-    current_version: str,
-    parent_required_version: str,
-    upstream_latest_version: Optional[str]
-) -> tuple[Optional[str], bool, str]:
-    """Check if dependency has an independent update available.
-    
-    Returns:
-        tuple of (new_version, is_independent_update, description)
-    """
-    if not upstream_latest_version:
-        return None, False, ""
-    
-    current = parse_version(current_version)
-    parent_required = parse_version(parent_required_version)
-    upstream_latest = parse_version(upstream_latest_version)
-    
-    if not current or not upstream_latest:
-        return None, False, ""
-    
-    # Skip if upstream is older or same as current
-    if upstream_latest <= current:
-        return None, False, ""
-    
-    # Check if this is an independent update (diverges from parent requirement)
-    is_independent = parent_required and upstream_latest > parent_required
-    
-    description = ""
-    if is_independent:
-        description = f"""⚠️ EoL Dependency Patch Update
-
-The following patch version bump deviates from parent requirements:
-- {dependency}: {current_version} → {upstream_latest_version}
-
-The parent does not yet require this version. Please verify compatibility and approve manually."""
-    
-    return upstream_latest_version, is_independent, description
-
-
 def pull_metallb_chart() -> None:
     LOG.info("Pulling MetalLB chart @ %s", METALLB_CHART_VERSION)
     util.helm_pull("metallb", METALLB_REPO, METALLB_CHART_VERSION, CHARTS)
 
 
-def collect_component_updates() -> list[dict]:
-    """Collect all component updates and return JSON-ready data structure.
+def collect_and_apply_component_updates(dry_run: bool) -> dict:
+    """Collect component updates, apply them to version files, and return PR metadata.
     
-    Returns a list of update entries, where each entry contains:
-    - dependency: component name
-    - current_version: version currently in use
-    - new_version: proposed new version
-    - upstream_parent_version: version required by parent (if applicable)
-    - upstream_latest_version: latest upstream version
-    - independent_update: True if update diverges from parent requirement
-    - title: PR title
-    - description: PR description
+    Returns a dict with:
+    - title: PR title listing all updated components
+    - description: PR description with version bumps and warnings
     """
     updates = []
+    independent_warnings = []
     
-    # Check runc for independent updates
-    try:
-        LOG.info("Checking runc for independent updates")
-        current_runc = util.read_file(COMPONENTS / "runc/version")
-        parent_required_runc = get_runc_version()  # What containerd requires
-        runc_repo = util.read_file(COMPONENTS / "runc/repository")
-        upstream_runc = get_latest_upstream_version(runc_repo, current_runc)
-        
-        new_version, is_independent, description = check_independent_update(
-            "runc",
-            current_runc,
-            parent_required_runc,
-            upstream_runc
-        )
-        
-        if new_version:
-            containerd_version = util.read_file(COMPONENTS / "containerd/version")
-            if is_independent:
-                title = f"Update runc to {new_version} (independent patch release)"
-                description = f"""⚠️ EoL Dependency Patch Update
-
-The following patch version bump deviates from parent requirements:
-- runc: {current_runc} → {new_version}
-
-The parent (containerd {containerd_version}) does not yet require this version. Please verify compatibility and approve manually."""
-                LOG.info("Found independent runc update: %s -> %s (parent requires: %s)", 
-                        current_runc, new_version, parent_required_runc)
-            else:
-                title = f"Update runc to {new_version}"
-                description = f"Update runc from {current_runc} to {new_version}"
-                LOG.info("Found regular runc update: %s -> %s", current_runc, new_version)
+    # Check all components for updates
+    components_to_check = [
+        ("kubernetes", get_kubernetes_version, None, None),
+        ("cni", get_cni_version, None, None),
+        ("containerd", get_containerd_version, None, None),
+        ("runc", get_runc_version, "containerd", None),
+        ("helm", get_helm_version, None, None),
+    ]
+    
+    for component, get_version_func, parent_component, check_upstream in components_to_check:
+        try:
+            current_version = util.read_file(COMPONENTS / component / "version")
+            new_version = get_version_func()
             
-            updates.append({
-                "dependency": "runc",
-                "current_version": current_runc,
-                "new_version": new_version,
-                "upstream_parent_version": parent_required_runc,
-                "upstream_latest_version": upstream_runc or new_version,
-                "independent_update": is_independent,
-                "title": title,
-                "description": description
-            })
-        else:
-            LOG.info("No runc update needed (current: %s, upstream: %s, parent requires: %s)",
-                    current_runc, upstream_runc, parent_required_runc)
-    except Exception as e:
-        LOG.warning("Failed to check runc updates: %s", e)
+            # Check if there's an update needed
+            if current_version.strip() != new_version.strip():
+                LOG.info("Found %s update: %s -> %s", component, current_version.strip(), new_version.strip())
+                
+                # For runc, check if this is an independent update
+                is_independent = False
+                if component == "runc":
+                    try:
+                        runc_repo = util.read_file(COMPONENTS / "runc/repository")
+                        upstream_runc = get_latest_upstream_version(runc_repo, current_version.strip())
+                        parent_required = new_version  # This is what containerd requires
+                        
+                        if upstream_runc:
+                            upstream_parsed = parse_version(upstream_runc)
+                            parent_parsed = parse_version(parent_required)
+                            
+                            if upstream_parsed and parent_parsed and upstream_parsed > parent_parsed:
+                                is_independent = True
+                                new_version = upstream_runc
+                                containerd_version = util.read_file(COMPONENTS / "containerd/version").strip()
+                                independent_warnings.append(
+                                    f"- **{component}**: {current_version.strip()} → {new_version} "
+                                    f"(upstream has newer patches than parent {parent_component} {containerd_version} requires)"
+                                )
+                                LOG.info("Independent update detected for %s: upstream=%s, parent requires=%s",
+                                        component, upstream_runc, parent_required)
+                    except Exception as e:
+                        LOG.warning("Failed to check upstream version for %s: %s", component, e)
+                
+                updates.append({
+                    "component": component,
+                    "old_version": current_version.strip(),
+                    "new_version": new_version.strip(),
+                    "independent": is_independent
+                })
+                
+                # Apply the update
+                if not dry_run:
+                    Path(COMPONENTS / component / "version").write_text(new_version.strip() + "\n")
+            else:
+                LOG.info("No update needed for %s (current: %s)", component, current_version.strip())
+        except Exception as e:
+            LOG.warning("Failed to check/update %s: %s", component, e)
     
-    return updates
+    # Also update go version if kubernetes was updated
+    try:
+        update_go_version(dry_run)
+    except Exception as e:
+        LOG.warning("Failed to update go version: %s", e)
+    
+    # Pull helm charts
+    try:
+        if not dry_run:
+            pull_metallb_chart()
+    except Exception as e:
+        LOG.warning("Failed to pull helm charts: %s", e)
+    
+    # Generate PR title and description
+    if not updates:
+        return {"title": "", "description": ""}
+    
+    # Build title
+    component_names = [u["component"] for u in updates]
+    if len(component_names) == 1:
+        title = f"Update {component_names[0]}"
+    elif len(component_names) == 2:
+        title = f"Update {component_names[0]} and {component_names[1]}"
+    else:
+        title = f"Update {', '.join(component_names[:-1])}, and {component_names[-1]}"
+    
+    # Build description
+    description_parts = []
+    description_parts.append("## Component Version Updates\n")
+    
+    for update in updates:
+        description_parts.append(f"- **{update['component']}**: {update['old_version']} → {update['new_version']}")
+    
+    # Add warnings for independent updates
+    if independent_warnings:
+        description_parts.append("\n## ⚠️ Independent Patch Updates\n")
+        description_parts.append("The following updates include patches newer than what parent components require. "
+                                "Please verify compatibility before merging:\n")
+        description_parts.extend(independent_warnings)
+    
+    return {
+        "title": title,
+        "description": "\n".join(description_parts)
+    }
 
 
 def update_component_versions(dry_run: bool, json_output: bool = False):
@@ -298,19 +306,21 @@ def update_component_versions(dry_run: bool, json_output: bool = False):
     
     Args:
         dry_run: If True, don't write changes to disk
-        json_output: If True, output JSON instead of updating files
+        json_output: If True, output JSON with PR metadata instead of updating files directly
     """
     if json_output:
-        # Generate JSON output for workflow to create PRs
-        updates = collect_component_updates()
-        if updates:
-            LOG.info("Found %d update(s) to propose", len(updates))
+        # Check for updates, apply them, and generate PR metadata
+        pr_metadata = collect_and_apply_component_updates(dry_run)
+        
+        if pr_metadata["title"]:
+            LOG.info("Updates found: %s", pr_metadata["title"])
         else:
-            LOG.info("No independent updates found")
-        print(json.dumps(updates, indent=2))
+            LOG.info("No updates found")
+        
+        print(json.dumps(pr_metadata, indent=2))
         return
     
-    # Original behavior: update files directly
+    # Original behavior: update files directly without JSON output
     for component, get_version in [
         ("kubernetes", get_kubernetes_version),
         ("cni", get_cni_version),

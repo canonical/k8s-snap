@@ -91,40 +91,40 @@ This mode updates component version files directly by:
 - Fetching the latest Kubernetes version from upstream
 - Updating CNI to match Kubernetes dependencies
 - Updating containerd to the latest release in the configured branch
-- Updating runc to match containerd's requirements
+- Updating runc to match containerd's requirements (with upstream patch detection)
 - Updating Helm to the latest version
+- Updating Go version to match Kubernetes requirements
 
-### Independent Patch Detection Mode
+### JSON Output Mode (for CI/CD)
 
 ```bash
 ./build-scripts/hack/update-component-versions.py --json-output
 ```
 
-This mode checks for **independent upstream patch updates** - cases where a dependency has newer patch versions available than what its parent component requires. This is particularly useful when parent components (like containerd) may be on older versions or End-of-Life branches.
+This mode is used by the GitHub Actions workflow. It:
+1. Checks all components for available updates
+2. Detects **independent upstream patches** - when dependencies have newer patch versions than what parent components require
+3. Applies all updates to version files
+4. Returns structured JSON with PR title and description
 
-The script outputs JSON data describing proposed updates:
+**Example JSON output:**
 
 ```json
-[
-  {
-    "dependency": "runc",
-    "current_version": "v1.3.0",
-    "new_version": "v1.3.3",
-    "upstream_parent_version": "v1.3.0",
-    "upstream_latest_version": "v1.3.3",
-    "independent_update": true,
-    "title": "Update runc to v1.3.3 (independent patch release)",
-    "description": "⚠️ EoL Dependency Patch Update\n\n..."
-  }
-]
+{
+  "title": "Update kubernetes, containerd, and runc",
+  "description": "## Component Version Updates\n\n- **kubernetes**: v1.31.0 → v1.31.1\n- **containerd**: v1.7.28 → v1.7.29\n- **runc**: v1.3.0 → v1.3.3\n\n## ⚠️ Independent Patch Updates\n\nThe following updates include patches newer than what parent components require. Please verify compatibility before merging:\n\n- **runc**: v1.3.0 → v1.3.3 (upstream has newer patches than parent containerd v1.7.29 requires)"
+}
 ```
+
+The workflow uses this to create a single PR with all component updates, including warnings for independent patches that need manual review.
 
 ### Key Features
 
 - **Dynamic Detection**: No hardcoded EoL lists. The script dynamically compares upstream versions with parent requirements.
 - **Semantic Versioning**: Uses proper version comparison to detect patch-level updates within the same major.minor version.
 - **Warning Annotations**: Independent updates that diverge from parent requirements are clearly marked with warnings for manual review.
-- **GitHub Actions Integration**: The `.github/workflows/update-components.yaml` workflow uses this feature to automatically create PRs for component updates.
+- **Batch Updates**: All component updates are included in a single PR for easier review and testing.
+- **GitHub Actions Integration**: The `.github/workflows/update-components.yaml` workflow uses this feature to automatically create PRs.
 
 ### Safeguards
 

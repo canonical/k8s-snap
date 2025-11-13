@@ -44,65 +44,36 @@ jobs:
         run: |
           pip3 install -r ./build-scripts/hack/requirements.txt
 
-      - name: Check for independent component updates
-        id: check-independent
+      - name: Check for component updates
+        id: check-updates
         run: |
-          # Check for independent updates (e.g., runc with newer patches than containerd requires)
-          JSON_OUTPUT=$(./build-scripts/hack/update-component-versions.py --json-output 2>/dev/null || echo '[]')
-          echo "$JSON_OUTPUT" | jq . || echo "No JSON output or empty updates"
-          # Save to file for later processing
-          echo "$JSON_OUTPUT" > /tmp/updates.json
-          # Count updates
-          UPDATE_COUNT=$(echo "$JSON_OUTPUT" | jq 'length')
-          echo "count=$UPDATE_COUNT" >> $GITHUB_OUTPUT
+          # Check for component updates and get PR metadata
+          JSON_OUTPUT=$(./build-scripts/hack/update-component-versions.py --json-output 2>/dev/null || echo '{"title":"","description":""}')
+          echo "$JSON_OUTPUT" | jq . || echo "No JSON output or failed"
           
-          # If there are independent updates, apply the first one
-          if [ "$UPDATE_COUNT" -gt 0 ]; then
-            FIRST_UPDATE=$(echo "$JSON_OUTPUT" | jq -r '.[0] | @json')
-            DEPENDENCY=$(echo "$FIRST_UPDATE" | jq -r '.dependency')
-            NEW_VERSION=$(echo "$FIRST_UPDATE" | jq -r '.new_version')
-            TITLE=$(echo "$FIRST_UPDATE" | jq -r '.title')
-            DESCRIPTION=$(echo "$FIRST_UPDATE" | jq -r '.description')
-            
-            # Update the component version file
-            echo "$NEW_VERSION" > "./build-scripts/components/$DEPENDENCY/version"
-            
-            # Save for PR creation
+          # Extract title and description
+          TITLE=$(echo "$JSON_OUTPUT" | jq -r '.title')
+          DESCRIPTION=$(echo "$JSON_OUTPUT" | jq -r '.description')
+          
+          # Save for PR creation
+          if [ -n "$TITLE" ] && [ "$TITLE" != "" ]; then
+            echo "has_updates=true" >> $GITHUB_OUTPUT
             echo "pr_title=[${{ matrix.branch }}] $TITLE" >> $GITHUB_OUTPUT
             echo "pr_body<<EOF" >> $GITHUB_OUTPUT
-            echo "[${{ matrix.branch }}] $DESCRIPTION" >> $GITHUB_OUTPUT
+            echo "$DESCRIPTION" >> $GITHUB_OUTPUT
             echo "EOF" >> $GITHUB_OUTPUT
-            echo "pr_branch=autoupdate/$DEPENDENCY-${{ matrix.branch }}" >> $GITHUB_OUTPUT
+          else
+            echo "has_updates=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Create PR for independent updates
-        if: steps.check-independent.outputs.count != '0'
+      - name: Create pull request
+        if: steps.check-updates.outputs.has_updates == 'true'
         uses: peter-evans/create-pull-request@v6
         with:
-          commit-message: "${{ steps.check-independent.outputs.pr_title }}"
-          title: "${{ steps.check-independent.outputs.pr_title }}"
-          body: "${{ steps.check-independent.outputs.pr_body }}"
-          branch: "${{ steps.check-independent.outputs.pr_branch }}"
-          labels: |
-            dependencies
-          delete-branch: true
-          base: ${{ matrix.branch }}
-          token: ${{ secrets.BOT_TOKEN }}
-          author: "K8s builder bot <k8s-bot@canonical.com>"
-
-      - name: Check for new component versions
-        if: steps.check-independent.outputs.count == '0'
-        run: |
-          ./build-scripts/hack/update-component-versions.py
-
-      - name: Create pull request for regular updates
-        if: steps.check-independent.outputs.count == '0'
-        uses: peter-evans/create-pull-request@v6
-        with:
-          commit-message: "[${{ matrix.branch }}] Update component versions"
-          title: "[${{ matrix.branch }}] Update component versions"
-          body: "[${{ matrix.branch }}] Update component versions"
-          branch: "autoupdate/sync/${{ matrix.branch }}"
+          commit-message: "${{ steps.check-updates.outputs.pr_title }}"
+          title: "${{ steps.check-updates.outputs.pr_title }}"
+          body: "${{ steps.check-updates.outputs.pr_body }}"
+          branch: "autoupdate/components/${{ matrix.branch }}"
           labels: |
             automerge
           delete-branch: true
