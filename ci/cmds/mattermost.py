@@ -146,14 +146,24 @@ def _build_tree_message(entries: List[Dict[str, Any]]) -> str:
             for ai, arch in enumerate(arch_list):
                 arch_prefix = "└──" if ai == len(arch_list) - 1 else "├──"
                 entry_list = tree[ch][osn][arch]
-                failed_runs = [e for e in entry_list if str(e.get("status", "")).lower() != "success"]
+                failed_runs = [
+                    e
+                    for e in entry_list
+                    if str(e.get("status", "")).lower() != "success"
+                ]
                 # Determine arch-level status: success only if all entries succeeded
                 statuses = [str(e.get("status", "")).lower() for e in entry_list]
-                status = "success" if all(s == "success" for s in statuses) else "failed"
+                status = (
+                    "success" if all(s == "success" for s in statuses) else "failed"
+                )
                 emoji = ":white_check_mark:" if status == "success" else ":x:"
                 # If there's only one entry, preserve previous behavior to link that run
                 if not failed_runs:
-                    run_link = _determine_run_link(entry_list[0]) if len(entry_list) == 1 else None
+                    run_link = (
+                        _determine_run_link(entry_list[0])
+                        if len(entry_list) == 1
+                        else None
+                    )
                     run_part = f" [Run]({run_link})" if run_link else " Run"
                 else:
                     # For multiple entries, avoid a top-level link; individual failed runs below will have links.
@@ -164,12 +174,18 @@ def _build_tree_message(entries: List[Dict[str, Any]]) -> str:
                 # If there are failed runs for this arch, add a subtree listing them with links
                 if failed_runs:
                     # child prefix keeps vertical bar if this arch isn't the last in the os list
-                    child_base = indent + ("    " if ai == len(arch_list) - 1 else "│   ")
+                    child_base = indent + (
+                        "    " if ai == len(arch_list) - 1 else "│   "
+                    )
                     for fi, fe in enumerate(failed_runs):
                         child_conn = "└──" if fi == len(failed_runs) - 1 else "├──"
                         run_link = _determine_run_link(fe)
                         run_part = f" [Run]({run_link})" if run_link else " Run"
-                        name = fe.get("test").split("::")[-1] if fe.get("test") else "Unnamed Test"
+                        name = (
+                            fe.get("test").split("::")[-1]
+                            if fe.get("test")
+                            else "Unnamed Test"
+                        )
                         lines.append(f"{child_base}{child_conn} {name}{run_part}")
     return "\n".join(lines)
 
