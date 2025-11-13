@@ -164,13 +164,18 @@ jobs:
           TEST_FILES=$(tox -e integration -- --collect-only $TAGS_ARGS --quiet --no-header tests/ | grep :: || true)
 
           # Convert to JSON array for GitHub Actions
-          JSON_ARRAY=$(echo "$TEST_FILES" | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          if [ -z "$TEST_FILES" ]; then
+            JSON_ARRAY='[]'
+          else
+            JSON_ARRAY=$(printf '%s\n' "$TEST_FILES" | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          fi
           echo "tests=$JSON_ARRAY" >> $GITHUB_OUTPUT
           echo "Found test files: $TEST_FILES"
 
   run-tests:
     name: ${{ matrix.test }}
     needs: prepare
+    if: ${{ !(inputs.parallel && needs.prepare.outputs.tests == '[]') }}
     runs-on: ${{ fromJson(needs.prepare.outputs.test-runners)[matrix.test] || (inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04') }}
     strategy:
       fail-fast: false
