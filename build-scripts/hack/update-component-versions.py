@@ -29,10 +29,29 @@ logging.basicConfig(level=logging.INFO)
 
 LOG = logging.getLogger(__name__)
 
+# Default paths - can be overridden with --repo-dir
 DIR = Path(__file__).absolute().parent
-SNAPCRAFT = DIR.parent.parent / "snap/snapcraft.yaml"
-COMPONENTS = DIR.parent / "components"
-CHARTS = DIR.parent.parent / "k8s" / "manifests" / "charts"
+DEFAULT_REPO_ROOT = DIR.parent.parent
+
+# Global variables to store paths (set in main())
+REPO_ROOT = DEFAULT_REPO_ROOT
+SNAPCRAFT = None
+COMPONENTS = None
+CHARTS = None
+
+
+def setup_paths(repo_dir: Optional[Path] = None):
+    """Setup global path variables based on repository root directory."""
+    global REPO_ROOT, SNAPCRAFT, COMPONENTS, CHARTS
+    
+    if repo_dir:
+        REPO_ROOT = repo_dir
+    else:
+        REPO_ROOT = DEFAULT_REPO_ROOT
+    
+    SNAPCRAFT = REPO_ROOT / "snap/snapcraft.yaml"
+    COMPONENTS = REPO_ROOT / "build-scripts/components"
+    CHARTS = REPO_ROOT / "k8s/manifests/charts"
 
 # Version marker for latest Kubernetes version. Expected to be one of:
 #
@@ -375,7 +394,16 @@ def main():
         action="store_true",
         help="Output JSON for PR creation instead of updating files",
     )
+    parser.add_argument(
+        "--repo-dir",
+        type=Path,
+        default=None,
+        help="Root directory of the repository (default: auto-detect from script location)",
+    )
     args = parser.parse_args(sys.argv[1:])
+
+    # Setup paths based on repo-dir argument
+    setup_paths(args.repo_dir)
 
     pr_metadata = collect_and_apply_component_updates(args.dry_run)
     if args.json_output:

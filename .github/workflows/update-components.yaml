@@ -29,11 +29,18 @@ jobs:
           - release-1.32
 
     steps:
-      - name: Checking out repo
+      - name: Checking out release branch
         uses: actions/checkout@v4
         with:
           ref: ${{ matrix.branch }}
           ssh-key: ${{ secrets.BOT_SSH_KEY }}
+          path: repo
+
+      - name: Checking out main branch (for latest script)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: script-repo
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -42,13 +49,14 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip3 install -r ./build-scripts/hack/requirements.txt
+          pip3 install -r ./script-repo/build-scripts/hack/requirements.txt
 
       - name: Check for component updates
         id: check-updates
         run: |
-          # Check for component updates and get PR metadata
-          JSON_OUTPUT=$(./build-scripts/hack/update-component-versions.py --json-output)
+          # Check for component updates using the script from main but pointing to release branch
+          cd repo
+          JSON_OUTPUT=$(../script-repo/build-scripts/hack/update-component-versions.py --json-output --repo-dir .)
           echo "$JSON_OUTPUT" | jq . || echo "No JSON output or failed"
 
           # Extract title and description
@@ -73,3 +81,4 @@ jobs:
           base: ${{ matrix.branch }}
           token: ${{ secrets.BOT_TOKEN }}
           author: "K8s builder bot <k8s-bot@canonical.com>"
+          path: repo
