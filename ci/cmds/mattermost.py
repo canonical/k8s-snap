@@ -127,12 +127,13 @@ def _build_tree_message(entries: List[Dict[str, Any]]) -> str:
     Returns:
         Formatted tree string.
     """
-    tree: Dict[str, Dict[str, Dict[str, Dict[str, Any]]]] = {}
+    # Build a nested tree: channel -> os -> arch -> list of entries
+    tree: Dict[str, Dict[str, Dict[str, List[Dict[str, Any]]]]] = {}
     for e in entries:
         ch = str(e.get("channel", "unknown"))
         osn = str(e.get("os", "unknown"))
         arch = str(e.get("arch", "unknown"))
-        tree.setdefault(ch, {}).setdefault(osn, {})[arch] = e
+        tree.setdefault(ch, {}).setdefault(osn, {}).setdefault(arch, []).append(e)
 
     lines: List[str] = []
     for ch in sorted(tree.keys(), reverse=True):
@@ -144,13 +145,32 @@ def _build_tree_message(entries: List[Dict[str, Any]]) -> str:
             arch_list = sorted(tree[ch][osn].keys())
             for ai, arch in enumerate(arch_list):
                 arch_prefix = "└──" if ai == len(arch_list) - 1 else "├──"
-                entry = tree[ch][osn][arch]
-                status = str(entry.get("status", "")).lower()
+                entry_list = tree[ch][osn][arch]
+                failed_runs = [e for e in entry_list if str(e.get("status", "")).lower() != "success"]
+                # Determine arch-level status: success only if all entries succeeded
+                statuses = [str(e.get("status", "")).lower() for e in entry_list]
+                status = "success" if all(s == "success" for s in statuses) else "failed"
                 emoji = ":white_check_mark:" if status == "success" else ":x:"
-                run_link = _determine_run_link(entry)
+                # If there's only one entry, preserve previous behavior to link that run
+                if not failed_runs:
+                    run_link = _determine_run_link(entry_list[0]) if len(entry_list) == 1 else None
+                    run_part = f" [Run]({run_link})" if run_link else " Run"
+                else:
+                    # For multiple entries, avoid a top-level link; individual failed runs below will have links.
+                    run_part = ""
                 indent = "        " if oi == len(os_list) - 1 else "    │   "
-                run_part = f" [Run]({run_link})" if run_link else " Run"
                 lines.append(f"{indent}{arch_prefix} {arch}: {emoji} {run_part}")
+
+                # If there are failed runs for this arch, add a subtree listing them with links
+                if failed_runs:
+                    # child prefix keeps vertical bar if this arch isn't the last in the os list
+                    child_base = indent + ("    " if ai == len(arch_list) - 1 else "│   ")
+                    for fi, fe in enumerate(failed_runs):
+                        child_conn = "└──" if fi == len(failed_runs) - 1 else "├──"
+                        run_link = _determine_run_link(fe)
+                        run_part = f" [Run]({run_link})" if run_link else " Run"
+                        name = fe.get("test").split("::")[-1] if fe.get("test") else "Unnamed Test"
+                        lines.append(f"{child_base}{child_conn} {name}{run_part}")
     return "\n".join(lines)
 
 
