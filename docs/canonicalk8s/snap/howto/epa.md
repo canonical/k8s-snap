@@ -51,7 +51,7 @@ membind: 0 1
 
 ### Enable the real-time kernel
 
-The real-time kernel enablement requires an ubuntu pro subscription and some additional tools to be available.
+The real-time kernel enablement requires an Ubuntu pro subscription and some additional tools to be available.
 
 ```
 sudo pro attach <UBUNTU PRO TOKEN> --no-auto-enable
@@ -318,7 +318,7 @@ EPA capabilities.
 
 2. Create a file called *configuration.yaml* or download it
 {download}`here </assets/configuration.yaml>`. In this configuration file
-we let the snap start with its default CNI (cilium) and CoreDNS enabled.
+we let the snap start with its default CNI (Cilium) and CoreDNS enabled.
 
 ```{literalinclude} /assets/configuration.yaml
 :language: yaml
