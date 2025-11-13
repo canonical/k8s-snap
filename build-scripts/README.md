@@ -76,3 +76,60 @@ $ ./build-scripts/print-patches-for.py kubernetes v1.28.1
 ### How to add support for newer versions
 
 When a new release comes out which is no longer compatible with the existing latest patches, simply create a new directory under `patches/` with the new version number. This ensures that previous versions will still work, and newer ones will pick up the fixed patches.
+
+## Updating Component Versions
+
+The `hack/update-component-versions.py` script automates the process of checking for and updating component versions. It supports two modes of operation:
+
+### Regular Update Mode (Default)
+
+```bash
+./build-scripts/hack/update-component-versions.py
+```
+
+This mode updates component version files directly by:
+- Fetching the latest Kubernetes version from upstream
+- Updating CNI to match Kubernetes dependencies
+- Updating containerd to the latest release in the configured branch
+- Updating runc to match containerd's requirements
+- Updating Helm to the latest version
+
+### Independent Patch Detection Mode
+
+```bash
+./build-scripts/hack/update-component-versions.py --json-output
+```
+
+This mode checks for **independent upstream patch updates** - cases where a dependency has newer patch versions available than what its parent component requires. This is particularly useful when parent components (like containerd) may be on older versions or End-of-Life branches.
+
+The script outputs JSON data describing proposed updates:
+
+```json
+[
+  {
+    "dependency": "runc",
+    "current_version": "v1.3.0",
+    "new_version": "v1.3.3",
+    "upstream_parent_version": "v1.3.0",
+    "upstream_latest_version": "v1.3.3",
+    "independent_update": true,
+    "title": "Update runc to v1.3.3 (independent patch release)",
+    "description": "⚠️ EoL Dependency Patch Update\n\n..."
+  }
+]
+```
+
+### Key Features
+
+- **Dynamic Detection**: No hardcoded EoL lists. The script dynamically compares upstream versions with parent requirements.
+- **Semantic Versioning**: Uses proper version comparison to detect patch-level updates within the same major.minor version.
+- **Warning Annotations**: Independent updates that diverge from parent requirements are clearly marked with warnings for manual review.
+- **GitHub Actions Integration**: The `.github/workflows/update-components.yaml` workflow uses this feature to automatically create PRs for component updates.
+
+### Safeguards
+
+The script includes several safeguards:
+- Skips updates if the upstream version is older or identical to the current version
+- Skips updates if no upstream version information is available
+- Logs clear messages indicating when a dependency update diverges from its parent's requirement
+- Gracefully handles network failures and missing repositories
