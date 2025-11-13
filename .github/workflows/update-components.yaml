@@ -44,7 +44,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
       - name: Install dependencies
         run: |
@@ -55,7 +55,9 @@ jobs:
         working-directory: ${{ github.workspace }}/script-repo
         run: |
           # Check for component updates using the script from main but pointing to release branch
-          JSON_OUTPUT=$(./build-scripts/hack/update-component-versions.py --json-output --repo-dir ${{ github.workspace }}/repo)
+          JSON_OUTPUT=$(./build-scripts/hack/update-component-versions.py \
+            --json-output --repo-dir ${{ github.workspace }}/repo \
+            --dry-run ${{ github.event_name == 'pull_request' }})
           echo "$JSON_OUTPUT" | jq . || echo "No JSON output or failed"
 
           # Extract title and description
