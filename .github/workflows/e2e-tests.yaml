@@ -195,11 +195,6 @@ jobs:
     steps:
       - name: Node Cleanup
         run: |
-          echo ${{ inputs.parallel }}
-          echo ${{ needs.prepare.outputs.tests }}
-          echo ${{ (inputs.parallel && needs.prepare.outputs.tests == '[]') }}
-          echo ${{ !(inputs.parallel && needs.prepare.outputs.tests == '[]') }}
-
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
           sudo docker image prune --all --force
       - name: Check out code
