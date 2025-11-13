@@ -39,7 +39,6 @@ jobs:
       - name: Checking out main branch
         uses: actions/checkout@v4
         with:
-          ref: main
           path: script-repo
 
       - name: Setup Python
