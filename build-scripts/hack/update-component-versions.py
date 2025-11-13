@@ -43,12 +43,12 @@ CHARTS = None
 def setup_paths(repo_dir: Optional[Path] = None):
     """Setup global path variables based on repository root directory."""
     global REPO_ROOT, SNAPCRAFT, COMPONENTS, CHARTS
-    
+
     if repo_dir:
         REPO_ROOT = repo_dir
     else:
         REPO_ROOT = DEFAULT_REPO_ROOT
-    
+
     SNAPCRAFT = REPO_ROOT / "snap/snapcraft.yaml"
     COMPONENTS = REPO_ROOT / "build-scripts/components"
     CHARTS = REPO_ROOT / "k8s/manifests/charts"
