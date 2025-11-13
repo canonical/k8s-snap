@@ -3,15 +3,15 @@ name: Lint and integration
 on:
   push:
     paths-ignore:
-      - 'docs/**'
+      - "docs/**"
     branches:
       - main
       - autoupdate/strict
-      - 'release-[0-9]+.[0-9]+'
-      - 'autoupdate/release-[0-9]+.[0-9]+-strict'
+      - "release-[0-9]+.[0-9]+"
+      - "autoupdate/release-[0-9]+.[0-9]+-strict"
   pull_request:
     paths-ignore:
-      - 'docs/**'
+      - "docs/**"
 
 permissions:
   contents: read
@@ -40,7 +40,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.8'
+          python-version: "3.8"
       - name: Install tox
         run: sudo apt-get install -y tox
       - name: Extract Kubernetes versions
@@ -78,7 +78,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.10"
       - name: Install tox
         run: sudo apt-get install -y tox
       - name: Lint
@@ -88,8 +88,8 @@ jobs:
     name: Go lint and unit tests
     uses: ./.github/workflows/go.yaml
     permissions:
-      contents: read  # for actions/checkout to fetch code
-      pull-requests: write  # for marocchino/sticky-pull-request-comment to create or update PR comment
+      contents: read # for actions/checkout to fetch code
+      pull-requests: write # for marocchino/sticky-pull-request-comment to create or update PR comment
       checks: write # for golangci/golangci-lint-action to checks to allow the action to annotate code in the PR.
 
   get-e2e-tags:
@@ -219,8 +219,14 @@ jobs:
       matrix:
         arch: [amd64]
       fail-fast: false
-    needs: [build-snap, go-lint-and-unit, python-lint, get-charm-channel,
-            check-charm-operator-release]
+    needs:
+      [
+        build-snap,
+        go-lint-and-unit,
+        python-lint,
+        get-charm-channel,
+        check-charm-operator-release,
+      ]
     if: needs.check-charm-operator-release.outputs.has-matching-release == 'true'
     uses: ./.github/workflows/charm-e2e-tests.yaml
     with:
