@@ -54,7 +54,6 @@ jobs:
       os: ${{ matrix.os }}
       channel-1: latest/edge
       channel-2: 1.32-classic/stable
-      test-collection-branch: main
 
   collect-results:
     name: Collect integration test results
