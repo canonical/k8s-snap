@@ -78,7 +78,7 @@ jobs:
     name: Notify Mattermost
     # Notify on success or failure but only if the event is a scheduled run.
     # We don't want to ping people of failed PRs.
-    if: ${{ always() && github.event_name == 'schedule' }}
+    if: ${{ always() }} #&& github.event_name == 'schedule' }}
     needs: [test-integration, test-performance, collect-results]
     runs-on: ubuntu-latest
     steps:
