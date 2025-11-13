@@ -48,7 +48,7 @@ jobs:
         id: check-updates
         run: |
           # Check for component updates and get PR metadata
-          JSON_OUTPUT=$(./build-scripts/hack/update-component-versions.py --json-output 2>/dev/null || echo '{"title":"","description":""}')
+          JSON_OUTPUT=$(./build-scripts/hack/update-component-versions.py --json-output)
           echo "$JSON_OUTPUT" | jq . || echo "No JSON output or failed"
 
           # Extract title and description
