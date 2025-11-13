@@ -56,8 +56,9 @@ jobs:
         run: |
           # Check for component updates using the script from main but pointing to release branch
           JSON_OUTPUT=$(./build-scripts/hack/update-component-versions.py \
-            --json-output --repo-dir ${{ github.workspace }}/repo \
-            ${{ github.event_name == 'pull_request' && "--dry-run" || "" }})
+            --json-output --repo-dir "$GITHUB_WORKSPACE/repo" \
+            $(test "$GITHUB_EVENT_NAME" = "pull_request" && echo "--dry-run"))
+
           echo "$JSON_OUTPUT" | jq . || echo "No JSON output or failed"
 
           # Extract title and description
