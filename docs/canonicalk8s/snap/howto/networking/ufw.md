@@ -59,7 +59,7 @@ Set UFW forwarding rules using one of the following methods.
 `````{tabs}
 ````{group-tab} Allow system wide
 Packet forwarding can be allowed system wide by editing `/etc/default/ufw`
-and adding:
+and changing `DEFAULT_FORWARD_POLICY` to:
 
 ```sh
 DEFAULT_FORWARD_POLICY="ACCEPT"
