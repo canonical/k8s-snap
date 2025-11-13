@@ -56,7 +56,6 @@ jobs:
         working-directory: ${{ github.workspace }}/script-repo
         run: |
           # Check for component updates using the script from main but pointing to release branch
-          cd repo
           JSON_OUTPUT=$(./build-scripts/hack/update-component-versions.py --json-output --repo-dir ${{ github.workspace }}/repo)
           echo "$JSON_OUTPUT" | jq . || echo "No JSON output or failed"
 
