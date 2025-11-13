@@ -62,6 +62,13 @@ on:
               "large"
             ]
           }
+      test-collection-branch:
+        description: |
+          Branch to use for collecting tests. Can be used to override the default behavior of
+          collecting tests from the release branch matching the channel or main branch.
+        type: string
+        required: false
+        default: ""
       extra-test-env: &extra-test-env
         description: 'Additional environment variables in KEY1=VALUE1,KEY2=VALUE2 format'
         type: string
@@ -116,16 +123,25 @@ jobs:
       test-runners: ${{ steps.compute-test-runners.outputs.test_runners }}
       ref: ${{ steps.compute-ref.outputs.ref }}
     steps:
-      - name: Compute ref
+      - name: Compute ref for test collection
         id: compute-ref
         shell: bash
         run: |
+          # Determine from which rev to collect the tests, resolved in order:
+          # 1. inputs.test-collection-branch if set
+          # 2. release branch matching the channel (e.g. release-1.33 for 1.33-classic/edge)
+          # 3. main branch
+
           CHANNEL="${{ inputs.channel }}"
           REF="main"
           # Match X.YY or X.YY-classic, optionally followed by a risk suffix like /edge or /candidate
           # e.g. "1.33-classic/edge" or "1.33/edge"
           if [[ -n "$CHANNEL" && "$CHANNEL" =~ ^([0-9]+)\.([0-9]+)(-classic)?(/.*)?$ ]]; then
             REF="release-${BASH_REMATCH[1]}.${BASH_REMATCH[2]}"
+          fi
+
+          if [ -n "${{ inputs.test-collection-branch }}" ]; then
+            REF="${{ inputs.test-collection-branch }}"
           fi
 
           echo "Using git ref $REF for channel: $CHANNEL"
@@ -161,21 +177,15 @@ jobs:
           # Collect test names and convert to JSON array for GitHub Actions
           # There is no easy way to get the test names from pytest, so we use the --collect-only flag
           # and parse the output to extract the test names.
-          TEST_FILES=$(tox -e integration -- --collect-only $TAGS_ARGS --quiet --no-header tests/ | grep :: || true)
+          TEST_FILES=$(tox -e integration -- --collect-only $TAGS_ARGS --quiet --no-header tests/ | grep ::)
 
-          # Convert to JSON array for GitHub Actions
-          if [ -z "$TEST_FILES" ]; then
-            JSON_ARRAY='[]'
-          else
-            JSON_ARRAY=$(printf '%s\n' "$TEST_FILES" | jq -R -s -c 'split("\n") | map(select(length > 0))')
-          fi
+          JSON_ARRAY=$(printf '%s\n' "$TEST_FILES" | jq -R -s -c 'split("\n") | map(select(length > 0))')
           echo "tests=$JSON_ARRAY" >> $GITHUB_OUTPUT
           echo "Found test files: $TEST_FILES"
 
   run-tests:
     name: ${{ matrix.test }}
     needs: prepare
-    if: ${{ !(inputs.parallel && needs.prepare.outputs.tests == '[]') }}
     runs-on: ${{ fromJson(needs.prepare.outputs.test-runners)[matrix.test] || (inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04') }}
     strategy:
       fail-fast: false
