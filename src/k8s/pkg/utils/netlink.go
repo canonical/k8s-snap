@@ -1,10 +1,11 @@
 package utils
 
 import (
-	"encoding/json"
 	"fmt"
 	"net"
 	"os/exec"
+
+	"gopkg.in/yaml.v2"
 )
 
 type VXLANInterface struct {
@@ -13,12 +14,12 @@ type VXLANInterface struct {
 }
 
 var ipLinks []struct {
-	IfName   string `json:"ifname"`
+	IfName   string `json:"ifname" yaml:"ifname"`
 	LinkInfo struct {
 		InfoData struct {
-			Port *int `json:"port"`
-		} `json:"info_data"`
-	} `json:"linkinfo"`
+			Port *int `json:"port" yaml:"port"`
+		} `json:"info_data" yaml:"info_data"`
+	} `json:"linkinfo" yaml:"linkinfo"`
 }
 
 func ListVXLANInterfaces() ([]VXLANInterface, error) {
@@ -30,7 +31,12 @@ func ListVXLANInterfaces() ([]VXLANInterface, error) {
 		return vxlanDevices, fmt.Errorf("running ip command failed: %s", string(out))
 	}
 
-	if err := json.Unmarshal(out, &ipLinks); err != nil {
+	// NOTE: (mateoflorido) Parsing as YAML cleans up invalid JSON output
+	// produced by the iproute2 command in arm64. Currently, the Ubuntu package
+	// combines the VXLAN VNI value with the fan-map extension, resulting in
+	// invalid JSON, but a valid YAML.
+	// https://bugs.launchpad.net/ubuntu/+source/linux/+bug/2121908
+	if err := yaml.Unmarshal(out, &ipLinks); err != nil {
 		return vxlanDevices, fmt.Errorf("unmarshaling ip command output failed: %w", err)
 	}
 
