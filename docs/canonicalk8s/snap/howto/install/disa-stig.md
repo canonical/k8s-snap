@@ -101,7 +101,7 @@ and may require re-deploying the node or cluster.
 
 #### Bootstrap the first control-plane node
 
-To initialize the first control plane node using the
+Initialize the first control plane node using the
 bootstrap configuration file:
 
 ```
@@ -118,7 +118,7 @@ sudo k8s get-join-token <joining-node-hostname>
 ```
 
 Then join the new control plane node using the
-control plane node join configuration file:
+respective node-join configuration file:
 
 ```
 sudo k8s join-cluster --file=/var/snap/k8s/common/etc/templates/disa-stig/control-plane.yaml <join-token>
@@ -132,7 +132,7 @@ First retrieve a join token from an existing control plane node:
 sudo k8s get-join-token <joining-node-hostname> --worker
 ```
 
-Then join the new worker node using the worker node join configuration file:
+Then join the new worker node using the respective node-join configuration file:
 
 ```
 sudo k8s join-cluster --file=/var/snap/k8s/common/etc/templates/disa-stig/worker.yaml <join-token>
