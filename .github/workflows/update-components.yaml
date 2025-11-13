@@ -50,30 +50,23 @@ jobs:
           # Check for component updates and get PR metadata
           JSON_OUTPUT=$(./build-scripts/hack/update-component-versions.py --json-output 2>/dev/null || echo '{"title":"","description":""}')
           echo "$JSON_OUTPUT" | jq . || echo "No JSON output or failed"
-          
+
           # Extract title and description
           TITLE=$(echo "$JSON_OUTPUT" | jq -r '.title')
           DESCRIPTION=$(echo "$JSON_OUTPUT" | jq -r '.description')
-          
-          # Save for PR creation
-          if [ -n "$TITLE" ] && [ "$TITLE" != "" ]; then
-            echo "has_updates=true" >> $GITHUB_OUTPUT
-            echo "pr_title=[${{ matrix.branch }}] $TITLE" >> $GITHUB_OUTPUT
-            echo "pr_body<<EOF" >> $GITHUB_OUTPUT
-            echo "$DESCRIPTION" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-          else
-            echo "has_updates=false" >> $GITHUB_OUTPUT
-          fi
+
+          echo "pr_title=[${{ matrix.branch }}] $TITLE" >> $GITHUB_OUTPUT
+          echo "pr_body<<EOF" >> $GITHUB_OUTPUT
+          echo "$DESCRIPTION" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create pull request
-        if: steps.check-updates.outputs.has_updates == 'true'
         uses: peter-evans/create-pull-request@v6
         with:
           commit-message: "${{ steps.check-updates.outputs.pr_title }}"
           title: "${{ steps.check-updates.outputs.pr_title }}"
           body: "${{ steps.check-updates.outputs.pr_body }}"
-          branch: "autoupdate/components/${{ matrix.branch }}"
+          branch: "autoupdate/sync/${{ matrix.branch }}"
           labels: |
             automerge
           delete-branch: true
