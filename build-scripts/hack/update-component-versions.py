@@ -130,6 +130,7 @@ def get_kubernetes_version() -> str:
     LOG.info("Checking latest Kubernetes version from %s", KUBERNETES_VERSION_MARKER)
     return util.read_url(KUBERNETES_VERSION_MARKER)
 
+
 def get_cni_upstream_version() -> str:
     """Get latest version of CNI from upstream repository"""
     cni_repo = util.read_file(COMPONENTS / "cni/repository")
@@ -140,6 +141,7 @@ def get_cni_upstream_version() -> str:
         raise RuntimeError("Failed to determine latest upstream CNI version")
 
     return latest_version
+
 
 def get_cni_kubernetes_version() -> str:
     """Update CNI version to match the CNI version used in $kubernetes/build/dependencies.yaml"""
@@ -179,6 +181,7 @@ def get_runc_upstream_version() -> str:
         raise RuntimeError("Failed to determine latest upstream runc version")
 
     return latest_version
+
 
 def get_runc_containerd_version() -> str:
     """Update runc version based on containerd"""
@@ -380,6 +383,7 @@ def main():
     else:
         print(pr_metadata["title"])
         print(pr_metadata["description"])
+
 
 if __name__ == "__main__":
     main()
