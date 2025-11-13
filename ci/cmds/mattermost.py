@@ -160,9 +160,7 @@ def _build_tree_message(entries: List[Dict[str, Any]]) -> str:
                 # If there's only one entry, preserve previous behavior to link that run
                 if not failed_runs:
                     run_link = (
-                        _determine_run_link(entry_list[0])
-                        if len(entry_list)
-                        else None
+                        _determine_run_link(entry_list[0]) if len(entry_list) else None
                     )
                     run_part = f" [Run]({run_link})" if run_link else " Run"
                 else:
