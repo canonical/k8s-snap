@@ -29,31 +29,53 @@ jobs:
           - release-1.32
 
     steps:
-      - name: Checking out repo
+      - name: Checking out release branch
         uses: actions/checkout@v4
         with:
           ref: ${{ matrix.branch }}
           ssh-key: ${{ secrets.BOT_SSH_KEY }}
+          path: repo
+
+      - name: Checking out main branch
+        uses: actions/checkout@v4
+        with:
+          path: script-repo
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
       - name: Install dependencies
         run: |
-          pip3 install -r ./build-scripts/hack/requirements.txt
+          pip3 install -r ./script-repo/build-scripts/hack/requirements.txt
 
-      - name: Check for new component versions
+      - name: Check for component updates
+        id: check-updates
+        working-directory: ${{ github.workspace }}/script-repo
         run: |
-          ./build-scripts/hack/update-component-versions.py
+          # Check for component updates using the script from main but pointing to release branch
+          JSON_OUTPUT=$(./build-scripts/hack/update-component-versions.py \
+            --json-output --repo-dir "$GITHUB_WORKSPACE/repo" \
+            $(test "$GITHUB_EVENT_NAME" = "pull_request" && echo "--dry-run"))
+
+          echo "$JSON_OUTPUT" | jq . || echo "No JSON output or failed"
+
+          # Extract title and description
+          TITLE=$(echo "$JSON_OUTPUT" | jq -r '.title')
+          DESCRIPTION=$(echo "$JSON_OUTPUT" | jq -r '.description')
+
+          echo "pr_title=[${{ matrix.branch }}] $TITLE" >> $GITHUB_OUTPUT
+          echo "pr_body<<EOF" >> $GITHUB_OUTPUT
+          echo "$DESCRIPTION" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create pull request
         uses: peter-evans/create-pull-request@v6
         with:
-          commit-message: "[${{ matrix.branch }}] Update component versions"
-          title: "[${{ matrix.branch }}] Update component versions"
-          body: "[${{ matrix.branch }}] Update component versions"
+          commit-message: "${{ steps.check-updates.outputs.pr_title }}"
+          title: "${{ steps.check-updates.outputs.pr_title }}"
+          body: "${{ steps.check-updates.outputs.pr_body }}"
           branch: "autoupdate/sync/${{ matrix.branch }}"
           labels: |
             automerge
@@ -61,3 +83,4 @@ jobs:
           base: ${{ matrix.branch }}
           token: ${{ secrets.BOT_TOKEN }}
           author: "K8s builder bot <k8s-bot@canonical.com>"
+          path: repo
