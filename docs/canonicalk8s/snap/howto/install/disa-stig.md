@@ -171,6 +171,15 @@ instance each time a new service is exposed externally).
 - [V-242417]: User functionality must be separate from management functions
    meaning all user pods must be in user specific namespaces rather than system
    namespaces
+- [V-242393] and [V-242394]: SSH service must not be running or enabled on
+   worker nodes
+- [V-242395]: Kubernetes dashboard must not be enabled
+- [V-242396]: Kubernetes kubectl version must be greater than `1.12.9`
+- [V-242442]: Workload pods must use the latest image versions to avoid known
+   vulnerabilities
+- [V-242443]: Kubernetes components must be regularly updated. Keep {{product}}
+   on a supported snap version with automatic refreshes enabled.
+   See the [Canonical Kubernetes release cycle] for LTS support details.
 
 ## Appendix
 
@@ -266,6 +275,7 @@ audit settings, do one of the following:
     use it.
 
 <!-- Links -->
+[Canonical Kubernetes release cycle]: https://ubuntu.com/about/release-cycle#canonical-kubernetes-release-cycle
 [ports and services]: /snap/reference/ports-and-services/
 [FIPS installation guide]: fips.md
 [configure UFW]: /snap/howto/networking/ufw.md
@@ -279,6 +289,8 @@ audit settings, do one of the following:
 [V-242383]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242383
 [V-242393]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242393
 [V-242394]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242394
+[V-242395]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242395
+[V-242396]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242396
 [V-242400]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242400
 [V-242402]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242402
 [V-242403]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242403
@@ -290,6 +302,8 @@ audit settings, do one of the following:
 [V-242415]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242415
 [V-242417]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242417
 [V-242434]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242434
+[V-242442]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242442
+[V-242443]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242443
 [V-242461]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242461
 [V-242462]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242462
 [V-242463]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242463
