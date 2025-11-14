@@ -174,7 +174,7 @@ instance each time a new service is exposed externally).
    meaning all user pods must be in user specific namespaces rather than system
    namespaces
 
-## Advance Configuration
+## Advanced Configuration
 
 ### Configuration Files
 
