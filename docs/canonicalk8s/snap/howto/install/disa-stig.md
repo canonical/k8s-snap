@@ -183,7 +183,7 @@ instance each time a new service is exposed externally).
 
 ### Configuration Files
 
-#### Control plane & bootstrap configuration files
+#### Control plane configuration files
 
 `/var/snap/k8s/common/etc/templates/disa-stig/bootstrap.yaml` is the
 configuration file for 
