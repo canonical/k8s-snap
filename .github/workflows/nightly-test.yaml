@@ -20,14 +20,26 @@ jobs:
       matrix:
         os: ["ubuntu:22.04", "ubuntu:24.04"]
         arch: ["amd64", "arm64"]
-        channel: ["latest/edge"]
-      fail-fast: false # TODO: remove once we no longer have flaky tests.
+        # TODO(ben): Automatically fetch all supported releases.
+        channel:
+          [
+            "latest/edge",
+            "1.34-classic/edge",
+            "1.33-classic/edge",
+            "1.32-classic/edge",
+          ]
+      fail-fast: false
     uses: ./.github/workflows/e2e-tests.yaml
     with:
       arch: ${{ matrix.arch }}
       os: ${{ matrix.os }}
       channel: ${{ matrix.channel }}
-      test-tags: 'up_to_nightly'
+      test-tags: "up_to_nightly"
+      parallel: true
+      # We need to reduce the max parallelism here to avoid occupying all runners.
+      # os * arch * channel * max-parallel = 160 jobs
+      max-parallel: 10
+      upload-results: true
 
   test-performance:
     name: Run performance tests for ${{ matrix.os }}-${{ matrix.arch }}
@@ -35,6 +47,7 @@ jobs:
       matrix:
         os: ["ubuntu:22.04", "ubuntu:24.04"]
         arch: ["amd64", "arm64"]
+      fail-fast: false
     uses: ./.github/workflows/compare-performance.yaml
     with:
       arch: ${{ matrix.arch }}
@@ -42,46 +55,59 @@ jobs:
       channel-1: latest/edge
       channel-2: 1.32-classic/stable
 
+  collect-results:
+    name: Collect integration test results
+    if: ${{ always() }}
+    runs-on: ubuntu-24.04
+    needs: [test-integration]
+    outputs:
+      matrix: ${{ steps.aggregate.outputs.matrix }}
+    steps:
+      - uses: actions/download-artifact@v4
+      - run: |
+          results=$(find . -type f -name 'result.json' -exec cat {} \; | jq -c --slurp .)
+          echo "$results" > aggregated-results.json
+          echo "matrix=$results" >> $GITHUB_OUTPUT
+        id: aggregate
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aggregated-results
+          path: aggregated-results.json
+
   Mattermost:
-   name: Notify Mattermost
-   # Notify on success or failure but only if the event is a scheduled run.
-   # We don't want to ping people of failed PRs.
-   if: ${{ always() && github.event_name == 'schedule' }}
-   # Note: Update results check below if you change the "needs" list.
-   needs: [test-integration, test-performance]
-   runs-on: ubuntu-latest
-   steps:
-     - name: Set current formatted date as env variable
-       run: echo "FORMATTED_DATE=$(date +'%d/%m/%Y')" >> $GITHUB_ENV
-     - name: Test results
-       run: |
-         RESULTS=$(echo '${{ toJson(needs) }}' | jq -c '[.[] | .result]')
-         if echo $RESULTS | jq -e 'all(. == "success")'; then
-           echo "RESULT=success" >> $GITHUB_ENV
-         else
-           echo "RESULT=failure" >> $GITHUB_ENV
-         fi
-     - name: Generate Mattermost Message
-       run: |
-         if [[ "${{ env.RESULT }}" == "success" ]]; then
-           echo "MM_TEXT=:white_check_mark: *Success!* CI completed successfully. [View Run](${{
-             github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_ENV
-         else
-           echo "MM_TEXT=:x: *Failure!* CI failed, @k8s-engineers please fix ASAP. [View Run](${{
-             github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_ENV
-         fi
-     - name: Notify Mattermost
-       uses: mattermost/action-mattermost-notify@master
-       with:
-         MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }}
-         PAYLOAD: |
-           {
-             "attachments": [
-               {
-                 "fallback": "k8s-snap Nightly CI Status",
-                 "color": "${{ env.RESULT == 'success' && 'good' || 'danger' }}",
-                 "title": "k8s-snap Nightly CI Status - ${{ env.FORMATTED_DATE }}",
-                 "text": "${{ env.MM_TEXT }}"
-               }
-             ]
-           }
+    name: Notify Mattermost
+    # Notify on success or failure but only if the event is a scheduled run.
+    # We don't want to ping people of failed PRs.
+    if: ${{ always() && github.event_name == 'schedule' }}
+    needs: [test-integration, test-performance, collect-results]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install tox
+        run: sudo apt-get install -y tox
+      - name: Download integration test results
+        uses: actions/download-artifact@v4
+        with:
+          name: aggregated-results
+      - name: Aggregate and post results
+        working-directory: ci/
+        shell: bash
+        env:
+          MATTERMOST_BOT_WEBHOOK_URL: ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }}
+          MATTERMOST_BOT_TOKEN: ${{ secrets.MATTERMOST_BOT_TOKEN }}
+          MATTERMOST_SERVER: ${{ secrets.MATTERMOST_SERVER }}
+          # Kubernetes CI Night's watch channel
+          MATTERMOST_CHANNEL_ID: "4axiydhyxfr8px4phe9d5wgx7w"
+        run: |
+          tox -e k8s-ci -- mattermost results-message \
+            --webhook $MATTERMOST_BOT_WEBHOOK_URL \
+            --server $MATTERMOST_SERVER \
+            --bot-token $MATTERMOST_BOT_TOKEN \
+            --channel-id $MATTERMOST_CHANNEL_ID \
+            --file ${{ github.workspace }}/aggregated-results.json \
+            --title "k8s-snap Nightly CI Status - $(date +'%d/%m/%Y')"
