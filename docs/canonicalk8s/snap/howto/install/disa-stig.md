@@ -207,7 +207,7 @@ apply settings to align with the following recommendations:
 #### Worker node join configuration file
 
 `/var/snap/k8s/common/etc/templates/disa-stig/worker.yaml` is the
-worker node join configuration file 
+worker node join configuration file
 for [joining worker nodes](#join-worker-nodes).
 It applies settings to align with the following recommendations:
 
