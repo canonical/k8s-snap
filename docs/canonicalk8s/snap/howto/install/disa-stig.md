@@ -166,11 +166,15 @@ protocols, and services that fall outside the PPSM CAL must be blocked or
 registered. This step needs followed after the initial deployment and anytime
 the list of ports, protocols, and services used by your cluster changes (for
 instance each time a new service is exposed externally).
+- {ref}`242393` and {ref}`242394`: SSH service must not be running or enabled on
+   worker nodes (see [Join worker nodes](#join-worker-nodes))
 - {ref}`242414`: User pods must only use non-privileged host ports
 - {ref}`242415`: Secrets must not be stored as environment variables
 - {ref}`242417`: User functionality must be separate from management functions
    meaning all user pods must be in user specific namespaces rather than system
    namespaces
+- {ref}`242443`: Kubernetes components must be regularly updated to avoid vulnerabilities.
+   We recommend using the latest revision of a [supported version] of {{product}}.
 
 ## Appendix
 
@@ -266,11 +270,11 @@ audit settings, do one of the following:
     use it.
 
 <!-- Links -->
+[supported version]: https://ubuntu.com/about/release-cycle#canonical-kubernetes-release-cycle
 [ports and services]: /snap/reference/ports-and-services/
 [FIPS installation guide]: fips.md
 [configure UFW]: /snap/howto/networking/ufw.md
 [USG tool]: https://documentation.ubuntu.com/security/docs/compliance/usg/
-[Ubuntu Pro]: https://documentation.ubuntu.com/pro/start-here/#start-here
 [Kubernetes Pod Security Admission documentation]: https://kubernetes.io/docs/concepts/security/pod-security-admission/
 [upstream instructions]: https://kubernetes.io/docs/tasks/configure-pod-container/enforce-standards-admission-controller/
 [upstream audit instructions]: https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
