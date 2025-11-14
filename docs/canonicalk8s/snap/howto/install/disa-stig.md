@@ -178,7 +178,8 @@ instance each time a new service is exposed externally).
 - [V-242442]: Workload pods must use the latest image versions to avoid known
    vulnerabilities
 - [V-242443]: Kubernetes components must be regularly updated. Keep {{product}}
-   on a supported snap version with automatic refreshes enabled
+   on a supported snap version with automatic refreshes enabled.
+   See the [Canonical Kubernetes release cycle] for LTS support details.
 
 ## Appendix
 
@@ -274,6 +275,7 @@ audit settings, do one of the following:
     use it.
 
 <!-- Links -->
+[Canonical Kubernetes release cycle]: https://ubuntu.com/about/release-cycle#canonical-kubernetes-release-cycle
 [ports and services]: /snap/reference/ports-and-services/
 [FIPS installation guide]: fips.md
 [configure UFW]: /snap/howto/networking/ufw.md
