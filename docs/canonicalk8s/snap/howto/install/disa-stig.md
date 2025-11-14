@@ -171,6 +171,10 @@ instance each time a new service is exposed externally).
 - [V-242417]: User functionality must be separate from management functions
    meaning all user pods must be in user specific namespaces rather than system
    namespaces
+- [V-242393] and [V-242394]: SSH service must not be running or enabled on
+   worker nodes
+- [V-242395]: Kubernetes dashboard must not be enabled
+- [V-242396]: Kubernetes kubectl version must be greater than `1.12.9`
 
 ## Appendix
 
@@ -279,6 +283,8 @@ audit settings, do one of the following:
 [V-242383]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242383
 [V-242393]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242393
 [V-242394]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242394
+[V-242395]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242395
+[V-242396]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242396
 [V-242400]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242400
 [V-242402]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242402
 [V-242403]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242403
