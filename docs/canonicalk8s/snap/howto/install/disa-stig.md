@@ -175,6 +175,10 @@ instance each time a new service is exposed externally).
    worker nodes
 - [V-242395]: Kubernetes dashboard must not be enabled
 - [V-242396]: Kubernetes kubectl version must be greater than `1.12.9`
+- [V-242442]: Workload pods must use the latest image versions to avoid known
+   vulnerabilities
+- [V-242443]: Kubernetes components must be regularly updated. Keep {{product}}
+   on a supported snap version with automatic refreshes enabled
 
 ## Appendix
 
@@ -296,6 +300,8 @@ audit settings, do one of the following:
 [V-242415]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242415
 [V-242417]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242417
 [V-242434]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242434
+[V-242442]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242442
+[V-242443]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242443
 [V-242461]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242461
 [V-242462]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242462
 [V-242463]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242463
