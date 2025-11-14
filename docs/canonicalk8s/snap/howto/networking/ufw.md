@@ -36,7 +36,7 @@ sudo ufw allow OpenSSH
 
 ## Firewall rules for all nodes
 
-Apply the following rules on all control-plane and worker nodes.
+Apply the following rules on all control plane and worker nodes.
 
 ### Allow packet forwarding
 
