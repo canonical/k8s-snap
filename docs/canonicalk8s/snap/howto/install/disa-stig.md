@@ -179,7 +179,7 @@ instance each time a new service is exposed externally).
    vulnerabilities. We recommend using the latest revision of a
    [supported version] of {{product}}.
 
-## Advance Configuration
+## Advanced Configuration
 
 ### Configuration Files
 
