@@ -186,7 +186,7 @@ instance each time a new service is exposed externally).
 #### Control plane configuration files
 
 `/var/snap/k8s/common/etc/templates/disa-stig/bootstrap.yaml` is the
-configuration file for 
+configuration file for
 [bootstrapping](#bootstrap-the-first-control-plane-node) the first node
 of a cluster and
 `/var/snap/k8s/common/etc/templates/disa-stig/control-plane.yaml` is the
