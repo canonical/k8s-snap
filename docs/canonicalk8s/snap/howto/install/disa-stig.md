@@ -93,8 +93,7 @@ DISA STIG specific settings.
 ```{attention}
 Before bootstrapping or joining control plane nodes, review the
 respective [configuration files](#configuration-files) as well as the
-[audit logs and PSS](#audit-logs-and-pss-configuration)
-alternative configuration options.
+alternative configuration options for [audit logs and PSS](#audit-logs-and-pss-configuration).
 Once a node is configured, changing certain settings is more difficult
 and may require re-deploying the node or cluster.
 ```
