@@ -89,3 +89,14 @@ nextKeyValue:
 
 	return environ
 }
+
+// ExistsInEnviron checks if a key exists in the given environment variables.
+func ExistsInEnviron(environ []string, key string) bool {
+	for _, envKV := range environ {
+		parts := strings.SplitN(envKV, "=", 2)
+		if len(parts) >= 2 && parts[0] == key && parts[1] != "" {
+			return true
+		}
+	}
+	return false
+}
