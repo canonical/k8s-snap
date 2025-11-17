@@ -68,7 +68,7 @@ of
 >
 
 
-Remediation
+**Remediation**
 
 Set the argument `--tls-min-version` for service `kube-controller-manager` as
 appropriate in `/var/snap/k8s/common/args/kube-controller-manager`.
@@ -83,7 +83,7 @@ Restart the `kube-controller-manager` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--tls-min-version` for service
 `kube-controller-manager` is set as appropriate in the service's argument file
@@ -130,7 +130,7 @@ of
 >
 
 
-Remediation
+**Remediation**
 
 Set the argument `--tls-min-version` for service `kube-scheduler` as appropriate
 in `/var/snap/k8s/common/args/kube-scheduler`.
@@ -145,7 +145,7 @@ Restart the `kube-scheduler` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--tls-min-version` for service `kube-scheduler` is
 set as appropriate in the service's argument file
@@ -190,7 +190,7 @@ of
 >
 
 
-Remediation
+**Remediation**
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--tls-min-version` for service `kube-apiserver` as appropriate.
@@ -205,7 +205,7 @@ Restart the `kube-apiserver` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--tls-min-version` for service `kube-apiserver` is
 set as appropriate in the service's argument file
@@ -243,7 +243,7 @@ of
 
 ````{group-tab} etcd
 
-Step 1/4
+**Step 1/4**
 
 **Comments:**
 
@@ -256,7 +256,7 @@ Step 1/4
 >     /var/snap/k8s/common/args/etcd
 >
 
-Remediation for Step 1
+**Remediation for Step 1**
 
 Set `--auto-tls` argument to `false` or `0` in `/var/snap/k8s/common/args/etcd`.
 
@@ -266,7 +266,7 @@ Restart the etcd service:
 sudo systemctl restart snap.k8s.etcd
 ```
 
-Auditing (as root) for Step 1
+**Auditing (as root) for Step 1**
 
 The argument `--auto-tls` for service etcd is set as appropriate
 in the service’s argument file `/var/snap/k8s/common/args/etcd`.
@@ -278,9 +278,9 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 The final line of the output will be `PASS`.
 
-Step 2/4
+**Step 2/4**
 
-Remediation for Step 2
+**Remediation for Step 2**
 
 Set the argument of etcd service `--key-file` to `/etc/kubernetes/pki/etcd/server.key`
 in `/var/snap/k8s/common/args/etcd`.
@@ -291,7 +291,7 @@ Restart the etcd service:
 sudo systemctl restart snap.k8s.etcd
 ```
 
-Auditing (as root) for Step 2
+**Auditing (as root) for Step 2**
 
 The argument `--key-file` for service etcd is set as appropriate
 in the service’s argument file `/var/snap/k8s/common/args/etcd`.
@@ -305,9 +305,9 @@ In the default configuration of the k8s-snap, resulting output lines will
 start with `PASS`.
 
 
-Step 3/4
+**Step 3/4**
 
-Remediation for Step 3
+**Remediation for Step 3**
 
 Set the argument of etcd service `--cert-file` to `/etc/kubernetes/pki/etcd/server.crt`
 in `/var/snap/k8s/common/args/etcd`
@@ -318,7 +318,7 @@ Restart the etcd service:
 sudo systemctl restart snap.k8s.etcd
 ```
 
-Auditing (as root) for Step 3
+**Auditing (as root) for Step 3**
 
 The argument `--cert-file` for service etcd is set as appropriate
 in the service’s argument file `/var/snap/k8s/common/args/etcd`.
@@ -332,9 +332,9 @@ In the default configuration of the k8s-snap, resulting output lines will
 start with `PASS`.
 
 
-Step 4/4
+**Step 4/4**
 
-Remediation for Step 4
+**Remediation for Step 4**
 
 Set the argument of etcd service `--trusted-ca-file` to `/etc/kubernetes/pki/etcd/ca.crt`
 in `/var/snap/k8s/common/args/etcd`.
@@ -345,7 +345,7 @@ Restart the etcd service:
 sudo systemctl restart snap.k8s.etcd
 ```
 
-Auditing (as root) for Step 4
+**Auditing (as root) for Step 4**
 
 The argument `--trusted-ca-file` for service etcd is set as appropriate
 in the service’s argument file `/var/snap/k8s/common/args/etcd`.
@@ -363,7 +363,7 @@ start with `PASS`.
 
 ````{group-tab} k8s-dqlite
 
-Step 1/3
+**Step 1/3**
 
 
 **Comments:**
@@ -379,7 +379,7 @@ Step 1/3
 >
 
 
-Remediation for Step 1
+**Remediation for Step 1**
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -388,7 +388,7 @@ Ensure all of the following paths have correct ownership by running:
     chown -R 0:0 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
 
-Auditing (as root) for Step 1
+**Auditing (as root) for Step 1**
 
 All files exist and have the correct ownership.
 
@@ -403,7 +403,7 @@ start with `PASS`.
 
 
 
-Step 2/3
+**Step 2/3**
 
 
 **Comments:**
@@ -411,7 +411,7 @@ Step 2/3
 > This check ensures the permissions on the k8s-dqlite socket.
 
 
-Remediation for Step 2
+**Remediation for Step 2**
 
 Ensure all of the following paths have correct permissions by running:
 
@@ -420,7 +420,7 @@ Ensure all of the following paths have correct permissions by running:
     chmod -R 600 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
 
-Auditing (as root) for Step 2
+**Auditing (as root) for Step 2**
 
 All required files have permissions '600' (or stricter):
 
@@ -435,7 +435,7 @@ start with `PASS`.
 
 
 
-Step 3/3
+**Step 3/3**
 
 
 **Comments:**
@@ -445,7 +445,7 @@ Step 3/3
 >
 
 
-Remediation for Step 3
+**Remediation for Step 3**
 
 Set the argument `--etcd-servers` for service `kube-apiserver` as appropriate
 in `/var/snap/k8s/common/args/kube-apiserver`
@@ -462,7 +462,7 @@ Restart the `kube-apiserver` service:
 
 
 
-Auditing (as root) for Step 3
+**Auditing (as root) for Step 3**
 
 The argument `--etcd-servers` for service `kube-apiserver` is set
 as appropriate in the service's argument file
@@ -508,7 +508,7 @@ of
 
 ````{group-tab} etcd
 
-Step 1/4
+**Step 1/4**
 
 **Comments:**
 
@@ -521,7 +521,7 @@ Step 1/4
 >     /var/snap/k8s/common/args/etcd
 >
 
-Remediation for Step 1
+**Remediation for Step 1**
 
 Set the `--peer-auto-tls` argument to `false` or `0` in `/var/snap/k8s/common/args/etcd`.
 
@@ -531,7 +531,7 @@ Restart the etcd service:
 sudo systemctl restart snap.k8s.etcd
 ```
 
-Auditing (as root) for Step 1
+**Auditing (as root) for Step 1**
 
 The argument `--peer-auto-tls` for service etcd is set as
 appropriate in the service’s argument file `/var/snap/k8s/common/args/etcd`.
@@ -543,10 +543,10 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 The final line of the output will be `PASS`.
 
-Step 2/4
+**Step 2/4**
 
 
-Remediation for Step 2
+**Remediation for Step 2**
 
 Set the argument of etcd service `--peer-key-file` to
 `/etc/kubernetes/pki/etcd/peer.key` in `/var/snap/k8s/common/args/etcd`
@@ -557,7 +557,7 @@ Restart the etcd service:
 sudo systemctl restart snap.k8s.etcd
 ```
 
-Auditing (as root) for Step 2
+**Auditing (as root) for Step 2**
 
 The argument `--peer-key-file` for service etcd is set as appropriate
 in the service’s argument file `/var/snap/k8s/common/args/etcd`.
@@ -571,9 +571,9 @@ In the default configuration of the k8s-snap, resulting output lines will
 start with `PASS`.
 
 
-Step 3/4
+**Step 3/4**
 
-Remediation for Step 3
+**Remediation for Step 3**
 
 Set the argument of etcd service `--peer-cert-file` to
 `/etc/kubernetes/pki/etcd/peer.crt` in `/var/snap/k8s/common/args/etcd`.
@@ -584,7 +584,7 @@ Restart the etcd service:
 sudo systemctl restart snap.k8s.etcd
 ```
 
-Auditing (as root) for Step 3
+**Auditing (as root) for Step 3**
 
 The argument `--peer-cert-file` for service etcd is set as
 appropriate in the service’s argument file `/var/snap/k8s/common/args/etcd`.
@@ -598,10 +598,10 @@ In the default configuration of the k8s-snap, resulting output lines will
 start with `PASS`.
 
 
-Step 4/4
+**Step 4/4**
 
 
-Remediation for Step 4
+**Remediation for Step 4**
 
 Set the argument of etcd service `--peer-trusted-ca-file` to
 `/etc/kubernetes/pki/etcd/ca.crt` in `/var/snap/k8s/common/args/etcd`
@@ -612,7 +612,7 @@ Restart the etcd service:
 sudo systemctl restart snap.k8s.etcd
 ```
 
-Auditing (as root) for Step 4
+**Auditing (as root) for Step 4**
 
 The argument `--peer-trusted-ca-file` for service etcd is set as appropriate
 in the service’s argument file `/var/snap/k8s/common/args/etcd`.
@@ -642,7 +642,7 @@ start with `PASS`.
 >
 
 
-Remediation
+**Remediation**
 
 Set the argument `--enable-tls` for service `k8s-dqlite` as appropriate
 in `/var/snap/k8s/common/args/k8s-dqlite`.
@@ -657,7 +657,7 @@ Restart the `k8s-dqlite` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--enable-tls` for service `k8s-dqlite` is set as
 appropriate in the service's argument file
@@ -709,7 +709,7 @@ accounts for each work payload
 >
 
 
-Remediation
+**Remediation**
 
 Set the argument `--use-service-account-credentials` for service
 `kube-controller-manager` as appropriate in
@@ -725,7 +725,7 @@ Restart the `kube-controller-manager` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--use-service-account-credentials` for service
 `kube-controller-manager` is set as appropriate in the service's argument file
@@ -784,7 +784,7 @@ authorization mode
 >
 
 
-Remediation
+**Remediation**
 
 Set the argument `--authorization-mode` for service `kube-apiserver` as
 appropriate in `/var/snap/k8s/common/args/kube-apiserver`.
@@ -799,7 +799,7 @@ Restart the `kube-apiserver` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--authorization-mode` for service `kube-apiserver` is
 set as appropriate in the service's argument file
@@ -851,7 +851,7 @@ start with `PASS`.
 >
 
 
-Remediation
+**Remediation**
 
 Set the argument `--read-only-port` for service `kubelet` as appropriate in
 `/var/snap/k8s/common/args/kubelet`.
@@ -866,7 +866,7 @@ Restart the `kubelet` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--read-only-port` for service `kubelet` is set as
 appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -919,7 +919,7 @@ not set
 >
 
 
-Remediation
+**Remediation**
 
 Set the argument `--insecure-bind-address` for service `kube-apiserver` as
 appropriate in `/var/snap/k8s/common/args/kube-apiserver`
@@ -934,7 +934,7 @@ Restart the `kube-apiserver` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--insecure-bind-address` for service `kube-apiserver`
 is set as appropriate in the service's argument file
@@ -984,7 +984,7 @@ The final line of the output will be `PASS`.
 >
 
 
-Remediation
+**Remediation**
 
 Set the argument `--secure-port` for service `kube-apiserver` as appropriate
 in `/var/snap/k8s/common/args/kube-apiserver`.
@@ -999,7 +999,7 @@ Restart the `kube-apiserver` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--secure-port` for service `kube-apiserver` is set as
 appropriate in the service's argument file
@@ -1055,7 +1055,7 @@ disabled
 >
 
 
-Remediation
+**Remediation**
 
 Set the argument `--anonymous-auth` for service `kube-apiserver` as appropriate
 in `/var/snap/k8s/common/args/kube-apiserver`.
@@ -1070,7 +1070,7 @@ Restart the `kube-apiserver` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--anonymous-auth` for service `kube-apiserver` is set
 as appropriate in the service's argument file
@@ -1126,7 +1126,7 @@ disabled
 >
 
 
-Remediation
+**Remediation**
 
 Set the argument `--anonymous-auth` for service `kubelet` as appropriate
 in `/var/snap/k8s/common/args/kubelet`.
@@ -1141,7 +1141,7 @@ Restart the `kubelet` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--anonymous-auth` for service `kubelet` is set as
 appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -1190,7 +1190,7 @@ start with `PASS`.
 >
 
 
-Remediation
+**Remediation**
 
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
 `--authorization-mode` for service `kubelet` as appropriate.
@@ -1205,7 +1205,7 @@ Restart the `kubelet` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--authorization-mode` for service `kubelet` is set as
 appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -1291,7 +1291,7 @@ results
 > https://discuss.kubernetes.io/t/announce-security-release-of-kubernetes-kubectl-potential-directory-traversal-releases-1-11-9-1-12-7-1-13-5-and-1-14-0-cve-2019-1002101/5712
 >
 
-Remediation
+**Remediation**
 
 This requirement can be satisfied by using the kubectl command built into the
 k8s snap (available via `k8s kubectl …`) or by installing the kubectl snap
@@ -1341,7 +1341,7 @@ snap install kubectl --classic
 >
 
 
-Remediation
+**Remediation**
 
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
 `--pod-manifest-path` for service `kubelet` as appropriate.
@@ -1356,7 +1356,7 @@ Restart the `kubelet` service :
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--pod-manifest-path` for service `kubelet` is set as
 appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -1404,7 +1404,7 @@ The final line of the output will be `PASS`.
 >
 
 
-Remediation
+**Remediation**
 
 Set the argument `--hostname-override` for service `kubelet` as appropriate
 in `/var/snap/k8s/common/args/kubelet`.
@@ -1419,7 +1419,7 @@ Restart the `kubelet` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--hostname-override` for service `kubelet` is set as
 appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -1466,7 +1466,7 @@ The final line of the output will be `PASS`.
 >
 
 
-Remediation
+**Remediation**
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -1474,7 +1474,7 @@ Ensure all of the following paths have correct ownership by running:
 
     chown -R 0:0 /etc/containerd /etc/containerd/config.toml
 
-Auditing (as root)
+**Auditing (as root)**
 
 All files exist and have the correct ownership.
 
@@ -1529,7 +1529,7 @@ start with `PASS`.
 >
 
 
-Remediation
+**Remediation**
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -1537,7 +1537,7 @@ Ensure all of the following paths have correct ownership by running:
 
     chown -R 0:0 /etc/containerd /etc/containerd/config.toml
 
-Auditing (as root)
+**Auditing (as root)**
 
 All files exist and have the correct ownership.
 
@@ -1593,7 +1593,7 @@ start with `PASS`.
 
 
 
-Step 1/2
+**Step 1/2**
 
 
 **Comments:**
@@ -1612,7 +1612,7 @@ Step 1/2
 >
 
 
-Remediation for Step 1
+**Remediation for Step 1**
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -1621,7 +1621,7 @@ Ensure all of the following paths have correct ownership by running:
     chown -R 0:0 /var/snap/k8s/common/args/kubelet
 
 
-Auditing (as root) for Step 1
+**Auditing (as root) for Step 1**
 
 All files exist and have the correct ownership.
 
@@ -1636,7 +1636,7 @@ start with `PASS`.
 
 
 
-Step 2/2
+**Step 2/2**
 
 
 **Comments:**
@@ -1646,7 +1646,7 @@ Step 2/2
 >
 
 
-Remediation for Step 2
+**Remediation for Step 2**
 
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
 `--config` for service `kubelet` as appropriate.
@@ -1662,7 +1662,7 @@ Restart the `kubelet` service:
 
 
 
-Auditing (as root) for Step 2
+**Auditing (as root) for Step 2**
 
 The argument `--config` for service `kubelet` is set as appropriate
 in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -1702,7 +1702,7 @@ permissions set to 644 or more restrictive
 
 
 
-Step 1/2
+**Step 1/2**
 
 
 **Comments:**
@@ -1722,7 +1722,7 @@ Step 1/2
 >
 
 
-Remediation for Step 1
+**Remediation for Step 1**
 
 Ensure all of the following paths have correct permissions by running:
 
@@ -1731,7 +1731,7 @@ Ensure all of the following paths have correct permissions by running:
     chmod -R 644 /var/snap/k8s/common/args/kubelet
 
 
-Auditing (as root) for Step 1
+**Auditing (as root) for Step 1**
 
 All required files have permissions '644' (or stricter):
 
@@ -1746,7 +1746,7 @@ start with `PASS`.
 
 
 
-Step 2/2
+**Step 2/2**
 
 
 **Comments:**
@@ -1756,7 +1756,7 @@ Step 2/2
 >
 
 
-Remediation for Step 2
+**Remediation for Step 2**
 
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
 `--config` for service `kubelet` as appropriate.
@@ -1772,7 +1772,7 @@ Restart the `kubelet` service:
 
 
 
-Auditing (as root) for Step 2
+**Auditing (as root) for Step 2**
 
 The argument `--config` for service `kubelet` is set as appropriate
 in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -1826,7 +1826,7 @@ The final line of the output will be `PASS`.
 >
 
 
-Remediation
+**Remediation**
 
 Ensure all of the following paths have correct permissions by running:
 
@@ -1834,7 +1834,7 @@ Ensure all of the following paths have correct permissions by running:
 chmod -R 644 /var/snap/k8s/common/args /var/snap/k8s/common/args/conf.d /var/snap/k8s/common/args/kube-apiserver /var/snap/k8s/common/args/kube-controller-manager /var/snap/k8s/common/args/k8sd /var/snap/k8s/common/args/kube-proxy /var/snap/k8s/common/args/kube-scheduler /var/snap/k8s/common/args/kubelet /var/snap/k8s/common/args/containerd /var/snap/k8s/common/args/etcd /var/snap/k8s/common/args/conf.d/auth-token-webhook.conf
 ```
 
-Auditing (as root)
+**Auditing (as root)**
 
 All required files have permissions '644' (or stricter):
 
@@ -1871,7 +1871,7 @@ start with `PASS`.
 >
 
 
-Remediation
+**Remediation**
 
 Ensure all of the following paths have correct permissions by running:
 
@@ -1879,7 +1879,7 @@ Ensure all of the following paths have correct permissions by running:
 chmod -R 644 /var/snap/k8s/common/args /var/snap/k8s/common/args/conf.d /var/snap/k8s/common/args/kube-apiserver /var/snap/k8s/common/args/kube-controller-manager /var/snap/k8s/common/args/k8sd /var/snap/k8s/common/args/kube-proxy /var/snap/k8s/common/args/kube-scheduler /var/snap/k8s/common/args/kubelet /var/snap/k8s/common/args/containerd /var/snap/k8s/common/args/k8s-dqlite /var/snap/k8s/common/args/conf.d/auth-token-webhook.conf
 ```
 
-Auditing (as root)
+**Auditing (as root)**
 
 All required files have permissions '644' (or stricter):
 
@@ -1932,7 +1932,7 @@ start with `PASS`.
 >
 
 
-Remediation
+**Remediation**
 
 Edit `/var/snap/k8s/common/args/kube-controller-manager` in order to set the
 argument `--profiling` for service `kube-controller-manager` as appropriate.
@@ -1947,7 +1947,7 @@ Restart the `kube-controller-manager` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--profiling` for service `kube-controller-manager` is
 set as appropriate in the service's argument file
@@ -1992,7 +1992,7 @@ start with `PASS`.
 >
 
 
-Remediation
+**Remediation**
 
 Set the argument `--tls-cipher-suites` for service `kube-apiserver`
 as appropriate in `/var/snap/k8s/common/args/kube-apiserver`.
@@ -2010,7 +2010,7 @@ Restart the `kube-apiserver` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--tls-cipher-suites` for service `kube-apiserver` is
 set as appropriate in the service's argument file
@@ -2065,7 +2065,7 @@ start with `PASS`.
 >
 
 
-Remediation
+**Remediation**
 
 Set the argument `--client-ca-file` for service `kube-apiserver` as appropriate
 in `/var/snap/k8s/common/args/kube-apiserver`.
@@ -2080,7 +2080,7 @@ Restart the `kube-apiserver` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--client-ca-file` for service `kube-apiserver` is set
 as appropriate in the service's argument file
@@ -2140,7 +2140,7 @@ start with `PASS`.
 >
 
 
-Remediation
+**Remediation**
 
 Set the argument `--client-ca-file` for service `kubelet` as appropriate in
 `/var/snap/k8s/common/args/kubelet`.
@@ -2155,7 +2155,7 @@ Restart the `kubelet` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--client-ca-file` for service `kubelet` is set as
 appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -2211,7 +2211,7 @@ Authority set
 >
 
 
-Remediation
+**Remediation**
 
 Set the argument `--root-ca-file` for service `kube-controller-manager` as
 appropriate in `/var/snap/k8s/common/args/kube-controller-manager`.
@@ -2226,7 +2226,7 @@ Restart the `kube-controller-manager` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--root-ca-file` for service `kube-controller-manager`
 is set as appropriate in the service's argument file
@@ -2272,7 +2272,7 @@ start with `PASS`.
 
 
 
-Step 1/2
+**Step 1/2**
 
 
 **Comments:**
@@ -2284,7 +2284,7 @@ Step 1/2
 >
 
 
-Remediation for Step 1
+**Remediation for Step 1**
 
 Set the argument `--tls-cert-file` for service `kube-apiserver`
 as appropriate in `/var/snap/k8s/common/args/kube-apiserver`.
@@ -2300,7 +2300,7 @@ Restart the `kube-apiserver` service:
 
 
 
-Auditing (as root) for Step 1
+**Auditing (as root) for Step 1**
 
 The argument `--tls-cert-file` for service `kube-apiserver` is set
 as appropriate in the service's argument file
@@ -2317,7 +2317,7 @@ start with `PASS`.
 
 
 
-Step 2/2
+**Step 2/2**
 
 
 **Comments:**
@@ -2329,7 +2329,7 @@ Step 2/2
 >
 
 
-Remediation for Step 2
+**Remediation for Step 2**
 
 Set the argument `--tls-private-key-file` for service `kube-apiserver` as
 appropriate in `/var/snap/k8s/common/args/kube-apiserver`.
@@ -2345,7 +2345,7 @@ Restart the `kube-apiserver` service:
 
 
 
-Auditing (as root) for Step 2
+**Auditing (as root) for Step 2**
 
 The argument `--tls-private-key-file` for service `kube-apiserver`
 is set as appropriate in the service's argument file
@@ -2404,7 +2404,7 @@ service
 >     /var/snap/k8s/common/args/etcd
 >
 
-Remediation
+**Remediation**
 
 Set the `--client-cert-auth` argument to `true` in `/var/snap/k8s/common/args/etcd`.
 
@@ -2414,7 +2414,7 @@ Restart the etcd service:
 sudo systemctl restart snap.k8s.etcd
 ```
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--client-cert-auth` for service etcd is set as
 appropriate in the service’s argument file `/var/snap/k8s/common/args/etcd`.
@@ -2428,7 +2428,7 @@ The final line of the output will be `PASS`.
 
 ````{group-tab} k8s-dqlite
 
-Step 1/3
+**Step 1/3**
 
 
 **Comments:**
@@ -2444,7 +2444,7 @@ Step 1/3
 >
 
 
-Remediation for Step 1
+**Remediation for Step 1**
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -2453,7 +2453,7 @@ Ensure all of the following paths have correct ownership by running:
     chown -R 0:0 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
 
-Auditing (as root) for Step 1
+**Auditing (as root) for Step 1**
 
 All files exist and have the correct ownership.
 
@@ -2468,7 +2468,7 @@ start with `PASS`.
 
 
 
-Step 2/3
+**Step 2/3**
 
 
 **Comments:**
@@ -2476,7 +2476,7 @@ Step 2/3
 > This check ensures the permissions on the k8s-dqlite socket.
 
 
-Remediation for Step 2
+**Remediation for Step 2**
 
 Ensure all of the following paths have correct permissions by running:
 
@@ -2485,7 +2485,7 @@ Ensure all of the following paths have correct permissions by running:
     chmod -R 600 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
 
-Auditing (as root) for Step 2
+**Auditing (as root) for Step 2**
 
 All required files have permissions '600' (or stricter):
 
@@ -2500,7 +2500,7 @@ start with `PASS`.
 
 
 
-Step 3/3
+**Step 3/3**
 
 
 **Comments:**
@@ -2527,7 +2527,7 @@ Restart the `kube-apiserver` service:
 
 
 
-Auditing (as root) for Step 3
+**Auditing (as root) for Step 3**
 
 The argument `--etcd-servers` for service `kube-apiserver` is set
 as appropriate in the service's argument file
@@ -2590,7 +2590,7 @@ authentication to secure service
 >
 
 
-Remediation
+**Remediation**
 
 Set the argument `--tls-private-key-file` for service `kubelet` as appropriate
 in `/var/snap/k8s/common/args/kubelet`.
@@ -2605,7 +2605,7 @@ Restart the `kubelet` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--tls-private-key-file` for service `kubelet` is set
 as appropriate in the service's argument file
@@ -2664,7 +2664,7 @@ authentication to secure service
 >
 
 
-Remediation
+**Remediation**
 
 Set the argument `--tls-cert-file` for service `kubelet` as appropriate
 in `/var/snap/k8s/common/args/kubelet`.
@@ -2679,7 +2679,7 @@ Restart the `kubelet` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--tls-cert-file` for service `kubelet` is set as
 appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -2739,7 +2739,7 @@ service
 >     /var/snap/k8s/common/args/etcd
 >
 
-Remediation
+**Remediation**
 
 Set the `--peer-client-cert-auth` argument to `true` in `/var/snap/k8s/common/args/etcd`.
 
@@ -2749,7 +2749,7 @@ Restart the etcd service:
 sudo systemctl restart snap.k8s.etcd
 ```
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--peer-client-cert-auth` for service etcd is set as
 appropriate in the service’s argument file `/var/snap/k8s/common/args/etcd`.
@@ -2775,7 +2775,7 @@ The final line of the output will be `PASS`.
 >
 
 
-Remediation
+**Remediation**
 
 Set the argument `--enable-tls` for service `k8s-dqlite` as appropriate
 in `/var/snap/k8s/common/args/k8s-dqlite`.
@@ -2790,7 +2790,7 @@ Restart the `k8s-dqlite` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--enable-tls` for service `k8s-dqlite` is set as
 appropriate in the service's argument file
@@ -2853,7 +2853,7 @@ The final line of the output will be `PASS`.
 >     /var/snap/k8s/common/args/etcd
 >
 
-Remediation
+**Remediation**
 
 Set the argument of etcd service `--key-file` to `/etc/kubernetes/pki/etcd/server.key`
 in `/var/snap/k8s/common/args/etcd`.
@@ -2864,7 +2864,7 @@ Restart the etcd service:
 sudo systemctl restart snap.k8s.etcd
 ```
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--key-file` for service etcd is set as appropriate
 in the service’s argument file `/var/snap/k8s/common/args/etcd`.
@@ -2882,7 +2882,7 @@ start with `PASS`.
 ````{group-tab} k8s-dqlite
 
 
-Step 1/3
+**Step 1/3**
 
 
 **Comments:**
@@ -2898,7 +2898,7 @@ Step 1/3
 >
 
 
-Remediation for Step 1
+**Remediation for Step 1**
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -2907,7 +2907,7 @@ Ensure all of the following paths have correct ownership by running:
     chown -R 0:0 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
 
-Auditing (as root) for Step 1
+**Auditing (as root) for Step 1**
 
 All files exist and have the correct ownership.
 
@@ -2919,7 +2919,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 
-Step 2/3
+**Step 2/3**
 
 
 **Comments:**
@@ -2928,7 +2928,7 @@ Step 2/3
 > This check ensures the permissions on the k8s-dqlite socket.
 
 
-Remediation for Step 2
+**Remediation for Step 2**
 
 Ensure all of the following paths have correct permissions by running:
 
@@ -2937,7 +2937,7 @@ Ensure all of the following paths have correct permissions by running:
     chmod -R 600 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
 
-Auditing (as root) for Step 2
+**Auditing (as root) for Step 2**
 
 All required files have permissions '600' (or stricter):
 
@@ -2949,7 +2949,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 
-Step 3/3
+**Step 3/3**
 
 
 **Comments:**
@@ -2976,7 +2976,7 @@ Restart the `kube-apiserver` service:
 
 
 
-Auditing (as root) for Step 3
+**Auditing (as root) for Step 3**
 
 The argument `--etcd-servers` for service `kube-apiserver` is set
 as appropriate in the service's argument file
@@ -3036,7 +3036,7 @@ start with `PASS`.
 >     /var/snap/k8s/common/args/etcd
 >
 
-Remediation
+**Remediation**
 
 Set the argument of etcd service `--cert-file` to
 `/etc/kubernetes/pki/etcd/server.crt` in `/var/snap/k8s/common/args/etcd`.
@@ -3047,7 +3047,7 @@ Restart the etcd service:
 sudo systemctl restart snap.k8s.etcd
 ```
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--cert-file` for service etcd is set as appropriate
 in the service’s argument file `/var/snap/k8s/common/args/etcd`.
@@ -3065,7 +3065,7 @@ start with `PASS`.
 
 ````{group-tab} k8s-dqlite
 
-Step 1/3
+**Step 1/3**
 
 
 **Comments:**
@@ -3081,7 +3081,7 @@ Step 1/3
 >
 
 
-Remediation for Step 1
+**Remediation for Step 1**
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -3090,7 +3090,7 @@ Ensure all of the following paths have correct ownership by running:
     chown -R 0:0 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
 
-Auditing (as root) for Step 1
+**Auditing (as root) for Step 1**
 
 All files exist and have the correct ownership.
 
@@ -3102,7 +3102,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 
-Step 2/3
+**Step 2/3**
 
 
 **Comments:**
@@ -3110,7 +3110,7 @@ Step 2/3
 > This check ensures the permissions on the k8s-dqlite socket.
 
 
-Remediation for Step 2
+**Remediation for Step 2**
 
 Ensure all of the following paths have correct permissions by running:
 
@@ -3119,7 +3119,7 @@ Ensure all of the following paths have correct permissions by running:
     chmod -R 600 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
 
-Auditing (as root) for Step 2
+**Auditing (as root) for Step 2**
 
 All required files have permissions '600' (or stricter):
 
@@ -3132,7 +3132,7 @@ start with `PASS`.
 
 
 
-Step 3/3
+**Step 3/3**
 
 
 **Comments:**
@@ -3159,7 +3159,7 @@ Restart the `kube-apiserver` service:
 
 
 
-Auditing (as root) for Step 3
+**Auditing (as root) for Step 3**
 
 The argument `--etcd-servers` for service `kube-apiserver` is set
 as appropriate in the service's argument file
@@ -3219,7 +3219,7 @@ start with `PASS`.
 >     /var/snap/k8s/common/args/kube-apiserver
 >
 
-Remediation
+**Remediation**
 
 Set the argument of Kubernetes API server `--etcd-cafile` to `/etc/kubernetes/pki/etcd/ca.crt`
 in `/var/snap/k8s/common/args/kube-apiserver`.
@@ -3230,7 +3230,7 @@ Restart the etcd service:
 sudo systemctl restart snap.k8s.kube-apiserver
 ```
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--etcd-cafile` for Kubernetes API server is set as
 appropriate in the service’s argument file
@@ -3248,7 +3248,7 @@ start with `PASS`.
 
 ````{group-tab} k8s-dqlite
 
-Step 1/3
+**Step 1/3**
 
 
 **Comments:**
@@ -3264,7 +3264,7 @@ Step 1/3
 >
 
 
-Remediation for Step 1
+**Remediation for Step 1**
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -3273,7 +3273,7 @@ Ensure all of the following paths have correct ownership by running:
     chown -R 0:0 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
 
-Auditing (as root) for Step 1
+**Auditing (as root) for Step 1**
 
 All files exist and have the correct ownership.
 
@@ -3285,7 +3285,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 
-Step 2/3
+**Step 2/3**
 
 
 **Comments:**
@@ -3293,7 +3293,7 @@ Step 2/3
 > This check ensures the permissions on the k8s-dqlite socket.
 
 
-Remediation for Step 2
+**Remediation for Step 2**
 
 Ensure all of the following paths have correct permissions by running:
 
@@ -3302,7 +3302,7 @@ Ensure all of the following paths have correct permissions by running:
     chmod -R 600 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
 
-Auditing (as root) for Step 2
+**Auditing (as root) for Step 2**
 
 All required files have permissions '600' (or stricter):
 
@@ -3314,7 +3314,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 
-Step 3/3
+**Step 3/3**
 
 
 **Comments:**
@@ -3338,7 +3338,7 @@ Restart the `kube-apiserver` service:
 
     sudo systemctl restart snap.k8s.kube-apiserver
 
-Auditing (as root) for Step 3
+**Auditing (as root) for Step 3**
 
 The argument `--etcd-servers` for service `kube-apiserver` is set
 as appropriate in the service's argument file
@@ -3397,7 +3397,7 @@ start with `PASS`.
 >     /var/snap/k8s/common/args/kube-apiserver
 >
 
-Remediation
+**Remediation**
 
 Set the argument of Kubernetes API server `--etcd-certfile` to
 `/etc/kubernetes/pki/apiserver-etcd-client.crt`
@@ -3409,7 +3409,7 @@ Restart the etcd service:
 sudo systemctl restart snap.k8s.kube-apiserver
 ```
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--etcd-certfile` for Kubernetes API server is set as
 appropriate in the service’s argument file
@@ -3428,7 +3428,7 @@ start with `PASS`.
 
 ````{group-tab} k8s-dqlite
 
-Step 1/3
+**Step 1/3**
 
 
 **Comments:**
@@ -3444,7 +3444,7 @@ Step 1/3
 >
 
 
-Remediation for Step 1
+**Remediation for Step 1**
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -3453,7 +3453,7 @@ Ensure all of the following paths have correct ownership by running:
     chown -R 0:0 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
 
-Auditing (as root) for Step 1
+**Auditing (as root) for Step 1**
 
 All files exist and have the correct ownership.
 
@@ -3465,7 +3465,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 
-Step 2/3
+**Step 2/3**
 
 
 **Comments:**
@@ -3473,7 +3473,7 @@ Step 2/3
 > This check ensures the permissions on the k8s-dqlite socket.
 
 
-Remediation for Step 2
+**Remediation for Step 2**
 
 Ensure all of the following paths have correct permissions by running:
 
@@ -3482,7 +3482,7 @@ Ensure all of the following paths have correct permissions by running:
     chmod -R 600 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
 
-Auditing (as root) for Step 2
+**Auditing (as root) for Step 2**
 
 All required files have permissions '600' (or stricter):
 
@@ -3495,7 +3495,7 @@ start with `PASS`.
 
 
 
-Step 3/3
+**Step 3/3**
 
 
 **Comments:**
@@ -3522,7 +3522,7 @@ Restart the `kube-apiserver` service:
 
 
 
-Auditing (as root) for Step 3
+**Auditing (as root) for Step 3**
 
 The argument `--etcd-servers` for service `kube-apiserver` is set
 as appropriate in the service's argument file
@@ -3582,7 +3582,7 @@ start with `PASS`.
 >     /var/snap/k8s/common/args/kube-apiserver
 >
 
-Remediation
+**Remediation**
 
 Set the argument of Kubernetes API server `--etcd-keyfile` to
 `/etc/kubernetes/pki/apiserver-etcd-client.key`
@@ -3594,7 +3594,7 @@ Restart the etcd service:
 sudo systemctl restart snap.k8s.kube-apiserver
 ```
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--etcd-keyfile` for Kubernetes API server is set as
 appropriate in the service’s argument file
@@ -3614,7 +3614,7 @@ start with `PASS`.
 ````{group-tab} k8s-dqlite
 
 
-Step 1/3
+**Step 1/3**
 
 
 **Comments:**
@@ -3630,7 +3630,7 @@ Step 1/3
 >
 
 
-Remediation for Step 1
+**Remediation for Step 1**
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -3639,7 +3639,7 @@ Ensure all of the following paths have correct ownership by running:
     chown -R 0:0 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
 
-Auditing (as root) for Step 1
+**Auditing (as root) for Step 1**
 
 All files exist and have the correct ownership.
 
@@ -3651,14 +3651,14 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 
-Step 2/3
+**Step 2/3**
 
 
 **Comments:**
 
 > This check ensures the permissions on the k8s-dqlite socket.
 
-Remediation for Step 2
+**Remediation for Step 2**
 
 Ensure all of the following paths have correct permissions by running:
 
@@ -3667,7 +3667,7 @@ Ensure all of the following paths have correct permissions by running:
     chmod -R 600 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
 
-Auditing (as root) for Step 2
+**Auditing (as root) for Step 2**
 
 All required files have permissions '600' (or stricter):
 
@@ -3680,7 +3680,7 @@ start with `PASS`.
 
 
 
-Step 3/3
+**Step 3/3**
 
 
 **Comments:**
@@ -3707,7 +3707,7 @@ Restart the `kube-apiserver` service:
 
 
 
-Auditing (as root) for Step 3
+**Auditing (as root) for Step 3**
 
 The argument `--etcd-servers` for service `kube-apiserver` is set
 as appropriate in the service's argument file
@@ -3767,7 +3767,7 @@ secure etcd communication.
 >     /var/snap/k8s/common/args/etcd
 >
 
-Remediation
+**Remediation**
 
 Set the argument of etcd service `--peer-cert-file` to `/etc/kubernetes/pki/etcd/peer.crt`
 in `/var/snap/k8s/common/args/etcd`.
@@ -3778,7 +3778,7 @@ Restart the etcd service:
 sudo systemctl restart snap.k8s.etcd
 ```
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--peer-cert-file` for service etcd is set as
 appropriate in the service’s argument file `/var/snap/k8s/common/args/etcd`.
@@ -3810,7 +3810,7 @@ start with `PASS`.
 >
 
 
-Remediation
+**Remediation**
 
 set the argument `--storage-dir` for service `k8s-dqlite` as appropriate
 in `/var/snap/k8s/common/args/k8s-dqlite`
@@ -3825,7 +3825,7 @@ Restart the `k8s-dqlite` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--storage-dir` for service `k8s-dqlite` is set as
 appropriate in the service's argument file
@@ -3885,7 +3885,7 @@ secure etcd communication.
 >     /var/snap/k8s/common/args/etcd
 >
 
-Remediation
+**Remediation**
 
 Set the argument of etcd service `--peer-key-file` to `/etc/kubernetes/pki/etcd/peer.key`
 in `/var/snap/k8s/common/args/etcd`.
@@ -3896,7 +3896,7 @@ Restart the etcd service:
 sudo systemctl restart snap.k8s.etcd
 ```
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--peer-key-file` for service etcd is set as appropriate
 in the service’s argument file `/var/snap/k8s/common/args/etcd`.
@@ -3927,7 +3927,7 @@ start with `PASS`.
 >
 
 
-Remediation
+**Remediation**
 
 Set the argument `--storage-dir` for service `k8s-dqlite` as appropriate
 in `/var/snap/k8s/common/args/k8s-dqlite`.
@@ -3939,7 +3939,7 @@ Restart the `k8s-dqlite` service:
     sudo systemctl restart snap.k8s.k8s-dqlite
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--storage-dir` for service `k8s-dqlite` is set as
 appropriate in the service's argument file
@@ -3996,7 +3996,7 @@ ValidatingAdmissionWebhook enabled
 >
 
 
-Remediation
+**Remediation**
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--disable-admission-plugins` for service `kube-apiserver` as appropriate.
@@ -4011,7 +4011,7 @@ Restart the `kube-apiserver` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--disable-admission-plugins` for service
 `kube-apiserver` is set as appropriate in the service's argument file
@@ -4058,7 +4058,7 @@ set to "0". This disables the request-timeout feature. (By default, the
 >
 
 
-Remediation
+**Remediation**
 
 Set the argument `--request-timeout` for service `kube-apiserver` as appropriate
 in`/var/snap/k8s/common/args/kube-apiserver`.
@@ -4073,7 +4073,7 @@ Restart the `kube-apiserver` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--request-timeout` for service `kube-apiserver` is
 set as appropriate in the service's argument file
@@ -4199,7 +4199,7 @@ settings within the V-242444 document are implemented through these manifests.
 >
 
 
-Remediation
+**Remediation**
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -4207,7 +4207,7 @@ Ensure all of the following paths have correct ownership by running:
 
     chown -R 0:0 /etc/kubernetes /etc/kubernetes/pki /etc/kubernetes/kubelet.conf /etc/kubernetes/scheduler.conf /etc/kubernetes/proxy.conf /etc/kubernetes/admin.conf /etc/kubernetes/controller.conf /etc/kubernetes/pki/etcd /etc/kubernetes/pki/apiserver-etcd-client.crt /etc/kubernetes/pki/apiserver-etcd-client.key /etc/kubernetes/pki/etcd/ca.crt /etc/kubernetes/pki/etcd/peer.crt /etc/kubernetes/pki/etcd/peer.key /etc/kubernetes/pki/etcd/server.crt /etc/kubernetes/pki/etcd/server.key /etc/kubernetes/pki/client-ca.crt /etc/kubernetes/pki/front-proxy-ca.key /etc/kubernetes/pki/apiserver.key /etc/kubernetes/pki/apiserver.crt /etc/kubernetes/pki/apiserver-kubelet-client.key /etc/kubernetes/pki/front-proxy-client.crt /etc/kubernetes/pki/serviceaccount.key /etc/kubernetes/pki/front-proxy-client.key /etc/kubernetes/pki/kubelet.crt /etc/kubernetes/pki/ca.crt /etc/kubernetes/pki/ca.key /etc/kubernetes/pki/apiserver-kubelet-client.crt /etc/kubernetes/pki/front-proxy-ca.crt /etc/kubernetes/pki/kubelet.key
 
-Auditing (as root)
+**Auditing (as root)**
 
 All files exist and have the correct ownership.
 
@@ -4259,7 +4259,7 @@ start with `PASS`.
 >
 
 
-Remediation
+**Remediation**
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -4267,7 +4267,7 @@ Ensure all of the following paths have correct ownership by running:
 
     chown -R 0:0 /etc/kubernetes /etc/kubernetes/pki /etc/kubernetes/kubelet.conf /etc/kubernetes/scheduler.conf /etc/kubernetes/proxy.conf /etc/kubernetes/admin.conf /etc/kubernetes/controller.conf /etc/kubernetes/pki/etcd /etc/kubernetes/pki/client-ca.crt /etc/kubernetes/pki/front-proxy-ca.key /etc/kubernetes/pki/apiserver.key /etc/kubernetes/pki/apiserver.crt /etc/kubernetes/pki/apiserver-kubelet-client.key /etc/kubernetes/pki/front-proxy-client.crt /etc/kubernetes/pki/serviceaccount.key /etc/kubernetes/pki/front-proxy-client.key /etc/kubernetes/pki/kubelet.crt /etc/kubernetes/pki/ca.crt /etc/kubernetes/pki/ca.key /etc/kubernetes/pki/apiserver-kubelet-client.crt /etc/kubernetes/pki/front-proxy-ca.crt /etc/kubernetes/pki/kubelet.key
 
-Auditing (as root)
+**Auditing (as root)**
 
 All files exist and have the correct ownership.
 
@@ -4337,7 +4337,7 @@ through this file.
 >
 
 
-Remediation
+**Remediation**
 
 Ensure contents of the etcd directory have correct ownership by running:
 
@@ -4345,7 +4345,7 @@ Ensure contents of the etcd directory have correct ownership by running:
 chown -R 0:0 /var/snap/k8s/common/var/lib/etcd
 ```
 
-Auditing (as root)
+**Auditing (as root)**
 
 The contents of the etcd directory have the correct ownership.
 
@@ -4373,7 +4373,7 @@ start with `PASS`.
 >
 
 
-Remediation
+**Remediation**
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -4381,7 +4381,7 @@ Ensure all of the following paths have correct ownership by running:
 
     chown 0:0 /var/snap/k8s/common/var/lib/k8s-dqlite /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.yaml /var/snap/k8s/common/var/lib/k8s-dqlite/info.yaml /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.key /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.crt /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
-Auditing (as root)
+**Auditing (as root)**
 
 All files exist and have the correct ownership.
 
@@ -4426,7 +4426,7 @@ the security settings within the document are implemented through this file.
 >
 
 
-Remediation
+**Remediation**
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -4434,7 +4434,7 @@ Ensure all of the following paths have correct ownership by running:
 
     chown -R 0:0 /etc/kubernetes/admin.conf /etc/kubernetes/scheduler.conf /etc/kubernetes/controller.conf
 
-Auditing (as root)
+**Auditing (as root)**
 
 All files exist and have the correct ownership.
 
@@ -4468,7 +4468,7 @@ implemented through this file.
 
 
 
-Step 1/2
+**Step 1/2**
 
 
 **Comments:**
@@ -4480,7 +4480,7 @@ Step 1/2
 >
 
 
-Remediation for Step 1
+**Remediation for Step 1**
 
 Ensure all of the following paths have correct permissions by running:
 
@@ -4489,7 +4489,7 @@ Ensure all of the following paths have correct permissions by running:
     chmod -R 644 /etc/kubernetes/proxy.conf
 
 
-Auditing (as root) for Step 1
+**Auditing (as root) for Step 1**
 
 All required files have permissions '644' (or stricter):
 
@@ -4501,7 +4501,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 
-Step 2/2
+**Step 2/2**
 
 
 **Comments:**
@@ -4511,7 +4511,7 @@ Step 2/2
 >
 
 
-Remediation for Step 2
+**Remediation for Step 2**
 
 Set the argument `--kubeconfig` for service `kube-proxy` as appropriate
 in `/var/snap/k8s/common/args/kube-proxy`.
@@ -4527,7 +4527,7 @@ Restart the `kube-proxy` service:
 
 
 
-Auditing (as root) for Step 2
+**Auditing (as root) for Step 2**
 
 The argument `--kubeconfig` for service `kube-proxy` is set as
 appropriate in the service's argument file
@@ -4562,7 +4562,7 @@ implemented through this file.
 
 
 
-Step 1/2
+**Step 1/2**
 
 
 **Comments:**
@@ -4573,7 +4573,7 @@ Step 1/2
 >
 
 
-Remediation for Step 1
+**Remediation for Step 1**
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -4581,7 +4581,7 @@ Ensure all of the following paths have correct ownership by running:
     chown -R 0:0 /etc/kubernetes/proxy.conf
 
 
-Auditing (as root) for Step 1
+**Auditing (as root) for Step 1**
 
 All files exist and have the correct ownership.
 
@@ -4594,7 +4594,7 @@ start with `PASS`.
 
 
 
-Step 2/2
+**Step 2/2**
 
 
 **Comments:**
@@ -4603,7 +4603,7 @@ Step 2/2
 >
 
 
-Remediation for Step 2
+**Remediation for Step 2**
 
 Set the argument `--kubeconfig` for service `kube-proxy` as appropriate
 in `/var/snap/k8s/common/args/kube-proxy`.
@@ -4615,7 +4615,7 @@ Restart the `kube-proxy` service:
     sudo systemctl restart snap.k8s.kube-proxy
 
 
-Auditing (as root) for Step 2
+**Auditing (as root) for Step 2**
 
 The argument `--kubeconfig` for service `kube-proxy` is set as
 appropriate in the service's argument file
@@ -4650,7 +4650,7 @@ compromised. The scheduler will implement the changes immediately. Many of the
 security settings within the document are implemented through this file.
 
 
-Step 1/2
+**Step 1/2**
 
 
 **Comments:**
@@ -4663,7 +4663,7 @@ Step 1/2
 >
 
 
-Remediation for Step 1
+**Remediation for Step 1**
 
 Ensure all of the following paths have correct permissions by running:
 
@@ -4672,7 +4672,7 @@ Ensure all of the following paths have correct permissions by running:
     chmod 644 /etc/kubernetes/pki/client-ca.crt
 
 
-Auditing (as root) for Step 1
+**Auditing (as root) for Step 1**
 
 All required files have permissions '644' (or stricter):
 
@@ -4685,7 +4685,7 @@ start with `PASS`.
 
 
 
-Step 2/2
+**Step 2/2**
 
 
 **Comments:**
@@ -4694,7 +4694,7 @@ Step 2/2
 >
 
 
-Remediation for Step 2
+**Remediation for Step 2**
 
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
 `--client-ca-file` for service `kubelet` as appropriate.
@@ -4710,7 +4710,7 @@ Restart the `kubelet` service:
 
 
 
-Auditing (as root) for Step 2
+**Auditing (as root) for Step 2**
 
 The argument `--client-ca-file` for service `kubelet` is set as
 appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -4743,7 +4743,7 @@ be compromised. Many of the security settings within the document are
 implemented through this file.
 
 
-Step 1/2
+**Step 1/2**
 
 
 **Comments:**
@@ -4754,7 +4754,7 @@ Step 1/2
 >
 
 
-Remediation for Step 1
+**Remediation for Step 1**
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -4763,7 +4763,7 @@ Ensure all of the following paths have correct ownership by running:
     chown -R 0:0 /etc/kubernetes/pki/client-ca.crt
 
 
-Auditing (as root) for Step 1
+**Auditing (as root) for Step 1**
 
 All files exist and have the correct ownership.
 
@@ -4776,7 +4776,7 @@ start with `PASS`.
 
 
 
-Step 2/2
+**Step 2/2**
 
 
 **Comments:**
@@ -4785,7 +4785,7 @@ Step 2/2
 >
 
 
-Remediation for Step 2
+**Remediation for Step 2**
 
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
 `--client-ca-file` for service `kubelet` as appropriate.
@@ -4799,7 +4799,7 @@ Restart the `kubelet` service:
     sudo systemctl restart snap.k8s.kubelet
 
 
-Auditing (as root) for Step 2
+**Auditing (as root) for Step 2**
 
 The argument `--client-ca-file` for service `kubelet` is set as
 appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -4840,7 +4840,7 @@ document are implemented through this file.
 >
 
 
-Remediation
+**Remediation**
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -4848,7 +4848,7 @@ Ensure all of the following paths have correct ownership by running:
 
     chown -R 0:0 /etc/kubernetes/pki /etc/kubernetes/pki/etcd /etc/kubernetes/pki/client-ca.crt /etc/kubernetes/pki/front-proxy-ca.key /etc/kubernetes/pki/apiserver.key /etc/kubernetes/pki/apiserver.crt /etc/kubernetes/pki/apiserver-kubelet-client.key /etc/kubernetes/pki/front-proxy-client.crt /etc/kubernetes/pki/serviceaccount.key /etc/kubernetes/pki/front-proxy-client.key /etc/kubernetes/pki/kubelet.crt /etc/kubernetes/pki/ca.crt /etc/kubernetes/pki/ca.key /etc/kubernetes/pki/apiserver-kubelet-client.crt /etc/kubernetes/pki/front-proxy-ca.crt /etc/kubernetes/pki/kubelet.key
 
-Auditing (as root)
+**Auditing (as root)**
 
 All files exist and have the correct ownership.
 
@@ -4894,7 +4894,7 @@ or container degradation. Many of the security settings within the document are
 implemented through this file.
 
 
-Step 1/2
+**Step 1/2**
 
 
 **Comments:**
@@ -4904,14 +4904,14 @@ Step 1/2
 >
 
 
-Remediation for Step 1
+**Remediation for Step 1**
 
 Ensure all of the following paths have correct permissions by running:
 
     chmod -R 644 /etc/kubernetes/kubelet.conf
 
 
-Auditing (as root) for Step 1
+**Auditing (as root) for Step 1**
 
 All required files have permissions '644' (or stricter):
 
@@ -4924,7 +4924,7 @@ start with `PASS`.
 
 
 
-Step 2/2
+**Step 2/2**
 
 
 **Comments:**
@@ -4932,7 +4932,7 @@ Step 2/2
 > This check was added to ensure Kubelet's `--kubeconfig` is as expected.
 
 
-Remediation for Step 2
+**Remediation for Step 2**
 
 Set the argument `--kubeconfig` for service `kubelet` as appropriate
 in `/var/snap/k8s/common/args/kubelet`.
@@ -4946,7 +4946,7 @@ Restart the `kubelet` service:
     sudo systemctl restart snap.k8s.kubelet
 
 
-Auditing (as root) for Step 2
+**Auditing (as root) for Step 2**
 
 The argument `--kubeconfig` for service `kubelet` is set as
 appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -4976,7 +4976,7 @@ information system would be unaware of pod or container degradation. Many of
 the security settings within the document are implemented through this file.
 
 
-Step 1/2
+**Step 1/2**
 
 
 **Comments:**
@@ -4984,7 +4984,7 @@ Step 1/2
 > Finding stipulates the file should be owned by the root user/group.
 >
 
-Remediation for Step 1
+**Remediation for Step 1**
 
 Ensure all of the following paths have correct ownership by running:
 
@@ -4993,7 +4993,7 @@ Ensure all of the following paths have correct ownership by running:
     chown -R 0:0 /etc/kubernetes/kubelet.conf
 
 
-Auditing (as root) for Step 1
+**Auditing (as root) for Step 1**
 
 All files exist and have the correct ownership.
 
@@ -5006,7 +5006,7 @@ start with `PASS`.
 
 
 
-Step 2/2
+**Step 2/2**
 
 
 **Comments:**
@@ -5014,7 +5014,7 @@ Step 2/2
 > This check was added to ensure Kubelet's `--kubeconfig` is as expected.
 
 
-Remediation for Step 2
+**Remediation for Step 2**
 
 Set the argument `--kubeconfig` for service `kubelet` as appropriate
 in `/var/snap/k8s/common/args/kubelet`.
@@ -5028,7 +5028,7 @@ Restart the `kubelet` service:
     sudo systemctl restart snap.k8s.kubelet
 
 
-Auditing (as root) for Step 2
+**Auditing (as root) for Step 2**
 
 The argument `--kubeconfig` for service `kubelet` is set as
 appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -5058,7 +5058,7 @@ health checks to containers within pods. If this file can be modified, the
 information system would be unaware of pod or container degradation.
 
 
-Step 1/2
+**Step 1/2**
 
 
 **Comments:**
@@ -5079,7 +5079,7 @@ Step 1/2
 >
 
 
-Remediation for Step 1
+**Remediation for Step 1**
 
 Ensure all of the following paths have correct permissions by running:
 
@@ -5088,7 +5088,7 @@ Ensure all of the following paths have correct permissions by running:
     chmod -R 644 /var/snap/k8s/common/args/kubelet
 
 
-Auditing (as root) for Step 1
+**Auditing (as root) for Step 1**
 
 All required files have permissions '644' (or stricter):
 
@@ -5103,7 +5103,7 @@ start with `PASS`.
 
 
 
-Step 2/2
+**Step 2/2**
 
 
 **Comments:**
@@ -5113,7 +5113,7 @@ Step 2/2
 >
 
 
-Remediation for Step 2
+**Remediation for Step 2**
 
 Set the argument `--config` for service `kubelet` as appropriate
 in `/var/snap/k8s/common/args/kubelet`.
@@ -5129,7 +5129,7 @@ Restart the `kubelet` service:
 
 
 
-Auditing (as root) for Step 2
+**Auditing (as root) for Step 2**
 
 The argument `--config` for service `kubelet` is set as appropriate
 in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -5163,7 +5163,7 @@ health checks to containers within pods. If this file can be modified, the
 information system would be unaware of pod or container degradation.
 
 
-Step 1/2
+**Step 1/2**
 
 
 **Comments:**
@@ -5184,7 +5184,7 @@ Step 1/2
 >
 
 
-Remediation for Step 1
+**Remediation for Step 1**
 
 Ensure all of the following paths have correct permissions by running:
 
@@ -5192,7 +5192,7 @@ Ensure all of the following paths have correct permissions by running:
     chmod -R 644 /var/snap/k8s/common/args/kubelet
 
 
-Auditing (as root) for Step 1
+**Auditing (as root) for Step 1**
 
 All required files have permissions '644' (or stricter):
 
@@ -5204,7 +5204,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 
-Step 2/2
+**Step 2/2**
 
 
 **Comments:**
@@ -5214,7 +5214,7 @@ Step 2/2
 >
 
 
-Remediation for Step 2
+**Remediation for Step 2**
 
 Set the argument `--config` for service `kubelet` as appropriate
 in `/var/snap/k8s/common/args/kubelet`.
@@ -5228,7 +5228,7 @@ Restart the `kubelet` service:
     sudo systemctl restart snap.k8s.kubelet
 
 
-Auditing (as root) for Step 2
+**Auditing (as root) for Step 2**
 
 The argument `--config` for service `kubelet` is set as appropriate
 in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -5265,7 +5265,7 @@ Plane would be compromised.
 
 ````{group-tab} etcd
 
-Step 1/2
+**Step 1/2**
 
 **Comments:**
 
@@ -5280,7 +5280,7 @@ Step 1/2
 > Related finding V-242445 contains directives on the ownership of the files.
 >
 
-Remediation for Step 1
+**Remediation for Step 1**
 
 Ensure all of the etcd directories have correct permissions by running:
 
@@ -5288,7 +5288,7 @@ Ensure all of the etcd directories have correct permissions by running:
 find /var/snap/k8s/common/var/lib/etcd/ -type d -exec chmod 700 {} \;
 ```
 
-Auditing (as root) for Step 1
+**Auditing (as root) for Step 1**
 
 All directories have permissions '700' (or stricter):
 
@@ -5299,9 +5299,9 @@ find /var/snap/k8s/common/var/lib/etcd/ -type d -exec sh -c '[ "$(stat -c %a $1)
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-Step 2/2
+**Step 2/2**
 
-Remediation for Step 2
+**Remediation for Step 2**
 
 Ensure all of the etcd directories have correct permissions by running:
 
@@ -5309,7 +5309,7 @@ Ensure all of the etcd directories have correct permissions by running:
 find /var/snap/k8s/common/var/lib/etcd/ -type f -exec chmod 644 {} \;
 ```
 
-Auditing (as root) for Step 2
+**Auditing (as root) for Step 2**
 
 All files have permissions '644' (or stricter):
 
@@ -5337,7 +5337,7 @@ start with `PASS`.
 >
 
 
-Remediation
+**Remediation**
 
 Ensure all of the following paths have correct permissions by running:
 
@@ -5345,7 +5345,7 @@ Ensure all of the following paths have correct permissions by running:
 
     chmod 644 /var/snap/k8s/common/var/lib/k8s-dqlite /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.yaml /var/snap/k8s/common/var/lib/k8s-dqlite/info.yaml /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.key /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.crt /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
 
-Auditing (as root)
+**Auditing (as root)**
 
 All required files have permissions '644' (or stricter):
 
@@ -5392,13 +5392,13 @@ immediately.
 >
 
 
-Remediation
+**Remediation**
 
 Ensure all of the following paths have correct permissions by running:
 
     chmod -R 644 /etc/kubernetes/admin.conf /etc/kubernetes/scheduler.conf /etc/kubernetes/controller.conf
 
-Auditing (as root)
+**Auditing (as root)**
 
 All required files have permissions '644' (or stricter):
 
@@ -5437,13 +5437,13 @@ would become insecure and compromised.
 >
 
 
-Remediation
+**Remediation**
 
 Ensure all of the following paths have correct permissions by running:
 
     chmod -R 644 /etc/kubernetes/pki/apiserver-kubelet-client.crt /etc/kubernetes/pki/ca.crt /etc/kubernetes/pki/front-proxy-ca.crt /etc/kubernetes/pki/kubelet.crt /etc/kubernetes/pki/apiserver.crt /etc/kubernetes/pki/client-ca.crt /etc/kubernetes/pki/front-proxy-client.crt
 
-Auditing (as root)
+**Auditing (as root)**
 
 All required files have permissions '644' (or stricter):
 
@@ -5486,14 +5486,14 @@ become insecure and compromised.
 >
 
 
-Remediation
+**Remediation**
 
 Ensure all of the following paths have correct permissions by running:
 
 
     chmod -R 600 /etc/kubernetes/pki/apiserver-kubelet-client.key /etc/kubernetes/pki/ca.key /etc/kubernetes/pki/front-proxy-client.key /etc/kubernetes/pki/serviceaccount.key /etc/kubernetes/pki/apiserver.key /etc/kubernetes/pki/front-proxy-ca.key /etc/kubernetes/pki/kubelet.key
 
-Auditing (as root)
+**Auditing (as root)**
 
 All required files have permissions '600' (or stricter):
 
@@ -5543,7 +5543,7 @@ protect information in transit
 >
 
 
-Remediation
+**Remediation**
 
 Set the argument `--basic-auth-file` for service `kube-apiserver` as appropriate
 in `/var/snap/k8s/common/args/kube-apiserver`.
@@ -5558,7 +5558,7 @@ Restart the `kube-apiserver` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--basic-auth-file` for service `kube-apiserver` is
 set as appropriate in the service's argument file
@@ -5610,7 +5610,7 @@ protect information in transit
 >
 
 
-Remediation
+**Remediation**
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
 `--token-auth-file` for service `kube-apiserver` as appropriate.
@@ -5627,7 +5627,7 @@ Restart the `kube-apiserver` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--token-auth-file` for service `kube-apiserver` is
 set as appropriate in the service's argument file
@@ -5679,7 +5679,7 @@ and key pair to protect information in transit
 
 
 
-Step 1/2
+**Step 1/2**
 
 
 **Comments:**
@@ -5691,7 +5691,7 @@ Step 1/2
 >
 
 
-Remediation for Step 1
+**Remediation for Step 1**
 
 Set the argument `--kubelet-client-certificate` for service `kube-apiserver` as
 appropriate in `/var/snap/k8s/common/args/kube-apiserver`.
@@ -5707,7 +5707,7 @@ Restart the `kube-apiserver` service:
 
 
 
-Auditing (as root) for Step 1
+**Auditing (as root) for Step 1**
 
 The argument `--kubelet-client-certificate` for service
 `kube-apiserver` is set as appropriate in the service's argument file
@@ -5722,7 +5722,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 
-Step 2/2
+**Step 2/2**
 
 
 **Comments:**
@@ -5734,7 +5734,7 @@ Step 2/2
 >
 
 
-Remediation for Step 2
+**Remediation for Step 2**
 
 Set the argument `--kubelet-client-key` for service `kube-apiserver` as
 appropriate in `/var/snap/k8s/common/args/kube-apiserver`.
@@ -5750,7 +5750,7 @@ Restart the `kube-apiserver` service:
 
 
 
-Auditing (as root) for Step 2
+**Auditing (as root) for Step 2**
 
 The argument `--kubelet-client-key` for service `kube-apiserver` is
 set as appropriate in the service's argument file
@@ -5809,7 +5809,7 @@ pods and Kubelets
 >
 
 
-Remediation
+**Remediation**
 
 Set the argument `--feature-gates` for service `kubelet` as appropriate
 in `/var/snap/k8s/common/args/kubelet`.
@@ -5824,7 +5824,7 @@ Restart the `kubelet` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--feature-gates` for service `kubelet` is set as
 appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -5879,7 +5879,7 @@ The final line of the output will be `PASS`.
 > [DISA STIG hardening deployment guide].
 
 
-Remediation
+**Remediation**
 
 Pre-deployment:
 
@@ -5901,7 +5901,7 @@ Restart the `kube-scheduler` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--bind-address` for service `kube-scheduler` is set
 as appropriate in the service's argument file
@@ -5946,7 +5946,7 @@ The final line of the output will be `PASS`.
 > [DISA STIG hardening deployment guide].
 
 
-Remediation
+**Remediation**
 
 Pre deployment:
 
@@ -5968,7 +5968,7 @@ Restart the `kube-controller-manager` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--bind-address` for service `kube-controller-manager`
 is set as appropriate in the service's argument file
@@ -6009,7 +6009,7 @@ The final line of the output will be `PASS`.
 > [DISA STIG hardening deployment guide].
 
 
-Remediation
+**Remediation**
 
 Pre-deployment:
 
@@ -6035,7 +6035,7 @@ Restart the `kube-apiserver` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--feature-gate` for service `kube-apiserver` is set
 as appropriate in the service's argument file
@@ -6112,7 +6112,7 @@ Restart the `kube-apiserver` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--audit-log-path` for service `kube-apiserver` is set
 as appropriate in the service's argument file
@@ -6181,7 +6181,7 @@ the event
 > [DISA STIG hardening deployment guide].
 
 
-Remediation
+**Remediation**
 
 Pre-deployment:
 
@@ -6205,7 +6205,7 @@ Restart the `kube-apiserver` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--audit-policy-file` for service `kube-apiserver` is
 set as appropriate in the service's argument file
@@ -6252,7 +6252,7 @@ The final line of the output will be `PASS`.
 >
 
 
-Remediation
+**Remediation**
 
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
 `--protect-kernel-defaults` for service `kubelet` as appropriate.
@@ -6267,7 +6267,7 @@ Restart the `kubelet` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 Set the argument `--protect-kernel-defaults` for service `kubelet` as
 appropriate in the service's argument file `/var/snap/k8s/common/args/kubelet`.
@@ -6315,7 +6315,7 @@ investigation.
 > [DISA STIG hardening deployment guide].
 
 
-Remediation
+**Remediation**
 
 Pre-deployment:
 
@@ -6340,7 +6340,7 @@ Restart the `kube-apiserver` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--audit-policy-file` for service `kube-apiserver` is
 set as appropriate in the service's argument file
@@ -6381,7 +6381,7 @@ file size is to set these limits.
 > [DISA STIG hardening deployment guide].
 
 
-Remediation
+**Remediation**
 
 Pre-deployment:
 
@@ -6406,7 +6406,7 @@ Restart the `kube-apiserver` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--audit-log-maxsize` for service `kube-apiserver` is
 set as appropriate in the service's argument file
@@ -6445,7 +6445,7 @@ evidence for cybersecurity investigations.
 > [DISA STIG hardening deployment guide].
 
 
-Remediation
+**Remediation**
 
 Pre-deployment:
 
@@ -6470,7 +6470,7 @@ Restart the `kube-apiserver` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--audit-log-maxbackup` for service `kube-apiserver`
 is set as appropriate in the service's argument file
@@ -6510,7 +6510,7 @@ evidence for cybersecurity investigations.
 > [DISA STIG hardening deployment guide].
 
 
-Remediation
+**Remediation**
 
 Pre-deployment:
 
@@ -6534,7 +6534,7 @@ Restart the `kube-apiserver` service:
 
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--audit-log-maxage` for service `kube-apiserver` is
 set as appropriate in the service's argument file
@@ -6576,7 +6576,7 @@ events in the audit log the log path value must be set.
 > This finding is basically a duplicate of V-242402.
 
 
-Remediation
+**Remediation**
 
 Pre-deployment:
 
@@ -6598,7 +6598,7 @@ Restart the `kube-apiserver` service:
     sudo systemctl restart snap.k8s.kube-apiserver
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--audit-log-path` for service `kube-apiserver` is set
 as appropriate in the service's argument file
@@ -6644,7 +6644,7 @@ must never be set to "0" and should be defined at "5m" (the default is 4hr).
 > [DISA STIG hardening deployment guide].
 
 
-Remediation
+**Remediation**
 
 Pre-deployment:
 
@@ -6666,7 +6666,7 @@ Restart the `kubelet` service:
     sudo systemctl restart snap.k8s.kubelet
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The argument `--streaming-connection-idle-timeout` for service
 `kubelet` is set as appropriate in the service's argument file
@@ -7048,13 +7048,13 @@ user pods
 > cryptographic keys, API tokens, etc).
 >
 
-Remediation
+**Remediation**
 
 Canonical Kubernetes follows this rule by default, but it’s up to users to
 follow in pods they create.
 
 
-Auditing (as root)
+**Auditing (as root)**
 
 The environment of each user-created pod should be inspected using the
 command below to ensure there is no sensitive information (e.g. passwords,
