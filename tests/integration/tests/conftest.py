@@ -319,6 +319,10 @@ def instances(
     # remove session scoped instances. The harness ensures that everything is cleaned up
     # at the end of the test session.
     for instance in instances:
+        if instance.id not in h.instances:
+            LOG.debug("Instance %s already deleted, skipping", instance.id)
+            continue
+        
         try:
             util.remove_k8s_snap(instance)
         finally:
