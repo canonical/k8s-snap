@@ -172,9 +172,10 @@ instance each time a new service is exposed externally).
    meaning all user pods must be in user specific namespaces rather than system
    namespaces
 - [V-242393] and [V-242394]: SSH service must not be running or enabled on
-   worker nodes
+   worker nodes (see [Join worker nodes](#join-worker-nodes))
 - [V-242395]: Kubernetes dashboard must not be enabled
-- [V-242396]: Kubernetes kubectl version must be greater than `1.12.9`
+- [V-242396]: When using kubectl external to the k8s snap, ensure the version
+   is greater than `1.12.9`
 - [V-242442]: Workload pods must use the latest image versions to avoid known
    vulnerabilities
 - [V-242443]: Kubernetes components must be regularly updated. Keep {{product}}
