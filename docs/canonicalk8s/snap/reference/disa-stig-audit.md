@@ -12,15 +12,16 @@ guide to [deploy a DISA STIG hardened cluster].
 
 {{product}} groups each DISA STIG guideline into one of the following classes:
 
-**Default**: complies with by default.
+**Default**: {{product}} complies with these STIGs by default.  
 
-**Bootstrap**: can be configured during bootstrap per the deployment guide.
+**Bootstrap**: STIGs that can be configured during bootstrap as per the
+deployment guide.
 
 **Post-Deployment**: must be followed by users and administrators
 post-deployment and throughout the life of the cluster in order to achieve
 and maintain DISA STIG compliance.
 
-**Not Applicable**: is not applicable to this version {{product}}.
+**Not Applicable**: Not applicable to {{product}}.
 
 
 | Class                  | Guideline                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
@@ -5888,12 +5889,9 @@ apply the argument automatically to the kubelet.
 Post-deployment:
 
 Alternatively, if you have already deployed the k8s-snap, manually
-apply the argument by editing the appropriate file:
+apply the argument by editing `/var/snap/k8s/common/args/kube-scheduler`.
 
-Edit `/var/snap/k8s/common/args/kube-scheduler` in order to set the argument
-`--bind-address` for service `kube-scheduler` as appropriate.
-
-Set to: `127.0.0.1`
+Set the argument `--bind-address` for service `kube-scheduler` to `127.0.0.1`.
 
 Restart the `kube-scheduler` service:
 
@@ -5958,12 +5956,9 @@ apply the argument automatically to the kube-controller-manager.
 Post-deployment:
 
 Alternatively, if you have already deployed the k8s-snap, manually
-apply the argument by editing the appropriate file.
+apply the argument by editing `/var/snap/k8s/common/args/kube-controller-manager`.
 
-Edit `/var/snap/k8s/common/args/kube-controller-manager` in order to set the
-argument `--bind-address` for service `kube-controller-manager` as appropriate.
-
-Set to: `127.0.0.1`
+Set the argument `--bind-address` for service `kube-controller-manager` to `127.0.0.1`.
 
 Restart the `kube-controller-manager` service:
 
@@ -6024,10 +6019,8 @@ apply the argument automatically to the kube-apiserver.
 Post-deployment:
 
 Alternatively, if you have already deployed the k8s-snap, manually
-apply the argument by editing the appropriate file.
-
-Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
-`--feature-gate` for service `kube-apiserver` as appropriate.
+apply the argument by editing `/var/snap/k8s/common/args/kube-apiserver`.
+Set the argument `--feature-gate` for service `kube-apiserver` as appropriate.
 
 It is possible to leave this argument unset completely.
 
