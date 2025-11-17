@@ -2,7 +2,6 @@ package k8s
 
 import (
 	"os"
-	"os/exec"
 	"path/filepath"
 	"syscall"
 
@@ -17,13 +16,7 @@ func newKubectlCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 		DisableFlagParsing: true,
 		PreRun:             chainPreRunHooks(hookRequireRoot(env)),
 		Run: func(cmd *cobra.Command, args []string) {
-			binary, err := exec.LookPath("kubectl")
-			if err != nil {
-				cmd.PrintErrln("Error: kubectl binary not found")
-				env.Exit(1)
-				return
-			}
-
+			binary := filepath.Join(env.Snap.K8sBinDir(), "kubectl")
 			kubeconfigEnvKey := "KUBECONFIG"
 			adminKubeconfigPath := filepath.Join(env.Snap.KubernetesConfigDir(), "admin.conf")
 			kubeletKubeconfigPath := filepath.Join(env.Snap.KubernetesConfigDir(), "kubelet.conf")
