@@ -322,7 +322,7 @@ def instances(
         if instance.id not in h.instances:
             LOG.debug("Instance %s already deleted, skipping", instance.id)
             continue
-        
+
         try:
             util.remove_k8s_snap(instance)
         finally:
