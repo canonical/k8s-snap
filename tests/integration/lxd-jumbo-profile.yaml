@@ -4,3 +4,4 @@ devices:
     name: eth0
     network: LXD_JUMBO_NETWORK
     type: nic
+    mtu: "9000"
