@@ -26,7 +26,7 @@ There are mainly two kinds of services:
 
 | Interface & Port | Protocol | Service         | Description                                                                                                                   |
 | ---------------- | -------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| localhost:9234   | TCP      | cilium-operator | cilium-operator  Address to serve API requests.                                                                               |
+| localhost:9234   | TCP      | cilium-operator | cilium-operator address to serve API requests.                                                                                |
 | localhost:9891   | TCP      | cilium-operator | cilium-operator [gops](https://github.com/google/gops) server endpoint.                                                       |
 | default:2379     | TCP      | etcd            | SSL encrypted client connection to etcd. Client certificate required.                                                         |
 | default:2380     | TCP      | etcd            | SSL encrypted peer connection to etcd. Client certificate required.                                                           |
