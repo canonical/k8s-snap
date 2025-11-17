@@ -5545,7 +5545,8 @@ protect information in transit
 
 **Remediation**
 
-Ensure the `--basic-auth-file` argument is not set for the `kube-apiserver` service in `/var/snap/k8s/common/args/kube-apiserver`.
+Ensure the `--basic-auth-file` argument is not set for the `kube-apiserver`
+service in `/var/snap/k8s/common/args/kube-apiserver`.
 
 Restart the `kube-apiserver` service:
 
@@ -5953,9 +5954,11 @@ apply the argument automatically to the kube-controller-manager.
 Post-deployment:
 
 Alternatively, if you have already deployed the k8s-snap, manually
-apply the argument by editing `/var/snap/k8s/common/args/kube-controller-manager`.
+apply the argument by editing
+`/var/snap/k8s/common/args/kube-controller-manager`.
 
-Set the argument `--bind-address` for service `kube-controller-manager` to `127.0.0.1`.
+Set the argument `--bind-address` for service `kube-controller-manager`
+to `127.0.0.1`.
 
 Restart the `kube-controller-manager` service:
 
