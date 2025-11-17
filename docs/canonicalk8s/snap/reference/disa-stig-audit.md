@@ -5545,10 +5545,7 @@ protect information in transit
 
 **Remediation**
 
-Set the argument `--basic-auth-file` for service `kube-apiserver` as appropriate
-in `/var/snap/k8s/common/args/kube-apiserver`.
-
-Do NOT set to any value.
+Ensure the `--basic-auth-file` argument is not set for the `kube-apiserver` service in `/var/snap/k8s/common/args/kube-apiserver`.
 
 Restart the `kube-apiserver` service:
 
