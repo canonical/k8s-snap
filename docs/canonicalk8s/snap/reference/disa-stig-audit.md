@@ -6385,8 +6385,8 @@ file size is to set these limits.
 
 Pre-deployment:
 
-Use the template presented in the[DISA STIG hardening deployment guide] to
-apply the argument automatically to the kube-apiserver.
+Follow the instructions in the [DISA STIG hardening deployment guide] to
+configure the argument for kube-apiserver.
 
 Post-deployment:
 
