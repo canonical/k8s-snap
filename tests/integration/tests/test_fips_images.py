@@ -201,8 +201,7 @@ def test_fips_images(instances: List[harness.Instance]):
         namespaces_to_check,
         resource_types,
         # Exclude local-storage because it's not implemented in Go.
-        # TODO(ben): Remove cilium-operator exclusion once the Rock is fixed.
-        exclude=["*ck-storage*", "*cilium-operator*"],
+        exclude=["*ck-storage*"],
     )
 
     assert len(resources) > 0, "No resources found in the specified namespaces"
