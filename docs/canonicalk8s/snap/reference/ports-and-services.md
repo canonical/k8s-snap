@@ -1,6 +1,6 @@
 # Services and ports
 
-## Network Services
+## Network services
 
 There are mainly two kinds of services:
 
