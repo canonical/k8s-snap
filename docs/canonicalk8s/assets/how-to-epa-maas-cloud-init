@@ -1,10 +1,11 @@
 #cloud-config
 
-apt:
-  sources:
-    rtk.list:
-      source: "deb https://<launchpad_id>:<ppa_subscription_password>@private-ppa.launchpadcontent.net/canonical-kernel-rt/ppa/ubuntu jammy main"
-
+package_update: true
+package_upgrade: false
+packages:
+  - ubuntu-advantage-tools
+  - git
+  - pciutils
 write_files:
   # set kernel option with hugepages and cpu isolation
   - path: /etc/default/grub.d/100-telco_kernel_options.cfg
@@ -16,9 +17,9 @@ write_files:
   - path: /etc/netplan/99-sriov_vfs.yaml
     content: |
       network:
-          ethernets:
-              enp152s0f1:
-                  virtual-function-count: 128
+        ethernets:
+          enp152s0f1:
+            virtual-function-count: 128
     permissions: "0600"
 
   # ensure VFs are bound to vfio-pci driver (so they can be consumed by pods)
@@ -85,15 +86,13 @@ snap:
     00: 'snap install k8s --classic --channel=1.32/stable'
 
 runcmd:
-# fetch dpdk driver binding script
-- su ubuntu -c "git config --global http.proxy http://10.18.2.1:3128"
-- su ubuntu -c "git clone https://github.com/DPDK/dpdk.git /home/ubuntu/dpdk"
-- apt update
-- DEBIAN_FRONTEND=noninteractive apt install -y linux-headers-6.8.1-1004-realtime linux-image-6.8.1-1004-realtime linux-modules-6.8.1-1004-realtime linux-modules-extra-6.8.1-1004-realtime
+  - pro attach <UBUNTU PRO TOKEN> --no-auto-enable
+  - pro enable realtime-kernel --variant generic --assume-yes
+  # fetch dpdk driver binding script
+  - su ubuntu -c "git clone https://github.com/DPDK/dpdk.git /home/ubuntu/dpdk"
 
-# enable kernel options
-- update-grub
+  # update grub with new kernel options
+  - update-grub
 
-# reboot to activate realtime-kernel and kernel options
 power_state:
   mode: reboot
