@@ -1,0 +1,147 @@
+#!/usr/bin/env python3
+#
+# Copyright 2025 Canonical, Ltd.
+#
+"""
+Charm subcommands for `k8s-ci`.
+
+This module provides functionality to check if a charm release is available
+in the charm store for a given Kubernetes release version.
+"""
+
+import argparse
+import json
+import sys
+from typing import Optional
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
+
+
+def add_charm_cmds(parser: argparse.ArgumentParser) -> None:
+    """
+    Register charm-related subcommands to the given CLI parser.
+
+    Args:
+        parser: The parent argparse.ArgumentParser to which subcommands will be added.
+    """
+    charm_parser = parser.add_parser("charm", help="Check charm release availability.")
+    charm_sub = charm_parser.add_subparsers(
+        dest="charm_command", required=True, title="charm commands"
+    )
+
+    # Release-available command
+    p = charm_sub.add_parser(
+        "release-available",
+        help="Check if a charm release is available for the specified Kubernetes version.",
+    )
+    p.add_argument(
+        "release",
+        help="Kubernetes release version (e.g., '1.30', '1.31')",
+    )
+    p.add_argument(
+        "--charm-auth",
+        default=None,
+        help="Charmcraft authentication token (or CHARMCRAFT_AUTH env var)",
+    )
+    p.add_argument(
+        "--charm-name",
+        default="k8s",
+        help="Name of the charm to check (default: k8s)",
+    )
+    p.set_defaults(func=cmd_release_available)
+
+
+def _query_charm_info(charm_name: str, auth_token: Optional[str] = None) -> dict:
+    """
+    Query the Charmhub API for charm information.
+
+    Args:
+        charm_name: The name of the charm to query.
+        auth_token: Optional authentication token for private charms.
+
+    Returns:
+        JSON response from the Charmhub API.
+
+    Raises:
+        SystemExit if the request fails.
+    """
+    url = f"https://api.charmhub.io/v2/charms/info/{charm_name}"
+    headers = {"Content-Type": "application/json"}
+
+    if auth_token:
+        headers["Authorization"] = f"Bearer {auth_token}"
+
+    req = Request(url, headers=headers)
+
+    try:
+        with urlopen(req, timeout=20) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except HTTPError as e:
+        if e.code == 404:
+            print(f"Error: Charm '{charm_name}' not found", file=sys.stderr)
+        else:
+            print(f"Error querying Charmhub API: {e}", file=sys.stderr)
+        raise SystemExit(1)
+    except URLError as e:
+        print(f"Error querying Charmhub API: {e}", file=sys.stderr)
+        raise SystemExit(1)
+
+
+def _check_release_available(charm_info: dict, release: str) -> bool:
+    """
+    Check if a specific release track is available in the charm info.
+
+    Args:
+        charm_info: The charm information from the Charmhub API.
+        release: The release version to check (e.g., '1.30').
+
+    Returns:
+        True if the release track exists, False otherwise.
+    """
+    # Check if channel-map exists and contains the release track
+    channel_map = charm_info.get("channel-map", [])
+
+    # Look for channels that match the release track
+    # Channels follow the pattern: <track>/<risk> (e.g., "1.30/stable", "1.30/beta")
+    for channel_info in channel_map:
+        channel = channel_info.get("channel", {})
+        track = channel.get("track")
+        if track == release:
+            return True
+
+    return False
+
+
+def cmd_release_available(args: argparse.Namespace) -> int:
+    """
+    Command to check if a charm release is available.
+
+    Args:
+        args: Parsed command-line arguments.
+
+    Returns:
+        0 if the release is available, 1 otherwise.
+    """
+    import os
+
+    auth_token = args.charm_auth or os.environ.get("CHARMCRAFT_AUTH")
+
+    # Query charm info
+    charm_info = _query_charm_info(args.charm_name, auth_token)
+
+    # Check if the release is available
+    if _check_release_available(charm_info, args.release):
+        print(f"Charm release {args.release} is available for {args.charm_name}")
+        return 0
+    else:
+        print(
+            f"Skipping charm e2e: no matching {args.charm_name} version for release {args.release}"
+        )
+        return 1
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    add_charm_cmds(parser)
+    args_main = parser.parse_args()
+    sys.exit(args_main.func(args_main))
