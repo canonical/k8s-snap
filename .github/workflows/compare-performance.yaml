@@ -63,6 +63,7 @@ jobs:
       os: ${{ inputs.os }}
       artifact: ${{ inputs.artifact-1 }}
       channel: ${{ inputs.channel-1 }}
+      test-collection-branch: main
       test-tags: performance
       # All performance tests run in one job to collect results in one report.
       parallel: false
@@ -74,6 +75,7 @@ jobs:
       os: ${{ inputs.os }}
       artifact: ${{ inputs.artifact-2 }}
       channel: ${{ inputs.channel-2 }}
+      test-collection-branch: main
       test-tags: performance
       # All performance tests run in one job to collect results in one report.
       parallel: false
