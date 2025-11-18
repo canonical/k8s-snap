@@ -5881,8 +5881,8 @@ The final line of the output will be `PASS`.
 
 Pre-deployment:
 
-Use the template presented in the [DISA STIG hardening deployment guide] to
-apply the argument automatically to the kubelet.
+Follow the instructions in the [DISA STIG hardening deployment guide] to
+configure the argument for kubelet.
 
 Post-deployment:
 
@@ -5948,8 +5948,8 @@ The final line of the output will be `PASS`.
 
 Pre deployment:
 
-Use the template presented in the [DISA STIG hardening deployment guide] to
-apply the argument automatically to the kube-controller-manager.
+Follow the instructions in the [DISA STIG hardening deployment guide] to
+configure the argument for kube-controller-manager.
 
 Post-deployment:
 
@@ -6013,8 +6013,8 @@ The final line of the output will be `PASS`.
 
 Pre-deployment:
 
-Use the template presented in the [DISA STIG hardening deployment guide] to
-apply the argument automatically to the kube-apiserver.
+Follow the instructions in the [DISA STIG hardening deployment guide] to
+configure the argument for kube-apiserver.
 
 Post-deployment:
 
@@ -6093,8 +6093,8 @@ The final line of the output will be `PASS`.
 
 Pre-deployment:
 
-Use the template presented in the [DISA STIG hardening deployment guide] to
-apply the argument automatically to the kube-api-server.
+Follow the instructions in the [DISA STIG hardening deployment guide] to
+configure the argument for kube-api-server.
 
 Post-deployment:
 
@@ -6185,8 +6185,8 @@ the event
 
 Pre-deployment:
 
-Use the template presented in the [DISA STIG hardening deployment guide] to
-apply the argument automatically to the kube-api-server.
+Follow the instructions in the [DISA STIG hardening deployment guide] to
+configure the argument for kube-api-server.
 
 Post-deployment:
 
@@ -6319,8 +6319,8 @@ investigation.
 
 Pre-deployment:
 
-Use the template presented in the [DISA STIG hardening deployment guide] to
-apply the argument automatically to the kube-apiserver.
+Follow the instructions in the [DISA STIG hardening deployment guide] to
+configure the argument for kube-apiserver.
 
 Post-deployment:
 
@@ -6449,8 +6449,8 @@ evidence for cybersecurity investigations.
 
 Pre-deployment:
 
-Use the template presented in the [DISA STIG hardening deployment guide] to
-apply the argument automatically to the kube-apiserver.
+Follow the instructions in the [DISA STIG hardening deployment guide] to
+configure the argument for kube-apiserver.
 
 Post-deployment:
 
@@ -6514,8 +6514,8 @@ evidence for cybersecurity investigations.
 
 Pre-deployment:
 
-Use the template presented in the [DISA STIG hardening deployment guide] to
-apply the argument automatically to the kube-apiserver.
+Follow the instructions in the [DISA STIG hardening deployment guide] to
+configure the argument for kube-apiserver.
 
 Post-deployment:
 
@@ -6580,8 +6580,8 @@ events in the audit log the log path value must be set.
 
 Pre-deployment:
 
-Use the template presented in the [DISA STIG hardening deployment guide] to
-apply the argument automatically to the kube-apiserver.
+Follow the instructions in the [DISA STIG hardening deployment guide] to
+configure the argument for kube-apiserver.
 
 Post-deployment:
 
@@ -6648,8 +6648,8 @@ must never be set to "0" and should be defined at "5m" (the default is 4hr).
 
 Pre-deployment:
 
-Use the template presented in the [DISA STIG hardening deployment guide] to
-apply the argument automatically to the kubelet.
+Follow the instructions in the [DISA STIG hardening deployment guide] to
+configure the argument for kubelet.
 
 Post-deployment:
 
