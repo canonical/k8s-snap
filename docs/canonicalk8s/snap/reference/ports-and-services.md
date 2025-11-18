@@ -22,7 +22,7 @@ There are mainly two kinds of services:
 | *:6443           | TCP      | kube-apiserver | Kubernetes API server. SSL encrypted. Clients must present a valid password from a Static Password File. |
 | *:10250          | TCP      | kubelet        | Kubelet API. Anonymous authentication is disabled. X509 client certificate required.                     |
 
-### Services in control plane nodes only
+### Services on control plane nodes only
 
 | Interface & Port | Protocol | Service         | Description                                                                                                                   |
 | ---------------- | -------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------- |
