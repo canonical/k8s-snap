@@ -143,7 +143,7 @@ sudo systemctl disable ssh.service ssh.socket
 ```
 
 ```{note}
-According to rule [V-242393] and [V-242394] Kubernetes worker nodes must not
+According to rule {ref}`242393` and {ref}`242394` Kubernetes worker nodes must not
 have sshd service running or enabled. The host STIG rule [V-270665] on the
 other hand expects sshd to be installed on the host. To comply with both
 rules, leave SSH installed, but disable the service. It is probably acceptable
@@ -156,8 +156,8 @@ In addition to the above deployment steps, there are some guidelines that must
 be followed by users and administrators post-deployment and throughout the
 life of the cluster in order to achieve and maintain DISA STIG compliance.
 
-- [V-242383]: User-managed resources must be created in dedicated namespaces
-- [V-242410], [V-242411], [V-242412], and [V-242413]: The Kubernetes
+- {ref}`242383`: User-managed resources must be created in dedicated namespaces
+- {ref}`242410`, {ref}`242411`, {ref}`242412`, and {ref}`242413`: The Kubernetes
 API Server, Scheduler, and Controllers as well as etcd must enforce ports,
 protocols, and services (PPS) that adhere to the Ports, Protocols, and
 Services Management Category Assurance List (PPSM CAL). The {{product}}
@@ -166,9 +166,9 @@ protocols, and services that fall outside the PPSM CAL must be blocked or
 registered. This step needs followed after the initial deployment and anytime
 the list of ports, protocols, and services used by your cluster changes (for
 instance each time a new service is exposed externally).
-- [V-242414]: User pods must only use non-privileged host ports
-- [V-242415]: Secrets must not be stored as environment variables
-- [V-242417]: User functionality must be separate from management functions
+- {ref}`242414`: User pods must only use non-privileged host ports
+- {ref}`242415`: Secrets must not be stored as environment variables
+- {ref}`242417`: User functionality must be separate from management functions
    meaning all user pods must be in user specific namespaces rather than system
    namespaces
 
@@ -187,13 +187,13 @@ to align with the following recommendations:
 
 | STIG                                                                               | Summary                                                               |
 | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| [V-242384]                                                                         | The Kubernetes Scheduler must have secure binding                     |
-| [V-242385]                                                                         | The Kubernetes Controller Manager must have secure binding            |
-| [V-242400]                                                                         | The Kubernetes API server must have Alpha APIs disabled               |
-| [V-242402], [V-242403], [V-242461], [V-242462], [V-242463], [V-242464], [V-242465] | The Kubernetes API Server must have an audit log configured           |
-| [V-242434]                                                                         | Kubernetes Kubelet must enable kernel protection                      |
-| [V-245541]                                                                         | Kubernetes Kubelet must not disable timeouts                          |
-| [V-254800]                                                                         | Kubernetes must have a Pod Security Admission control file configured |
+| {ref}`242384`                                                                         | The Kubernetes Scheduler must have secure binding                     |
+| {ref}`242385`                                                                        | The Kubernetes Controller Manager must have secure binding            |
+| {ref}`242400`                                                                         | The Kubernetes API server must have Alpha APIs disabled               |
+| {ref}`242402`, {ref}`242403`, {ref}`242461`, {ref}`242462`, {ref}`242463`, {ref}`242464`, {ref}`242465` | The Kubernetes API Server must have an audit log configured           |
+| {ref}`242434`                                                                         | Kubernetes Kubelet must enable kernel protection                      |
+| {ref}`245541`                                                                         | Kubernetes Kubelet must not disable timeouts                          |
+| {ref}`254800`                                                                         | Kubernetes must have a Pod Security Admission control file configured |
 
 #### Worker node templates
 
@@ -203,8 +203,8 @@ It applies configuration to align with the following recommendations:
 
 | STIG       | Summary                                          |
 | ---------- | ------------------------------------------------ |
-| [V-242434] | Kubernetes Kubelet must enable kernel protection |
-| [V-245541] | Kubernetes Kubelet must not disable timeouts     |
+| {ref}`242434` | Kubernetes Kubelet must enable kernel protection |
+| {ref}`245541` | Kubernetes Kubelet must not disable timeouts     |
 
 ### Alternative control plane configurations
 
@@ -214,7 +214,7 @@ needs.
 
 #### Pod Security Admission control file
 
-To comply with rule [V-254800], you must configure a Pod Security Admission
+To comply with rule {ref}`254800`, you must configure a Pod Security Admission
 control file for your Kubernetes cluster. This file defines the Pod Security
 Standards (PSS) that are enforced at the namespace level. By default, the
 templates point to
@@ -240,8 +240,8 @@ levels, and configuration options.
 
 #### Kubernetes API Server audit log
 
-To comply with rules [V-242402], [V-242403], [V-242461], [V-242462],
-[V-242463],[V-242464] and [V-242465] you must configure the Kubernetes API
+To comply with rules {ref}`242402`, {ref}`242403`, {ref}`242461`, {ref}`242462`,
+{ref}`242463`, {ref}`242464` and {ref}`242465` you must configure the Kubernetes API
 Server audit log. The STIG templates we provide to bootstrap/join control
 plane nodes configures the Kubernetes API servers audit settings and policy to
 comply with these recommendations.
@@ -249,7 +249,7 @@ comply with these recommendations.
 By default, the bootstrap configuration template will point to
 `/var/snap/k8s/common/etc/configurations/audit-policy.yaml`, which configures
 logging of all (non-resource) events with request metadata, request body, and
-response body as recommended by [V-242403].
+response body as recommended by {ref}`242403`.
 
 This level of logging may be impractical for some situations, in which case the
 settings would need to be adjusted and an exception put in place. To adjust the
@@ -274,28 +274,3 @@ audit settings, do one of the following:
 [Kubernetes Pod Security Admission documentation]: https://kubernetes.io/docs/concepts/security/pod-security-admission/
 [upstream instructions]: https://kubernetes.io/docs/tasks/configure-pod-container/enforce-standards-admission-controller/
 [upstream audit instructions]: https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
-[V-242384]: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/reference/disa-stig-audit/#v-242384
-[V-242385]: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/reference/disa-stig-audit/#v-242385
-[V-242383]: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/reference/disa-stig-audit/#v-242383
-[V-242393]: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/reference/disa-stig-audit/#v-242393
-[V-242394]: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/reference/disa-stig-audit/#v-242394
-[V-242400]: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/reference/disa-stig-audit/#v-242400
-[V-242402]: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/reference/disa-stig-audit/#v-242402
-[V-242403]: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/reference/disa-stig-audit/#v-242403
-[V-242410]: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/reference/disa-stig-audit/#v-242410
-[V-242411]: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/reference/disa-stig-audit/#v-242411
-[V-242412]: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/reference/disa-stig-audit/#v-242412
-[V-242413]: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/reference/disa-stig-audit/#v-242413
-[V-242414]: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/reference/disa-stig-audit/#v-242414
-[V-242415]: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/reference/disa-stig-audit/#v-242415
-[V-242417]: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/reference/disa-stig-audit/#v-242417
-[V-242434]: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/reference/disa-stig-audit/#v-242434
-[V-242461]: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/reference/disa-stig-audit/#v-242461
-[V-242462]: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/reference/disa-stig-audit/#v-242462
-[V-242463]: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/reference/disa-stig-audit/#v-242463
-[V-242464]: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/reference/disa-stig-audit/#v-242464
-[V-242465]: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/reference/disa-stig-audit/#v-242465
-[V-245541]: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/reference/disa-stig-audit/#v-245541
-[V-254800]: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/reference/disa-stig-audit/#v-254800
-[V-270665]: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/reference/disa-stig-audit/#v-270665
-[V-270714]: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/reference/disa-stig-audit/#v-270714
