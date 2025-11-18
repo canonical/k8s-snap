@@ -11,37 +11,41 @@ from test_util import harness
 LOG = logging.getLogger(__name__)
 
 
-def get_resources_in_namespaces(
+def get_workload_resources_in_namespaces(
     instance: harness.Instance,
     namespaces: List[str],
-    resource_types: List[str],
+    workload_types: List[str],
     exclude: Optional[List[str]] = None,
 ) -> List[dict]:
     """
-    Get all resources of specified types in specified namespaces.
+    Get workload resources (apps-style resources with pod templates) of specified types
+    in specified namespaces.
+
+    This function is intended for resources that have a pod template containing
+    containers (for example: "deployment", "daemonset", "statefulset"). It is not
+    suitable for non-workload kinds like Service or Ingress.
 
     Args:
-        instance: instance on which to execute check
+        instance: instance on which to execute kubectl
         namespaces: list of namespace names to check
-        resource_types: list of resource types (e.g., "deployment", "daemonset")
+        workload_types: list of workload types (e.g., "deployment", "daemonset")
         exclude: optional list of name patterns to exclude (supports wildcards, e.g. "*ck-storage*")
 
     Returns:
         list of resource dicts with namespace, type, and name
     """
-
     resources = []
     exclude = exclude or []
 
     for namespace in namespaces:
-        for resource_type in resource_types:
-            LOG.info(f"Checking {resource_type}s in namespace {namespace}")
+        for workload_type in workload_types:
+            LOG.info(f"Checking workload {workload_type}s in namespace {namespace}")
             result = instance.exec(
                 [
                     "k8s",
                     "kubectl",
                     "get",
-                    resource_type,
+                    workload_type,
                     "-n",
                     namespace,
                     "-o",
@@ -54,7 +58,7 @@ def get_resources_in_namespaces(
 
             if result.returncode != 0:
                 LOG.info(
-                    f"No {resource_type}s found in namespace {namespace} or namespace doesn't exist"
+                    f"No {workload_type}s found in namespace {namespace} or namespace doesn't exist"
                 )
                 continue
 
@@ -62,14 +66,18 @@ def get_resources_in_namespaces(
 
             for item in resources_data.get("items", []):
                 name = item["metadata"]["name"]
-                containers = item["spec"]["template"]["spec"].get("containers", [])
+
+                # Be defensive when accessing nested spec/template/spec/containers
+                template = item.get("spec", {}).get("template", {})
+                pod_spec = template.get("spec", {})
+                containers = pod_spec.get("containers", [])
 
                 # Exclude resources whose name matches any of the exclude patterns
                 excluded = False
                 for pattern in exclude:
                     if fnmatch(name, pattern):
                         LOG.info(
-                            f"Excluding resource {resource_type}/{name} in {namespace} (pattern: {pattern})"
+                            f"Excluding workload {workload_type}/{name} in {namespace} (pattern: {pattern})"
                         )
                         excluded = True
                         break
@@ -80,11 +88,11 @@ def get_resources_in_namespaces(
                     resources.append(
                         {
                             "namespace": namespace,
-                            "type": resource_type,
+                            "type": workload_type,
                             "name": name,
                         }
                     )
-                    LOG.info(f"Found resource: {resource_type}/{name} in {namespace}")
+                    LOG.info(f"Found workload: {workload_type}/{name} in {namespace}")
 
     return resources
 

@@ -196,7 +196,7 @@ def test_fips_images(instances: List[harness.Instance]):
     resource_types = ["daemonset", "deployment"]
 
     # Collect all resources in the specified namespaces
-    resources = k8s.get_resources_in_namespaces(
+    resources = k8s.get_workload_resources_in_namespaces(
         instance,
         namespaces_to_check,
         resource_types,
