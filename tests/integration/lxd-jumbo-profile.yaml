@@ -4,4 +4,10 @@ devices:
     name: eth0
     network: LXD_JUMBO_NETWORK
     type: nic
-    mtu: "9000"
+config: 
+  user.network-config: |
+    version: 2
+    ethernets:
+      eth0:
+        dhcp4: true
+        mtu: 9000
