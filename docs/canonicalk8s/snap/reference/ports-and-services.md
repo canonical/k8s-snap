@@ -36,7 +36,7 @@ There are mainly two kinds of services:
 | *:10257          | TCP      | kube-controller | Kubernetes controller manager API. HTTPS with authentication and authorization.                                               |
 | *:10259          | TCP      | kube-scheduler  | Kubernetes scheduler API. HTTPS with authentication and authorization.                                                        |
 
-## Socket Service
+## Socket service
 
 ### Containerd
 
