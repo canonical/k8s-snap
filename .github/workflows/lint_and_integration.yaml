@@ -179,6 +179,8 @@ jobs:
       fail-fast: false
     needs: [build-snap, go-lint-and-unit, python-lint, get-charm-channel]
     uses: ./.github/workflows/charm-e2e-tests.yaml
+    secrets:
+      CHARMCRAFT_AUTH: ${{ secrets.CHARMCRAFT_AUTH }}
     with:
       arch: ${{ matrix.arch }}
       artifact: k8s-${{ matrix.arch }}.snap

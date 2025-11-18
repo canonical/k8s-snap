@@ -21,6 +21,10 @@ on:
         description: k8s charm channel.
         type: string
         default: latest/edge
+    secrets:
+      CHARMCRAFT_AUTH:
+        description: Charmcraft authentication token
+        required: false
 
 jobs:
   check-charm-release:
@@ -48,6 +52,8 @@ jobs:
           echo "Extracted release: ${release}"
       - name: Check charm release availability
         id: check-release
+        env:
+          CHARMCRAFT_AUTH: ${{ secrets.CHARMCRAFT_AUTH }}
         run: |
           release="${{ steps.extract-release.outputs.release }}"
           # If the release doesn't match the pattern (e.g., main branch),
