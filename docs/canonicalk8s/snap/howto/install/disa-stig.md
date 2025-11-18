@@ -241,10 +241,10 @@ levels, and configuration options.
 #### Kubernetes API Server audit log
 
 To comply with rules {ref}`242402`, {ref}`242403`, {ref}`242461`, {ref}`242462`,
-{ref}`242463`, {ref}`242464` and {ref}`242465` you must configure the Kubernetes API
-Server audit log. The STIG templates we provide to bootstrap/join control
-plane nodes configures the Kubernetes API servers audit settings and policy to
-comply with these recommendations.
+{ref}`242463`, {ref}`242464` and {ref}`242465` you must configure the 
+Kubernetes API Server audit log. The STIG templates we provide to 
+bootstrap/join control plane nodes configures the Kubernetes API servers audit 
+settings and policy to comply with these recommendations.
 
 By default, the bootstrap configuration template will point to
 `/var/snap/k8s/common/etc/configurations/audit-policy.yaml`, which configures

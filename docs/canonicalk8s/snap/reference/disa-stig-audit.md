@@ -91,6 +91,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 (242383)=
+
 ## [V-242383]
 
 **Guideline:** User-managed resources must be created in dedicated namespaces
@@ -580,6 +581,7 @@ start with `UNSET`.
 The final line of the output will be `PASS`.
 
 (242415)=
+
 ## [V-242415]
 
 **Guideline:** Secrets in Kubernetes must not be stored as environment variables
@@ -636,6 +638,7 @@ sudo k8s kubectl get statefulset --all-namespaces -o yaml| grep -A5 "env:"
 ```
 
 (242434)=
+
 ## [V-242434]
 
 **Guideline:** Kubernetes Kubelet must enable kernel protection
@@ -1063,6 +1066,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 (254800)=
+
 ## [V-254800]
 
 **Guideline:** Kubernetes must have a Pod Security Admission control file
@@ -1904,6 +1908,7 @@ start with `PASS`.
 
 
 (242384)=
+
 ## [V-242384]
 
 **Guideline:** The Kubernetes Scheduler must have secure binding
@@ -1979,6 +1984,7 @@ The final line of the output will be `PASS`.
 
 
 (242385)=
+
 ## [V-242385]
 
 **Guideline:** The Kubernetes Controller Manager must have secure binding
@@ -2116,6 +2122,7 @@ start with `PASS`.
 
 
 (242393)=
+
 ## [V-242393]
 
 **Guideline:** Kubernetes Worker Nodes must not have sshd service running
@@ -2147,6 +2154,7 @@ start with `PASS`.
 
 
 (242394)=
+
 ## [V-242394]
 
 **Guideline:** Kubernetes Worker Nodes must not have the sshd service enabled
@@ -2334,6 +2342,7 @@ snap install kubectl --classic
 
 
 (242400)=
+
 ## [V-242400]
 
 **Guideline:** The Kubernetes API server must have Alpha APIs disabled
@@ -2410,6 +2419,7 @@ The final line of the output will be `PASS`.
 
 
 (242402)=
+
 ## [V-242402]
 
 **Guideline:** The Kubernetes API Server must have an audit log path set
@@ -2484,6 +2494,7 @@ The final line of the output will be `PASS`.
 
 
 (242403)=
+
 ## [V-242403]
 
 **Guideline:** Kubernetes API Server must generate audit records that identify
@@ -3166,6 +3177,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 (242410)=
+
 ## [V-242410]
 
 **Guideline:** The Kubernetes API Server must enforce ports, protocols, and
@@ -3200,6 +3212,7 @@ Category Assurance List (PPSM CAL)
 > externally.
 
 (242411)=
+
 ## [V-242411]
 
 **Guideline:** The Kubernetes Scheduler must enforce ports, protocols, and
@@ -3237,6 +3250,7 @@ Category Assurance List (PPSM CAL)
 > externally.
 
 (242412)=
+
 ## [V-242412]
 
 **Guideline:** The Kubernetes Controllers must enforce ports, protocols, and
@@ -3274,6 +3288,7 @@ Category Assurance List (PPSM CAL)
 > externally.
 
 (242413)=
+
 ## [V-242413]
 
 **Guideline:** The Kubernetes etcd must enforce ports, protocols, and services
@@ -3337,6 +3352,7 @@ Assurance List (PPSM CAL)
 `````
 
 (242414)=
+
 ## [V-242414]
 
 **Guideline:** The Kubernetes cluster must use non-privileged host ports for
@@ -3371,6 +3387,7 @@ user pods
 >
 
 
+(242417)=
 
 ## [V-242417]
 
@@ -6843,6 +6860,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 (242461)=
+
 ## [V-242461]
 
 **Guideline:** Kubernetes API Server audit logs must be enabled
@@ -6911,6 +6929,7 @@ test $? -eq 0 && echo PASS || echo FAIL
 The final line of the output will be `PASS`.
 
 (242462)=
+
 ## [V-242462]
 
 **Guideline:** The Kubernetes API Server must be set to audit log max size
@@ -6977,6 +6996,7 @@ The output should indicate that `audit-log-maxsize` is set to a value less or
 equal to `100`.
 
 (242463)=
+
 ## [V-242463]
 
 **Guideline:** The Kubernetes API Server must be set to audit log maximum backup
@@ -7104,6 +7124,7 @@ grep -E '\-\-audit-log-maxage=' '/var/snap/k8s/common/args/kube-apiserver'
 The output should indicate a `audit-log-maxage` value of 30.
 
 (242465)=
+
 ## [V-242465]
 
 **Guideline:** The Kubernetes API Server audit log path must be set
@@ -7268,6 +7289,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 (245541)=
+
 ## [V-245541]
 
 **Guideline:** Kubernetes Kubelet must not disable timeouts
