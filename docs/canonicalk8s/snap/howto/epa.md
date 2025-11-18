@@ -51,10 +51,10 @@ membind: 0 1
 
 ### Enable the real-time kernel
 
-The real-time kernel enablement requires an ubuntu pro subscription and some additional tools to be available.
+The real-time kernel enablement requires an Ubuntu pro subscription and some additional tools to be available.
 
 ```
-sudo pro attach
+sudo pro attach <UBUNTU PRO TOKEN> --no-auto-enable
 sudo apt update && sudo apt install ubuntu-advantage-tools
 sudo pro enable realtime-kernel
 ```
@@ -287,21 +287,12 @@ With these preparation steps we have enabled the features of EPA:
 To prepare a machine for CPU isolation, HugePages, real-time kernel,
 SR-IOV and DPDK we leverage cloud-init through MAAS available to download {download}`here </assets/how-to-epa-maas-cloud-init>`.
 
+```{note}
+Make sure to replace `<UBUNTU PRO TOKEN>` with the actual token.
+```
+
 ```{literalinclude} /assets/how-to-epa-maas-cloud-init
 ```
-
-```{note}
-
-In the above file, the `realtime kernel` 6.8 is installed from a private PPA.
-It was recently backported from 24.04 to 22.04 and is still going through
-some validation stages. Once it is officially released, it will be
-installable via the Ubuntu Pro CLI.
-```
-
-<!--VERSION:
-The MAAS setup is inextricably linked to particular versions and will need to be
-updated for these -->
-
 ````
 `````
 
@@ -316,10 +307,6 @@ EPA capabilities.
 
 1. [Install the snap][install-link] from the relevant [channel][channel].
 
-   ```{note}
-   A pre-release channel is required currently until there is a stable release of {{product}}.
-   ```
-
    For example:
 
    <!-- This uses a generic include for this branch to insert the standard
@@ -331,8 +318,7 @@ EPA capabilities.
 
 2. Create a file called *configuration.yaml* or download it
 {download}`here </assets/configuration.yaml>`. In this configuration file
-we let the snap start with its default CNI (cilium), with CoreDNS deployed and
-we also point k8s to the external etcd.
+we let the snap start with its default CNI (Cilium) and CoreDNS enabled.
 
 ```{literalinclude} /assets/configuration.yaml
 :language: yaml
@@ -372,7 +358,7 @@ sudo k8s kubectl get all -A
 
    ```
    extra-node-kubelet-args:
-     --reserved-cpus: "0-31"
+     --reserved-cpus: <reserved CPUs (physical core IDs e.g. 0-2)>
      --cpu-manager-policy: "static"
      --topology-manager-policy: "best-effort"
    ```
@@ -476,7 +462,7 @@ sudo k8s kubectl apply -f https://raw.githubusercontent.com/k8snetworkplumbingwg
 
 #### Multus NetworkAttachmentDefinition
 
-Create the `sriov-nad.yaml` NetworkAttachmentDefinition:
+Create the `sriov-nad.yaml` and `dpdk-nad.yaml` NetworkAttachmentDefinition:
 
 ```
 cat <<EOF | tee sriov-nad.yaml
@@ -704,13 +690,13 @@ First check if CPU Manager and NUMA Topology Manager is set up in the worker
 node:
 
 ```
-ps -ef | grep /snap/k8s/678/bin/kubelet
+ps -ef | grep bin/kubelet
 ```
 
 The process output will indicate the arguments used when running the kubelet:
 
 ```
-root        9139       1  1 Jul17 ?        00:20:03 /snap/k8s/678/bin/kubelet --anonymous-auth=false --authentication-token-webhook=true --authorization-mode=Webhook --client-ca-file=/etc/kubernetes/pki/client-ca.crt --cluster-dns=10.152.183.97 --cluster-domain=cluster.local --container-runtime-endpoint=/var/snap/k8s/common/run/containerd.sock --containerd=/var/snap/k8s/common/run/containerd.sock --cpu-manager-policy=static --eviction-hard=memory.available<100Mi,nodefs.available<1Gi,imagefs.available<1Gi --fail-swap-on=false --kubeconfig=/etc/kubernetes/kubelet.conf --node-ip=10.18.2.153 --node-labels=node-role.kubernetes.io/worker=,k8sd.io/role=worker --read-only-port=0 --register-with-taints= --reserved-cpus=0-31 --root-dir=/var/lib/kubelet --serialize-image-pulls=false --tls-cert-file=/etc/kubernetes/pki/kubelet.crt --tls-cipher-suites=TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_GCM_SHA384 --tls-private-key-file=/etc/kubernetes/pki/kubelet.key --topology-manager-policy=best-effort
+root        9139       1  1 Jul17 ?        00:20:03 /snap/k8s/*/bin/kubelet --anonymous-auth=false --authentication-token-webhook=true --authorization-mode=Webhook --client-ca-file=/etc/kubernetes/pki/client-ca.crt --cluster-dns=10.152.183.97 --cluster-domain=cluster.local --container-runtime-endpoint=/var/snap/k8s/common/run/containerd.sock --containerd=/var/snap/k8s/common/run/containerd.sock --cpu-manager-policy=static --eviction-hard=memory.available<100Mi,nodefs.available<1Gi,imagefs.available<1Gi --fail-swap-on=false --kubeconfig=/etc/kubernetes/kubelet.conf --node-ip=10.18.2.153 --node-labels=node-role.kubernetes.io/worker=,k8sd.io/role=worker --read-only-port=0 --register-with-taints= --reserved-cpus=0-31 --root-dir=/var/lib/kubelet --serialize-image-pulls=false --tls-cert-file=/etc/kubernetes/pki/kubelet.crt --tls-cipher-suites=TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_GCM_SHA384 --tls-private-key-file=/etc/kubernetes/pki/kubelet.key --topology-manager-policy=best-effort
 ```
 
 ```{dropdown} Explanation of output
