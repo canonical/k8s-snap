@@ -12,7 +12,7 @@ There are mainly two kinds of services:
 | Interface & Port | Protocol | Service        | Description                                                                                              |
 | ---------------- | -------- | -------------- | -------------------------------------------------------------------------------------------------------- |
 | localhost:9879   | TCP      | cilium-agent   | TCP port for the Cilium agent health status API.                                                         |
-| localhost:9890   | TCP      | cilium-agent   | cilium agent [gops](https://github.com/google/gops) server endpoint.                                     |
+| localhost:9890   | TCP      | cilium-agent   | Cilium agent [gops](https://github.com/google/gops) server endpoint.                                     |
 | localhost:10248  | TCP      | kubelet        | Localhost health check endpoint.                                                                         |
 | localhost:10249  | TCP      | kube-proxy     | Port for the metrics server.                                                                             |
 | localhost:10256  | TCP      | kube-proxy     | Port for binding the health check server.                                                                |
