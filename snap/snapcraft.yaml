@@ -18,7 +18,7 @@ environment:
   CRAFT_ARCH_TRIPLET_BUILD_FOR: $CRAFT_ARCH_TRIPLET_BUILD_FOR
   # Note(ben): Needs to be changed to /snap/core24/current/usr/lib/x86_64-linux-gnu/ossl-modules/
   # when base is updated to core24 (mind the removed "-3").
-  OPENSSL_MODULES: /snap/core22/current/usr/lib/x86_64-linux-gnu/ossl-modules-3/
+  OPENSSL_MODULES: /snap/core22/current/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/ossl-modules-3/
 
 architectures:
   - build-on: [amd64]
