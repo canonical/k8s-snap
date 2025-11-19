@@ -3,6 +3,7 @@
 #
 import json
 import logging
+from dataclasses import dataclass
 from fnmatch import fnmatch
 from typing import Any, Dict, List, Optional
 
@@ -11,12 +12,19 @@ from test_util import harness
 LOG = logging.getLogger(__name__)
 
 
+@dataclass
+class Resource:
+    namespace: str
+    type: str
+    name: str
+
+
 def get_workload_resources_in_namespaces(
     instance: harness.Instance,
     namespaces: List[str],
     workload_types: List[str],
     exclude: Optional[List[str]] = None,
-) -> List[dict]:
+) -> List[Resource]:
     """
     Get workload resources (apps-style resources with pod templates) of specified types
     in specified namespaces.
@@ -32,7 +40,7 @@ def get_workload_resources_in_namespaces(
         exclude: optional list of name patterns to exclude (supports wildcards, e.g. "*ck-storage*")
 
     Returns:
-        list of resource dicts with namespace, type, and name
+        list of Resource objects with namespace, type, and name
     """
     resources = []
     exclude = exclude or []
@@ -86,11 +94,11 @@ def get_workload_resources_in_namespaces(
 
                 if containers:
                     resources.append(
-                        {
-                            "namespace": namespace,
-                            "type": workload_type,
-                            "name": name,
-                        }
+                        Resource(
+                            namespace=namespace,
+                            type=workload_type,
+                            name=name,
+                        )
                     )
                     LOG.info(f"Found workload: {workload_type}/{name} in {namespace}")
 
@@ -182,7 +190,7 @@ def update_resource_container_env(
         raise ValueError(f"No containers found in {resource_type}/{name}")
 
     # Apply the patch
-    LOG.info(f"Patching {resource_type}/{name} to add GOFIPS=1")
+    LOG.info(f"Patching {resource_type}/{name} to modify {env_vars}")
     patch_json = json.dumps(patches)
     result = instance.exec(
         [

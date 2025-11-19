@@ -28,60 +28,24 @@ def check_pod_for_fips_error(
     Returns:
         True if FIPS error found, False otherwise
     """
-    # Try to get current logs
-    log_result = instance.exec(
-        [
-            "k8s",
-            "kubectl",
-            "logs",
-            pod_name,
-            "-n",
-            namespace,
-            "--tail=50",
-        ],
-        capture_output=True,
-        check=False,
-        text=True,
-    )
+    patterns = ("FIPS mode requested", "FIPS mode", "opensslcrypto")
 
-    if log_result.returncode == 0:
-        logs = log_result.stdout
-        if (
-            "FIPS mode requested" in logs
-            or "FIPS mode" in logs
-            or "opensslcrypto" in logs
-        ):
-            LOG.info(f"Found FIPS error in logs for pod {pod_name}")
+    def _check_logs(previous: bool = False) -> bool:
+        cmd = ["k8s", "kubectl", "logs", pod_name, "-n", namespace, "--tail=50"]
+        if previous:
+            cmd.append("--previous")
+        result = instance.exec(cmd, capture_output=True, check=False, text=True)
+        if result.returncode != 0:
+            return False
+        logs = result.stdout or ""
+        if any(pat in logs for pat in patterns):
+            LOG.info(
+                f"Found FIPS error in {'previous ' if previous else ''}logs for pod {pod_name}"
+            )
             return True
+        return False
 
-    # Try to get previous logs
-    log_result_prev = instance.exec(
-        [
-            "k8s",
-            "kubectl",
-            "logs",
-            pod_name,
-            "-n",
-            namespace,
-            "--previous",
-            "--tail=50",
-        ],
-        capture_output=True,
-        check=False,
-        text=True,
-    )
-
-    if log_result_prev.returncode == 0:
-        logs = log_result_prev.stdout
-        if (
-            "FIPS mode requested" in logs
-            or "FIPS mode" in logs
-            or "opensslcrypto" in logs
-        ):
-            LOG.info(f"Found FIPS error in previous logs for pod {pod_name}")
-            return True
-
-    return False
+    return _check_logs(previous=False) or _check_logs(previous=True)
 
 
 def verify_resource_fips_failure(
@@ -209,9 +173,9 @@ def test_fips_images(instances: List[harness.Instance]):
 
     # For each resource, patch it to add GOFIPS=1 and verify it fails
     for resource in resources:
-        namespace = resource["namespace"]
-        resource_type = resource["type"]
-        name = resource["name"]
+        namespace = resource.namespace
+        resource_type = resource.type
+        name = resource.name
 
         LOG.info(f"Testing FIPS compliance for {resource_type}/{name} in {namespace}")
 
