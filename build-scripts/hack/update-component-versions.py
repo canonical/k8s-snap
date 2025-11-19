@@ -159,9 +159,25 @@ def update_component_versions(dry_run: bool):
         LOG.info("Updating version for %s", component)
         version: str = get_version()
         path = COMPONENTS / component / "version"
+        existing = Path(path)
+        existing_version_text = existing.read_text().strip() if existing.exists() else None
+        upstream_version_text = version.strip()
+
+        existing_parsed = parse_version(existing_version_text) if existing_version_text else None
+        upstream_parsed = parse_version(upstream_version_text)
+
+        # If both versions parse and the existing one is greater than upstream, skip update.
+        if existing_parsed and upstream_parsed and existing_parsed > upstream_parsed:
+            LOG.info(
+            "Existing version %s is greater than upstream %s; keeping existing version",
+            existing_version_text,
+            upstream_version_text,
+            )
+            continue
+
         LOG.info("Update %s version to %s in %s", component, version, path)
         if not dry_run:
-            Path(path).write_text(version.strip() + "\n")
+            Path(path).write_text(upstream_version_text + "\n")
 
     update_go_version(dry_run)
 
