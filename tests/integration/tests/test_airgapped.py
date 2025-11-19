@@ -115,7 +115,7 @@ def test_airgapped_with_proxy(instances: List[harness.Instance]):
 
 
 @pytest.mark.node_count(2)
-@pytest.mark.disable_k8s_bootstrapping()
+@pytest.mark.no_setup()
 @pytest.mark.tags(tags.NIGHTLY)
 @pytest.mark.skipif(
     config.SUBSTRATE == "multipass", reason="runner size too small on multipass"
