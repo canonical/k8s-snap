@@ -5,16 +5,15 @@
 """
 Charm subcommands for `k8s-ci`.
 
-This module provides functionality to check if a charm release is available
-in the charm store for a given Kubernetes release version.
+This module provides functionality around charms and their releases.
 """
 
 import argparse
-import json
+import os
 import sys
 from typing import Optional
-from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
+
+import requests
 
 
 def add_charm_cmds(parser: argparse.ArgumentParser) -> None:
@@ -36,7 +35,7 @@ def add_charm_cmds(parser: argparse.ArgumentParser) -> None:
     )
     p.add_argument(
         "release",
-        help="Kubernetes release version (e.g., '1.30', '1.31')",
+        help="Kubernetes release version (e.g., '1.33', 'v1.33', 'v1.33.0', 'release-1.33')",
     )
     p.add_argument(
         "--charm-auth",
@@ -61,30 +60,17 @@ def _query_charm_info(charm_name: str, auth_token: Optional[str] = None) -> dict
 
     Returns:
         JSON response from the Charmhub API.
-
-    Raises:
-        SystemExit if the request fails.
     """
-    url = f"https://api.charmhub.io/v2/charms/info/{charm_name}"
+    url = f"https://api.charmhub.io/v2/charms/info/{charm_name}?fields=channel-map"
     headers = {"Content-Type": "application/json"}
 
     if auth_token:
         headers["Authorization"] = f"Bearer {auth_token}"
 
-    req = Request(url, headers=headers)
-
-    try:
-        with urlopen(req, timeout=20) as resp:
-            return json.loads(resp.read().decode("utf-8"))
-    except HTTPError as e:
-        if e.code == 404:
-            print(f"Error: Charm '{charm_name}' not found", file=sys.stderr)
-        else:
-            print(f"Error querying Charmhub API: {e}", file=sys.stderr)
-        raise SystemExit(1)
-    except URLError as e:
-        print(f"Error querying Charmhub API: {e}", file=sys.stderr)
-        raise SystemExit(1)
+    resp = requests.get(url, headers=headers, timeout=20)
+    resp.raise_for_status()
+    print(resp.json())
+    return resp.json()
 
 
 def _check_release_available(charm_info: dict, release: str) -> bool:
@@ -102,11 +88,11 @@ def _check_release_available(charm_info: dict, release: str) -> bool:
     channel_map = charm_info.get("channel-map", [])
 
     # Look for channels that match the release track
-    # Channels follow the pattern: <track>/<risk> (e.g., "1.30/stable", "1.30/beta")
+    # Channels follow the pattern: <track>/<risk> (e.g., "1.34/stable", "1.34/beta")
     for channel_info in channel_map:
         channel = channel_info.get("channel", {})
         track = channel.get("track")
-        if track == release:
+        if track.startswith(release):
             return True
 
     return False
@@ -122,21 +108,16 @@ def cmd_release_available(args: argparse.Namespace) -> int:
     Returns:
         0 if the release is available, 1 otherwise.
     """
-    import os
-
     auth_token = args.charm_auth or os.environ.get("CHARMCRAFT_AUTH")
+    release = args.release.lstrip("v").replace("release-", "")
 
-    # Query charm info
     charm_info = _query_charm_info(args.charm_name, auth_token)
 
-    # Check if the release is available
-    if _check_release_available(charm_info, args.release):
+    if _check_release_available(charm_info, release):
         print(f"Charm release {args.release} is available for {args.charm_name}")
         return 0
     else:
-        print(
-            f"Skipping charm e2e: no matching {args.charm_name} version for release {args.release}"
-        )
+        print(f"no matching {args.charm_name} charm version for release {args.release}")
         return 1
 
 
