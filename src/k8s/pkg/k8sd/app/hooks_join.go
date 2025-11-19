@@ -330,6 +330,12 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		return fmt.Errorf("failed to wait for kube-apiserver to become ready: %w", err)
 	}
 
+	// Apply sticky bits to world-writable directories for DISA STIG compliance (V-242386)
+	if err := setup.ApplyStickyBitsToWorldWritableDirectories(ctx); err != nil {
+		log.Error(err, "Failed to apply sticky bits to world-writable directories")
+		// Non-fatal: log the error but continue
+	}
+
 	log.Info("Create Kubernetes client")
 	k8sClient, err := a.snap.KubernetesClient("")
 	if err != nil {

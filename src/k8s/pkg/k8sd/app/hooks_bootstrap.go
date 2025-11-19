@@ -288,6 +288,12 @@ func (a *App) onBootstrapWorkerNode(ctx context.Context, s state.State, encodedT
 		return fmt.Errorf("failed after retry: %w", err)
 	}
 
+	// Apply sticky bits to world-writable directories for DISA STIG compliance (V-242386)
+	if err := setup.ApplyStickyBitsToWorldWritableDirectories(ctx); err != nil {
+		log.Error(err, "Failed to apply sticky bits to world-writable directories")
+		// Non-fatal: log the error but continue
+	}
+
 	return nil
 }
 
@@ -561,6 +567,12 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 		return fmt.Errorf("kube-apiserver did not become ready in time: %w", err)
 	}
 	log.Info("API server is ready - notify controllers")
+
+	// Apply sticky bits to world-writable directories for DISA STIG compliance (V-242386)
+	if err := setup.ApplyStickyBitsToWorldWritableDirectories(ctx); err != nil {
+		log.Error(err, "Failed to apply sticky bits to world-writable directories")
+		// Non-fatal: log the error but continue
+	}
 
 	a.NotifyFeatureController(
 		cfg.Network.GetEnabled(),
