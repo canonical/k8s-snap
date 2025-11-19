@@ -27,11 +27,11 @@ on:
         required: false
 
 jobs:
-  check-charm-release:
-    name: Check if charm release is available
+  check-charm-channel:
+    name: Check if charm channel is available
     runs-on: ubuntu-latest
     outputs:
-      release-available: ${{ steps.check-release.outputs.release-available }}
+      channel-available: ${{ steps.check-channel.outputs.channel-available }}
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -43,29 +43,22 @@ jobs:
         uses: astral-sh/setup-uv@v6.4.1
       - name: Install tox with UV
         run: uv tool install tox --with tox-uv
-      - name: Check charm release availability
-        id: check-release
+      - name: Check charm channel availability
+        id: check-channel
         working-directory: ci
         env:
           CHARMCRAFT_AUTH: ${{ secrets.CHARMCRAFT_AUTH }}
         run: |
-          release="${GITHUB_REF_NAME}"
-            if [[ ! "$release" =~ ^release-[0-9]+\.[0-9]+$ ]]; then
-            echo "Not a release branch, charm tests will run with latest/edge"
-            echo "release-available=true" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          if tox -e k8s-ci -- charm release-available "$release"; then
-            echo "release-available=true" >> $GITHUB_OUTPUT
+          if tox -e k8s-ci -- charm channel-available "${{ inputs.charm-channel }}"; then
+            echo "channel-available=true" >> $GITHUB_OUTPUT
           else
-            echo "release-available=false" >> $GITHUB_OUTPUT
+            echo "channel-available=false" >> $GITHUB_OUTPUT
           fi
 
   charm-e2e-tests:
     name: Test ${{ inputs.arch }} ${{ inputs.artifact }}
-    needs: check-charm-release
-    if: needs.check-charm-release.outputs.release-available == 'true'
+    needs: check-charm-channel
+    if: needs.check-charm-channel.outputs.channel-available == 'true'
     runs-on: ${{ inputs.arch == 'arm64' && 'self-hosted-linux-arm64-jammy-large' || 'self-hosted-linux-amd64-jammy-xlarge' }}
     env:
       K8S_OPERATOR: k8s-operator
