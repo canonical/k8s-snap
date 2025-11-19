@@ -2,11 +2,6 @@
 
 ## Network services
 
-There are mainly two kinds of services:
-
-- Those that operate in all nodes
-- Those that operate in control plane nodes only
-
 ### Services on all nodes
 
 | Interface & Port | Protocol | Service        | Description                                                                                              |
