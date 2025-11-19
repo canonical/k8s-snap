@@ -23,7 +23,9 @@ def add_charm_cmds(parser: argparse.ArgumentParser) -> None:
     Args:
         parser: The parent argparse.ArgumentParser to which subcommands will be added.
     """
-    charm_parser = parser.add_parser("charm", help="Charm-related commands (e.g., check channel availability).")
+    charm_parser = parser.add_parser(
+        "charm", help="Charm-related commands (e.g., check channel availability)."
+    )
     charm_sub = charm_parser.add_subparsers(
         dest="charm_command", required=True, title="charm commands"
     )
