@@ -90,6 +90,7 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
+(242383)=
 
 ## [V-242383]
 
@@ -579,7 +580,7 @@ start with `UNSET`.
 
 The final line of the output will be `PASS`.
 
-
+(242415)=
 
 ## [V-242415]
 
@@ -636,6 +637,7 @@ sudo k8s kubectl get daemonset --all-namespaces -o yaml| grep -A5 "env:"
 sudo k8s kubectl get statefulset --all-namespaces -o yaml| grep -A5 "env:"
 ```
 
+(242434)=
 
 ## [V-242434]
 
@@ -1063,6 +1065,7 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
+(254800)=
 
 ## [V-254800]
 
@@ -1904,6 +1907,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 
+(242384)=
 
 ## [V-242384]
 
@@ -1979,6 +1983,7 @@ test $? -eq 0 && echo PASS || echo FAIL
 The final line of the output will be `PASS`.
 
 
+(242385)=
 
 ## [V-242385]
 
@@ -2116,6 +2121,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 
+(242393)=
 
 ## [V-242393]
 
@@ -2147,6 +2153,7 @@ start with `PASS`.
 >
 
 
+(242394)=
 
 ## [V-242394]
 
@@ -2334,6 +2341,7 @@ snap install kubectl --classic
 >
 
 
+(242400)=
 
 ## [V-242400]
 
@@ -2410,6 +2418,7 @@ start with `UNSET`.
 The final line of the output will be `PASS`.
 
 
+(242402)=
 
 ## [V-242402]
 
@@ -2484,6 +2493,7 @@ test $? -eq 0 && echo PASS || echo FAIL
 The final line of the output will be `PASS`.
 
 
+(242403)=
 
 ## [V-242403]
 
@@ -3166,7 +3176,7 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-
+(242410)=
 
 ## [V-242410]
 
@@ -3201,6 +3211,7 @@ Category Assurance List (PPSM CAL)
 > list will need to be updated each time a new service is exposed
 > externally.
 
+(242411)=
 
 ## [V-242411]
 
@@ -3238,7 +3249,7 @@ Category Assurance List (PPSM CAL)
 > list will need to be updated each time a new service is exposed
 > externally.
 
-
+(242412)=
 
 ## [V-242412]
 
@@ -3276,7 +3287,7 @@ Category Assurance List (PPSM CAL)
 > list will need to be updated each time a new service is exposed
 > externally.
 
-
+(242413)=
 
 ## [V-242413]
 
@@ -3340,6 +3351,8 @@ Assurance List (PPSM CAL)
 
 `````
 
+(242414)=
+
 ## [V-242414]
 
 **Guideline:** The Kubernetes cluster must use non-privileged host ports for
@@ -3374,6 +3387,7 @@ user pods
 >
 
 
+(242417)=
 
 ## [V-242417]
 
@@ -6845,6 +6859,7 @@ stat -c %a '/etc/kubernetes/controller.conf' | grep -q 600 && echo PASS /etc/kub
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
+(242461)=
 
 ## [V-242461]
 
@@ -6913,6 +6928,7 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 The final line of the output will be `PASS`.
 
+(242462)=
 
 ## [V-242462]
 
@@ -6979,6 +6995,7 @@ grep -E '\-\-audit-log-maxsize=' '/var/snap/k8s/common/args/kube-apiserver'
 The output should indicate that `audit-log-maxsize` is set to a value less or
 equal to `100`.
 
+(242463)=
 
 ## [V-242463]
 
@@ -7043,7 +7060,7 @@ grep -E '\-\-audit-log-maxbackup=' '/var/snap/k8s/common/args/kube-apiserver'
 The output should indicate that `audit-log-maxbackup` is set to a value less or
 equal to `10`.
 
-
+(242464)=
 
 ## [V-242464]
 
@@ -7106,6 +7123,7 @@ grep -E '\-\-audit-log-maxage=' '/var/snap/k8s/common/args/kube-apiserver'
 
 The output should indicate a `audit-log-maxage` value of 30.
 
+(242465)=
 
 ## [V-242465]
 
@@ -7270,7 +7288,7 @@ stat -c %a '/etc/kubernetes/pki/kubelet.key' | grep -q 600 && echo PASS /etc/kub
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-
+(245541)=
 
 ## [V-245541]
 
