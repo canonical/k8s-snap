@@ -77,6 +77,7 @@ certfile
 cgroup
 cgroups
 Charmcraft
+charmlibs
 Charmed
 Charmed Kubeflow
 Charmhub
@@ -386,6 +387,7 @@ openssl
 OpenSSL's
 OpenStack
 openstack
+Opentelemetry
 orchestrator
 OSD
 OSDs
@@ -429,6 +431,7 @@ PV
 PVCs
 py
 Pydantic
+PyPI
 Python
 qdisc
 qlen
