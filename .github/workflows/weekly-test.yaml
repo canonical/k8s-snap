@@ -1,0 +1,27 @@
+name: Weekly
+
+on:
+  schedule:
+    - cron: "0 0 * * 6" # Runs every saturday at midnight
+  pull_request:
+    paths:
+      - .github/workflows/weekly-test.yaml
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  cncf:
+    name: CNCF conformance test
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["ubuntu:20.04", "ubuntu:22.04", "ubuntu:24.04"]
+        arch: ["amd64"]
+        channel: ["latest/edge"]
+    uses: ./.github/workflows/e2e-tests.yaml
+    with:
+      arch: ${{ matrix.arch }}
+      os: ${{ matrix.os }}
+      channel: ${{ matrix.channel }}
+      test-tags: 'conformance_tests'
