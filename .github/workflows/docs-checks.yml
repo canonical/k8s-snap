@@ -33,11 +33,11 @@ jobs:
           echo "Changed files: $FILE_LIST"
           echo "changed_files=$FILE_LIST" >> $GITHUB_OUTPUT
 
-          #      - name: linkcheck 
-          #        runs:
-          #          using: 'composite'
-          #          steps:
-          #            - run: python3 linkcheck.py docs/canonicalk8s --install_target install --linkcheck_target linkcheck --makefile Makefile 
+      - name: linkcheck 
+        runs:
+          using: 'composite'
+          steps:
+            - run: python3 linkcheck.py docs/canonicalk8s --install_target install --linkcheck_target linkcheck --makefile Makefile 
           #              shell: bash
           #          #       - name: Link Check
           #         id: linkcheck-step
