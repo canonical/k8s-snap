@@ -33,13 +33,13 @@ jobs:
           echo "Changed files: $FILE_LIST"
           echo "changed_files=$FILE_LIST" >> $GITHUB_OUTPUT
 
-      - name: linkcheck 
-        runs:
-          using: 'composite'
-          steps:
-            - run: python3 linkcheck.py docs/canonicalk8s --install_target install --linkcheck_target linkcheck --makefile Makefile 
-              shell: bash
-          #       - name: Link Check
+          #      - name: linkcheck 
+          #        runs:
+          #          using: 'composite'
+          #          steps:
+          #            - run: python3 linkcheck.py docs/canonicalk8s --install_target install --linkcheck_target linkcheck --makefile Makefile 
+          #              shell: bash
+          #          #       - name: Link Check
           #         id: linkcheck-step
           #         if: success() || failure()
           #         uses: canonical/documentation-workflows/linkcheck@main
@@ -49,19 +49,19 @@ jobs:
              #          install-target: ${{ inputs.install-target }}
              #          linkcheck-target: ${{ inputs.linkcheck-target }}
              #          makefile: ${{ inputs.makefile }}
-          #      - id: spell-check
-          #        name: Spell Check
-          #        if: success() || failure()
-          #        uses: canonical/documentation-workflows/spellcheck@main
-          #        with:
-          #          working-directory: docs/canonicalk8s
-          #
-          #      - name: Inclusive Language Check
-          #        id: woke-step
-          #        if: success() || failure()
-          #        uses: canonical/documentation-workflows/inclusive-language@main
-          #        with:
-          #          working-directory: docs/canonicalk8s
-          #
+      - id: spell-check
+        name: Spell Check
+        if: success() || failure()
+        uses: canonical/documentation-workflows/spellcheck@main
+        with:
+          working-directory: docs/canonicalk8s
+
+      - name: Inclusive Language Check
+        id: woke-step
+        if: success() || failure()
+        uses: canonical/documentation-workflows/inclusive-language@main
+        with:
+          working-directory: docs/canonicalk8s
+
 
 
