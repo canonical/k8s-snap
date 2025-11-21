@@ -6,26 +6,22 @@
 Mattermost subcommands for `k8s-ci`.
 
 This module provides functionality to post aggregated CI results or raw messages
-to a Mattermost channel via incoming webhooks or bot accounts. It supports
-posting a concise summary via webhook (with color support) and then posting
-detailed results as a threaded comment using a bot.
+to a Mattermost channel via incoming webhooks or bot accounts.
 """
 
 import argparse
+import functools
 import json
 import os
 import sys
 from typing import Any, Dict, List, Optional
-from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
+
+import requests
 
 
 def add_mattermost_cmds(parser: argparse.ArgumentParser) -> None:
     """
     Register Mattermost-related subcommands to the given CLI parser.
-
-    Args:
-        parser: The parent argparse.ArgumentParser to which subcommands will be added.
     """
     mattermost_parser = parser.add_parser(
         "mattermost", help="Post results or messages to Mattermost."
@@ -69,18 +65,7 @@ def add_mattermost_cmds(parser: argparse.ArgumentParser) -> None:
 
 
 def _load_flattened_json(path: Optional[str]) -> List[Dict[str, Any]]:
-    """
-    Load JSON results from a file or stdin and flatten nested arrays.
-
-    Args:
-        path: File path or '-' for stdin.
-
-    Returns:
-        List of flattened result entries.
-
-    Raises:
-        SystemExit if input is invalid or missing.
-    """
+    """Load JSON results from a file or stdin and flatten nested arrays."""
     if path == "-":
         data = json.load(sys.stdin)
     elif path:
@@ -89,7 +74,6 @@ def _load_flattened_json(path: Optional[str]) -> List[Dict[str, Any]]:
     else:
         raise SystemExit("Error: must provide --file or '-' for stdin")
 
-    # Flatten nested lists
     if isinstance(data, list) and len(data) == 1 and isinstance(data[0], list):
         data = data[0]
 
@@ -105,29 +89,84 @@ def _load_flattened_json(path: Optional[str]) -> List[Dict[str, Any]]:
     return data
 
 
+@functools.lru_cache(maxsize=None)
+def _fetch_workflow_jobs(repo: str, run_id: str) -> List[Dict[str, Any]]:
+    """
+    Fetch all jobs for the given workflow run from GitHub API.
+    Cached to prevent repeated API calls for the same run.
+    """
+    token = os.environ.get("GITHUB_TOKEN")
+    if not token:
+        return []
+
+    url = f"https://api.github.com/repos/{repo}/actions/runs/{run_id}/jobs"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github.v3+json",
+    }
+
+    jobs = []
+    try:
+        # Fetching up to 100 jobs (one page).
+        # For very large workflows, pagination logic would be needed here.
+        params = {"per_page": 100}
+        response = requests.get(url, headers=headers, params=params, timeout=10)
+        if response.status_code == 200:
+            jobs = response.json().get("jobs", [])
+    except requests.RequestException as e:
+        print(f"Warning: Could not fetch GitHub jobs: {e}", file=sys.stderr)
+
+    return jobs
+
+
+def _find_job_id_for_entry(
+    repo: str, run_id: str, entry: Dict[str, Any]
+) -> Optional[str]:
+    """
+    Find the Job ID that best matches the test entry using only the job name.
+    """
+    target_name = entry.get("job_name")
+    if not target_name:
+        return None
+
+    jobs = _fetch_workflow_jobs(repo, run_id)
+    if not jobs:
+        return None
+
+    for job in jobs:
+        job_name = job.get("name", "")
+        if job_name and job_name in target_name:
+            return str(job.get("id"))
+
+    return None
+
+
 def _determine_run_link(entry: Dict[str, Any]) -> Optional[str]:
-    """Return the URL for the CI run associated with an entry, if available."""
+    """Return the URL for the CI run associated with an entry, pointing to the specific Job."""
+
     run_url = entry.get("run_url") or entry.get("runLink") or entry.get("run_link")
     if run_url:
         return str(run_url)
+
     repo = os.environ.get("GITHUB_REPOSITORY")
     run_id = os.environ.get("GITHUB_RUN_ID")
+
     if repo and run_id:
-        return f"https://github.com/{repo}/actions/runs/{run_id}"
+        base_url = f"https://github.com/{repo}/actions/runs/{run_id}"
+
+        # Attempt to find the specific job that generated this entry
+        job_id = _find_job_id_for_entry(repo, run_id, entry)
+
+        if job_id:
+            return f"{base_url}/job/{job_id}"
+
+        return base_url
+
     return None
 
 
 def _build_tree_message(entries: List[Dict[str, Any]]) -> str:
-    """
-    Build a tree-formatted string of all test results.
-
-    Args:
-        entries: List of result dictionaries.
-
-    Returns:
-        Formatted tree string.
-    """
-    # Build a nested tree: channel -> os -> arch -> list of entries
+    """Build a tree-formatted string of all test results."""
     tree: Dict[str, Dict[str, Dict[str, List[Dict[str, Any]]]]] = {}
     for e in entries:
         ch = str(e.get("channel", "unknown"))
@@ -151,27 +190,25 @@ def _build_tree_message(entries: List[Dict[str, Any]]) -> str:
                     for e in entry_list
                     if str(e.get("status", "")).lower() != "success"
                 ]
-                # Determine arch-level status: success only if all entries succeeded
                 statuses = [str(e.get("status", "")).lower() for e in entry_list]
                 status = (
                     "success" if all(s == "success" for s in statuses) else "failed"
                 )
                 emoji = ":white_check_mark:" if status == "success" else ":x:"
-                # If there's only one entry, preserve previous behavior to link that run
+
                 if not failed_runs:
+                    # Use the first entry to resolve the link for the whole group
                     run_link = (
                         _determine_run_link(entry_list[0]) if len(entry_list) else None
                     )
                     run_part = f" [Run]({run_link})" if run_link else " Run"
                 else:
-                    # For multiple entries, avoid a top-level link; individual failed runs below will have links.
                     run_part = ""
+
                 indent = "        " if oi == len(os_list) - 1 else "    │   "
                 lines.append(f"{indent}{arch_prefix} {arch}: {emoji} {run_part}")
 
-                # If there are failed runs for this arch, add a subtree listing them with links
                 if failed_runs:
-                    # child prefix keeps vertical bar if this arch isn't the last in the os list
                     child_base = indent + (
                         "    " if ai == len(arch_list) - 1 else "│   "
                     )
@@ -191,18 +228,7 @@ def _build_tree_message(entries: List[Dict[str, Any]]) -> str:
 def _build_summary_payload(
     channel_id: str, entries: List[Dict[str, Any]], title: str, color: str
 ) -> Dict[str, Any]:
-    """
-    Build a concise summary payload for an incoming webhook.
-
-    Args:
-        channel_id: Channel ID to post to.
-        entries: List of result entries.
-        title: Title of the message.
-        color: Color code ('good', 'warning', 'danger').
-
-    Returns:
-        Payload dictionary ready to post.
-    """
+    """Build a concise summary payload for an incoming webhook."""
     total = len(entries)
     successes = sum(1 for e in entries if str(e.get("status", "")).lower() == "success")
     skipped = sum(1 for e in entries if str(e.get("status", "")).lower() == "skipped")
@@ -220,12 +246,7 @@ def _build_summary_payload(
 
 
 def _determine_color(entries: List[Dict[str, Any]], text: str) -> str:
-    """
-    Determine color for webhook attachment based on test statuses.
-
-    Returns:
-        'good' if all success, 'danger' if any failed.
-    """
+    """Determine color for webhook attachment based on test statuses."""
     for e in entries:
         if str(e.get("status", "")).lower() != "success":
             return "danger"
@@ -236,14 +257,10 @@ def _determine_color(entries: List[Dict[str, Any]], text: str) -> str:
 
 def _post_webhook(webhook: str, payload: Dict[str, Any]) -> None:
     """Post payload to Mattermost using an incoming webhook."""
-    body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-    req = Request(
-        webhook, data=body, headers={"Content-Type": "application/json; charset=utf-8"}
-    )
     try:
-        with urlopen(req, timeout=20) as resp:
-            resp.read()  # webhook returns plain "ok"
-    except (HTTPError, URLError) as e:
+        resp = requests.post(webhook, json=payload, timeout=20)
+        resp.raise_for_status()
+    except requests.RequestException as e:
         print(f"Webhook error: {e}", file=sys.stderr)
         raise SystemExit(2)
 
@@ -255,34 +272,22 @@ def _post_bot(
     message: str,
     root_id: Optional[str] = None,
 ) -> dict:
-    """
-    Post a message using a Mattermost bot account.
-
-    Args:
-        server: Base server URL.
-        token: Bot token.
-        channel_id: Channel to post in.
-        message: Message content.
-        root_id: Optional parent post ID to thread under.
-
-    Returns:
-        JSON response from server.
-    """
+    """Post a message using a Mattermost bot account."""
     body = {"channel_id": channel_id, "message": message}
     if root_id:
         body["root_id"] = root_id
-    req = Request(
-        f"{server.rstrip('/')}/api/v4/posts",
-        data=json.dumps(body).encode("utf-8"),
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {token}",
-        },
-    )
+
+    url = f"{server.rstrip('/')}/api/v4/posts"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {token}",
+    }
+
     try:
-        with urlopen(req, timeout=20) as resp:
-            return json.loads(resp.read().decode("utf-8"))
-    except (HTTPError, URLError) as e:
+        resp = requests.post(url, json=body, headers=headers, timeout=20)
+        resp.raise_for_status()
+        return resp.json()
+    except requests.RequestException as e:
         print(f"Bot post error: {e}", file=sys.stderr)
         raise SystemExit(2)
 
@@ -318,19 +323,21 @@ def cmd_results_message(args: argparse.Namespace) -> int:
     _post_webhook(webhook, summary_payload)
 
     # Fetch last post ID for threading
-    req = Request(
-        f"{server.rstrip('/')}/api/v4/channels/{channel_id}/posts?page=0&per_page=1",
-        headers={"Authorization": f"Bearer {token}"},
-    )
+    url = f"{server.rstrip('/')}/api/v4/channels/{channel_id}/posts"
+    headers = {"Authorization": f"Bearer {token}"}
+    params = {"page": 0, "per_page": 1}
+
     try:
-        with urlopen(req, timeout=20) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-            post_order = data.get("order", [])
-            if not post_order:
-                print("Error: no post found for threading", file=sys.stderr)
-                return 2
-            root_id = post_order[0]
-    except (HTTPError, URLError) as e:
+        resp = requests.get(url, headers=headers, params=params, timeout=20)
+        resp.raise_for_status()
+        data = resp.json()
+
+        post_order = data.get("order", [])
+        if not post_order:
+            print("Error: no post found for threading", file=sys.stderr)
+            return 2
+        root_id = post_order[0]
+    except requests.RequestException as e:
         print(f"Error fetching last post: {e}", file=sys.stderr)
         return 2
 
