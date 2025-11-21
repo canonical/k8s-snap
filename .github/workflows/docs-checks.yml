@@ -35,9 +35,11 @@ jobs:
 
       - name: linkcheck 
         runs:
-          using: 'composite'
+          #          using: 'composite'
           steps:
-            - run: python3 linkcheck.py docs/canonicalk8s --install_target install --linkcheck_target linkcheck --makefile Makefile 
+            - run: |
+              CHANGED_FILES= "${{ steps.changes.outputs.changed_files }}" 
+              python3 linkcheck.py docs/canonicalk8s --install_target install --linkcheck_target linkcheck --makefile Makefile $CHANGED_FILES
           #              shell: bash
           #          #       - name: Link Check
           #         id: linkcheck-step
