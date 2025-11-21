@@ -119,8 +119,10 @@ spellcheck: spellcheck-install
 
 spelling: html spellcheck
 
+#FILES=./snap/tutorial/getting-started.md ./charm/tutorial/getting-started.md
+
 linkcheck: install
-	. $(VENV) ; $(SPHINXBUILD) -b linkcheck "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) || { grep --color -F "[broken]" "$(BUILDDIR)/output.txt"; exit 1; }
+	. $(VENV) ; $(SPHINXBUILD) -b linkcheck "$(SOURCEDIR)" "$(BUILDDIR)" $(FILES) $(SPHINXOPTS) || { grep --color -F "[broken]" "$(BUILDDIR)/output.txt"; exit 1; }
 	exit 0
 
 pa11y: pa11y-install html
