@@ -39,8 +39,12 @@ jobs:
           steps:
             - run: |
               CHANGED_FILES= "${{ steps.changes.outputs.changed_files }}" 
-              python3 linkcheck.py docs/canonicalk8s --install_target install --linkcheck_target linkcheck FILES=$CHANGED_FILES --makefile Makefile $CHANGED_FILES
-          #              shell: bash
+              python3 linkcheck.py docs/canonicalk8s \
+              --install_target install \
+              --linkcheck_target linkcheck \
+              --makefile Makefile \
+              "$CHANGED_FILES"
+          shell: bash
           #          #       - name: Link Check
           #         id: linkcheck-step
           #         if: success() || failure()

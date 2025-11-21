@@ -32,7 +32,7 @@ try:
 
     # Install the doc framework and run link checker
     run_command(f"make -f {makefile} {install_target}", args.working_dir)
-    run_command(f"make -f {makefile} {linkcheck_target} {FILES}", args.working_dir)
+    run_command(f"make -f {makefile} {linkcheck_target} FILES='{FILES}'", args.working_dir)
 except subprocess.CalledProcessError as e:
     print(f"Command '{e.cmd}' returned non-zero exit status {e.returncode}.")
     exit(1)
