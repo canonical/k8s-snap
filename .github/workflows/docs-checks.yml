@@ -34,16 +34,16 @@ jobs:
           echo "changed_files=$FILE_LIST" >> $GITHUB_OUTPUT
 
       - name: linkcheck 
-        runs:
+        #run:
           #          using: 'composite'
-          steps:
-            - run: |
-              CHANGED_FILES= "${{ steps.changes.outputs.changed_files }}" 
-              python3 linkcheck.py docs/canonicalk8s \
-              --install_target install \
-              --linkcheck_target linkcheck \
-              --makefile Makefile \
-              "$CHANGED_FILES"
+          # steps:
+        run: |
+          CHANGED_FILES= "${{ steps.changes.outputs.changed_files }}" 
+          python3 linkcheck.py docs/canonicalk8s \
+          --install_target install \
+          --linkcheck_target linkcheck \
+          --makefile Makefile \
+          "$CHANGED_FILES"
           shell: bash
           #          #       - name: Link Check
           #         id: linkcheck-step
