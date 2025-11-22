@@ -42,7 +42,7 @@ jobs:
 
           echo "Running linkcheck with files: $CHANGED_FILES"
 
-          python3 linkcheck.py docs/canonicalk8s \
+          python3 .github/workflows/linkcheck.py docs/canonicalk8s \
           --install_target install \
           --linkcheck_target linkcheck \
           --makefile Makefile \
