@@ -27,7 +27,7 @@ jobs:
         id: changes
         run: |
           # Use git diff to find files changed between the base branch and the PR branch
-          FILE_LIST=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- docs/canonicalk8s/**/*.md | sed 's|^docs/canonicalk8s/||' | xargs)
+          FILE_LIST=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- 'docs/canonicalk8s/**/*.md' | sed 's|^docs/canonicalk8s/||' | xargs)
 
           # Pass the space-delimited list to the step output
           echo "Changed files: $FILE_LIST"
