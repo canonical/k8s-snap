@@ -105,6 +105,8 @@ sudo ufw allow 8472/udp
 
 ## Firewall rules for control plane nodes only
 
+Apply the following rules on all control plane nodes.
+
 ### Allow Kubernetes control plane services
 
 Allow access to the API server:
