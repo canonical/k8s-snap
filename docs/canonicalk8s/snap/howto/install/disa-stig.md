@@ -173,8 +173,9 @@ instance each time a new service is exposed externally).
 - {ref}`242417`: User functionality must be separate from management functions
    meaning all user pods must be in user specific namespaces rather than system
    namespaces
-- {ref}`242443`: Kubernetes components must be regularly updated to avoid vulnerabilities.
-   We recommend using the latest revision of a [supported version] of {{product}}.
+- {ref}`242443`: Kubernetes components must be regularly updated to avoid
+   vulnerabilities. We recommend using the latest revision of a
+   [supported version] of {{product}}.
 
 ## Appendix
 
