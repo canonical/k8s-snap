@@ -25,7 +25,7 @@ jobs:
       matrix:
         # e.g. strict - right now we only support the classic flavor
         patch: [""]
-        arch: ["amd64", "arm64", "ppc64le", "s390x"]
+        arch: ["amd64", "arm64", "ppc64el", "s390x"]
     with:
       flavor: ${{ matrix.patch }}
       arch: ${{ matrix.arch }}
