@@ -154,7 +154,10 @@ def cmd_channel_available(args: argparse.Namespace) -> int:
 
 
 def _run_command(
-    cmd: list[str], check: bool = True, capture_output: bool = False
+    cmd: list[str],
+    check: bool = True,
+    capture_output: bool = False,
+    timeout: int = 600,
 ) -> subprocess.CompletedProcess:
     """
     Run a shell command and handle errors.
@@ -163,12 +166,15 @@ def _run_command(
         cmd: Command and arguments as a list.
         check: If True, raises CalledProcessError on non-zero exit.
         capture_output: If True, captures stdout and stderr.
+        timeout: Maximum time in seconds to wait for command completion (default: 600).
 
     Returns:
         CompletedProcess instance.
     """
     print(f"Running: {' '.join(cmd)}")
-    result = subprocess.run(cmd, check=check, capture_output=capture_output, text=True)
+    result = subprocess.run(
+        cmd, check=check, capture_output=capture_output, text=True, timeout=timeout
+    )
     if capture_output and result.stdout:
         print(result.stdout)
     if capture_output and result.stderr:
@@ -326,7 +332,8 @@ def _run_integration_tests(
     print(f"  k8s-worker charm: {k8s_worker_charm_file}")
     print(f"  snap tarball: {snap_tarball}")
 
-    result = _run_command(
+    # Run tests without timeout as they can take a long time
+    result = subprocess.run(
         [
             "tox",
             "-r",
@@ -343,6 +350,7 @@ def _run_integration_tests(
         ],
         check=False,
         capture_output=False,
+        text=True,
     )
 
     return result.returncode
@@ -385,7 +393,7 @@ def _collect_juju_status(base_path: str) -> None:
                 "-a",
                 "config",
                 "-o",
-                debug_path + "/",
+                debug_path,
             ],
             check=False,
         )
