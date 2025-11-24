@@ -113,6 +113,16 @@ jobs:
             --channel ${{ inputs.charm-channel }} \
             --filepath $k8sWorkerChamFile \
             --base ubuntu@22.04
+      - name: Check system resources
+        run: |
+          # checking memory and cpu info to help debug CI failures
+          echo "--- Runner Host CPU Capacity ---"
+          echo "Total logical cores on the host:"
+          nproc --all 
+
+          echo "--- Runner Host Memory Capacity (GB) ---"
+          echo "Total physical RAM on the host:"
+          free -g
       - name: Bootstrap Juju controller (lxd)
         run: |
           juju bootstrap localhost lxd
