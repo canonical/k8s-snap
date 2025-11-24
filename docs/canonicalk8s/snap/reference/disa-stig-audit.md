@@ -16,8 +16,9 @@ DISA STIG guideline is grouped into one of the following classes:
 
 **Bootstrap**: Guidelines that can be applied during bootstrap.
 
-**Post-Deployment**: Guidelines that must be followed by users and administrators
-post-deployment and throughout the life of the cluster.
+**Post-Deployment**: Guidelines that must be followed by users and
+administrators post-deployment and throughout the life of the
+cluster.
 
 **Not Applicable**: Not applicable to {{product}}.
 
