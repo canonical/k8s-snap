@@ -17,6 +17,9 @@ from typing import Optional
 
 import requests
 
+# Constants
+DEBUG_DIR = "tmp"  # Directory name for debug artifacts
+
 
 def add_charm_cmds(parser: argparse.ArgumentParser) -> None:
     """
@@ -157,7 +160,7 @@ def _run_command(
     cmd: list[str],
     check: bool = True,
     capture_output: bool = False,
-    timeout: int = 600,
+    timeout: int | None = 600,
 ) -> subprocess.CompletedProcess:
     """
     Run a shell command and handle errors.
@@ -166,7 +169,8 @@ def _run_command(
         cmd: Command and arguments as a list.
         check: If True, raises CalledProcessError on non-zero exit.
         capture_output: If True, captures stdout and stderr.
-        timeout: Maximum time in seconds to wait for command completion (default: 600).
+        timeout: Maximum time in seconds to wait for command completion.
+                 Use None for no timeout (default: 600).
 
     Returns:
         CompletedProcess instance.
@@ -333,7 +337,7 @@ def _run_integration_tests(
     print(f"  snap tarball: {snap_tarball}")
 
     # Run tests without timeout as they can take a long time
-    result = subprocess.run(
+    result = _run_command(
         [
             "tox",
             "-r",
@@ -350,7 +354,7 @@ def _run_integration_tests(
         ],
         check=False,
         capture_output=False,
-        text=True,
+        timeout=None,
     )
 
     return result.returncode
@@ -364,7 +368,7 @@ def _collect_juju_status(base_path: str) -> None:
         base_path: Base directory where tmp/ subdirectory will be created for artifacts.
     """
     print("Collecting Juju status...")
-    debug_path = os.path.join(base_path, "tmp")
+    debug_path = os.path.join(base_path, DEBUG_DIR)
     os.makedirs(debug_path, exist_ok=True)
 
     # Collect juju status
