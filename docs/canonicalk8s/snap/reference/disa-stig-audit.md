@@ -5840,6 +5840,8 @@ The final line of the output will be `PASS`.
 
 ## Bootstrap class 
 
+(242384)=
+
 ### [V-242384]
 
 **Guideline:** The Kubernetes Scheduler must have secure binding
@@ -5910,6 +5912,8 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 The final line of the output will be `PASS`.
 
+(242385)=
+
 ### [V-242385]
 
 **Guideline:** The Kubernetes Controller Manager must have secure binding
@@ -5978,6 +5982,8 @@ test $? -eq 0 && echo PASS || echo FAIL
 ```
 
 The final line of the output will be `PASS`.
+
+(242400)=
 
 ### [V-242400]
 
@@ -6051,6 +6057,8 @@ start with `UNSET`.
 
 The final line of the output will be `PASS`.
 
+(242402)=
+
 ### [V-242402]
 
 **Guideline:** The Kubernetes API Server must have an audit log path set
@@ -6123,6 +6131,7 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 The final line of the output will be `PASS`.
 
+(242403)=
 
 ### [V-242403]
 
@@ -6216,6 +6225,7 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 The final line of the output will be `PASS`.
 
+(242434)=
 
 ### [V-242434]
 
@@ -6282,7 +6292,7 @@ start with `UNSET`.
 
 The final line of the output will be `PASS`.
 
-
+(242461)=
 
 ### [V-242461]
 
@@ -6351,6 +6361,7 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 The final line of the output will be `PASS`.
 
+(242462)=
 
 ### [V-242462]
 
@@ -6417,6 +6428,7 @@ grep -E '\-\-audit-log-maxsize=' '/var/snap/k8s/common/args/kube-apiserver'
 The output should indicate that `audit-log-maxsize` is set to a value less or
 equal to `100`.
 
+(242463)=
 
 ### [V-242463]
 
@@ -6481,7 +6493,7 @@ grep -E '\-\-audit-log-maxbackup=' '/var/snap/k8s/common/args/kube-apiserver'
 The output should indicate that `audit-log-maxbackup` is set to a value less or
 equal to `10`.
 
-
+(242464)=
 
 ### [V-242464]
 
@@ -6544,6 +6556,7 @@ grep -E '\-\-audit-log-maxage=' '/var/snap/k8s/common/args/kube-apiserver'
 
 The output should indicate a `audit-log-maxage` value of 30.
 
+(242465)=
 
 ### [V-242465]
 
@@ -6608,6 +6621,8 @@ test $? -eq 0 && echo PASS || echo FAIL
 ```
 
 The final line of the output will be `PASS`.
+
+(245541)=
 
 ### [V-245541]
 
@@ -6677,6 +6692,8 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 The final line of the output will be `PASS`.
 
+(254800)=
+
 ### [V-254800]
 
 **Guideline:** Kubernetes must have a Pod Security Admission control file
@@ -6718,6 +6735,8 @@ configured
 
 ## Post-deployment class
 
+(242383)= 
+
 ### [V-242383]
 
 **Guideline:** User-managed resources must be created in dedicated namespaces
@@ -6750,6 +6769,8 @@ configured
 >     kubectl -n kube-node-lease get all | grep -v "^(service|NAME)"
 >
 
+(242393)=
+
 ### [V-242393]
 
 **Guideline:** Kubernetes Worker Nodes must not have sshd service running
@@ -6779,7 +6800,7 @@ configured
 > requirement is "not a finding"."
 >
 
-
+(242394)=
 
 ### [V-242394]
 
@@ -6810,7 +6831,7 @@ configured
 > requirement is "not a finding"."
 >
 
-
+(242410)=
 
 ### [V-242410]
 
@@ -6845,6 +6866,7 @@ Category Assurance List (PPSM CAL)
 > list will need to be updated each time a new service is exposed
 > externally.
 
+(242411)=
 
 ### [V-242411]
 
@@ -6882,7 +6904,7 @@ Category Assurance List (PPSM CAL)
 > list will need to be updated each time a new service is exposed
 > externally.
 
-
+(242412)=
 
 ### [V-242412]
 
@@ -6920,7 +6942,7 @@ Category Assurance List (PPSM CAL)
 > list will need to be updated each time a new service is exposed
 > externally.
 
-
+(242413)=
 
 ### [V-242413]
 
@@ -6984,6 +7006,8 @@ Assurance List (PPSM CAL)
 
 `````
 
+(242414)=
+
 ### [V-242414]
 
 **Guideline:** The Kubernetes cluster must use non-privileged host ports for
@@ -7017,6 +7041,7 @@ user pods
 >     kubectl -n NAMESPACE get pod PODNAME -o yaml | grep -i port
 >
 
+(242415)=
 
 ### [V-242415]
 
@@ -7073,6 +7098,7 @@ sudo k8s kubectl get daemonset --all-namespaces -o yaml| grep -A5 "env:"
 sudo k8s kubectl get statefulset --all-namespaces -o yaml| grep -A5 "env:"
 ```
 
+(242417)=
 
 ### [V-242417]
 
