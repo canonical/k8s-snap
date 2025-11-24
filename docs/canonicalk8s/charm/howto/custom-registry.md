@@ -90,7 +90,7 @@ juju config k8s containerd-custom-registries='[{
 
 ### Sharing with all workers in the cluster
 
-This juju configuration only applies to control-plane nodes, but likely is
+This juju configuration only applies to control-plane nodes, but is likely
 intended for the entire cluster. One should ensure the `containerd` relation
 is integrated against each worker application in the model.
 
