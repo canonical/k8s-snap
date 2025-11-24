@@ -89,16 +89,6 @@ var clusterRecoverOpts struct {
 	SkipK8sDqlite     bool
 }
 
-func logDebugf(format string, args ...interface{}) {
-	// TODO: there may be a problem with the logger, only log.V(0) messages
-	// get printed regardless of the specified log level. For now, we'll use our
-	// own helper.
-	if rootCmdOpts.logDebug {
-		msg := fmt.Sprintf(format, args...)
-		log.L().Info(msg)
-	}
-}
-
 func newClusterRecoverCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "cluster-recover",
@@ -186,10 +176,10 @@ func recoveryCmdPrechecks(cmd *cobra.Command) error {
 		return fmt.Errorf("interactive mode requested in a non-interactive terminal")
 	}
 
-	if clusterRecoverOpts.K8sDqliteStateDir == "" {
+	if clusterRecoverOpts.K8sDqliteStateDir == "" && !clusterRecoverOpts.SkipK8sDqlite {
 		return fmt.Errorf("k8s-dqlite state dir not specified")
 	}
-	if rootCmdOpts.stateDir == "" {
+	if rootCmdOpts.stateDir == "" && !clusterRecoverOpts.SkipK8sd {
 		return fmt.Errorf("k8sd state dir not specified")
 	}
 
