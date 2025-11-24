@@ -193,4 +193,64 @@ func validateValues(g Gomega, values map[string]any, dns types.DNS, kubelet type
 	plugins := servers[0]["plugins"].([]map[string]any)
 	g.Expect(plugins[3]["parameters"]).To(ContainSubstring(kubelet.GetClusterDomain()))
 	g.Expect(plugins[5]["parameters"]).To(ContainSubstring(strings.Join(dns.GetUpstreamNameservers(), " ")))
+
+	// Validate PriorityClass
+	g.Expect(values["priorityClassName"]).To(Equal("system-node-critical"))
+
+	// Validate HPA configuration
+	hpa := values["hpa"].(map[string]any)
+	g.Expect(hpa["enabled"]).To(Equal(true))
+	g.Expect(hpa["minReplicas"]).To(Equal(2))
+	g.Expect(hpa["maxReplicas"]).To(Equal(10))
+	
+	metrics := hpa["metrics"].([]map[string]any)
+	g.Expect(metrics).To(HaveLen(2))
+	
+	// CPU metric
+	g.Expect(metrics[0]["type"]).To(Equal("Resource"))
+	cpuResource := metrics[0]["resource"].(map[string]any)
+	g.Expect(cpuResource["name"]).To(Equal("cpu"))
+	cpuTarget := cpuResource["target"].(map[string]any)
+	g.Expect(cpuTarget["type"]).To(Equal("Utilization"))
+	g.Expect(cpuTarget["averageUtilization"]).To(Equal(80))
+	
+	// Memory metric
+	g.Expect(metrics[1]["type"]).To(Equal("Resource"))
+	memResource := metrics[1]["resource"].(map[string]any)
+	g.Expect(memResource["name"]).To(Equal("memory"))
+	memTarget := memResource["target"].(map[string]any)
+	g.Expect(memTarget["type"]).To(Equal("Utilization"))
+	g.Expect(memTarget["averageUtilization"]).To(Equal(70))
+
+	// Validate PDB configuration
+	pdb := values["podDisruptionBudget"].(map[string]any)
+	g.Expect(pdb["minAvailable"]).To(Equal(1))
+
+	// Validate PodAntiAffinity
+	affinity := values["affinity"].(map[string]any)
+	podAntiAffinity := affinity["podAntiAffinity"].(map[string]any)
+	preferred := podAntiAffinity["preferredDuringSchedulingIgnoredDuringExecution"].([]map[string]any)
+	g.Expect(preferred).To(HaveLen(1))
+	g.Expect(preferred[0]["weight"]).To(Equal(100))
+	
+	podAffinityTerm := preferred[0]["podAffinityTerm"].(map[string]any)
+	g.Expect(podAffinityTerm["topologyKey"]).To(Equal("kubernetes.io/hostname"))
+	labelSelector := podAffinityTerm["labelSelector"].(map[string]any)
+	matchLabels := labelSelector["matchLabels"].(map[string]any)
+	g.Expect(matchLabels["app.kubernetes.io/name"]).To(Equal("coredns"))
+	g.Expect(matchLabels["app.kubernetes.io/instance"]).To(Equal("coredns"))
+
+	// Validate TopologySpreadConstraints
+	topologySpread := values["topologySpreadConstraints"].([]map[string]any)
+	g.Expect(topologySpread).To(HaveLen(2))
+	
+	// Zone constraint
+	g.Expect(topologySpread[0]["maxSkew"]).To(Equal(1))
+	g.Expect(topologySpread[0]["topologyKey"]).To(Equal("topology.kubernetes.io/zone"))
+	g.Expect(topologySpread[0]["whenUnsatisfiable"]).To(Equal("ScheduleAnyway"))
+	
+	// Hostname constraint
+	g.Expect(topologySpread[1]["maxSkew"]).To(Equal(1))
+	g.Expect(topologySpread[1]["topologyKey"]).To(Equal("kubernetes.io/hostname"))
+	g.Expect(topologySpread[1]["whenUnsatisfiable"]).To(Equal("ScheduleAnyway"))
 }
