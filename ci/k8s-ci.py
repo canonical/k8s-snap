@@ -4,6 +4,7 @@
 import argparse
 import sys
 
+from cmds.charm import add_charm_cmds
 from cmds.mattermost import add_mattermost_cmds
 
 
@@ -12,6 +13,7 @@ def main(argv: list[str]) -> int:
     subparsers = parser.add_subparsers(dest="subcommand", required=True)
 
     # register subcommands
+    add_charm_cmds(subparsers)
     add_mattermost_cmds(subparsers)
 
     args = parser.parse_args(argv)
