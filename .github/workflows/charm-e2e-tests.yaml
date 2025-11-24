@@ -93,7 +93,7 @@ jobs:
       - name: Install charmcraft, juju, juju-crashdump
         run: |
           sudo snap install charmcraft --classic
-          sudo snap install juju --channel=2.9/stable --classic
+          sudo snap install juju --channel=3/stable --classic
           sudo snap install juju-crashdump --classic
       - name: Download charms ${{ inputs.charm-channel }} ${{ inputs.arch }}
         run: |
