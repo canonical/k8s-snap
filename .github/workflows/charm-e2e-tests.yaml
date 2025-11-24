@@ -60,15 +60,13 @@ jobs:
     needs: check-charm-channel
     if: needs.check-charm-channel.outputs.channel-available == 'true'
     runs-on: ${{ inputs.arch == 'arm64' && 'self-hosted-linux-arm64-jammy-large' || 'self-hosted-linux-amd64-jammy-xlarge' }}
-    env:
-      K8S_OPERATOR: k8s-operator
     steps:
       - name: Check out code
         uses: actions/checkout@v4
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.12'
       - name: Download k8s-snap
         id: download-snap
         uses: ./.github/actions/download-k8s-snap
@@ -77,84 +75,22 @@ jobs:
           artifact: ${{ inputs.artifact }}
       - name: Setup LXD
         uses: canonical/setup-lxd@v0.1.3
-      - name: Install virtualenv
-        run: sudo apt install -y python3.10-venv
-      - name: Generate snap tarball
-        run: |
-          mkdir snap_installation
-          mv ${{ steps.download-snap.outputs.snap-path }} snap_installation/k8s.snap
-          tar cvzf snap_installation.tar.gz -C snap_installation/ .
       - name: Setup Astral UV
         uses: astral-sh/setup-uv@v6.4.1
-        with:
-          python-version: ${{ env.python-version }}
       - name: Install tox with UV
         run: uv tool install tox --with tox-uv
-      - name: Install charmcraft, juju, juju-crashdump
+      - name: Run charm integration tests
+        working-directory: ci
         run: |
-          sudo snap install charmcraft --classic
-          sudo snap install juju --classic
-          sudo snap install juju-crashdump --classic
-      - name: Download charms ${{ inputs.charm-channel }} ${{ inputs.arch }}
-        run: |
-          # The operator tests expect the charm file name to have the
-          # ${charmName}_ prefix and include the arch and ubuntu base.
-          # https://github.com/canonical/k8s-operator/blob/eba756ddc723e9aa5242c7804712807495356c6f/tests/integration/helpers.py#L334-L342
-          # The charm base (e.g. ubuntu@22.04) must match the one used by other
-          # related charms (e.g. ceph) used by the k8s-operator tests.
-          arch=${{ inputs.arch }}
-          k8sCharmFile=${GITHUB_WORKSPACE}/k8s_ubuntu-22.04-${arch}.charm
-          k8sWorkerChamFile=${GITHUB_WORKSPACE}/k8s-worker_ubuntu-22.04-${arch}.charm
-          juju download k8s \
-            --channel ${{ inputs.charm-channel }} \
-            --filepath $k8sCharmFile \
-            --base ubuntu@22.04
-          juju download k8s-worker \
-            --channel ${{ inputs.charm-channel }} \
-            --filepath $k8sWorkerChamFile \
-            --base ubuntu@22.04
-      - name: Bootstrap Juju controller (lxd)
-        run: |
-          juju bootstrap localhost lxd
-      - uses: actions/checkout@v4
-        with:
-          repository: canonical/k8s-operator
-          ref: ${{ github.base_ref || github.ref_name }}
-          path: ${{ env.K8S_OPERATOR }}
-      - name: Disable lxd ipv6
-        run: |
-          # The charm tests can't handle ipv6 dualstack.
-          lxc network set lxdbr0 ipv6.address none
-      - name: Run e2e tests
-        run: |
-          set -x
-          arch=${{ inputs.arch }}
-          k8sCharmFile=${GITHUB_WORKSPACE}/k8s_ubuntu-22.04-${arch}.charm
-          k8sWorkerChamFile=${GITHUB_WORKSPACE}/k8s-worker_ubuntu-22.04-${arch}.charm
-          snapInstallRes=${GITHUB_WORKSPACE}/snap_installation.tar.gz
-          ls -lh $charmFile
-          ls -lh $snapInstallRes
-          cd ${{ env.K8S_OPERATOR }}
-          tox -r -e integration \
-            -- \
-            --charm-file $k8sCharmFile \
-            --charm-file $k8sWorkerChamFile \
-            --snap-installation-resource $snapInstallRes \
-            'tests/integration/test_k8s.py::test_nodes_ready'
-      - name: Collect Juju Status
-        if: failure()
-        id: collect-juju-status
-        run: |
-          set -x
-          path=${{ env.K8S_OPERATOR }}/tmp
-          mkdir -p $path
-          juju status 2>&1 | tee $path/juju-status.txt
-          juju-crashdump -s -m controller -a debug-layer -a config -o $path/
-          mv ${{ env.K8S_OPERATOR }}/juju-crashdump-* $path/ || true
-          echo "path=${path}/" >> $GITHUB_OUTPUT
+          tox -e k8s-ci -- charm integration-test \
+            --k8s-snap-path "${{ steps.download-snap.outputs.snap-path }}" \
+            --charm-channel "${{ inputs.charm-channel }}" \
+            --arch "${{ inputs.arch }}" \
+            --k8s-operator-ref "${{ github.base_ref || github.ref_name }}" \
+            --workspace "${{ github.workspace }}"
       - name: Upload debug artifacts
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: charm-e2e-tests-${{ inputs.arch }}
-          path: ${{ steps.collect-juju-status.outputs.path }}
+          path: ${{ github.workspace }}/k8s-operator/tmp/
