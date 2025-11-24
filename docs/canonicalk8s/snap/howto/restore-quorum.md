@@ -1,6 +1,6 @@
 # How to recover a cluster after quorum loss
 
-Highly available {{product}} clusters are designed to tolerate the loss of 
+Highly available {{product}} clusters are designed to tolerate the loss of
 one or more nodes. Both [etcd] and [Dqlite] use [Raft] protocol
 where an elected leader holds the definitive copy of the database, which is
 then replicated on two or more secondary nodes.
@@ -9,19 +9,19 @@ When the majority of the nodes are lost, the cluster becomes unavailable.
 If at least one database node survived, the cluster can be recovered using the
 steps outlined in this document.
 
-{{product}} relies on two separate distributed datastores. The first 
-is a Dqlite-based cluster datastore used to manage the distribution's state. 
-The second database stores the Kubernetes objects' state and is either etcd 
-by default or Dqlite, depending on user configuration. For more information, 
+{{product}} relies on two separate distributed datastores. The first
+is a Dqlite-based cluster datastore used to manage the distribution's state.
+The second database stores the Kubernetes objects' state and is either etcd
+by default or Dqlite, depending on user configuration. For more information,
 please see [the architecture guide].
 
 ```{warning}
-This guide can be used to recover the cluster datastore and the {{product}} 
-managed datastore, which can be either etcd or Dqlite. Persistent volumes on 
+This guide can be used to recover the cluster datastore and the {{product}}
+managed datastore, which can be either etcd or Dqlite. Persistent volumes on
 the lost nodes are *not* recovered.
 ```
 
-If you have set up Dqlite as the datastore, please consult the 
+If you have set up Dqlite as the datastore, please consult the
 [Dqlite configuration reference] before moving forward.
 
 
@@ -34,34 +34,42 @@ must be stopped on every node:
 sudo snap stop k8s
 ```
 
-## Recover the cluster datastore 
+## Recover the cluster datastore
 
 Choose one of the remaining healthy cluster nodes that has the most recent
-version of the Raft log. 
+version of the Raft log.
 
 To find the node with the most recent log entries, navigate to
 `/var/snap/k8s/common/var/lib/k8sd/state/database` on each node and
-look at all the segment files matching the format 
+look at all the segment files matching the format
 `0000000000006145-0000000000006823` (this is just an example).
-For each node, identify the segment file with the highest 
-end-segment index (e.g., 6823 in the example), then compare across 
+For each node, identify the segment file with the highest
+end-segment index (e.g., 6823 in the example), then compare across
 nodes and select the one with the highest index overall.
 
-Use the `cluster-recover` command to reconfigure 
-the Raft members and generate recovery tarballs that are used to restore the 
-cluster datastore on lost nodes. The command is an interactive tool that 
+Use the `cluster-recover` command to reconfigure
+the Raft members and generate recovery tarballs that are used to restore the
+cluster datastore on lost nodes. The command is an interactive tool that
 allows you to modify the relevant files and provides useful hints at each step.
+By default, the command will recover both the cluster and Kubernetes datastore
+Dqlite databases. If one of the databases needs to be skipped, use the
+`--skip-k8sd` or `--skip-k8s-dqlite` flags.
+
 On the node with the most recent Raft logs, run:
 
 `````{tabs}
 
 ````{group-tab} etcd
 
+```{note}
+This command creates a backup only for `k8sd`.
+To snapshot `etcd`, follow the upstream snapshot procedure described in the next section.
+```
+
 ```
 sudo /snap/k8s/current/bin/k8sd cluster-recover \
     --state-dir=/var/snap/k8s/common/var/lib/k8sd/state \
-    --k8s-dqlite-state-dir=/var/snap/k8s/common/var/lib/k8s-dqlite \
-    --log-level 0
+    --log-level 0 \
     --skip-k8s-dqlite
 ```
 
@@ -80,24 +88,17 @@ sudo /snap/k8s/current/bin/k8sd cluster-recover \
 
 `````
 
-```{note}
-By default, the command will recover both the cluster and Kubernetes datastore 
-Dqlite databases. If one of the databases needs to be skipped, use the 
-`--skip-k8sd` or `--skip-k8s-dqlite` flags. This can also be useful when 
-using an external etcd database.
-```
-
-Use the command to update the ``cluster.yaml`` file, changing the role of the 
-lost nodes to "spare". Additionally, verify the addresses and IDs specified 
-in ``cluster.yaml``, ``info.yaml`` and ``daemon.yaml`` are correct, 
+Use the command to update the ``cluster.yaml`` file, changing the role of the
+lost nodes to "spare". Additionally, verify the addresses and IDs specified
+in ``cluster.yaml``, ``info.yaml`` and ``daemon.yaml`` are correct,
 especially if database files were moved across nodes.
 
 Adjust the log level for additional debug messages by increasing its
 value. Database backups are created by the command before making any changes.
 
 Copy the generated ``recovery_db.tar.gz`` to all remaining nodes at
-``/var/snap/k8s/common/var/lib/k8sd/state/recovery_db.tar.gz``. When we 
-restart k8sd in a later step, it will load the archive and perform the 
+``/var/snap/k8s/common/var/lib/k8sd/state/recovery_db.tar.gz``. When we
+restart k8sd in a later step, it will load the archive and perform the
 necessary recovery steps.
 
 ```{note}
@@ -116,9 +117,9 @@ This allows automating the recovery procedure.
 
 ### Take an etcd snapshot
 
-Choose one of the remaining cluster nodes. Install `etcdctl` 
-and `etcdutl` binaries following the 
-[etcd upstream installation instructions]. With sudo privilege, 
+Choose one of the remaining cluster nodes. Install `etcdctl`
+and `etcdutl` binaries following the
+[etcd upstream installation instructions]. With sudo privilege,
 run `etcdctl` to verify you have access to etcd cluster node's data:
 
 ```
@@ -128,7 +129,7 @@ sudo etcdctl --cacert /etc/kubernetes/pki/etcd/ca.crt \
         snapshot save snapshot.db
 ```
 
-Follow the [upstream instructions] to take a snapshot of the Keyspace. 
+Follow the [upstream instructions] to take a snapshot of the Keyspace.
 
 ### Restore the etcd snapshot
 
@@ -142,7 +143,7 @@ etcdutl snapshot restore snapshot.db \
       --data-dir /var/snap/k8s/common/var/lib/etcd/data
 ```
 
-Get the `<NAME>` and `<ADVERTISE_PEER_URLS>` for each node by 
+Get the `<NAME>` and `<ADVERTISE_PEER_URLS>` for each node by
 executing the following command:
 
 ```
@@ -155,7 +156,7 @@ for each node the output could be something like:
 --initial-advertise-peer-urls=https://10.246.154.125:2380 --name=node-1
 ```
 
-The `<INITIAL_CLUSTER>` will be the comma-separated list of all remaining 
+The `<INITIAL_CLUSTER>` will be the comma-separated list of all remaining
 cluster members. The list should be created by gathering the results from
 running the following command on each node:
 
@@ -184,7 +185,7 @@ etcdutl snapshot restore snapshot.db \
 
 ````{group-tab} Dqlite
 
-The k8s-dqlite recovery tarballs that were created with the `cluster-recover` 
+The k8s-dqlite recovery tarballs that were created with the `cluster-recover`
 command need to be copied over to all cluster
 nodes.
 
@@ -219,7 +220,7 @@ sudo cp /var/snap/k8s/common/var/lib/k8s-dqlite.bkp/info.yaml \
 
 `````
 
-## Start the services 
+## Start the services
 
 For each node, start the {{product}} services by running:
 
