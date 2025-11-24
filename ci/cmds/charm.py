@@ -348,15 +348,15 @@ def _run_integration_tests(
     return result.returncode
 
 
-def _collect_juju_status(workspace: str) -> None:
+def _collect_juju_status(base_path: str) -> None:
     """
     Collect Juju status and create crashdump for debugging.
 
     Args:
-        workspace: Workspace directory for artifacts.
+        base_path: Base directory where tmp/ subdirectory will be created for artifacts.
     """
     print("Collecting Juju status...")
-    debug_path = os.path.join(workspace, "tmp")
+    debug_path = os.path.join(base_path, "tmp")
     os.makedirs(debug_path, exist_ok=True)
 
     # Collect juju status
