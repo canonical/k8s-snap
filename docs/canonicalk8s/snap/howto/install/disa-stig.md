@@ -190,7 +190,7 @@ configuration file for
 [bootstrapping](#bootstrap-the-first-control-plane-node) the first node
 of a cluster and
 `/var/snap/k8s/common/etc/templates/disa-stig/control-plane.yaml` is the
-control plane node join configuration file for [joining additional control plane
+control plane node-join configuration file for [joining additional control plane
 nodes](#join-control-plane-nodes). Both of these configuration files
 apply settings to align with the following recommendations:
 
@@ -204,10 +204,10 @@ apply settings to align with the following recommendations:
 | {ref}`245541`                                                                         | Kubernetes Kubelet must not disable timeouts                          |
 | {ref}`254800`                                                                         | Kubernetes must have a Pod Security Admission control file configured |
 
-#### Worker node join configuration file
+#### Worker node-join configuration file
 
 `/var/snap/k8s/common/etc/templates/disa-stig/worker.yaml` is the
-worker node join configuration file
+worker node-join configuration file
 for [joining worker nodes](#join-worker-nodes).
 It applies settings to align with the following recommendations:
 
