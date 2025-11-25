@@ -68,10 +68,12 @@ jobs:
         with: 
           repository: canonical/k8s-operator
           ref: ${{ github.base_ref || github.ref_name }}
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Setup Astral UV
-        uses: astral-sh/setup-uv@v7.4.1
-        with: 
-          python-version: "3.12"
+        uses: astral-sh/setup-uv@v6.4.1
       - name: Install tox with UV
         run: uv tool install tox --with tox-uv
       - name: Select tests for ${{inputs.arch}}
