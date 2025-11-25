@@ -98,7 +98,7 @@ Once a node is configured, changing certain settings is more difficult
 and may require re-deploying the node or cluster.
 ```
 
-#### Bootstrap the first control-plane node
+#### Bootstrap the first control plane node
 
 Initialize the first control plane node using the
 bootstrap configuration file:
