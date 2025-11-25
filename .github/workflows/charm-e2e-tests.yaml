@@ -89,12 +89,17 @@ jobs:
           echo "tests=${tests}" >> "$GITHUB_OUTPUT"
 
   charm-e2e-tests:
-    name: Test ${{ inputs.arch }} ${{ inputs.artifact }}
-    needs: check-charm-channel
+    name: Test ${{ inputs.arch }} ${{ matrix.test }}
+    needs: [check-charm-channel, select-tests]
     if: needs.check-charm-channel.outputs.channel-available == 'true'
     runs-on: ${{ inputs.arch == 'arm64' && 'self-hosted-linux-arm64-jammy-large' || 'self-hosted-linux-amd64-jammy-xlarge' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        test: ${{fromJson(needs.select-tests.outputs.tests)}}
     env:
       K8S_OPERATOR: k8s-operator
+    timeout-minutes: 600
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -169,22 +174,23 @@ jobs:
         run: |
           # The charm tests can't handle ipv6 dualstack.
           lxc network set lxdbr0 ipv6.address none
-      - name: Run e2e tests
+      - name: Run e2e test ${{matrix.test}}
         run: |
           set -x
           arch=${{ inputs.arch }}
           k8sCharmFile=${GITHUB_WORKSPACE}/k8s_ubuntu-22.04-${arch}.charm
-          k8sWorkerChamFile=${GITHUB_WORKSPACE}/k8s-worker_ubuntu-22.04-${arch}.charm
+          k8sWorkerCharmFile=${GITHUB_WORKSPACE}/k8s-worker_ubuntu-22.04-${arch}.charm
           snapInstallRes=${GITHUB_WORKSPACE}/snap_installation.tar.gz
-          ls -lh $charmFile
+          ls -lh $k8sCharmFile
           ls -lh $snapInstallRes
           cd ${{ env.K8S_OPERATOR }}
           tox -r -e integration \
             -- \
             --charm-file $k8sCharmFile \
-            --charm-file $k8sWorkerChamFile \
+            --charm-file $k8sWorkerCharmFile \
             --snap-installation-resource $snapInstallRes \
-            'tests/integration/test_k8s.py::test_nodes_ready'
+            --arch ${{ inputs.arch }} \
+            'tests/integration/${{ matrix.test }}.py'
       - name: Collect Juju Status
         if: failure()
         id: collect-juju-status
@@ -200,5 +206,5 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: charm-e2e-tests-${{ inputs.arch }}
+          name: charm-e2e-tests-${{ inputs.arch }}-${{matrix.test}}
           path: ${{ steps.collect-juju-status.outputs.path }}
