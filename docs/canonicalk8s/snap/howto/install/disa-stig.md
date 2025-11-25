@@ -85,14 +85,14 @@ overridden by another higher order file.
 
 ## Apply Kubernetes STIG
 
-{{product}} provides [configuration files] to apply
+{{product}} provides example [configuration files] to apply
 DISA STIG specific settings.
 
 ### Set up control plane nodes
 
 ```{attention}
 Before bootstrapping or joining control plane nodes, review the
-respective [configuration files](#configuration-files) as well as the
+example [configuration files](#configuration-files) as well as the
 alternative configuration options for [audit logs and PSS](#audit-logs-and-pss-configuration).
 Once a node is configured, changing certain settings is more difficult
 and may require re-deploying the node or cluster.
@@ -101,7 +101,7 @@ and may require re-deploying the node or cluster.
 #### Bootstrap the first control plane node
 
 Initialize the first control plane node using the
-bootstrap configuration file:
+example bootstrap configuration file:
 
 ```
 sudo k8s bootstrap --file /var/snap/k8s/common/etc/templates/disa-stig/bootstrap.yaml
@@ -117,7 +117,7 @@ sudo k8s get-join-token <joining-node-hostname>
 ```
 
 Then join the new control plane node using the
-respective node-join configuration file:
+example node-join configuration file:
 
 ```
 sudo k8s join-cluster --file=/var/snap/k8s/common/etc/templates/disa-stig/control-plane.yaml <join-token>
@@ -131,7 +131,7 @@ First retrieve a join token from an existing control plane node:
 sudo k8s get-join-token <joining-node-hostname> --worker
 ```
 
-Then join the new worker node using the respective node-join configuration file:
+Then join the new worker node using the example node-join configuration file:
 
 ```
 sudo k8s join-cluster --file=/var/snap/k8s/common/etc/templates/disa-stig/worker.yaml <join-token>
@@ -181,9 +181,9 @@ instance each time a new service is exposed externally).
 
 ## Advanced Configuration
 
-### Configuration Files
+### Configuration Example Files
 
-#### Control plane configuration files
+#### Control plane example configuration files
 
 `/var/snap/k8s/common/etc/templates/disa-stig/bootstrap.yaml` is the
 configuration file for
@@ -204,7 +204,7 @@ apply settings to align with the following recommendations:
 | {ref}`245541`                                                                         | Kubernetes Kubelet must not disable timeouts                          |
 | {ref}`254800`                                                                         | Kubernetes must have a Pod Security Admission control file configured |
 
-#### Worker node-join configuration file
+#### Worker node-join example configuration file
 
 `/var/snap/k8s/common/etc/templates/disa-stig/worker.yaml` is the
 worker node-join configuration file
