@@ -54,6 +54,39 @@ jobs:
           else
             echo "channel-available=false" >> $GITHUB_OUTPUT
           fi
+  select-tests:
+    runs-on: ubuntu-24.04
+    needs: check-charm-channel
+    if: needs.check-charm-channel.outputs.channel-available == 'true'
+    permissions:
+      contents: read
+    outputs:
+      tests: ${{steps.select.outputs.tests}}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with: 
+          repository: canonical/k8s-operator
+          ref: ${{ github.base_ref || github.ref_name }}
+      - name: Setup Astral UV
+        uses: astral-sh/setup-uv@v7.4.1
+        with: 
+          python-version: "3.12"
+      - name: Install tox with UV
+        run: uv tool install tox --with tox-uv
+      - name: Select tests for ${{inputs.arch}}
+        id: select
+        run: |
+          list_modules() {
+            ARCH=$1
+            MODULES=$(tox -e integration -- --collect-only -q --arch "$ARCH" 2>/dev/null \
+              | grep -E '<Module test_.*\.py>' \
+              | sed -E 's/.*<Module (test_[^.]*)\.py>.*/\1/' \
+              | sort -u)
+            jq -c -R -s 'split("\n")[:-1]' <<< "${MODULES}"
+          }
+          tests=$(list_modules ${{ inputs.arch }})
+          echo "tests=${tests}" >> "$GITHUB_OUTPUT"
 
   charm-e2e-tests:
     name: Test ${{ inputs.arch }} ${{ inputs.artifact }}
