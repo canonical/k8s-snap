@@ -192,7 +192,7 @@ jobs:
             --charm-file $k8sWorkerCharmFile \
             --snap-installation-resource $snapInstallRes \
             --arch ${{ inputs.arch }} \
-            'tests/integration/${{ matrix.test }}.py'
+            -k "${{ matrix.test }}"
       - name: Collect Juju Status
         if: failure()
         id: collect-juju-status
