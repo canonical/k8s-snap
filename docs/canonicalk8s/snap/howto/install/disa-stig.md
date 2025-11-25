@@ -148,7 +148,8 @@ sudo systemctl disable ssh.service ssh.socket
 According to rule {ref}`242393` and {ref}`242394` Kubernetes worker nodes must not
 have sshd service running or enabled. The host STIG rule [V-270665] on the
 other hand expects sshd to be installed on the host. To comply with both
-rules, leave SSH installed, but disable the service.
+rules, leave SSH installed, but disable the service. Alternatively, SSH
+can be removed and the exception documented.
 ```
 
 ## Post-Deployment Requirements
