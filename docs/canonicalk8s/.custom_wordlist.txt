@@ -461,6 +461,7 @@ runtimes
 rw
 S3
 sandboxed
+sanitization
 SANs
 SARIF
 structs
@@ -468,6 +469,7 @@ SBOM
 scalable
 scalability
 SCHED
+schedulable
 sControlPlane
 SCTP
 sd
