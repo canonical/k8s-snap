@@ -21,7 +21,7 @@ sudo apt update
 sudo apt install ufw
 ```
 
-To verify UFW is installed try:
+Verify that UFW is installed:
 
 ```sh
 sudo ufw status verbose
@@ -34,7 +34,11 @@ before enabling the firewall:
 sudo ufw allow OpenSSH
 ```
 
-## Allow packet forwarding
+## Firewall rules for all nodes
+
+Apply the following rules on all control plane and worker nodes.
+
+### Allow packet forwarding
 
 Packet forwarding is needed because containers typically live in
 isolated networks and expect the host to route traffic between their
@@ -47,14 +51,14 @@ sudo sed -i 's|^.*net.ipv4.ip_forward.*$|net.ipv4.ip_forward=1|' /etc/sysctl.con
 sudo sysctl -p
 ```
 
-## Set forwarding rules
+### Set forwarding rules
 
 Set UFW forwarding rules using one of the following methods.
 
 `````{tabs}
 ````{group-tab} Allow system wide
 Packet forwarding can be allowed system wide by editing `/etc/default/ufw`
-and adding:
+and changing `DEFAULT_FORWARD_POLICY` to:
 
 ```sh
 DEFAULT_FORWARD_POLICY="ACCEPT"
@@ -74,61 +78,22 @@ sudo ufw route allow from 10.1.0.0/16 to 10.1.0.0/16
 ````
 `````
 
-## Allow access to the Kubernetes services
-
-Allow access to the API server on control plane nodes:
-
-```sh
-sudo ufw allow 6443/tcp
-```
-
-Allow access to kubelet on all nodes:
+### Allow access to kubelet
 
 ```sh
 sudo ufw allow 10250/tcp
 ```
 
-Allow access to kube-controller-manager and kube-scheduler on control
-plane nodes (e.g. for metrics gathering):
+### Allow access to the {{product}} daemon
 
-```sh
-sudo ufw allow 10257/tcp
-sudo ufw allow 10259/tcp
-```
-
-## Allow cluster formation
-
-To form a High Availability (HA) cluster the datastore used by
-Kubernetes (etcd or k8s-dqlite) needs to establish a direct connection
-among its peers.
-
-`````{tabs}
-````{group-tab} etcd
-Allow access to etcd on all control plane nodes:
-
-```sh
-sudo ufw allow 2380/tcp
-sudo ufw allow 2379/tcp
-```
-````
-
-````{group-tab} k8s-dqlite
-Allow access to k8s-dqlite on all control plane nodes:
-
-```sh
-sudo ufw allow 9000/tcp
-```
-````
-`````
-
-Allow access to the {{product}} daemon running on all nodes (required for
+Allow access to the {{product}} daemon (required for
 cluster formation):
 
 ```sh
 sudo ufw allow 6400/tcp
 ```
 
-## Enable CNI specific communication
+### Enable CNI communication
 
 Allow the cluster-wide Cilium agent health checks and VXLAN traffic on
 all nodes:
@@ -137,6 +102,50 @@ all nodes:
 sudo ufw allow 4240/tcp
 sudo ufw allow 8472/udp
 ```
+
+## Firewall rules for control plane nodes only
+
+Apply the following rules on all control plane nodes.
+
+### Allow Kubernetes control plane services
+
+Allow access to the API server:
+
+```sh
+sudo ufw allow 6443/tcp
+```
+
+Allow access to kube-controller-manager and kube-scheduler
+(e.g. for metrics gathering):
+
+```sh
+sudo ufw allow 10257/tcp
+sudo ufw allow 10259/tcp
+```
+
+### Allow datastore communication
+
+To form a High Availability (HA) cluster, the datastore (etcd or k8s-dqlite)
+needs to establish direct connections among control plane nodes.
+
+`````{tabs}
+````{group-tab} etcd
+Allow access to the etcd peer and client port:
+
+```sh
+sudo ufw allow 2380/tcp
+sudo ufw allow 2379/tcp
+```
+````
+
+````{group-tab} k8s-dqlite
+Allow access to the k8s-dqlite port:
+
+```sh
+sudo ufw allow 9000/tcp
+```
+````
+`````
 
 ## Enable UFW
 
