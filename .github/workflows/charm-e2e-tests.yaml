@@ -21,10 +21,44 @@ on:
         description: k8s charm channel.
         type: string
         default: latest/edge
+    secrets:
+      CHARMCRAFT_AUTH:
+        description: Charmcraft authentication token
+        required: false
 
 jobs:
+  check-charm-channel:
+    name: Check if charm channel is available
+    runs-on: ubuntu-latest
+    outputs:
+      channel-available: ${{ steps.check-channel.outputs.channel-available }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Setup Astral UV
+        uses: astral-sh/setup-uv@v6.4.1
+      - name: Install tox with UV
+        run: uv tool install tox --with tox-uv
+      - name: Check charm channel availability
+        id: check-channel
+        working-directory: ci
+        env:
+          CHARMCRAFT_AUTH: ${{ secrets.CHARMCRAFT_AUTH }}
+        run: |
+          if tox -e k8s-ci -- charm channel-available "${{ inputs.charm-channel }}"; then
+            echo "channel-available=true" >> $GITHUB_OUTPUT
+          else
+            echo "channel-available=false" >> $GITHUB_OUTPUT
+          fi
+
   charm-e2e-tests:
-    name: Test ${{ inputs.arch }} ${{ inputs.artifact }}
+    name: Test ${{ inputs.arch }} ${{ matrix.test }}
+    needs: check-charm-channel
+    if: needs.check-charm-channel.outputs.channel-available == 'true'
     runs-on: ${{ inputs.arch == 'arm64' && 'self-hosted-linux-arm64-jammy-large' || 'self-hosted-linux-amd64-jammy-xlarge' }}
     env:
       K8S_OPERATOR: k8s-operator
@@ -59,7 +93,7 @@ jobs:
       - name: Install charmcraft, juju, juju-crashdump
         run: |
           sudo snap install charmcraft --classic
-          sudo snap install juju --classic
+          sudo snap install juju --channel=3/stable --classic
           sudo snap install juju-crashdump --classic
       - name: Download charms ${{ inputs.charm-channel }} ${{ inputs.arch }}
         run: |
@@ -79,6 +113,16 @@ jobs:
             --channel ${{ inputs.charm-channel }} \
             --filepath $k8sWorkerChamFile \
             --base ubuntu@22.04
+      - name: Check system resources
+        run: |
+          # checking memory and cpu info to help debug CI failures
+          echo "--- Runner Host CPU Capacity ---"
+          echo "Total logical cores on the host:"
+          nproc --all 
+
+          echo "--- Runner Host Memory Capacity (GB) ---"
+          echo "Total physical RAM on the host:"
+          free -g
       - name: Bootstrap Juju controller (lxd)
         run: |
           juju bootstrap localhost lxd
@@ -91,22 +135,24 @@ jobs:
         run: |
           # The charm tests can't handle ipv6 dualstack.
           lxc network set lxdbr0 ipv6.address none
-      - name: Run e2e tests
+      - name: Run e2e smoke tests
         run: |
           set -x
           arch=${{ inputs.arch }}
           k8sCharmFile=${GITHUB_WORKSPACE}/k8s_ubuntu-22.04-${arch}.charm
-          k8sWorkerChamFile=${GITHUB_WORKSPACE}/k8s-worker_ubuntu-22.04-${arch}.charm
+          k8sWorkerCharmFile=${GITHUB_WORKSPACE}/k8s-worker_ubuntu-22.04-${arch}.charm
           snapInstallRes=${GITHUB_WORKSPACE}/snap_installation.tar.gz
-          ls -lh $charmFile
+          ls -lh $k8sCharmFile
           ls -lh $snapInstallRes
           cd ${{ env.K8S_OPERATOR }}
+          # Only run the smoke tests from k8s-operator.
           tox -r -e integration \
             -- \
             --charm-file $k8sCharmFile \
-            --charm-file $k8sWorkerChamFile \
+            --charm-file $k8sWorkerCharmFile \
             --snap-installation-resource $snapInstallRes \
-            'tests/integration/test_k8s.py::test_nodes_ready'
+            --arch ${{ inputs.arch }} \
+            -k "test_smoke"
       - name: Collect Juju Status
         if: failure()
         id: collect-juju-status
