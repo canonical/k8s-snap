@@ -126,8 +126,7 @@ jobs:
           free -g
       - name: Bootstrap Juju controller (lxd)
         run: |
-          juju bootstrap localhost lxd \
-            --bootstrap-constraints "mem=32G cores=12"
+          juju bootstrap localhost lxd
       - uses: actions/checkout@v4
         with:
           repository: canonical/k8s-operator
