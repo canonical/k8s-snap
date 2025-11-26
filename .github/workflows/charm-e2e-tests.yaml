@@ -27,38 +27,8 @@ on:
         required: false
 
 jobs:
-  check-charm-channel:
-    name: Check if charm channel is available
-    runs-on: ubuntu-latest
-    outputs:
-      channel-available: ${{ steps.check-channel.outputs.channel-available }}
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Setup Astral UV
-        uses: astral-sh/setup-uv@v6.4.1
-      - name: Install tox with UV
-        run: uv tool install tox --with tox-uv
-      - name: Check charm channel availability
-        id: check-channel
-        working-directory: ci
-        env:
-          CHARMCRAFT_AUTH: ${{ secrets.CHARMCRAFT_AUTH }}
-        run: |
-          if tox -e k8s-ci -- charm channel-available "${{ inputs.charm-channel }}"; then
-            echo "channel-available=true" >> $GITHUB_OUTPUT
-          else
-            echo "channel-available=false" >> $GITHUB_OUTPUT
-          fi
-
   charm-e2e-tests:
-    name: Test ${{ inputs.arch }} ${{ matrix.test }}
-    needs: check-charm-channel
-    if: needs.check-charm-channel.outputs.channel-available == 'true'
+    name: Charm E2E Smoke Tests  ${{ inputs.arch }}
     runs-on: ${{ inputs.arch == 'arm64' && 'self-hosted-linux-arm64-jammy-large' || 'self-hosted-linux-amd64-jammy-xlarge' }}
     env:
       K8S_OPERATOR: k8s-operator
