@@ -71,6 +71,8 @@ CCM
 Center
 ceph
 cephcsi
+CephCSI
+cephfs
 CephFS
 cephx
 certfile
@@ -153,6 +155,7 @@ deprecations
 deprovisioned
 dir
 DISA
+disa
 discoverable
 Diátaxis
 DMA
@@ -422,6 +425,7 @@ proxied
 provisioner
 PRs
 PSP
+PSS
 Pushgateway
 PV
 PVCs
@@ -442,6 +446,7 @@ README
 readOnlyPort
 regctl
 regsync
+remediations
 reources
 RequestResponse
 Requirer
@@ -459,6 +464,7 @@ runtimes
 rw
 S3
 sandboxed
+sanitization
 SANs
 SARIF
 structs
@@ -466,6 +472,7 @@ SBOM
 scalable
 scalability
 SCHED
+schedulable
 sControlPlane
 SCTP
 sd
@@ -494,10 +501,12 @@ sshd
 SSL
 SSLv
 stackexchange
+stateful
 staticPodPath
 stderr
 stdout
 stgraber
+stig
 STIG
 STIGs
 STONITH
@@ -549,6 +558,7 @@ unoptimized
 unschedulable
 unsquashed
 upgrader
+USG
 url
 uuid
 UV

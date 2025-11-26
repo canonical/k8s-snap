@@ -6,15 +6,15 @@ permissions:
 on:
   workflow_call:
     inputs:
-      arch:
+      arch: &arch
         description: Job runner architecture (amd64 or arm64)
         default: amd64
         type: string
-      os:
+      os: &os
         description: LXD image to use when running e2e tests
         default: ubuntu:24.04
         type: string
-      substrate:
+      substrate: &substrate
         description: Substrate to use when running e2e tests
         default: lxd
         type: string
@@ -25,7 +25,7 @@ on:
       channel:
         description: k8s snap channel
         type: string
-      test-tags:
+      test-tags: &test-tags
         description: Integration test filter tags (e.g. pull_request, up_to_weekly)
         default: pull_request
         type: string
@@ -33,12 +33,12 @@ on:
         description: Test flavor (e.g. strict), leave empty for classic
         default: ""
         type: string
-      extra-test-args:
+      extra-test-args: &extra-test-args
         description: |
           Additional pytest arguments, use "-k <test_name>" to run a specific test
         default: ""
         type: string
-      runner-tags:
+      runner-tags: &runner-tags
         description: |
           Optional dictionary mapping test names to specific runner and tags.
           This is useful if specific tests require more powerful/larger runners, e.g. for version upgrade tests.
@@ -55,52 +55,38 @@ on:
               "jammy",
               "large"
             ],
-            "tests/test_airgapped.py::test_airgapped_with_image_mirror": [
-              "self-hosted",
-              "linux",
-              "jammy",
-              "large"
-            ],
-            "tests/test_node_availability_zone.py::test_node_availability_zone[k8s-dqlite-False]": [
-              "self-hosted",
-              "linux",
-              "jammy",
-              "large"
-            ],
-            "tests/test_node_availability_zone.py::test_node_availability_zone[k8s-dqlite-True]": [
-              "self-hosted",
-              "linux",
-              "jammy",
-              "large"
-            ],
-            "tests/test_node_availability_zone.py::test_node_availability_zone[etcd-True]": [
-              "self-hosted",
-              "linux",
-              "jammy",
-              "large"
-            ],
-            "tests/test_node_availability_zone.py::test_node_availability_zone[etcd-False]": [
-              "self-hosted",
-              "linux",
-              "jammy",
-              "large"
-            ],
             "tests/test_version_upgrades.py::test_version_downgrades_with_rollback": [
               "self-hosted",
               "linux",
               "jammy",
               "large"
-            ],
+            ]
           }
-      extra-test-env:
+      test-collection-branch:
+        description: |
+          Branch to use for collecting tests. Can be used to override the default behavior of
+          collecting tests from the release branch matching the channel or main branch.
+        type: string
+        required: false
+        default: ""
+      extra-test-env: &extra-test-env
         description: 'Additional environment variables in KEY1=VALUE1,KEY2=VALUE2 format'
         type: string
         required: false
         default: ''
-      parallel:
+      parallel: &parallel
         description: Run tests in parallel using GitHub Actions matrix
         type: boolean
         default: true
+      max-parallel: &max-parallel
+        description: |
+          Maximum number of parallel jobs to run
+        default: 100
+        type: number
+      upload-results:
+        description: Whether to upload per-test JSON artifacts
+        type: boolean
+        default: false
     secrets:
       UBUNTU_PRO_TOKEN:
         description: An optional Ubuntu Pro token to use for multipass tests
@@ -110,44 +96,23 @@ on:
         required: false
 
   workflow_dispatch:
+    # Note(ben): workflow_dispatch only supports up to 10 parameters.
+    # So, we cannot duplicate all inputs here. See:
+    # https://github.com/orgs/community/discussions/8774
     inputs:
-      arch:
-        description: Job runner architecture (amd64 or arm64)
-        default: amd64
-        type: string
-      os:
-        description: LXD image to use when running e2e tests
-        default: ubuntu:24.04
-        type: string
-      substrate:
-        description: Substrate to use when running e2e tests
-        default: lxd
-        type: string
+      arch: *arch
+      os: *os
+      substrate: *substrate
       channel:
         description: k8s snap channel
         type: string
         default: latest/edge
-      test-tags:
-        description: Integration test filter tags (e.g. pull_request, up_to_weekly)
-        default: pull_request
-        type: string
-      flavor:
-        description: Test flavor (e.g. strict). Leave empty for classic
-        default: ""
-        type: string
-      extra-test-args:
-        description: Additional pytest arguments
-        default: ""
-        type: string
-      extra-test-env:
-        description: 'Additional environment variables in KEY1=VALUE1,KEY2=VALUE2 format'
-        type: string
-        required: false
-        default: ''
-      parallel:
-        description: Run tests in parallel using GitHub Actions matrix
-        type: boolean
-        default: true
+      runner-tags: *runner-tags
+      test-tags: *test-tags
+      max-parallel: *max-parallel
+      extra-test-args: *extra-test-args
+      extra-test-env: *extra-test-env
+      parallel: *parallel
 
 jobs:
   prepare:
@@ -156,9 +121,35 @@ jobs:
     outputs:
       tests: ${{ steps.collect-tests.outputs.tests }}
       test-runners: ${{ steps.compute-test-runners.outputs.test_runners }}
+      ref: ${{ steps.compute-ref.outputs.ref }}
     steps:
+      - name: Compute ref for test collection
+        id: compute-ref
+        shell: bash
+        run: |
+          # Determine from which rev to collect the tests, resolved in order:
+          # 1. inputs.test-collection-branch if set
+          # 2. release branch matching the channel (e.g. release-1.33 for 1.33-classic/edge)
+          # 3. main branch
+
+          CHANNEL="${{ inputs.channel }}"
+          REF="main"
+          # Match X.YY or X.YY-classic, optionally followed by a risk suffix like /edge or /candidate
+          # e.g. "1.33-classic/edge" or "1.33/edge"
+          if [[ -n "$CHANNEL" && "$CHANNEL" =~ ^([0-9]+)\.([0-9]+)(-classic)?(/.*)?$ ]]; then
+            REF="release-${BASH_REMATCH[1]}.${BASH_REMATCH[2]}"
+          fi
+
+          if [ -n "${{ inputs.test-collection-branch }}" ]; then
+            REF="${{ inputs.test-collection-branch }}"
+          fi
+
+          echo "Using git ref $REF for channel: $CHANNEL"
+          echo "ref=$REF" >> $GITHUB_OUTPUT
       - name: Check out code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.compute-ref.outputs.ref }}
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -188,8 +179,7 @@ jobs:
           # and parse the output to extract the test names.
           TEST_FILES=$(tox -e integration -- --collect-only $TAGS_ARGS --quiet --no-header tests/ | grep ::)
 
-          # Convert to JSON array for GitHub Actions
-          JSON_ARRAY=$(echo "$TEST_FILES" | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          JSON_ARRAY=$(printf '%s\n' "$TEST_FILES" | jq -R -s -c 'split("\n") | map(select(length > 0))')
           echo "tests=$JSON_ARRAY" >> $GITHUB_OUTPUT
           echo "Found test files: $TEST_FILES"
 
@@ -199,8 +189,9 @@ jobs:
     runs-on: ${{ fromJson(needs.prepare.outputs.test-runners)[matrix.test] || (inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04') }}
     strategy:
       fail-fast: false
+      max-parallel: ${{ inputs.max-parallel }}
       matrix:
-        test: ${{ inputs.parallel && fromJson(needs.prepare.outputs.tests) || fromJson('["e2e-test"]') }}
+        test: ${{ inputs.parallel && fromJson(needs.prepare.outputs.tests) || fromJson('["e2e-tests"]') }}
     steps:
       - name: Node Cleanup
         run: |
@@ -208,6 +199,8 @@ jobs:
           sudo docker image prune --all --force
       - name: Check out code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.ref }}
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -235,8 +228,12 @@ jobs:
           SHORT_TEST_NAME="${FULL_TEST_NODE_ID##*::}"
           echo "short_test_name=${SHORT_TEST_NAME}" >> $GITHUB_ENV
 
-          # Generate long, unique, sanitized name for artifacts and directories (existing logic)
-          RAW_ARTIFACT_NAME_BASE="${{ inputs.os }}-${{ inputs.arch }}-${FULL_TEST_NODE_ID}-$(uuidgen)"
+          CHANNEL="${{ inputs.channel }}"
+          if [ -n "$CHANNEL" ]; then
+            RAW_ARTIFACT_NAME_BASE="${{ inputs.os }}-${{ inputs.arch }}-${CHANNEL}-${FULL_TEST_NODE_ID}-$(uuidgen)"
+          else
+            RAW_ARTIFACT_NAME_BASE="${{ inputs.os }}-${{ inputs.arch }}-${FULL_TEST_NODE_ID}-$(uuidgen)"
+          fi
           SANITIZED_ARTIFACT_NAME=$(echo "$RAW_ARTIFACT_NAME_BASE" | sed 's/[\/:\.\]/-/g' | sed 's/\s//g')
           echo "test_name=${SANITIZED_ARTIFACT_NAME}" >> $GITHUB_ENV
       - name: Performance flags
@@ -260,7 +257,6 @@ jobs:
           TEST_GH_BASE_REF: ${{ github.base_ref }}
           TEST_UBUNTU_PRO_TOKEN: ${{ secrets.UBUNTU_PRO_TOKEN }}
           TEST_LAUNCHPAD_K8S_CI_BOT_PASSWORD: ${{ secrets.LAUNCHPAD_K8S_CI_BOT_PASSWORD }}
-          TEST_SKIP_CLEANUP: 1
         run: |
           # Parse extra-test-env and export each KEY=VALUE pair
           ESCAPED_ENV=$(echo "${{ inputs.extra-test-env }}" | sed 's/"/\\"/g')
@@ -273,11 +269,6 @@ jobs:
           fi
 
           cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- ${{ inputs.parallel && matrix.test || '' }} ${{ env.PERFORMANCE_FLAGS }} --tags ${{ inputs.test-tags }} ${{ inputs.extra-test-args }}
-      - name: Setup tmate session
-        if: failure()
-        uses: mxschmitt/action-tmate@v3
-        with:
-          detached: true
       - name: Prepare inspection reports
         if: failure()
         run: |
@@ -320,3 +311,21 @@ jobs:
         with:
           name: performance-test-results-${{ env.test_name }}
           path: performance-test-results
+      - name: Upload test metadata
+        if: ${{ inputs.upload-results && always() }}
+        run: |
+          mkdir -p results
+          jq -n \
+            --arg os "${{ inputs.os }}" \
+            --arg arch "${{ inputs.arch }}" \
+            --arg channel "${{ inputs.channel }}" \
+            --arg test "${{ matrix.test }}" \
+            --arg status "${{ job.status }}" \
+            '{os:$os, arch:$arch, channel:$channel, test:$test, status:$status}' > results/result.json
+        shell: bash
+      - uses: actions/upload-artifact@v4
+        if: ${{ inputs.upload-results && always() }}
+        with:
+          name: result-${{ env.test_name }}
+          path: results/result.json
+          if-no-files-found: warn

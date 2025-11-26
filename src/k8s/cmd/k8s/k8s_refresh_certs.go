@@ -112,9 +112,12 @@ func newRefreshCertsCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				ExtraSANs:         opts.extraSANs,
 			}
 
-			cmd.Println("Waiting for certificates to be created...")
-			runResponse, err := client.RefreshCertificatesRun(ctx, runRequest)
-			if err != nil {
+			var runResponse apiv1.RefreshCertificatesRunResponse
+			if err := cmdutil.WithSpinner(ctx, cmd.ErrOrStderr(), "Waiting for certificates to be created...", func(ctx context.Context) error {
+				var err error
+				runResponse, err = client.RefreshCertificatesRun(ctx, runRequest)
+				return err
+			}); err != nil {
 				cmd.PrintErrf("Error: Failed to refresh the certificates.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return

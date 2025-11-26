@@ -83,11 +83,10 @@ func newEnableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			cmd.PrintErrf("Enabling %s on the cluster. This may take a few seconds, please wait.\n", strings.Join(args, ", "))
 			ctx, cancel := context.WithTimeout(cmd.Context(), opts.timeout)
 			cobra.OnFinalize(cancel)
 
-			if _, initialized, err := client.NodeStatus(cmd.Context()); err != nil {
+			if _, initialized, err := client.NodeStatus(ctx); err != nil {
 				cmd.PrintErrf("Error: Failed to check the current node status.\n\nThe error was: %v\n", err)
 				env.Exit(1)
 				return
@@ -97,8 +96,11 @@ func newEnableCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
-			if err := client.SetClusterConfig(ctx, apiv1.SetClusterConfigRequest{Config: config}); err != nil {
-				cmd.PrintErrf("Error: Failed to enable %s on the cluster.\n\nThe error was: %v\n", strings.Join(args, ", "), err)
+			err = cmdutil.WithSpinner(ctx, cmd.ErrOrStderr(), fmt.Sprintf("Enabling %s...", strings.Join(args, ", ")), func(ctx context.Context) error {
+				return client.SetClusterConfig(ctx, apiv1.SetClusterConfigRequest{Config: config})
+			})
+			if err != nil {
+				cmd.PrintErrf("Error: Failed to enable %s.\n\nThe error was: %v\n", strings.Join(args, ", "), err)
 				env.Exit(1)
 				return
 			}

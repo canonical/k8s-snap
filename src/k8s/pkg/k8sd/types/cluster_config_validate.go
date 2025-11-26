@@ -152,9 +152,9 @@ func (c *ClusterConfig) Validate() error {
 
 	// check: local-storage.reclaim-policy should be one of 3 values
 	switch c.LocalStorage.GetReclaimPolicy() {
-	case "", "Retain", "Recycle", "Delete":
+	case "", "Retain", "Delete":
 	default:
-		return fmt.Errorf("local-storage.reclaim-policy must be one of: Retrain, Recycle, Delete")
+		return fmt.Errorf("local-storage.reclaim-policy must be one of: Retain, Delete")
 	}
 
 	// check: local-storage.local-path must be set if enabled
