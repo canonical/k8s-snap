@@ -54,51 +54,12 @@ jobs:
           else
             echo "channel-available=false" >> $GITHUB_OUTPUT
           fi
-  select-tests:
-    runs-on: ubuntu-24.04
-    needs: check-charm-channel
-    if: needs.check-charm-channel.outputs.channel-available == 'true'
-    permissions:
-      contents: read
-    outputs:
-      tests: ${{steps.select.outputs.tests}}
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-        with: 
-          repository: canonical/k8s-operator
-          ref: ${{ github.base_ref || github.ref_name }}
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Setup Astral UV
-        uses: astral-sh/setup-uv@v6.4.1
-      - name: Install tox with UV
-        run: uv tool install tox --with tox-uv
-      - name: Select tests for ${{inputs.arch}}
-        id: select
-        run: |
-          list_modules() {
-            ARCH=$1
-            MODULES=$(tox -e integration -- --collect-only -q --arch "$ARCH" 2>/dev/null \
-              | grep -E '<Module test_.*\.py>' \
-              | sed -E 's/.*<Module (test_[^.]*)\.py>.*/\1/' \
-              | sort -u)
-            jq -c -R -s 'split("\n")[:-1]' <<< "${MODULES}"
-          }
-          tests=$(list_modules ${{ inputs.arch }})
-          echo "tests=${tests}" >> "$GITHUB_OUTPUT"
 
   charm-e2e-tests:
     name: Test ${{ inputs.arch }} ${{ matrix.test }}
-    needs: [check-charm-channel, select-tests]
+    needs: check-charm-channel
     if: needs.check-charm-channel.outputs.channel-available == 'true'
     runs-on: ${{ inputs.arch == 'arm64' && 'self-hosted-linux-arm64-jammy-large' || 'self-hosted-linux-amd64-jammy-xlarge' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        test: ${{fromJson(needs.select-tests.outputs.tests)}}
     env:
       K8S_OPERATOR: k8s-operator
     timeout-minutes: 600
@@ -186,13 +147,14 @@ jobs:
           ls -lh $k8sCharmFile
           ls -lh $snapInstallRes
           cd ${{ env.K8S_OPERATOR }}
+          # Only run the smoke tests from k8s-operator.
           tox -r -e integration \
             -- \
             --charm-file $k8sCharmFile \
             --charm-file $k8sWorkerCharmFile \
             --snap-installation-resource $snapInstallRes \
             --arch ${{ inputs.arch }} \
-            -k "${{ matrix.test }}"
+            -k "test_smoke"
       - name: Collect Juju Status
         if: failure()
         id: collect-juju-status
@@ -208,5 +170,5 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: charm-e2e-tests-${{ inputs.arch }}-${{matrix.test}}
+          name: charm-e2e-tests-${{ inputs.arch }}
           path: ${{ steps.collect-juju-status.outputs.path }}
