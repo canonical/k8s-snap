@@ -85,7 +85,7 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.
 				},
 			},
 		},
-		// PodAffinity: Preferably schedule CoreDNS pods on separate nodes
+		// PodAntiAffinity: Preferably schedule CoreDNS pods on separate nodes.
 		"affinity": map[string]any{
 			"podAntiAffinity": map[string]any{
 				"preferredDuringSchedulingIgnoredDuringExecution": []map[string]any{
@@ -104,7 +104,7 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.
 				},
 			},
 		},
-		// TopologySpreadConstraints: Evenly distribute CoreDNS pods across zones and nodes
+		// TopologySpreadConstraints: Evenly distribute CoreDNS pods across zones and nodes.
 		"topologySpreadConstraints": []map[string]any{
 			{
 				"maxSkew":           1,
@@ -129,15 +129,15 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.
 				},
 			},
 		},
-		// PDB: Ensure availability of CoreDNS during maintenance
+		// PDB: Ensure availability of CoreDNS during maintenance.
 		"podDisruptionBudget": map[string]any{
 			"minAvailable": 1,
 		},
-		// HPA: Scale pods based on CPU+memory utilization
+		// HPA: Scale pods based on CPU+memory utilization.
 		"hpa": map[string]any{
 			"enabled":     true,
 			"minReplicas": 2,
-			"maxReplicas": 10,
+			"maxReplicas": 100,
 			"metrics": []map[string]any{
 				{
 					"type": "Resource",

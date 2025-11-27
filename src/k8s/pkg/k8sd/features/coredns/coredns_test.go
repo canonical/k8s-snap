@@ -202,10 +202,10 @@ func validateValues(g Gomega, values map[string]any, dns types.DNS, kubelet type
 	g.Expect(hpa["enabled"]).To(Equal(true))
 	g.Expect(hpa["minReplicas"]).To(Equal(2))
 	g.Expect(hpa["maxReplicas"]).To(Equal(10))
-	
+
 	metrics := hpa["metrics"].([]map[string]any)
 	g.Expect(metrics).To(HaveLen(2))
-	
+
 	// CPU metric
 	g.Expect(metrics[0]["type"]).To(Equal("Resource"))
 	cpuResource := metrics[0]["resource"].(map[string]any)
@@ -213,7 +213,7 @@ func validateValues(g Gomega, values map[string]any, dns types.DNS, kubelet type
 	cpuTarget := cpuResource["target"].(map[string]any)
 	g.Expect(cpuTarget["type"]).To(Equal("Utilization"))
 	g.Expect(cpuTarget["averageUtilization"]).To(Equal(80))
-	
+
 	// Memory metric
 	g.Expect(metrics[1]["type"]).To(Equal("Resource"))
 	memResource := metrics[1]["resource"].(map[string]any)
@@ -232,7 +232,7 @@ func validateValues(g Gomega, values map[string]any, dns types.DNS, kubelet type
 	preferred := podAntiAffinity["preferredDuringSchedulingIgnoredDuringExecution"].([]map[string]any)
 	g.Expect(preferred).To(HaveLen(1))
 	g.Expect(preferred[0]["weight"]).To(Equal(100))
-	
+
 	podAffinityTerm := preferred[0]["podAffinityTerm"].(map[string]any)
 	g.Expect(podAffinityTerm["topologyKey"]).To(Equal("kubernetes.io/hostname"))
 	labelSelector := podAffinityTerm["labelSelector"].(map[string]any)
@@ -243,12 +243,23 @@ func validateValues(g Gomega, values map[string]any, dns types.DNS, kubelet type
 	// Validate TopologySpreadConstraints
 	topologySpread := values["topologySpreadConstraints"].([]map[string]any)
 	g.Expect(topologySpread).To(HaveLen(2))
-	
+	// Zone constraint
+	zoneSelector := topologySpread[0]["labelSelector"].(map[string]any)
+	zoneMatchLabels := zoneSelector["matchLabels"].(map[string]any)
+	g.Expect(zoneMatchLabels["app.kubernetes.io/name"]).To(Equal("coredns"))
+	g.Expect(zoneMatchLabels["app.kubernetes.io/instance"]).To(Equal("coredns"))
+
+	// Hostname constraint
+	hostnameSelector := topologySpread[1]["labelSelector"].(map[string]any)
+	hostnameMatchLabels := hostnameSelector["matchLabels"].(map[string]any)
+	g.Expect(hostnameMatchLabels["app.kubernetes.io/name"]).To(Equal("coredns"))
+	g.Expect(hostnameMatchLabels["app.kubernetes.io/instance"]).To(Equal("coredns"))
+
 	// Zone constraint
 	g.Expect(topologySpread[0]["maxSkew"]).To(Equal(1))
 	g.Expect(topologySpread[0]["topologyKey"]).To(Equal("topology.kubernetes.io/zone"))
 	g.Expect(topologySpread[0]["whenUnsatisfiable"]).To(Equal("ScheduleAnyway"))
-	
+
 	// Hostname constraint
 	g.Expect(topologySpread[1]["maxSkew"]).To(Equal(1))
 	g.Expect(topologySpread[1]["topologyKey"]).To(Equal("kubernetes.io/hostname"))
