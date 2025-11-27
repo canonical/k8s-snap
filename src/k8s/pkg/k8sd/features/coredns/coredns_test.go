@@ -199,7 +199,7 @@ func validateValues(g Gomega, values map[string]any, dns types.DNS, kubelet type
 
 	// Validate HPA configuration
 	hpa := values["hpa"].(map[string]any)
-	g.Expect(hpa["enabled"]).To(Equal(true))
+	g.Expect(hpa["enabled"]).To(BeTrue())
 	g.Expect(hpa["minReplicas"]).To(Equal(2))
 	g.Expect(hpa["maxReplicas"]).To(Equal(100))
 
