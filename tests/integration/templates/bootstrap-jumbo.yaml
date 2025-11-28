@@ -1,0 +1,6 @@
+cluster-config:
+  network:
+    enabled: true
+
+  annotations:
+    k8sd/v1alpha1/cilium/devices: "eth1"
