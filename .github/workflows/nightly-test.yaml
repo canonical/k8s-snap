@@ -8,7 +8,7 @@ on:
       - .github/workflows/e2e-tests.yaml
       - .github/workflows/security-scan.yaml
       - .github/workflows/nightly-test.yaml
-
+# TODO remove me, I am triggering the run for testing purposes
 permissions:
   contents: read
   actions: read
