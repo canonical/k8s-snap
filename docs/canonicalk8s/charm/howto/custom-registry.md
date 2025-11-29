@@ -88,6 +88,24 @@ juju config k8s containerd-custom-registries='[{
 }]'
 ```
 
+### Sharing with all workers in the cluster
+
+The Juju configuration only applies to control-plane nodes, but is likely
+intended for the entire cluster. If the model also contains workers, ensure the
+`containerd` relation is integrated against each worker application.
+
+For each Juju application representing a worker, share the containerd
+configuration to all worker nodes via the `containerd` integration.
+
+```bash
+for WORKER_APP in $(
+    juju status --format json |
+    jq -r '.applications | to_entries[] | select(.value["charm-name"]=="k8s-worker") | .key'
+  ); do
+  juju integrate k8s "${WORKER_APP}:containerd"
+done
+```
+
 ## Verify the configuration
 
 Once the charm is configured and active, verify that the custom registry is
