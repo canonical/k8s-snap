@@ -20,11 +20,13 @@ jobs:
         os: ["ubuntu:20.04", "ubuntu:22.04", "ubuntu:24.04"]
         arch: ["amd64", "arm64"]
         channel: ["1.32-classic/edge"]
+        datastore: ["etcd", "k8s-dqlite"]
       fail-fast: false # TODO: remove once we no longer have flaky tests.
     uses: ./.github/workflows/e2e-tests.yaml
     with:
       arch: ${{ matrix.arch }}
       os: ${{ matrix.os }}
+      datastore: ${{ matrix.datastore }}
       channel: ${{ matrix.channel }}
       test-tags: 'up_to_nightly'
 

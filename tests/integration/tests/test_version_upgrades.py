@@ -19,7 +19,9 @@ LOG = logging.getLogger(__name__)
     not config.VERSION_UPGRADE_CHANNELS, reason="No upgrade channels configured"
 )
 @pytest.mark.tags(tags.NIGHTLY)
-def test_version_upgrades(instances: List[harness.Instance], tmp_path):
+def test_version_upgrades(
+    instances: List[harness.Instance], tmp_path, datastore_type: str
+):
     channels = config.VERSION_UPGRADE_CHANNELS
     cp = instances[0]
     current_channel = channels[0]
@@ -80,7 +82,7 @@ def test_version_upgrades(instances: List[harness.Instance], tmp_path):
     )
     # Setup the k8s snap from the bootstrap channel and setup basic configuration.
     util.setup_k8s_snap(cp, tmp_path, current_channel)
-    cp.exec(["k8s", "bootstrap"])
+    util.bootstrap(cp, datastore_type=datastore_type)
     util.wait_until_k8s_ready(cp, instances)
     LOG.info(f"Installed {cp.id} on channel {current_channel}")
     for channel in channels[1:]:
@@ -123,7 +125,9 @@ def test_version_upgrades(instances: List[harness.Instance], tmp_path):
     not config.SNAP,
     reason="Feature upgrades require a local snap file",
 )
-def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: Path):
+def test_feature_upgrades_inplace(
+    instances: List[harness.Instance], tmp_path: Path, datastore_type: str
+):
     """Verify that feature upgrades function correctly.
 
     Note: This is an interim test that will be expanded as feature upgrades mature.
@@ -142,7 +146,7 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
     for instance in instances:
         instance.exec(f"snap install k8s --classic --channel={start_branch}".split())
 
-    bootstrap_cp.exec(["k8s", "bootstrap"])
+    util.bootstrap(bootstrap_cp, datastore_type=datastore_type)
     for instance in instances:
         if instance.id in [bootstrap_cp.id, worker.id]:
             continue
@@ -302,7 +306,7 @@ def _get_upgrade_crs(instance: harness.Instance) -> List[dict]:
     reason="The node removal does not work consistently due to a microcluster bug."
 )
 def test_feature_upgrades_rollout_upgrade(
-    instances: List[harness.Instance], tmp_path: Path
+    instances: List[harness.Instance], tmp_path: Path, datastore_type: str
 ):
     """ """
     # TODO: Ensure that this test only runs on different k8s versions.
@@ -316,7 +320,7 @@ def test_feature_upgrades_rollout_upgrade(
 
     instance.exec(f"snap install k8s --classic --channel={start_snap}".split())
 
-    main_old.exec(["k8s", "bootstrap"])
+    util.bootstrap(main_old, datastore_type=datastore_type)
     for instance in instances[1:3]:
         token = util.get_join_token(main_old, instance)
         instance.exec(["k8s", "join-cluster", token])
