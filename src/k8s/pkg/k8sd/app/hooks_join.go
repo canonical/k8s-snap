@@ -23,6 +23,7 @@ import (
 	"github.com/canonical/k8s/pkg/version"
 	"github.com/canonical/microcluster/v2/state"
 	"go.etcd.io/etcd/api/v3/v3rpc/rpctypes"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	versionutil "k8s.io/apimachinery/pkg/util/version"
 )
 
@@ -342,6 +343,11 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		log.Error(err, "Failed to apply custom CRDs")
 	}
 
+	// Rebalance CoreDNS pods when transitioning from to an HA (3 node) cluster
+	if err := rebalanceCoreDNSIfNeeded(ctx, k8sClient); err != nil {
+		log.Error(err, "Failed to rebalance CoreDNS deployment")
+	}
+
 	if err := handleRollOutUpgrade(ctx, a.snap, s, k8sClient); err != nil {
 		log.Error(err, "Failed to handle rollout-upgrade")
 		return fmt.Errorf("failed to handle rollout-upgrade: %w", err)
@@ -388,6 +394,31 @@ func getNodeVersion(ctx context.Context, snap snap.Snap) (*versionutil.Version, 
 	}
 
 	return version, nil
+}
+
+// rebalanceCoreDNSIfNeeded triggers a rollout restart of the CoreDNS deployment
+// when the cluster transitions from 2 to 3 nodes. This ensures CoreDNS pods are
+// distributed across multiple nodes according to anti-affinity rules and pod topology constraints.
+func rebalanceCoreDNSIfNeeded(ctx context.Context, k8sClient *kubernetes.Client) error {
+	log := log.FromContext(ctx).WithValues("step", "coredns-rebalance")
+
+	nodes, err := k8sClient.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to list nodes: %w", err)
+	}
+
+	nodeCount := len(nodes.Items)
+	log.Info("Checking if CoreDNS rebalance is needed", "nodeCount", nodeCount)
+
+	// Only rebalance when we have exactly 3 nodes (2→3 transition)
+	if nodeCount == 3 {
+		log.Info("Triggering CoreDNS deployment rollout restart to rebalance pods across nodes")
+		if err := k8sClient.RestartDeployment(ctx, "coredns", "kube-system"); err != nil {
+			return fmt.Errorf("failed to restart CoreDNS deployment: %w", err)
+		}
+	}
+
+	return nil
 }
 
 func handleNoUpgradeInProgress(ctx context.Context, snap snap.Snap, s state.State, k8sClient *kubernetes.Client, thisNodeVersion *versionutil.Version, nodeVersions map[string]*versionutil.Version) error {
