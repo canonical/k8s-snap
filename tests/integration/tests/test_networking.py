@@ -16,7 +16,8 @@ LOG = logging.getLogger(__name__)
 @pytest.mark.bootstrap_config(
     (config.MANIFESTS_DIR / "bootstrap-dualstack.yaml").read_text()
 )
-@pytest.mark.dualstack()
+@pytest.mark.infra_network_type("Dualstack")
+@pytest.mark.cluster_network_type("Dualstack")
 @pytest.mark.tags(tags.NIGHTLY)
 @pytest.mark.skipif(
     config.SUBSTRATE == "multipass", reason="QUEMU does not properly support IPv6"
@@ -109,8 +110,11 @@ def test_dualstack(instances: List[harness.Instance]):
 
 
 @pytest.mark.node_count(3)
-@pytest.mark.disable_k8s_bootstrapping()
-@pytest.mark.network_type("dualstack")
+@pytest.mark.bootstrap_config(
+    (config.MANIFESTS_DIR / "bootstrap-ipv6-only.yaml").read_text()
+)
+@pytest.mark.infra_network_type("Dualstack")
+@pytest.mark.cluster_network_type("IPv6")
 @pytest.mark.tags(tags.NIGHTLY)
 @pytest.mark.skipif(
     config.SUBSTRATE == "multipass", reason="QUEMU does not properly support IPv6"
@@ -119,15 +123,6 @@ def test_ipv6_only_on_dualstack_infra(instances: List[harness.Instance]):
     main = instances[0]
     joining_cp = instances[1]
     joining_worker = instances[2]
-
-    ipv6_bootstrap_config = (
-        config.MANIFESTS_DIR / "bootstrap-ipv6-only.yaml"
-    ).read_text()
-
-    main.exec(
-        ["k8s", "bootstrap", "--file", "-", "--address", "::/0"],
-        input=str.encode(ipv6_bootstrap_config),
-    )
 
     join_token = util.get_join_token(main, joining_cp)
     joining_cp.exec(["k8s", "join-cluster", join_token, "--address", "::/0"])

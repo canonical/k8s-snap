@@ -2,72 +2,61 @@
 # Copyright 2025 Canonical, Ltd.
 #
 import logging
-from enum import Enum
 from pathlib import Path
 from typing import List
 
 import pytest
-from test_util import harness, tags, util
+from test_util import config, harness, tags, util
 from test_util.config import MANIFESTS_DIR, SUBSTRATE
 
 LOG = logging.getLogger(__name__)
 
 
-class K8sNetType(Enum):
-    ipv4 = "ipv4"
-    ipv6 = "ipv6"
-    dualstack = "dualstack"
-
-
 @pytest.mark.node_count(2)
 @pytest.mark.tags(tags.PULL_REQUEST)
-@pytest.mark.disable_k8s_bootstrapping()
 # For loadbalancer communication
 @pytest.mark.required_ports(80)
-def test_loadbalancer_ipv4(instances: List[harness.Instance]):
-    _test_loadbalancer(instances, k8s_net_type=K8sNetType.ipv4)
-
-
-@pytest.mark.node_count(2)
-@pytest.mark.disable_k8s_bootstrapping()
-@pytest.mark.tags(tags.PULL_REQUEST)
-@pytest.mark.skipif(
-    SUBSTRATE == "multipass", reason="QUEMU does not properly support IPv6"
-)
-def test_loadbalancer_ipv6_only(instances: List[harness.Instance]):
-    _test_loadbalancer(instances, k8s_net_type=K8sNetType.ipv6)
+def test_loadbalancer_ipv4(
+    instances: List[harness.Instance], cluster_network_type: str
+):
+    _test_loadbalancer(instances, cluster_network_type)
 
 
 @pytest.mark.node_count(2)
 @pytest.mark.tags(tags.PULL_REQUEST)
-@pytest.mark.disable_k8s_bootstrapping()
-@pytest.mark.dualstack()
-@pytest.mark.network_type("dualstack")
+@pytest.mark.bootstrap_config(
+    (config.MANIFESTS_DIR / "bootstrap-ipv6-only.yaml").read_text()
+)
+@pytest.mark.infra_network_type("Dualstack")
+@pytest.mark.cluster_network_type("IPv6")
 @pytest.mark.skipif(
     SUBSTRATE == "multipass", reason="QUEMU does not properly support IPv6"
 )
-def test_loadbalancer_ipv6_dualstack(instances: List[harness.Instance]):
-    _test_loadbalancer(instances, k8s_net_type=K8sNetType.dualstack)
+def test_loadbalancer_ipv6_only(
+    instances: List[harness.Instance], cluster_network_type: str
+):
+    _test_loadbalancer(instances, cluster_network_type)
 
 
-def _test_loadbalancer(instances: List[harness.Instance], k8s_net_type: K8sNetType):
+@pytest.mark.node_count(2)
+@pytest.mark.tags(tags.PULL_REQUEST)
+@pytest.mark.bootstrap_config(
+    (config.MANIFESTS_DIR / "bootstrap-dualstack.yaml").read_text()
+)
+@pytest.mark.infra_network_type("Dualstack")
+@pytest.mark.cluster_network_type("Dualstack")
+@pytest.mark.skipif(
+    SUBSTRATE == "multipass", reason="QUEMU does not properly support IPv6"
+)
+def test_loadbalancer_ipv6_dualstack(
+    instances: List[harness.Instance], cluster_network_type: str
+):
+    _test_loadbalancer(instances, cluster_network_type)
+
+
+def _test_loadbalancer(instances: List[harness.Instance], network_type: str):
     instance = instances[0]
     tester_instance = instances[1]
-
-    if k8s_net_type == K8sNetType.ipv6:
-        bootstrap_config = (MANIFESTS_DIR / "bootstrap-ipv6-only.yaml").read_text()
-        instance.exec(
-            ["k8s", "bootstrap", "--file", "-", "--address", "::/0"],
-            input=str.encode(bootstrap_config),
-        )
-    elif k8s_net_type == K8sNetType.dualstack:
-        bootstrap_config = (MANIFESTS_DIR / "bootstrap-dualstack.yaml").read_text()
-        instance.exec(
-            ["k8s", "bootstrap", "--file", "-"],
-            input=str.encode(bootstrap_config),
-        )
-    else:
-        instance.exec(["k8s", "bootstrap"])
 
     lb_cidrs = []
 
@@ -83,9 +72,9 @@ def _test_loadbalancer(instances: List[harness.Instance], k8s_net_type: K8sNetTy
         )
         return lb_cidr
 
-    if k8s_net_type in (K8sNetType.ipv4, K8sNetType.dualstack):
+    if network_type in ("IPv4", "Dualstack"):
         lb_cidrs.append(get_lb_cidr(ipv6_cidr=False))
-    if k8s_net_type in (K8sNetType.ipv6, K8sNetType.dualstack):
+    if network_type in ("IPv6", "Dualstack"):
         lb_cidrs.append(get_lb_cidr(ipv6_cidr=True))
     lb_cidr_str = ",".join(lb_cidrs)
 
