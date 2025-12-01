@@ -90,12 +90,14 @@ juju config k8s containerd-custom-registries='[{
 
 ### Sharing with all workers in the cluster
 
-The Juju configuration only applies to control-plane nodes, but is likely
-intended for the entire cluster. If the model also contains workers, ensure the
-`containerd` relation is integrated against each worker application.
+If the model contains kubernetes workers, ensure the `containerd` relation
+is integrated with each worker application. This configures containerd with the
+same custom configuration, not only to every control-plane node, but to each
+worker node as well.
 
-For each Juju application representing a worker, share the containerd
-configuration to all worker nodes via the `containerd` integration.
+> **Note:** This assumes worker applications are already deployed and integrated
+> in the cluster. If you haven't yet deployed workers, refer to the how-to on
+> [adding kubernetes workers][] for complete deployment instructions
 
 ```bash
 for WORKER_APP in $(
@@ -137,3 +139,4 @@ myregistry.example.com:5000/nginx:latest->true
 <!-- LINKS -->
 
 [charm configurations]: https://charmhub.io/k8s/configurations
+[adding kubernetes workers]: ./install/custom-workers.md
