@@ -343,10 +343,13 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		log.Error(err, "Failed to apply custom CRDs")
 	}
 
-	// Rebalance CoreDNS pods when transitioning from to an HA (3 node) cluster
-	if err := rebalanceCoreDNSIfNeeded(ctx, k8sClient); err != nil {
-		log.Error(err, "Failed to rebalance CoreDNS deployment")
-	}
+	// Rebalance CoreDNS pods when transitioning to an HA (3 node) cluster
+	// This runs in a goroutine to avoid blocking the join hook if nodes are not yet ready
+	go func() {
+		if err := rebalanceCoreDNSIfNeeded(ctx, k8sClient); err != nil {
+			log.Error(err, "Failed to rebalance CoreDNS deployment")
+		}
+	}()
 
 	if err := handleRollOutUpgrade(ctx, a.snap, s, k8sClient); err != nil {
 		log.Error(err, "Failed to handle rollout-upgrade")
@@ -397,30 +400,73 @@ func getNodeVersion(ctx context.Context, snap snap.Snap) (*versionutil.Version, 
 }
 
 // rebalanceCoreDNSIfNeeded triggers a rollout restart of the CoreDNS deployment
-// when the cluster transitions from 2 to 3 nodes. This ensures CoreDNS pods are
+// when the cluster transitions from 2 to 3 control plane nodes. This ensures CoreDNS pods are
 // distributed across multiple nodes according to anti-affinity rules and pod topology constraints.
+// If there are 3 control plane nodes, it waits until at least 2 are ready before triggering the restart.
 func rebalanceCoreDNSIfNeeded(ctx context.Context, k8sClient *kubernetes.Client) error {
 	log := log.FromContext(ctx).WithValues("step", "coredns-rebalance")
 
-	nodes, err := k8sClient.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
+	controlPlaneCount, readyControlPlaneCount, err := controlPlaneCountAndReadyCount(ctx, k8sClient)
 	if err != nil {
-		return fmt.Errorf("failed to list nodes: %w", err)
+		return fmt.Errorf("failed to get control plane counts: %w", err)
+	}
+	log.Info("Checking if CoreDNS rebalance is needed", "totalControlPlaneNodes", controlPlaneCount, "readyControlPlaneNodes", readyControlPlaneCount)
+
+	// Only proceed if we have exactly 3 control plane nodes
+	if controlPlaneCount != 3 {
+		log.V(1).Info("Skipping CoreDNS rebalance", "reason", "not exactly 3 control plane nodes")
+		return nil
 	}
 
-	nodeCount := len(nodes.Items)
-	log.Info("Checking if CoreDNS rebalance is needed", "nodeCount", nodeCount)
-
-	// Only rebalance when we have exactly 3 nodes (2→3 transition)
-	if nodeCount == 3 {
-		log.Info("Triggering CoreDNS deployment rollout restart to rebalance pods across nodes")
-		if err := k8sClient.RestartDeployment(ctx, "coredns", "kube-system"); err != nil {
-			return fmt.Errorf("failed to restart CoreDNS deployment: %w", err)
+	// Wait for at least 2 control plane nodes to be ready before rebalancing
+	log.Info("Waiting for at least 2 control plane nodes to be ready before rebalancing CoreDNS")
+	if err := control.WaitUntilReady(ctx, func() (bool, error) {
+		_, readyCount, err := controlPlaneCountAndReadyCount(ctx, k8sClient)
+		if err != nil {
+			log.V(1).Info("Failed to get control plane counts while waiting", "error", err)
+			return false, nil
 		}
+		log.V(1).Info("Checking control plane readiness", "readyControlPlaneNodes", readyCount)
+		return readyCount >= 2, nil
+	}); err != nil {
+		return fmt.Errorf("failed to wait for control plane nodes to be ready: %w", err)
+	}
+
+	log.Info("Triggering CoreDNS deployment rollout restart to rebalance pods across control plane nodes")
+	if err := k8sClient.RestartDeployment(ctx, "coredns", "kube-system"); err != nil {
+		return fmt.Errorf("failed to restart CoreDNS deployment: %w", err)
 	}
 
 	return nil
 }
 
+func controlPlaneCountAndReadyCount(ctx context.Context, k8sClient *kubernetes.Client) (controlPlaneCount int, readyControlPlaneCount int, err error) {
+	nodes, err := k8sClient.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to list nodes: %w", err)
+	}
+
+	// Count only control plane nodes in Ready state
+	controlPlaneCount = 0
+	readyControlPlaneCount = 0
+	for _, node := range nodes.Items {
+		// Check if node is control plane
+		_, isControlPlane := node.Labels["node-role.kubernetes.io/control-plane"]
+		if !isControlPlane {
+			continue
+		}
+		controlPlaneCount++
+
+		// Check if node is Ready
+		for _, condition := range node.Status.Conditions {
+			if condition.Type == "Ready" && condition.Status == "True" {
+				readyControlPlaneCount++
+				break
+			}
+		}
+	}
+	return controlPlaneCount, readyControlPlaneCount, nil
+}
 func handleNoUpgradeInProgress(ctx context.Context, snap snap.Snap, s state.State, k8sClient *kubernetes.Client, thisNodeVersion *versionutil.Version, nodeVersions map[string]*versionutil.Version) error {
 	var clusterK8sVersion *versionutil.Version
 	for node, version := range nodeVersions {
