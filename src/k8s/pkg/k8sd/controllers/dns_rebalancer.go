@@ -37,17 +37,17 @@ func (c *DNSRebalancerController) Run(ctx context.Context) error {
 	}
 
 	// Check if minimum 2 nodes are Ready
-	log.Info("Waiting for at least 2 control-plane nodes to be ready")
+	log.Info("Waiting for at least 2 nodes to be ready")
 	if err := control.WaitUntilReady(ctx, func() (bool, error) {
 		readyCount, err := c.getNodesReadyCount(ctx, k8sClient)
 		if err != nil {
-			log.V(1).Info("Failed to get control plane counts while waiting", "error", err)
+			log.V(1).Info("Failed to get node ready counts while waiting", "error", err)
 			return false, nil
 		}
 		log.V(1).Info("Checking node readiness", "readyNodes", readyCount)
 		return readyCount >= 2, nil
 	}); err != nil {
-		return fmt.Errorf("failed to wait for control plane nodes to be ready: %w", err)
+		return fmt.Errorf("failed to wait for nodes to be ready: %w", err)
 	}
 	log.Info("At least two nodes ready, attempting leader election to ensure CoreDNS is balanced across nodes")
 
