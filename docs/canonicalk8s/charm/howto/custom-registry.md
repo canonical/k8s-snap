@@ -3,8 +3,7 @@
 The `k8s` charm can be configured to use a custom container registry for its
 container images. This is particularly useful if you have a private registry or
 operate in an air-gapped environment where you need to pull images from a
-different registry. This guide will walk you through the steps to set up `k8s`
-charm to pull images from a custom registry.
+different registry.
 
 ## Prerequisites
 
@@ -13,14 +12,15 @@ charm to pull images from a custom registry.
 - Access to a custom container registry from the cluster (e.g., docker registry
   or Harbor).
 
-## Adding a custom registry
+## Add a custom registry
 
 To configure the charm to use a custom registry, you need to set the
-`containerd-custom-registries` configuration option. This options allows
-the charm to configure `containerd` to pull images from registries that require
-authentication. This configuration option should be a JSON-formatted array of
-credential objects. For more details on the `containerd-custom-registries`
-option, refer to the [charm configurations] documentation.
+`containerd-custom-registries` configuration option of the control-plane
+application. This options allows the charm to configure `containerd` to pull
+images from registries that require authentication. This configuration option
+should be a JSON-formatted array of credential objects. For more details on the
+`containerd-custom-registries` option, refer to the [charm configurations]
+documentation.
 
 For example, to configure the charm to use a custom registry at
 `myregistry.example.com:5000` with the username `myuser` and password
@@ -44,7 +44,7 @@ progress by running:
 juju status --watch 2s
 ```
 
-### Adding a registry mirror
+### Add a registry mirror
 
 To configure the charm to use a registry mirror, you need to add to the
 `containerd-custom-registries` configuration option.
@@ -65,7 +65,7 @@ juju config k8s containerd-custom-registries='[{
 }]'
 ```
 
-### Adding a nested path registry mirror
+### Add a nested path registry mirror
 
 To configure the charm to use a registry mirror where the path to the images is
 nested deeper, you need to add set the `override_path` flag to true
@@ -88,9 +88,9 @@ juju config k8s containerd-custom-registries='[{
 }]'
 ```
 
-### Sharing with all workers in the cluster
+## Share with all workers in the cluster
 
-If the model contains kubernetes workers, ensure the `containerd` relation
+If the model contains Kubernetes workers, ensure the `containerd` relation
 is integrated with each worker application. This configures containerd with the
 same custom configuration, not only to every control-plane node, but to each
 worker node as well.
