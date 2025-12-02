@@ -83,6 +83,9 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 			return databaseutil.GetClusterConfig(ctx, s)
 		})
 	}
+	// TODO: add controller off switch
+	// start dns rebalancer controller
+	go a.dnsRebalancerController.Run(ctx)
 
 	// start feature controller
 	if a.featureController != nil {

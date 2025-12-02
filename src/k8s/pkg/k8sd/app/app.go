@@ -87,6 +87,9 @@ type App struct {
 	triggerFeatureControllerMetricsServerCh chan struct{}
 	triggerFeatureControllerDNSCh           chan struct{}
 	featureController                       *controllers.FeatureController
+
+	// dnsRebalancerController
+	dnsRebalancerController *controllers.DNSRebalancerController
 }
 
 // New initializes a new microcluster instance from configuration.
@@ -168,6 +171,8 @@ func New(cfg Config) (*App, error) {
 	app.triggerFeatureControllerLocalStorageCh = make(chan struct{}, 1)
 	app.triggerFeatureControllerMetricsServerCh = make(chan struct{}, 1)
 	app.triggerFeatureControllerDNSCh = make(chan struct{}, 1)
+
+	app.dnsRebalancerController = controllers.NewDNSRebalancerController(cfg.Snap)
 
 	if !cfg.DisableFeatureController {
 		app.featureController = controllers.NewFeatureController(controllers.FeatureControllerOpts{
