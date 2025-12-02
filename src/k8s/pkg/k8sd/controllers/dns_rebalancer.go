@@ -12,17 +12,21 @@ import (
 )
 
 type DNSRebalancerController struct {
-	snap snap.Snap
+	snap      snap.Snap
+	waitReady func()
 }
 
-func NewDNSRebalancerController(snap snap.Snap) *DNSRebalancerController {
+func NewDNSRebalancerController(snap snap.Snap, waitReady func()) *DNSRebalancerController {
 	return &DNSRebalancerController{
-		snap: snap,
+		snap:      snap,
+		waitReady: waitReady,
 	}
 }
 
 func (c *DNSRebalancerController) Run(ctx context.Context) error {
-	log := log.FromContext(ctx).WithValues("step", "coredns-rebalance")
+	log := log.FromContext(ctx).WithValues("controller", "dns-rebalancer")
+	log.Info("DNS rebalancer controller started")
+	c.waitReady()
 
 	k8sClient, err := c.snap.KubernetesClient("")
 	if err != nil {
@@ -30,24 +34,26 @@ func (c *DNSRebalancerController) Run(ctx context.Context) error {
 	}
 
 	// Check if minimum 2 nodes are Ready
+	log.Info("Waiting for at least 2 control-plane nodes to be ready")
 	if err := control.WaitUntilReady(ctx, func() (bool, error) {
 		readyCount, err := c.getNodesReadyCount(ctx, k8sClient)
 		if err != nil {
 			log.V(1).Info("Failed to get control plane counts while waiting", "error", err)
 			return false, nil
 		}
-		log.V(1).Info("Checking control plane readiness", "readyControlPlaneNodes", readyCount)
+		log.V(1).Info("Checking node readiness", "readyNodes", readyCount)
 		return readyCount >= 2, nil
 	}); err != nil {
 		return fmt.Errorf("failed to wait for control plane nodes to be ready: %w", err)
 	}
+	log.Info("Control-plane nodes ready, checking CoreDNS distribution")
 
 	needsRebalancing, err := c.coreDNSNeedsRebalancing(ctx, k8sClient)
 	if err != nil {
 		return fmt.Errorf("failed to check CoreDNS pods distribution: %w", err)
 	}
 	if !needsRebalancing {
-		log.V(1).Info("CoreDNS pods are already balanced across control plane nodes")
+		log.Info("CoreDNS pods are already balanced across control plane nodes")
 		return nil
 	}
 

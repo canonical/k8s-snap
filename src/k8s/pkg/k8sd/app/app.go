@@ -176,7 +176,7 @@ func New(cfg Config) (*App, error) {
 
 	// Initialize DNS rebalancer controller unless disabled via config
 	if !cfg.DisableDNSRebalancerController {
-		app.dnsRebalancerController = controllers.NewDNSRebalancerController(cfg.Snap)
+		app.dnsRebalancerController = controllers.NewDNSRebalancerController(cfg.Snap, app.readyWg.Wait)
 	} else {
 		log.L().Info("dns-rebalancer-controller disabled via config")
 	}
