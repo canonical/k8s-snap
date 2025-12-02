@@ -3,12 +3,15 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils/control"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/tools/leaderelection"
+	"k8s.io/client-go/tools/leaderelection/resourcelock"
 )
 
 type DNSRebalancerController struct {
@@ -46,21 +49,59 @@ func (c *DNSRebalancerController) Run(ctx context.Context) error {
 	}); err != nil {
 		return fmt.Errorf("failed to wait for control plane nodes to be ready: %w", err)
 	}
-	log.Info("Control-plane nodes ready, checking CoreDNS distribution")
+	log.Info("At least two nodes ready, attempting leader election to ensure CoreDNS is balanced across nodes")
 
-	needsRebalancing, err := c.coreDNSNeedsRebalancing(ctx, k8sClient)
+	// Acquire leader election lock first to ensure only one controller instance checks and restarts CoreDNS
+	lock := &resourcelock.LeaseLock{
+		LeaseMeta: metav1.ObjectMeta{
+			Name:      "coredns-rebalancer",
+			Namespace: "kube-system",
+		},
+		Client: k8sClient.CoordinationV1(),
+		LockConfig: resourcelock.ResourceLockConfig{
+			Identity: c.snap.Hostname(),
+		},
+	}
+
+	leaderElector, err := leaderelection.NewLeaderElector(leaderelection.LeaderElectionConfig{
+		Lock:          lock,
+		LeaseDuration: 15 * time.Second,
+		RenewDeadline: 10 * time.Second,
+		RetryPeriod:   2 * time.Second,
+		Callbacks: leaderelection.LeaderCallbacks{
+			OnStartedLeading: func(ctx context.Context) {
+				log.Info("Acquired leader election, checking CoreDNS distribution")
+
+				needsRebalancing, err := c.coreDNSNeedsRebalancing(ctx, k8sClient)
+				if err != nil {
+					log.Error(err, "Failed to check CoreDNS pods distribution")
+					return
+				}
+
+				if !needsRebalancing {
+					log.Info("CoreDNS pods are already balanced across nodes")
+					return
+				}
+
+				log.Info("CoreDNS pods need rebalancing, triggering deployment rollout restart")
+				if err := k8sClient.RestartDeployment(ctx, "coredns", "kube-system"); err != nil {
+					log.Error(err, "Failed to restart CoreDNS deployment")
+				} else {
+					log.Info("Successfully triggered CoreDNS deployment restart")
+				}
+			},
+			OnStoppedLeading: func() {
+				log.Info("Lost leader election")
+			},
+		},
+		ReleaseOnCancel: true,
+	})
 	if err != nil {
-		return fmt.Errorf("failed to check CoreDNS pods distribution: %w", err)
-	}
-	if !needsRebalancing {
-		log.Info("CoreDNS pods are already balanced across control plane nodes")
-		return nil
+		return fmt.Errorf("failed to create leader elector: %w", err)
 	}
 
-	log.Info("Triggering CoreDNS deployment rollout restart to rebalance pods across control plane nodes")
-	if err := k8sClient.RestartDeployment(ctx, "coredns", "kube-system"); err != nil {
-		return fmt.Errorf("failed to restart CoreDNS deployment: %w", err)
-	}
+	// Run leader election (this will block until we become leader and execute the check/restart, or context is cancelled)
+	leaderElector.Run(ctx)
 
 	return nil
 }
