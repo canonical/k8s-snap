@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils/control"
@@ -22,9 +23,15 @@ func NewDNSRebalancerController(snap snap.Snap) *DNSRebalancerController {
 
 func (c *DNSRebalancerController) Run(ctx context.Context) error {
 	log := log.FromContext(ctx).WithValues("step", "coredns-rebalance")
+
+	k8sClient, err := c.snap.KubernetesClient("")
+	if err != nil {
+		return fmt.Errorf("failed to create kubernetes client: %w", err)
+	}
+
 	// Check if minimum 2 nodes are Ready
 	if err := control.WaitUntilReady(ctx, func() (bool, error) {
-		readyCount, err := c.controlPlaneReadyCount(ctx)
+		readyCount, err := c.getNodesReadyCount(ctx, k8sClient)
 		if err != nil {
 			log.V(1).Info("Failed to get control plane counts while waiting", "error", err)
 			return false, nil
@@ -35,7 +42,7 @@ func (c *DNSRebalancerController) Run(ctx context.Context) error {
 		return fmt.Errorf("failed to wait for control plane nodes to be ready: %w", err)
 	}
 
-	needsRebalancing, err := c.coreDNSNeedsRebalancing(ctx)
+	needsRebalancing, err := c.coreDNSNeedsRebalancing(ctx, k8sClient)
 	if err != nil {
 		return fmt.Errorf("failed to check CoreDNS pods distribution: %w", err)
 	}
@@ -45,11 +52,6 @@ func (c *DNSRebalancerController) Run(ctx context.Context) error {
 	}
 
 	log.Info("Triggering CoreDNS deployment rollout restart to rebalance pods across control plane nodes")
-	k8sClient, err := c.snap.KubernetesClient("")
-	if err != nil {
-		return fmt.Errorf("failed to create kubernetes client: %w", err)
-	}
-
 	if err := k8sClient.RestartDeployment(ctx, "coredns", "kube-system"); err != nil {
 		return fmt.Errorf("failed to restart CoreDNS deployment: %w", err)
 	}
@@ -57,12 +59,7 @@ func (c *DNSRebalancerController) Run(ctx context.Context) error {
 	return nil
 }
 
-func (c *DNSRebalancerController) coreDNSNeedsRebalancing(ctx context.Context) (bool, error) {
-	k8sClient, err := c.snap.KubernetesClient("")
-	if err != nil {
-		return false, fmt.Errorf("failed to create kubernetes client: %w", err)
-	}
-
+func (c *DNSRebalancerController) coreDNSNeedsRebalancing(ctx context.Context, k8sClient *kubernetes.Client) (bool, error) {
 	pods, err := k8sClient.CoreV1().Pods("kube-system").List(ctx, metav1.ListOptions{
 		LabelSelector: "k8s-app=coredns",
 	})
@@ -86,26 +83,20 @@ func (c *DNSRebalancerController) coreDNSNeedsRebalancing(ctx context.Context) (
 	return true, nil
 }
 
-func (c *DNSRebalancerController) controlPlaneReadyCount(ctx context.Context) (readyControlPlaneCount int, err error) {
-	k8sClient, err := c.snap.KubernetesClient("")
-	if err != nil {
-		return 0, fmt.Errorf("failed to create kubernetes client: %w", err)
-	}
-
+func (c *DNSRebalancerController) getNodesReadyCount(ctx context.Context, k8sClient *kubernetes.Client) (readyNodeCount int, err error) {
 	nodes, err := k8sClient.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return 0, fmt.Errorf("failed to list nodes: %w", err)
 	}
 
-	// Count only control plane nodes in Ready state
-	readyControlPlaneCount = 0
+	readyNodeCount = 0
 	for _, node := range nodes.Items {
 		for _, condition := range node.Status.Conditions {
 			if condition.Type == "Ready" && condition.Status == "True" {
-				readyControlPlaneCount++
+				readyNodeCount++
 				break
 			}
 		}
 	}
-	return readyControlPlaneCount, nil
+	return readyNodeCount, nil
 }

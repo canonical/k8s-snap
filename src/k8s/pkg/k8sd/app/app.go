@@ -45,6 +45,8 @@ type Config struct {
 	DisableUpdateNodeConfigController bool
 	// DisableFeatureController is a bool flag to disable feature controller
 	DisableFeatureController bool
+	// DisableDNSRebalancerController is a bool flag to disable dns rebalancer controller
+	DisableDNSRebalancerController bool
 	// DisableCSRSigningController is a bool flag to disable csrsigning controller.
 	DisableCSRSigningController bool
 	// DisableUpgradeController is a bool flag to disable upgrade controller.
@@ -172,7 +174,12 @@ func New(cfg Config) (*App, error) {
 	app.triggerFeatureControllerMetricsServerCh = make(chan struct{}, 1)
 	app.triggerFeatureControllerDNSCh = make(chan struct{}, 1)
 
-	app.dnsRebalancerController = controllers.NewDNSRebalancerController(cfg.Snap)
+	// Initialize DNS rebalancer controller unless disabled via config
+	if !cfg.DisableDNSRebalancerController {
+		app.dnsRebalancerController = controllers.NewDNSRebalancerController(cfg.Snap)
+	} else {
+		log.L().Info("dns-rebalancer-controller disabled via config")
+	}
 
 	if !cfg.DisableFeatureController {
 		app.featureController = controllers.NewFeatureController(controllers.FeatureControllerOpts{
