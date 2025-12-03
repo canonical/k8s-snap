@@ -201,7 +201,7 @@ def update_go_version(dry_run: bool):
         go_version = response.read().decode("utf-8").strip()
 
     LOG.info("Upstream go version is %s", go_version)
-    go_snap = f"go/{'.'.join(go_version.split('.')[:2])}/stable"
+    go_snap = f"go/{'.'.join(go_version.split('.')[:2])}-fips/stable"
     snapcraft_yaml = SNAPCRAFT.read_text()
     if f"- {go_snap}" in snapcraft_yaml:
         LOG.info("snapcraft.yaml already contains go version %s", go_snap)
