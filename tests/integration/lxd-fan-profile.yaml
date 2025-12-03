@@ -1,0 +1,8 @@
+description: "Container that creates its own VXLAN interface"
+config:
+  user.user-data: |
+    #cloud-config
+    packages:
+      - ubuntu-fan
+    runcmd:
+      - fanctl up -o 10.10.10.0/8 -u default/16

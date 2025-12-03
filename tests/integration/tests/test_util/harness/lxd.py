@@ -37,6 +37,9 @@ class LXDHarness(Harness):
 
         self._configure_profile(self.profile, config.LXD_PROFILE)
 
+        self.fan_profile = config.LXD_FAN_PROFILE_NAME
+        self._configure_profile(self.fan_profile, config.LXD_FAN_PROFILE)
+
         self._configure_network(
             config.LXD_DUALSTACK_NETWORK,
             "ipv4.address=auto",
@@ -119,7 +122,7 @@ class LXDHarness(Harness):
             self.profile,
         ]
 
-        valid_types = ["ipv4", "dualstack", "ipv6", "jumbo", "dualnic"]
+        valid_types = ["ipv4", "dualstack", "ipv6", "jumbo", "dualnic", "fan"]
         if network_type.lower() not in valid_types:
             raise HarnessError(
                 f"unknown network type {network_type}, need to be one of {', '.join(valid_types)}"
@@ -140,6 +143,9 @@ class LXDHarness(Harness):
 
         if network_type.lower() == "dualnic":
             launch_lxd_command.extend(["-p", self.dual_nic_profile])
+
+        if network_type.lower() == "fan":
+            launch_lxd_command.extend(["-p", self.fan_profile])
 
         try:
             stubbornly(retries=3, delay_s=1).exec(launch_lxd_command)

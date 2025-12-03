@@ -373,3 +373,17 @@ def test_dual_nic(instances: List[harness.Instance]):
     )
 
     assert number_of_devices.stdout.strip() == "2"
+
+
+@pytest.mark.node_count(1)
+@pytest.mark.disable_k8s_bootstrapping()
+@pytest.mark.network_type("fan")
+@pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.skipif(
+    config.SUBSTRATE == "multipass", reason="Not implemented for multipass"
+)
+def test_with_fan_networking(instances: List[harness.Instance]):
+    main = instances[0]
+
+    main.exec(["k8s", "bootstrap"])
+    util.wait_until_k8s_ready(main, instances)
