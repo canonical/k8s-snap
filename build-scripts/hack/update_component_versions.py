@@ -216,7 +216,7 @@ def _update_go_version_in_snapcraft(go_version: str, dry_run: bool):
 
     LOG.info("Update go snap version to %s in %s", go_snap, SNAPCRAFT)
     if not dry_run:
-        updated = re.sub(r"- go/\d+\.\d+/stable", f"- {go_snap}", snapcraft_yaml)
+        updated = re.sub(r"- go/\d+\.\d+-fips/stable", f"- {go_snap}", snapcraft_yaml)
         SNAPCRAFT.write_text(updated)
 
 
