@@ -195,7 +195,7 @@ def _update_prerelease_k8s_component(project_basedir: str, k8s_version: str):
     with open(k8s_component_path, "w") as f:
         f.write(k8s_version)
 
-    update_go_version(False)
+    update_go_version(dry_run=False)
 
 
 def prepare_prerelease_git_branches(project_basedir: str, remote: str = "origin"):
