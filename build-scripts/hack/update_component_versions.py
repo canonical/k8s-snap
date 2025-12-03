@@ -208,7 +208,11 @@ def update_go_version(dry_run: bool):
 
 
 def _update_go_version_in_snapcraft(go_version: str, dry_run: bool):
-    go_snap = f"go/{'.'.join(go_version.split('.')[:2])}-fips/stable"
+    [major, minor] = map(int, go_version.split(".")[:2])
+    go_snap = f"go/{major}.{minor}-fips/stable"
+    # We don't support fips for versions under 1.34
+    if major == 1 and minor < 34:
+        go_snap = f"go/{major}.{minor}/stable"
     snapcraft_yaml = SNAPCRAFT.read_text()
     if f"- {go_snap}" in snapcraft_yaml:
         LOG.info("snapcraft.yaml already contains go version %s", go_snap)
@@ -216,7 +220,9 @@ def _update_go_version_in_snapcraft(go_version: str, dry_run: bool):
 
     LOG.info("Update go snap version to %s in %s", go_snap, SNAPCRAFT)
     if not dry_run:
-        updated = re.sub(r"- go/\d+\.\d+-fips/stable", f"- {go_snap}", snapcraft_yaml)
+        updated = re.sub(
+            r"- go/\d+\.\d+(?:-fips)?/stable", f"- {go_snap}", snapcraft_yaml
+        )
         SNAPCRAFT.write_text(updated)
 
 
