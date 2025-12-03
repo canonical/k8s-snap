@@ -28,13 +28,11 @@ jobs:
             "1.33-classic/edge",
             "1.32-classic/edge",
           ]
-        datastore: ["etcd", "k8s-dqlite"]
       fail-fast: false
     uses: ./.github/workflows/e2e-tests.yaml
     with:
       arch: ${{ matrix.arch }}
       os: ${{ matrix.os }}
-      datastore: ${{ matrix.datastore }}
       channel: ${{ matrix.channel }}
       test-tags: "up_to_nightly"
       parallel: true
