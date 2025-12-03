@@ -10,7 +10,7 @@ from typing import List, Optional, Dict
 
 import requests
 from packaging.version import Version
-from hack.update_component_versions import update_go_version
+from hack.update_utils import update_go_version
 
 K8S_TAGS_URL = "https://api.github.com/repos/kubernetes/kubernetes/tags"
 EXEC_TIMEOUT = 60
