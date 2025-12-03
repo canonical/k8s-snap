@@ -46,7 +46,7 @@ jobs:
 
       - name: Check for new component versions
         run: |
-          ./build-scripts/hack/update-component-versions.py \
+          ./build-scripts/hack/update_component_versions.py \
              $(test "$GITHUB_EVENT_NAME" = "pull_request" && echo "--dry-run")
 
       - name: Create pull request

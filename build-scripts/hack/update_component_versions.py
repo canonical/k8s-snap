@@ -106,6 +106,7 @@ def get_cni_version() -> str:
 
         raise Exception(f"Failed to find cni dependency in {deps_file}")
 
+
 def get_containerd_version() -> str:
     """Update containerd version using latest tag of specified branch"""
     containerd_repo = util.read_file(COMPONENTS / "containerd/repository")
@@ -160,18 +161,22 @@ def update_component_versions(dry_run: bool):
         version: str = get_version()
         path = COMPONENTS / component / "version"
         existing = Path(path)
-        existing_version_text = existing.read_text().strip() if existing.exists() else None
+        existing_version_text = (
+            existing.read_text().strip() if existing.exists() else None
+        )
         upstream_version_text = version.strip()
 
-        existing_parsed = parse_version(existing_version_text) if existing_version_text else None
+        existing_parsed = (
+            parse_version(existing_version_text) if existing_version_text else None
+        )
         upstream_parsed = parse_version(upstream_version_text)
 
         # If both versions parse and the existing one is greater than upstream, skip update.
         if existing_parsed and upstream_parsed and existing_parsed > upstream_parsed:
             LOG.info(
-            "Existing version %s is greater than upstream %s; keeping existing version",
-            existing_version_text,
-            upstream_version_text,
+                "Existing version %s is greater than upstream %s; keeping existing version",
+                existing_version_text,
+                upstream_version_text,
             )
             continue
 
@@ -210,7 +215,7 @@ def update_go_version(dry_run: bool):
 
 def main():
     parser = argparse.ArgumentParser(
-        "update-component-versions.py", usage=USAGE, description=DESCRIPTION
+        "update_component_versions.py", usage=USAGE, description=DESCRIPTION
     )
     parser.add_argument("--dry-run", default=False, action="store_true")
     args = parser.parse_args(sys.argv[1:])
