@@ -80,6 +80,7 @@ def test_dns(instances: List[harness.Instance]):
         "'coredns'" == result.stdout
     ), "Expected coredns serviceaccount to be 'coredns', not {result.stdout}"
 
+
 @pytest.mark.node_count(2)
 @pytest.mark.tags(tags.PULL_REQUEST)
 def test_dns_ha_rebalancing(instances: List[harness.Instance]):
@@ -108,7 +109,9 @@ def test_dns_ha_rebalancing(instances: List[harness.Instance]):
     )
     initial_nodes = set(result.stdout.replace("'", "").split())
     LOG.info(f"Initial CoreDNS pod distribution: {initial_nodes}")
-    assert len(initial_nodes) == 1, f"Expected all CoreDNS pods on one node initially, got {initial_nodes}"
+    assert (
+        len(initial_nodes) == 1
+    ), f"Expected all CoreDNS pods on one node initially, got {initial_nodes}"
 
     # Join additional control plane nodes
     join_token = util.get_join_token(initial_node, joining_cplane_node)
@@ -153,5 +156,7 @@ def test_dns_ha_rebalancing(instances: List[harness.Instance]):
     # Verify CoreDNS pods are now distributed across multiple nodes
     node_names = set(result.stdout.replace("'", "").split())
     LOG.info(f"Final CoreDNS pod distribution: {node_names}")
-    
-    assert len(node_names) > 1, f"CoreDNS pods not distributed after rebalancing: {node_names}"
+
+    assert (
+        len(node_names) > 1
+    ), f"CoreDNS pods not distributed after rebalancing: {node_names}"
