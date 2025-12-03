@@ -75,21 +75,21 @@ func (c *DNSRebalancerController) Run(ctx context.Context) error {
 
 				needsRebalancing, err := c.coreDNSNeedsRebalancing(ctx, k8sClient)
 				if err != nil {
-					log.Error(err, "Failed to check CoreDNS pods distribution")
+					log.Error(err, "Failed to check CoreDNS pods distribution, stepping down to allow another node to attempt")
 					return
 				}
 
 				if !needsRebalancing {
-					log.Info("CoreDNS pods are already balanced across nodes")
+					log.Info("CoreDNS pods are already balanced across nodes, stepping down")
 					return
 				}
 
 				log.Info("CoreDNS pods need rebalancing, triggering deployment rollout restart")
 				if err := k8sClient.RestartDeployment(ctx, "coredns", "kube-system"); err != nil {
-					log.Error(err, "Failed to restart CoreDNS deployment")
-				} else {
-					log.Info("Successfully triggered CoreDNS deployment restart")
+					log.Error(err, "Failed to restart CoreDNS deployment, stepping down to allow another node to attempt")
+					return
 				}
+				log.Info("Successfully triggered CoreDNS deployment restart, stepping down")
 			},
 			OnStoppedLeading: func() {
 				log.Info("Lost leader election")
