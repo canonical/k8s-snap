@@ -9,6 +9,7 @@ import (
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
 	"github.com/canonical/k8s/pkg/utils/control"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/leaderelection"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
@@ -118,15 +119,28 @@ func (c *DNSRebalancerController) coreDNSNeedsRebalancing(ctx context.Context, k
 		return false, fmt.Errorf("no CoreDNS pods found")
 	}
 
-	// Check if all pods are on the same node
-	firstNodeName := pods.Items[0].Spec.NodeName
-	for _, pod := range pods.Items[1:] {
+	// Consider only scheduled pods (NodeName != ""). Pending pods can cause false positives.
+	scheduled := make([]corev1.Pod, 0, len(pods.Items))
+	for _, pod := range pods.Items {
+		if pod.Spec.NodeName != "" {
+			scheduled = append(scheduled, pod)
+		}
+	}
+
+	// If fewer than 2 pods are scheduled, we cannot assess imbalance yet.
+	if len(scheduled) < 2 {
+		return false, nil
+	}
+
+	// Check if all scheduled pods are on the same node
+	firstNodeName := scheduled[0].Spec.NodeName
+	for _, pod := range scheduled[1:] {
 		if pod.Spec.NodeName != firstNodeName {
 			// Pods are on different nodes - no rebalancing needed
 			return false, nil
 		}
 	}
-	// All pods are on the same node - rebalancing needed
+	// All scheduled pods are on the same node - rebalancing needed
 	return true, nil
 }
 
@@ -139,7 +153,7 @@ func (c *DNSRebalancerController) getNodesReadyCount(ctx context.Context, k8sCli
 	readyNodeCount = 0
 	for _, node := range nodes.Items {
 		for _, condition := range node.Status.Conditions {
-			if condition.Type == "Ready" && condition.Status == "True" {
+			if condition.Type == corev1.NodeReady && condition.Status == corev1.ConditionTrue {
 				readyNodeCount++
 				break
 			}
