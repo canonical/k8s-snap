@@ -24,8 +24,8 @@ The `k8s` charm takes care of installing and configuring the [k8s snap
 package][] on cloud instances managed by Juju. Operating Kubernetes through
 this charm makes it significantly easier to manage at scale, on remote cloud
 instances and also to integrate other operators to enhance or customize your
-Kubernetes deployment. You can find out more about {{product}} on this
-[overview page][] or see a more detailed explanation in our [architecture
+Kubernetes deployment. You can find out more about {{product}} on the
+[what is Canonical Kubernetes page][] or see a more detailed explanation in our [architecture
 documentation][arch].
 
 ![Illustration depicting working on components and clouds][logo]
@@ -34,7 +34,7 @@ documentation][arch].
 
 ````{grid} 1 1 2 2
 
-```{grid-item-card} [Tutorial](tutorial/index)
+```{grid-item-card} [Tutorial](tutorial/getting-started)
 
 **Start here!** A hands-on introduction to Canonical K8s for new users
 ```
@@ -48,15 +48,14 @@ documentation][arch].
 
 ````{grid} 1 1 2 2
 
+```{grid-item-card} [Explanation](explanation/index)
+
+**Discussion and clarification** of key topics
+```
 
 ```{grid-item-card} [Reference](reference/index)
 
 **Technical information** - specifications, APIs, architecture
-```
-
-```{grid-item-card} [Explanation](explanation/index)
-
-**Discussion and clarification** of key topics
 ```
 
 ````
@@ -84,7 +83,7 @@ and constructive feedback.
 [community]: reference/community
 [contribute]: /snap/howto/contribute
 [releases]: /charm/reference/releases
-[overview page]: /charm/explanation/about
+[what is Canonical Kubernetes page]: /charm/explanation/about
 [arch]: /charm/explanation/architecture
 [Juju]: https://juju.is
 [k8s snap package]: /snap/index
