@@ -17,4 +17,5 @@ bootstrap-config
 control-plane-join-config
 worker-join-config
 refresh-external-certs-config
+disa-stig-config
 ```
