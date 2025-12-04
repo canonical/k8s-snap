@@ -12,7 +12,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
-type Controller struct {
+type controller struct {
 	logger           logr.Logger
 	client           client.Client
 	getClusterConfig func(context.Context) (types.ClusterConfig, error)
@@ -24,8 +24,8 @@ func NewController(
 	client client.Client,
 	getClusterConfig func(context.Context) (types.ClusterConfig, error),
 	snap snap.Snap,
-) *Controller {
-	return &Controller{
+) *controller {
+	return &controller{
 		logger:           logger,
 		client:           client,
 		getClusterConfig: getClusterConfig,
@@ -34,7 +34,7 @@ func NewController(
 }
 
 // SetupWithManager sets up the controller with the manager.
-func (r *Controller) SetupWithManager(mgr ctrl.Manager) error {
+func (r *controller) SetupWithManager(mgr ctrl.Manager) error {
 	// Watch Node resources, trigger reconciliation when node status changes
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&corev1.Node{}).

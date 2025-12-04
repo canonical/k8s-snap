@@ -3,7 +3,6 @@ package dnsrebalancer
 import (
 	"context"
 	"testing"
-	"time"
 
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -35,7 +34,7 @@ func TestReconcile_LessThanTwoNodesReady(t *testing.T) {
 		WithObjects(node).
 		Build()
 
-	reconciler := &Controller{
+	reconciler := &controller{
 		logger: ctrl.Log.WithName("test"),
 		client: fakeClient,
 		snap:   nil,
@@ -43,7 +42,7 @@ func TestReconcile_LessThanTwoNodesReady(t *testing.T) {
 
 	result, err := reconciler.Reconcile(ctx, ctrl.Request{})
 
-	g.Expect(result).To(Equal(ctrl.Result{RequeueAfter: 30 * time.Second}))
+	g.Expect(result).To(Equal(ctrl.Result{}))
 	g.Expect(err).ToNot(HaveOccurred())
 }
 
@@ -102,7 +101,7 @@ func TestReconcile_CoreDNSAlreadyBalanced(t *testing.T) {
 		WithObjects(&nodes[0], &nodes[1], &pods[0], &pods[1]).
 		Build()
 
-	reconciler := &Controller{
+	reconciler := &controller{
 		logger: ctrl.Log.WithName("test"),
 		client: fakeClient,
 		snap:   nil,
@@ -142,7 +141,7 @@ func TestCoreDNSNeedsRebalancing_AllPodsSameNode(t *testing.T) {
 		WithObjects(&pods[0], &pods[1]).
 		Build()
 
-	reconciler := &Controller{
+	reconciler := &controller{
 		logger: ctrl.Log.WithName("test"),
 		client: fakeClient,
 		snap:   nil,
@@ -182,7 +181,7 @@ func TestCoreDNSNeedsRebalancing_Distributed(t *testing.T) {
 		WithObjects(&pods[0], &pods[1]).
 		Build()
 
-	reconciler := &Controller{
+	reconciler := &controller{
 		logger: ctrl.Log.WithName("test"),
 		client: fakeClient,
 		snap:   nil,
@@ -223,7 +222,7 @@ func TestCoreDNSNeedsRebalancing_IgnoresUnscheduledPods(t *testing.T) {
 		WithObjects(&pods[0], &pods[1]).
 		Build()
 
-	reconciler := &Controller{
+	reconciler := &controller{
 		logger: ctrl.Log.WithName("test"),
 		client: fakeClient,
 		snap:   nil,
@@ -264,7 +263,7 @@ func TestCoreDNSNeedsRebalancing_AllPodsPending(t *testing.T) {
 		WithObjects(&pods[0], &pods[1]).
 		Build()
 
-	reconciler := &Controller{
+	reconciler := &controller{
 		logger: ctrl.Log.WithName("test"),
 		client: fakeClient,
 		snap:   nil,
@@ -284,7 +283,7 @@ func TestCoreDNSNeedsRebalancing_NoPods(t *testing.T) {
 		WithScheme(scheme.Scheme).
 		Build()
 
-	reconciler := &Controller{
+	reconciler := &controller{
 		logger: ctrl.Log.WithName("test"),
 		client: fakeClient,
 		snap:   nil,

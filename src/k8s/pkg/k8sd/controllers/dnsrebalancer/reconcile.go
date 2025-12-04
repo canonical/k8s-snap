@@ -13,18 +13,21 @@ import (
 )
 
 // Reconcile implements the reconciliation loop.
-func (r *Controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx).WithValues("node", req.Name)
 
+	if r.getClusterConfig == nil {
+		log.Info("getClusterConfig is nil")
+		return ctrl.Result{}, nil
+	}
+
 	// skip reconcile if dns is disabled
-	if r.getClusterConfig != nil {
-		config, err := r.getClusterConfig(ctx)
-		if err != nil {
-			return ctrl.Result{}, fmt.Errorf("failed to get cluster config: %w", err)
-		}
-		if !config.DNS.GetEnabled() {
-			return ctrl.Result{}, nil
-		}
+	config, err := r.getClusterConfig(ctx)
+	if err != nil {
+		return ctrl.Result{}, fmt.Errorf("failed to get cluster config: %w", err)
+	}
+	if !config.DNS.GetEnabled() {
+		return ctrl.Result{}, nil
 	}
 
 	// Count ready nodes
@@ -39,7 +42,7 @@ func (r *Controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 	readyCount := countReadyNodes(nodeList)
 	if readyCount < 2 {
 		log.V(1).Info("Less than 2 nodes ready, skipping rebalancing check", "readyCount", readyCount)
-		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+		return ctrl.Result{}, nil
 	}
 
 	log.V(1).Info("Sufficient nodes ready, checking CoreDNS distribution", "readyCount", readyCount)
@@ -71,7 +74,7 @@ func (r *Controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 }
 
 // coreDNSNeedsRebalancing checks if CoreDNS pods need rebalancing.
-func (r *Controller) coreDNSNeedsRebalancing(ctx context.Context) (bool, error) {
+func (r *controller) coreDNSNeedsRebalancing(ctx context.Context) (bool, error) {
 	pods := &corev1.PodList{}
 	if err := r.client.List(ctx, pods, client.InNamespace("kube-system"), client.MatchingLabels{"k8s-app": "coredns", "app.kubernetes.io/instance": "ck-dns"}); err != nil {
 		return false, err
