@@ -84,15 +84,6 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 		})
 	}
 
-	// start dns rebalancer controller
-	if a.dnsRebalancerController != nil {
-		go func() {
-			if err := a.dnsRebalancerController.Run(ctx); err != nil {
-				log.FromContext(ctx).Error(err, "DNS rebalancer controller exited with error")
-			}
-		}()
-	}
-
 	// start feature controller
 	if a.featureController != nil {
 		go a.featureController.Run(

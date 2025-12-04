@@ -89,9 +89,6 @@ type App struct {
 	triggerFeatureControllerMetricsServerCh chan struct{}
 	triggerFeatureControllerDNSCh           chan struct{}
 	featureController                       *controllers.FeatureController
-
-	// dnsRebalancerController
-	dnsRebalancerController *controllers.DNSRebalancerController
 }
 
 // New initializes a new microcluster instance from configuration.
@@ -174,13 +171,6 @@ func New(cfg Config) (*App, error) {
 	app.triggerFeatureControllerMetricsServerCh = make(chan struct{}, 1)
 	app.triggerFeatureControllerDNSCh = make(chan struct{}, 1)
 
-	// Initialize DNS rebalancer controller unless disabled via config
-	if !cfg.DisableDNSRebalancerController {
-		app.dnsRebalancerController = controllers.NewDNSRebalancerController(cfg.Snap, app.readyWg.Wait)
-	} else {
-		log.L().Info("dns-rebalancer-controller disabled via config")
-	}
-
 	if !cfg.DisableFeatureController {
 		app.featureController = controllers.NewFeatureController(controllers.FeatureControllerOpts{
 			Snap:                          cfg.Snap,
@@ -224,6 +214,7 @@ func New(cfg Config) (*App, error) {
 			FeatureControllerReconcileTimeout: 2 * time.Minute,
 		},
 		cfg.DisableCSRSigningController,
+		cfg.DisableDNSRebalancerController,
 	)
 
 	return app, nil
