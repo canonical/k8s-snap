@@ -127,7 +127,7 @@ class LXDHarness(Harness):
             raise HarnessError(
                 f"unknown network type {network_type}, need to be one of {', '.join(valid_types)}"
             )
-
+        LOG.debug(network_type)
         if network_type.lower() == "dualstack":
             if not self.dualstack_profile:
                 raise ValueError(

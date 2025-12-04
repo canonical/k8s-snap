@@ -377,7 +377,7 @@ def test_dual_nic(instances: List[harness.Instance]):
 
 @pytest.mark.node_count(1)
 @pytest.mark.disable_k8s_bootstrapping()
-@pytest.mark.network_type("fan")
+@pytest.mark.infra_network_type("fan")
 @pytest.mark.tags(tags.NIGHTLY)
 @pytest.mark.skipif(
     config.SUBSTRATE == "multipass", reason="Not implemented for multipass"
