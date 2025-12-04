@@ -130,19 +130,12 @@ def test_version_upgrades(
                 LOG.info("Refreshing k8s snap by path")
                 cmd = ["snap", "install", "--classic", "--dangerous", snap_path]
             else:
-                cmd = [
-                    "snap",
-                    "refresh",
-                    config.SNAP_NAME,
-                    "--channel",
-                    channel,
-                    "--amend",
-                    "--classic",
-                ]
+                cmd = ["snap", "refresh", "--classic", config.SNAP_NAME]
+                cmd += [*util.snap_channel_args(channel), "--amend"]
 
             instance.exec(cmd)
             util.wait_until_k8s_ready(cp, instances)
-            LOG.info(f"Upgraded {instance.id} on channel {channel}")
+            LOG.info(f"Upgraded {instance.id} to channel {channel}")
 
         current_channel = channel
         LOG.info(f"Upgraded all instances to channel {channel}")
@@ -246,7 +239,13 @@ def test_version_downgrades_with_rollback(
             )
             # note: the `--classic` flag will be ignored by snapd for strict snaps.
             instance.exec(
-                ["snap", "refresh", config.SNAP_NAME, "--channel", channel, "--classic"]
+                [
+                    "snap",
+                    "refresh",
+                    config.SNAP_NAME,
+                    *util.snap_channel_args(channel),
+                    "--classic",
+                ]
             )
             util.wait_until_k8s_ready(cp, instances)
 
@@ -261,8 +260,7 @@ def test_version_downgrades_with_rollback(
                     "snap",
                     "refresh",
                     config.SNAP_NAME,
-                    "--channel",
-                    last_channel,
+                    *util.snap_channel_args(last_channel),
                     "--classic",
                 ]
             )
@@ -277,8 +275,7 @@ def test_version_downgrades_with_rollback(
                     "snap",
                     "refresh",
                     config.SNAP_NAME,
-                    "--channel",
-                    current_channel,
+                    *util.snap_channel_args(current_channel),
                     "--classic",
                 ]
             )
@@ -319,7 +316,15 @@ def test_feature_upgrades_inplace(
     worker = instances[-1]
 
     for instance in instances:
-        instance.exec(f"snap install k8s --classic --channel={start_branch}".split())
+        instance.exec(
+            [
+                "snap",
+                "install",
+                "k8s",
+                "--classic",
+                *util.snap_channel_args(start_branch),
+            ]
+        )
 
     util.bootstrap(bootstrap_cp, datastore_type=datastore_type)
     for instance in instances:
@@ -491,9 +496,13 @@ def test_feature_upgrades_rollout_upgrade(
 
     # Setup the first half of nodes up on the old version.
     for instance in instances[:3]:
-        instance.exec(f"snap install k8s --classic --channel={start_snap}".split())
+        instance.exec(
+            ["snap", "install", "k8s", "--classic", *util.snap_channel_args(start_snap)]
+        )
 
-    instance.exec(f"snap install k8s --classic --channel={start_snap}".split())
+    instance.exec(
+        ["snap", "install", "k8s", "--classic", *util.snap_channel_args(start_snap)]
+    )
 
     util.bootstrap(main_old, datastore_type=datastore_type)
     for instance in instances[1:3]:
