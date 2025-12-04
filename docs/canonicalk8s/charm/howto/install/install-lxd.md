@@ -28,7 +28,7 @@ For example, we can pass the following constraints when deploying ``k8s``:
 ```
 juju deploy k8s --channel=$channel \
   --base="ubuntu@24.04" \
-  --constraints='cores=2 mem=4G root-disk=40G virt-type=virtual-machine'
+  --constraints='cores=2 mem=16G root-disk=40G virt-type=virtual-machine'
 ```
 
 The constraints can also be defined per model using
