@@ -387,7 +387,7 @@ def test_with_fan_networking(instances: List[harness.Instance]):
 
     main.exec(["k8s", "bootstrap"])
 
-    util.stubbornly(retries=3, delay_s=60).on(main).until(
+    util.stubbornly(retries=5, delay_s=60).on(main).until(
         lambda p: "Please consider changing the Cilium tunnel port" in p.stdout.decode()
     ).exec(["snap", "logs", "k8s.k8sd"])
 

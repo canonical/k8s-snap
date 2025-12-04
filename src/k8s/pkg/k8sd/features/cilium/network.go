@@ -48,15 +48,6 @@ func checkAndSanitizeCiliumVXLAN(port int) error {
 		if devicePort == port && vxlanDevice.Name != ciliumVXLANDeviceName {
 			return fmt.Errorf("interface %s uses the same destination port as cilium. Please consider changing the Cilium tunnel port", vxlanDevice.Name)
 		}
-
-		// Note(Reza): Currently Cilium tries to bring up the vxlan interface before applying
-		// any configuration changes. If the Cilium vxlan interface has any conflicts with other
-		// interfaces that makes it unable to brought up, Cilium fails to apply configuration
-		// changes. We can remove this block when the following issue gets settled:
-		// https://github.com/cilium/cilium/issues/38581
-		if vxlanDevice.Name == ciliumVXLANDeviceName && devicePort != port {
-			return fmt.Errorf("interface %s uses a different destination port (%d) than the provided config (%d). Please consider adjusting the cluster configuration or removing that device manually", vxlanDevice.Name, devicePort, port)
-		}
 	}
 
 	return nil
