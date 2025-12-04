@@ -11,7 +11,7 @@ var (
 	ChartCilium = helm.InstallableChart{
 		Name:         "ck-network",
 		Namespace:    "kube-system",
-		ManifestPath: filepath.Join("charts", "cilium-1.17.1.tgz"),
+		ManifestPath: filepath.Join("charts", "cilium-1.18.4.tgz"),
 	}
 
 	// ChartCiliumLoadBalancer represents manifests to deploy Cilium LoadBalancer resources.
@@ -39,13 +39,13 @@ var (
 	ciliumAgentImageRepo = "ghcr.io/canonical/cilium"
 
 	// CiliumAgentImageTag is the tag to use for the cilium-agent image.
-	CiliumAgentImageTag = "1.17.9-ck9"
+	CiliumAgentImageTag = "1.18.4-ck0"
 
 	// ciliumOperatorImageRepo is the image to use for cilium-operator.
 	ciliumOperatorImageRepo = "ghcr.io/canonical/cilium-operator"
 
 	// ciliumOperatorImageTag is the tag to use for the cilium-operator image.
-	ciliumOperatorImageTag = "1.17.9-ck4"
+	ciliumOperatorImageTag = "1.18.4-ck0"
 
 	ciliumDefaultVXLANPort = 8472
 
