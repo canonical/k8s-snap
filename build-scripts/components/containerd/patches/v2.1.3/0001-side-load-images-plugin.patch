@@ -1,12 +1,12 @@
-From 4645148a0abbde932abf1c54e407da729dc9fb85 Mon Sep 17 00:00:00 2001
+From f445271144cb0d880a290424badb40ea7db268d9 Mon Sep 17 00:00:00 2001
 From: Angelos Kolaitis <angelos.kolaitis@canonical.com>
 Date: Sun, 16 Jun 2024 16:58:03 +0300
 Subject: [PATCH] side-load images plugin
 
 ---
  cmd/containerd/builtins_custom.go |   6 ++
- custom_plugins/sideload.go        | 141 ++++++++++++++++++++++++++++++
- 2 files changed, 147 insertions(+)
+ custom_plugins/sideload.go        | 143 ++++++++++++++++++++++++++++++
+ 2 files changed, 149 insertions(+)
  create mode 100644 cmd/containerd/builtins_custom.go
  create mode 100644 custom_plugins/sideload.go
 
@@ -24,10 +24,10 @@ index 000000000..d4bfd80c5
 +)
 diff --git a/custom_plugins/sideload.go b/custom_plugins/sideload.go
 new file mode 100644
-index 000000000..f69769f01
+index 000000000..f661a8d4e
 --- /dev/null
 +++ b/custom_plugins/sideload.go
-@@ -0,0 +1,141 @@
+@@ -0,0 +1,143 @@
 +package custom_plugins
 +
 +import (
@@ -37,6 +37,7 @@ index 000000000..f69769f01
 +	"time"
 +
 +	containerd "github.com/containerd/containerd/v2/client"
++	"github.com/containerd/containerd/v2/pkg/namespaces"
 +	"github.com/containerd/containerd/v2/plugins"
 +	"github.com/containerd/log"
 +	"github.com/containerd/platforms"
@@ -139,7 +140,8 @@ index 000000000..f69769f01
 +								logger.WithError(err).Warn("Failed to open file")
 +								continue nextFile
 +							}
-+							images, err := cl.Import(ic.Context, r, containerd.WithImportPlatform(platforms.Default()))
++							ctx := namespaces.WithNamespace(ic.Context, config.Namespace)
++							images, err := cl.Import(ctx, r, containerd.WithImportPlatform(platforms.DefaultStrict()))
 +							if err != nil {
 +								logger.WithError(err).Error("Failed to import images")
 +							} else {
