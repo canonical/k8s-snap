@@ -3,6 +3,7 @@ package dnsrebalancer
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/canonical/k8s/pkg/log"
 	corev1 "k8s.io/api/core/v1"
@@ -15,20 +16,30 @@ import (
 func (r *Controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx).WithValues("node", req.Name)
 
+	// skip reconcile if dns is disabled
+	if r.getClusterConfig != nil {
+		config, err := r.getClusterConfig(ctx)
+		if err != nil {
+			return ctrl.Result{}, fmt.Errorf("failed to get cluster config: %w", err)
+		}
+		if !config.DNS.GetEnabled() {
+			return ctrl.Result{}, nil
+		}
+	}
+
 	// Count ready nodes
 	nodeList := &corev1.NodeList{}
 	if err := r.client.List(ctx, nodeList); err != nil {
 		if apierrors.IsNotFound(err) {
 			return ctrl.Result{}, nil
 		}
-		log.Error(err, "Failed to list nodes")
 		return ctrl.Result{}, err
 	}
 
 	readyCount := countReadyNodes(nodeList)
 	if readyCount < 2 {
 		log.V(1).Info("Less than 2 nodes ready, skipping rebalancing check", "readyCount", readyCount)
-		return ctrl.Result{}, nil
+		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
 	}
 
 	log.V(1).Info("Sufficient nodes ready, checking CoreDNS distribution", "readyCount", readyCount)
@@ -36,12 +47,10 @@ func (r *Controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 	// Check if rebalancing is needed
 	needsRebalancing, err := r.coreDNSNeedsRebalancing(ctx)
 	if err != nil {
-		log.Error(err, "Failed to check CoreDNS pods distribution")
-		return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: 30 * time.Second}, fmt.Errorf("failed to check CoreDNS pods distribution: %w", err)
 	}
 
 	if !needsRebalancing {
-		log.V(1).Info("CoreDNS pods are already balanced across nodes")
 		return ctrl.Result{}, nil
 	}
 
@@ -50,13 +59,11 @@ func (r *Controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 	// Get kubernetes client to restart deployment
 	k8sClient, err := r.snap.KubernetesClient("")
 	if err != nil {
-		log.Error(err, "Failed to get Kubernetes client")
 		return ctrl.Result{}, err
 	}
 
 	if err := k8sClient.RestartDeployment(ctx, "coredns", "kube-system"); err != nil {
-		log.Error(err, "Failed to restart CoreDNS deployment, will retry on next reconciliation")
-		return ctrl.Result{}, err
+		return ctrl.Result{}, fmt.Errorf("failed to restart CoreDNS deployment: %w", err)
 	}
 
 	log.Info("Successfully triggered CoreDNS deployment restart")
@@ -66,8 +73,8 @@ func (r *Controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 // coreDNSNeedsRebalancing checks if CoreDNS pods need rebalancing.
 func (r *Controller) coreDNSNeedsRebalancing(ctx context.Context) (bool, error) {
 	pods := &corev1.PodList{}
-	if err := r.client.List(ctx, pods, client.InNamespace("kube-system"), client.MatchingLabels{"k8s-app": "coredns"}); err != nil {
-		return false, fmt.Errorf("failed to list CoreDNS pods: %w", err)
+	if err := r.client.List(ctx, pods, client.InNamespace("kube-system"), client.MatchingLabels{"k8s-app": "coredns", "app.kubernetes.io/instance": "ck-dns"}); err != nil {
+		return false, err
 	}
 
 	if len(pods.Items) == 0 {
@@ -82,9 +89,8 @@ func (r *Controller) coreDNSNeedsRebalancing(ctx context.Context) (bool, error) 
 		}
 	}
 
-	// If fewer than 2 pods are scheduled, we cannot assess imbalance yet.
 	if len(scheduled) < 2 {
-		return false, nil
+		return false, fmt.Errorf("less than 2 pods are scheduled")
 	}
 
 	// Check if all scheduled pods are on the same node

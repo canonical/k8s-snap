@@ -3,6 +3,7 @@ package dnsrebalancer
 import (
 	"context"
 	"testing"
+	"time"
 
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -42,7 +43,7 @@ func TestReconcile_LessThanTwoNodesReady(t *testing.T) {
 
 	result, err := reconciler.Reconcile(ctx, ctrl.Request{})
 
-	g.Expect(result).To(Equal(ctrl.Result{}))
+	g.Expect(result).To(Equal(ctrl.Result{RequeueAfter: 30 * time.Second}))
 	g.Expect(err).ToNot(HaveOccurred())
 }
 
@@ -82,7 +83,7 @@ func TestReconcile_CoreDNSAlreadyBalanced(t *testing.T) {
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: "kube-system",
 				Name:      "coredns-1",
-				Labels:    map[string]string{"k8s-app": "coredns"},
+				Labels:    map[string]string{"k8s-app": "coredns", "app.kubernetes.io/instance": "ck-dns"},
 			},
 			Spec: corev1.PodSpec{NodeName: "node-1"},
 		},
@@ -90,7 +91,7 @@ func TestReconcile_CoreDNSAlreadyBalanced(t *testing.T) {
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: "kube-system",
 				Name:      "coredns-2",
-				Labels:    map[string]string{"k8s-app": "coredns"},
+				Labels:    map[string]string{"k8s-app": "coredns", "app.kubernetes.io/instance": "ck-dns"},
 			},
 			Spec: corev1.PodSpec{NodeName: "node-2"},
 		},
@@ -122,7 +123,7 @@ func TestCoreDNSNeedsRebalancing_AllPodsSameNode(t *testing.T) {
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: "kube-system",
 				Name:      "coredns-1",
-				Labels:    map[string]string{"k8s-app": "coredns"},
+				Labels:    map[string]string{"k8s-app": "coredns", "app.kubernetes.io/instance": "ck-dns"},
 			},
 			Spec: corev1.PodSpec{NodeName: "node-a"},
 		},
@@ -130,7 +131,7 @@ func TestCoreDNSNeedsRebalancing_AllPodsSameNode(t *testing.T) {
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: "kube-system",
 				Name:      "coredns-2",
-				Labels:    map[string]string{"k8s-app": "coredns"},
+				Labels:    map[string]string{"k8s-app": "coredns", "app.kubernetes.io/instance": "ck-dns"},
 			},
 			Spec: corev1.PodSpec{NodeName: "node-a"},
 		},
@@ -162,7 +163,7 @@ func TestCoreDNSNeedsRebalancing_Distributed(t *testing.T) {
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: "kube-system",
 				Name:      "coredns-1",
-				Labels:    map[string]string{"k8s-app": "coredns"},
+				Labels:    map[string]string{"k8s-app": "coredns", "app.kubernetes.io/instance": "ck-dns"},
 			},
 			Spec: corev1.PodSpec{NodeName: "node-a"},
 		},
@@ -170,7 +171,7 @@ func TestCoreDNSNeedsRebalancing_Distributed(t *testing.T) {
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: "kube-system",
 				Name:      "coredns-2",
-				Labels:    map[string]string{"k8s-app": "coredns"},
+				Labels:    map[string]string{"k8s-app": "coredns", "app.kubernetes.io/instance": "ck-dns"},
 			},
 			Spec: corev1.PodSpec{NodeName: "node-b"},
 		},
@@ -203,7 +204,7 @@ func TestCoreDNSNeedsRebalancing_IgnoresUnscheduledPods(t *testing.T) {
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: "kube-system",
 				Name:      "coredns-1",
-				Labels:    map[string]string{"k8s-app": "coredns"},
+				Labels:    map[string]string{"k8s-app": "coredns", "app.kubernetes.io/instance": "ck-dns"},
 			},
 			Spec: corev1.PodSpec{NodeName: "node-a"},
 		},
@@ -211,7 +212,7 @@ func TestCoreDNSNeedsRebalancing_IgnoresUnscheduledPods(t *testing.T) {
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: "kube-system",
 				Name:      "coredns-2",
-				Labels:    map[string]string{"k8s-app": "coredns"},
+				Labels:    map[string]string{"k8s-app": "coredns", "app.kubernetes.io/instance": "ck-dns"},
 			},
 			Spec: corev1.PodSpec{},
 		},
@@ -230,7 +231,7 @@ func TestCoreDNSNeedsRebalancing_IgnoresUnscheduledPods(t *testing.T) {
 
 	needsRebalancing, err := reconciler.coreDNSNeedsRebalancing(ctx)
 
-	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(err.Error()).To(Equal("less than 2 pods are scheduled"))
 	g.Expect(needsRebalancing).To(BeFalse(), "should not need rebalancing with unscheduled pods")
 }
 
@@ -244,7 +245,7 @@ func TestCoreDNSNeedsRebalancing_AllPodsPending(t *testing.T) {
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: "kube-system",
 				Name:      "coredns-1",
-				Labels:    map[string]string{"k8s-app": "coredns"},
+				Labels:    map[string]string{"k8s-app": "coredns", "app.kubernetes.io/instance": "ck-dns"},
 			},
 			Spec: corev1.PodSpec{},
 		},
@@ -252,7 +253,7 @@ func TestCoreDNSNeedsRebalancing_AllPodsPending(t *testing.T) {
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: "kube-system",
 				Name:      "coredns-2",
-				Labels:    map[string]string{"k8s-app": "coredns"},
+				Labels:    map[string]string{"k8s-app": "coredns", "app.kubernetes.io/instance": "ck-dns"},
 			},
 			Spec: corev1.PodSpec{},
 		},
@@ -271,7 +272,7 @@ func TestCoreDNSNeedsRebalancing_AllPodsPending(t *testing.T) {
 
 	needsRebalancing, err := reconciler.coreDNSNeedsRebalancing(ctx)
 
-	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(err.Error()).To(Equal("less than 2 pods are scheduled"))
 	g.Expect(needsRebalancing).To(BeFalse(), "should not need rebalancing when no pods scheduled")
 }
 
@@ -291,6 +292,6 @@ func TestCoreDNSNeedsRebalancing_NoPods(t *testing.T) {
 
 	needsRebalancing, err := reconciler.coreDNSNeedsRebalancing(ctx)
 
-	g.Expect(err).To(HaveOccurred(), "should error when no CoreDNS pods found")
+	g.Expect(err.Error()).To(Equal("no CoreDNS pods found"))
 	g.Expect(needsRebalancing).To(BeFalse())
 }

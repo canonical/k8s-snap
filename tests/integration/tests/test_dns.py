@@ -131,7 +131,7 @@ def test_dns_ha_rebalancing(instances: List[harness.Instance]):
             "-n",
             "kube-system",
             "deployment/coredns",
-            "--timeout=60s",
+            "--timeout=10s",
         ]
     )
 
