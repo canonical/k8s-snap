@@ -10,23 +10,29 @@ all DISA STIG guidelines for both Kubernetes and the host OS.
 
 ## Prerequisites
 
-FIPS compliance is required by the DISA STIG. This guide assumes you have
+- FIPS compliance is required by the DISA STIG. This guide assumes you have
 already followed our [FIPS installation guide], but stopped after installing
 {{product}} without following the steps to bootstrap/join the cluster. Instead
 continue here to first complete additional steps needed for DISA STIG
 compliance.
+- Ubuntu Pro subscription 
 
-## Configure UFW (Firewall)
+## Configure the host
 
-The host STIG recommends enabling the host firewall (UFW), but does not do
-so automatically. We recommend following our guide to [configure UFW]. This can
-be done before applying the host STIG and will help avoid connectivity issues
-that often happen when enabling UFW with the default configuration.
+[DISA STIG host OS] compliance is achieved by running the [USG tool] that is 
+part of the PRO tool set and running some additional manual steps.
 
-## Apply host STIG
+### Configure the firewall
 
-DISA STIG host compliance is achieved by running the [USG tool] that is also
-part of the PRO tool set. To install the USG tool:
+DISA STIG for the host recommends enabling the host firewall (UFW). This is not
+done automatically through the USG tool and we recommend following our guide to 
+[configure UFW]. This should be done *before* applying the host STIG steps and 
+will help avoid connectivity issues that often happen when 
+enabling UFW with the default configuration.
+
+### Apply host STIG
+
+To install the USG tool:
 
 ```
 sudo pro enable usg
@@ -41,8 +47,8 @@ sudo usg audit disa_stig
 ```
 
 ```{attention}
-The following command applies rule [V-270714], which will prevent using accounts
-with empty passwords to access this machine.
+The rule [V-270714] will be applied in the following command. This prevents using accounts 
+with empty passwords to access this machine. 
 
 You can check whether the current account has an empty password by running
 `passwd --status` and looking for "NP" in the second field of the output.
@@ -97,38 +103,53 @@ Ensure that the configuration in `/etc/sysctl.d/99-kubelet.conf` is not
 overridden by another configuration file with higher precedence.
 ```
 
-## Apply Kubernetes STIG
+## Apply Kubernetes STIG  
 
 {{product}} provides example [configuration files] to apply
-DISA STIG specific settings.
+DISA STIG specific settings on cluster formation and node-join. If you would 
+like to apply the default settings, jump to 
+[initializing the cluster](#initialize-the-cluster).
 
-The deployment process consists of the following steps:
+<!-- ### Review default configuration
 
-1. Bootstrap the first control plane node (required)
-2. Join additional control plane nodes (optional)
-3. Join worker nodes (optional)
+Before bootstrapping or joining control plane nodes, review the
+example [configuration files]. If you want to tailor the logging and the Pod Security Admission
+control file see the [advanced configuration options](#advanced-configruation-options).
+Once a node is configured, changing certain settings is more difficult
+and may require re-deploying the node or cluster. -->
 
-### Set up control plane nodes
+
+### Initialize the cluster
+
+<!-- ```{attention}
+Before bootstrapping or joining control plane nodes, review the
+example [configuration files] and [advanced configuration options](#advanced-configruation-options).
+Once a node is configured, changing certain settings is more difficult
+and may require re-deploying the node or cluster.
+``` -->
 
 ```{attention}
 Before bootstrapping or joining control plane nodes, review the
-[example configuration files](#example-configuration-files) as well as the
-alternative configuration options for [audit logs and PSS](#audit-logs-and-pss-configuration).
+example [configuration files].
 Once a node is configured, changing certain settings is more difficult
 and may require re-deploying the node or cluster.
-```
+``` 
 
-#### Bootstrap the first control plane node
-
-Initialize the first control plane node using the
-example bootstrap configuration file:
+Bootstrap the first control plane node using the
+example bootstrap configuration file which will apply the relevant Kubernetes 
+STIG recommendations:
 
 ```
 sudo k8s bootstrap --file /var/snap/k8s/common/etc/configurations/disa-stig/bootstrap.yaml
 sudo k8s status --wait-ready
 ```
 
-#### Join control plane nodes
+<!-- ### Join additional nodes -->
+
+<!-- ### Apply Kubernetes control plane STIG -->
+<!-- ### Set up control plane nodes -->
+
+### Join control plane nodes
 
 First retrieve a join token from an existing control plane node:
 
@@ -142,6 +163,8 @@ example control plane node join configuration file:
 ```
 sudo k8s join-cluster --file=/var/snap/k8s/common/etc/configurations/disa-stig/control-plane.yaml <join-token>
 ```
+
+<!-- ### Apply Kubernetes worker STIG -->
 
 ### Join worker nodes
 
@@ -195,9 +218,6 @@ anytime the list of ports, protocols, and services used by your cluster changes
 - {ref}`242417`: User functionality must be separate from management functions
    meaning all user pods must be in user specific namespaces rather than system
    namespaces
-- {ref}`242443`: Kubernetes components must be regularly updated to avoid
-   vulnerabilities. We recommend using the latest revision of a
-   [supported version] of {{product}}.
 
 ## Advanced configuration
 
@@ -266,11 +286,30 @@ This policy may be insufficient or impractical in some situations. To adjust it:
    [upstream instructions] and adjust the `--admission-control-config-file`
    path used in the configuration files.
 
-For more details, see the [Kubernetes Pod Security Admission documentation],
-which provides an overview of Pod Security Standards (PSS), their enforcement
-levels, and configuration options.
+This pod security policy is set to “baseline”, a minimally restrictive policy 
+that prevents known privilege escalations. Edit this file as needed to meet your
+cluseter's needs based on [upstream instructions]. 
 
-#### Kubernetes API Server audit log
+<!-- This policy may be insufficient or 
+impractical in some situations, in which case it needs to be adjusted.  -->
+
+Alternavtively, {{product}} also provides a more restrictive configuration 
+file:
+
+```
+sudo cat /var/snap/k8s/common/etc/configurations/pod-security-admission-restricted.yaml
+```
+
+If you would like to use this file instead, set the 
+`--admission-control-config-file` path in the bootstrap and control plane 
+configuration files to
+`/var/snap/k8s/common/etc/configurations/pod-security-admission-restricted.yaml`.
+
+If neither provided configurations meet your cluster's needs, create your own 
+audit policy based on the [upstream instructions] and adjust the 
+`--admission-control-config-file` path used in the configuration files.
+
+### Kubernetes API Server audit log
 
 To comply with rules {ref}`242402`, {ref}`242403`, {ref}`242461`, {ref}`242462`,
 {ref}`242463`, {ref}`242464`, and {ref}`242465` you must configure the
@@ -283,9 +322,9 @@ By default, the configuration files will point to
 logging of all (non-resource) events with request metadata, request body, and
 response body as recommended by {ref}`242403`.
 
-This level of logging may be impractical for some situations, in which case the
-settings would need to be adjusted and an exception put in place. To adjust the
-audit settings, do one of the following:
+```
+sudo cat /var/snap/k8s/common/etc/configurations/audit-policy.yaml
+```
 
 1. Set the `--audit-policy-file` path used when you bootstrap/join nodes to
     use `/var/snap/k8s/common/etc/configurations/audit-policy-kube-system.yaml`
@@ -304,8 +343,11 @@ audit settings, do one of the following:
 [configure UFW]: /snap/howto/networking/ufw.md
 [configuration files]: /snap/reference/config-files/index.md
 [USG tool]: https://documentation.ubuntu.com/security/docs/compliance/usg/
+[Ubuntu Pro]: https://documentation.ubuntu.com/pro/start-here/#start-here
 [Kubernetes Pod Security Admission documentation]: https://kubernetes.io/docs/concepts/security/pod-security-admission/
 [upstream instructions]: https://kubernetes.io/docs/tasks/configure-pod-container/enforce-standards-admission-controller/
 [upstream audit instructions]: https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
 [V-270714]: https://www.stigviewer.com/stigs/canonical_ubuntu_2404_lts/2025-05-16/finding/V-270714
 [V-270665]: https://www.stigviewer.com/stigs/canonical_ubuntu_2404_lts/2025-05-16/finding/V-270665
+[DISA STIG host OS]: https://www.stigviewer.com/stigs/canonical_ubuntu_2404_lts
+
