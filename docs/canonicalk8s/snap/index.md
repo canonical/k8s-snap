@@ -19,8 +19,9 @@ The {{product}} snap is a performant, lightweight, secure and
 opinionated distribution of **Kubernetes** which includes everything needed to
 create and manage a scalable cluster suitable for all use cases.
 
-You can find out more about {{product}} on the [what is Canonical Kubernetes page] or
-see a more detailed explanation in our [architecture documentation].
+You can find out more about {{product}} on the 
+[what is Canonical Kubernetes page] or see a more detailed explanation in our
+[architecture documentation].
 
 For deployment at scale, {{product}} is also available as a
 [Juju charm][]

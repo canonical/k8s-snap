@@ -25,8 +25,8 @@ package][] on cloud instances managed by Juju. Operating Kubernetes through
 this charm makes it significantly easier to manage at scale, on remote cloud
 instances and also to integrate other operators to enhance or customize your
 Kubernetes deployment. You can find out more about {{product}} on the
-[what is Canonical Kubernetes page][] or see a more detailed explanation in our [architecture
-documentation][arch].
+[what is Canonical Kubernetes page][] or see a more detailed explanation in our 
+[architecture documentation][arch].
 
 ![Illustration depicting working on components and clouds][logo]
 

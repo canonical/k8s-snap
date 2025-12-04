@@ -5,8 +5,8 @@ the necessary tools and services needed to easily deploy and manage a cluster.
 As the upstream Kubernetes does not come with all that is required
 for a fully functional cluster by default, we have bundled everything into a
 snap that should only take a few minutes to install. In this tutorial you will
-deploy a single node cluster by installing the snap package and execute some typical 
-cluster operations. 
+deploy a single node cluster by installing the snap package and execute some 
+typical cluster operations. 
 
 ## Prerequisites
 
@@ -16,8 +16,8 @@ cluster operations.
   another operating system which supports snapd - see the
   [snapd documentation](https://snapcraft.io/docs/installing-snapd))
 - A system with **no previous installations of containerd/docker** as this may
-cause conflicts. Consider using a [Multipass virtual machine] if you would like an
-isolated working environment.
+cause conflicts. Consider using a [Multipass virtual machine] if you would like 
+an isolated working environment.
 
 ### Install {{product}}
 
@@ -91,9 +91,10 @@ sudo k8s kubectl get pods -n kube-system
 ```
 
 A [pod](https://kubernetes.io/docs/concepts/workloads/pods/) is the smallest
-deployable unit in Kubernetes.  You will observe at least four pods running. The status of the pods may be in
-`ContainerCreating` while they are being initialized. Run the command again
-after a few seconds and they should report status as `Running`.
+deployable unit in Kubernetes.  You will observe at least four pods running. 
+The status of the pods may be in `ContainerCreating` while they are being 
+initialized. Run the command again after a few seconds and they should report 
+status as `Running`.
 
 The functions of these pods are:
 
