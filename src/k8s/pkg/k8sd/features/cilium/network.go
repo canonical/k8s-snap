@@ -119,16 +119,6 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 		}, err
 	}
 
-	defaultCidr, err := utils.FindCIDRForIP(nodeIP)
-	if err != nil {
-		err = fmt.Errorf("failed to find cidr of default interface: %w", err)
-		return types.FeatureStatus{
-			Enabled: false,
-			Version: CiliumAgentImageTag,
-			Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
-		}, err
-	}
-
 	ipv4CIDR, ipv6CIDR, err := utils.SplitCIDRStrings(network.GetPodCIDR())
 	if err != nil {
 		err = fmt.Errorf("invalid kube-proxy --cluster-cidr value: %w", err)
@@ -222,11 +212,11 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 		"tunnelPort": config.tunnelPort,
 	}
 
-	// If we are deploying with IPv6 only, we need to set the routing mode to native
+	// Revert these values to default in case they were changed in previous versions
 	if ipv4CIDR == "" && ipv6CIDR != "" {
-		values["routingMode"] = "native"
-		values["ipv6NativeRoutingCIDR"] = defaultCidr
-		values["autoDirectNodeRoutes"] = true
+		values["routingMode"] = "tunnel"
+		values["ipv6NativeRoutingCIDR"] = ""
+		values["autoDirectNodeRoutes"] = false
 	}
 
 	if config.devices != "" {
