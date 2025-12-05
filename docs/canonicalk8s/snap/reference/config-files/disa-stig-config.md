@@ -1,6 +1,8 @@
 # DISA STIG configuration files
 
-During the [installation of a DISA STIG hardened cluster], {{product}} provides default configuration files for cluster formation, control plane join and worker join that automatically apply the following DISA STIG recommendations.  
+During the [installation of a DISA STIG hardened cluster], {{product}} provides
+default configuration files for cluster formation, control plane join and 
+worker join that automatically apply the following DISA STIG recommendations.  
 
 ## Control plane example configuration files
 
