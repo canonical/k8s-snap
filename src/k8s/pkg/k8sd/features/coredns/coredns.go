@@ -58,6 +58,13 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.
 			"name":   "coredns",
 		},
 		"priorityClassName": "system-node-critical",
+		"tolerations": []map[string]any{
+			{
+				"key":      "node-role.kubernetes.io/control-plane",
+				"operator": "Exists",
+				"effect":   "NoSchedule",
+			},
+		},
 		"deployment": map[string]any{
 			"name": "coredns",
 		},
