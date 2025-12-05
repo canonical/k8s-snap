@@ -238,9 +238,9 @@ of
 > keystore. To enable the minimum version of TLS to be used by the Kubernetes
 > API Server, the setting "--auto-tls" must be set.
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 **Step 1/4**
 
@@ -360,7 +360,7 @@ start with `PASS`.
 
 ````
 
-````{group-tab} k8s-dqlite
+````{tab-item} k8s-dqlite
 
 **Step 1/3**
 
@@ -503,9 +503,9 @@ of
 > API Server, the setting "--peer-auto-tls" must be set.
 
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 **Step 1/4**
 
@@ -627,7 +627,7 @@ start with `PASS`.
 
 ````
 
-````{group-tab} k8s-dqlite
+````{tab-item} k8s-dqlite
 
 **Comments:**
 
@@ -1450,9 +1450,9 @@ The final line of the output will be `PASS`.
 > authorizations inherit within Kubernetes with RBAC implemented.
 
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 
 **Comments:**
@@ -1516,7 +1516,7 @@ start with `PASS`.
 
 ````
 
-````{group-tab} k8s-dqlite
+````{tab-item} k8s-dqlite
 
 **Comments:**
 
@@ -1810,9 +1810,9 @@ The final line of the output will be `PASS`.
 > Satisfies: SRG-APP-000133-CTR-000310, SRG-APP-000133-CTR-000295,
 > SRG-APP-000516-CTR-001335
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 **Comments:**
 
@@ -1857,7 +1857,7 @@ start with `PASS`.
 
 ````
 
-````{group-tab} k8s-dqlite
+````{tab-item} k8s-dqlite
 
 **Comments:**
 
@@ -2388,9 +2388,9 @@ service
 > must be set. This parameter gives the location of the SSL Certificate
 > Authority file used to secure Kubelet communication.
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 **Comments:**
 
@@ -2425,7 +2425,7 @@ The final line of the output will be `PASS`.
 
 ````
 
-````{group-tab} k8s-dqlite
+````{tab-item} k8s-dqlite
 
 **Step 1/3**
 
@@ -2723,9 +2723,9 @@ service
 > certificates.
 
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 **Comments:**
 
@@ -2760,7 +2760,7 @@ The final line of the output will be `PASS`.
 
 ````
 
-````{group-tab} k8s-dqlite
+````{tab-item} k8s-dqlite
 
 **Comments:**
 
@@ -2837,9 +2837,9 @@ The final line of the output will be `PASS`.
 > set. This parameter gives the location of the key file used to secure etcd
 > communication.
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 **Comments:**
 
@@ -2878,7 +2878,7 @@ start with `PASS`.
 
 ````
 
-````{group-tab} k8s-dqlite
+````{tab-item} k8s-dqlite
 
 
 **Step 1/3**
@@ -3020,9 +3020,9 @@ start with `PASS`.
 > set. This parameter gives the location of the SSL certification file used to
 > secure etcd communication.
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 **Comments:**
 
@@ -3062,7 +3062,7 @@ start with `PASS`.
 
 ````
 
-````{group-tab} k8s-dqlite
+````{tab-item} k8s-dqlite
 
 **Step 1/3**
 
@@ -3203,9 +3203,9 @@ start with `PASS`.
 > must be set. This parameter gives the location of the SSL Certificate
 > Authority file used to secure etcd communication.
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 **Comments:**
 
@@ -3245,7 +3245,7 @@ start with `PASS`.
 
 ````
 
-````{group-tab} k8s-dqlite
+````{tab-item} k8s-dqlite
 
 **Step 1/3**
 
@@ -3381,9 +3381,9 @@ start with `PASS`.
 > must be set. This parameter gives the location of the SSL certification file
 > used to secure etcd communication.
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 **Comments:**
 
@@ -3425,7 +3425,7 @@ start with `PASS`.
 
 ````
 
-````{group-tab} k8s-dqlite
+````{tab-item} k8s-dqlite
 
 **Step 1/3**
 
@@ -3566,9 +3566,9 @@ start with `PASS`.
 > must be set. This parameter gives the location of the key file used to secure
 > etcd communication.
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 **Comments:**
 
@@ -3610,7 +3610,7 @@ start with `PASS`.
 
 ````
 
-````{group-tab} k8s-dqlite
+````{tab-item} k8s-dqlite
 
 
 **Step 1/3**
@@ -3751,9 +3751,9 @@ means to be able to authenticate sessions and encrypt traffic.
 be set. This parameter gives the location of the SSL certification file used to
 secure etcd communication.
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 **Comments:**
 
@@ -3793,7 +3793,7 @@ start with `PASS`.
 
 ````
 
-`````{group-tab} k8s-dqlite
+`````{tab-item} k8s-dqlite
 
 **Comments:**
 
@@ -3869,9 +3869,9 @@ means to be able to authenticate sessions and encrypt traffic.
 be set. This parameter gives the location of the SSL certification file used to
 secure etcd communication.
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 **Comments:**
 
@@ -3910,7 +3910,7 @@ start with `PASS`.
 
 ````
 
-`````{group-tab} k8s-dqlite
+`````{tab-item} k8s-dqlite
 
 **Comments:**
 
@@ -4185,9 +4185,9 @@ server, controller, proxy, and scheduler. If these files can be changed, the
 scheduler will be implementing the changes immediately. Many of the security
 settings within the V-242444 document are implemented through these manifests.
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 **Comments:**
 
@@ -4247,7 +4247,7 @@ start with `PASS`.
 
 ````
 
-````{group-tab} k8s-dqlite
+````{tab-item} k8s-dqlite
 
 **Comments:**
 
@@ -4318,9 +4318,9 @@ Control Plane would be compromised. The scheduler will implement the changes
 immediately. Many of the security settings within the document are implemented
 through this file.
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 **Comments:**
 
@@ -4357,7 +4357,7 @@ start with `PASS`.
 
 ````
 
-````{group-tab} k8s-dqlite
+````{tab-item} k8s-dqlite
 
 **Comments:**
 
@@ -5260,9 +5260,9 @@ more restrictive
 Control Plane. If these files can be changed, data to API object and Control
 Plane would be compromised.
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 **Step 1/2**
 
@@ -5321,7 +5321,7 @@ start with `PASS`.
 
 ````
 
-````{group-tab} k8s-dqlite
+````{tab-item} k8s-dqlite
 
 **Comments:**
 
@@ -6961,9 +6961,9 @@ Assurance List (PPSM CAL)
 > that fall outside the PPSM CAL must be blocked. Instructions on the PPSM can
 > be found in DoD Instruction 8551.01 Policy.
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 **Comments:**
 
@@ -6983,7 +6983,7 @@ Assurance List (PPSM CAL)
 
 ````
 
-````{group-tab} k8s-dqlite
+````{tab-item} k8s-dqlite
 
 **Comments:**
 
