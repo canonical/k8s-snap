@@ -245,6 +245,7 @@ def setup_k8s_snap(
             a snap track to install
             a snap channel to install
             a snap revision to install
+            a snap channel@revision to install
             a path to the snap to install
     """
     cmd = ["snap", "install", "--classic"]
@@ -266,7 +267,7 @@ def setup_k8s_snap(
         cmd += [config.SNAP_NAME, "--revision", which_snap]
     elif "/" in which_snap or which_snap in RISKS:
         LOG.info("Install k8s snap by specific channel: %s", which_snap)
-        cmd += [config.SNAP_NAME, "--channel", which_snap]
+        cmd += [config.SNAP_NAME, *snap_channel_args(which_snap)]
     elif channel := tracks_least_risk(which_snap, instance.arch):
         LOG.info("Install k8s snap by least risky channel: %s", channel)
         cmd += [config.SNAP_NAME, "--channel", channel]
@@ -275,6 +276,21 @@ def setup_k8s_snap(
     if connect_interfaces:
         LOG.info("Ensure k8s interfaces and network requirements")
         instance.exec(["/snap/k8s/current/k8s/hack/init.sh"], stdout=subprocess.DEVNULL)
+
+
+def snap_channel_args(channel: str) -> List[str]:
+    """Parse channel string and return snap arguments.
+
+    If the channel includes an '@' symbol, the part after '@' is treated as the snap revision.
+    """
+    # Options for channel include
+    # 1. a channel name like '1.32-classic/stable'
+    # 2. a channel and revision number like '1.32-classic/stable@1234'
+    if "@" in channel:
+        chan, revision = channel.split("@", maxsplit=1)
+        return ["--channel", chan, "--revision", revision]
+    else:
+        return ["--channel", channel]
 
 
 def remove_k8s_snap(instance: harness.Instance):
