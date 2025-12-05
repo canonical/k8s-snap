@@ -31,7 +31,8 @@ you use `juju debug-log` (see [juju debug-log][juju-debug-log]).
 Next, deploy your observability cluster using the `k8s` charm:
 
 ```
-juju deploy k8s --constraints="mem=8G cores=4 root-disk=30G"
+juju deploy k8s --base="ubuntu@24.04" \
+  --constraints="mem=16G cores=4 root-disk=40G"
 ```
 
 ```{note} local-storage and load-balancer are essential features for the COS
