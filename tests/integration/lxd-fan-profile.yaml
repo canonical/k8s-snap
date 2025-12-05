@@ -1,0 +1,20 @@
+description: "Container that creates its own VXLAN interface"
+devices:
+  eth0:
+    name: eth0
+    nictype: bridged
+    parent: lxdbr0
+    type: nic
+config:
+  cloud-init.network-config: |
+    version: 2
+    ethernets:
+      eth0:
+        dhcp4: true
+        addresses:
+        - 172.16.3.4/16
+  cloud-init.user-data: |
+    #cloud-config
+    runcmd:
+      - ip link add ftun0 type vxlan id 655360 dev eth0 dstport 8472 local 172.16.3.4
+      - ip link set ftun0 up

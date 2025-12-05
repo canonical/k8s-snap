@@ -77,6 +77,15 @@ LXD_PROFILE = (
 # LXD_DUALSTACK_NETWORK is the network to use for LXD containers with dualstack configured.
 LXD_DUALSTACK_NETWORK = os.getenv("TEST_LXD_DUALSTACK_NETWORK") or "dualstack-br0"
 
+# LXD_FAN_PROFILE_NAME is the profile name to use for LXD containers with fan networking configured.
+LXD_FAN_PROFILE_NAME = os.getenv("TEST_LXD_FAN_PROFILE_NAME") or "k8s-integration-fan"
+
+# LXD_FAN_PROFILE is the profile to use for LXD containers with fan networking configured.
+LXD_FAN_PROFILE = (
+    os.getenv("TEST_LXD_FAN_PROFILE")
+    or (DIR / ".." / ".." / "lxd-fan-profile.yaml").read_text()
+)
+
 # LXD_DUALSTACK_PROFILE_NAME is the profile name to use for LXD containers with dualstack configured.
 LXD_DUALSTACK_PROFILE_NAME = (
     os.getenv("TEST_LXD_DUALSTACK_PROFILE_NAME") or "k8s-integration-dualstack"
