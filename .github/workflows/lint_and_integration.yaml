@@ -103,16 +103,18 @@ jobs:
           echo "test-tags=$tags" >> "$GITHUB_OUTPUT"
 
   test-integration:
-    name: Test ${{ matrix.os }}
+    name: Integration
     strategy:
       fail-fast: false
       matrix:
         os: ["ubuntu:20.04", "ubuntu:22.04", "ubuntu:24.04"]
+        datastore: [etcd, k8s-dqlite]
     needs: [build-snap, get-e2e-tags, go-lint-and-unit, python-lint]
     uses: ./.github/workflows/e2e-tests.yaml
     with:
       arch: amd64
       os: ${{ matrix.os }}
+      datastore: ${{ matrix.datastore }}
       test-tags: ${{ needs.get-e2e-tags.outputs.test-tags }}
       artifact: k8s.snap
 
