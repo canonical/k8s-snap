@@ -222,6 +222,7 @@ parts:
       - conntrack
       - coreutils
       - diffutils
+      - erofs-utils
       - ethtool
       - hostname
       - iproute2
