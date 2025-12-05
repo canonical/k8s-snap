@@ -4,19 +4,20 @@
 the necessary tools and services needed to easily deploy and manage a cluster.
 As the upstream Kubernetes does not come with all that is required
 for a fully functional cluster by default, we have bundled everything into a
-snap that should only take a few minutes to install. This tutorial
-explains how to install the snap package and some typical operations.
+snap that should only take a few minutes to install. In this tutorial you will
+deploy a single node cluster by installing the snap package and execute some 
+typical cluster operations. 
 
 ## Prerequisites
 
-- System Requirements: Your machine should have at least **40G disk space**
-  and **4G of memory**
+- System Requirements: Your machine should have at least **20G disk space**
+  and **8G of memory**
 - An **Ubuntu** environment to run the commands (or
   another operating system which supports snapd - see the
   [snapd documentation](https://snapcraft.io/docs/installing-snapd))
 - A system with **no previous installations of containerd/docker** as this may
-cause conflicts. Consider using a [LXD virtual machine] if you would like an
-isolated working environment.
+cause conflicts. Consider using a [Multipass virtual machine] if you would like 
+an isolated working environment.
 
 ### Install {{product}}
 
@@ -36,14 +37,7 @@ The bootstrap command initializes your cluster and configures your host system
 as a Kubernetes node. Bootstrapping the cluster is only done once at cluster
 creation.
 
-To explore configurations options available on bootstrap you can run:
-
-```
-sudo k8s bootstrap --help
-```
-
-If you would like to bootstrap a Kubernetes cluster with
-default configuration run:
+Bootstrap a Kubernetes cluster with default configuration:
 
 ```
 sudo k8s bootstrap
@@ -96,9 +90,11 @@ namespace:
 sudo k8s kubectl get pods -n kube-system
 ```
 
-You will observe at least four pods running. The status of the pods may be in
-`ContainerCreating` while they are being initialized. Run the command again
-after a few seconds and they should report status as `Running`.
+A [pod](https://kubernetes.io/docs/concepts/workloads/pods/) is the smallest
+deployable unit in Kubernetes.  You will observe at least four pods running. 
+The status of the pods may be in `ContainerCreating` while they are being 
+initialized. Run the command again after a few seconds and they should report 
+status as `Running`.
 
 The functions of these pods are:
 
@@ -118,15 +114,13 @@ Kubernetes is meant for deploying apps and services.
 You can use the `kubectl`
 command to do that as with any Kubernetes.
 
-Let's deploy a demo NGINX server:
+Let's deploy a demo web server (NGINX):
 
 ```
 sudo k8s kubectl create deployment nginx --image=nginx
 ```
 
-This command launches a
-[pod](https://kubernetes.io/docs/concepts/workloads/pods/), the smallest
-deployable unit in Kubernetes, running the NGINX application within a
+This command launches a pod running the NGINX application within a
 container.
 
 You can check the status of your pods by running:
@@ -215,13 +209,6 @@ sudo k8s disable local-storage
 
 ### Remove {{product}} (Optional)
 
-If you wish to remove the snap without saving a snapshot of its data execute:
-
-```
-sudo snap remove k8s --purge
-```
-
-The `--purge` flag ensures complete removal of the snap and its associated data.
 If you would like to maintain a snapshot of the `k8s` snap for future
 restoration, simply run :
 
@@ -232,15 +219,23 @@ sudo snap remove k8s
 The snapshot is a copy of the user, system and configuration data stored by
 snapd for the `k8s` snap. This data can be found in `/var/snap/k8s`.
 
+If you wish to remove the snap without saving any of its data execute:
+
+```
+sudo snap remove k8s --purge
+```
+
+The `--purge` flag ensures complete removal of the snap and its associated data.
+
 ## Next steps
 
-- Learn more about {{product}} with kubectl in our [How to use kubectl] tutorial
+- Learn more about {{product}} with kubectl in our [how to use kubectl] tutorial
 - Learn how to set up a multi-node environment by [adding and removing nodes]
 - Explore Kubernetes commands with our [command reference guide]
 
 <!-- LINKS -->
 
-[How to use kubectl]: kubectl
+[how to use kubectl]: kubectl
 [command reference guide]: /snap/reference/commands
 [adding and removing nodes]: add-remove-nodes
-[LXD virtual machine]: /snap/howto/install/lxd.md
+[Multipass virtual machine]: /snap/howto/install/multipass
