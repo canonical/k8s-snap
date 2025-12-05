@@ -41,6 +41,7 @@ parts:
       - libbtrfs-dev
       - build-essential
       - curl
+      - erofs-utils
       - flex
       - git
       - libjansson-dev
@@ -222,6 +223,7 @@ parts:
       - conntrack
       - coreutils
       - diffutils
+      - erofs-utils
       - ethtool
       - hostname
       - iproute2
