@@ -31,6 +31,25 @@ jobs:
       UBUNTU_PRO_TOKEN: ${{ secrets.UBUNTU_PRO_TOKEN }}
       LAUNCHPAD_K8S_CI_BOT_PASSWORD: ${{ secrets.LAUNCHPAD_K8S_CI_BOT_PASSWORD }}
 
+  test-spread-datastore:
+    name: Spread tests across different datastores
+    strategy:
+      matrix:
+        arch: ["amd64", "arm64"]
+        datastore: ["etcd", "k8s-dqlite"]
+        channel: ["latest/edge"]
+      fail-fast: false
+    uses: ./.github/workflows/e2e-tests.yaml
+    with:
+      arch: ${{ matrix.arch }}
+      datastore: ${{ matrix.datastore }}
+      channel: ${{ matrix.channel }}
+      test-tags: "up_to_nightly"
+      parallel: true
+      # We need to reduce the max parallelism here to avoid occupying all runners.
+      # os * arch * channel * max-parallel = 160 jobs
+      max-parallel: 10
+
   cncf:
     name: CNCF conformance test
     strategy:
