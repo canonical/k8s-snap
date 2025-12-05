@@ -13,7 +13,7 @@ LOG = logging.getLogger(__name__)
 
 ARCH = platform.machine()
 CILIUM_CLI_ARCH_MAP = {"aarch64": "arm64", "x86_64": "amd64"}
-CILIUM_CLI_VERSION = "v0.16.3"
+CILIUM_CLI_VERSION = "v0.18.9"
 CILIUM_CLI_TAR_GZ = f"https://github.com/cilium/cilium-cli/releases/download/{CILIUM_CLI_VERSION}/cilium-linux-{CILIUM_CLI_ARCH_MAP.get(ARCH)}.tar.gz"  # noqa
 
 
