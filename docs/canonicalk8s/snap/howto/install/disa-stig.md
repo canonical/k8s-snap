@@ -109,9 +109,10 @@ overridden by another configuration file with higher precedence.
 DISA STIG specific settings on cluster formation and node-join.  If you are happy to apply the default settings, jump to 
 [initializing the cluster](#initialize-the-cluster). -->
 
-<!-- ### Review default configuration
 
-{{product}} provides example [configuration files] to automatically apply
+## Set configuration options 
+
+{{product}} provides example configuration files to automatically apply
 DISA STIG specific settings on cluster formation and node-join. Once a node is configured, changing certain settings is more difficult
 and may require re-deploying the node or cluster. If you are happy to apply the default settings, jump to 
 [initializing the cluster](#initialize-the-cluster). Otherwise, choose the configuration options that are best suited to your cluster. 
@@ -122,10 +123,10 @@ To comply with rule {ref}`254800`, you must configure a Pod Security Admission
 control file for your Kubernetes cluster. This file defines the Pod Security
 Standards (PSS) that are enforced at the namespace level. 
 
-**Current default**: `/var/snap/k8s/common/etc/configurations/pod-security-admission-baseline.yaml`. This pod security policy is set to “baseline”, a minimally restrictive policy 
-that prevents known privilege escalations.
-
-**Alternative configuration**: `/var/snap/k8s/common/etc/configurations/pod-security-admission-restricted.yaml`. This pod security policy is set to "restricted", a heavily restricted policy that follows current pod hardening best practices. 
+| |  |
+|--|--|
+|Current default| `/var/snap/k8s/common/etc/configurations/pod-security-admission-baseline.yaml`. This pod security policy is set to “baseline”, a minimally restrictive policy that prevents known privilege escalations.|
+|Alternative configuration| `/var/snap/k8s/common/etc/configurations/pod-security-admission-restricted.yaml`. This pod security policy is set to "restricted", a heavily restricted policy that follows current pod hardening best practices. |
 
 <!-- **Configuration file paramter to edit**: `--admission-control-config-file` -->
 
@@ -133,7 +134,7 @@ that prevents known privilege escalations.
 These policies can be editied based on [upstream instructions].
 
 Set the `--admission-control-config-file` path in the bootstrap and control plane 
-configuration files to whichever policy best matches your cluster's needs. 
+configuration files located at `/var/snap/k8s/common/etc/templates/disa-stig/` to whichever policy best matches your cluster's needs. 
 
 <!-- 
 The default Pod Security Admission control file is set to `/var/snap/k8s/common/etc/configurations/pod-security-admission-baseline.yaml`. This pod security policy is set to “baseline”, a minimally restrictive policy 
@@ -193,18 +194,15 @@ To comply with rules {ref}`242402`, {ref}`242403`, {ref}`242461`, {ref}`242462`,
 {ref}`242463`, {ref}`242464`, and {ref}`242465` you must configure the 
 Kubernetes API Server audit log. 
 
-**Current default**: `/var/snap/k8s/common/etc/configurations/audit-policy.yaml`. This configures logging of all (non-resource) events with request metadata, 
-request body, and response body as recommended by {ref}`242403`. This level of 
-logging may be impractical for some situations, in which case the settings would
-need to be adjusted and an exception put in place.
-
-**Alternative configuration**: `/var/snap/k8s/common/etc/configurations/audit-policy-kube-system.yaml`. This
-provides the same level of logging, but only for events in the kube-system namespace.
+| |  |
+|--|--|
+|Current default| `/var/snap/k8s/common/etc/configurations/audit-policy.yaml`. This configures logging of all (non-resource) events with request metadata, request body, and response body as recommended by {ref}`242403`. This level of logging may be impractical for some situations, in which case the settings would need to be adjusted and an exception put in place.|
+| Alternative configuration| `/var/snap/k8s/common/etc/configurations/audit-policy-kube-system.yaml`. This provides the same level of logging, but only for events in the kube-system namespace.|
 
 These policies can be editied based on [upstream audit instructions].
 
-Set the `--audit-policy-file` path 
-used when you bootstrap/join nodes to use to whichever policy best matches your cluster's needs.
+Set the `--audit-policy-file` path path in the bootstrap and control plane 
+configuration files located at `/var/snap/k8s/common/etc/templates/disa-stig/` to use whichever policy best matches your cluster's needs.
 <!-- 
 The default audit policy is set to `/var/snap/k8s/common/etc/configurations/audit-policy.yaml`. This configures logging of all (non-resource) events with request metadata, 
 request body, and response body as recommended by {ref}`242403`. This level of 
@@ -225,7 +223,7 @@ audit policy based on the [upstream audit instructions] and adjust the
 
 ### Default configuration files 
 
-Review the remaining paramters in the example [configuration yaml files] and ensure they are set accoroding to your needs. 
+Review the remaining paramters in the example configuration YAML files located at `/var/snap/k8s/common/etc/templates/disa-stig/` and ensure they are set according to your needs. The [DISA STIG configuration files] reference page details what hardening recommendations have been applied in the example configuration files. 
 
 ## Apply Kubernetes STIG  
 
@@ -334,7 +332,7 @@ anytime the list of ports, protocols, and services used by your cluster changes
 ## Reference material
 <!-- ## Further DISA STIG material -->
 
-- If you would like to see what DISA STIG rules are applied in the example control plane and worker node configuration files provided, see the [DISA STIG configuration files] page.
+- If you would like to see what DISA STIG rules are applied in the example bootstrap, control plane and worker node configuration files provided, see the [DISA STIG configuration files] page.
 - The [DISA STIG audit] page contains a list of all the DISA STIG recommendations and details how they apply to {{product}}.
 
 <!-- Links -->
@@ -342,7 +340,6 @@ anytime the list of ports, protocols, and services used by your cluster changes
 [ports and services]: /snap/reference/ports-and-services/
 [FIPS installation guide]: fips.md
 [configure UFW]: /snap/howto/networking/ufw.md
-[configuration files]: /snap/reference/config-files/index.md
 [USG tool]: https://documentation.ubuntu.com/security/docs/compliance/usg/
 [Ubuntu Pro]: https://documentation.ubuntu.com/pro/start-here/#start-here
 [upstream instructions]: https://kubernetes.io/docs/tasks/configure-pod-container/enforce-standards-admission-controller/

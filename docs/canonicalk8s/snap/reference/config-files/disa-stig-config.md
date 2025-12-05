@@ -1,16 +1,18 @@
 # DISA STIG configuration files
 
-text here 
+During the [installation of a DISA STIG hardened cluster], {{product}} provides default configuration files for cluster formation, control plane join and worker join that automatically apply the following DISA STIG recommendations.  
 
 ## Control plane example configuration files
 
 `/var/snap/k8s/common/etc/templates/disa-stig/bootstrap.yaml` is the
-configuration file for
-[bootstrapping](#bootstrap-the-first-control-plane-node) the first node
-of a cluster and
+configuration file for bootstrapping the first node
+of a cluster. 
+
 `/var/snap/k8s/common/etc/templates/disa-stig/control-plane.yaml` is the
-control plane node-join configuration file for [joining additional control plane
-nodes](#join-control-plane-nodes). Both of these configuration files
+control plane node-join configuration file for joining additional control plane
+nodes. 
+
+Both of these configuration files
 apply settings to align with the following recommendations:
 
 | STIG                                                                               | Summary                                                               |
@@ -27,10 +29,14 @@ apply settings to align with the following recommendations:
 
 `/var/snap/k8s/common/etc/templates/disa-stig/worker.yaml` is the
 worker node-join configuration file
-for [joining worker nodes](#join-worker-nodes).
+for joining worker nodes.
+
 It applies settings to align with the following recommendations:
 
 | STIG       | Summary                                          |
 | ---------- | ------------------------------------------------ |
 | {ref}`242434` | Kubernetes Kubelet must enable kernel protection |
 | {ref}`245541` | Kubernetes Kubelet must not disable timeouts     |
+
+<!-- LINKS -->
+[installation of a DISA STIG hardened cluster]: /snap/howto/install/disa-stig.md
