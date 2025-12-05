@@ -41,7 +41,6 @@ parts:
       - libbtrfs-dev
       - build-essential
       - curl
-      - erofs-utils
       - flex
       - git
       - libjansson-dev
