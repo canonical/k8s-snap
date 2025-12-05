@@ -17,9 +17,8 @@ import yaml
 from packaging.version import Version
 from pathlib import Path
 from typing import Callable
-import re
 import util
-import urllib.request
+from update_utils import update_go_version
 
 
 logging.basicConfig(level=logging.INFO)
@@ -27,7 +26,6 @@ logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger(__name__)
 
 DIR = Path(__file__).absolute().parent
-SNAPCRAFT = DIR.parent.parent / "snap/snapcraft.yaml"
 COMPONENTS = DIR.parent / "components"
 CHARTS = DIR.parent.parent / "k8s" / "manifests" / "charts"
 
@@ -174,18 +172,22 @@ def update_component_versions(dry_run: bool):
         version: str = get_version()
         path = COMPONENTS / component / "version"
         existing = Path(path)
-        existing_version_text = existing.read_text().strip() if existing.exists() else None
+        existing_version_text = (
+            existing.read_text().strip() if existing.exists() else None
+        )
         upstream_version_text = version.strip()
 
-        existing_parsed = parse_version(existing_version_text) if existing_version_text else None
+        existing_parsed = (
+            parse_version(existing_version_text) if existing_version_text else None
+        )
         upstream_parsed = parse_version(upstream_version_text)
 
         # If both versions parse and the existing one is greater than upstream, skip update.
         if existing_parsed and upstream_parsed and existing_parsed > upstream_parsed:
             LOG.info(
-            "Existing version %s is greater than upstream %s; keeping existing version",
-            existing_version_text,
-            upstream_version_text,
+                "Existing version %s is greater than upstream %s; keeping existing version",
+                existing_version_text,
+                upstream_version_text,
             )
             continue
 
@@ -204,28 +206,9 @@ def update_component_versions(dry_run: bool):
             pull_helm_chart()
 
 
-def update_go_version(dry_run: bool):
-    k8s_version = (COMPONENTS / "kubernetes/version").read_text().strip()
-    url = f"https://raw.githubusercontent.com/kubernetes/kubernetes/refs/tags/{k8s_version}/.go-version"
-    with urllib.request.urlopen(url) as response:
-        go_version = response.read().decode("utf-8").strip()
-
-    LOG.info("Upstream go version is %s", go_version)
-    go_snap = f"go/{'.'.join(go_version.split('.')[:2])}/stable"
-    snapcraft_yaml = SNAPCRAFT.read_text()
-    if f"- {go_snap}" in snapcraft_yaml:
-        LOG.info("snapcraft.yaml already contains go version %s", go_snap)
-        return
-
-    LOG.info("Update go snap version to %s in %s", go_snap, SNAPCRAFT)
-    if not dry_run:
-        updated = re.sub(r"- go/\d+\.\d+/stable", f"- {go_snap}", snapcraft_yaml)
-        SNAPCRAFT.write_text(updated)
-
-
 def main():
     parser = argparse.ArgumentParser(
-        "update-component-versions.py", usage=USAGE, description=DESCRIPTION
+        "update_component_versions.py", usage=USAGE, description=DESCRIPTION
     )
     parser.add_argument("--dry-run", default=False, action="store_true")
     args = parser.parse_args(sys.argv[1:])
