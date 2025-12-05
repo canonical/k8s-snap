@@ -172,6 +172,7 @@ JUJU_MACHINES = os.getenv("TEST_JUJU_MACHINES") or ""
 # A list of space-separated channels for which the upgrade tests should be run in sequential order.
 # First entry is the bootstrap channel. Afterwards, upgrades are done in order.
 # Alternatively, use 'recent <num> <flavour>' to get the latest <num> channels for <flavour>.
+# If a channel includes an '@' symbol, the part after '@' is treated as the snap revision
 VERSION_UPGRADE_CHANNELS = (
     os.environ.get("TEST_VERSION_UPGRADE_CHANNELS", "").strip().split()
 )
