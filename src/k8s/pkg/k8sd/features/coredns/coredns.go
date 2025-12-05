@@ -95,7 +95,8 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.
 							"labelSelector": map[string]any{
 								"matchLabels": map[string]any{
 									"app.kubernetes.io/name":     "coredns",
-									"app.kubernetes.io/instance": "coredns",
+									"app.kubernetes.io/instance": "ck-dns",
+									"k8s-app":                    "coredns",
 								},
 							},
 							"topologyKey": "kubernetes.io/hostname",
@@ -113,20 +114,24 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.
 				"labelSelector": map[string]any{
 					"matchLabels": map[string]any{
 						"app.kubernetes.io/name":     "coredns",
-						"app.kubernetes.io/instance": "coredns",
+						"app.kubernetes.io/instance": "ck-dns",
+						"k8s-app":                    "coredns",
 					},
 				},
+				"matchLabelKeys": []string{"pod-template-hash"},
 			},
 			{
 				"maxSkew":           1,
 				"topologyKey":       "kubernetes.io/hostname",
-				"whenUnsatisfiable": "ScheduleAnyway",
+				"whenUnsatisfiable": "DoNotSchedule",
 				"labelSelector": map[string]any{
 					"matchLabels": map[string]any{
 						"app.kubernetes.io/name":     "coredns",
-						"app.kubernetes.io/instance": "coredns",
+						"app.kubernetes.io/instance": "ck-dns",
+						"k8s-app":                    "coredns",
 					},
 				},
+				"matchLabelKeys": []string{"pod-template-hash"},
 			},
 		},
 		// PDB: Ensure availability of CoreDNS during maintenance.
