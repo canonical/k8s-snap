@@ -97,19 +97,12 @@ def test_version_upgrades(instances: List[harness.Instance], tmp_path):
                 LOG.info("Refreshing k8s snap by path")
                 cmd = ["snap", "install", "--classic", "--dangerous", snap_path]
             else:
-                cmd = [
-                    "snap",
-                    "refresh",
-                    config.SNAP_NAME,
-                    "--channel",
-                    channel,
-                    "--amend",
-                    "--classic",
-                ]
+                cmd = ["snap", "refresh", "--classic", config.SNAP_NAME]
+                cmd += [*util.snap_channel_args(channel), "--amend"]
 
             instance.exec(cmd)
             util.wait_until_k8s_ready(cp, instances)
-            LOG.info(f"Upgraded {instance.id} on channel {channel}")
+            LOG.info(f"Upgraded {instance.id} to channel {channel}")
 
         current_channel = channel
         LOG.info(f"Upgraded all instances to channel {channel}")
@@ -140,7 +133,15 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
     worker = instances[-1]
 
     for instance in instances:
-        instance.exec(f"snap install k8s --classic --channel={start_branch}".split())
+        instance.exec(
+            [
+                "snap",
+                "install",
+                "k8s",
+                "--classic",
+                *util.snap_channel_args(start_branch),
+            ]
+        )
 
     bootstrap_cp.exec(["k8s", "bootstrap"])
     for instance in instances:
@@ -312,9 +313,13 @@ def test_feature_upgrades_rollout_upgrade(
 
     # Setup the first half of nodes up on the old version.
     for instance in instances[:3]:
-        instance.exec(f"snap install k8s --classic --channel={start_snap}".split())
+        instance.exec(
+            ["snap", "install", "k8s", "--classic", *util.snap_channel_args(start_snap)]
+        )
 
-    instance.exec(f"snap install k8s --classic --channel={start_snap}".split())
+    instance.exec(
+        ["snap", "install", "k8s", "--classic", *util.snap_channel_args(start_snap)]
+    )
 
     main_old.exec(["k8s", "bootstrap"])
     for instance in instances[1:3]:
