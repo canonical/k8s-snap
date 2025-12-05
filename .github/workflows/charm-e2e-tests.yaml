@@ -113,6 +113,16 @@ jobs:
             --channel ${{ inputs.charm-channel }} \
             --filepath $k8sWorkerChamFile \
             --base ubuntu@22.04
+      - name: Check system resources
+        run: |
+          # checking memory and cpu info to help debug CI failures
+          echo "--- Runner Host CPU Capacity ---"
+          echo "Total logical cores on the host:"
+          nproc --all 
+
+          echo "--- Runner Host Memory Capacity (GB) ---"
+          echo "Total physical RAM on the host:"
+          free -g
       - name: Bootstrap Juju controller (lxd)
         run: |
           juju bootstrap localhost lxd
@@ -125,22 +135,24 @@ jobs:
         run: |
           # The charm tests can't handle ipv6 dualstack.
           lxc network set lxdbr0 ipv6.address none
-      - name: Run e2e tests
+      - name: Run e2e smoke tests
         run: |
           set -x
           arch=${{ inputs.arch }}
           k8sCharmFile=${GITHUB_WORKSPACE}/k8s_ubuntu-22.04-${arch}.charm
-          k8sWorkerChamFile=${GITHUB_WORKSPACE}/k8s-worker_ubuntu-22.04-${arch}.charm
+          k8sWorkerCharmFile=${GITHUB_WORKSPACE}/k8s-worker_ubuntu-22.04-${arch}.charm
           snapInstallRes=${GITHUB_WORKSPACE}/snap_installation.tar.gz
-          ls -lh $charmFile
+          ls -lh $k8sCharmFile
           ls -lh $snapInstallRes
           cd ${{ env.K8S_OPERATOR }}
+          # Only run the smoke tests from k8s-operator.
           tox -r -e integration \
             -- \
             --charm-file $k8sCharmFile \
-            --charm-file $k8sWorkerChamFile \
+            --charm-file $k8sWorkerCharmFile \
             --snap-installation-resource $snapInstallRes \
-            'tests/integration/test_k8s.py::test_nodes_ready'
+            --arch ${{ inputs.arch }} \
+            -k "test_smoke"
       - name: Collect Juju Status
         if: failure()
         id: collect-juju-status
