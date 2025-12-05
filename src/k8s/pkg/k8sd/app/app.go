@@ -45,6 +45,8 @@ type Config struct {
 	DisableUpdateNodeConfigController bool
 	// DisableFeatureController is a bool flag to disable feature controller
 	DisableFeatureController bool
+	// DisableDNSRebalancerController is a bool flag to disable dns rebalancer controller
+	DisableDNSRebalancerController bool
 	// DisableCSRSigningController is a bool flag to disable csrsigning controller.
 	DisableCSRSigningController bool
 	// DrainConnectionsTimeout is the amount of time to allow for all connections to drain when shutting down.
@@ -212,6 +214,7 @@ func New(cfg Config) (*App, error) {
 			FeatureControllerReconcileTimeout: 10 * time.Minute,
 		},
 		cfg.DisableCSRSigningController,
+		cfg.DisableDNSRebalancerController,
 	)
 
 	return app, nil

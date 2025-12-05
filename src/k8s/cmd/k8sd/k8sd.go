@@ -19,6 +19,7 @@ var rootCmdOpts struct {
 	disableNodeLabelController          bool
 	disableControlPlaneConfigController bool
 	disableFeatureController            bool
+	disableDNSRebalancerController      bool
 	disableUpdateNodeConfigController   bool
 	disableCSRSigningController         bool
 	disableUpgradeController            bool
@@ -59,6 +60,7 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				DisableControlPlaneConfigController: rootCmdOpts.disableControlPlaneConfigController,
 				DisableUpdateNodeConfigController:   rootCmdOpts.disableUpdateNodeConfigController,
 				DisableFeatureController:            rootCmdOpts.disableFeatureController,
+				DisableDNSRebalancerController:      rootCmdOpts.disableDNSRebalancerController,
 				DisableCSRSigningController:         rootCmdOpts.disableCSRSigningController,
 				DisableUpgradeController:            rootCmdOpts.disableUpgradeController,
 				DrainConnectionsTimeout:             rootCmdOpts.drainConnectionsTimeout,
@@ -92,6 +94,7 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd.PersistentFlags().BoolVar(&rootCmdOpts.disableControlPlaneConfigController, "disable-control-plane-config-controller", false, "Disable the Control Plane Config Controller")
 	cmd.PersistentFlags().BoolVar(&rootCmdOpts.disableUpdateNodeConfigController, "disable-update-node-config-controller", false, "Disable the Update Node Config Controller")
 	cmd.PersistentFlags().BoolVar(&rootCmdOpts.disableFeatureController, "disable-feature-controller", false, "Disable the Feature Controller")
+	cmd.PersistentFlags().BoolVar(&rootCmdOpts.disableDNSRebalancerController, "disable-dns-rebalancer-controller", false, "Disable the DNS Rebalancer Controller")
 	cmd.PersistentFlags().BoolVar(&rootCmdOpts.disableCSRSigningController, "disable-csrsigning-controller", false, "Disable the CSR signing controller")
 	cmd.PersistentFlags().BoolVar(&rootCmdOpts.disableUpgradeController, "disable-upgrade-controller", false, "Disable the upgrade controller")
 

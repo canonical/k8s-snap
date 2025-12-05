@@ -8,6 +8,7 @@ import (
 	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/controllers/csrsigning"
+	"github.com/canonical/k8s/pkg/k8sd/controllers/dnsrebalancer"
 	"github.com/canonical/k8s/pkg/k8sd/controllers/upgrade"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
@@ -31,6 +32,9 @@ type Coordinator struct {
 
 	// CSR signing controller
 	disableCSRSigningController bool
+
+	// DNS rebalancer controller
+	disableDNSRebalancerController bool
 }
 
 // NewCoordinator creates a new Coordinator instance.
@@ -40,13 +44,15 @@ func NewCoordinator(
 	disableUpgradeController bool,
 	upgradeControllerOpts upgrade.ControllerOptions,
 	disableCSRSiningController bool,
+	disableDNSRebalancerController bool,
 ) *Coordinator {
 	return &Coordinator{
-		snap:                        snap,
-		waitReady:                   waitReady,
-		disableUpgradeController:    disableUpgradeController,
-		upgradeControllerOpts:       upgradeControllerOpts,
-		disableCSRSigningController: disableCSRSiningController,
+		snap:                           snap,
+		waitReady:                      waitReady,
+		disableUpgradeController:       disableUpgradeController,
+		upgradeControllerOpts:          upgradeControllerOpts,
+		disableCSRSigningController:    disableCSRSiningController,
+		disableDNSRebalancerController: disableDNSRebalancerController,
 	}
 }
 
@@ -122,6 +128,10 @@ func (c *Coordinator) setupControllers(
 		return fmt.Errorf("failed to setup CSR signing controller: %w", err)
 	}
 
+	if err := c.setupDNSRebalancerController(getClusterConfig, mgr); err != nil {
+		return fmt.Errorf("failed to setup DNS rebalancer controller: %w", err)
+	}
+
 	return nil
 }
 
@@ -179,6 +189,31 @@ func (c *Coordinator) setupCSRSigningController(
 
 	if err := csrsigningController.SetupWithManager(mgr); err != nil {
 		return fmt.Errorf("failed to setup csrsigning controller with manager: %w", err)
+	}
+
+	return nil
+}
+
+func (c *Coordinator) setupDNSRebalancerController(
+	getClusterConfig func(context.Context) (types.ClusterConfig, error),
+	mgr manager.Manager,
+) error {
+	logger := mgr.GetLogger()
+
+	if c.disableDNSRebalancerController {
+		logger.Info("DNS rebalancer controller is disabled. Skipping setup.")
+		return nil
+	}
+
+	dnsrebalancerController := dnsrebalancer.NewController(
+		logger,
+		mgr.GetClient(),
+		getClusterConfig,
+		c.snap,
+	)
+
+	if err := dnsrebalancerController.SetupWithManager(mgr); err != nil {
+		return fmt.Errorf("failed to setup DNS rebalancer controller with manager: %w", err)
 	}
 
 	return nil
