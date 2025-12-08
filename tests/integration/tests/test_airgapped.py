@@ -71,7 +71,7 @@ Environment="NO_PROXY=10.1.0.0/16,10.152.183.0/24,192.168.0.0/16,127.0.0.1,172.1
 @pytest.mark.node_count(2)
 @pytest.mark.no_setup()
 @pytest.mark.tags(tags.NIGHTLY)
-def test_airgapped_with_proxy(instances: List[harness.Instance]):
+def test_airgapped_with_proxy(instances: List[harness.Instance], datastore_type: str):
     proxy, instance = instances
     proxy_ip = util.get_default_ip(proxy)
     instance_ip = util.get_default_ip(instance)
@@ -100,7 +100,7 @@ def test_airgapped_with_proxy(instances: List[harness.Instance]):
     # Install and configure Kubernetes snap
     util.setup_k8s_snap(instance, Path("/"))
     setup_containerd_proxy(instance, proxy_ip)
-    instance.exec("sudo k8s bootstrap".split())
+    util.bootstrap(instance, datastore_type=datastore_type)
     util.wait_until_k8s_ready(instance, [instance])
 
 
@@ -111,6 +111,7 @@ def test_airgapped_with_image_mirror(
     h: harness.Harness,
     instances: List[harness.Instance],
     function_scoped_registry: reg.Registry,
+    datastore_type: str,
 ):
     proxy, instance = instances
     proxy_ip = util.get_default_ip(proxy)
@@ -136,7 +137,7 @@ def test_airgapped_with_image_mirror(
     )
 
     setup_containerd_proxy(registry.instance, proxy_ip)
-    registry.exec("sudo k8s bootstrap".split())
+    util.bootstrap(registry.instance, datastore_type=datastore_type)
 
     # Mirror images
     out = registry.exec(["k8s", "list-images"], capture_output=True, text=True)
@@ -188,5 +189,5 @@ def test_airgapped_with_image_mirror(
     restrict_network(instance, allow_ports=[REGISTRY_PORT])
     util.setup_k8s_snap(instance, Path("/"))
     registry.apply_configuration(instance)
-    instance.exec("sudo k8s bootstrap".split())
+    util.bootstrap(instance, datastore_type=datastore_type)
     util.wait_until_k8s_ready(instance, [instance])
