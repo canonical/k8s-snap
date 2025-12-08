@@ -44,12 +44,12 @@ Deploy the worker applications with the custom configurations and integrate them
 with the `k8s` application:
 
 ```bash
-juju deploy k8s-worker memory-workers --config ./worker-memory-config.yaml
+juju deploy k8s-worker memory-workers --base="ubuntu@24.04" --config ./worker-memory-config.yaml
 juju integrate k8s memory-workers:cluster
 juju integrate k8s memory-workers:containerd
 juju integrate k8s memory-workers:cos-tokens
 
-juju deploy k8s-worker gpu-workers --config ./worker-gpu-config.yaml
+juju deploy k8s-worker gpu-workers --base="ubuntu@24.04" --config ./worker-gpu-config.yaml
 juju integrate k8s gpu-workers:cluster
 juju integrate k8s gpu-workers:containerd
 juju integrate k8s gpu-workers:cos-tokens
