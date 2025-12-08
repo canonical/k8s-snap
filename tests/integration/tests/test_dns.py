@@ -102,13 +102,16 @@ def test_dns_ha_rebalancing(instances: List[harness.Instance]):
             "-l",
             "k8s-app=coredns",
             "-o",
-            "jsonpath='{.items[*].spec.nodeName}'",
+            "jsonpath='{.items[*].spec.nodeName} {.items[0].metadata.labels.pod-template-hash}'",
         ],
         text=True,
         capture_output=True,
     )
-    initial_nodes = set(result.stdout.replace("'", "").split())
-    LOG.info(f"Initial CoreDNS pod distribution: {initial_nodes}")
+    output = result.stdout.replace("'", "").split()
+    initial_nodes = output[0].split()
+    initial_pod_template_hash = output[1]
+    LOG.info(f"pod-template-hash: {initial_pod_template_hash}")
+    # Verify all pods are on the same node initially
     assert (
         len(initial_nodes) == 1
     ), f"Expected all CoreDNS pods on one node initially, got {initial_nodes}"
@@ -120,23 +123,19 @@ def test_dns_ha_rebalancing(instances: List[harness.Instance]):
 
     util.wait_until_k8s_ready(initial_node, instances)
 
-    # Wait for the DNS rebalancer controller to trigger and complete the rollout
-    # Allow more time for image pulls/scheduling across new nodes.
-    util.stubbornly(retries=60, delay_s=2).on(initial_node).exec(
-        [
-            "k8s",
-            "kubectl",
-            "rollout",
-            "status",
-            "-n",
-            "kube-system",
-            "deployment/coredns",
-            "--timeout=10s",
-        ]
-    )
+    # Wait for the DNS rebalancer controller to trigger and distribute CoreDNS pods across nodes
+    # Check until we have new pods (without the old template hash) on different nodes
+    def pods_distributed(result):
+        node_names = set(result.stdout.replace("'", "").split())
+        if len(node_names) > 1:
+            LOG.info(f"CoreDNS pods distributed across nodes: {node_names}")
+            return True
+        LOG.debug(f"CoreDNS pods still on {len(node_names)} node(s), waiting...")
+        return False
 
-    # Get the actual nodes where CoreDNS pods are now running
-    result = initial_node.exec(
+    util.stubbornly(retries=60, delay_s=2).on(initial_node).until(
+        pods_distributed
+    ).exec(
         [
             "k8s",
             "kubectl",
@@ -145,18 +144,9 @@ def test_dns_ha_rebalancing(instances: List[harness.Instance]):
             "-n",
             "kube-system",
             "-l",
-            "k8s-app=coredns",
+            f"k8s-app=coredns,pod-template-hash!={initial_pod_template_hash}",
             "-o",
             "jsonpath='{.items[*].spec.nodeName}'",
         ],
         text=True,
-        capture_output=True,
     )
-
-    # Verify CoreDNS pods are now distributed across multiple nodes
-    node_names = set(result.stdout.replace("'", "").split())
-    LOG.info(f"Final CoreDNS pod distribution: {node_names}")
-
-    assert (
-        len(node_names) > 1
-    ), f"CoreDNS pods not distributed after rebalancing: {node_names}"
