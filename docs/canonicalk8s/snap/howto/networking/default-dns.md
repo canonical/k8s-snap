@@ -3,7 +3,8 @@
 {{product}} includes a default DNS (Domain Name System) which is
 essential for internal cluster communication. When enabled, the DNS facilitates
 service discovery by assigning each service a DNS name. When disabled, you can
-integrate a custom DNS solution into your cluster.
+integrate a custom DNS solution into your cluster. Learn more about the
+default DNS in the [reference documentation].
 
 ## Prerequisites
 
@@ -95,3 +96,4 @@ sudo k8s help disable
 <!-- LINKS -->
 
 [getting-started-guide]: ../../tutorial/getting-started
+[reference documentation]: ../reference/default-dns.md
