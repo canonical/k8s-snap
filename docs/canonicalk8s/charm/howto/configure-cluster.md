@@ -59,7 +59,7 @@ k8s:
 Deploy the `k8s` charm with the configuration file:
 
 ```
-juju deploy k8s --config ./basic-config.yaml
+juju deploy k8s --base="ubuntu@24.04" --config ./basic-config.yaml
 ```
 
 **Using the `--config` flag:**
@@ -67,7 +67,7 @@ juju deploy k8s --config ./basic-config.yaml
 Alternatively, deploy the application by specifying the configuration directly:
 
 ```
-juju deploy k8s --config dns-enabled=true --config dns-cluster-domain=cluster.local
+juju deploy k8s --base="ubuntu@24.04" --config dns-enabled=true --config dns-cluster-domain=cluster.local
 ```
 
 ### Option 2: Updating an existing deployment
