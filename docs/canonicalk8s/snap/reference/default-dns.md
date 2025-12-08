@@ -7,7 +7,7 @@ service discovery by assigning each service a DNS name.
 ## Scaling DNS
 
 Default DNS is scaled automatically through a Horizontal Pod Autoscaler ([HPA])
-which monitors DNS pod's CPU and memory resource usage and adjusts the number of
+which monitors DNS pods' CPU and memory resource usage and adjusts the number of
 replicas accordingly.
 
 ## DNS scheduling

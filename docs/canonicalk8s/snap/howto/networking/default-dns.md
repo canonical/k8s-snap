@@ -96,4 +96,4 @@ sudo k8s help disable
 <!-- LINKS -->
 
 [getting-started-guide]: ../../tutorial/getting-started
-[reference documentation]: ../reference/default-dns.md
+[reference documentation]: ../../reference/default-dns.md
