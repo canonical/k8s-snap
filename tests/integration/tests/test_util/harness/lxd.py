@@ -336,6 +336,7 @@ class LXDHarness(Harness):
         po = required_ports if required_ports is not None else ports.DEFAULT_OPEN_PORTS
         ports_str = " ".join(str(p) for p in po)
 
+        LOG.info("Opening required firewall ports: %s", ports_str)
         # Run the setup script with environment variables
         try:
             self.exec(
