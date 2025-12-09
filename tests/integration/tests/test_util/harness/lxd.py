@@ -333,7 +333,7 @@ class LXDHarness(Harness):
             raise HarnessError(f"DISA-STIG tailoring file not found: {tailoring_file}")
         self.send_file(instance_id, str(tailoring_file), "/tmp/tailoring.xml")
 
-        po = required_ports if required_ports is not None else ports.DEFAULT_OPEN_PORTS
+        po = required_ports if required_ports else ports.DEFAULT_OPEN_PORTS
         ports_str = " ".join(str(p) for p in po)
 
         LOG.info("Opening required firewall ports: %s", ports_str)
