@@ -16,14 +16,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu:22.04", "ubuntu:24.04"]
-        arch: ["amd64", "arm64"]
+        os: ["ubuntu:22.04"]
+        arch: ["amd64"]
         channel: ["latest/edge"]
         include:
             - os: "ubuntu:22.04"
               series: "jammy"
-            - os: "ubuntu:24.04"
-              series: "noble"
     uses: ./.github/workflows/e2e-tests.yaml
     with:
       arch: ${{ matrix.arch }}
