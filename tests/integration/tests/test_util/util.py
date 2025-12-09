@@ -26,7 +26,7 @@ from tenacity import (
     stop_never,
     wait_fixed,
 )
-from test_util import config, harness
+from test_util import config, harness, snap as snap_util
 
 LOG = logging.getLogger(__name__)
 RISKS = ["stable", "candidate", "beta", "edge"]
@@ -248,8 +248,10 @@ def setup_k8s_snap(
             a path to the snap to install
         tmp_path:   path to store the snap on the instance (optional, defaults to /home/ubuntu)
     """
+    LOG.info("Installing required snaps %s", config.REQUIRED_SNAPS)
     if config.REQUIRED_SNAPS:
-        snap.ensure_required_snaps(instance, config.REQUIRED_SNAPS)
+        LOG.info("Ensuring required snaps are installed on instance %s", instance.id)
+        snap_util.ensure_required_snaps(instance, config.REQUIRED_SNAPS)
 
     cmd = ["snap", "install", "--classic"]
     which_snap = snap or config.SNAP
