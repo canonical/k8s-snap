@@ -190,7 +190,7 @@ jobs:
   run-tests:
     name: ${{ matrix.test }}
     needs: prepare
-    runs-on: ${{ fromJson(needs.prepare.outputs.test-runners)[matrix.test] || fromJson(needs.prepare.outputs.test-runners)["all"] || (inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04') }}
+    runs-on: ${{ fromJson(needs.prepare.outputs.test-runners)[matrix.test] || fromJson(needs.prepare.outputs.test-runners)['all'] || (inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04') }}
     strategy:
       fail-fast: false
       max-parallel: ${{ inputs.max-parallel }}
