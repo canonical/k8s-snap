@@ -41,7 +41,7 @@ class MultipassHarness(Harness):
         LOG.debug("Configured Multipass substrate (image %s)", self.image)
 
     def new_instance(
-        self, network_type: str = "IPv4", name_suffix: str = ""
+        self, network_type: str = "IPv4", name_suffix: str = "", required_ports: List[int] = None
     ) -> Instance:
         if network_type not in ("IPv4", "IPv6", "dualstack"):
             raise HarnessError(
@@ -153,6 +153,12 @@ class MultipassHarness(Harness):
                     f"Failed to configure IPv6 in instance {instance_id}"
                 ) from e
 
+        for port in required_ports or []:
+            LOG.debug("Opening port %s on instance %s", port, instance_id)
+            # UFW might not be installed, if this is the case, then no firewall
+            # is active and nothing needs to be done.
+            self.exec(instance_id, ["sudo", "ufw", "allow", str(port)], check=False)
+
         return instance
 
     def send_file(self, instance_id: str, source: str, destination: str):
@@ -240,24 +246,6 @@ class MultipassHarness(Harness):
             )
         except subprocess.CalledProcessError as e:
             raise HarnessError(f"failed to restart instance {instance_id}") from e
-
-    def open_ports(self, instance_id: str, ports: List[int]):
-        """Open ports on the instance.
-
-        :param instance_id: The instance_id, as returned by new_instance()
-        :param ports: List of ports to open on the instance.
-
-        Ports will be opened on a best effort basis. If the port is already open,
-        or UFW is not installed, no error will be raised.
-        """
-        if instance_id not in self.instances:
-            raise HarnessError(f"unknown instance {instance_id}")
-
-        for port in ports:
-            LOG.debug("Opening port %s on instance %s", port, instance_id)
-            # UFW might not be installed, if this is the case, then no firewall
-            # is active and nothing needs to be done.
-            self.exec(instance_id, ["sudo", "ufw", "allow", str(port)], check=False)
 
     def delete_instance(self, instance_id: str):
         if instance_id not in self.instances:

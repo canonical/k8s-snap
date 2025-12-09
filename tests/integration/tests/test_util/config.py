@@ -5,6 +5,8 @@ import json
 import os
 from pathlib import Path
 
+from test_util import ports
+
 DIR = Path(__file__).absolute().parent
 
 # The following defaults are used to define how long to wait for a condition to be met.
@@ -14,6 +16,7 @@ DEFAULT_WAIT_DELAY_S = int(os.getenv("TEST_DEFAULT_WAIT_DELAY_S") or 5)
 COMMON_ETC_DIR = "/var/snap/k8s/common/etc"
 MANIFESTS_DIR = DIR / ".." / ".." / "templates"
 CLOUD_INIT_DIR = MANIFESTS_DIR / "cloud-init"
+DISA_STIG_DIR = MANIFESTS_DIR / "disa_stig"
 
 # ETCD_DIR contains all templates required to setup an etcd database.
 ETCD_DIR = MANIFESTS_DIR / "etcd"
@@ -237,3 +240,26 @@ GH_BASE_REF = os.getenv("TEST_GH_BASE_REF")
 
 # SONOBUOY_VERSION is the version of sonobuoy to use for CNCF conformance tests.
 SONOBUOY_VERSION = os.getenv("TEST_SONOBUOY_VERSION") or "v0.57.3"
+
+# ENABLE_DISA_STIG_HOST is a flag to enable the DISA STIG setup for the host.
+# Disabled by default.
+ENABLE_DISA_STIG_HOST = (os.getenv("TEST_ENABLE_DISA_STIG_HOST") or "") == "1"
+
+# DISA_STIG_USG_TAILORING_FILE_PATH points to a custom USG tailoring file to be used for the DISA STIG setup.
+# If not set, no USG tailoring file will be used.
+DISA_STIG_USG_TAILORING_FILE_PATH = (
+    os.getenv("TEST_DISA_STIG_USG_TAILORING_FILE_PATH")
+    if os.getenv("TEST_DISA_STIG_USG_TAILORING_FILE_PATH")
+    else ""
+)
+
+# UBUNTU_PRO_CONTRACT_SERVER_URL is the server that will be checked for verifiying Ubuntu Pro tokens for the DISA_STIG setup.
+# The k8s-team token is a staging token which is why we default to this address.
+# Use https://contracts.canonical.com for production tokens.
+UBUNTU_PRO_CONTRACT_SERVER_URL = (
+    os.getenv("TEST_UBUNTU_PRO_CONTRACT_SERVER_URL")
+    or "https://contracts.staging.canonical.com"
+)
+
+# UBUNTU_PRO_TOKEN is the Ubuntu Pro token to be used for the DISA STIG setup.
+UBUNTU_PRO_TOKEN = os.getenv("TEST_UBUNTU_PRO_TOKEN") or None

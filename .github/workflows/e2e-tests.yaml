@@ -190,7 +190,7 @@ jobs:
   run-tests:
     name: ${{ matrix.test }}
     needs: prepare
-    runs-on: ${{ fromJson(needs.prepare.outputs.test-runners)[matrix.test] || (inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04') }}
+    runs-on: ${{ fromJson(needs.prepare.outputs.test-runners)[matrix.test] || fromJson(needs.prepare.outputs.test-runners)["all"] || (inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04') }}
     strategy:
       fail-fast: false
       max-parallel: ${{ inputs.max-parallel }}
@@ -220,9 +220,6 @@ jobs:
         uses: canonical/setup-lxd@v0.1.3
         with:
           bridges: "lxdbr0,dualstack-br0,ipv6-br0,jumbo-br0,dual-nic-br0"
-      - name: Setup Multipass
-        if: ${{ inputs.substrate == 'multipass' }}
-        uses: ./.github/actions/setup-multipass
       - name: Install tox
         run: sudo apt-get install -y tox
       - name: Generate names for step and artifacts
@@ -249,7 +246,6 @@ jobs:
           TEST_SNAP: ${{ steps.download-snap.outputs.snap-path }}
           TEST_SUBSTRATE: ${{ inputs.substrate }}
           TEST_LXD_IMAGE: ${{ inputs.os }}
-          TEST_MULTIPASS_IMAGE: ${{ inputs.os }}
           TEST_FLAVOR: ${{ inputs.flavor }}
           TEST_DATASTORE: ${{ inputs.datastore }}
           TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports/${{ inputs.parallel && env.test_name || '' }}
