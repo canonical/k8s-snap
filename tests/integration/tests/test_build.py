@@ -40,8 +40,6 @@ def test_build(instances: List[harness.Instance]):
         "ctr",
         "runc",
         "cni",
-        "containerd-shim",
-        "containerd-shim-runc-v1",
         "containerd-shim-runc-v2",
     ]
 
