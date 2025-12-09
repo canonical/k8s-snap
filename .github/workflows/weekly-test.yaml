@@ -30,7 +30,7 @@ jobs:
       test-tags: 'up_to_weekly'
       substrate: 'lxd'
       runner-tags: '{"all": ["self-hosted-linux-${{ matrix.arch }}-${{ matrix.series }}-medium-fips"]}'
-      extra-test-env: 'TEST_ENABLE_DISA_STIG_HOST=1,TEST_REQUIRED_SNAPS={"core22":"fips-updates/stable"},TEST_DISA_STIG_USG_TAILORING_FILE_PATH=${{ github.workspace }}/tests/integration/templates/disa_stig/usg-tailoring-${{ matrix.series }}.xml'
+      extra-test-env: 'TEST_ENABLE_DISA_STIG_HOST=1,TEST_REQUIRED_SNAPS="{\"core22\":\"fips-updates/stable\"}",TEST_DISA_STIG_USG_TAILORING_FILE_PATH=${{ github.workspace }}/tests/integration/templates/disa_stig/usg-tailoring-${{ matrix.series }}.xml'
     secrets:
       UBUNTU_PRO_TOKEN: ${{ secrets.UBUNTU_PRO_TOKEN }}
       LAUNCHPAD_K8S_CI_BOT_PASSWORD: ${{ secrets.LAUNCHPAD_K8S_CI_BOT_PASSWORD }}
