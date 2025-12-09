@@ -26,7 +26,7 @@ from tenacity import (
     stop_never,
     wait_fixed,
 )
-from test_util import config, harness, snap as snap_util
+from test_util import config, harness
 
 LOG = logging.getLogger(__name__)
 RISKS = ["stable", "candidate", "beta", "edge"]
@@ -230,6 +230,35 @@ def setup_core_dumps(instance: harness.Instance):
     instance.exec(["snap", "set", "system", "system.coredump.enable=true"])
 
 
+def ensure_required_snaps(instance: harness.Instance, required_snaps: dict) -> None:
+    """Ensure that the required snaps are installed on the instance."""
+    for snap_name, channel in required_snaps.items():
+        installed_snaps_output = instance.exec(
+            ["snap", "list", snap_name],
+            capture_output=True,
+            text=True,
+        ).stdout
+
+        if snap_name in installed_snaps_output:
+            LOG.info(
+                "Snap %s is already installed on instance %s. Refreshing to channel %s",
+                snap_name,
+                instance.id,
+                channel,
+            )
+            instance.exec(["snap", "refresh", snap_name, f"--channel={channel}"])
+
+        LOG.info(
+            "Installing required snap %s on instance %s from channel %s",
+            snap_name,
+            instance.id,
+            channel,
+        )
+        instance.exec(
+            ["snap", "install", snap_name, "--classic", f"--channel={channel}"]
+        )
+
+
 def setup_k8s_snap(
     instance: harness.Instance,
     snap: Optional[str] = None,
@@ -251,7 +280,7 @@ def setup_k8s_snap(
     LOG.info("Installing required snaps %s", config.REQUIRED_SNAPS)
     if config.REQUIRED_SNAPS:
         LOG.info("Ensuring required snaps are installed on instance %s", instance.id)
-        snap_util.ensure_required_snaps(instance, config.REQUIRED_SNAPS)
+        ensure_required_snaps(instance, config.REQUIRED_SNAPS)
 
     cmd = ["snap", "install", "--classic"]
     which_snap = snap or config.SNAP
