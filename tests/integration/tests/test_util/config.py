@@ -253,6 +253,10 @@ DISA_STIG_USG_TAILORING_FILE_PATH = (
     else ""
 )
 
+# REQUIRED_SNAPS is a dictionary of snaps that are required on each test instance on a specific channel.
+# This can be useful if certain snaps require a specific channel, e.g. to get FIPS support.
+REQUIRED_SNAPS = json.loads(os.getenv("TEST_REQUIRED_SNAPS", "{}")) or {}
+
 # UBUNTU_PRO_CONTRACT_SERVER_URL is the server that will be checked for verifiying Ubuntu Pro tokens for the DISA_STIG setup.
 # The k8s-team token is a staging token which is why we default to this address.
 # Use https://contracts.canonical.com for production tokens.

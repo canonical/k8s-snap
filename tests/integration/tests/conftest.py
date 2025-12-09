@@ -301,6 +301,9 @@ def instances(
         instance = h.new_instance(network_type=infra_network_type, required_ports=required_ports)
         instances.append(instance)
 
+        if config.REQUIRED_SNAPS:
+            util.ensure_required_snaps(instance, config.REQUIRED_SNAPS)
+
         util.preload_snaps(instance)
 
         if not no_setup:

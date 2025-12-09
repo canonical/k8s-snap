@@ -9,6 +9,7 @@ import urllib.request
 from typing import List, Optional
 
 from test_util.util import major_minor
+from tests.integration.tests.test_util import harness
 
 LOG = logging.getLogger(__name__)
 
@@ -129,3 +130,32 @@ def get_channels(
         matching_channels.append(latest_channel)
 
     return matching_channels
+
+
+def ensure_required_snaps(instance: harness.Instance, required_snaps: dict) -> None:
+    """Ensure that the required snaps are installed on the instance."""
+    for snap_name, channel in required_snaps.items():
+        installed_snaps_output = instance.exec(
+            ["snap", "list", snap_name],
+            capture_output=True,
+            text=True,
+        ).stdout
+
+        if snap_name in installed_snaps_output:
+            LOG.info(
+                "Snap %s is already installed on instance %s. Refreshing to channel %s",
+                snap_name,
+                instance.id,
+                channel,
+            )
+            instance.exec(["snap", "refresh", snap_name, f"--channel={channel}"])
+
+        LOG.info(
+            "Installing required snap %s on instance %s from channel %s",
+            snap_name,
+            instance.id,
+            channel,
+        )
+        instance.exec(
+            ["snap", "install", snap_name, "--classic", f"--channel={channel}"]
+        )
