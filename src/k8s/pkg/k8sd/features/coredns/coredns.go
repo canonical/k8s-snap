@@ -123,7 +123,7 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.
 			{
 				"maxSkew":           1,
 				"topologyKey":       "kubernetes.io/hostname",
-				"whenUnsatisfiable": "DoNotSchedule",
+				"whenUnsatisfiable": "ScheduleAnyway",
 				"labelSelector": map[string]any{
 					"matchLabels": map[string]any{
 						"app.kubernetes.io/name":     "coredns",
