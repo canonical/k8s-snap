@@ -136,7 +136,6 @@ jobs:
       datastore: ${{ matrix.datastore }}
       test-tags: ${{ needs.get-e2e-tags.outputs.test-tags }}
       artifact: k8s-${{ matrix.arch }}.snap
-      test-collection-branch: ${{ github.head_ref }}
       parallel: true
 
   security-scan:
