@@ -13,7 +13,7 @@ import urllib.request
 from datetime import datetime
 from functools import partial
 from pathlib import Path
-from typing import Any, Callable, List, Mapping, Optional, Union
+from typing import Any, Callable, Dict, List, Mapping, Optional, Union
 
 import pytest
 import yaml
@@ -244,6 +244,7 @@ def setup_k8s_snap(
             a snap track to install
             a snap channel to install
             a snap revision to install
+            a snap channel@revision to install
             a path to the snap to install
         tmp_path:   path to store the snap on the instance (optional, defaults to /home/ubuntu)
     """
@@ -266,7 +267,7 @@ def setup_k8s_snap(
         cmd += [config.SNAP_NAME, "--revision", which_snap]
     elif "/" in which_snap or which_snap in RISKS:
         LOG.info("Install k8s snap by specific channel: %s", which_snap)
-        cmd += [config.SNAP_NAME, "--channel", which_snap]
+        cmd += [config.SNAP_NAME, *snap_channel_args(which_snap)]
     elif channel := tracks_least_risk(which_snap, instance.arch):
         LOG.info("Install k8s snap by least risky channel: %s", channel)
         cmd += [config.SNAP_NAME, "--channel", channel]
@@ -275,6 +276,21 @@ def setup_k8s_snap(
     if connect_interfaces:
         LOG.info("Ensure k8s interfaces and network requirements")
         instance.exec(["/snap/k8s/current/k8s/hack/init.sh"], stdout=subprocess.DEVNULL)
+
+
+def snap_channel_args(channel: str) -> List[str]:
+    """Parse channel string and return snap arguments.
+
+    If the channel includes an '@' symbol, the part after '@' is treated as the snap revision.
+    """
+    # Options for channel include
+    # 1. a channel name like '1.32-classic/stable'
+    # 2. a channel and revision number like '1.32-classic/stable@1234'
+    if "@" in channel:
+        chan, revision = channel.split("@", maxsplit=1)
+        return ["--channel", chan, "--revision", revision]
+    else:
+        return ["--channel", channel]
 
 
 def remove_k8s_snap(instance: harness.Instance):
@@ -482,6 +498,37 @@ def ready_nodes(control_node: harness.Instance) -> List[Any]:
         for node in get_nodes(control_node)
         if is_node_ready(control_node, node_dict=node)
     ]
+
+
+# Bootstrap the instance
+def bootstrap(
+    instance: harness.Instance,
+    datastore_type: str,
+    bootstrap_config: Optional[Union[Dict[str, Any], str]] = None,
+    extra_args: Optional[List[str]] = None,
+    **kwargs,
+):
+    if bootstrap_config:
+        if isinstance(bootstrap_config, str):
+            # If bootstrap_config is a string, assume it's a YAML string
+            bootstrap_config = yaml.safe_load(bootstrap_config)
+    else:
+        # Use bootstrap-default.yaml as the base config
+        default_config_path = config.MANIFESTS_DIR / "bootstrap-default.yaml"
+        bootstrap_config = yaml.safe_load(default_config_path.read_text())
+
+    if not extra_args:
+        extra_args = []
+
+    # Add/update datastore-type and convert to YAML
+    bootstrap_config["datastore-type"] = datastore_type
+    modified_config = yaml.dump(bootstrap_config, default_flow_style=False)
+
+    return instance.exec(
+        ["k8s", "bootstrap", "--file", "-", *extra_args],
+        input=str.encode(modified_config),
+        **kwargs,
+    )
 
 
 # Create a token to join a node to an existing cluster

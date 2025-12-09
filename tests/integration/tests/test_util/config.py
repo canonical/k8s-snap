@@ -39,6 +39,10 @@ REGISTRY_VERSION = os.getenv("REGISTRY_VERSION") or "v2.8.3"
 # FLAVOR is the flavor of the snap to use.
 FLAVOR = os.getenv("TEST_FLAVOR") or "classic"
 
+# DATASTORE is the datastore backend to use for the tests.
+# One of 'etcd' (default), or 'k8s-dqlite'.
+DATASTORE = os.getenv("TEST_DATASTORE") or "etcd"
+
 # SNAP is the absolute path to the snap against which we run the integration tests.
 SNAP = os.getenv("TEST_SNAP")
 
@@ -72,6 +76,15 @@ LXD_PROFILE = (
 
 # LXD_DUALSTACK_NETWORK is the network to use for LXD containers with dualstack configured.
 LXD_DUALSTACK_NETWORK = os.getenv("TEST_LXD_DUALSTACK_NETWORK") or "dualstack-br0"
+
+# LXD_FAN_PROFILE_NAME is the profile name to use for LXD containers with fan networking configured.
+LXD_FAN_PROFILE_NAME = os.getenv("TEST_LXD_FAN_PROFILE_NAME") or "k8s-integration-fan"
+
+# LXD_FAN_PROFILE is the profile to use for LXD containers with fan networking configured.
+LXD_FAN_PROFILE = (
+    os.getenv("TEST_LXD_FAN_PROFILE")
+    or (DIR / ".." / ".." / "lxd-fan-profile.yaml").read_text()
+)
 
 # LXD_DUALSTACK_PROFILE_NAME is the profile name to use for LXD containers with dualstack configured.
 LXD_DUALSTACK_PROFILE_NAME = (
@@ -168,6 +181,7 @@ JUJU_MACHINES = os.getenv("TEST_JUJU_MACHINES") or ""
 # A list of space-separated channels for which the upgrade tests should be run in sequential order.
 # First entry is the bootstrap channel. Afterwards, upgrades are done in order.
 # Alternatively, use 'recent <num> <flavour>' to get the latest <num> channels for <flavour>.
+# If a channel includes an '@' symbol, the part after '@' is treated as the snap revision
 VERSION_UPGRADE_CHANNELS = (
     os.environ.get("TEST_VERSION_UPGRADE_CHANNELS", "").strip().split()
 )

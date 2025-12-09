@@ -28,6 +28,7 @@ def test_version_upgrades(
     tmp_path,
     containerd_cfgdir: str,
     registry: Registry,
+    datastore_type: str,
 ):
     channels = config.VERSION_UPGRADE_CHANNELS
     cp = instances[0]
@@ -99,7 +100,7 @@ def test_version_upgrades(
         if config.USE_LOCAL_MIRROR:
             registry.apply_configuration(instance, containerd_cfgdir)
 
-    cp.exec(["k8s", "bootstrap"])
+    util.bootstrap(cp, datastore_type=datastore_type)
 
     join_token_cp1 = util.get_join_token(cp, cp1)
     join_token_cp2 = util.get_join_token(cp, cp2)
@@ -129,19 +130,12 @@ def test_version_upgrades(
                 LOG.info("Refreshing k8s snap by path")
                 cmd = ["snap", "install", "--classic", "--dangerous", snap_path]
             else:
-                cmd = [
-                    "snap",
-                    "refresh",
-                    config.SNAP_NAME,
-                    "--channel",
-                    channel,
-                    "--amend",
-                    "--classic",
-                ]
+                cmd = ["snap", "refresh", "--classic", config.SNAP_NAME]
+                cmd += [*util.snap_channel_args(channel), "--amend"]
 
             instance.exec(cmd)
             util.wait_until_k8s_ready(cp, instances)
-            LOG.info(f"Upgraded {instance.id} on channel {channel}")
+            LOG.info(f"Upgraded {instance.id} to channel {channel}")
 
         current_channel = channel
         LOG.info(f"Upgraded all instances to channel {channel}")
@@ -161,6 +155,7 @@ def test_version_downgrades_with_rollback(
     tmp_path,
     containerd_cfgdir: str,
     registry: Registry,
+    datastore_type: str,
 ):
     """
     This test will downgrade the snap through the channels, and at each downgrade, attempt a rollback.
@@ -217,7 +212,7 @@ def test_version_downgrades_with_rollback(
         if config.USE_LOCAL_MIRROR:
             registry.apply_configuration(instance, containerd_cfgdir)
 
-    cp.exec(["k8s", "bootstrap"])
+    util.bootstrap(cp, datastore_type=datastore_type)
 
     join_token_cp1 = util.get_join_token(cp, cp1)
     join_token_cp2 = util.get_join_token(cp, cp2)
@@ -244,7 +239,13 @@ def test_version_downgrades_with_rollback(
             )
             # note: the `--classic` flag will be ignored by snapd for strict snaps.
             instance.exec(
-                ["snap", "refresh", config.SNAP_NAME, "--channel", channel, "--classic"]
+                [
+                    "snap",
+                    "refresh",
+                    config.SNAP_NAME,
+                    *util.snap_channel_args(channel),
+                    "--classic",
+                ]
             )
             util.wait_until_k8s_ready(cp, instances)
 
@@ -259,8 +260,7 @@ def test_version_downgrades_with_rollback(
                     "snap",
                     "refresh",
                     config.SNAP_NAME,
-                    "--channel",
-                    last_channel,
+                    *util.snap_channel_args(last_channel),
                     "--classic",
                 ]
             )
@@ -275,8 +275,7 @@ def test_version_downgrades_with_rollback(
                     "snap",
                     "refresh",
                     config.SNAP_NAME,
-                    "--channel",
-                    current_channel,
+                    *util.snap_channel_args(current_channel),
                     "--classic",
                 ]
             )
@@ -298,7 +297,9 @@ def test_version_downgrades_with_rollback(
     not config.SNAP,
     reason="Feature upgrades require a local snap file",
 )
-def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: Path):
+def test_feature_upgrades_inplace(
+    instances: List[harness.Instance], tmp_path: Path, datastore_type: str
+):
     """Verify that feature upgrades function correctly.
 
     Note: This is an interim test that will be expanded as feature upgrades mature.
@@ -315,9 +316,17 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
     worker = instances[-1]
 
     for instance in instances:
-        instance.exec(f"snap install k8s --classic --channel={start_branch}".split())
+        instance.exec(
+            [
+                "snap",
+                "install",
+                "k8s",
+                "--classic",
+                *util.snap_channel_args(start_branch),
+            ]
+        )
 
-    bootstrap_cp.exec(["k8s", "bootstrap"])
+    util.bootstrap(bootstrap_cp, datastore_type=datastore_type)
     for instance in instances:
         if instance.id in [bootstrap_cp.id, worker.id]:
             continue
@@ -477,7 +486,7 @@ def _get_upgrade_crs(instance: harness.Instance) -> List[dict]:
     reason="The node removal does not work consistently due to a microcluster bug."
 )
 def test_feature_upgrades_rollout_upgrade(
-    instances: List[harness.Instance], tmp_path: Path
+    instances: List[harness.Instance], tmp_path: Path, datastore_type: str
 ):
     """ """
     # TODO: Ensure that this test only runs on different k8s versions.
@@ -487,11 +496,15 @@ def test_feature_upgrades_rollout_upgrade(
 
     # Setup the first half of nodes up on the old version.
     for instance in instances[:3]:
-        instance.exec(f"snap install k8s --classic --channel={start_snap}".split())
+        instance.exec(
+            ["snap", "install", "k8s", "--classic", *util.snap_channel_args(start_snap)]
+        )
 
-    instance.exec(f"snap install k8s --classic --channel={start_snap}".split())
+    instance.exec(
+        ["snap", "install", "k8s", "--classic", *util.snap_channel_args(start_snap)]
+    )
 
-    main_old.exec(["k8s", "bootstrap"])
+    util.bootstrap(main_old, datastore_type=datastore_type)
     for instance in instances[1:3]:
         token = util.get_join_token(main_old, instance)
         instance.exec(["k8s", "join-cluster", token])

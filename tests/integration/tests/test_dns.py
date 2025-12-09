@@ -79,3 +79,75 @@ def test_dns(instances: List[harness.Instance]):
     assert (
         "'coredns'" == result.stdout
     ), "Expected coredns serviceaccount to be 'coredns', not {result.stdout}"
+
+
+@pytest.mark.node_count(2)
+@pytest.mark.tags(tags.PULL_REQUEST)
+def test_dns_ha_rebalancing(instances: List[harness.Instance]):
+    initial_node = instances[0]
+    joining_cplane_node = instances[1]
+
+    # Wait for initial cluster to be ready
+    util.wait_until_k8s_ready(initial_node, [initial_node])
+    util.wait_for_dns(initial_node)
+
+    # Verify initial state: all CoreDNS pods should be on the first node
+    result = initial_node.exec(
+        [
+            "k8s",
+            "kubectl",
+            "get",
+            "pods",
+            "-n",
+            "kube-system",
+            "-l",
+            "k8s-app=coredns",
+            "-o",
+            "jsonpath='{.items[*].spec.nodeName} {.items[0].metadata.labels.pod-template-hash}'",
+        ],
+        text=True,
+        capture_output=True,
+    )
+    output = result.stdout.replace("'", "").split()
+    initial_nodes = output[0].split()
+    initial_pod_template_hash = output[1]
+    LOG.info(f"pod-template-hash: {initial_pod_template_hash}")
+    # Verify all pods are on the same node initially
+    assert (
+        len(initial_nodes) == 1
+    ), f"Expected all CoreDNS pods on one node initially, got {initial_nodes}"
+
+    # Join additional control plane nodes
+    join_token = util.get_join_token(initial_node, joining_cplane_node)
+
+    util.join_cluster(joining_cplane_node, join_token)
+
+    util.wait_until_k8s_ready(initial_node, instances)
+
+    # Wait for the DNS rebalancer controller to trigger and distribute CoreDNS pods across nodes
+    # Check until we have new pods (without the old template hash) on different nodes
+    def pods_distributed(result):
+        node_names = set(result.stdout.replace("'", "").split())
+        if len(node_names) > 1:
+            LOG.info(f"CoreDNS pods distributed across nodes: {node_names}")
+            return True
+        LOG.debug(f"CoreDNS pods still on {len(node_names)} node(s), waiting...")
+        return False
+
+    util.stubbornly(retries=60, delay_s=2).on(initial_node).until(
+        pods_distributed
+    ).exec(
+        [
+            "k8s",
+            "kubectl",
+            "get",
+            "pods",
+            "-n",
+            "kube-system",
+            "-l",
+            f"k8s-app=coredns,pod-template-hash!={initial_pod_template_hash}",
+            "-o",
+            "jsonpath='{.items[*].spec.nodeName}'",
+        ],
+        text=True,
+    )

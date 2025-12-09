@@ -48,15 +48,6 @@ func checkAndSanitizeCiliumVXLAN(port int) error {
 		if devicePort == port && vxlanDevice.Name != ciliumVXLANDeviceName {
 			return fmt.Errorf("interface %s uses the same destination port as cilium. Please consider changing the Cilium tunnel port", vxlanDevice.Name)
 		}
-
-		// Note(Reza): Currently Cilium tries to bring up the vxlan interface before applying
-		// any configuration changes. If the Cilium vxlan interface has any conflicts with other
-		// interfaces that makes it unable to brought up, Cilium fails to apply configuration
-		// changes. We can remove this block when the following issue gets settled:
-		// https://github.com/cilium/cilium/issues/38581
-		if vxlanDevice.Name == ciliumVXLANDeviceName && devicePort != port {
-			return fmt.Errorf("interface %s uses a different destination port (%d) than the provided config (%d). Please consider adjusting the cluster configuration or removing that device manually", vxlanDevice.Name, devicePort, port)
-		}
 	}
 
 	return nil
@@ -112,16 +103,6 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 	nodeIP := net.ParseIP(s.Address().Hostname())
 	if nodeIP == nil {
 		err = fmt.Errorf("failed to parse node IP address %q", s.Address().Hostname())
-		return types.FeatureStatus{
-			Enabled: false,
-			Version: CiliumAgentImageTag,
-			Message: fmt.Sprintf(NetworkDeployFailedMsgTmpl, err),
-		}, err
-	}
-
-	defaultCidr, err := utils.FindCIDRForIP(nodeIP)
-	if err != nil {
-		err = fmt.Errorf("failed to find cidr of default interface: %w", err)
 		return types.FeatureStatus{
 			Enabled: false,
 			Version: CiliumAgentImageTag,
@@ -222,11 +203,11 @@ func ApplyNetwork(ctx context.Context, snap snap.Snap, s state.State, apiserver 
 		"tunnelPort": config.tunnelPort,
 	}
 
-	// If we are deploying with IPv6 only, we need to set the routing mode to native
+	// Revert these values to default in case they were changed in previous versions
 	if ipv4CIDR == "" && ipv6CIDR != "" {
-		values["routingMode"] = "native"
-		values["ipv6NativeRoutingCIDR"] = defaultCidr
-		values["autoDirectNodeRoutes"] = true
+		values["routingMode"] = "tunnel"
+		values["ipv6NativeRoutingCIDR"] = ""
+		values["autoDirectNodeRoutes"] = false
 	}
 
 	if config.devices != "" {

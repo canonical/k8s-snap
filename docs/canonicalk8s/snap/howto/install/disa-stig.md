@@ -1,40 +1,29 @@
 # How to install {{ product }} with DISA STIG hardening
 
-Security Technical Implementation Guides (STIGs) are developed by the Defense
-Information System Agency (DISA) and are comprehensive frameworks of security
-requirements designed to protect U.S. Department of Defense (DoD) systems and
-networks from cybersecurity threats.
+DISA Security Technical Implementation Guides (STIGs) provide hardening
+guidelines for meeting regulations from the U.S. Government and Department of
+Defense (DoD).
 
 {{product}} aligns by default with many of these recommendations as they are
-expected to benefit most users. The additional recommendations are covered in
-this guide as well as the end-to-end procedure to be DISA STIG compliant at all
-layers including FIPS 140-3 compliance and host hardening.
+expected to benefit most users. This guide provides additional steps to meet
+all DISA STIG guidelines for both Kubernetes and the host OS.
 
 ## Prerequisites
 
-This guide assumes the following:
+FIPS compliance is required by the DISA STIG. This guide assumes you have
+already followed our [FIPS installation guide], but stopped after installing
+{{product}} without following the steps to bootstrap/join the cluster. Instead
+continue here to first complete additional steps needed for DISA STIG
+compliance.
 
-- Ubuntu machine with at least 4GB of RAM and 30 GB disk storage
-- You have root or sudo access to the machine
-- Internet access on the machine
+## Configure UFW (Firewall)
 
-## Firewall configuration
+The host STIG recommends enabling the host firewall (UFW), but does not do
+so automatically. We recommend following our guide to [configure UFW]. This can
+be done before applying the host STIG and will help avoid connectivity issues
+that often happen when enabling UFW with the default configuration.
 
-It is recommended to enable a host firewall (such as UFW) for DISA STIG
-compliance, but this is not done automatically. If you choose to enable a
-firewall, ensure you apply the required rules as described in the
-[firewall configuration] guide to avoid connectivity issues.
-
-## Install {{product}} in FIPS mode
-
-DISA STIG compliance also incorporates FIPS compliance. Start by following our
-[FIPS installation guide], but stop after installing {{product}} and do not
-follow the steps to bootstrap the cluster. Instead continue here as there
-are additional steps and configuration needed for DISA STIG compliance. The
-guide also covers enabling [Ubuntu Pro], which is needed for some of the
-steps below.
-
-## DISA STIG host compliance
+## Apply Host STIG
 
 DISA STIG host compliance is achieved by running the [USG tool] that is also
 part of the PRO tool set. To install the USG tool:
@@ -51,9 +40,12 @@ To generate a compliance audit report (without applying changes):
 sudo usg audit disa_stig
 ```
 
-```{warning}
-The following command applies rule [V-270714] which will cause issues using
-accounts with an empty password to access your machine.
+```{attention}
+The following command applies rule [V-270714], which will prevent using accounts
+with empty passwords to access this machine.
+
+You can check whether the current account has an empty password by running
+`passwd --status` and looking for "NP" in the second field of the output.
 ```
 
 To automatically apply the recommended hardening changes:
@@ -62,13 +54,17 @@ To automatically apply the recommended hardening changes:
 sudo usg fix disa_stig
 ```
 
-## Apply DISA STIG Kubernetes host rules
+Reboot to apply the changes:
 
-To comply with this guideline, the STIG templates we provide to bootstrap/join
-nodes configure kubelet to run with the argument
-`--protect-kernel-defaults=true`.
+```
+sudo reboot
+```
 
-Configure the kernel as required for this setting by following the steps below:
+## Configure kernel
+
+DISA STIG recommends enabling `--protect-kernel-defaults=true` so that kubelet
+will not modify kernel flags. This requires that the kernel be configured in
+advance as shown below:
 
 ```
 sudo tee /etc/sysctl.d/99-kubelet.conf <<EOF
@@ -87,82 +83,57 @@ Please ensure that the configuration of `/etc/sysctl.d/99-kubelet.conf` is not
 overridden by another higher order file.
 ```
 
-## Deploy and bootstrap STIG-compliant nodes
+## Apply Kubernetes STIG
 
-For your convenience, we have provided template configuration files that can be
-used to configure the additional Kubernetes service arguments that are needed to
-fully align with DISA STIG requirements.
+{{product}} provides [templates](#templates-information) to apply additional
+configuration needed to fully align with DISA STIG requirements.
 
-### Bootstrap the first control-plane node
+### Set up control plane nodes
 
 ```{attention}
-Before bootstrapping the first control-plane node, review the available bootstrap
-configuration templates to ensure you select the one that best fits your
-requirements (for example, stricter or more permissive control-plane settings).
-Once a node is bootstrapped, changing certain settings may require re-deploying
-the node. See Alternative configurations below for more details.
+Before bootstrapping or joining control-plane nodes, review the
+[templates](#control-plane-templates) and
+[alternative configurations](#alternative-control-plane-configurations).
+Once a node is bootstrapped, changing certain settings is more difficult
+and may require re-deploying the node or cluster.
 ```
 
-Initialize the first control plane node with the necessary arguments for
-DISA STIG compliance:
+#### Bootstrap the first control-plane node
+
+To initialize the first control plane node using the template:
 
 ```
 sudo k8s bootstrap --file /var/snap/k8s/common/etc/templates/disa-stig/bootstrap.yaml
 sudo k8s status --wait-ready
 ```
 
-This configuration file applies the following rules:  
+#### Join control plane nodes
 
-| STIG                                                                               | Summary                                                               |
-| ---------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| [V-242434]                                                                         | Kubernetes Kubelet must enable kernel protection                      |
-| [V-245541]                                                                         | Kubernetes Kubelet must not disable timeouts                          |
-| [V-242402], [V-242403], [V-242461], [V-242462], [V-242463], [V-242464], [V-242465] | The Kubernetes API Server must have an audit log configured           |
-| [V-254800]                                                                         | Kubernetes must have a Pod Security Admission control file configured |
-| [V-242400]                                                                         | The Kubernetes API server must have Alpha APIs disabled               |
-| [V-242384]                                                                         | The Kubernetes Scheduler must have secure binding                     |
-| [V-242385]                                                                         | The Kubernetes Controller Manager must have secure binding            |
-
-### Join additional control plane nodes
-
-On the additional control plane node, join the cluster with the DISA STIG
-control plane configuration file:  
+First retrieve a join token from an existing control plane node:
 
 ```
 sudo k8s get-join-token <joining-node-hostname>
 ```
 
-and join the cluster with the DISA STIG control plane configuration file:
+Then join the new control plane node using the template:
 
 ```
 sudo k8s join-cluster --file=/var/snap/k8s/common/etc/templates/disa-stig/control-plane.yaml <join-token>
 ```
 
-This configuration file applies the same rules shown above when bootstrapping
-the first control plane node.
-
 ### Join worker nodes
 
-To join a worker node to the cluster, first retrieve the join token from an
-existing control plane node:
+First retrieve a join token from an existing control plane node:
 
 ```
 sudo k8s get-join-token <joining-node-hostname> --worker
 ```
 
-On the worker node, join the cluster with the DISA STIG worker configuration
-file:
+Then join the new worker node using the template:
 
 ```
 sudo k8s join-cluster --file=/var/snap/k8s/common/etc/templates/disa-stig/worker.yaml <join-token>
 ```
-
-This configuration file applies the following rules:  
-
-| STIG       | Summary                                          |
-| ---------- | ------------------------------------------------ |
-| [V-242434] | Kubernetes Kubelet must enable kernel protection |
-| [V-245541] | Kubernetes Kubelet must not disable timeouts     |
 
 If SSH is not needed to access the worker nodes it is recommended you disable
 the SSH service:
@@ -172,125 +143,141 @@ sudo systemctl disable ssh.service ssh.socket
 ```
 
 ```{note}
-According to rule [V-242393] and [V-242394] Kubernetes Worker Nodes must not have
-sshd service running or enabled. The host STIG rule [V-270665] on the other hand
-expects sshd to be installed on the host. To comply with both rules, we
-recommend leaving SSH installed, but disabling the service.  
+According to rule {ref}`242393` and {ref}`242394` Kubernetes worker nodes must not
+have sshd service running or enabled. The host STIG rule [V-270665] on the
+other hand expects sshd to be installed on the host. To comply with both
+rules, leave SSH installed, but disable the service. It is probably acceptable
+however to remove SSH if it is not needed.
 ```
 
-## Alternative configurations
+## Post-Deployment Requirements
 
-### Pod Security Admission control file
+In addition to the above deployment steps, there are some guidelines that must
+be followed by users and administrators post-deployment and throughout the
+life of the cluster in order to achieve and maintain DISA STIG compliance.
 
-To comply with rule [V-254800], you must configure a Pod Security Admission
+- {ref}`242383`: User-managed resources must be created in dedicated namespaces
+- {ref}`242410`, {ref}`242411`, {ref}`242412`, and {ref}`242413`: The Kubernetes
+API Server, Scheduler, and Controllers as well as etcd must enforce ports,
+protocols, and services (PPS) that adhere to the Ports, Protocols, and
+Services Management Category Assurance List (PPSM CAL). The {{product}}
+[ports and services] must be audited in accordance with this list. Those ports,
+protocols, and services that fall outside the PPSM CAL must be blocked or
+registered. This step needs followed after the initial deployment and anytime
+the list of ports, protocols, and services used by your cluster changes (for
+instance each time a new service is exposed externally).
+- {ref}`242393` and {ref}`242394`: SSH service must not be running or enabled on
+   worker nodes (see [Join worker nodes](#join-worker-nodes))
+- {ref}`242414`: User pods must only use non-privileged host ports
+- {ref}`242415`: Secrets must not be stored as environment variables
+- {ref}`242417`: User functionality must be separate from management functions
+   meaning all user pods must be in user specific namespaces rather than system
+   namespaces
+- {ref}`242443`: Kubernetes components must be regularly updated to avoid
+   vulnerabilities. We recommend using the latest revision of a
+   [supported version] of {{product}}.
+
+## Appendix
+
+### Templates Information
+
+#### Control plane templates
+
+`/var/snap/k8s/common/etc/templates/disa-stig/bootstrap.yaml` is the template
+for [bootstrapping](#bootstrap-the-first-control-plane-node) and
+`/var/snap/k8s/common/etc/templates/disa-stig/control-plane.yaml` is the
+template for [joining additional control plane
+nodes](#join-control-plane-nodes). Both of these templates apply configuration
+to align with the following recommendations:
+
+| STIG                                                                               | Summary                                                               |
+| ---------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| {ref}`242384`                                                                         | The Kubernetes Scheduler must have secure binding                     |
+| {ref}`242385`                                                                        | The Kubernetes Controller Manager must have secure binding            |
+| {ref}`242400`                                                                         | The Kubernetes API server must have Alpha APIs disabled               |
+| {ref}`242402`, {ref}`242403`, {ref}`242461`, {ref}`242462`, {ref}`242463`, {ref}`242464`, {ref}`242465` | The Kubernetes API Server must have an audit log configured           |
+| {ref}`242434`                                                                         | Kubernetes Kubelet must enable kernel protection                      |
+| {ref}`245541`                                                                         | Kubernetes Kubelet must not disable timeouts                          |
+| {ref}`254800`                                                                         | Kubernetes must have a Pod Security Admission control file configured |
+
+#### Worker node templates
+
+`/var/snap/k8s/common/etc/templates/disa-stig/worker.yaml` is the template
+for [joining worker nodes](#join-worker-nodes).
+It applies configuration to align with the following recommendations:
+
+| STIG       | Summary                                          |
+| ---------- | ------------------------------------------------ |
+| {ref}`242434` | Kubernetes Kubelet must enable kernel protection |
+| {ref}`245541` | Kubernetes Kubelet must not disable timeouts     |
+
+### Alternative control plane configurations
+
+The STIG templates provided to [set up control plane
+nodes](#set-up-control-plane-nodes) may need adjusted to suit your specific
+needs.
+
+#### Pod Security Admission control file
+
+To comply with rule {ref}`254800`, you must configure a Pod Security Admission
 control file for your Kubernetes cluster. This file defines the Pod Security
-Standards (PSS) that are enforced at the namespace level. The STIG templates we
-provide to bootstrap/join control plane nodes configure the Pod Security
-admission controller to comply with these recommendations.
-
-By default, the bootstrap configuration template will point to
+Standards (PSS) that are enforced at the namespace level. By default, the
+templates point to
 `/var/snap/k8s/common/etc/configurations/pod-security-admission-baseline.yaml`,
 which sets the pod security policy to “baseline”, a minimally restrictive
 policy that prevents known privilege escalations.
 
-This policy may be insufficient or impractical in some situations, in which case
-the settings would need to be adjusted by doing one of the following:
+This policy may be insufficient or impractical in some situations, in which
+case the templates would need to be adjusted by doing one of the following:
 
-1. Adjust the `--admission-control-config-file` path used when you
-   bootstrap/join nodes to
-   `/var/snap/k8s/common/etc/configurations/pod-security-admission-restricted.yaml`
-   rather than the file above. This sets a more restrictive policy.
+1. Adjust the `--admission-control-config-file` path in the templates to
+    `/var/snap/k8s/common/etc/configurations/pod-security-admission-restricted.yaml`
+    rather than the file above. This sets a more restrictive policy.
 2. Edit
-   `/var/snap/k8s/common/etc/configurations/pod-security-admission-baseline.yaml`
-   to suit your needs based on the [upstream instructions].
-3. Create your own audit policy based on the [upstream instructions] and adjust
-   the `--admission-control-config-file` path used when you bootstrap/join
-   nodes.
+    `/var/snap/k8s/common/etc/configurations/pod-security-admission-baseline.yaml`
+    to suit your needs based on the [upstream instructions].
+3. Create your own audit policy based on the [upstream instructions] and
+    adjust the `--admission-control-config-file` path used in the templates.
 
 For more details, see the [Kubernetes Pod Security Admission documentation],
 which provides an overview of Pod Security Standards (PSS), their enforcement
 levels, and configuration options.
 
-### Kubernetes API Server audit log
+#### Kubernetes API Server audit log
 
-To comply with rules [V-242402], [V-242403], [V-242461], [V-242462],
-[V-242463],[V-242464] and [V-242465] you must configure the Kubernetes API
-Server audit log. The STIG templates we provide to
-bootstrap/join control plane nodes configures the Kubernetes
-API servers audit settings and policy to comply with these recommendations.
+To comply with rules {ref}`242402`, {ref}`242403`, {ref}`242461`, {ref}`242462`,
+{ref}`242463`, {ref}`242464`, and {ref}`242465` you must configure the 
+Kubernetes API Server audit log. The STIG templates we provide to 
+bootstrap/join control plane nodes configures the Kubernetes API servers audit 
+settings and policy to comply with these recommendations.
 
 By default, the bootstrap configuration template will point to
 `/var/snap/k8s/common/etc/configurations/audit-policy.yaml`, which configures
 logging of all (non-resource) events with request metadata, request body, and
-response body as recommended by [V-242403].
+response body as recommended by {ref}`242403`.
 
 This level of logging may be impractical for some situations, in which case the
 settings would need to be adjusted and an exception put in place. To adjust the
 audit settings, do one of the following:
 
 1. Adjust the `--audit-policy-file` path used when you bootstrap/join nodes to
-   use `/var/snap/k8s/common/etc/configurations/audit-policy-kube-system.yaml`
-   rather than the file above. This configures the same level of logging but
-   only for events in the kube-system namespace.
+    use `/var/snap/k8s/common/etc/configurations/audit-policy-kube-system.yaml`
+    rather than the file above. This configures the same level of logging but
+    only for events in the kube-system namespace.
 2. Edit `/var/snap/k8s/common/etc/configurations/audit-policy.yaml` to suit
-   your needs based on the [upstream audit instructions] for this policy
-   file.
-3. Create your own audit policy based on the
-   [upstream audit instructions] and adjust the `--audit-policy-file` path
-   used when you bootstrap/join nodes to use it.
-
-## Required Documentation
-
-[V-242410], [V-242411], [V-242412], and [V-242413] requires that the Kubernetes
-API Server, Scheduler, and Controllers as well as etcd enforce ports, protocols,
-and services (PPS) that adhere to the Ports, Protocols, and Services Management
-Category Assurance List (PPSM CAL). The {{product}} [ports and services] must be
-manually audited in accordance with this policy. These ports, protocols, and
-services will need to be added to your specific PPSM list and the list will need
-to be updated anytime the list of ports, protocols, and services used by your
-cluster changes. For instance, this list will need to be updated each time a
-new service is exposed externally.
-
-## Post-Deployment Requirements
-
-In addition to the above deployment steps, there are some guidelines that must
-be followed by users and administrators throughout the life of the cluster in
-order to maintain DISA STIG compliance.
-
-- [V-242383]  User-managed resources must be created in dedicated namespaces
-- [V-242414] User pods must only use non-privileged host ports
-- [V-242415] Secrets must not be stored as environment variables
-- [V-242417] User functionality must be separate from management functions
-  meaning all user pods must be in user specific namespaces rather than system
-  namespaces
+    your needs based on the [upstream audit instructions] for this policy file.
+3. Create your own audit policy based on the [upstream audit instructions] and
+    adjust the `--audit-policy-file` path used when you bootstrap/join nodes to
+    use it.
 
 <!-- Links -->
+[supported version]: https://ubuntu.com/about/release-cycle#canonical-kubernetes-release-cycle
 [ports and services]: /snap/reference/ports-and-services/
 [FIPS installation guide]: fips.md
-[firewall configuration]: /snap/howto/networking/ufw.md
+[configure UFW]: /snap/howto/networking/ufw.md
 [USG tool]: https://documentation.ubuntu.com/security/docs/compliance/usg/
-[Ubuntu Pro]: https://documentation.ubuntu.com/pro/start-here/#start-here
 [Kubernetes Pod Security Admission documentation]: https://kubernetes.io/docs/concepts/security/pod-security-admission/
 [upstream instructions]: https://kubernetes.io/docs/tasks/configure-pod-container/enforce-standards-admission-controller/
 [upstream audit instructions]: https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
-[V-242403]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242403
-[V-242434]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242434
-[V-245541]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-245541
-[V-254800]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-254800
-[V-242402]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242402
-[V-242461]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242461
-[V-242462]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242462
-[V-242463]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242463
-[V-242464]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242464
-[V-242465]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242465
-[V-242400]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242400
-[V-242384]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242384
-[V-242385]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242385
-[V-242383]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242383
-[V-242410]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242410
-[V-242411]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242411
-[V-242412]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242412
-[V-242413]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242413
-[V-242414]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242414
-[V-242415]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242415
-[V-242417]: https://stigviewer.com/stigs/kubernetes/2025-02-20/finding/V-242417
+[V-270714]: https://www.stigviewer.com/stigs/canonical_ubuntu_2404_lts/2025-05-16/finding/V-270714
+[V-270665]: https://www.stigviewer.com/stigs/canonical_ubuntu_2404_lts/2025-05-16/finding/V-270665

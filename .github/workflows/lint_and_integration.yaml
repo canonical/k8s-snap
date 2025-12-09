@@ -9,6 +9,7 @@ on:
       - autoupdate/strict
       - 'release-[0-9]+.[0-9]+'
       - 'autoupdate/release-[0-9]+.[0-9]+-strict'
+
   pull_request:
     paths-ignore:
       - 'docs/**'
@@ -84,6 +85,7 @@ jobs:
       - name: Lint
         run: |
           cd tests/integration && tox -e lint
+          cd ../../ci && tox -e lint
   go-lint-and-unit:
     name: Go lint and unit tests
     uses: ./.github/workflows/go.yaml
@@ -129,13 +131,16 @@ jobs:
       fail-fast: false
       matrix:
         arch: [amd64, arm64]
+        datastore: [etcd, k8s-dqlite]
     needs: [build-snap, get-e2e-tags, go-lint-and-unit, python-lint]
     uses: ./.github/workflows/e2e-tests.yaml
     with:
       arch: ${{ matrix.arch }}
       os: ubuntu:24.04
+      datastore: ${{ matrix.datastore }}
       test-tags: ${{ needs.get-e2e-tags.outputs.test-tags }}
       artifact: k8s-${{ matrix.arch }}.snap
+      test-collection-branch: ${{ github.head_ref }}
       parallel: true
 
   security-scan:
@@ -177,6 +182,8 @@ jobs:
       fail-fast: false
     needs: [build-snap, go-lint-and-unit, python-lint, get-charm-channel]
     uses: ./.github/workflows/charm-e2e-tests.yaml
+    secrets:
+      CHARMCRAFT_AUTH: ${{ secrets.CHARMCRAFT_AUTH }}
     with:
       arch: ${{ matrix.arch }}
       artifact: k8s-${{ matrix.arch }}.snap

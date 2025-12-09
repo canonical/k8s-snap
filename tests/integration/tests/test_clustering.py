@@ -325,7 +325,7 @@ def test_node_join_succeeds_when_original_control_plane_is_down(
     cluster_node_id = cluster_node.id
     cluster_node.delete()
 
-    util.stubbornly(retries=5, delay_s=10).on(joining_cp_A).until(
+    util.stubbornly(retries=15, delay_s=10).on(joining_cp_A).until(
         lambda p: "NotReady" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "node", cluster_node_id])
 

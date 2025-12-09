@@ -27,7 +27,7 @@ for bin in containerd; do
 done
 
 # Shims can be built statically as they do not contain any crypto functions
-for bin in ctr containerd-shim containerd-shim-runc-v1 containerd-shim-runc-v2; do
+for bin in ctr containerd-shim-runc-v2; do
   export STATIC=1
   export CGO_ENABLED=0
   export GO_BUILDTAGS=
