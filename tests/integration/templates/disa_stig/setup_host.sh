@@ -86,7 +86,11 @@ echo "==> Enabling USG"
 pro enable usg --assume-yes
 
 echo "==> Applying USG fixes with tailoring file"
+set +e
 usg fix --tailoring-file /etc/usg/tailoring.xml
+USG_FIX_RC=$?
+echo "usg fix exited with code ${USG_FIX_RC}"
+set -e
 
 echo "==> Configuring UFW firewall"
 sed -i 's/^DEFAULT_FORWARD_POLICY=.*/DEFAULT_FORWARD_POLICY="ACCEPT"/' /etc/default/ufw
