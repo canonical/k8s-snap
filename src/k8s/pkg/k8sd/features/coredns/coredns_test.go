@@ -278,7 +278,7 @@ func validateValues(g Gomega, values map[string]any, dns types.DNS, kubelet type
 	// Hostname constraint
 	g.Expect(topologySpread[1]["maxSkew"]).To(Equal(1))
 	g.Expect(topologySpread[1]["topologyKey"]).To(Equal("kubernetes.io/hostname"))
-	g.Expect(topologySpread[1]["whenUnsatisfiable"]).To(Equal("DoNotSchedule"))
+	g.Expect(topologySpread[1]["whenUnsatisfiable"]).To(Equal("ScheduleAnyway"))
 	hostnameMatchLabelKeys, ok := topologySpread[1]["matchLabelKeys"].([]string)
 	g.Expect(ok).To(BeTrue())
 	g.Expect(hostnameMatchLabelKeys).To(Equal([]string{"pod-template-hash"}))
