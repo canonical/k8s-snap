@@ -2,7 +2,7 @@
 # Copyright 2025 Canonical, Ltd.
 #
 
-from tests.integration.tests.test_util import config
+from test_util import config
 
 ETCD_PORTS = [
     2379,  # etcd client
