@@ -70,7 +70,6 @@ annotations
 :titlesonly:
 proxy
 ports-and-services
-default-dns
 ```
 
 ## Troubleshooting
