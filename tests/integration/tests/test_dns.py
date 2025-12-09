@@ -89,6 +89,7 @@ def test_dns_ha_rebalancing(instances: List[harness.Instance]):
 
     # Wait for initial cluster to be ready
     util.wait_until_k8s_ready(initial_node, [initial_node])
+    util.wait_for_dns(initial_node)
 
     # Verify initial state: all CoreDNS pods should be on the first node
     result = initial_node.exec(
