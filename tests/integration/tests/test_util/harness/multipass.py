@@ -41,7 +41,10 @@ class MultipassHarness(Harness):
         LOG.debug("Configured Multipass substrate (image %s)", self.image)
 
     def new_instance(
-        self, network_type: str = "IPv4", name_suffix: str = "", required_ports: List[int] = None
+        self,
+        network_type: str = "IPv4",
+        name_suffix: str = "",
+        required_ports: List[int] = None,
     ) -> Instance:
         if network_type not in ("IPv4", "IPv6", "dualstack"):
             raise HarnessError(

@@ -248,6 +248,9 @@ def setup_k8s_snap(
             a path to the snap to install
         tmp_path:   path to store the snap on the instance (optional, defaults to /home/ubuntu)
     """
+    if config.REQUIRED_SNAPS:
+        snap.ensure_required_snaps(instance, config.REQUIRED_SNAPS)
+
     cmd = ["snap", "install", "--classic"]
     which_snap = snap or config.SNAP
 

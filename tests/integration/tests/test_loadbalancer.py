@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import List
 
 import pytest
-from test_util import config, harness, tags, util, ports
+from test_util import config, harness, ports, tags, util
 from test_util.config import MANIFESTS_DIR, SUBSTRATE
 
 LOG = logging.getLogger(__name__)

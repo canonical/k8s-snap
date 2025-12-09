@@ -9,6 +9,7 @@ import urllib.request
 from typing import List, Optional
 
 from test_util.util import major_minor
+
 from tests.integration.tests.test_util import harness
 
 LOG = logging.getLogger(__name__)

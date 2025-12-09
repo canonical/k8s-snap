@@ -333,9 +333,7 @@ class LXDHarness(Harness):
             raise HarnessError(f"DISA-STIG tailoring file not found: {tailoring_file}")
         self.send_file(instance_id, str(tailoring_file), "/tmp/tailoring.xml")
 
-        po = (
-            required_ports if required_ports is not None else ports.DEFAULT_OPEN_PORTS
-        )
+        po = required_ports if required_ports is not None else ports.DEFAULT_OPEN_PORTS
         ports_str = " ".join(str(p) for p in po)
 
         # Run the setup script with environment variables
@@ -358,7 +356,6 @@ class LXDHarness(Harness):
             ) from e
 
         LOG.info("DISA-STIG setup completed successfully on %s", instance_id)
-
 
     def delete_instance(self, instance_id: str):
         if instance_id not in self.instances:

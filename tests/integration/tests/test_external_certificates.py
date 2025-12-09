@@ -11,7 +11,7 @@ import hvac
 import pytest
 import requests
 import yaml
-from test_util import harness, tags, util, ports
+from test_util import harness, ports, tags, util
 from test_util.config import MANIFESTS_DIR
 
 LOG = logging.getLogger(__name__)
