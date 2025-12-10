@@ -9,8 +9,6 @@ mkdir -p "${INSTALL}"
 sed -i 's/^package main/package plugin_main/' plugins/*/*/*.go
 sed -i 's/^func main()/func Main()/' plugins/*/*/*.go
 
-export GOEXPERIMENT=nosystemcrypto
-
-go build -o cni -ldflags "-s -w -extldflags -static -X github.com/containernetworking/plugins/pkg/utils/buildversion.BuildVersion=${VERSION}" ./cni.go
+go build -o cni -ldflags "-s -w -X github.com/containernetworking/plugins/pkg/utils/buildversion.BuildVersion=${VERSION}" ./cni.go
 
 cp cni "${INSTALL}/cni"
