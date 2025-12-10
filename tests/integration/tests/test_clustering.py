@@ -108,7 +108,7 @@ def test_disa_stig_clustering(instances: List[harness.Instance]):
     joining_worker = instances[2]
 
     util.setup_k8s_snap(cluster_node)
-    bootstrapFile = config.COMMON_ETC_DIR + "/templates/disa-stig/bootstrap.yaml"
+    bootstrapFile = config.COMMON_ETC_DIR + "/configurations/disa-stig/bootstrap.yaml"
     cluster_node.exec(["sysctl", "-w", "vm.overcommit_memory=1"])
     cluster_node.exec(["sysctl", "-w", "kernel.panic=10"])
     cluster_node.exec(["sysctl", "-w", "kernel.panic_on_oops=1"])
@@ -117,7 +117,7 @@ def test_disa_stig_clustering(instances: List[harness.Instance]):
     util.wait_until_k8s_ready(cluster_node, [cluster_node])
 
     util.setup_k8s_snap(joining_cp)
-    cp_file = config.COMMON_ETC_DIR + "/templates/disa-stig/control-plane.yaml"
+    cp_file = config.COMMON_ETC_DIR + "/configurations/disa-stig/control-plane.yaml"
     join_token_cp = util.get_join_token(cluster_node, joining_cp)
 
     cp_file_content = joining_cp.exec(
@@ -130,7 +130,7 @@ def test_disa_stig_clustering(instances: List[harness.Instance]):
     util.join_cluster(joining_cp, join_token_cp, yaml.dump(cp_data))
 
     util.setup_k8s_snap(joining_worker)
-    worker_file = config.COMMON_ETC_DIR + "/templates/disa-stig/worker.yaml"
+    worker_file = config.COMMON_ETC_DIR + "/configurations/disa-stig/worker.yaml"
     join_token_worker = util.get_join_token(cluster_node, joining_worker, "--worker")
 
     worker_file_content = joining_worker.exec(
