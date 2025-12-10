@@ -87,7 +87,7 @@ pro enable usg --assume-yes
 
 echo "==> Applying USG fixes with tailoring file"
 set +e
-usg fix --tailoring-file /etc/usg/tailoring.xml 1> /dev/null
+usg fix --tailoring-file /etc/usg/tailoring.xml 1> /dev/null 2> /dev/null
 USG_FIX_RC=$?
 echo "usg fix exited with code ${USG_FIX_RC}"
 set -e

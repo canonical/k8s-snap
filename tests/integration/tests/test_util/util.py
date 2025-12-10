@@ -233,10 +233,15 @@ def setup_core_dumps(instance: harness.Instance):
 def ensure_required_snaps(instance: harness.Instance, required_snaps: dict) -> None:
     """Ensure that the required snaps are installed on the instance."""
     for snap_name, channel in required_snaps.items():
-        installed_snaps_output = instance.exec(
-            ["snap", "list", snap_name], capture_output=True, text=True, check=False
-        ).stdout
+        try:
+            out = instance.exec(
+                ["snap", "list", snap_name], capture_output=True, text=True, check=False
+            )
+        except subprocess.CalledProcessError as e:
+            LOG.info(f"Failed to check if snap {snap_name} is installed on instance {instance.id}, error: {e}")
+            LOG.info(out.returncode)
 
+        installed_snaps_output = out.stdout()
         if snap_name in installed_snaps_output:
             LOG.info(
                 "Snap %s is already installed on instance %s. Refreshing to channel %s",
