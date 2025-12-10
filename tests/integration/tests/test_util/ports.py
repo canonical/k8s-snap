@@ -16,6 +16,7 @@ K8S_DQLITE_PORTS = [
 # K8S_CORE_PORTS are ports used by core Kubernetes components.
 # These are always required regardless of datastore choice.
 K8S_CORE_PORTS = [
+    6400,  # k8sd (localhost but required for joining nodes)
     6443,  # kube-apiserver
     10250,  # kubelet
     10257,  # kube-controller-manager
