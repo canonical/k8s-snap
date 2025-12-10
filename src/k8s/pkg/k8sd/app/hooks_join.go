@@ -436,7 +436,7 @@ func initiateRollingUpgrade(ctx context.Context, snap snap.Snap, s state.State, 
 		strategy = upgradesv1alpha.UpgradeStrategyRollingDowngrade
 	}
 
-	versionData := version.Info{Revision: rev}
+	versionData := version.Info{Revision: rev, KubernetesVersion: thisNodeVersion}
 	newUpgrade := upgradesv1alpha.NewUpgrade(upgradepkg.GetName(versionData))
 	if err := k8sClient.Create(ctx, newUpgrade); err != nil {
 		return fmt.Errorf("failed to create upgrade: %w", err)
