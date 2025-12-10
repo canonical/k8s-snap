@@ -23,7 +23,7 @@ so automatically. We recommend following our guide to [configure UFW]. This can
 be done before applying the host STIG and will help avoid connectivity issues
 that often happen when enabling UFW with the default configuration.
 
-## Apply Host STIG
+## Apply host STIG
 
 DISA STIG host compliance is achieved by running the [USG tool] that is also
 part of the PRO tool set. To install the USG tool:
@@ -79,8 +79,8 @@ sudo sysctl --system
 ```
 
 ```{note}
-Please ensure that the configuration of `/etc/sysctl.d/99-kubelet.conf` is not
-overridden by another higher order file.
+Ensure that the configuration in `/etc/sysctl.d/99-kubelet.conf` is not
+overridden by another configuration file with higher precedence.
 ```
 
 ## Apply Kubernetes STIG
@@ -88,11 +88,17 @@ overridden by another higher order file.
 {{product}} provides example [configuration files] to apply
 DISA STIG specific settings.
 
+The deployment process consists of the following steps:
+
+1. Bootstrap the first control plane node (required)
+2. Join additional control plane nodes (optional)
+3. Join worker nodes (optional)
+
 ### Set up control plane nodes
 
 ```{attention}
 Before bootstrapping or joining control plane nodes, review the
-example [configuration files](#configuration-files) as well as the
+[example configuration files](#example-configuration-files) as well as the
 alternative configuration options for [audit logs and PSS](#audit-logs-and-pss-configuration).
 Once a node is configured, changing certain settings is more difficult
 and may require re-deploying the node or cluster.
@@ -117,7 +123,7 @@ sudo k8s get-join-token <joining-node-hostname>
 ```
 
 Then join the new control plane node using the
-example node-join configuration file:
+example control plane node join configuration file:
 
 ```
 sudo k8s join-cluster --file=/var/snap/k8s/common/etc/templates/disa-stig/control-plane.yaml <join-token>
@@ -131,13 +137,13 @@ First retrieve a join token from an existing control plane node:
 sudo k8s get-join-token <joining-node-hostname> --worker
 ```
 
-Then join the new worker node using the example node-join configuration file:
+Then join the new worker node using the example node join configuration file:
 
 ```
 sudo k8s join-cluster --file=/var/snap/k8s/common/etc/templates/disa-stig/worker.yaml <join-token>
 ```
 
-If SSH is not needed to access the worker nodes it is recommended you disable
+If SSH is not needed to access worker nodes, it is recommended you disable
 the SSH service:
 
 ```
@@ -152,7 +158,7 @@ rules, leave SSH installed, but disable the service. Alternatively, SSH
 can be removed and the exception documented.
 ```
 
-## Post-Deployment Requirements
+## Post-Deployment requirements
 
 In addition to the above deployment steps, there are some guidelines that must
 be followed by users and administrators post-deployment and throughout the
@@ -165,7 +171,7 @@ protocols, and services (PPS) that adhere to the Ports, Protocols, and
 Services Management Category Assurance List (PPSM CAL). The {{product}}
 [ports and services] must be audited in accordance with this list. Those ports,
 protocols, and services that fall outside the PPSM CAL must be blocked or
-registered. This step needs followed after the initial deployment and anytime
+registered. This step needs to be followed after the initial deployment and anytime
 the list of ports, protocols, and services used by your cluster changes (for
 instance each time a new service is exposed externally).
 - {ref}`242393` and {ref}`242394`: SSH service must not be running or enabled on
@@ -179,44 +185,44 @@ instance each time a new service is exposed externally).
    vulnerabilities. We recommend using the latest revision of a
    [supported version] of {{product}}.
 
-## Advanced Configuration
+## Advanced configuration
 
-### Configuration Example Files
+### Example configuration files
 
-#### Control plane example configuration files
+#### Example control plane configuration files
 
-`/var/snap/k8s/common/etc/templates/disa-stig/bootstrap.yaml` is the
-configuration file for
-[bootstrapping](#bootstrap-the-first-control-plane-node) the first node
-of a cluster and
-`/var/snap/k8s/common/etc/templates/disa-stig/control-plane.yaml` is the
-control plane node-join configuration file for [joining additional control plane
-nodes](#join-control-plane-nodes). Both of these configuration files
-apply settings to align with the following recommendations:
+The following configuration files apply DISA STIG settings for control plane nodes:
 
-| STIG                                                                               | Summary                                                               |
-| ---------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| {ref}`242384`                                                                         | The Kubernetes Scheduler must have secure binding                     |
-| {ref}`242385`                                                                        | The Kubernetes Controller Manager must have secure binding            |
-| {ref}`242400`                                                                         | The Kubernetes API server must have Alpha APIs disabled               |
+- `bootstrap.yaml`: Used for
+  [bootstrapping](#bootstrap-the-first-control-plane-node) the first
+  control plane node
+- `control-plane.yaml`: Used for
+  [joining additional control plane nodes](#join-control-plane-nodes)
+
+Both files apply settings to align with the following recommendations:
+
+| STIG                                                                                                    | Summary                                                               |
+| ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| {ref}`242384`                                                                                           | The Kubernetes Scheduler must have secure binding                     |
+| {ref}`242385`                                                                                           | The Kubernetes Controller Manager must have secure binding            |
+| {ref}`242400`                                                                                           | The Kubernetes API server must have Alpha APIs disabled               |
 | {ref}`242402`, {ref}`242403`, {ref}`242461`, {ref}`242462`, {ref}`242463`, {ref}`242464`, {ref}`242465` | The Kubernetes API Server must have an audit log configured           |
-| {ref}`242434`                                                                         | Kubernetes Kubelet must enable kernel protection                      |
-| {ref}`245541`                                                                         | Kubernetes Kubelet must not disable timeouts                          |
-| {ref}`254800`                                                                         | Kubernetes must have a Pod Security Admission control file configured |
+| {ref}`242434`                                                                                           | Kubernetes Kubelet must enable kernel protection                      |
+| {ref}`245541`                                                                                           | Kubernetes Kubelet must not disable timeouts                          |
+| {ref}`254800`                                                                                           | Kubernetes must have a Pod Security Admission control file configured |
 
-#### Worker node-join example configuration file
+#### Example worker node join configuration file
 
-`/var/snap/k8s/common/etc/templates/disa-stig/worker.yaml` is the
-worker node-join configuration file
-for [joining worker nodes](#join-worker-nodes).
+`/var/snap/k8s/common/etc/templates/disa-stig/worker.yaml` is the worker node
+join configuration file for [joining worker nodes](#join-worker-nodes).
 It applies settings to align with the following recommendations:
 
-| STIG       | Summary                                          |
-| ---------- | ------------------------------------------------ |
+| STIG          | Summary                                          |
+| ------------- | ------------------------------------------------ |
 | {ref}`242434` | Kubernetes Kubelet must enable kernel protection |
 | {ref}`245541` | Kubernetes Kubelet must not disable timeouts     |
 
-### Audit Logs and PSS Configuration
+### Audit logs and PSS configuration
 
 The STIG configuration files provided
 to [set up control plane nodes](#set-up-control-plane-nodes) can be
@@ -227,13 +233,12 @@ adjusted to suit your specific needs.
 To comply with rule {ref}`254800`, you must configure a Pod Security Admission
 control file for your Kubernetes cluster. This file defines the Pod Security
 Standards (PSS) that are enforced at the namespace level. By default, the
-bootstrap and control plane configuration files point to
+example configuration files point to
 `/var/snap/k8s/common/etc/configurations/pod-security-admission-baseline.yaml`,
 which sets the pod security policy to “baseline”, a minimally restrictive
 policy that prevents known privilege escalations.
 
-This policy may be insufficient or impractical in some situations, in which
-case it needs to be adjusted by doing one of the following:
+This policy may be insufficient or impractical in some situations. To adjust it:
 
 1. Set the `--admission-control-config-file` path in
     the bootstrap and control plane configuration files to
@@ -242,9 +247,9 @@ case it needs to be adjusted by doing one of the following:
 2. Edit
     `/var/snap/k8s/common/etc/configurations/pod-security-admission-baseline.yaml`
     to suit your needs based on the [upstream instructions].
-3. Create your own audit policy based on the [upstream instructions] and
-    adjust the `--admission-control-config-file` path used in the
-    configuration files.
+3. Create your own Pod Security Admission control file based on the
+   [upstream instructions] and adjust the `--admission-control-config-file`
+   path used in the configuration files.
 
 For more details, see the [Kubernetes Pod Security Admission documentation],
 which provides an overview of Pod Security Standards (PSS), their enforcement
@@ -253,10 +258,10 @@ levels, and configuration options.
 #### Kubernetes API Server audit log
 
 To comply with rules {ref}`242402`, {ref}`242403`, {ref}`242461`, {ref}`242462`,
-{ref}`242463`, {ref}`242464`, and {ref}`242465` you must configure the 
-Kubernetes API Server audit log. The STIG configuration files we provide to
-bootstrap and join control plane nodes configure the Kubernetes API
-servers audit settings and policy to comply with these recommendations.
+{ref}`242463`, {ref}`242464`, and {ref}`242465` you must configure the
+Kubernetes API Server audit log. The example configuration files we provide
+configure the Kubernetes API servers audit settings and policy to comply with
+these recommendations.  
 
 By default, the configuration files will point to
 `/var/snap/k8s/common/etc/configurations/audit-policy.yaml`, which configures
