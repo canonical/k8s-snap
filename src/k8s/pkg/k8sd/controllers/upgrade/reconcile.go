@@ -61,7 +61,7 @@ func (c *Controller) reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 	}
 
 	if len(errs) == 0 {
-		errs = append(errs, fmt.Errorf("no upgrade or node found for %q", req.NamespacedName))
+		c.logger.Info("No upgrade or node found to reconcile", "resource", req.NamespacedName)
 	}
 
 	return ctrl.Result{}, errors.NewAggregate(errs)
