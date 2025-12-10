@@ -80,16 +80,23 @@ func (c *Controller) reconcileNode(ctx context.Context, node *corev1.Node) (ctrl
 		return ctrl.Result{}, fmt.Errorf("failed to decode version info for node %q: %w", node.Name, err)
 	}
 
-	c.logger.WithValues("node", node.Name, "version", versionData.Revision).Info("Reconciling node version.")
+	c.logger.WithValues("node", node.Name, "version", versionData).Info("Reconciling node version.")
 
 	var upgrade upgradesv1alpha.Upgrade
 	if err := c.client.Get(ctx, ctrlclient.ObjectKey{
 		Name: upgradepkg.GetName(versionData),
 	}, &upgrade); err != nil && apierrors.IsNotFound(err) {
-		c.logger.WithValues("node", node.Name, "revision", versionData.Revision).Info("No upgrade found for revision, skipping reconciliation.")
+		c.logger.WithValues("node", node.Name, "version", versionData).Info("No upgrade found for this version, skipping reconciliation.")
 		return ctrl.Result{}, nil
 	} else if err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to get upgrade for revision %q: %w", versionData.Revision, err)
+		return ctrl.Result{}, fmt.Errorf("failed to get upgrade for version %q: %w", versionData, err)
+	}
+
+	c.logger.Info("Found upgrade for node.", "node", node.Name, "upgrade", upgrade.Name, "phase", upgrade.Status.Phase)
+
+	if upgrade.Status.Phase != upgradesv1alpha.UpgradePhaseNodeUpgrade {
+		c.logger.WithValues("node", node.Name, "upgrade", upgrade.Name, "phase", upgrade.Status.Phase).Info("Upgrade is not in NodeUpgrade phase, skipping adding node to upgraded nodes.")
+		return ctrl.Result{}, nil
 	}
 
 	if err := c.addToUpgradedNodes(ctx, &upgrade, node); err != nil {
