@@ -171,9 +171,9 @@ protocols, and services (PPS) that adhere to the Ports, Protocols, and
 Services Management Category Assurance List (PPSM CAL). The {{product}}
 [ports and services] must be audited in accordance with this list. Those ports,
 protocols, and services that fall outside the PPSM CAL must be blocked or
-registered. This step needs to be followed after the initial deployment and anytime
-the list of ports, protocols, and services used by your cluster changes (for
-instance each time a new service is exposed externally).
+registered. This step needs to be followed after the initial deployment and
+anytime the list of ports, protocols, and services used by your cluster changes
+(for instance each time a new service is exposed externally).
 - {ref}`242393` and {ref}`242394`: SSH service must not be running or enabled on
    worker nodes (see [Join worker nodes](#join-worker-nodes))
 - {ref}`242414`: User pods must only use non-privileged host ports
@@ -191,7 +191,8 @@ instance each time a new service is exposed externally).
 
 #### Example control plane configuration files
 
-The following configuration files apply DISA STIG settings for control plane nodes:
+The following configuration files apply DISA STIG settings for control
+plane nodes:
 
 - `bootstrap.yaml`: Used for
   [bootstrapping](#bootstrap-the-first-control-plane-node) the first
