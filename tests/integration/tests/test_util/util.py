@@ -234,9 +234,7 @@ def ensure_required_snaps(instance: harness.Instance, required_snaps: dict) -> N
     """Ensure that the required snaps are installed on the instance."""
     for snap_name, channel in required_snaps.items():
         installed_snaps_output = instance.exec(
-            ["snap", "list", snap_name],
-            capture_output=True,
-            text=True,
+            ["snap", "list", snap_name], capture_output=True, text=True, check=False
         ).stdout
 
         if snap_name in installed_snaps_output:
