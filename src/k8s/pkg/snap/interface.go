@@ -9,6 +9,7 @@ import (
 	"github.com/canonical/k8s/pkg/client/k8sd"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/types"
+	versionutil "k8s.io/apimachinery/pkg/util/version"
 )
 
 // Snap abstracts file system paths and interacting with the k8s services.
@@ -69,8 +70,8 @@ type Snap interface {
 
 	LockFilesDir() string // /var/snap/k8s/common/lock
 
-	NodeTokenFile() string                                     // /var/snap/k8s/common/node-token
-	NodeKubernetesVersion(ctx context.Context) (string, error) // The Kubernetes version of the node as set in the snap. Can be queried without running k8s services.
+	NodeTokenFile() string                                                   // /var/snap/k8s/common/node-token
+	NodeKubernetesVersion(ctx context.Context) (*versionutil.Version, error) // The Kubernetes version of the node as set in the snap. Can be queried without running k8s services.
 
 	KubernetesClient(namespace string) (*kubernetes.Client, error)     // admin kubernetes client
 	KubernetesNodeClient(namespace string) (*kubernetes.Client, error) // node kubernetes client
