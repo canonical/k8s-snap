@@ -306,10 +306,8 @@ func (a *App) markNodeReady(ctx context.Context, s state.State) error {
 		if err != nil {
 			return false, nil
 		}
-		if err := client.CheckKubernetesEndpoint(ctx); err != nil {
-			return false, nil
-		}
-		return true, nil
+		_, err = client.GetKubeAPIServerEndpoints(ctx)
+		return err == nil, nil
 	}); err != nil {
 		return fmt.Errorf("failed to wait for kubernetes endpoint: %w", err)
 	}
