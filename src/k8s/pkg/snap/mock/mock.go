@@ -11,6 +11,7 @@ import (
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/snap"
+	versionutil "k8s.io/apimachinery/pkg/util/version"
 )
 
 type Mock struct {
@@ -53,7 +54,7 @@ type Mock struct {
 	LockFilesDir                string
 	PostRefreshLockPath         string
 	NodeTokenFile               string
-	NodeKubernetesVersion       string
+	NodeKubernetesVersion       *versionutil.Version
 	NodeKubernetesVersionErr    error
 	KubernetesClient            *kubernetes.Client
 	KubernetesNodeClient        *kubernetes.Client
@@ -288,7 +289,7 @@ func (s *Snap) NodeTokenFile() string {
 	return s.Mock.NodeTokenFile
 }
 
-func (s *Snap) NodeKubernetesVersion(context.Context) (string, error) {
+func (s *Snap) NodeKubernetesVersion(context.Context) (*versionutil.Version, error) {
 	return s.Mock.NodeKubernetesVersion, s.Mock.NodeKubernetesVersionErr
 }
 
