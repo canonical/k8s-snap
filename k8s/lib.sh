@@ -52,7 +52,7 @@ k8s::common::resources() {
 k8s::common::move_resources() {
   if ! [ -e "$SNAP_COMMON/etc/configurations/disa-stig" ]; then
     mv "$SNAP_COMMON/etc/templates/disa-stig" "$SNAP_COMMON/etc/configurations/"
-    ln -s ../configurations/disa-stig "$SNAP_COMMON/etc/templates/disa-stig"
+    ln -s $SNAP_COMMON/etc/configurations/disa-stig "$SNAP_COMMON/etc/templates/disa-stig"
   fi
 }
 
