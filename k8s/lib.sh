@@ -45,8 +45,15 @@ k8s::common::is_strict() {
 
 k8s::common::resources() {
   mkdir -p "$SNAP_COMMON/etc/"
-  cp -r "$SNAP/etc/templates" "$SNAP_COMMON/etc/"
   cp -r "$SNAP/etc/configurations" "$SNAP_COMMON/etc/"
+}
+
+# For backwards compatibility, move resources from templates to configurations and create symlink
+k8s::common::move_resources() {
+  if ! [ -e "$SNAP_COMMON/etc/configurations/disa-stig" ]; then
+    mv "$SNAP_COMMON/etc/templates/disa-stig" "$SNAP_COMMON/etc/configurations/"
+    ln -s ../configurations/disa-stig "$SNAP_COMMON/etc/templates/disa-stig"
+  fi
 }
 
 # Check if FIPS is enabled on the system
