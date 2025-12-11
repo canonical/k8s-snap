@@ -13,7 +13,7 @@ COMPONENTS = DIR.parent / "components"
 GO_MOD = DIR.parent.parent / "src/k8s/go.mod"
 
 
-def update_go_version(dry_run: bool):
+def update_go_version(dry_run: bool) -> str:
     k8s_version = (COMPONENTS / "kubernetes/version").read_text().strip()
     url = f"https://raw.githubusercontent.com/kubernetes/kubernetes/refs/tags/{k8s_version}/.go-version"
     with urllib.request.urlopen(url) as response:
@@ -23,6 +23,8 @@ def update_go_version(dry_run: bool):
 
     _update_go_version_in_snapcraft(k8s_version, go_version, dry_run)
     _update_go_version_in_go_mod(go_version, dry_run)
+
+    return go_version
 
 
 def _update_go_version_in_snapcraft(k8s_version: str, go_version: str, dry_run: bool):
