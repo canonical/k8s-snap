@@ -10,7 +10,7 @@ from typing import List, Optional, Dict
 
 import requests
 from packaging.version import Version
-from hack.update_utils import update_go_version
+from hack.update_utils import GO_MOD, SNAPCRAFT, update_go_version
 
 K8S_TAGS_URL = "https://api.github.com/repos/kubernetes/kubernetes/tags"
 EXEC_TIMEOUT = 60
@@ -186,69 +186,92 @@ def _get_k8s_component_version(project_basedir: str) -> str:
     return version
 
 
-def _update_prerelease_k8s_component(project_basedir: str, k8s_version: str):
-    if not project_basedir:
-        raise ValueError("Project base directory unspecified.")
-    k8s_component_path = os.path.join(
-        project_basedir, "build-scripts", "components", "kubernetes", "version"
-    )
-    with open(k8s_component_path, "w") as f:
-        f.write(k8s_version)
+class PrereleasePreparer:
+    def __init__(self, project_basedir: str, remote: str):
+        self._project_basedir = project_basedir
+        self._remote = remote
 
-    update_go_version(dry_run=False)
+    def run(self):
+        prereleases = get_outstanding_prereleases()
+        if not prereleases:
+            LOG.info("No outstanding k8s pre-releases.")
+            return
 
+        for prerelease in prereleases:
+            self._run_on_prerelease(prerelease)
 
-def prepare_prerelease_git_branches(project_basedir: str, remote: str = "origin"):
-    prereleases = get_outstanding_prereleases()
-    if not prereleases:
-        LOG.info("No outstanding k8s pre-releases.")
-        return
-
-    for prerelease in prereleases:
-        branch = get_prerelease_git_branch(str(prerelease))
+    def _run_on_prerelease(self, prerelease: str):
+        branch = get_prerelease_git_branch(prerelease)
         LOG.info("Preparing pre-release branch: %s", branch)
 
+        self._checkout_branch(branch)
+        self._update_k8s_version(prerelease)
+        self._update_go_version()
+        # self._push(branch)
+
+    def _update_go_version(self):
+        go_version = update_go_version(dry_run=False)
+        self._commit(f"Update go version to {go_version}", str(SNAPCRAFT), str(GO_MOD))
+
+    def _checkout_branch(self, branch):
         # Reset branch to remote main
         _exec(
-            ["git", "fetch", remote],
-            cwd=project_basedir,
+            ["git", "fetch", self._remote],
+            cwd=self._project_basedir,
             capture_output=False,
         )
         _exec(
-            ["git", "checkout", "-B", branch, f"{remote}/main"],
-            cwd=project_basedir,
+            ["git", "checkout", "-B", branch, f"{self._remote}/main"],
+            cwd=self._project_basedir,
             capture_output=False,
         )
 
-        # Update the k8s version and commit
-        _update_prerelease_k8s_component(project_basedir, str(prerelease))
+    def _update_k8s_version(self, k8s_version: str):
+        if not self._project_basedir:
+            raise ValueError("Project base directory unspecified.")
+        k8s_component_path = os.path.join(
+            self._project_basedir,
+            "build-scripts",
+            "components",
+            "kubernetes",
+            "version",
+        )
+        with open(k8s_component_path, "w") as f:
+            f.write(k8s_version)
+
+        self._commit(f"Update k8s version to {k8s_version}", k8s_component_path)
+
+    def _commit(self, message: str, *add: str):
         _exec(
-            ["git", "add", "./build-scripts/components/kubernetes/version"],
-            cwd=project_basedir,
+            ["git", "add", *add],
+            cwd=self._project_basedir,
             capture_output=False,
         )
 
         # Only commit if there are actual changes
         result = _exec(
             ["git", "status", "--porcelain"],
-            cwd=project_basedir,
+            cwd=self._project_basedir,
             capture_output=True,
         )
         if result[0]:
             _exec(
-                ["git", "commit", "-m", f"Update k8s version to {prerelease}"],
-                cwd=project_basedir,
+                ["git", "commit", "-m", message],
+                cwd=self._project_basedir,
                 capture_output=False,
             )
-        else:
-            LOG.info("Nothing to commit for %s", branch)
 
+    def _push(self, branch):
         # Force-push branch to remote
         _exec(
-            ["git", "push", "-u", remote, branch, "--force"],
-            cwd=project_basedir,
+            ["git", "push", "-u", self._remote, branch, "--force"],
+            cwd=self._project_basedir,
             capture_output=False,
         )
+
+
+def prepare_prerelease_git_branches(project_basedir: str, remote: str = "origin"):
+    PrereleasePreparer(project_basedir, remote).run()
 
 
 def clean_obsolete_git_branches(project_basedir: str, remote="origin"):
