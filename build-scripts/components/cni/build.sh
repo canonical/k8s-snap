@@ -13,6 +13,6 @@ export CGO_ENABLED=1
 export GOTOOLCHAIN=local
 export GOEXPERIMENT=opensslcrypto
 
-go build -tags "linux,cgo,ms_tls13kdf" -o cni -ldflags "-s -w -X github.com/containernetworking/plugins/pkg/utils/buildversion.BuildVersion=${VERSION}" ./cni.go
+go build -tags "linux,cgo,ms_tls13kdf" -o cni -ldflags "-linkmode external -s -w -X github.com/containernetworking/plugins/pkg/utils/buildversion.BuildVersion=${VERSION}" ./cni.go
 
 cp cni "${INSTALL}/cni"
