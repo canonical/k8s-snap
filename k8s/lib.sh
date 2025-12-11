@@ -48,11 +48,16 @@ k8s::common::resources() {
   cp -r "$SNAP/etc/configurations" "$SNAP_COMMON/etc/"
 }
 
-# For backwards compatibility, move resources from templates to configurations and create symlink
+# For backwards compatibility, copy DISA-STIG resources from templates to configurations and create symlink
 k8s::common::move_resources() {
-  if ! [ -e "$SNAP_COMMON/etc/configurations/disa-stig" ]; then
-    mv "$SNAP_COMMON/etc/templates/disa-stig" "$SNAP_COMMON/etc/configurations/"
-    ln -s $SNAP_COMMON/etc/configurations/disa-stig "$SNAP_COMMON/etc/templates/disa-stig"
+  local old_dir="$SNAP_COMMON/etc/templates/disa-stig"
+  local new_dir="$SNAP_COMMON/etc/configurations/disa-stig"
+
+  # Only migrate if new directory does not exist
+  if [ ! -e "$new_dir" ]; then
+    cp -r "$old_dir" "$new_dir"
+    rm -rf "$old_dir"
+    ln -s "$new_dir" "$old_dir"
   fi
 }
 
