@@ -1,5 +1,9 @@
 # How to assess DISA STIG for {{product}}
 
+```{attention}  
+To be fully DISA STIG compliant, you must use FIPS certified crypotographic libraries. Upgrade your Canonical Kubernetes snap to version 1.34 to access this feature.
+```
+
 Security Technical Implementation Guides (STIGs) are developed by the Defense
 Information System Agency (DISA) for the U.S. Department of Defense (DoD).
 
@@ -7,7 +11,7 @@ The [Kubernetes STIG] contains guidelines on how to check and remediate various
 potential security concerns for a Kubernetes deployment.
 
 {{product}} aligns with many DISA STIG compliance recommendations by default.
-However, additional hardening steps are required to fully meet the standard.
+However, additional hardening steps are required to meet the standard.
 
 ## Prerequisites
 
