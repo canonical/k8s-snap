@@ -72,8 +72,7 @@ this rule.
 - **`ufw_rate_limit`**: When enforced, this rule can cause performance issues
 with Kubernetes clusters. You may seek an exception or alternative solution.
 - **`content_rule_only_allow_dod_certs`**: To comply with this rule, you must
-pass custom certificates to {{product}} via the [bootstrap], [control plane
-node join], and [worker node join] configuration files.
+pass custom certificates to {{product}} via the [configuration files].
 
 ## Configure kernel
 
@@ -289,9 +288,7 @@ audit settings, do one of the following:
 [supported version]: https://ubuntu.com/about/release-cycle#canonical-kubernetes-release-cycle
 [ports and services]: /snap/reference/ports-and-services/
 [FIPS installation guide]: fips.md
-[configure UFW]: /snap/howto/networking/ufw.md
-[bootstrap]: /snap/reference/config-files/bootstrap/
-[control plane node join]: /snap/reference/config-files/control-plane-node-join/
+[configuration files]: /snap/reference/config-files/index.md
 [worker node join]: /snap/reference/config-files/worker-node-join/
 [USG tool]: https://documentation.ubuntu.com/security/docs/compliance/usg/
 [Kubernetes Pod Security Admission documentation]: https://kubernetes.io/docs/concepts/security/pod-security-admission/
