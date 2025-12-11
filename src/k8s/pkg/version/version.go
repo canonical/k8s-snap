@@ -84,5 +84,11 @@ func (d *Info) Decode(data []byte) error {
 
 // String returns the string representation of the version info.
 func (d Info) String() string {
-	return fmt.Sprintf("Revision: %s, KubernetesVersion: %s", d.Revision, d.KubernetesVersion)
+	var k8sVersion string
+	if d.KubernetesVersion != nil {
+		k8sVersion = d.KubernetesVersion.String()
+	} else {
+		k8sVersion = "UNKNOWN"
+	}
+	return fmt.Sprintf("Revision: %s, KubernetesVersion: %s", d.Revision, k8sVersion)
 }
