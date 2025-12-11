@@ -63,15 +63,17 @@ sudo reboot
 After rebooting, you can re-run `sudo usg audit disa_stig` to verify that the
 host is now compliant.
 
-Some rules may remain non-compliant as they require manual remediation or exceptions:
+Some rules may remain non-compliant as they require manual remediation or
+exceptions:
 
-- **`content_rule_dir_perms_world_writable_sticky_bits`**: Upstream Kubernetes violates
-this rule when creating workloads. You will need an exception for this rule.
-- **`ufw_rate_limit`**: When enforced, this rule can cause performance issues with
-Kubernetes clusters. You may seek an exception or alternative solution.
-- **`content_rule_only_allow_dod_certs`**: To comply with this rule, you must pass
-custom certificates to {{product}} via the [bootstrap], [control plane node join],
-and [worker node join] configuration files.
+- **`content_rule_dir_perms_world_writable_sticky_bits`**: Upstream Kubernetes
+violates this rule when creating workloads. You will need an exception for
+this rule.
+- **`ufw_rate_limit`**: When enforced, this rule can cause performance issues
+with Kubernetes clusters. You may seek an exception or alternative solution.
+- **`content_rule_only_allow_dod_certs`**: To comply with this rule, you must
+pass custom certificates to {{product}} via the [bootstrap], [control plane
+node join], and [worker node join] configuration files.
 
 ## Configure kernel
 
