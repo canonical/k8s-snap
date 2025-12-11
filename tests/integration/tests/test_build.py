@@ -30,13 +30,13 @@ def test_build(instances: List[harness.Instance]):
         "kubectl",
         "k8s-apiserver-proxy",
         "containerd",
+        "cni",
     ]
 
     # These components should be statically built as they do not contain any crypto functions
     static_components = [
         "ctr",
         "runc",
-        "cni",
         "containerd-shim",
         "containerd-shim-runc-v1",
         "containerd-shim-runc-v2",
@@ -53,9 +53,9 @@ def test_build(instances: List[harness.Instance]):
         LOG.info(result.stdout)
         LOG.info(result.stderr)
         assert "libc.so" in result.stdout, f"{component} should be dynamically built"
-        assert (
-            "not a dynamic executable" not in result.stderr
-        ), f"{component} should be dynamically built"
+        assert "not a dynamic executable" not in result.stderr, (
+            f"{component} should be dynamically built"
+        )
 
     for component in static_components:
         # Verify that all components are statically built
@@ -81,9 +81,9 @@ def test_build(instances: List[harness.Instance]):
             text=True,
         )
         LOG.info(result.stdout)
-        assert (
-            "not a dynamic executable" not in result.stdout
-        ), f"{component} should be dynamically built"
+        assert "not a dynamic executable" not in result.stdout, (
+            f"{component} should be dynamically built"
+        )
 
         # Verify that the component fails if enabled on a non-FIPS system
         result = instance.exec(
