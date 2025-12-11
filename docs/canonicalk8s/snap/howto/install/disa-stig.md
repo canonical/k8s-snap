@@ -191,7 +191,8 @@ anytime the list of ports, protocols, and services used by your cluster changes
 
 #### Example control plane configuration files
 
-`/var/snap/k8s/common/etc/configurations/disa-stig/bootstrap.yaml` is the
+`/var/snap/k8s/common/etc/configurations/disa-stig/bootstrap.yaml`
+is the
 configuration file for
 [bootstrapping](#bootstrap-the-first-control-plane-node) the first node
 of a cluster and
