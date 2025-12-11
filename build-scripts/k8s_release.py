@@ -207,7 +207,7 @@ class PrereleasePreparer:
         self._checkout_branch(branch)
         self._update_k8s_version(prerelease)
         self._update_go_version()
-        # self._push(branch)
+        self._push(branch)
 
     def _update_go_version(self):
         go_version = update_go_version(dry_run=False)
