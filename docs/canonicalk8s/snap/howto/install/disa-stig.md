@@ -60,6 +60,19 @@ Reboot to apply the changes:
 sudo reboot
 ```
 
+After rebooting, you can re-run `sudo usg audit disa_stig` to verify that the
+host is now compliant.
+
+Some rules may remain non-compliant as they require manual remediation or exceptions:
+
+- **`content_rule_dir_perms_world_writable_sticky_bits`**: Upstream Kubernetes violates
+this rule when creating workloads. You will need an exception for this rule.
+- **`ufw_rate_limit`**: When enforced, this rule can cause performance issues with
+Kubernetes clusters. You may seek an exception or alternative solution.
+- **`content_rule_only_allow_dod_certs`**: To comply with this rule, you must pass
+custom certificates to {{product}} via the [bootstrap], [control plane node join],
+and [worker node join] configuration files.
+
 ## Configure kernel
 
 DISA STIG recommends enabling `--protect-kernel-defaults=true` so that kubelet
@@ -190,15 +203,15 @@ template for [joining additional control plane
 nodes](#join-control-plane-nodes). Both of these templates apply configuration
 to align with the following recommendations:
 
-| STIG                                                                               | Summary                                                               |
-| ---------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| {ref}`242384`                                                                         | The Kubernetes Scheduler must have secure binding                     |
-| {ref}`242385`                                                                        | The Kubernetes Controller Manager must have secure binding            |
-| {ref}`242400`                                                                         | The Kubernetes API server must have Alpha APIs disabled               |
+| STIG                                                                                                    | Summary                                                               |
+| ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| {ref}`242384`                                                                                           | The Kubernetes Scheduler must have secure binding                     |
+| {ref}`242385`                                                                                           | The Kubernetes Controller Manager must have secure binding            |
+| {ref}`242400`                                                                                           | The Kubernetes API server must have Alpha APIs disabled               |
 | {ref}`242402`, {ref}`242403`, {ref}`242461`, {ref}`242462`, {ref}`242463`, {ref}`242464`, {ref}`242465` | The Kubernetes API Server must have an audit log configured           |
-| {ref}`242434`                                                                         | Kubernetes Kubelet must enable kernel protection                      |
-| {ref}`245541`                                                                         | Kubernetes Kubelet must not disable timeouts                          |
-| {ref}`254800`                                                                         | Kubernetes must have a Pod Security Admission control file configured |
+| {ref}`242434`                                                                                           | Kubernetes Kubelet must enable kernel protection                      |
+| {ref}`245541`                                                                                           | Kubernetes Kubelet must not disable timeouts                          |
+| {ref}`254800`                                                                                           | Kubernetes must have a Pod Security Admission control file configured |
 
 #### Worker node templates
 
@@ -206,8 +219,8 @@ to align with the following recommendations:
 for [joining worker nodes](#join-worker-nodes).
 It applies configuration to align with the following recommendations:
 
-| STIG       | Summary                                          |
-| ---------- | ------------------------------------------------ |
+| STIG          | Summary                                          |
+| ------------- | ------------------------------------------------ |
 | {ref}`242434` | Kubernetes Kubelet must enable kernel protection |
 | {ref}`245541` | Kubernetes Kubelet must not disable timeouts     |
 
@@ -275,6 +288,9 @@ audit settings, do one of the following:
 [ports and services]: /snap/reference/ports-and-services/
 [FIPS installation guide]: fips.md
 [configure UFW]: /snap/howto/networking/ufw.md
+[bootstrap]: /snap/reference/config-files/bootstrap/
+[control plane node join]: /snap/reference/config-files/control-plane-node-join/
+[worker node join]: /snap/reference/config-files/worker-node-join/
 [USG tool]: https://documentation.ubuntu.com/security/docs/compliance/usg/
 [Kubernetes Pod Security Admission documentation]: https://kubernetes.io/docs/concepts/security/pod-security-admission/
 [upstream instructions]: https://kubernetes.io/docs/tasks/configure-pod-container/enforce-standards-admission-controller/
