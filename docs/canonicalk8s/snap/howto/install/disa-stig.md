@@ -289,7 +289,6 @@ audit settings, do one of the following:
 [ports and services]: /snap/reference/ports-and-services/
 [FIPS installation guide]: fips.md
 [configuration files]: /snap/reference/config-files/index.md
-[worker node join]: /snap/reference/config-files/worker-node-join/
 [USG tool]: https://documentation.ubuntu.com/security/docs/compliance/usg/
 [Kubernetes Pod Security Admission documentation]: https://kubernetes.io/docs/concepts/security/pod-security-admission/
 [upstream instructions]: https://kubernetes.io/docs/tasks/configure-pod-container/enforce-standards-admission-controller/
