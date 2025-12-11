@@ -183,7 +183,8 @@ instance each time a new service is exposed externally).
 
 #### Control plane templates
 
-`/var/snap/k8s/common/etc/configurations/disa-stig/bootstrap.yaml` is the template
+`/var/snap/k8s/common/etc/configurations/disa-stig/bootstrap.yaml`
+is the template
 for [bootstrapping](#bootstrap-the-first-control-plane-node) and
 `/var/snap/k8s/common/etc/configurations/disa-stig/control-plane.yaml` is the
 template for [joining additional control plane
