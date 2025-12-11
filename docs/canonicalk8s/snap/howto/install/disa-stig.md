@@ -1,5 +1,8 @@
 # How to install {{ product }} with DISA STIG hardening
 
+```{versionadded} 1.34
+```
+
 DISA Security Technical Implementation Guides (STIGs) provide hardening
 guidelines for meeting regulations from the U.S. Government and Department of
 Defense (DoD).
@@ -19,20 +22,18 @@ compliance.
 
 ## Configure the host
 
-[DISA STIG host OS] compliance is achieved by running the [USG tool] that is 
-part of the PRO tool set and running some additional manual steps.
-
 ### Configure the firewall
 
 DISA STIG for the host recommends enabling the host firewall (UFW). This is not
-done automatically through the USG tool and we recommend following our guide to 
+done automatically and we recommend following our guide to 
 [configure UFW]. This should be done *before* applying the host STIG steps and 
 will help avoid connectivity issues that often happen when 
 enabling UFW with the default configuration.
 
 ### Apply host STIG
 
-To install the USG tool:
+The [USG tool] which part of the PRO tool set can be run to automatically apply 
+most other [DISA STIG host OS] recommendations. To install the USG tool:
 
 ```
 sudo pro enable usg
@@ -106,7 +107,7 @@ overridden by another configuration file with higher precedence.
 ## Set configuration options 
 
 {{product}} provides example configuration files to automatically apply
-DISA STIG specific settings on cluster formation and node-join. Once a node is 
+DISA STIG specific settings on cluster formation and node join. Once a node is 
 configured, changing certain settings is more difficult and may require 
 re-deploying the node or cluster. If you are happy to apply the default 
 settings, jump to [initializing the cluster](#initialize-the-cluster). 
