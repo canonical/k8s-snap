@@ -1,5 +1,8 @@
 # How to install {{ product }} with DISA STIG hardening
 
+```{versionadded} 1.34
+```
+
 DISA Security Technical Implementation Guides (STIGs) provide hardening
 guidelines for meeting regulations from the U.S. Government and Department of
 Defense (DoD).
@@ -19,20 +22,18 @@ compliance.
 
 ## Configure the host
 
-[DISA STIG host OS] compliance is achieved by running the [USG tool] that is 
-part of the PRO tool set and running some additional manual steps.
-
 ### Configure the firewall
 
 DISA STIG for the host recommends enabling the host firewall (UFW). This is not
-done automatically through the USG tool and we recommend following our guide to 
+done automatically and we recommend following our guide to 
 [configure UFW]. This should be done *before* applying the host STIG steps and 
 will help avoid connectivity issues that often happen when 
 enabling UFW with the default configuration.
 
 ### Apply host STIG
 
-To install the USG tool:
+The [USG tool] which part of the PRO tool set can be run to automatically apply 
+most other [DISA STIG host OS] recommendations. To install the USG tool:
 
 ```
 sudo pro enable usg
@@ -85,14 +86,14 @@ sudo sysctl --system
 ```
 
 ```{note}
-Please ensure that the configuration of `/etc/sysctl.d/99-kubelet.conf` is not
-overridden by another higher order file.
+Ensure that the configuration in `/etc/sysctl.d/99-kubelet.conf` is not
+overridden by another configuration file with higher precedence.
 ```
 
 ## Set configuration options 
 
 {{product}} provides example configuration files to automatically apply
-DISA STIG specific settings on cluster formation and node-join. Once a node is 
+DISA STIG specific settings on cluster formation and node join. Once a node is 
 configured, changing certain settings is more difficult and may require 
 re-deploying the node or cluster. If you are happy to apply the default 
 settings, jump to [initializing the cluster](#initialize-the-cluster). 
@@ -164,8 +165,8 @@ sudo k8s get-join-token <joining-node-hostname>
 ```
 
 Then join the new control plane node using the
-example node-join configuration file which will apply the Kubernetes STIG 
-recommendations:
+example control plane node join configuration file which will apply the 
+Kubernetes STIG recommendations:
 
 ```
 sudo k8s join-cluster --file=/var/snap/k8s/common/etc/templates/disa-stig/control-plane.yaml <join-token>
@@ -179,14 +180,14 @@ First retrieve a join token from an existing control plane node:
 sudo k8s get-join-token <joining-node-hostname> --worker
 ```
 
-Then join the new worker node using the example node-join configuration file 
+Then join the new worker node using the example node join configuration file 
 which will apply the Kubernetes STIG recommendations:
 
 ```
 sudo k8s join-cluster --file=/var/snap/k8s/common/etc/templates/disa-stig/worker.yaml <join-token>
 ```
 
-If SSH is not needed to access the worker nodes it is recommended you disable
+If SSH is not needed to access the worker nodes, it is recommended you disable
 the SSH service:
 
 ```
@@ -197,8 +198,8 @@ sudo systemctl disable ssh.service ssh.socket
 According to Kubernetes STIG rule {ref}`242393` and {ref}`242394`, Kubernetes 
 worker nodes must not have sshd service running or enabled. The host STIG 
 rule [V-270665] on the other hand expects sshd to be installed on the host. 
-To comply with both rules, leave SSH installed, but disable the service. 
-Alternatively, SSH can be removed and the exception documented.
+To comply with both rules, leave SSH installed, but disable the service. Alternatively, SSH
+can be removed and the exception documented.
 ```
 
 ## Post-deployment Kubernetes STIG requirements
@@ -214,9 +215,9 @@ protocols, and services (PPS) that adhere to the Ports, Protocols, and
 Services Management Category Assurance List (PPSM CAL). The {{product}}
 [ports and services] must be audited in accordance with this list. Those ports,
 protocols, and services that fall outside the PPSM CAL must be blocked or
-registered. This step needs followed after the initial deployment and anytime
-the list of ports, protocols, and services used by your cluster changes (for
-instance each time a new service is exposed externally).
+registered. This step needs to be followed after the initial deployment and 
+anytime the list of ports, protocols, and services used by your cluster changes 
+(for instance each time a new service is exposed externally).
 - {ref}`242414`: User pods must only use non-privileged host ports
 - {ref}`242415`: Secrets must not be stored as environment variables
 - {ref}`242417`: User functionality must be separate from management functions
