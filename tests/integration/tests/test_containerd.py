@@ -20,6 +20,8 @@ def test_containerd(instances: List[harness.Instance]):
     result = instance.exec(
         [
             "/snap/k8s/current/bin/ctr",
+            "-n",
+            "k8s.io",
             "images",
             "pull",
             "docker.io/library/nginx:latest",
@@ -33,6 +35,8 @@ def test_containerd(instances: List[harness.Instance]):
     result = instance.exec(
         [
             "/snap/k8s/current/bin/ctr",
+            "-n",
+            "k8s.io",
             "image",
             "export",
             "/tmp/nginx-export.tar",
@@ -44,14 +48,28 @@ def test_containerd(instances: List[harness.Instance]):
     assert result.returncode == 0, "Failed to export nginx image"
 
     result = instance.exec(
-        ["/snap/k8s/current/bin/ctr", "image", "rm", "docker.io/library/nginx:latest"],
+        [
+            "/snap/k8s/current/bin/ctr",
+            "-n",
+            "k8s.io",
+            "image",
+            "rm",
+            "docker.io/library/nginx:latest",
+        ],
         capture_output=True,
         text=True,
     )
     assert result.returncode == 0, "Failed to remove nginx image"
 
     result = instance.exec(
-        ["/snap/k8s/current/bin/ctr", "image", "import", "/tmp/nginx-export.tar"],
+        [
+            "/snap/k8s/current/bin/ctr",
+            "-n",
+            "k8s.io",
+            "image",
+            "import",
+            "/tmp/nginx-export.tar",
+        ],
         capture_output=True,
         text=True,
     )
@@ -59,8 +77,12 @@ def test_containerd(instances: List[harness.Instance]):
 
     # Verify the image is available after sideloading
     result = instance.exec(
-        ["/snap/k8s/current/bin/ctr", "images", "ls"],
+        ["/snap/k8s/current/bin/ctr", "-n", "k8s.io", "images", "ls"],
         capture_output=True,
         text=True,
     )
-    assert "nginx:latest" in result.stdout, "nginx image not found after sideloading"
+    assert "nginx:latest" in result.stdout, (
+        f"nginx image not found after sideloading\n"
+        f"ctr output: {result.stdout}"
+        f"ctr error: {result.stderr}"
+    )
