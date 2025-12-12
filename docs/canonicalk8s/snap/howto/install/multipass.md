@@ -49,13 +49,13 @@ an alternate install method using `brew`.
 
 The `k8s` snap will require a certain amount of resources, so the default
 settings for a Multipass VM aren't going to be suitable. Exactly what resources
-will be required depends on your use case. We recommend at least 4G of memory
+will be required depends on your use case. We recommend at least 8G of memory
 and 20G of disk space for each instance.
 
 Open a terminal (or Shell on Windows) and enter the following command:
 
 ```
-multipass launch 24.04 --name k8s-node --memory 4G --disk 20G --cpus 2
+multipass launch 24.04 --name k8s-node --memory 8G --disk 20G --cpus 2
 ```
 
 This command specifies:

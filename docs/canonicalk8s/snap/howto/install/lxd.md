@@ -28,7 +28,7 @@ sudo lxd init
 Create the VM that {{product}} will run in.
 
 ```
-lxc launch ubuntu:22.04 k8s-vm --vm -c limits.cpu=2 -c limits.memory=4GB
+lxc launch ubuntu:24.04 k8s-vm --vm -c limits.cpu=2 -c limits.memory=8GB
 ```
 
 ## Install {{product}} in an LXD VM
