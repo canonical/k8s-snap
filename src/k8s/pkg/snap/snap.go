@@ -24,6 +24,7 @@ import (
 	"github.com/canonical/k8s/pkg/utils/checks"
 	"github.com/moby/sys/mountinfo"
 	"gopkg.in/yaml.v2"
+	versionutil "k8s.io/apimachinery/pkg/util/version"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
@@ -304,11 +305,11 @@ func (s *snap) NodeTokenFile() string {
 	return filepath.Join(s.snapCommonDir, "node-token")
 }
 
-func (s *snap) NodeKubernetesVersion(ctx context.Context) (string, error) {
+func (s *snap) NodeKubernetesVersion(ctx context.Context) (*versionutil.Version, error) {
 	bomPath := filepath.Join(s.snapDir, "bom.json")
 	data, err := os.ReadFile(bomPath)
 	if err != nil {
-		return "", fmt.Errorf("failed to read bom.json: %w", err)
+		return nil, fmt.Errorf("failed to read bom.json: %w", err)
 	}
 
 	var bom struct {
@@ -320,14 +321,21 @@ func (s *snap) NodeKubernetesVersion(ctx context.Context) (string, error) {
 	}
 
 	if err := json.Unmarshal(data, &bom); err != nil {
-		return "", fmt.Errorf("failed to unmarshal bom.json: %w", err)
+		return nil, fmt.Errorf("failed to unmarshal bom.json: %w", err)
 	}
 
 	if bom.Components.Kubernetes.Version == "" {
-		return "", fmt.Errorf("kubernetes version not found in bom.json")
+		return nil, fmt.Errorf("kubernetes version not found in bom.json")
 	}
 
-	return bom.Components.Kubernetes.Version, nil
+	versionStr := bom.Components.Kubernetes.Version
+
+	version, err := versionutil.Parse(versionStr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse node Kubernetes version %q: %w", versionStr, err)
+	}
+
+	return version, nil
 }
 
 func (s *snap) ContainerdExtraConfigDir() string {
