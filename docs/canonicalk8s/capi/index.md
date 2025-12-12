@@ -29,7 +29,7 @@ all defined in the same way that cluster operators are already familiar with.
 
 ````{grid} 1 1 2 2
 
-```{grid-item-card} [Tutorial](tutorial/index)
+```{grid-item-card} [Tutorial](tutorial/getting-started)
 
 **Start here!** A hands-on introduction to {{product}} for new users
 ```
@@ -43,15 +43,14 @@ all defined in the same way that cluster operators are already familiar with.
 
 ````{grid} 1 1 2 2
 
+```{grid-item-card} [Explanation](explanation/index)
+
+**Discussion and clarification** of key topics
+```
 
 ```{grid-item-card} [Reference](reference/index)
 
 **Technical information** - specifications, APIs, architecture
-```
-
-```{grid-item-card} [Explanation](explanation/index)
-
-**Discussion and clarification** of key topics
 ```
 
 ````
