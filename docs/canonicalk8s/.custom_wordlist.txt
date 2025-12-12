@@ -44,6 +44,7 @@ asn
 auth
 autocompletion
 automountServiceAccountToken
+Autoscaler
 autostart
 autosuspend
 aws
@@ -230,6 +231,7 @@ HostPath
 HostPorts
 HostProcess
 howto
+HPA
 HPC
 html
 http
@@ -402,6 +404,7 @@ passthrough
 passwordless
 pathto
 pci
+PDB
 pdf
 PEM
 performant
