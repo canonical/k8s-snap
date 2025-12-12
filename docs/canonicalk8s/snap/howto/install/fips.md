@@ -1,5 +1,8 @@
 # How to install a FIPS compliant Kubernetes cluster
 
+```{versionadded} 1.34
+```
+
 The [Federal Information Processing Standard (FIPS) 140-3] is a US government
 security standard regulating the use of cryptography. Compliance is crucial for
 US government and regulated industries. This how-to guide provides the steps to
