@@ -95,9 +95,15 @@ func (a *App) performPostUpgrade(ctx context.Context, s state.State) error {
 		if err != nil {
 			return fmt.Errorf("failed to get revision: %w", err)
 		}
+
+		k8sVersion, err := a.snap.NodeKubernetesVersion(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to get kubernetes version: %w", err)
+		}
+
 		// TODO(ben): Add more metadata to the upgrade.
 		// e.g. initial revision, target revision, name of the node that started the upgrade, etc.
-		versionData := version.Info{Revision: rev}
+		versionData := version.Info{Revision: rev, KubernetesVersion: k8sVersion}
 		upgrade = upgradesv1alpha.NewUpgrade(upgradepkg.GetName(versionData))
 		if err := k8sClient.Create(ctx, upgrade); err != nil {
 			return fmt.Errorf("failed to create upgrade: %w", err)
