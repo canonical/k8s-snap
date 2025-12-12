@@ -48,7 +48,7 @@ jobs:
           gocover-cobertura <coverage.txt >cobertura.xml
           mkdir -p .coverage
           mv ./cobertura.xml .coverage/
-          go install honnef.co/go/tools/cmd/staticcheck@v0.5.1
+          go install honnef.co/go/tools/cmd/staticcheck@v0.6.1
         working-directory: src/k8s
 
       - name: Install dqlite dependencies
