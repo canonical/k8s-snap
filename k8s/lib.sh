@@ -57,6 +57,7 @@ k8s::common::move_resources() {
   if [ ! -e "$new_dir" ]; then
     cp -r "$old_dir" "$new_dir"
     rm -rf "$old_dir"
+    mkdir -p "$(dirname "$old_dir")"
     ln -s "$new_dir" "$old_dir"
   fi
 }
