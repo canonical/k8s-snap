@@ -181,19 +181,21 @@ slug = 'canonical-kubernetes'
 
 # Base URL of RTD hosted project
 
-html_baseurl = 'https://documentation.ubuntu.com/canonical-kubernetes/'
+html_baseurl = os.environ.get("READTHEDOCS_CANONICAL_URL", "/")
 
 html_extra_path = ["sitemapindex.xml", "robots.txt"]
 
 # When configured with RTD variables, check for RTD environment so manual runs succeed:
 
-if 'READTHEDOCS_VERSION' in os.environ:
-    version = os.environ["READTHEDOCS_VERSION"]
-    sitemap_url_scheme = '{version}{link}'
-else:
-    sitemap_url_scheme = 'latest/{link}'
+sitemap_url_scheme = '{link}'
 
 sitemap_show_lastmod = True
+
+sitemap_excludes = [
+    '404/',
+    'genindex/',
+    'search/',
+]
 
 # Template and asset locations
 
