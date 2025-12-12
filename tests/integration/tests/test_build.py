@@ -30,13 +30,13 @@ def test_build(instances: List[harness.Instance]):
         "kubectl",
         "k8s-apiserver-proxy",
         "containerd",
+        "cni",
     ]
 
     # These components should be statically built as they do not contain any crypto functions
     static_components = [
         "ctr",
         "runc",
-        "cni",
         "containerd-shim",
         "containerd-shim-runc-v1",
         "containerd-shim-runc-v2",

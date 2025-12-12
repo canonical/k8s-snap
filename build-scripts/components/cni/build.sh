@@ -9,8 +9,10 @@ mkdir -p "${INSTALL}"
 sed -i 's/^package main/package plugin_main/' plugins/*/*/*.go
 sed -i 's/^func main()/func Main()/' plugins/*/*/*.go
 
-export CGO_ENABLED=0
+export CGO_ENABLED=1
+export GOTOOLCHAIN=local
+export GOEXPERIMENT=opensslcrypto
 
-go build -o cni -ldflags "-s -w -extldflags -static -X github.com/containernetworking/plugins/pkg/utils/buildversion.BuildVersion=${VERSION}" ./cni.go
+go build -tags "linux,cgo,ms_tls13kdf" -o cni -ldflags "-linkmode external -s -w -X github.com/containernetworking/plugins/pkg/utils/buildversion.BuildVersion=${VERSION}" ./cni.go
 
 cp cni "${INSTALL}/cni"
