@@ -288,6 +288,7 @@ audit settings, do one of the following:
 [supported version]: https://ubuntu.com/about/release-cycle#canonical-kubernetes-release-cycle
 [ports and services]: /snap/reference/ports-and-services/
 [FIPS installation guide]: fips.md
+[configure UFW]: /snap/howto/networking/ufw.md
 [configuration files]: /snap/reference/config-files/index.md
 [USG tool]: https://documentation.ubuntu.com/security/docs/compliance/usg/
 [Kubernetes Pod Security Admission documentation]: https://kubernetes.io/docs/concepts/security/pod-security-admission/
