@@ -37,12 +37,7 @@ The bootstrap command initializes your cluster and configures your host system
 as a Kubernetes node. Bootstrapping the cluster is only done once at cluster
 creation.
 
-<<<<<<< HEAD
-If you would like to bootstrap a Kubernetes cluster with
-default configuration run:
-=======
 Bootstrap a Kubernetes cluster with default configuration:
->>>>>>> 2e3b3cd3 (docs: Apply feedback based on UXR sessions (#2119))
 
 ```
 sudo k8s bootstrap
