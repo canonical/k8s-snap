@@ -19,8 +19,9 @@ The {{product}} snap is a performant, lightweight, secure and
 opinionated distribution of **Kubernetes** which includes everything needed to
 create and manage a scalable cluster suitable for all use cases.
 
-You can find out more about {{product}} on this [overview page] or
-see a more detailed explanation in our [architecture documentation].
+You can find out more about {{product}} on the 
+[what is Canonical Kubernetes page] or see a more detailed explanation in our
+[architecture documentation].
 
 For deployment at scale, {{product}} is also available as a
 [Juju charm][]
@@ -33,7 +34,7 @@ For deployment at scale, {{product}} is also available as a
 
 ````{grid} 1 1 2 2
 
-```{grid-item-card} [Tutorial](tutorial/index)
+```{grid-item-card} [Tutorial](tutorial/getting-started)
 
 **Start here!** A hands-on introduction to Canonical K8s for new users
 ```
@@ -47,15 +48,14 @@ For deployment at scale, {{product}} is also available as a
 
 ````{grid} 1 1 2 2
 
+```{grid-item-card} [Explanation](explanation/index)
+
+**Discussion and clarification** of key topics
+```
 
 ```{grid-item-card} [Reference](reference/index)
 
 **Technical information** - specifications, APIs, architecture
-```
-
-```{grid-item-card} [Explanation](explanation/index)
-
-**Discussion and clarification** of key topics
 ```
 
 ````
@@ -83,6 +83,6 @@ and constructive feedback.
 [community]: /snap/reference/community
 [contribute]: /snap/howto/contribute
 [releases]: /snap/reference/releases
-[overview page]: /snap/explanation/about
+[what is Canonical Kubernetes page]: /snap/explanation/about
 [architecture documentation]: /snap/explanation/architecture
 [Juju charm]: /charm/index

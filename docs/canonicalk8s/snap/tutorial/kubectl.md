@@ -9,8 +9,8 @@ tool.
 
 Before you begin, make sure you have the following:
 
-- A bootstrapped {{product}} cluster (See
-  [Getting Started])
+- A bootstrapped {{product}} cluster (see
+  [getting started] tutorial)
 
 ### The kubectl command
 
@@ -49,11 +49,11 @@ the configuration when you run `kubectl config view` lives at
 command.
 
 To find out more, you can visit
-[the official kubeconfig documentation][kubeconfig-doc]
+[the official kubeconfig documentation][kubeconfig-doc].
 
 ### Viewing objects
 
-Let's review what was created in the [Getting Started]
+Let's review what was created in the [getting started]
 guide.
 
 To see what pods were created when we enabled the `network` and `dns`
@@ -129,12 +129,12 @@ pods will have a status of `ContainerCreating`.
 - Explore Kubernetes commands with our
   [Command Reference Guide]
 - See the official `kubectl` reference
-  [kubectl-reference][kubectl-reference]
+  [kubectl reference][kubectl-reference]
 
 <!-- LINKS -->
 
 [Command Reference Guide]: ../reference/commands
-[Getting Started]: getting-started
+[getting started]: getting-started
 [kubernetes-api-server]: https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/
 [kubeconfig-doc]: https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/
 [kubectl-reference]: https://kubernetes.io/docs/reference/kubectl/
