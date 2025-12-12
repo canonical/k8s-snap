@@ -226,6 +226,7 @@ jobs:
       - name: Install tox
         run: sudo apt-get install -y tox
       - name: Generate names for step and artifacts
+        if: ${{ always() }}
         run: |
           FULL_TEST_NODE_ID="${{ matrix.test }}"
           # Extract short test name (part after '::') for the step display name
