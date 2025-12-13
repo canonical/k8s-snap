@@ -103,7 +103,7 @@ and may require re-deploying the node or cluster.
 To initialize the first control plane node using the template:
 
 ```
-sudo k8s bootstrap --file /var/snap/k8s/common/etc/templates/disa-stig/bootstrap.yaml
+sudo k8s bootstrap --file /var/snap/k8s/common/etc/configurations/disa-stig/bootstrap.yaml
 sudo k8s status --wait-ready
 ```
 
@@ -118,7 +118,7 @@ sudo k8s get-join-token <joining-node-hostname>
 Then join the new control plane node using the template:
 
 ```
-sudo k8s join-cluster --file=/var/snap/k8s/common/etc/templates/disa-stig/control-plane.yaml <join-token>
+sudo k8s join-cluster --file=/var/snap/k8s/common/etc/configurations/disa-stig/control-plane.yaml <join-token>
 ```
 
 ### Join worker nodes
@@ -132,7 +132,7 @@ sudo k8s get-join-token <joining-node-hostname> --worker
 Then join the new worker node using the template:
 
 ```
-sudo k8s join-cluster --file=/var/snap/k8s/common/etc/templates/disa-stig/worker.yaml <join-token>
+sudo k8s join-cluster --file=/var/snap/k8s/common/etc/configurations/disa-stig/worker.yaml <join-token>
 ```
 
 If SSH is not needed to access the worker nodes it is recommended you disable
@@ -183,31 +183,32 @@ instance each time a new service is exposed externally).
 
 #### Control plane templates
 
-`/var/snap/k8s/common/etc/templates/disa-stig/bootstrap.yaml` is the template
+`/var/snap/k8s/common/etc/configurations/disa-stig/bootstrap.yaml`
+is the template
 for [bootstrapping](#bootstrap-the-first-control-plane-node) and
-`/var/snap/k8s/common/etc/templates/disa-stig/control-plane.yaml` is the
+`/var/snap/k8s/common/etc/configurations/disa-stig/control-plane.yaml` is the
 template for [joining additional control plane
 nodes](#join-control-plane-nodes). Both of these templates apply configuration
 to align with the following recommendations:
 
-| STIG                                                                               | Summary                                                               |
-| ---------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| {ref}`242384`                                                                         | The Kubernetes Scheduler must have secure binding                     |
-| {ref}`242385`                                                                        | The Kubernetes Controller Manager must have secure binding            |
-| {ref}`242400`                                                                         | The Kubernetes API server must have Alpha APIs disabled               |
+| STIG                                                                                                    | Summary                                                               |
+| ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| {ref}`242384`                                                                                           | The Kubernetes Scheduler must have secure binding                     |
+| {ref}`242385`                                                                                           | The Kubernetes Controller Manager must have secure binding            |
+| {ref}`242400`                                                                                           | The Kubernetes API server must have Alpha APIs disabled               |
 | {ref}`242402`, {ref}`242403`, {ref}`242461`, {ref}`242462`, {ref}`242463`, {ref}`242464`, {ref}`242465` | The Kubernetes API Server must have an audit log configured           |
-| {ref}`242434`                                                                         | Kubernetes Kubelet must enable kernel protection                      |
-| {ref}`245541`                                                                         | Kubernetes Kubelet must not disable timeouts                          |
-| {ref}`254800`                                                                         | Kubernetes must have a Pod Security Admission control file configured |
+| {ref}`242434`                                                                                           | Kubernetes Kubelet must enable kernel protection                      |
+| {ref}`245541`                                                                                           | Kubernetes Kubelet must not disable timeouts                          |
+| {ref}`254800`                                                                                           | Kubernetes must have a Pod Security Admission control file configured |
 
 #### Worker node templates
 
-`/var/snap/k8s/common/etc/templates/disa-stig/worker.yaml` is the template
+`/var/snap/k8s/common/etc/configurations/disa-stig/worker.yaml` is the template
 for [joining worker nodes](#join-worker-nodes).
 It applies configuration to align with the following recommendations:
 
-| STIG       | Summary                                          |
-| ---------- | ------------------------------------------------ |
+| STIG          | Summary                                          |
+| ------------- | ------------------------------------------------ |
 | {ref}`242434` | Kubernetes Kubelet must enable kernel protection |
 | {ref}`245541` | Kubernetes Kubelet must not disable timeouts     |
 
