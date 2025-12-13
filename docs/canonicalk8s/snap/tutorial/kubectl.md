@@ -107,7 +107,7 @@ First, open a new terminal so you can watch the changes as they happen. Run
 this command in a new terminal:
 
 ```
-sudo k8s kubectl get pods --all-namespace --watch
+sudo k8s kubectl get pods --all-namespaces --watch
 ```
 
 Now, go back to your original terminal and run:
