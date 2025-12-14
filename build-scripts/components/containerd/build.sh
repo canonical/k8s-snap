@@ -42,4 +42,4 @@ done
 
 # Restore the initial Go snap revision
 echo "Restoring Go snap to initial revision: ${INITIAL_GO_REVISION}"
-snap revert go --revision="${INITIAL_GO_REVISION}"
+snap revert go --revision="${INITIAL_GO_REVISION}" || true
