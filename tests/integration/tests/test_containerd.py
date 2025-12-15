@@ -10,8 +10,7 @@ from test_util import config, harness, tags, util
 LOG = logging.getLogger(__name__)
 
 
-@pytest.mark.bootstrap_config((config.MANIFESTS_DIR / "bootstrap-all.yaml").read_text())
-@pytest.mark.tags(tags.PULL_REQUEST)
+@pytest.mark.tags(tags.NIGHTLY)
 def test_containerd(instances: List[harness.Instance]):
     instance = instances[0]
     util.wait_until_k8s_ready(instance, [instance])
