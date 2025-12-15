@@ -245,6 +245,10 @@ jobs:
         if: ${{ contains(inputs.test-tags, 'performance') }}
         run: |
           echo "PERFORMANCE_FLAGS=--benchmark-storage=baselines --benchmark-autosave" >> $GITHUB_ENV
+      - name: Setup tmate session
+        uses: canonical/action-tmate@main
+        with:
+          detached: true
       - name: Run ${{ inputs.parallel && env.short_test_name || 'all tests' }}
         env:
           TEST_SNAP: ${{ steps.download-snap.outputs.snap-path }}
