@@ -25,11 +25,11 @@ worker node.
 The first step is creating the VMs.
 
 ```
-multipass launch 22.04 --name control-plane -m 4G -d 8G
+multipass launch 24.04 --name control-plane -m 8G -d 20G
 ```
 
 ```
-multipass launch 22.04 --name worker -m 4G -c 4 -d 8G
+multipass launch 24.04 --name worker -m 8G -c 4 -d 20G
 ```
 
 This step can take a few minutes as Multipass creates the new virtual machines.
