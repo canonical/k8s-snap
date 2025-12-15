@@ -44,6 +44,7 @@ jobs:
       # os * arch * channel * max-parallel = 160 jobs
       max-parallel: 10
       upload-results: true
+      test-collection-branch: ${{ matrix.test-collection-branch }}
 
   test-performance:
     name: Run performance tests for ${{ matrix.os }}-${{ matrix.arch }}
