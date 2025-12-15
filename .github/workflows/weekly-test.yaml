@@ -67,6 +67,7 @@ jobs:
       os: ${{ matrix.os }}
       channel: ${{ matrix.channel }}
       test-tags: 'conformance_tests'
+      test-collection-branch: ${{ matrix.test-collection-branch }}
 
   Mattermost:
     name: Notify Mattermost
