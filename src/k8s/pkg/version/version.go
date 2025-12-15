@@ -3,6 +3,8 @@ package version
 import (
 	"encoding/json"
 	"fmt"
+
+	versionutil "k8s.io/apimachinery/pkg/util/version"
 )
 
 const (
@@ -12,10 +14,49 @@ const (
 
 // Info represents the version info of the k8s snap.
 type Info struct {
-	// Revision is the revision of the k8s snap.
-	Revision string `json:"revision"`
+	// Revision is the Revision of the k8s snap.
+	Revision string `json:"revision,omitempty"`
+
+	// KubernetesVersion is the version of Kubernetes included in the k8s snap.
+	KubernetesVersion *versionutil.Version `json:"-"`
 
 	// NOTE(Hue): Future k8s version info can be added here.
+}
+
+func (d Info) MarshalJSON() ([]byte, error) {
+	type info Info
+	aux := struct {
+		info
+		KubernetesVersion string `json:"kubernetesVersion,omitempty"`
+	}{info: info(d)}
+
+	if d.KubernetesVersion != nil {
+		aux.KubernetesVersion = d.KubernetesVersion.String()
+	}
+
+	return json.Marshal(aux)
+}
+
+func (d *Info) UnmarshalJSON(data []byte) error {
+	type info Info
+	aux := struct {
+		*info
+		KubernetesVersion string `json:"kubernetesVersion,omitempty"`
+	}{info: (*info)(d)}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	if aux.KubernetesVersion != "" {
+		v, err := versionutil.Parse(aux.KubernetesVersion)
+		if err != nil {
+			return fmt.Errorf("failed to parse kubernetes version: %w", err)
+		}
+		d.KubernetesVersion = v
+	}
+
+	return nil
 }
 
 // Encode encodes the version info into a byte slice.
@@ -39,4 +80,15 @@ func (d *Info) Decode(data []byte) error {
 		return fmt.Errorf("failed to unmarshal version info: %w", err)
 	}
 	return nil
+}
+
+// String returns the string representation of the version info.
+func (d Info) String() string {
+	var k8sVersion string
+	if d.KubernetesVersion != nil {
+		k8sVersion = d.KubernetesVersion.String()
+	} else {
+		k8sVersion = "UNKNOWN"
+	}
+	return fmt.Sprintf("Revision: %s, KubernetesVersion: %s", d.Revision, k8sVersion)
 }

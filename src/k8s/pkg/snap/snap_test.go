@@ -229,7 +229,7 @@ func TestSnap(t *testing.T) {
 
 			version, err := snap.NodeKubernetesVersion(context.Background())
 			g.Expect(err).To(Not(HaveOccurred()))
-			g.Expect(version).To(Equal("v1.32.3"))
+			g.Expect(version.String()).To(Equal("1.32.3"))
 		})
 
 		t.Run("fails when bom.json is missing", func(t *testing.T) {
