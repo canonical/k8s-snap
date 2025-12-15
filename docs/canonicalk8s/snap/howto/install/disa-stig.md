@@ -191,15 +191,13 @@ anytime the list of ports, protocols, and services used by your cluster changes
 
 #### Example control plane configuration files
 
-The following configuration files apply DISA STIG settings for control
-plane nodes:
-
-- `bootstrap.yaml`: Used for
-  [bootstrapping](#bootstrap-the-first-control-plane-node) the first
-  control plane node
-- `control-plane.yaml`: Used for
-  [joining additional control plane nodes](#join-control-plane-nodes)
-
+`/var/snap/k8s/common/etc/templates/disa-stig/bootstrap.yaml` is the
+configuration file for
+[bootstrapping](#bootstrap-the-first-control-plane-node) the first node
+of a cluster and
+`/var/snap/k8s/common/etc/templates/disa-stig/control-plane.yaml` is the
+control plane node-join configuration file for
+[joining additional control plane nodes](#join-control-plane-nodes).
 Both files apply settings to align with the following recommendations:
 
 | STIG                                                                                                    | Summary                                                               |
@@ -284,7 +282,8 @@ audit settings, do one of the following:
     use it.
 
 <!-- Links -->
-[supported version]: https://ubuntu.com/about/release-cycle?product=kubernetes&release=canonical+kubernetes&version=all
+<!-- Angle brackets preserve query parameters with & characters -->
+[supported version]: <https://ubuntu.com/about/release-cycle?product=kubernetes&release=canonical+kubernetes&version=all>
 [ports and services]: /snap/reference/ports-and-services/
 [FIPS installation guide]: fips.md
 [configure UFW]: /snap/howto/networking/ufw.md
