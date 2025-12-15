@@ -236,7 +236,9 @@ anytime the list of ports, protocols, and services used by your cluster changes
 - {ref}`242415`: Secrets must not be stored as environment variables
 - {ref}`242417`: User functionality must be separate from management functions
    meaning all user pods must be in user specific namespaces rather than system
-   namespaces
+   namespaces <a href=
+   "https://ubuntu.com/about/release-cycle?product=kubernetes&release=canonical+kubernetes&version=all">
+   supported version</a> of {{product}}.
 
 ## Reference material
 
@@ -247,7 +249,6 @@ the [DISA STIG configuration files] page.
 recommendations and details how they apply to {{product}}.
 
 <!-- Links -->
-[supported version]: https://ubuntu.com/about/release-cycle?product=kubernetes&release=canonical+kubernetes&version=all 
 [ports and services]: /snap/reference/ports-and-services/
 [FIPS installation guide]: fips.md
 [configure UFW]: /snap/howto/networking/ufw.md
