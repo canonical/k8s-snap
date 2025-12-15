@@ -305,6 +305,14 @@ def instances(
 
         util.preload_snaps(instance)
 
+        if config.REQUIRED_SNAPS:
+            LOG.info(
+                "Ensuring required snaps (%s) are installed on instance %s",
+                config.REQUIRED_SNAPS,
+                instance.id,
+            )
+            util.ensure_required_snaps(instance, config.REQUIRED_SNAPS)
+
         if not no_setup:
             util.setup_core_dumps(instance)
             util.setup_k8s_snap(instance, snap)

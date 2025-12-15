@@ -238,7 +238,9 @@ def ensure_required_snaps(instance: harness.Instance, required_snaps: dict) -> N
                 ["snap", "list", snap_name], capture_output=True, text=True, check=False
             )
         except subprocess.CalledProcessError as e:
-            LOG.info(f"Failed to check if snap {snap_name} is installed on instance {instance.id}, error: {e}")
+            LOG.info(
+                f"Failed to check if snap {snap_name} is installed on instance {instance.id}, error: {e}"
+            )
             LOG.info(out.returncode)
 
         installed_snaps_output = out.stdout
@@ -280,10 +282,6 @@ def setup_k8s_snap(
             a path to the snap to install
         tmp_path:   path to store the snap on the instance (optional, defaults to /home/ubuntu)
     """
-    LOG.info("Installing required snaps %s", config.REQUIRED_SNAPS)
-    if config.REQUIRED_SNAPS:
-        LOG.info("Ensuring required snaps are installed on instance %s", instance.id)
-        ensure_required_snaps(instance, config.REQUIRED_SNAPS)
 
     cmd = ["snap", "install", "--classic"]
     which_snap = snap or config.SNAP

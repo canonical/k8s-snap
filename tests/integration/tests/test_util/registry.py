@@ -85,6 +85,12 @@ class Registry:
         # This would fail if the `TEST_SNAP` environment variable is not set which however has
         # valid use cases, e.g. in the promotion scenarios.
         util.preload_snaps(self.instance)
+        if config.REQUIRED_SNAPS:
+            LOG.info(
+                "Ensuring required snaps are installed on instance %s", self.instance.id
+            )
+            util.ensure_required_snaps(self.instance, config.REQUIRED_SNAPS)
+
         util.setup_k8s_snap(self.instance, config.SNAP or "latest/edge/classic")
 
     def get_configured_mirrors(self) -> List[Mirror]:
