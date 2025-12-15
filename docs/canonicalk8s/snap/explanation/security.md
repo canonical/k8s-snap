@@ -360,7 +360,7 @@ useful.
 [Center for Internet Security]: https://www.cisecurity.org/
 [CIS assessment]: /snap/howto/security/cis-assessment.md
 [hardening guide]: /snap/howto/security/hardening
-[Kubernetes STIG]: https://www.stigviewer.com/stig/kubernetes/
+[Kubernetes STIG]: https://stigviewer.com/stigs/kubernetes
 [Snapcraft documentation]: https://snapcraft.io/docs/security-policies
 [rocks-security]: https://documentation.ubuntu.com/rockcraft/en/latest/explanation/rockcraft/
 [Amazon Web Services security]: https://aws.amazon.com/security/
