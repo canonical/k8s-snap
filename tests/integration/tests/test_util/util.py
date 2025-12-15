@@ -600,6 +600,32 @@ def get_default_ip(instance: harness.Instance, ipv6=False):
         return p.stdout.decode().split(" ")[8]
 
 
+def get_device_ip(instance: harness.Instance, device: str, ipv6=False):
+    """Fetching IP address assigned to a specific device, e.g. eth0."""
+    if ipv6:
+        p = instance.exec(
+            ["ip", "-json", "-6", "addr", "show", "scope", "global", "dev", device],
+            capture_output=True,
+        )
+        addr_json = json.loads(p.stdout.decode())
+        if not addr_json or not addr_json[0].get("addr_info"):
+            raise ValueError(
+                "No IPv6 address found in the output of 'ip -json -6 addr show scope global'"
+            )
+        return addr_json[0]["addr_info"][0]["local"]
+    else:
+        p = instance.exec(
+            ["ip", "-json", "-4", "addr", "show", "scope", "global", "dev", device],
+            capture_output=True,
+        )
+        addr_json = json.loads(p.stdout.decode())
+        if not addr_json or not addr_json[0].get("addr_info"):
+            raise ValueError(
+                "No IPv6 address found in the output of 'ip -json -6 addr show scope global'"
+            )
+        return addr_json[0]["addr_info"][0]["local"]
+
+
 def get_global_unicast_ipv6(instance: harness.Instance, interface="eth0") -> str | None:
     # ---
     # 2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000

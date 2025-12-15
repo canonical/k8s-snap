@@ -277,17 +277,6 @@ def test_jumbo(instances: List[harness.Instance]):
     ), "Expected at least 45 packets out of 50 to be received in running ping"
 
 
-def get_pod_ip(instance: harness.Instance, pod_name, namespace="default"):
-    result = instance.exec(
-        ["k8s", "kubectl", "get", "pod", pod_name, "-n", namespace, "-o", "json"],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    pod_info = json.loads(result.stdout)
-    return pod_info["status"]["podIP"]
-
-
 @pytest.mark.node_count(2)
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.infra_network_type("dualnic")
@@ -394,3 +383,131 @@ def test_with_fan_networking(instances: List[harness.Instance]):
     main.exec(["k8s", "set", "annotations=k8sd/v1alpha1/cilium/tunnel-port=8473"])
 
     util.wait_until_k8s_ready(main, instances)
+
+
+@pytest.mark.node_count(2)
+@pytest.mark.disable_k8s_bootstrapping()
+@pytest.mark.network_type("dualnic")
+@pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.skipif(
+    config.SUBSTRATE == "multipass", reason="Not implemented for multipass"
+)
+def test_dual_nic_with_jumbo(instances: List[harness.Instance]):
+    cp_instance = instances[0]
+    worker_instance = instances[1]
+
+    dual_nic_bootstrap_config = (
+        config.MANIFESTS_DIR / "bootstrap-jumbo.yaml"
+    ).read_text()
+
+    cp_second_nic_ip = util.get_device_ip(cp_instance, "eth1")
+    worker_second_nic_ip = util.get_device_ip(worker_instance, "eth1")
+
+    cp_instance.exec(
+        ["k8s", "bootstrap", "--file", "-", "--address", cp_second_nic_ip],
+        input=str.encode(dual_nic_bootstrap_config),
+    )
+
+    join_token_worker = util.get_join_token(cp_instance, worker_instance, "--worker")
+    worker_instance.exec(
+        ["k8s", "join-cluster", join_token_worker, "--address", worker_second_nic_ip]
+    )
+
+    util.wait_until_k8s_ready(cp_instance, instances)
+    util.wait_for_network(cp_instance)
+
+    util.set_node_labels(cp_instance, cp_instance.id, {"kubernetes.io/role": "master"})
+    util.set_node_labels(
+        cp_instance, worker_instance.id, {"kubernetes.io/role": "worker"}
+    )
+
+    manifest = MANIFESTS_DIR / "nginx-sticky-pod.yaml"
+    cp_instance.exec(
+        ["k8s", "kubectl", "apply", "-f", "-"],
+        input=manifest.read_bytes(),
+    )
+
+    util.stubbornly(retries=3, delay_s=1).on(cp_instance).exec(
+        [
+            "k8s",
+            "kubectl",
+            "wait",
+            "--for=condition=ready",
+            "pod",
+            "nginx",
+            "--timeout",
+            "180s",
+        ]
+    )
+
+    # make sure the netshoot pod is scheduled on the control plane node
+    # while the nginx is scheduled on the worker node
+    cp_instance.exec(
+        [
+            "k8s",
+            "kubectl",
+            "run",
+            "netshoot",
+            "--image=ghcr.io/nicolaka/netshoot:v0.14",
+            "--restart=Never",
+            "--overrides",
+            '{"spec": {"nodeSelector": {"kubernetes.io/role": "master"}}}',
+            "--",
+            "sleep",
+            "3600",
+        ],
+    )
+
+    util.stubbornly(retries=3, delay_s=1).on(cp_instance).exec(
+        [
+            "k8s",
+            "kubectl",
+            "wait",
+            "--for=condition=ready",
+            "pod",
+            "-l",
+            "run=netshoot",
+            "--timeout",
+            "180s",
+        ]
+    )
+
+    nginx_pod_ip = get_pod_ip(cp_instance, "nginx")
+    # Exec into netshoot and ping nginx pod IP with 8000 byte packets without fragmentation..
+    # The packets must be routed over the second nic (eth1) which has MTU of 9000
+    result = cp_instance.exec(
+        [
+            "k8s",
+            "kubectl",
+            "exec",
+            "netshoot",
+            "--",
+            "ping",
+            "-M",
+            "do",
+            "-c",
+            "50",
+            "-s",
+            "8000",
+            f"{nginx_pod_ip}",
+        ],
+        capture_output=True,
+    )
+
+    # 50 packets transmitted, 40 received, 20% packet loss, time 9109ms
+    assert "50 packets transmitted" in result.stdout.decode()
+    packet_loss_percentage = int(result.stdout.decode().split(", ")[1].split(" ")[0])
+    assert (
+        packet_loss_percentage > 45
+    ), "Expected ping packet loss to be less than 10 percent"
+
+
+def get_pod_ip(instance: harness.Instance, pod_name, namespace="default"):
+    result = instance.exec(
+        ["k8s", "kubectl", "get", "pod", pod_name, "-n", namespace, "-o", "json"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    pod_info = json.loads(result.stdout)
+    return pod_info["status"]["podIP"]
