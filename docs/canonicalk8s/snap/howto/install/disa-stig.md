@@ -282,8 +282,7 @@ audit settings, do one of the following:
     use it.
 
 <!-- Links -->
-<!-- Angle brackets preserve query parameters with & characters -->
-[supported version]: <https://ubuntu.com/about/release-cycle?product=kubernetes&release=canonical+kubernetes&version=all>
+[supported version]: https://ubuntu.com/about/release-cycle?product=kubernetes&release=canonical+kubernetes&version=all 
 [ports and services]: /snap/reference/ports-and-services/
 [FIPS installation guide]: fips.md
 [configure UFW]: /snap/howto/networking/ufw.md
