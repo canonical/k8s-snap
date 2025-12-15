@@ -54,9 +54,9 @@ def test_build(instances: List[harness.Instance]):
         LOG.info(result.stdout)
         LOG.info(result.stderr)
         assert "libc.so" in result.stdout, f"{component} should be dynamically built"
-        assert "not a dynamic executable" not in result.stderr, (
-            f"{component} should be dynamically built"
-        )
+        assert (
+            "not a dynamic executable" not in result.stderr
+        ), f"{component} should be dynamically built"
 
     for component in static_components:
         # Verify that all components are statically built
@@ -82,9 +82,9 @@ def test_build(instances: List[harness.Instance]):
             text=True,
         )
         LOG.info(result.stdout)
-        assert "not a dynamic executable" not in result.stdout, (
-            f"{component} should be dynamically built"
-        )
+        assert (
+            "not a dynamic executable" not in result.stdout
+        ), f"{component} should be dynamically built"
 
         # Verify that the component fails if enabled on a non-FIPS system
         result = instance.exec(
