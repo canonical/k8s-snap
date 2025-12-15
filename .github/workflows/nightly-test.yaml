@@ -29,6 +29,9 @@ jobs:
             "1.33-classic/edge",
             "1.32-classic/edge",
           ]
+        include:
+          - channel: "1.35-classic/edge"
+            test-collection-branch: "autoupdate/v1.35.0-rc"
       fail-fast: false
     uses: ./.github/workflows/e2e-tests.yaml
     with:
