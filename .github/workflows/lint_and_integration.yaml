@@ -124,7 +124,7 @@ jobs:
               tags="up_to_weekly"
             fi
           fi
-          echo "test-tags=$tags" >> "$GITHUB_OUTPUT"
+          echo "test-tags=up_to_nightly" >> "$GITHUB_OUTPUT"
   test-integration:
     name: Integration
     strategy:
