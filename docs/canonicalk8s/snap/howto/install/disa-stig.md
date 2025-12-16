@@ -24,11 +24,11 @@ compliance.
 
 ### Configure the firewall
 
-DISA STIG for the host recommends enabling the host firewall (UFW). This is not
+DISA STIG for the host recommends enabling the host firewall. This is not
 done automatically and we recommend following our guide to 
-[configure UFW]. This should be done *before* applying the host STIG steps and 
-will help avoid connectivity issues that often happen when 
-enabling UFW with the default configuration.
+[configure Uncomplicated Firewall (UFW)]. This should be done *before* 
+applying the host STIG steps and will help avoid connectivity issues that often 
+happen when enabling UFW with the default configuration.
 
 ### Apply host STIG
 
@@ -48,8 +48,10 @@ sudo usg audit disa_stig
 ```
 
 ```{attention}
-The rule [V-270714] will be applied in the following command. This prevents using accounts 
-with empty passwords to access this machine. 
+
+The USG tool in the following commnd will apply host STIG password rules such 
+as [V-270714] or [V-260570] that will prevent using accounts with empty 
+passwords to access this machine. 
 
 You can check whether the current account has an empty password by running
 `passwd --status` and looking for "NP" in the second field of the output.
@@ -208,8 +210,8 @@ sudo systemctl disable ssh.service ssh.socket
 
 ```{note}
 According to rule {ref}`242393` and {ref}`242394` Kubernetes worker nodes must not
-have sshd service running or enabled. The host STIG rule [V-270665] on the
-other hand expects sshd to be installed on the host. To comply with both
+have sshd service running or enabled. The host STIG on the
+other hand expects sshd to be installed on the host (rule [V-270665] or [V-260523]). To comply with both
 rules, leave SSH installed, but disable the service. Alternatively, SSH
 can be removed and the exception documented.
 ```
@@ -236,7 +238,9 @@ anytime the list of ports, protocols, and services used by your cluster changes
 - {ref}`242415`: Secrets must not be stored as environment variables
 - {ref}`242417`: User functionality must be separate from management functions
    meaning all user pods must be in user specific namespaces rather than system
-   namespaces <a href=
+   namespaces 
+- {ref}`242443`: Kubernetes components must be regularly updated to avoid
+   vulnerabilities. We recommend using the latest revision of a<a href=
    "https://ubuntu.com/about/release-cycle?product=kubernetes&release=canonical+kubernetes&version=all">
    supported version</a> of {{product}}.
 
@@ -251,13 +255,15 @@ recommendations and details how they apply to {{product}}.
 <!-- Links -->
 [ports and services]: /snap/reference/ports-and-services/
 [FIPS installation guide]: fips.md
-[configure UFW]: /snap/howto/networking/ufw.md
+[configure Uncomplicated Firewall (UFW) ]: /snap/howto/networking/ufw.md
 [USG tool]: https://documentation.ubuntu.com/security/docs/compliance/usg/
 [Ubuntu Pro]: https://documentation.ubuntu.com/pro/start-here/#start-here
 [upstream instructions]: https://kubernetes.io/docs/tasks/configure-pod-container/enforce-standards-admission-controller/
 [upstream audit instructions]: https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
 [V-270714]: https://www.stigviewer.com/stigs/canonical_ubuntu_2404_lts/2025-05-16/finding/V-270714
+[V-260570]: https://www.stigviewer.com/stigs/canonical_ubuntu_2204_lts/2025-05-16/finding/V-260570
 [V-270665]: https://www.stigviewer.com/stigs/canonical_ubuntu_2404_lts/2025-05-16/finding/V-270665
+[V-260523]: https://www.stigviewer.com/stigs/canonical_ubuntu_2204_lts/2025-05-16/finding/V-260523
 [DISA STIG host OS]: https://www.stigviewer.com/stigs/canonical_ubuntu_2404_lts
 [DISA STIG configuration files]: /snap/reference/config-files/disa-stig-config.md
 [DISA STIG audit]: /snap/reference/disa-stig-audit.md
