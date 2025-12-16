@@ -2,6 +2,9 @@ module github.com/canonical/k8s
 
 go 1.25.5
 
+<!-- Needed because of github.com/golang/go/issues/75031 -->
+toolchain 1.25.4
+
 require (
 	dario.cat/mergo v1.0.1
 	github.com/canonical/go-dqlite/v2 v2.0.1
