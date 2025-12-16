@@ -4,7 +4,7 @@ DIR="$(realpath `dirname "${0}"`)"
 
 . "${DIR}/static-dqlite.sh"
 
-go test \
+GOTOOLCHAIN=go1.25.0+auto go test \
   -tags dqlite,libsqlite3 \
   -ldflags '-linkmode "external" -extldflags "-static"' \
   "${@}"
