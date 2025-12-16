@@ -67,7 +67,7 @@ jobs:
         ]
         include:
           - channel: "1.35-classic/edge"
-            test-collection-branch: "autoupdate/v1.35.0-rc"
+            test-collection-branch: "KU-4859-add-1.35-to-testing-ci"
     uses: ./.github/workflows/e2e-tests.yaml
     with:
       arch: ${{ matrix.arch }}
