@@ -180,6 +180,7 @@ ec
 ECDSA
 endfor
 endif
+EndpointSlice
 endtrans
 enp
 enum
@@ -457,6 +458,7 @@ roadmap
 Rockcraft
 RoleBindings
 rollout
+RPATH
 RPC
 rsa
 ru
