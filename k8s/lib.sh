@@ -53,8 +53,8 @@ k8s::common::move_resources() {
   local old_dir="$SNAP_COMMON/etc/templates/disa-stig"
   local new_dir="$SNAP_COMMON/etc/configurations/disa-stig"
 
-  # Only migrate if new directory does not exist
-  if [ ! -e "$new_dir" ]; then
+  # Only migrate if new directory does not exist and old directory exists
+  if [ ! -e "$new_dir" ] && [ -e "$old_dir" ]; then
     cp -r "$old_dir" "$new_dir"
     rm -rf "$old_dir"
     mkdir -p "$(dirname "$old_dir")"
