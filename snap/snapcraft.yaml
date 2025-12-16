@@ -165,7 +165,7 @@ parts:
   kubernetes-version:
     plugin: nil
     source: build-scripts/components/kubernetes
-    override-build: craftctl set version="v1.34.2"
+    override-build: craftctl set version="$(cat ./version)"
 
   helm:
     after: [build-deps]
