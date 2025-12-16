@@ -45,8 +45,21 @@ k8s::common::is_strict() {
 
 k8s::common::resources() {
   mkdir -p "$SNAP_COMMON/etc/"
-  cp -r "$SNAP/etc/templates" "$SNAP_COMMON/etc/"
   cp -r "$SNAP/etc/configurations" "$SNAP_COMMON/etc/"
+}
+
+# For backwards compatibility, copy DISA-STIG resources from templates to configurations and create symlink
+k8s::common::move_resources() {
+  local old_dir="$SNAP_COMMON/etc/templates/disa-stig"
+  local new_dir="$SNAP_COMMON/etc/configurations/disa-stig"
+
+  # Only migrate if new directory does not exist and old directory exists
+  if [ ! -e "$new_dir" ] && [ -e "$old_dir" ]; then
+    cp -r "$old_dir" "$new_dir"
+    rm -rf "$old_dir"
+    mkdir -p "$(dirname "$old_dir")"
+    ln -s "$new_dir" "$old_dir"
+  fi
 }
 
 # Check if FIPS is enabled on the system
