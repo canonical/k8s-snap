@@ -2,7 +2,7 @@ module github.com/canonical/k8s
 
 go 1.24.11
 
-<!-- Needed because of github.com/golang/go/issues/75031 -->
+// Needed because of github.com/golang/go/issues/75031
 toolchain go1.25.4
 
 require (
