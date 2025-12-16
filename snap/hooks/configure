@@ -11,3 +11,6 @@ k8s::containerd::ensure_systemd_defaults
 # Sanitize kube-apiserver feature gates that
 # do not apply to this version of Kubernetes.
 k8s::apiserver::sanitize_feature_gates
+
+# Move resources from templates to configurations for backwards compatibility
+k8s::common::move_resources
