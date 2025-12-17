@@ -1,6 +1,6 @@
 module github.com/canonical/k8s
 
-go 1.24.9
+go 1.24.11
 
 require (
 	dario.cat/mergo v1.0.1
