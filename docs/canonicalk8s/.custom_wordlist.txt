@@ -55,6 +55,7 @@ backported
 balancer
 balancer's
 balancers
+baycarbone
 benoitblanchon
 berkayoz
 bgp
@@ -145,6 +146,7 @@ cypher
 DaemonSet
 DaemonSets
 Data Integrator
+databag
 databags
 datastore
 datastores
@@ -167,6 +169,7 @@ dodi
 DPDK
 dqlite
 DRBD
+dualstack
 drv
 DTMs
 dulmandakh
@@ -433,6 +436,7 @@ Pushgateway
 PV
 PVCs
 py
+pypi
 Pydantic
 Python
 qdisc
