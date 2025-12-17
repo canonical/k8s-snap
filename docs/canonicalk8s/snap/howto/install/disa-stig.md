@@ -49,7 +49,7 @@ sudo usg audit disa_stig
 
 ```{attention}
 
-The USG tool in the following commnd will apply host STIG password rules such 
+The USG tool in the following command will apply host STIG password rules such 
 as [V-270714] or [V-260570] that will prevent using accounts with empty 
 passwords to access this machine. 
 
