@@ -120,7 +120,7 @@ If the current `charm-channel` is `1.31/stable`, it's critical
 to refresh to the `1.32/stable`. Skipping channels (e.g. 1.31 -> 1.33)
 will result in the units blocking and indicating they cannot upgrade.
 
-See Kubernetes' [Version Skew Policy][version-skew-policy]
+See Kubernetes' [Version Skew Policy](version-skew-policy)
 ```
 
 ### The pre-upgrade-check
@@ -148,7 +148,7 @@ juju status k8s --watch 5s
 ```
 
 The `refresh` command instructs the juju controller to follow a new
-charm `channel`. The Kubernetes charm will be upgraded to the lasted
+charm `channel`. The Kubernetes charm will be upgraded to the latest
 revision within that channel. The charm code is simultaneously replaced
 on each unit, then the `k8s` snap is updated unit-by-unit in order to
 maintain a highly-available kube-api-server endpoint, starting with the
@@ -213,3 +213,4 @@ to ensure that the cluster is fully functional.
 [cluster-validation]:  ./validate
 [juju-docs]:           https://documentation.ubuntu.com/juju/3.6/howto/manage-models/
 [upstream-notes]:      https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.34.md#deprecation
+[version-skew-policy]: https://kubernetes.io/releases/version-skew-policy/
