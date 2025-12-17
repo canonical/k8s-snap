@@ -56,13 +56,13 @@ k8s:
   units: 3
   base: ubuntu@24.04
   constraints: arch=amd64 cores=2 mem=4096M root-disk=16384M
-  channel: 1.33/stable
+  channel: 1.34/stable
   config: {}
 k8s-worker:
   units: 2
   base: ubuntu@24.04
   constraints: arch=amd64 cores=2 mem=8192M root-disk=16384M
-  channel: 1.33/stable
+  channel: 1.34/stable
   config: {}
 ```
 
