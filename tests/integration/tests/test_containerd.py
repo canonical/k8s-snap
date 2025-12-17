@@ -16,7 +16,7 @@ def test_containerd(instances: List[harness.Instance]):
     util.wait_until_k8s_ready(instance, [instance])
 
     # Pull image
-    result = instance.exec(
+    result = util.stubbornly(retries=5, delay_s=2).on(instance).exec(
         [
             "/snap/k8s/current/bin/ctr",
             "-n",
