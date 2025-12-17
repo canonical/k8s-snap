@@ -16,17 +16,21 @@ def test_containerd(instances: List[harness.Instance]):
     util.wait_until_k8s_ready(instance, [instance])
 
     # Pull image
-    result = util.stubbornly(retries=5, delay_s=2).on(instance).exec(
-        [
-            "/snap/k8s/current/bin/ctr",
-            "-n",
-            "k8s.io",
-            "images",
-            "pull",
-            "docker.io/library/nginx:latest",
-        ],
-        capture_output=True,
-        text=True,
+    result = (
+        util.stubbornly(retries=5, delay_s=2)
+        .on(instance)
+        .exec(
+            [
+                "/snap/k8s/current/bin/ctr",
+                "-n",
+                "k8s.io",
+                "images",
+                "pull",
+                "docker.io/library/nginx:latest",
+            ],
+            capture_output=True,
+            text=True,
+        )
     )
     assert result.returncode == 0, "Failed to pull nginx image"
 
