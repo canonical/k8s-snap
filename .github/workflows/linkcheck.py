@@ -11,12 +11,12 @@ parser.add_argument("working_dir")
 parser.add_argument("--install_target")
 parser.add_argument("--linkcheck_target")
 parser.add_argument("--makefile")
-parser.add_argument("FILES")
+parser.add_argument("changed_files")
 args = parser.parse_args()
 
 install_target = args.install_target
 linkcheck_target = args.linkcheck_target
-FILES = args.FILES
+changed_files = args.changed_files
 makefile = args.makefile
 
 try:
@@ -32,7 +32,7 @@ try:
 
     # Install the doc framework and run link checker
     run_command(f"make -f {makefile} {install_target}", args.working_dir)
-    run_command(f"make -f {makefile} {linkcheck_target} FILES='{FILES}'", args.working_dir)
+    run_command(f"make -f {makefile} {linkcheck_target} FILES='{changed_files}'", args.working_dir)
 except subprocess.CalledProcessError as e:
     print(f"Command '{e.cmd}' returned non-zero exit status {e.returncode}.")
     exit(1)
