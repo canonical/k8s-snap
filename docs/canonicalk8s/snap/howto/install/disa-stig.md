@@ -131,7 +131,7 @@ These policies can be edited based on [upstream instructions].
 
 Set the `--admission-control-config-file` path in the bootstrap and control 
 plane configuration files located at 
-`/var/snap/k8s/common/etc/templates/disa-stig/` to whichever policy best 
+`/var/snap/k8s/common/etc/configurations/disa-stig/` to whichever policy best 
 matches your cluster's needs. 
 
 ### Kubernetes API Server audit log
@@ -148,13 +148,14 @@ Kubernetes API Server audit log.
 These policies can be edited based on [upstream audit instructions].
 
 Set the `--audit-policy-file` path path in the bootstrap and control plane 
-configuration files located at `/var/snap/k8s/common/etc/templates/disa-stig/`
-to use whichever policy best matches your cluster's needs.
+configuration files located at 
+`/var/snap/k8s/common/etc/configurations/disa-stig/` to use whichever policy 
+best matches your cluster's needs.
 
 ### Default configuration files 
 
 Review the remaining parameters in the example configuration YAML files located 
-at `/var/snap/k8s/common/etc/templates/disa-stig/` and ensure they are set 
+at `/var/snap/k8s/common/etc/configurations/disa-stig/` and ensure they are set 
 according to your needs. The [DISA STIG configuration files] reference page 
 details what hardening recommendations have been applied in the example 
 configuration files. 
@@ -267,4 +268,4 @@ recommendations and details how they apply to {{product}}.
 [DISA STIG host OS]: https://www.stigviewer.com/stigs/canonical_ubuntu_2404_lts
 [DISA STIG configuration files]: /snap/reference/config-files/disa-stig-config.md
 [DISA STIG audit]: /snap/reference/disa-stig-audit.md
-[configuration yaml files]: https://github.com/canonical/k8s-snap/tree/main/k8s/resources/templates/disa-stig
+[configuration yaml files]: https://github.com/canonical/k8s-snap/tree/main/k8s/resources/configurations/disa-stig
