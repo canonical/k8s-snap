@@ -85,3 +85,36 @@ def test_containerd(instances: List[harness.Instance]):
         f"ctr output: {result.stdout}"
         f"ctr error: {result.stderr}"
     )
+
+    # Run nginx pod with imagePullpolicy: never to ensure sideloaded image is used
+    result = instance.exec(
+        [
+            "k8s",
+            "kubectl",
+            "run",
+            "nginx-test",
+            "--image=docker.io/library/nginx:latest",
+            "--image-pull-policy=Never",
+            "-l",
+            "run=my-nginx",
+            "--port=80",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, "Failed to create nginx test pod"
+
+    # Confirm the pod is running
+    util.stubbornly(retries=3, delay_s=1).on(instance).exec(
+        [
+            "k8s",
+            "kubectl",
+            "wait",
+            "--for=condition=ready",
+            "pod",
+            "-l",
+            "run=my-nginx",
+            "--timeout",
+            "180s",
+        ]
+    )
