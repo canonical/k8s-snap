@@ -104,6 +104,7 @@ ClusterRoleBindings
 ClusterRoles
 CMK
 CNCF
+cni
 CNI
 CNI's
 CNIs
@@ -454,6 +455,7 @@ remediations
 reources
 RequestResponse
 Requirer
+resizer
 roadmap
 Rockcraft
 RoleBindings
@@ -491,6 +493,7 @@ sha
 sideloading
 Snapcraft
 snapd
+snapshotter
 sourcename
 Spark
 Spark History Server
