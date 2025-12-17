@@ -48,7 +48,7 @@ on:
           This is useful if specific tests require more powerful/larger runners, e.g. for version upgrade tests.
           The amount of self-hosted runners is limited so we should selectively assign tests to them.
           The arch tag will automatically be assigned based on the 'arch' input, so don't use the full tags here.
-          (e.g. use ["self-hosted", "linux", "noble", "2xlarge"] instead of ["self-hosted-linux-amd64-noble-2xlarge"])
+          (e.g. use ["self-hosted", "linux", "noble", "xlarge"] instead of ["self-hosted-linux-amd64-noble-xlarge"])
         type: string
         required: false
         default: |
@@ -57,13 +57,13 @@ on:
               "self-hosted",
               "linux",
               "noble",
-              "2xlarge-extra"
+              "xlarge"
             ],
             "tests/test_version_upgrades.py::test_version_downgrades_with_rollback": [
               "self-hosted",
               "linux",
               "noble",
-              "2xlarge-extra"
+              "xlarge"
             ]
           }
       test-collection-branch:
