@@ -10,6 +10,12 @@ sudo snap refresh k8s --channel=1.35-classic/stable
 
 All components will be updated automatically.
 
+```{note}
+{{product}} 1.35 upgrades the container runtime to containerd v2. If you
+maintain custom containerd configuration or tooling, validate compatibility
+before refreshing.
+```
+
 ### Verify the upgrade
 
 Check the `k8s` snap version has been updated and the cluster is back in the
