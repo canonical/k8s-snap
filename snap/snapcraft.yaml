@@ -90,13 +90,15 @@ parts:
     # Note(ben): patchelf messes up the segments when patching etcd
     # due to https://github.com/NixOS/patchelf/issues/446.
     # Instead, we use a custom script based on LIEF to manually patch the rpath and interpreter.
-    build-attributes: [no-patchelf]
-    override-build: |
+    build-attributes: [enable-patchelf]
+    override-build: $CRAFT_PROJECT_DIR/build-scripts/build-component.sh etcd
+    override-prime: |
       # Note(Ben): This field must match the base field above.
+      # elf patching occurs in the prime stage of the plugin.
+      # by overriding it here we can ensure our custom script runs
+      # appropriately per architecture.
+
       BASE=core22
-
-      $CRAFT_PROJECT_DIR/build-scripts/build-component.sh etcd
-
       pip3 install -r $CRAFT_PROJECT_DIR/build-scripts/hack/requirements.txt
       case "$CRAFT_ARCH_TRIPLET_BUILD_FOR" in
         x86_64-linux-gnu)
@@ -111,7 +113,7 @@ parts:
           ;;
         *)
           echo "Unknown architecture: $CRAFT_ARCH_TRIPLET_BUILD_FOR"
-          exit 1
+          craftctl default
           ;;
       esac
     stage:
