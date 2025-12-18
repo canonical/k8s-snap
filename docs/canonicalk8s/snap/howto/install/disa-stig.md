@@ -1,6 +1,6 @@
 # How to install {{ product }} with DISA STIG hardening
 
-```{versionadded} 1.34
+```{versionadded} release-1.34 
 ```
 
 DISA Security Technical Implementation Guides (STIGs) provide hardening
@@ -18,7 +18,7 @@ already followed our [FIPS installation guide], but stopped after installing
 {{product}} without following the steps to bootstrap/join the cluster. Instead
 continue here to first complete additional steps needed for DISA STIG
 compliance.
-- Ubuntu Pro subscription 
+- [Ubuntu Pro] subscription 
 
 ## Configure the host
 
@@ -32,8 +32,8 @@ happen when enabling UFW with the default configuration.
 
 ### Apply host STIG
 
-The [USG tool] which part of the PRO tool set can be run to automatically apply 
-most other [DISA STIG host OS] recommendations. To install the USG tool:
+The [USG tool] which is part of the PRO tool set can be run to automatically 
+apply most other [DISA STIG host OS] recommendations. To install the USG tool:
 
 ```
 sudo pro enable usg
@@ -83,10 +83,10 @@ with Kubernetes clusters. You may seek an exception or alternative solution.
 - **`content_rule_only_allow_dod_certs`**: To comply with this rule, you must
 pass custom certificates to {{product}} via the [configuration files].
 
-## Configure kernel
+## Configure the kernel
 
 DISA STIG recommends enabling `--protect-kernel-defaults=true` so that kubelet
-will not modify kernel flags. This requires that the kernel be configured in
+will not modify kernel flags. This requires the kernel to be configured in
 advance as shown below:
 
 ```
@@ -113,7 +113,7 @@ DISA STIG specific settings on cluster formation and node join. Once a node is
 configured, changing certain settings is more difficult and may require 
 re-deploying the node or cluster. If you are happy to apply the default 
 settings, jump to [initializing the cluster](#initialize-the-cluster). 
-Otherwise, choose the configuration options that are best suited to your 
+Otherwise, choose the configuration options that are best suited for your 
 cluster. 
 
 ### Pod Security Admission control file
@@ -147,7 +147,7 @@ Kubernetes API Server audit log.
 
 These policies can be edited based on [upstream audit instructions].
 
-Set the `--audit-policy-file` path path in the bootstrap and control plane 
+Set the `--audit-policy-file` path in the bootstrap and control plane 
 configuration files located at 
 `/var/snap/k8s/common/etc/configurations/disa-stig/` to use whichever policy 
 best matches your cluster's needs.
@@ -196,7 +196,8 @@ First retrieve a join token from an existing control plane node:
 sudo k8s get-join-token <joining-node-hostname> --worker
 ```
 
-Then join the new worker node using the example node join configuration file:
+Then join the new worker node using the example worker node join configuration 
+file:
 
 ```
 sudo k8s join-cluster --file=/var/snap/k8s/common/etc/configurations/disa-stig/worker.yaml <join-token>
@@ -269,3 +270,4 @@ recommendations and details how they apply to {{product}}.
 [DISA STIG configuration files]: /snap/reference/config-files/disa-stig-config.md
 [DISA STIG audit]: /snap/reference/disa-stig-audit.md
 [configuration yaml files]: https://github.com/canonical/k8s-snap/tree/main/k8s/resources/configurations/disa-stig
+[Ubuntu Pro]: https://ubuntu.com/pro

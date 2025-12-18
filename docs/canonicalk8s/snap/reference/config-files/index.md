@@ -3,22 +3,28 @@
 {{product}} uses several configuration files to control its behavior and
 settings. 
 
-## Cluster formation 
+## Cluster initialization 
 
 ```{toctree}
 :glob:
 :titlesonly:
-
 Bootstrap <bootstrap-config.md>
+DISA STIG <disa-stig-config.md>
+```
+
+## Join the cluster
+
+```{toctree}
+:glob:
+:titlesonly:
 Control plane node join <control-plane-join-config.md>
 Worker node join <worker-join-config.md>
 ```
 
-## Security and compliance
+## Cluster certificates
 
 ```{toctree}
 :glob:
 :titlesonly:
 Refresh certificates <refresh-external-certs-config.md>
-DISA STIG <disa-stig-config.md>
 ```

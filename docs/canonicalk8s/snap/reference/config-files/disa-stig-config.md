@@ -6,11 +6,11 @@ worker join that automatically apply the following DISA STIG recommendations.
 
 ## Example control plane configuration files
 
-`/var/snap/k8s/common/etc/templates/disa-stig/bootstrap.yaml` is the
+`/var/snap/k8s/common/etc/configurations/disa-stig/bootstrap.yaml` is the
 configuration file for bootstrapping the first node
 of a cluster. 
 
-`/var/snap/k8s/common/etc/templates/disa-stig/control-plane.yaml` is the
+`/var/snap/k8s/common/etc/configurations/disa-stig/control-plane.yaml` is the
 control plane node join configuration file for joining additional control plane
 nodes. 
 
@@ -29,7 +29,7 @@ apply settings to align with the following recommendations:
 
 ## Example worker node join configuration file
 
-`/var/snap/k8s/common/etc/templates/disa-stig/worker.yaml` is the
+`/var/snap/k8s/common/etc/configurations/disa-stig/worker.yaml` is the
 worker node join configuration file
 for joining worker nodes.
 
