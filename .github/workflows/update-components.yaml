@@ -7,6 +7,7 @@ on:
   pull_request:
     paths:
       - .github/workflows/update-components.yaml
+      - build-scripts/hack/update-component-versions.py
 
 permissions:
   contents: read
