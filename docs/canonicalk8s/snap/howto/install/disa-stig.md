@@ -270,4 +270,3 @@ recommendations and details how they apply to {{product}}.
 [DISA STIG configuration files]: /snap/reference/config-files/disa-stig-config.md
 [DISA STIG audit]: /snap/reference/disa-stig-audit.md
 [configuration yaml files]: https://github.com/canonical/k8s-snap/tree/main/k8s/resources/configurations/disa-stig
-[Ubuntu Pro]: https://ubuntu.com/pro
