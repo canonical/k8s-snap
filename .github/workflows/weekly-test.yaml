@@ -57,24 +57,20 @@ jobs:
       matrix:
         os: ["ubuntu:22.04", "ubuntu:24.04"]
         arch: ["amd64"]
-        channel: 
-        [
-          # "latest/edge",
-          # "1.32-classic/stable",
-          # "1.33-classic/stable",
-          # "1.34-classic/stable",
-          "1.35-classic/edge",
-        ]
-        include:
-          - channel: "1.35-classic/edge"
-            test-collection-branch: "KU-4859-add-1.35-to-testing-ci"
+        channel:
+          [
+            "latest/edge",
+            "1.32-classic/stable",
+            "1.33-classic/stable",
+            "1.34-classic/stable",
+            "1.35-classic/stable",
+          ]
     uses: ./.github/workflows/e2e-tests.yaml
     with:
       arch: ${{ matrix.arch }}
       os: ${{ matrix.os }}
       channel: ${{ matrix.channel }}
       test-tags: 'conformance_tests'
-      test-collection-branch: ${{ matrix.test-collection-branch }}
 
   Mattermost:
     name: Notify Mattermost
