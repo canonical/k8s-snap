@@ -22,7 +22,7 @@ def test_containerd(instances: List[harness.Instance]):
             "k8s.io",
             "images",
             "pull",
-            "docker.io/library/nginx:latest",
+            "docker.io/library/nginx:1.29",
         ],
         capture_output=True,
         text=True,
@@ -38,7 +38,7 @@ def test_containerd(instances: List[harness.Instance]):
             "image",
             "export",
             "/tmp/nginx-export.tar",
-            "docker.io/library/nginx:latest",
+            "docker.io/library/nginx:1.29",
         ],
         capture_output=True,
         text=True,
@@ -52,7 +52,7 @@ def test_containerd(instances: List[harness.Instance]):
             "k8s.io",
             "image",
             "rm",
-            "docker.io/library/nginx:latest",
+            "docker.io/library/nginx:1.29",
         ],
         capture_output=True,
         text=True,
@@ -78,7 +78,7 @@ def test_containerd(instances: List[harness.Instance]):
         capture_output=True,
         text=True,
     )
-    assert "nginx:latest" in result.stdout, (
+    assert "nginx:1.29" in result.stdout, (
         f"nginx image not found after sideloading\n"
         f"ctr output: {result.stdout}"
         f"ctr error: {result.stderr}"
@@ -91,7 +91,7 @@ def test_containerd(instances: List[harness.Instance]):
             "kubectl",
             "run",
             "nginx-test",
-            "--image=docker.io/library/nginx:latest",
+            "--image=docker.io/library/nginx:1.29",
             "--image-pull-policy=Never",
             "-l",
             "run=my-nginx",
