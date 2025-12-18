@@ -37,6 +37,10 @@ on:
         description: Datastore backend to use for the tests (e.g. etcd, k8s-dqlite)
         default: ""
         type: string
+      required-snaps:
+        description: "Required snaps to install on the test instances ({'core22': 'latest/stable'})"
+        default: ""
+        type: string
       extra-test-args: &extra-test-args
         description: |
           Additional pytest arguments, use "-k <test_name>" to run a specific test
@@ -137,7 +141,7 @@ jobs:
           # 3. main branch
 
           CHANNEL="${{ inputs.channel }}"
-          REF="main"
+          REF="${{ github.head_ref }}"
           # Match X.YY or X.YY-classic, optionally followed by a risk suffix like /edge or /candidate
           # e.g. "1.33-classic/edge" or "1.33/edge"
           if [[ -n "$CHANNEL" && "$CHANNEL" =~ ^([0-9]+)\.([0-9]+)(-classic)?(/.*)?$ ]]; then
@@ -190,7 +194,7 @@ jobs:
   run-tests:
     name: ${{ matrix.test }}
     needs: prepare
-    runs-on: ${{ fromJson(needs.prepare.outputs.test-runners)[matrix.test] || (inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04') }}
+    runs-on: ${{ fromJson(needs.prepare.outputs.test-runners)[matrix.test] || fromJson(needs.prepare.outputs.test-runners)['all'] || (inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04') }}
     strategy:
       fail-fast: false
       max-parallel: ${{ inputs.max-parallel }}
@@ -220,9 +224,6 @@ jobs:
         uses: canonical/setup-lxd@v0.1.3
         with:
           bridges: "lxdbr0,dualstack-br0,ipv6-br0,jumbo-br0,dual-nic-br0"
-      - name: Setup Multipass
-        if: ${{ inputs.substrate == 'multipass' }}
-        uses: ./.github/actions/setup-multipass
       - name: Install tox
         run: sudo apt-get install -y tox
       - name: Generate names for step and artifacts
@@ -245,14 +246,18 @@ jobs:
         if: ${{ contains(inputs.test-tags, 'performance') }}
         run: |
           echo "PERFORMANCE_FLAGS=--benchmark-storage=baselines --benchmark-autosave" >> $GITHUB_ENV
+      - name: Setup tmate session
+        uses: canonical/action-tmate@main
+        with:
+          detached: true
       - name: Run ${{ inputs.parallel && env.short_test_name || 'all tests' }}
         env:
           TEST_SNAP: ${{ steps.download-snap.outputs.snap-path }}
           TEST_SUBSTRATE: ${{ inputs.substrate }}
           TEST_LXD_IMAGE: ${{ inputs.os }}
-          TEST_MULTIPASS_IMAGE: ${{ inputs.os }}
           TEST_FLAVOR: ${{ inputs.flavor }}
           TEST_DATASTORE: ${{ inputs.datastore }}
+          TEST_REQUIRED_SNAPS: ${{ inputs.required-snaps }}
           TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports/${{ inputs.parallel && env.test_name || '' }}
           TEST_VERSION_UPGRADE_CHANNELS: "recent 6"
           TEST_VERSION_DOWNGRADE_CHANNELS: "recent 6"
@@ -262,6 +267,7 @@ jobs:
           TEST_GH_REF: ${{ github.ref_name }}
           TEST_GH_BASE_REF: ${{ github.base_ref }}
           TEST_UBUNTU_PRO_TOKEN: ${{ secrets.UBUNTU_PRO_TOKEN }}
+          TEST_SKIP_CLEANUP: "1"
           TEST_LAUNCHPAD_K8S_CI_BOT_PASSWORD: ${{ secrets.LAUNCHPAD_K8S_CI_BOT_PASSWORD }}
         run: |
           # Parse extra-test-env and export each KEY=VALUE pair

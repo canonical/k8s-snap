@@ -55,7 +55,10 @@ class JujuHarness(Harness):
             )
 
     def new_instance(
-        self, network_type: str = "IPv4", name_suffix: str = ""
+        self,
+        network_type: str = "IPv4",
+        name_suffix: str = "",
+        required_ports: List[int] = None,
     ) -> Instance:
         if network_type:
             raise HarnessError("Currently only IPv4 is supported by Juju harness")
@@ -94,6 +97,10 @@ class JujuHarness(Harness):
         self.instances.add(instance_id)
 
         self.exec(instance_id, ["snap", "wait", "system", "seed.loaded"])
+
+        for port in required_ports or []:
+            self.exec(instance_id, ["open-port", str(port)])
+
         return Instance(self, instance_id)
 
     def send_file(self, instance_id: str, source: str, destination: str):
@@ -194,10 +201,6 @@ class JujuHarness(Harness):
 
     def restart_instance(self, instance_id):
         self.exec(instance_id, ["sudo", "reboot"])
-
-    def open_ports(self, instance_id: str, ports: List[int]):
-        for port in ports:
-            self.exec(instance_id, ["open-port", port])
 
     def delete_instance(self, instance_id: str):
         if instance_id not in self.instances:

@@ -230,6 +230,40 @@ def setup_core_dumps(instance: harness.Instance):
     instance.exec(["snap", "set", "system", "system.coredump.enable=true"])
 
 
+def ensure_required_snaps(instance: harness.Instance, required_snaps: dict) -> None:
+    """Ensure that the required snaps are installed on the instance."""
+    for snap_name, channel in required_snaps.items():
+        try:
+            out = instance.exec(
+                ["snap", "list", snap_name], capture_output=True, text=True, check=False
+            )
+        except subprocess.CalledProcessError as e:
+            LOG.info(
+                f"Failed to check if snap {snap_name} is installed on instance {instance.id}, error: {e}"
+            )
+            LOG.info(out.returncode)
+
+        installed_snaps_output = out.stdout
+        if snap_name in installed_snaps_output:
+            LOG.info(
+                "Snap %s is already installed on instance %s. Refreshing to channel %s",
+                snap_name,
+                instance.id,
+                channel,
+            )
+            instance.exec(["snap", "refresh", snap_name, f"--channel={channel}"])
+
+        LOG.info(
+            "Installing required snap %s on instance %s from channel %s",
+            snap_name,
+            instance.id,
+            channel,
+        )
+        instance.exec(
+            ["snap", "install", snap_name, "--classic", f"--channel={channel}"]
+        )
+
+
 def setup_k8s_snap(
     instance: harness.Instance,
     snap: Optional[str] = None,
@@ -248,6 +282,7 @@ def setup_k8s_snap(
             a path to the snap to install
         tmp_path:   path to store the snap on the instance (optional, defaults to /home/ubuntu)
     """
+
     cmd = ["snap", "install", "--classic"]
     which_snap = snap or config.SNAP
 

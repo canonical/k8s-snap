@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import List
 
 import pytest
-from test_util import config, harness, tags, util
+from test_util import config, harness, ports, tags, util
 from test_util.config import MANIFESTS_DIR, SUBSTRATE
 
 LOG = logging.getLogger(__name__)
@@ -15,7 +15,7 @@ LOG = logging.getLogger(__name__)
 @pytest.mark.node_count(2)
 @pytest.mark.tags(tags.PULL_REQUEST)
 # For loadbalancer communication
-@pytest.mark.required_ports(80)
+@pytest.mark.required_ports(ports.DEFAULT_OPEN_PORTS + [80])
 def test_loadbalancer_ipv4(
     instances: List[harness.Instance], cluster_network_type: str
 ):
