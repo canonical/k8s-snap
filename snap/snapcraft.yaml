@@ -30,7 +30,7 @@ parts:
   build-deps:
     plugin: nil
     build-snaps:
-      - go/1.24-fips/stable
+      - go/1.25-fips/stable
     build-attributes: [enable-patchelf]
     build-packages:
       - sudo
@@ -81,7 +81,16 @@ parts:
     plugin: nil
     source: build-scripts/components/k8s-dqlite
     build-attributes: [enable-patchelf]
-    override-build: $CRAFT_PROJECT_DIR/build-scripts/build-component.sh k8s-dqlite
+    override-build: |
+      # Note: This field must match the base field above.
+      BASE=core22
+
+      $CRAFT_PROJECT_DIR/build-scripts/build-component.sh k8s-dqlite
+
+      # Seems like snapcraft auto patching is not working as expected here, so we do it manually.
+      for binary in k8s-dqlite dqlite; do
+        patchelf --force-rpath --set-rpath "\$ORIGIN/../../lib:/snap/$BASE/current/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR" "$CRAFT_PART_INSTALL/bin/${binary}"
+      done
 
   etcd:
     after: [build-deps]

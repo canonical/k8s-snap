@@ -98,8 +98,14 @@ func (c *NodeLabelController) reconcileVersionAnnotation(ctx context.Context, cl
 		return fmt.Errorf("failed to get snap revision: %w", err)
 	}
 
+	k8sVersion, err := c.snap.NodeKubernetesVersion(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get kubernetes version: %w", err)
+	}
+
 	v := version.Info{
-		Revision: rev,
+		Revision:          rev,
+		KubernetesVersion: k8sVersion,
 	}
 
 	b, err := v.Encode()

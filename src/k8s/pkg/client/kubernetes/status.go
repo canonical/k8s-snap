@@ -15,19 +15,9 @@ func (c *Client) WaitKubernetesEndpointAvailable(ctx context.Context) error {
 		// TODO: use the /readyz endpoint instead
 		// We want to retry if an error occurs (=API server not ready)
 		// returning the error would abort, thus checking for nil
-		endpoint, err := c.CoreV1().Endpoints("default").Get(ctx, "kubernetes", metav1.GetOptions{})
-		return err == nil && endpoint != nil, nil
+		_, err := c.GetKubeAPIServerEndpoints(ctx)
+		return err == nil, nil
 	})
-}
-
-func (c *Client) CheckKubernetesEndpoint(ctx context.Context) error {
-	if endpoint, err := c.CoreV1().Endpoints("default").Get(ctx, "kubernetes", metav1.GetOptions{}); err != nil {
-		return fmt.Errorf("failed to get kubernetes endpoint: %w", err)
-	} else if endpoint == nil {
-		return fmt.Errorf("kubernetes endpoint not found")
-	}
-
-	return nil
 }
 
 // HasReadyNodes checks the status of all nodes in the Kubernetes cluster.

@@ -377,17 +377,12 @@ func handleRollOutUpgrade(ctx context.Context, snap snap.Snap, s state.State, k8
 }
 
 func getNodeVersion(ctx context.Context, snap snap.Snap) (*versionutil.Version, error) {
-	versionStr, err := snap.NodeKubernetesVersion(ctx)
+	v, err := snap.NodeKubernetesVersion(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get node Kubernetes version: %w", err)
 	}
 
-	version, err := versionutil.Parse(versionStr)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse node Kubernetes version %q: %w", versionStr, err)
-	}
-
-	return version, nil
+	return v, nil
 }
 
 func handleNoUpgradeInProgress(ctx context.Context, snap snap.Snap, s state.State, k8sClient *kubernetes.Client, thisNodeVersion *versionutil.Version, nodeVersions map[string]*versionutil.Version) error {
@@ -441,7 +436,7 @@ func initiateRollingUpgrade(ctx context.Context, snap snap.Snap, s state.State, 
 		strategy = upgradesv1alpha.UpgradeStrategyRollingDowngrade
 	}
 
-	versionData := version.Info{Revision: rev}
+	versionData := version.Info{Revision: rev, KubernetesVersion: thisNodeVersion}
 	newUpgrade := upgradesv1alpha.NewUpgrade(upgradepkg.GetName(versionData))
 	if err := k8sClient.Create(ctx, newUpgrade); err != nil {
 		return fmt.Errorf("failed to create upgrade: %w", err)

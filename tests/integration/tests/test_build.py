@@ -33,13 +33,13 @@ def test_build(instances: List[harness.Instance]):
         "kubectl",
         "k8s-apiserver-proxy",
         "containerd",
+        "cni",
     ]
 
     # These components should be statically built as they do not contain any crypto functions
     static_components = [
         "ctr",
         "runc",
-        "cni",
         "containerd-shim-runc-v2",
     ]
 
@@ -95,7 +95,7 @@ def test_build(instances: List[harness.Instance]):
         )
         LOG.info(result.stderr)
         assert result.stderr.startswith(
-            "panic: opensslcrypto: FIPS mode requested (environment variable GOFIPS) but not available in OpenSSL"
+            "panic: opensslcrypto: FIPS mode requested (environment variable GOFIPS) but not available"
         ) or result.stderr.startswith(
             "panic: opensslcrypto: can't enable FIPS mode for OpenSSL"
         ), f"{component} should fail with FIPS enabled on non-compliant system"

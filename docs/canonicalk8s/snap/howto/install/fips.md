@@ -15,7 +15,7 @@ snap to use FIPS mode.
 
 This guide assumes the following:
 
-- Ubuntu 22.04 machine with at least 4GB of RAM and 30 GB disk storage
+- Ubuntu 22.04 machine with at least 8GB of RAM and 40 GB disk storage
 - You have root or sudo access to the machine
 - Internet access on the machine
 
