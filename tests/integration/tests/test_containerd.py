@@ -15,27 +15,22 @@ def test_containerd(instances: List[harness.Instance]):
     instance = instances[0]
     util.wait_until_k8s_ready(instance, [instance])
 
-    # Pull image
-    result = (
-        util.stubbornly(retries=5, delay_s=2)
-        .on(instance)
-        .exec(
-            [
-                "/snap/k8s/current/bin/ctr",
-                "-n",
-                "k8s.io",
-                "images",
-                "pull",
-                "docker.io/library/nginx:latest",
-            ],
-            capture_output=True,
-            text=True,
-        )
+    util.stubbornly(retries=5, delay_s=2).on(instance).exec(
+        [
+            "/snap/k8s/current/bin/ctr",
+            "-n",
+            "k8s.io",
+            "images",
+            "pull",
+            "docker.io/library/nginx:latest",
+        ],
+        capture_output=True,
+        text=True,
+        check=True,
     )
-    assert result.returncode == 0, "Failed to pull nginx image"
 
-    # Export, delete, re-import (test sideloading)
-    result = instance.exec(
+    # Test sideloading: export, delete, re-import and run image
+    instance.exec(
         [
             "/snap/k8s/current/bin/ctr",
             "-n",
@@ -47,10 +42,10 @@ def test_containerd(instances: List[harness.Instance]):
         ],
         capture_output=True,
         text=True,
+        check=True,
     )
-    assert result.returncode == 0, "Failed to export nginx image"
 
-    result = instance.exec(
+    instance.exec(
         [
             "/snap/k8s/current/bin/ctr",
             "-n",
@@ -61,10 +56,10 @@ def test_containerd(instances: List[harness.Instance]):
         ],
         capture_output=True,
         text=True,
+        check=True,
     )
-    assert result.returncode == 0, "Failed to remove nginx image"
 
-    result = instance.exec(
+    instance.exec(
         [
             "/snap/k8s/current/bin/ctr",
             "-n",
@@ -75,10 +70,9 @@ def test_containerd(instances: List[harness.Instance]):
         ],
         capture_output=True,
         text=True,
+        check=True,
     )
-    assert result.returncode == 0, "Failed to import nginx image via sideloading"
 
-    # Verify the image is available after sideloading
     result = instance.exec(
         ["/snap/k8s/current/bin/ctr", "-n", "k8s.io", "images", "ls"],
         capture_output=True,
@@ -91,7 +85,7 @@ def test_containerd(instances: List[harness.Instance]):
     )
 
     # Run nginx pod with imagePullpolicy: never to ensure sideloaded image is used
-    result = instance.exec(
+    instance.exec(
         [
             "k8s",
             "kubectl",
@@ -105,10 +99,9 @@ def test_containerd(instances: List[harness.Instance]):
         ],
         capture_output=True,
         text=True,
+        check=True,
     )
-    assert result.returncode == 0, "Failed to create nginx test pod"
 
-    # Confirm the pod is running
     util.stubbornly(retries=3, delay_s=1).on(instance).exec(
         [
             "k8s",
