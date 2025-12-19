@@ -6,6 +6,10 @@ echo "Current Go snap revision: ${INITIAL_GO_REVISION}"
 
 # Extract Go version from go.mod (normalize to major.minor for snap channel)
 GO_VERSION=$(grep -E '^go ' go.mod | awk '{print $2}' | cut -d. -f1-2)
+if [ -z "${GO_VERSION}" ]; then
+  echo "Error: Could not extract Go version from go.mod"
+  exit 1
+fi
 echo "Go version from go.mod: ${GO_VERSION}"
 
 # Refresh to go ${GO_VERSION}-fips/stable channel
