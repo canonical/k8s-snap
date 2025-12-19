@@ -1,15 +1,13 @@
 # How to install a FIPS compliant Kubernetes cluster
 
+```{versionadded} release-1.34
+```
+
 The [Federal Information Processing Standard (FIPS) 140-3] is a US government
 security standard regulating the use of cryptography. Compliance is crucial for
 US government and regulated industries. This how-to guide provides the steps to
 set up a FIPS compliant Kubernetes cluster using the {{ product }} snap.
 
-```{note}
-FIPS is only available in the `k8s` snap release 1.34 and later. If you are
-using an earlier version, you will need to upgrade to a newer version of the
-snap to use FIPS mode.
-```
 
 ## Prerequisites
 
