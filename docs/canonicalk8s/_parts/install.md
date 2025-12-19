@@ -1,11 +1,11 @@
 <!-- snap start -->
-sudo snap install k8s --classic --channel=1.34-classic/stable
+sudo snap install k8s --classic --channel=1.35-classic/stable
 <!-- snap end -->
 <!-- lxd start -->
-lxc exec k8s -- sudo snap install k8s --classic --channel=1.34-classic/stable
+lxc exec k8s -- sudo snap install k8s --classic --channel=1.35-classic/stable
 <!-- lxd end -->
 <!-- offline start -->
-sudo snap download k8s --channel 1.34-classic/stable --basename k8s
+sudo snap download k8s --channel 1.35-classic/stable --basename k8s
 <!-- offline end -->
 <!-- juju control start -->
 juju deploy k8s --channel=1.33/stable --base="ubuntu@24.04"
