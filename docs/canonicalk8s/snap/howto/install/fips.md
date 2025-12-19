@@ -1,6 +1,6 @@
 # How to install a FIPS compliant Kubernetes cluster
 
-```{versionadded} 1.34
+```{versionadded} release-1.34
 ```
 
 The [Federal Information Processing Standard (FIPS) 140-3] is a US government
