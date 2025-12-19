@@ -84,6 +84,7 @@ Charmcraft
 Charmed
 Charmed Kubeflow
 Charmhub
+charmlib
 cidr
 cidrs
 CIDRs
@@ -437,6 +438,7 @@ PV
 PVCs
 py
 pypi
+PyPI
 Pydantic
 Python
 qdisc
