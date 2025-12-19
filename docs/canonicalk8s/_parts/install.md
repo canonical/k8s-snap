@@ -8,18 +8,18 @@ lxc exec k8s -- sudo snap install k8s --classic --channel=1.35-classic/stable
 sudo snap download k8s --channel 1.35-classic/stable --basename k8s
 <!-- offline end -->
 <!-- juju control start -->
-juju deploy k8s --channel=1.33/stable --base="ubuntu@24.04"
+juju deploy k8s --channel=1.34/stable --base="ubuntu@24.04"
 <!-- juju control end -->
 <!-- juju worker start -->
-juju deploy k8s-worker --channel=1.33/stable -n 2 --base="ubuntu@24.04"
+juju deploy k8s-worker --channel=1.34/stable -n 2 --base="ubuntu@24.04"
 <!-- juju worker end -->
 <!-- juju control constraints start -->
-juju deploy k8s --channel=1.33/stable \
+juju deploy k8s --channel=1.34/stable \
     --base="ubuntu@24.04" \
     --constraints='cores=2 mem=16G root-disk=40G'
 <!-- juju control constraints end -->
 <!-- juju worker constraints start -->
-juju deploy k8s-worker --channel=1.33/stable \
+juju deploy k8s-worker --channel=1.34/stable \
     --base="ubuntu@24.04" \
     --constraints='cores=2 mem=16G root-disk=40G'
 <!-- juju worker constraints end -->
@@ -29,6 +29,6 @@ juju deploy k8s --channel=latest/stable \
     --constraints='cores=2 mem=16G root-disk=40G virt-type=virtual-machine'
 <!-- juju vm end -->
 <!-- juju controlplane custom config start -->
-juju deploy k8s --config ./k8s-config.yaml --channel=1.33/stable \
+juju deploy k8s --config ./k8s-config.yaml --channel=1.34/stable \
     --base="ubuntu@24.04"
 <!-- juju controlplane custom config end -->
