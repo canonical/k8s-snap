@@ -4,8 +4,8 @@
 INITIAL_GO_REVISION=$(snap list go | grep -E '^go\s' | awk '{print $3}')
 echo "Current Go snap revision: ${INITIAL_GO_REVISION}"
 
-# Extract Go version from go.mod
-GO_VERSION=$(grep -E '^go ' go.mod | awk '{print $2}')
+# Extract Go version from go.mod (normalize to major.minor for snap channel)
+GO_VERSION=$(grep -E '^go ' go.mod | awk '{print $2}' | cut -d. -f1-2)
 echo "Go version from go.mod: ${GO_VERSION}"
 
 # Refresh to go ${GO_VERSION}-fips/stable channel
