@@ -32,9 +32,9 @@ Once `etcdctl` is available, you can connect to the etcd database as follows:
 ```
 etcdctl \
   --endpoints=https://127.0.0.1:2379 \
-  --cert=/var/snap/k8s/common/var/lib/etcd/server.crt \
-  --key=/var/snap/k8s/common/var/lib/etcd/server.key \
-  --cacert=/var/snap/k8s/common/var/lib/etcd/ca.crt \
+  --cert=/etc/kubernetes/pki/etcd/server.crt \
+  --key=/etc/kubernetes/pki/etcd/server.key \
+  --cacert=/etc/kubernetes/pki/etcd/ca.crt \
   get "" --prefix --keys-only
 ```
 
@@ -43,9 +43,9 @@ To retrieve values for a given prefix:
 ```
 etcdctl \
   --endpoints=https://127.0.0.1:2379 \
-  --cert=/var/snap/k8s/common/var/lib/etcd/server.crt \
-  --key=/var/snap/k8s/common/var/lib/etcd/server.key \
-  --cacert=/var/snap/k8s/common/var/lib/etcd/ca.crt \
+  --cert=/etc/kubernetes/pki/etcd/server.crt \
+  --key=/etc/kubernetes/pki/etcd/server.key \
+  --cacert=/etc/kubernetes/pki/etcd/ca.crt \
   get /registry/pods/default --prefix
 ```
 
@@ -54,9 +54,9 @@ To check the current cluster leader and member status:
 ```
 etcdctl \
   --endpoints=https://127.0.0.1:2379 \
-  --cert=/var/snap/k8s/common/var/lib/etcd/server.crt \
-  --key=/var/snap/k8s/common/var/lib/etcd/server.key \
-  --cacert=/var/snap/k8s/common/var/lib/etcd/ca.crt \
+  --cert=/etc/kubernetes/pki/etcd/server.crt \
+  --key=/etc/kubernetes/pki/etcd/server.key \
+  --cacert=/etc/kubernetes/pki/etcd/ca.crt \
   endpoint status --write-out=table
 ```
 
