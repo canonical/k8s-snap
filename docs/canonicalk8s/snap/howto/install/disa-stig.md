@@ -124,7 +124,7 @@ Initialize the first control plane node using the
 example bootstrap configuration file:
 
 ```
-sudo k8s bootstrap --file /var/snap/k8s/common/etc/templates/disa-stig/bootstrap.yaml
+sudo k8s bootstrap --file /var/snap/k8s/common/etc/configurations/disa-stig/bootstrap.yaml
 sudo k8s status --wait-ready
 ```
 
@@ -140,7 +140,7 @@ Then join the new control plane node using the
 example control plane node join configuration file:
 
 ```
-sudo k8s join-cluster --file=/var/snap/k8s/common/etc/templates/disa-stig/control-plane.yaml <join-token>
+sudo k8s join-cluster --file=/var/snap/k8s/common/etc/configurations/disa-stig/control-plane.yaml <join-token>
 ```
 
 ### Join worker nodes
@@ -154,7 +154,7 @@ sudo k8s get-join-token <joining-node-hostname> --worker
 Then join the new worker node using the example node join configuration file:
 
 ```
-sudo k8s join-cluster --file=/var/snap/k8s/common/etc/templates/disa-stig/worker.yaml <join-token>
+sudo k8s join-cluster --file=/var/snap/k8s/common/etc/configurations/disa-stig/worker.yaml <join-token>
 ```
 
 If SSH is not needed to access worker nodes, it is recommended you disable
@@ -205,11 +205,12 @@ anytime the list of ports, protocols, and services used by your cluster changes
 
 #### Example control plane configuration files
 
-`/var/snap/k8s/common/etc/templates/disa-stig/bootstrap.yaml` is the
+`/var/snap/k8s/common/etc/configurations/disa-stig/bootstrap.yaml`
+is the
 configuration file for
 [bootstrapping](#bootstrap-the-first-control-plane-node) the first node
 of a cluster and
-`/var/snap/k8s/common/etc/templates/disa-stig/control-plane.yaml` is the
+`/var/snap/k8s/common/etc/configurations/disa-stig/control-plane.yaml` is the
 control plane node-join configuration file for
 [joining additional control plane nodes](#join-control-plane-nodes).
 Both files apply settings to align with the following recommendations:
@@ -226,8 +227,9 @@ Both files apply settings to align with the following recommendations:
 
 #### Example worker node join configuration file
 
-`/var/snap/k8s/common/etc/templates/disa-stig/worker.yaml` is the worker node
-join configuration file for [joining worker nodes](#join-worker-nodes).
+`/var/snap/k8s/common/etc/configurations/disa-stig/worker.yaml` is the
+worker node join configuration file for
+[joining worker nodes](#join-worker-nodes).
 It applies settings to align with the following recommendations:
 
 | STIG          | Summary                                          |
