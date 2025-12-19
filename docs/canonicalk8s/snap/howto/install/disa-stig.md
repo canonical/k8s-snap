@@ -83,7 +83,7 @@ with Kubernetes clusters. You may seek an exception or alternative solution.
 - **`content_rule_only_allow_dod_certs`**: To comply with this rule, you must
 pass custom certificates to {{product}} via the [configuration files].
 
-## Configure the kernel
+### Configure the kernel
 
 DISA STIG recommends enabling `--protect-kernel-defaults=true` so that kubelet
 will not modify kernel flags. This requires the kernel to be configured in
