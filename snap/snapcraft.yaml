@@ -108,14 +108,15 @@ parts:
       # appropriately per architecture.
 
       BASE=core22
-      pip3 install -r $CRAFT_PROJECT_DIR/build-scripts/hack/requirements.txt
       case "$CRAFT_ARCH_TRIPLET_BUILD_FOR" in
         x86_64-linux-gnu)
+          pip3 install -r $CRAFT_PROJECT_DIR/build-scripts/hack/requirements.txt
           python3 $CRAFT_PROJECT_DIR/build-scripts/hack/patchelf.py $CRAFT_PART_INSTALL/bin/etcd \
             --set-rpath /snap/$BASE/current/lib/x86_64-linux-gnu/ \
             --set-interpreter /snap/$BASE/current/lib64/ld-linux-x86-64.so.2
           ;;
         aarch64-linux-gnu)
+          pip3 install -r $CRAFT_PROJECT_DIR/build-scripts/hack/requirements.txt
           python3 $CRAFT_PROJECT_DIR/build-scripts/hack/patchelf.py $CRAFT_PART_INSTALL/bin/etcd \
             --set-rpath /snap/$BASE/current/lib/aarch64-linux-gnu/ \
             --set-interpreter /snap/$BASE/current/lib/ld-linux-aarch64.so.1
