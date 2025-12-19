@@ -4,9 +4,10 @@
 INITIAL_GO_REVISION=$(snap list go | grep -E '^go\s' | awk '{print $3}')
 echo "Current Go snap revision: ${INITIAL_GO_REVISION}"
 
-# Refresh to go 1.23-fips/stable channel
-echo "Refreshing to go 1.23-fips/stable channel..."
-snap refresh go --channel=1.23-fips/stable
+# Refresh to go fips stable channel
+maj_min=$(awk '/^go /{print $2}' go.mod | cut -d. -f1,2)
+echo "Refreshing to go ${maj_min}-fips/stable channel..."
+snap refresh go --channel=${maj_min}-fips/stable
 
 VERSION="${2}"
 
