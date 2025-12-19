@@ -104,6 +104,7 @@ ClusterRoleBindings
 ClusterRoles
 CMK
 CNCF
+cni
 CNI
 CNI's
 CNIs
@@ -180,6 +181,7 @@ ec
 ECDSA
 endfor
 endif
+EndpointSlice
 endtrans
 enp
 enum
@@ -453,10 +455,12 @@ remediations
 reources
 RequestResponse
 Requirer
+resizer
 roadmap
 Rockcraft
 RoleBindings
 rollout
+RPATH
 RPC
 rsa
 ru
@@ -489,6 +493,7 @@ sha
 sideloading
 Snapcraft
 snapd
+snapshotter
 sourcename
 Spark
 Spark History Server

@@ -1,5 +1,32 @@
 # Upgrade notes
 
+## Upgrade 1.34 to 1.35
+
+```{note}
+{{product}} 1.35 upgrades the container runtime to containerd v2. If you
+maintain custom containerd configuration or tooling, validate compatibility
+before refreshing.
+```
+
+Simply run:
+
+```bash
+sudo snap refresh k8s --channel=1.35-classic/stable
+```
+
+All components will be updated automatically.
+
+
+### Verify the upgrade
+
+Check the `k8s` snap version has been updated and the cluster is back in the
+`Ready` state.
+
+```
+snap info k8s
+sudo k8s status --wait-ready
+```
+
 ## Upgrade 1.33 to 1.34
 
 Simply run:
@@ -10,9 +37,9 @@ sudo snap refresh k8s --channel=1.34-classic/stable
 
 All components will be updated automatically.
 
-### Verify the upgrade 
+### Verify the upgrade
 
-Check the `k8s` snap version has been updated and the cluster is back in the 
+Check the `k8s` snap version has been updated and the cluster is back in the
 `Ready` state.
 
 ```
@@ -32,16 +59,16 @@ All components will be updated automatically.
 
 ### Additional steps for dual-stack environments
 
-If your cluster is configured with dual stack networking (IPv4 and IPv6), 
-you’ll need to make a manual adjustment before refreshing. {{product}} 1.33 
-includes Cilium v1.17, which introduces a stricter requirement for dual stack: 
-each node must report both IPv4 and IPv6 addresses to the API server. 
-If this is not satisfied, the Cilium agent pods will fail to start. 
+If your cluster is configured with dual stack networking (IPv4 and IPv6),
+you’ll need to make a manual adjustment before refreshing. {{product}} 1.33
+includes Cilium v1.17, which introduces a stricter requirement for dual stack:
+each node must report both IPv4 and IPv6 addresses to the API server.
+If this is not satisfied, the Cilium agent pods will fail to start.
 For each node in the cluster:
 
-- Update the `--node-ip` flag in the kubelet configuration file 
-`/var/snap/k8s/common/args/kubelet` to include both the IPv4 and IPv6 addresses 
-(comma-separated) from the network interface that is used to connect the node 
+- Update the `--node-ip` flag in the kubelet configuration file
+`/var/snap/k8s/common/args/kubelet` to include both the IPv4 and IPv6 addresses
+(comma-separated) from the network interface that is used to connect the node
 to the cluster network:
 
 ```bash
@@ -62,14 +89,12 @@ sudo k8s kubectl rollout restart daemonset cilium -n kube-system
 
 Now you can run the snap `refresh` command to perform the upgrade.
 
-### Verify the upgrade 
+### Verify the upgrade
 
-Check the `k8s` snap version has been updated and the cluster is back in the 
+Check the `k8s` snap version has been updated and the cluster is back in the
 `Ready` state.
 
 ```
 snap info k8s
 sudo k8s status --wait-ready
 ```
-
-
