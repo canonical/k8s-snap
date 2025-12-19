@@ -12,6 +12,7 @@ new features, bug fixes and backwards-incompatible changes.
 :maxdepth: 2
 /charm/reference/versions/1.32
 /charm/reference/versions/1.33
+/charm/reference/versions/1.34
 ```
 
 
