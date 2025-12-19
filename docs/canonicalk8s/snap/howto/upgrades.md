@@ -21,7 +21,7 @@ This can be done by following the steps outlined in the [backup guide].
 Patch upgrades address bug fixes and are typically safe, introducing no
 breaking changes.
 Snaps automatically check for updates of their specific track
-(e.g. `1.34-classic`) several times a day and apply them when available.
+(e.g. `1.35-classic`) several times a day and apply them when available.
 These updates ensure that the latest changes in the installed track are applied.
 Patch upgrades can also be triggered manually by following the steps below.
 
@@ -62,8 +62,8 @@ snap info k8s
 
 2. **Check version specific instructions and possible manual steps**
 
-Please check [Upgrade notes] for any version-specific considerations or manual 
-steps before upgrading. 
+Please check [Upgrade notes] for any version-specific considerations or manual
+steps before upgrading.
 
 
 3. **Change the snap channel:**
@@ -72,7 +72,7 @@ The {{product}} snap channel can be changed by using the `snap refresh`
 command.
 
 ```
-snap refresh --channel=1.34-classic/stable k8s
+snap refresh --channel=1.35-classic/stable k8s
 ```
 
 4. **Verify the upgrade:**
@@ -111,4 +111,3 @@ snap refresh k8s --hold=24h
 [backup guide]: ./backup-restore.md
 [snap documentation]: https://snapcraft.io/docs/managing-updates
 [Upgrade notes]: ../reference/upgrading
-
