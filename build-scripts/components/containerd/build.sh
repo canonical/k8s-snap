@@ -4,9 +4,13 @@
 INITIAL_GO_REVISION=$(snap list go | grep -E '^go\s' | awk '{print $3}')
 echo "Current Go snap revision: ${INITIAL_GO_REVISION}"
 
-# Refresh to go 1.23-fips/stable channel
-echo "Refreshing to go 1.23-fips/stable channel..."
-snap refresh go --channel=1.23-fips/stable
+# Extract Go version from go.mod
+GO_VERSION=$(grep -E '^go ' go.mod | awk '{print $2}')
+echo "Go version from go.mod: ${GO_VERSION}"
+
+# Refresh to go ${GO_VERSION}-fips/stable channel
+echo "Refreshing to go ${GO_VERSION}-fips/stable channel..."
+snap refresh go --channel=${GO_VERSION}-fips/stable
 
 INSTALL="${1}/bin"
 mkdir -p "${INSTALL}"
