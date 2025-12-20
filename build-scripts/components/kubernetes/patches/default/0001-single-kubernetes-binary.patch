@@ -1,4 +1,4 @@
-From 436a9056b639517bebb826c7121feefd692f6629 Mon Sep 17 00:00:00 2001
+From dca9c99f96637100d1717c67879f0d6b369926cf Mon Sep 17 00:00:00 2001
 From: Angelos Kolaitis <angelos.kolaitis@canonical.com>
 Date: Tue, 2 Jan 2024 16:43:16 +0200
 Subject: [PATCH] single kubernetes binary
@@ -19,18 +19,18 @@ index 1bf05bc5684..53b781b8d41 100644
 --- a/cmd/kube-apiserver/apiserver.go
 +++ b/cmd/kube-apiserver/apiserver.go
 @@ -16,7 +16,7 @@ limitations under the License.
-
+ 
  // APIServer is the main API server and master for the cluster.
  // It is responsible for serving the cluster management API.
 -package main
 +package apiserver
-
+ 
  import (
  	"os"
 @@ -29,7 +29,7 @@ import (
  	"k8s.io/kubernetes/cmd/kube-apiserver/app"
  )
-
+ 
 -func main() {
 +func Main() {
  	command := app.NewAPIServerCommand()
@@ -46,13 +46,13 @@ index 77bc10a3517..3b95649afe4 100644
  // pods.
 -package main
 +package controllermanager
-
+ 
  import (
  	"os"
 @@ -31,7 +31,7 @@ import (
  	"k8s.io/kubernetes/cmd/kube-controller-manager/app"
  )
-
+ 
 -func main() {
 +func Main() {
  	command := app.NewControllerManagerCommand()
@@ -65,16 +65,16 @@ index e167484781a..5ed91261468 100644
 @@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
  limitations under the License.
  */
-
+ 
 -package main
 +package proxy
-
+ 
  import (
  	"os"
 @@ -26,7 +26,7 @@ import (
  	"k8s.io/kubernetes/cmd/kube-proxy/app"
  )
-
+ 
 -func main() {
 +func Main() {
  	command := app.NewProxyCommand()
@@ -87,45 +87,45 @@ index 71739808dd2..8659324973a 100644
 @@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
  limitations under the License.
  */
-
+ 
 -package main
 +package scheduler
-
+ 
  import (
  	"os"
 @@ -26,7 +26,7 @@ import (
  	"k8s.io/kubernetes/cmd/kube-scheduler/app"
  )
-
+ 
 -func main() {
 +func Main() {
  	command := app.NewSchedulerCommand()
  	code := cli.Run(command)
  	os.Exit(code)
 diff --git a/cmd/kubectl/kubectl.go b/cmd/kubectl/kubectl.go
-index 09c18cfa209..5a8d2d432c3 100644
+index 4351585e684..0be23f51829 100644
 --- a/cmd/kubectl/kubectl.go
 +++ b/cmd/kubectl/kubectl.go
 @@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
  limitations under the License.
  */
-
+ 
 -package main
 +package kubectl
-
+ 
  import (
- 	"k8s.io/component-base/cli"
-@@ -25,7 +25,7 @@ import (
+ 	"os"
+@@ -28,7 +28,7 @@ import (
  	_ "k8s.io/client-go/plugin/pkg/client/auth"
  )
-
+ 
 -func main() {
 +func Main() {
- 	command := cmd.NewDefaultKubectlCommand()
- 	if err := cli.RunNoErrOutput(command); err != nil {
- 		// Pretty-print the error and exit with an error.
+ 	// We need to manually parse the arguments looking for verbosity flag and
+ 	// set appropriate level here, because in the normal flow the flag parsing,
+ 	// including the logging verbosity, happens inside cli.RunNoErrOutput.
 diff --git a/cmd/kubelet/kubelet.go b/cmd/kubelet/kubelet.go
-index c6a73a0034d..24656e8727e 100644
+index 114cbd4aabc..096ac6dc451 100644
 --- a/cmd/kubelet/kubelet.go
 +++ b/cmd/kubelet/kubelet.go
 @@ -19,7 +19,7 @@ limitations under the License.
@@ -134,16 +134,16 @@ index c6a73a0034d..24656e8727e 100644
  // by starting or stopping containers.
 -package main
 +package kubelet
-
+ 
  import (
- 	"os"
-@@ -31,7 +31,7 @@ import (
+ 	"context"
+@@ -32,7 +32,7 @@ import (
  	"k8s.io/kubernetes/cmd/kubelet/app"
  )
-
+ 
 -func main() {
 +func Main() {
- 	command := app.NewKubeletCommand()
+ 	command := app.NewKubeletCommand(context.Background())
  	code := cli.Run(command)
  	os.Exit(code)
 diff --git a/cmd/kubernetes/main.go b/cmd/kubernetes/main.go
@@ -186,5 +186,6 @@ index 00000000000..9c82c6a89ee
 +		panic(fmt.Errorf("unknown entrypoint %s", base))
 +	}
 +}
---
-2.34.1
+-- 
+2.43.0
+

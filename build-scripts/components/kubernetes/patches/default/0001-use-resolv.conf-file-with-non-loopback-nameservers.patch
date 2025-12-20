@@ -1,30 +1,25 @@
-From db58d03a5ee3f345d32206e78102952c76d6da10 Mon Sep 17 00:00:00 2001
-From: Angelos Kolaitis <angelos.kolaitis@canonical.com>
-Date: Thu, 11 Jan 2024 11:10:22 +0200
-Subject: [PATCH] use resolv.conf file with non-loopback nameservers
+From a6b7287d10dbe008ee252d646eb7b762fb49d831 Mon Sep 17 00:00:00 2001
+From: Benjamin Schimke <benjamin.schimke@canonical.com>
+Date: Thu, 28 Nov 2024 17:51:10 +0100
+Subject: [PATCH] fix
 
-This replaces the const kubetypes.ResolvConfDefault with a function.
-We use the same name so that we can identify all consumers and fail to
-build if any is not updated.
-
-Includes a unit test for how we handle specific resolv.conf scenarios.
 ---
  pkg/kubelet/apis/config/fuzzer/fuzzer.go      |  2 +-
  pkg/kubelet/apis/config/v1beta1/defaults.go   |  2 +-
- .../apis/config/v1beta1/defaults_test.go      |  8 +-
+ .../apis/config/v1beta1/defaults_test.go      | 10 +--
  pkg/kubelet/types/constants.go                |  4 +-
  pkg/kubelet/types/resolv_conf.go              | 75 ++++++++++++++++
  pkg/kubelet/types/resolv_conf_test.go         | 87 +++++++++++++++++++
  pkg/kubemark/hollow_kubelet.go                |  2 +-
- 7 files changed, 171 insertions(+), 9 deletions(-)
+ 7 files changed, 172 insertions(+), 10 deletions(-)
  create mode 100644 pkg/kubelet/types/resolv_conf.go
  create mode 100644 pkg/kubelet/types/resolv_conf_test.go
 
 diff --git a/pkg/kubelet/apis/config/fuzzer/fuzzer.go b/pkg/kubelet/apis/config/fuzzer/fuzzer.go
-index dfa988c0d04..8c51bd40f5c 100644
+index 474d6db2ef0..b6ae5016353 100644
 --- a/pkg/kubelet/apis/config/fuzzer/fuzzer.go
 +++ b/pkg/kubelet/apis/config/fuzzer/fuzzer.go
-@@ -87,7 +87,7 @@ func Funcs(codecs runtimeserializer.CodecFactory) []interface{} {
+@@ -88,7 +88,7 @@ func Funcs(codecs runtimeserializer.CodecFactory) []interface{} {
  			obj.ReadOnlyPort = ports.KubeletReadOnlyPort
  			obj.RegistryBurst = 10
  			obj.RegistryPullQPS = 5
@@ -34,60 +29,69 @@ index dfa988c0d04..8c51bd40f5c 100644
  			obj.StreamingConnectionIdleTimeout = metav1.Duration{Duration: 4 * time.Hour}
  			obj.SyncFrequency = metav1.Duration{Duration: 1 * time.Minute}
 diff --git a/pkg/kubelet/apis/config/v1beta1/defaults.go b/pkg/kubelet/apis/config/v1beta1/defaults.go
-index bf52fc2396a..2a9c7045647 100644
+index 960b1489d30..c0ce7433b24 100644
 --- a/pkg/kubelet/apis/config/v1beta1/defaults.go
 +++ b/pkg/kubelet/apis/config/v1beta1/defaults.go
-@@ -182,7 +182,7 @@ func SetDefaults_KubeletConfiguration(obj *kubeletconfigv1beta1.KubeletConfigura
+@@ -200,7 +200,7 @@ func SetDefaults_KubeletConfiguration(obj *kubeletconfigv1beta1.KubeletConfigura
  	}
  
  	if obj.ResolverConfig == nil {
--		obj.ResolverConfig = utilpointer.String(kubetypes.ResolvConfDefault)
-+		obj.ResolverConfig = utilpointer.String(kubetypes.ResolvConfDefault())
+-		obj.ResolverConfig = ptr.To(kubetypes.ResolvConfDefault)
++		obj.ResolverConfig = ptr.To(kubetypes.ResolvConfDefault())
  	}
  	if obj.CPUCFSQuota == nil {
- 		obj.CPUCFSQuota = utilpointer.Bool(true)
+ 		obj.CPUCFSQuota = ptr.To(true)
 diff --git a/pkg/kubelet/apis/config/v1beta1/defaults_test.go b/pkg/kubelet/apis/config/v1beta1/defaults_test.go
-index 55a6068e44d..0ffca8e6e22 100644
+index c33c5c730ef..457784ebfa6 100644
 --- a/pkg/kubelet/apis/config/v1beta1/defaults_test.go
 +++ b/pkg/kubelet/apis/config/v1beta1/defaults_test.go
-@@ -93,7 +93,7 @@ func TestSetDefaultsKubeletConfiguration(t *testing.T) {
+@@ -92,7 +92,7 @@ func TestSetDefaultsKubeletConfiguration(t *testing.T) {
  				HairpinMode:                               v1beta1.PromiscuousBridge,
  				MaxPods:                                   110,
- 				PodPidsLimit:                              utilpointer.Int64(-1),
--				ResolverConfig:                            utilpointer.String(kubetypes.ResolvConfDefault),
-+				ResolverConfig:                            utilpointer.String(kubetypes.ResolvConfDefault()),
- 				CPUCFSQuota:                               utilpointer.Bool(true),
+ 				PodPidsLimit:                              ptr.To[int64](-1),
+-				ResolverConfig:                            ptr.To(kubetypes.ResolvConfDefault),
++				ResolverConfig:                            ptr.To(kubetypes.ResolvConfDefault()),
+ 				CPUCFSQuota:                               ptr.To(true),
  				CPUCFSQuotaPeriod:                         &metav1.Duration{Duration: 100 * time.Millisecond},
- 				NodeStatusMaxImages:                       utilpointer.Int32(50),
-@@ -702,7 +702,7 @@ func TestSetDefaultsKubeletConfiguration(t *testing.T) {
+ 				NodeStatusMaxImages:                       ptr.To[int32](50),
+@@ -736,7 +736,7 @@ func TestSetDefaultsKubeletConfiguration(t *testing.T) {
  				HairpinMode:                               v1beta1.PromiscuousBridge,
  				MaxPods:                                   110,
- 				PodPidsLimit:                              utilpointer.Int64(-1),
--				ResolverConfig:                            utilpointer.String(kubetypes.ResolvConfDefault),
-+				ResolverConfig:                            utilpointer.String(kubetypes.ResolvConfDefault()),
- 				CPUCFSQuota:                               utilpointer.Bool(true),
+ 				PodPidsLimit:                              ptr.To[int64](-1),
+-				ResolverConfig:                            ptr.To(kubetypes.ResolvConfDefault),
++				ResolverConfig:                            ptr.To(kubetypes.ResolvConfDefault()),
+ 				CPUCFSQuota:                               ptr.To(true),
  				CPUCFSQuotaPeriod:                         &metav1.Duration{Duration: 100 * time.Millisecond},
- 				NodeStatusMaxImages:                       utilpointer.Int32(50),
-@@ -791,7 +791,7 @@ func TestSetDefaultsKubeletConfiguration(t *testing.T) {
+ 				NodeStatusMaxImages:                       ptr.To[int32](50),
+@@ -831,7 +831,7 @@ func TestSetDefaultsKubeletConfiguration(t *testing.T) {
  				HairpinMode:                               v1beta1.PromiscuousBridge,
  				MaxPods:                                   110,
- 				PodPidsLimit:                              utilpointer.Int64(-1),
--				ResolverConfig:                            utilpointer.String(kubetypes.ResolvConfDefault),
-+				ResolverConfig:                            utilpointer.String(kubetypes.ResolvConfDefault()),
- 				CPUCFSQuota:                               utilpointer.Bool(true),
+ 				PodPidsLimit:                              ptr.To[int64](-1),
+-				ResolverConfig:                            ptr.To(kubetypes.ResolvConfDefault),
++				ResolverConfig:                            ptr.To(kubetypes.ResolvConfDefault()),
+ 				CPUCFSQuota:                               ptr.To(true),
  				CPUCFSQuotaPeriod:                         &metav1.Duration{Duration: 100 * time.Millisecond},
- 				NodeStatusMaxImages:                       utilpointer.Int32Ptr(50),
-@@ -880,7 +880,7 @@ func TestSetDefaultsKubeletConfiguration(t *testing.T) {
+ 				NodeStatusMaxImages:                       ptr.To[int32](50),
+@@ -926,7 +926,7 @@ func TestSetDefaultsKubeletConfiguration(t *testing.T) {
  				HairpinMode:                               v1beta1.PromiscuousBridge,
  				MaxPods:                                   110,
- 				PodPidsLimit:                              utilpointer.Int64(-1),
--				ResolverConfig:                            utilpointer.String(kubetypes.ResolvConfDefault),
-+				ResolverConfig:                            utilpointer.String(kubetypes.ResolvConfDefault()),
- 				CPUCFSQuota:                               utilpointer.Bool(true),
+ 				PodPidsLimit:                              ptr.To[int64](-1),
+-				ResolverConfig:                            ptr.To(kubetypes.ResolvConfDefault),
++				ResolverConfig:                            ptr.To(kubetypes.ResolvConfDefault()),
+ 				CPUCFSQuota:                               ptr.To(true),
  				CPUCFSQuotaPeriod:                         &metav1.Duration{Duration: 100 * time.Millisecond},
- 				NodeStatusMaxImages:                       utilpointer.Int32Ptr(50),
+ 				NodeStatusMaxImages:                       ptr.To[int32](50),
+@@ -1021,7 +1021,7 @@ func TestSetDefaultsKubeletConfiguration(t *testing.T) {
+ 				HairpinMode:                               v1beta1.PromiscuousBridge,
+ 				MaxPods:                                   110,
+ 				PodPidsLimit:                              ptr.To[int64](-1),
+-				ResolverConfig:                            ptr.To(kubetypes.ResolvConfDefault),
++				ResolverConfig:                            ptr.To(kubetypes.ResolvConfDefault()),
+ 				CPUCFSQuota:                               ptr.To(true),
+ 				CPUCFSQuotaPeriod:                         &metav1.Duration{Duration: 100 * time.Millisecond},
+ 				NodeStatusMaxImages:                       ptr.To[int32](50),
 diff --git a/pkg/kubelet/types/constants.go b/pkg/kubelet/types/constants.go
-index 796825aecb1..a4b6a6a1e98 100644
+index 56cba9c43b8..9c0303760aa 100644
 --- a/pkg/kubelet/types/constants.go
 +++ b/pkg/kubelet/types/constants.go
 @@ -17,8 +17,8 @@ limitations under the License.
@@ -98,9 +102,9 @@ index 796825aecb1..a4b6a6a1e98 100644
 -	ResolvConfDefault = "/etc/resolv.conf"
 +	// ResolvConfDefault_Static is the system default DNS resolver configuration.
 +	ResolvConfDefault_Static = "/etc/resolv.conf"
- 	// RFC3339NanoFixed is the fixed width version of time.RFC3339Nano.
- 	RFC3339NanoFixed = "2006-01-02T15:04:05.000000000Z07:00"
- 	// RFC3339NanoLenient is the variable width RFC3339 time format for lenient parsing of strings into timestamps.
+ )
+ 
+ // User visible keys for managing node allocatable enforcement on the node.
 diff --git a/pkg/kubelet/types/resolv_conf.go b/pkg/kubelet/types/resolv_conf.go
 new file mode 100644
 index 00000000000..dbdd9eb84a5
@@ -276,10 +280,10 @@ index 00000000000..e67f2ab4e53
 +	}
 +}
 diff --git a/pkg/kubemark/hollow_kubelet.go b/pkg/kubemark/hollow_kubelet.go
-index 74db6c95c37..3d39dec411c 100644
+index 523b6fcd65f..0e0a4832d04 100644
 --- a/pkg/kubemark/hollow_kubelet.go
 +++ b/pkg/kubemark/hollow_kubelet.go
-@@ -202,7 +202,7 @@ func GetHollowKubeletConfig(opt *HollowKubeletOptions) (*options.KubeletFlags, *
+@@ -200,7 +200,7 @@ func GetHollowKubeletConfig(opt *HollowKubeletOptions) (*options.KubeletFlags, *
  	c.MaxOpenFiles = 1024
  	c.RegistryBurst = 10
  	c.RegistryPullQPS = 5.0
@@ -289,5 +293,5 @@ index 74db6c95c37..3d39dec411c 100644
  	c.SerializeImagePulls = true
  	c.SystemCgroups = ""
 -- 
-2.34.1
+2.43.0
 
