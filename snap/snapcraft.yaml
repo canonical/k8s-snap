@@ -23,7 +23,7 @@ environment:
 architectures:
   - build-on: [amd64]
   - build-on: [arm64]
-  # Not(akd): Blocked on ppc64el due to lack of go 1.25-fips snap support
+  # Note(akd): Blocked on ppc64el due to lack of go 1.25-fips snap support
   # - build-on: [ppc64el]
   - build-on: [s390x]
 
@@ -93,42 +93,96 @@ parts:
         patchelf --force-rpath --set-rpath "\$ORIGIN/../../lib:/snap/$BASE/current/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR" "$CRAFT_PART_INSTALL/bin/${binary}"
       done
 
-  etcd:
+  # -------------------------------------------------------------------
+  # Part 1: Build the etcd binary only, no patching
+  # -------------------------------------------------------------------
+  etcd-unpatched:
     after: [build-deps]
     plugin: nil
     source: build-scripts/components/etcd
+    override-build: $CRAFT_PROJECT_DIR/build-scripts/build-component.sh etcd
+
+  # -------------------------------------------------------------------
+  # Part 2: Patch etcd with LIEF on amd64/arm64
+  # -------------------------------------------------------------------
+  etcd-lief:
+    plugin: nil
+    after: [etcd-unpatched]
+    source: build-scripts/components/etcd
+    build-environment:
+    - BASE: core22  # Note: This field must match the base field above.
+    - BIN: $CRAFT_STAGE/bin/etcd
     # Note(ben): patchelf messes up the segments when patching etcd
     # due to https://github.com/NixOS/patchelf/issues/446.
     # Instead, we use a custom script based on LIEF to manually patch the rpath and interpreter.
-    build-attributes: [enable-patchelf]
-    override-build: $CRAFT_PROJECT_DIR/build-scripts/build-component.sh etcd
+    build-attributes: [no-patchelf]
     override-prime: |
-      # Note(Ben): This field must match the base field above.
-      # elf patching occurs in the prime stage of the plugin.
-      # by overriding it here we can ensure our custom script runs
-      # appropriately per architecture.
-
-      BASE=core22
       case "$CRAFT_ARCH_TRIPLET_BUILD_FOR" in
-        x86_64-linux-gnu)
+        x86_64-linux-gnu|aarch64-linux-gnu)
+          echo "Patching ELF file: $BIN with LIEF"
+          # Only install Python deps on supported arches
           pip3 install -r $CRAFT_PROJECT_DIR/build-scripts/hack/requirements.txt
-          python3 $CRAFT_PROJECT_DIR/build-scripts/hack/patchelf.py $CRAFT_PART_INSTALL/bin/etcd \
-            --set-rpath /snap/$BASE/current/lib/x86_64-linux-gnu/ \
-            --set-interpreter /snap/$BASE/current/lib64/ld-linux-x86-64.so.2
-          ;;
-        aarch64-linux-gnu)
-          pip3 install -r $CRAFT_PROJECT_DIR/build-scripts/hack/requirements.txt
-          python3 $CRAFT_PROJECT_DIR/build-scripts/hack/patchelf.py $CRAFT_PART_INSTALL/bin/etcd \
-            --set-rpath /snap/$BASE/current/lib/aarch64-linux-gnu/ \
-            --set-interpreter /snap/$BASE/current/lib/ld-linux-aarch64.so.1
+
+          if [ "$CRAFT_ARCH_TRIPLET_BUILD_FOR" = "x86_64-linux-gnu" ]; then
+            python3 $CRAFT_PROJECT_DIR/build-scripts/hack/patchelf.py "$BIN" \
+              --set-rpath /snap/$BASE/current/lib/x86_64-linux-gnu/ \
+              --set-interpreter /snap/$BASE/current/lib64/ld-linux-x86-64.so.2
+          else
+            python3 $CRAFT_PROJECT_DIR/build-scripts/hack/patchelf.py "$BIN" \
+              --set-rpath /snap/$BASE/current/lib/aarch64-linux-gnu/ \
+              --set-interpreter /snap/$BASE/current/lib/ld-linux-aarch64.so.1
+          fi
+          echo "==> LIEF patching complete"
           ;;
         *)
-          echo "Unknown architecture: $CRAFT_ARCH_TRIPLET_BUILD_FOR"
+          # No-op on other arches
+          echo "==> Skipping LIEF patching for architecture: $CRAFT_ARCH_TRIPLET_BUILD_FOR"
+          ;;
+      esac
+
+  # -------------------------------------------------------------------
+  # Part 3: Patch etcd with Snap-native patchelf on all other arches
+  # -------------------------------------------------------------------
+  etcd-native:
+    plugin: nil
+    after: [etcd-unpatched]
+    source: build-scripts/components/etcd
+    override-build: |
+      case "$CRAFT_ARCH_TRIPLET_BUILD_FOR" in
+        x86_64-linux-gnu|aarch64-linux-gnu)
+          ;;
+        *)
+          echo "==> Replace unpatched etcd binary for native patchelf"
+          BIN_INSTALL=$CRAFT_PART_INSTALL/bin/
+          mkdir -p $BIN_INSTALL
+          mv $CRAFT_STAGE/bin/etcd $BIN_INSTALL/etcd
           craftctl default
           ;;
       esac
-    stage:
-      - bin/etcd
+    build-attributes: [enable-patchelf]
+    override-prime: |
+      case "$CRAFT_ARCH_TRIPLET_BUILD_FOR" in
+        x86_64-linux-gnu|aarch64-linux-gnu)
+          echo "==> Skipping Snap-native patchelf; for architecture: $CRAFT_ARCH_TRIPLET_BUILD_FOR"
+          ;;
+        *)
+          echo "==> Applying Snap-native patchelf"
+          craftctl default
+          ;;
+      esac
+
+  # -------------------------------------------------------------------
+  # Part 4: Final etcd part that depends on both patched parts
+  # -------------------------------------------------------------------
+  etcd:
+    after: [etcd-lief, etcd-native]
+    plugin: nil
+    source: build-scripts/components/etcd
+    build-environment:
+    - BASE: core22  # Note: This field must match the base field above.
+    override-prime: |
+      readelf -l $CRAFT_STAGE/bin/etcd | grep $BASE
+      craftctl default
 
   k8s-binaries:
     after: [dqlite]
@@ -282,6 +336,7 @@ parts:
     after:
       - cni
       - containerd
+      - etcd
       - helm
       - k8s-dqlite
       - kubernetes
