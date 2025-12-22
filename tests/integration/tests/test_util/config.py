@@ -139,6 +139,13 @@ LXD_DUAL_NIC_PROFILE = (
     or (DIR / ".." / ".." / "lxd-dual-nic-profile.yaml").read_text()
 )
 
+# LXD_DUAL_NIC_JUMBO_PROFILE_NAME is the profile name to use for LXD containers
+# with dual NIC setup with one of them being jumbo.
+LXD_DUAL_NIC_JUMBO_PROFILE_NAME = (
+    os.getenv("TEST_LXD_DUAL_NIC_JUMBO_PROFILE_NAME")
+    or "k8s-integration-dual-nic-jumbo"
+)
+
 # LXD_IMAGE is the image to use for LXD containers.
 LXD_IMAGE = os.getenv("TEST_LXD_IMAGE") or "ubuntu:22.04"
 
