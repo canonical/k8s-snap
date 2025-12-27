@@ -58,14 +58,14 @@ spec:
     files:
     - content: |
         #!/bin/bash -xe
-        snap install k8s --classic --channel=1.34-classic/candidate
+        snap install k8s --classic --channel=1.35-classic/candidate
       owner: root:root
       path: /capi/scripts/install.sh
       permissions: "0500"
 ```
 
 Now the new control plane nodes that are created using this manifest will have
-the `1.34-classic/candidate` {{product}} snap installed on them!
+the `1.35-classic/candidate` {{product}} snap installed on them!
 
 ```{note}
 [Use the configuration specification](#using-config-spec),
