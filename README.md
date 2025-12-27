@@ -53,7 +53,7 @@ available in other Linux distributions that support
 Install the snap:
 
 ```bash
-sudo snap install k8s --channel=1.34-classic/stable --classic
+sudo snap install k8s --channel=1.35-classic/stable --classic
 ```
 
 Initialize the cluster:
