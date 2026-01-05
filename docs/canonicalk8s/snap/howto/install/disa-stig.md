@@ -70,11 +70,13 @@ sudo reboot
 ```
 
 After rebooting, you can re-run `sudo usg audit disa_stig` to verify host
-compliance. You may need to iterate between auditing and applying manual fixes
+compliance. You may need to create a tailoring file to disable certain rules
+and document exceptions
 to reach your desired compliance state. See the USG
 [tailoring guidance] for help with rule customization and manual remediation.
 
-Some rules commonly require manual remediation or exceptions:
+Some rules commonly require manual remediation or exceptions,
+including but not limited to:
 
 - **`content_rule_dir_perms_world_writable_sticky_bits`**: Upstream Kubernetes
 violates this rule when creating workloads due to how it manages volume
