@@ -1,6 +1,6 @@
 # How to install {{ product }} with DISA STIG hardening
 
-```{versionadded} release-1.34 
+```{versionadded} release-1.34
 ```
 
 DISA Security Technical Implementation Guides (STIGs) provide hardening
@@ -18,7 +18,7 @@ already followed our [FIPS installation guide], but stopped after installing
 {{product}} without following the steps to bootstrap/join the cluster. Instead
 continue here to first complete additional steps needed for DISA STIG
 compliance.
-- [Ubuntu Pro] subscription 
+- [Ubuntu Pro] subscription
 
 ## Configure the host
 
@@ -69,19 +69,22 @@ Reboot to apply the changes:
 sudo reboot
 ```
 
-After rebooting, you can re-run `sudo usg audit disa_stig` to verify that the
-host is now compliant.
+After rebooting, you can re-run `sudo usg audit disa_stig` to verify host
+compliance. You may need to iterate between auditing and applying manual fixes
+to reach your desired compliance state. See the USG
+[tailoring guidance] for help with rule customization and manual remediation.
 
-Some rules may remain non-compliant as they require manual remediation or
-exceptions:
+Some rules commonly require manual remediation or exceptions:
 
 - **`content_rule_dir_perms_world_writable_sticky_bits`**: Upstream Kubernetes
-violates this rule when creating workloads. You will need an exception for
-this rule.
-- **`ufw_rate_limit`**: When enforced, this rule can cause performance issues
-with Kubernetes clusters. You may seek an exception or alternative solution.
-- **`content_rule_only_allow_dod_certs`**: To comply with this rule, you must
-pass custom certificates to {{product}} via the [configuration files].
+violates this rule when creating workloads due to how it manages volume
+permissions (see [kubernetes/kubernetes#125876]). You will need an exception
+for this rule.
+- **`content_rule_only_allow_dod_certs`**: By default, {{product}} uses
+self-signed [certificates] which may be
+acceptable in your environment. If you require certificates signed by a DoD CA
+for compliance requirements, you can configure custom
+certificates via the [configuration files].
 
 ### Configure the kernel
 
@@ -240,7 +243,7 @@ anytime the list of ports, protocols, and services used by your cluster changes
 - {ref}`242415`: Secrets must not be stored as environment variables
 - {ref}`242417`: User functionality must be separate from management functions
    meaning all user pods must be in user specific namespaces rather than system
-   namespaces 
+   namespaces
 - {ref}`242443`: Kubernetes components must be regularly updated to avoid
    vulnerabilities. We recommend using the latest revision of a<a href=
    "https://ubuntu.com/about/release-cycle?product=kubernetes&release=canonical+kubernetes&version=all">
@@ -260,12 +263,14 @@ recommendations and details how they apply to {{product}}.
 [configure Uncomplicated Firewall (UFW) ]: /snap/howto/networking/ufw.md
 [USG tool]: https://documentation.ubuntu.com/security/docs/compliance/usg/
 [Ubuntu Pro]: https://documentation.ubuntu.com/pro/start-here/#start-here
+[certificates]: /snap/reference/certificates.md
 [upstream instructions]: https://kubernetes.io/docs/tasks/configure-pod-container/enforce-standards-admission-controller/
 [upstream audit instructions]: https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
 [V-270714]: https://www.stigviewer.com/stigs/canonical_ubuntu_2404_lts/2025-05-16/finding/V-270714
 [V-260570]: https://www.stigviewer.com/stigs/canonical_ubuntu_2204_lts/2025-05-16/finding/V-260570
 [V-270665]: https://www.stigviewer.com/stigs/canonical_ubuntu_2404_lts/2025-05-16/finding/V-270665
 [V-260523]: https://www.stigviewer.com/stigs/canonical_ubuntu_2204_lts/2025-05-16/finding/V-260523
+[kubernetes/kubernetes#125876]: https://github.com/kubernetes/kubernetes/issues/125876
 [DISA STIG host OS]: https://www.stigviewer.com/stigs/canonical_ubuntu_2404_lts
 [DISA STIG configuration files]: /snap/reference/config-files/disa-stig-config.md
 [DISA STIG audit]: /snap/reference/disa-stig-audit.md
