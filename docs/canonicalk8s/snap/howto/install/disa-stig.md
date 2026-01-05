@@ -264,6 +264,7 @@ recommendations and details how they apply to {{product}}.
 [USG tool]: https://documentation.ubuntu.com/security/docs/compliance/usg/
 [Ubuntu Pro]: https://documentation.ubuntu.com/pro/start-here/#start-here
 [certificates]: /snap/reference/certificates.md
+[tailoring guidance]: https://documentation.ubuntu.com/security/compliance/usg/disa-customize/
 [upstream instructions]: https://kubernetes.io/docs/tasks/configure-pod-container/enforce-standards-admission-controller/
 [upstream audit instructions]: https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
 [V-270714]: https://www.stigviewer.com/stigs/canonical_ubuntu_2404_lts/2025-05-16/finding/V-270714
