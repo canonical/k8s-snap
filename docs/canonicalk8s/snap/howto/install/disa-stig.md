@@ -80,7 +80,7 @@ including but not limited to:
 
 - **`content_rule_dir_perms_world_writable_sticky_bits`**: Upstream Kubernetes
 violates this rule when creating workloads due to how it manages volume
-permissions (see [kubernetes/kubernetes#125876]). You will need an exception
+permissions (see [Kubernetes issue #125876]). You will need an exception
 for this rule.
 - **`content_rule_only_allow_dod_certs`**: By default, {{product}} uses
 self-signed [certificates] which may be
@@ -127,10 +127,10 @@ To comply with rule {ref}`254800`, you must configure a Pod Security Admission
 control file for your Kubernetes cluster. This file defines the Pod Security
 Standards (PSS) that are enforced at the namespace level. 
 
-| |  |
-|--|--|
-|Current default| `/var/snap/k8s/common/etc/configurations/pod-security-admission-baseline.yaml`. This pod security policy is set to “baseline”, a minimally restrictive policy that prevents known privilege escalations.|
-|Alternative configuration| `/var/snap/k8s/common/etc/configurations/pod-security-admission-restricted.yaml`. This pod security policy is set to "restricted", a heavily restricted policy that follows current pod hardening best practices. |
+|                           |                                                                                                                                                                                                                   |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Current default           | `/var/snap/k8s/common/etc/configurations/pod-security-admission-baseline.yaml`. This pod security policy is set to “baseline”, a minimally restrictive policy that prevents known privilege escalations.          |
+| Alternative configuration | `/var/snap/k8s/common/etc/configurations/pod-security-admission-restricted.yaml`. This pod security policy is set to "restricted", a heavily restricted policy that follows current pod hardening best practices. |
 
 These policies can be edited based on [upstream instructions].
 
@@ -145,10 +145,10 @@ To comply with rules {ref}`242402`, {ref}`242403`, {ref}`242461`, {ref}`242462`,
 {ref}`242463`, {ref}`242464`, and {ref}`242465` you must configure the 
 Kubernetes API Server audit log. 
 
-| |  |
-|--|--|
-|Current default| `/var/snap/k8s/common/etc/configurations/audit-policy.yaml`. This configures logging of all (non-resource) events with request metadata, request body, and response body as recommended by {ref}`242403`. This level of logging may be impractical for some situations, in which case the settings would need to be adjusted and an exception put in place.|
-| Alternative configuration| `/var/snap/k8s/common/etc/configurations/audit-policy-kube-system.yaml`. This provides the same level of logging, but only for events in the kube-system namespace.|
+|                           |                                                                                                                                                                                                                                                                                                                                                             |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Current default           | `/var/snap/k8s/common/etc/configurations/audit-policy.yaml`. This configures logging of all (non-resource) events with request metadata, request body, and response body as recommended by {ref}`242403`. This level of logging may be impractical for some situations, in which case the settings would need to be adjusted and an exception put in place. |
+| Alternative configuration | `/var/snap/k8s/common/etc/configurations/audit-policy-kube-system.yaml`. This provides the same level of logging, but only for events in the kube-system namespace.                                                                                                                                                                                         |
 
 These policies can be edited based on [upstream audit instructions].
 
@@ -267,13 +267,14 @@ recommendations and details how they apply to {{product}}.
 [Ubuntu Pro]: https://documentation.ubuntu.com/pro/start-here/#start-here
 [certificates]: /snap/reference/certificates.md
 [tailoring guidance]: https://documentation.ubuntu.com/security/compliance/usg/disa-customize/
+[configuration files]: /snap/reference/config-files/index
 [upstream instructions]: https://kubernetes.io/docs/tasks/configure-pod-container/enforce-standards-admission-controller/
 [upstream audit instructions]: https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
 [V-270714]: https://www.stigviewer.com/stigs/canonical_ubuntu_2404_lts/2025-05-16/finding/V-270714
 [V-260570]: https://www.stigviewer.com/stigs/canonical_ubuntu_2204_lts/2025-05-16/finding/V-260570
 [V-270665]: https://www.stigviewer.com/stigs/canonical_ubuntu_2404_lts/2025-05-16/finding/V-270665
 [V-260523]: https://www.stigviewer.com/stigs/canonical_ubuntu_2204_lts/2025-05-16/finding/V-260523
-[kubernetes/kubernetes#125876]: https://github.com/kubernetes/kubernetes/issues/125876
+[Kubernetes issue #125876]: https://github.com/kubernetes/kubernetes/issues/125876
 [DISA STIG host OS]: https://www.stigviewer.com/stigs/canonical_ubuntu_2404_lts
 [DISA STIG configuration files]: /snap/reference/config-files/disa-stig-config.md
 [DISA STIG audit]: /snap/reference/disa-stig-audit.md
