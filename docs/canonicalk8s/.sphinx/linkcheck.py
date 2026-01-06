@@ -4,7 +4,7 @@ import subprocess
 import argparse
 
 def run_command(command, cwd):
-    subprocess.run(command, check=True, shell=True, cwd=cwd)
+    subprocess.run(command, check=True, shell=False, cwd=cwd)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("working_dir")
@@ -31,8 +31,12 @@ try:
             makefile = "Makefile"
 
     # Install the doc framework and run link checker
-    run_command(f"make -f {makefile} {install_target}", args.working_dir)
-    run_command(f"make -f {makefile} {linkcheck_target} FILES='{changed_files}'", args.working_dir)
+    install_cmd = ["make", "-f", makefile, install_target]
+    run_command(install_cmd, args.working_dir)
+    linkcheck_cmd = ["make","-f", makefile, linkcheck_target, f"FILES={changed_files}"]
+    run_command(linkcheck_cmd, args.working_dir)
+
 except subprocess.CalledProcessError as e:
-    print(f"Command '{e.cmd}' returned non-zero exit status {e.returncode}.")
+    cmd_str = ' '.join(e.cmd) if isinstance(e.cmd, list) else e.cmd
+    print(f"Command '{cmd_str}' returned non-zero exit status {e.returncode}.")
     exit(1)
