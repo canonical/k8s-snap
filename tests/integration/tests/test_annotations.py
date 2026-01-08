@@ -105,7 +105,7 @@ def test_skip_services_stop_on_remove(instances: List[harness.Instance]):
 # Old versions still use k8s-dqlite
 @pytest.mark.required_ports(9000)
 def test_disable_separate_feature_upgrades(
-    instances: List[harness.Instance], tmp_path: Path, datastore_type: str
+    instances: List[harness.Instance], tmp_path: Path
 ):
     cluster_node = instances[0]
     joining_cp = instances[1]
@@ -114,11 +114,14 @@ def test_disable_separate_feature_upgrades(
     for instance in instances:
         instance.exec(f"snap install k8s --classic --channel={start_branch}".split())
 
-    bootstrap_config = (
-        config.MANIFESTS_DIR / "bootstrap-disable-separate-feature-upgrades.yaml"
-    ).read_text()
-    util.bootstrap(
-        cluster_node, datastore_type=datastore_type, bootstrap_config=bootstrap_config
+    cluster_node.exec(
+        "k8s bootstrap --file -".split(),
+        input=str.encode(
+            (
+                config.MANIFESTS_DIR
+                / "bootstrap-disable-separate-feature-upgrades.yaml"
+            ).read_text()
+        ),
     )
 
     util.wait_until_k8s_ready(cluster_node, [cluster_node])
