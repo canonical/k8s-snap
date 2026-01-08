@@ -19,7 +19,7 @@ jobs:
       matrix:
         os: ["ubuntu:22.04", "ubuntu:24.04"]
         arch: ["amd64", "arm64"]
-        channel: ["1.33-classic/edge"]
+        channel: ["latest/edge"]
       fail-fast: false # TODO: remove once we no longer have flaky tests.
     uses: ./.github/workflows/e2e-tests.yaml
     with:

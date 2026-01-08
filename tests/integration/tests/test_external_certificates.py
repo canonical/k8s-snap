@@ -183,7 +183,7 @@ def delete_nginx_pod(instance: harness.Instance):
 @pytest.mark.node_count(3)
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.tags(tags.NIGHTLY)
-def test_vault_intermediate_ca(instances: List[harness.Instance], datastore_type: str):
+def test_vault_intermediate_ca(instances: List[harness.Instance]):
     instance = instances[0]
     cp_node = instances[1]
     worker_node = instances[2]
@@ -219,8 +219,9 @@ def test_vault_intermediate_ca(instances: List[harness.Instance], datastore_type
         }
     )
 
-    util.bootstrap(
-        instance, datastore_type=datastore_type, bootstrap_config=bootstrap_config
+    instance.exec(
+        ["k8s", "bootstrap", "--file", "-"],
+        input=str.encode(yaml.dump(bootstrap_config)),
     )
 
     # Add a control plane node and a worker node.
@@ -240,7 +241,7 @@ def test_vault_intermediate_ca(instances: List[harness.Instance], datastore_type
 @pytest.mark.node_count(3)
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.tags(tags.NIGHTLY)
-def test_vault_certificates(instances: List[harness.Instance], datastore_type: str):
+def test_vault_certificates(instances: List[harness.Instance]):
     instance = instances[0]
     bootstrap_node_ip = util.get_default_ip(instance)
     bootstrap_node_hostname = util.hostname(instance)
@@ -322,8 +323,9 @@ def test_vault_certificates(instances: List[harness.Instance], datastore_type: s
     bootstrap_config.pop("kube-controller-manager-client-key")
 
     LOG.info("Certificates are ready. Bootstrapping.")
-    util.bootstrap(
-        instance, datastore_type=datastore_type, bootstrap_config=bootstrap_config
+    instance.exec(
+        ["k8s", "bootstrap", "--file", "-"],
+        input=str.encode(yaml.dump(bootstrap_config)),
     )
 
     # Add a control plane node.
