@@ -15,6 +15,7 @@ STATUS_PATTERNS = [
     r"cluster status:\s*ready",
     r"control plane nodes:\s*(\d{1,3}(?:\.\d{1,3}){3}:\d{1,5})\s\(voter\)",
     r"high availability:\s*no",
+    r"datastore:\s*etcd",
     r"network:\s*enabled",
     r"dns:\s*enabled at (\d{1,3}(?:\.\d{1,3}){3})",
     r"ingress:\s*enabled",
@@ -25,12 +26,10 @@ STATUS_PATTERNS = [
 
 
 @pytest.mark.tags(tags.PULL_REQUEST)
-def test_feature_controller(instances: List[harness.Instance], datastore_type: str):
+def test_feature_controller(instances: List[harness.Instance]):
     """
     Verifies that the feature controller won't get stuck in a chaotic situation.
     """
-    status_patterns = STATUS_PATTERNS.copy()
-    status_patterns.insert(3, r"datastore:\s*{}".format(datastore_type))
 
     instance = instances[0]
 
@@ -80,14 +79,14 @@ def test_feature_controller(instances: List[harness.Instance], datastore_type: s
 
     def status_output_matches(p: subprocess.CompletedProcess) -> bool:
         result_lines = p.stdout.decode().strip().split("\n")
-        if len(result_lines) != len(status_patterns):
+        if len(result_lines) != len(STATUS_PATTERNS):
             LOG.info(
-                f"wrong number of results lines, expected {len(status_patterns)}, got {len(result_lines)}"
+                f"wrong number of results lines, expected {len(STATUS_PATTERNS)}, got {len(result_lines)}"
             )
             return False
 
         for i in range(len(result_lines)):
-            line, pattern = result_lines[i], status_patterns[i]
+            line, pattern = result_lines[i], STATUS_PATTERNS[i]
             if not re.search(pattern, line):
                 LOG.info(f"could not match `{line.strip()}` with `{pattern}`")
                 return False

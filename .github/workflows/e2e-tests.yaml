@@ -33,10 +33,6 @@ on:
         description: Test flavor (e.g. strict), leave empty for classic
         default: ""
         type: string
-      datastore:
-        description: Datastore backend to use for the tests (e.g. etcd, k8s-dqlite)
-        default: ""
-        type: string
       extra-test-args: &extra-test-args
         description: |
           Additional pytest arguments, use "-k <test_name>" to run a specific test
@@ -252,7 +248,6 @@ jobs:
           TEST_LXD_IMAGE: ${{ inputs.os }}
           TEST_MULTIPASS_IMAGE: ${{ inputs.os }}
           TEST_FLAVOR: ${{ inputs.flavor }}
-          TEST_DATASTORE: ${{ inputs.datastore }}
           TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports/${{ inputs.parallel && env.test_name || '' }}
           TEST_VERSION_UPGRADE_CHANNELS: "recent 6"
           TEST_VERSION_DOWNGRADE_CHANNELS: "recent 6"
