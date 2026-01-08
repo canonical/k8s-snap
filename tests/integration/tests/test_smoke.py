@@ -16,6 +16,7 @@ STATUS_PATTERNS = [
     r"cluster status:\s*ready",
     r"control plane nodes:\s*(\d{1,3}(?:\.\d{1,3}){3}:\d{1,5})\s\(voter\)",
     r"high availability:\s*no",
+    r"datastore:\s*etcd",
     r"network:\s*enabled",
     r"dns:\s*enabled at (\d{1,3}(?:\.\d{1,3}){3})",
     r"ingress:\s*enabled",
@@ -30,10 +31,7 @@ STATUS_PATTERNS = [
     (config.MANIFESTS_DIR / "bootstrap-smoke.yaml").read_text()
 )
 @pytest.mark.tags(tags.PULL_REQUEST)
-def test_smoke(instances: List[harness.Instance], datastore_type: str):
-    status_patterns = STATUS_PATTERNS.copy()
-    status_patterns.insert(3, r"datastore:\s*{}".format(datastore_type))
-
+def test_smoke(instances: List[harness.Instance]):
     instance = instances[0]
 
     # Verify the functionality of the k8s config command during the smoke test.
@@ -52,22 +50,16 @@ def test_smoke(instances: List[harness.Instance], datastore_type: str):
     )
     assert content.stdout.decode() == "extra-args-test-file-content"
 
-    args = {
+    # For each service, verify that the extra arg was written to the args file.
+    for service, value in {
         "kube-apiserver": '--request-timeout="2m"',
         "kube-controller-manager": '--leader-elect-retry-period="3s"',
         "kube-scheduler": '--authorization-webhook-cache-authorized-ttl="11s"',
         "kube-proxy": '--config-sync-period="14m"',
         "kubelet": '--authentication-token-webhook-cache-ttl="3m"',
         "containerd": '--log-level="debug"',
-    }
-
-    if datastore_type == "etcd":
-        args["etcd"] = '--log-level="info"'
-    elif datastore_type == "k8s-dqlite":
-        args["k8s-dqlite"] = '--watch-storage-available-size-interval="6s"'
-
-    # For each service, verify that the extra arg was written to the args file.
-    for service, value in args.items():
+        "etcd": '--log-level="info"',
+    }.items():
         args = instance.exec(
             ["cat", f"/var/snap/k8s/common/args/{service}"], capture_output=True
         )
@@ -132,14 +124,14 @@ def test_smoke(instances: List[harness.Instance], datastore_type: str):
 
     def status_output_matches(p: subprocess.CompletedProcess) -> bool:
         result_lines = p.stdout.decode().strip().split("\n")
-        if len(result_lines) != len(status_patterns):
+        if len(result_lines) != len(STATUS_PATTERNS):
             LOG.info(
-                f"wrong number of results lines, expected {len(status_patterns)}, got {len(result_lines)}"
+                f"wrong number of results lines, expected {len(STATUS_PATTERNS)}, got {len(result_lines)}"
             )
             return False
 
         for i in range(len(result_lines)):
-            line, pattern = result_lines[i], status_patterns[i]
+            line, pattern = result_lines[i], STATUS_PATTERNS[i]
             if not re.search(pattern, line):
                 LOG.info(f"could not match `{line.strip()}` with `{pattern}`")
                 return False
