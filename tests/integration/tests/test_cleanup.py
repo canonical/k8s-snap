@@ -35,7 +35,7 @@ def _assert_paths_not_exist(instance: harness.Instance, paths: List[str]):
 
 @pytest.mark.node_count(1)
 @pytest.mark.tags(tags.NIGHTLY)
-def test_node_cleanup(instances: List[harness.Instance], tmp_path, datastore_type: str):
+def test_node_cleanup(instances: List[harness.Instance], tmp_path):
     """Verifies that a `snap remove k8s` will perform proper cleanup."""
     instance = instances[0]
     util.wait_for_dns(instance)
@@ -48,16 +48,14 @@ def test_node_cleanup(instances: List[harness.Instance], tmp_path, datastore_typ
     _assert_paths_not_exist(instance, all_paths)
 
     util.setup_k8s_snap(instance)
-    util.bootstrap(instance, datastore_type=datastore_type)
+    instance.exec(["k8s", "bootstrap"])
 
 
 @pytest.mark.node_count(2)
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.containerd_cfgdir("/home/ubuntu/k8s-containerd/etc/containerd")
 @pytest.mark.tags(tags.NIGHTLY)
-def test_node_cleanup_new_containerd_path(
-    instances: List[harness.Instance], datastore_type: str
-):
+def test_node_cleanup_new_containerd_path(instances: List[harness.Instance]):
     main = instances[0]
     joiner = instances[1]
 
@@ -68,10 +66,9 @@ def test_node_cleanup_new_containerd_path(
 containerd-base-dir: /home/ubuntu
 """
 
-    util.bootstrap(
-        main,
-        datastore_type=datastore_type,
-        bootstrap_config=containerd_path_bootstrap_config,
+    main.exec(
+        ["k8s", "bootstrap", "--file", "-"],
+        input=str.encode(containerd_path_bootstrap_config),
     )
 
     join_token = util.get_join_token(main, joiner)
@@ -123,9 +120,7 @@ containerd-base-dir: /home/ubuntu
 @pytest.mark.node_count(1)
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.tags(tags.NIGHTLY)
-def test_containerd_path_cleanup_on_failed_init(
-    instances: List[harness.Instance], datastore_type: str
-):
+def test_containerd_path_cleanup_on_failed_init(instances: List[harness.Instance]):
     """Tests that a failed `bootstrap` properly cleans up any
     containerd-related paths it may have created as part of the
     failed `bootstrap`.
@@ -143,10 +138,9 @@ def test_containerd_path_cleanup_on_failed_init(
 
     fail_bootstrap_config = (config.MANIFESTS_DIR / "bootstrap-fail.yaml").read_text()
 
-    proc = util.bootstrap(
-        instance,
-        datastore_type=datastore_type,
-        bootstrap_config=fail_bootstrap_config,
+    proc = instance.exec(
+        ["k8s", "bootstrap", "--file", "-"],
+        input=str.encode(fail_bootstrap_config),
         check=False,
     )
 

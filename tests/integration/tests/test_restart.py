@@ -13,6 +13,7 @@ STATUS_PATTERNS = [
     r"cluster status:\s*ready",
     r"control plane nodes:\s*(\d{1,3}(?:\.\d{1,3}){3}:\d{1,5})\s\(voter\)",
     r"high availability:\s*yes",
+    r"datastore:\s*etcd",
     r"network:\s*enabled",
     r"dns:\s*enabled at (\d{1,3}(?:\.\d{1,3}){3})",
     r"ingress:\s*disabled",
@@ -24,12 +25,10 @@ STATUS_PATTERNS = [
 
 @pytest.mark.tags(tags.WEEKLY)
 @pytest.mark.node_count(3)
-def test_restart(instances: List[harness.Instance], datastore_type: str):
+def test_restart(instances: List[harness.Instance]):
     """
     Test that a restart of the instance does not break the k8s snap.
     """
-    status_patterns = STATUS_PATTERNS.copy()
-    status_patterns.insert(3, r"datastore:\s*{}".format(datastore_type))
 
     main = instances[0]
     for joining in instances[1:]:
@@ -41,7 +40,7 @@ def test_restart(instances: List[harness.Instance], datastore_type: str):
     for instance in instances:
         LOG.info("Waiting for the instance %s to be ready", instance.id)
         util.stubbornly(retries=15, delay_s=10).on(instance).until(
-            condition=lambda p: util.status_output_matches(p, status_patterns),
+            condition=lambda p: util.status_output_matches(p, STATUS_PATTERNS),
         ).exec(["k8s", "status", "--wait-ready"])
 
     for instance in instances:
@@ -53,7 +52,7 @@ def test_restart(instances: List[harness.Instance], datastore_type: str):
     for instance in instances:
         LOG.info("Waiting for the instance %s to come back up", instance.id)
         util.stubbornly(retries=15, delay_s=10).on(instance).until(
-            condition=lambda p: util.status_output_matches(p, status_patterns),
+            condition=lambda p: util.status_output_matches(p, STATUS_PATTERNS),
         ).exec(["k8s", "status", "--wait-ready"])
 
     # An additional check to ensure the cluster is still functional

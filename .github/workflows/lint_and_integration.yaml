@@ -131,13 +131,11 @@ jobs:
       fail-fast: false
       matrix:
         arch: [amd64, arm64]
-        datastore: [etcd, k8s-dqlite]
     needs: [build-snap, get-e2e-tags, go-lint-and-unit, python-lint]
     uses: ./.github/workflows/e2e-tests.yaml
     with:
       arch: ${{ matrix.arch }}
       os: ubuntu:24.04
-      datastore: ${{ matrix.datastore }}
       test-tags: ${{ needs.get-e2e-tags.outputs.test-tags }}
       artifact: k8s-${{ matrix.arch }}.snap
       test-collection-branch: ${{ github.head_ref }}
