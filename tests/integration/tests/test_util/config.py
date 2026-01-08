@@ -39,10 +39,6 @@ REGISTRY_VERSION = os.getenv("REGISTRY_VERSION") or "v2.8.3"
 # FLAVOR is the flavor of the snap to use.
 FLAVOR = os.getenv("TEST_FLAVOR") or "classic"
 
-# DATASTORE is the datastore backend to use for the tests.
-# One of 'etcd' (default), or 'k8s-dqlite'.
-DATASTORE = os.getenv("TEST_DATASTORE") or "etcd"
-
 # SNAP is the absolute path to the snap against which we run the integration tests.
 SNAP = os.getenv("TEST_SNAP")
 
