@@ -22,20 +22,9 @@ export GOTOOLCHAIN=local
 export GOEXPERIMENT=opensslcrypto
 export CGO_ENABLED=1
 export GO_BUILDTAGS="linux cgo ms_tls13kdf"
-for bin in containerd; do
-  make "bin/${bin}"
-  cp "bin/${bin}" "${INSTALL}/${bin}"
-done
-
-# Shims can be built statically as they do not contain any crypto functions
-for bin in ctr containerd-shim-runc-v2; do
-  export STATIC=1
-  export CGO_ENABLED=0
-  export GO_BUILDTAGS=
-  export SHIM_CGO_ENABLED=0
-  export SHIM_GO_BUILDTAGS=
-  export GOEXPERIMENT=
-
+export SHIM_CGO_ENABLED=1
+export SHIM_GO_BUILDTAGS="linux cgo ms_tls13kdf"
+for bin in containerd ctr containerd-shim-runc-v2; do
   make "bin/${bin}"
   cp "bin/${bin}" "${INSTALL}/${bin}"
 done
