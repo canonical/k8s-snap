@@ -55,6 +55,7 @@ backported
 balancer
 balancer's
 balancers
+baycarbone
 benoitblanchon
 berkayoz
 bgp
@@ -83,6 +84,7 @@ Charmcraft
 Charmed
 Charmed Kubeflow
 Charmhub
+charmlib
 cidr
 cidrs
 CIDRs
@@ -104,6 +106,7 @@ ClusterRoleBindings
 ClusterRoles
 CMK
 CNCF
+cni
 CNI
 CNI's
 CNIs
@@ -145,6 +148,7 @@ cypher
 DaemonSet
 DaemonSets
 Data Integrator
+databag
 databags
 datastore
 datastores
@@ -167,6 +171,7 @@ dodi
 DPDK
 dqlite
 DRBD
+dualstack
 drv
 DTMs
 dulmandakh
@@ -180,6 +185,7 @@ ec
 ECDSA
 endfor
 endif
+EndpointSlice
 endtrans
 enp
 enum
@@ -433,6 +439,8 @@ Pushgateway
 PV
 PVCs
 py
+pypi
+PyPI
 Pydantic
 Python
 qdisc
@@ -453,10 +461,12 @@ remediations
 reources
 RequestResponse
 Requirer
+resizer
 roadmap
 Rockcraft
 RoleBindings
 rollout
+RPATH
 RPC
 rsa
 ru
@@ -489,6 +499,7 @@ sha
 sideloading
 Snapcraft
 snapd
+snapshotter
 sourcename
 Spark
 Spark History Server

@@ -13,6 +13,7 @@ and backwards-incompatible changes.
 /snap/reference/versions/1.32
 /snap/reference/versions/1.33
 /snap/reference/versions/1.34
+/snap/reference/versions/1.35
 ```
 
 ## Upgrade notes

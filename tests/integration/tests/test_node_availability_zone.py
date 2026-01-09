@@ -7,7 +7,7 @@ import struct
 from typing import List
 
 import pytest
-from test_util import harness, tags, util
+from test_util import config, harness, tags, util
 
 LOG = logging.getLogger(__name__)
 
@@ -21,13 +21,15 @@ def _get_failure_domain(availability_zone: str) -> int:
 
 @pytest.mark.node_count(3)
 @pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.parametrize("same_az", (False, True))
+@pytest.mark.parametrize("datastore", ("k8s-dqlite", "etcd"))
 # For k8s-dqlite
 @pytest.mark.required_ports(9000)
 def test_node_availability_zone(
     instances: List[harness.Instance],
     same_az: bool,
-    datastore_type: str,
+    datastore: str,
 ):
     # Steps:
     # * create a three-node cluster
@@ -39,6 +41,18 @@ def test_node_availability_zone(
     #     domain changes to be applied. We need to make sure that this doesn't
     #     lead to a quorum loss.
     initial_node = instances[0]
+
+    if datastore == "k8s-dqlite":
+        bootstrap_config = (
+            config.MANIFESTS_DIR / "bootstrap-k8s-dqlite.yaml"
+        ).read_text()
+    else:
+        bootstrap_config = (config.MANIFESTS_DIR / "bootstrap-all.yaml").read_text()
+
+    initial_node.exec(
+        ["k8s", "bootstrap", "--file", "-"],
+        input=str.encode(bootstrap_config),
+    )
 
     util.wait_until_k8s_ready(initial_node, [initial_node])
 
@@ -103,7 +117,7 @@ def test_node_availability_zone(
                 ]
             )
 
-            if datastore_type == "k8s-dqlite":
+            if datastore == "k8s-dqlite":
                 # Check k8s-dqlite.
                 util.stubbornly(retries=5, delay_s=10).on(instance).until(
                     lambda p: str(failure_domain) in p.stdout.decode()
