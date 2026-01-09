@@ -13,7 +13,8 @@ jobs:
     name: Backport pull request
     runs-on: ubuntu-latest
     permissions:
-      contents: write # so it can comment
+      # contents: write is required by the backport action to create and push backport branches
+      contents: write
       pull-requests: write # so it can create pull requests
 
     # Only run when pull request is merged
