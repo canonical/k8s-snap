@@ -148,6 +148,7 @@ func validateValues(g Gomega, values map[string]any, cfg types.LocalStorage) {
 	sc := values["storageClass"].(map[string]any)
 	g.Expect(sc["isDefault"]).To(Equal(cfg.GetDefault()))
 	g.Expect(sc["reclaimPolicy"]).To(Equal(cfg.GetReclaimPolicy()))
+	g.Expect(sc["allowVolumeExpansion"]).To(BeFalse())
 
 	storage := values["node"].(map[string]any)["storage"].(map[string]any)
 	g.Expect(storage["path"]).To(Equal(cfg.GetLocalPath()))
