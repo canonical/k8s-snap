@@ -213,7 +213,7 @@ parts:
   containerd:
     after: [runc]
     plugin: nil
-    # Note(ben): patchelf messes up the segments when patching etcd
+    # Note(ben): patchelf messes up the segments when patching containerd
     # due to https://github.com/NixOS/patchelf/issues/446.
     # Instead, we use a custom script based on LIEF to manually patch the rpath and interpreter.
     build-attributes: [no-patchelf]
