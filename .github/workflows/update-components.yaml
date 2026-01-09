@@ -25,6 +25,7 @@ jobs:
           # Keep main branch up to date
           - main
           # Supported release branches
+          - release-1.35
           - release-1.34
           - release-1.33
           - release-1.32
@@ -39,7 +40,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
       - name: Install dependencies
         run: |
