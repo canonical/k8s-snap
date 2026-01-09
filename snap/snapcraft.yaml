@@ -216,7 +216,7 @@ parts:
     # Note(ben): patchelf messes up the segments when patching etcd
     # due to https://github.com/NixOS/patchelf/issues/446.
     # Instead, we use a custom script based on LIEF to manually patch the rpath and interpreter.
-    build-attributes: [disable-patchelf]
+    build-attributes: [no-patchelf]
     source: build-scripts/components/containerd
     override-build: |
       # Note(Ben): This field must match the base field above.
