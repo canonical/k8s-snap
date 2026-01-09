@@ -57,17 +57,8 @@ jobs:
           go get $UPDATE_FLAG ./...
           go mod tidy
 
-      - name: Check for changes
-        id: changes
-        run: |
-          if git diff --quiet; then
-            echo "has_changes=false" >> $GITHUB_OUTPUT
-          else
-            echo "has_changes=true" >> $GITHUB_OUTPUT
-          fi
-
       - name: Create pull request
-        if: github.event_name != 'pull_request' && steps.changes.outputs.has_changes == 'true'
+        if: github.event_name != 'pull_request'
         uses: peter-evans/create-pull-request@v6
         with:
           commit-message: "[${{ matrix.branch }}] Update k8sd Go dependencies"
