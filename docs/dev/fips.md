@@ -8,7 +8,7 @@ cryptography at runtime.
 
 ## Purpose
 
-This documentation serves as a reference to enable developers to periodicly
+This documentation serves as a reference to enable developers to periodically
 review and ensure that all components containing cryptographic functionality are
 properly built with FIPS-compliant crypto libraries. This is critical for
 maintaining FIPS 140-3 compliance and security standards for government and
@@ -118,7 +118,7 @@ FIPS-validated OpenSSL modules accordingly.
 
 ### ROCK Cryptographic Usage
 
-See each ROCKs `docs/fips.md` file for a detailed analysis of their
+See each ROCK’s `docs/fips.md` file for a detailed analysis of their
 crypto usage.
 
 ## Related Documentation
