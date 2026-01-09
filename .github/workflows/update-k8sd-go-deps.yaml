@@ -35,7 +35,6 @@ jobs:
           cd src/k8s
           go get -u ./...
           go mod tidy
-          
           cd $GITHUB_WORKSPACE/src/k8s/tools
           go get -u ./...
           go mod tidy
