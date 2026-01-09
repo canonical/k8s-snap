@@ -3689,7 +3689,7 @@ specific namespace.
 
 
 <!-- Links -->
-[Center for Internet Security (CIS)]:https://www.cisecurity.org/
+[Center for Internet Security]: https://www.cisecurity.org/
 [benchmarks]: https://www.cisecurity.org/cis-benchmarks
 [hardening guide]: /snap/howto/security/hardening
 
