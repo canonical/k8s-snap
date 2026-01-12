@@ -1,4 +1,4 @@
-# FIPS and Cryptography in k8s-snap
+# FIPS and cryptography in k8s-snap
 
 This document provides a comprehensive overview of FIPS 140-3 compliance for
 the Canonical Kubernetes snap, covering both snap binaries and ROCK images. It
@@ -55,13 +55,13 @@ channels](https://ubuntu.com/tutorials/using-the-ubuntu-pro-client-to-enable-fip
 | [ctr][containerd-mod]                     | Dynamic    | ✅      | Command-line client with TLS support for secure registry and API communication                                                                    |
 | [etcd][etcd-mod]                          | Dynamic    | ✅      | TLS for client-server and peer-to-peer communication, data encryption at rest, client certificate authentication                                  |
 | [helm][helm-mod]                          | Dynamic    | ✅      | TLS for chart repository communication, chart signature verification, secure connections to Kubernetes API                                        |
-| [k8s-apiserver-proxy][k8sd-mod]           | Dynamic    | ✅      | TLS proxy for API server.                                                                                                                         |
-| [k8s-dqlite][k8s-dqlite-mod]              | Dynamic    | ✅      | TLS for dqlite cluster communication, certificate-based authentication between nodes, encrypted replication streams                               |
-| [k8sd][k8sd-mod]                          | Dynamic    | ✅      | Cluster management API with TLS.                                                                                                                  |
+| [k8s-apiserver-proxy][k8sd-mod]           | Dynamic    | ✅      | TLS proxy for API server                                                                                                                         |
+| [k8s-dqlite][k8s-dqlite-mod]              | Dynamic    | ✅      | TLS for Dqlite cluster communication, certificate-based authentication between nodes, encrypted replication streams                               |
+| [k8sd][k8sd-mod]                          | Dynamic    | ✅      | Cluster management API with TLS                                                                                                                  |
 | [kubernetes][kubernetes-mod]              | Dynamic    | ✅      | TLS communications, certificate management, token signing, encryption at rest, authentication (main binary for all kube-* binaries)               |
 | [runc][runc-mod]                          | Static     | ❌      | Low-level container runtime with no network communication or cryptographic operations                                                             |
 
-## Adding or Updating a Component
+## Adding or updating a component
 
 1. **Investigate crypto usage**:
 
