@@ -23,8 +23,7 @@ environment:
 architectures:
   - build-on: [amd64]
   - build-on: [arm64]
-  # Note(akd): Blocked on ppc64el due to lack of go 1.25-fips snap support
-  # - build-on: [ppc64el]
+  - build-on: [ppc64el]
   - build-on: [s390x]
 
 parts:
