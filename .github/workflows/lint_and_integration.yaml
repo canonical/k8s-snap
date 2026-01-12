@@ -149,7 +149,9 @@ jobs:
       artifact: ${{ needs.build-snap.outputs.snap-artifact }}
     permissions:
       contents: read # for actions/checkout to fetch code
-      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+      # security-events: write is required for github/codeql-action/upload-sarif to upload SARIF results
+      # This permission is necessary for security scanning functionality and cannot be reduced.
+      security-events: write
 
   get-charm-channel:
     name: Determine the charm channel
