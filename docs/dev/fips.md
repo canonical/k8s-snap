@@ -53,11 +53,7 @@ channels](https://ubuntu.com/tutorials/using-the-ubuntu-pro-client-to-enable-fip
 | [kubernetes][kubernetes-mod]              | Dynamic    | ✅      | TLS communications, certificate management, token signing, encryption at rest, authentication (main binary for all kube-* binaries)               |
 | [runc][runc-mod]                          | Static     | ❌      | Low-level container runtime with no network communication or cryptographic operations                                                             |
 
-<<<<<<< Updated upstream
-## Adding or updating a component
-=======
 ## Adding or updating a component to the k8s-snap
->>>>>>> Stashed changes
 
 1. **As a developer, check if the component uses any crypto**:
 
