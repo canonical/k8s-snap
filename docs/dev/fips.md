@@ -6,15 +6,7 @@ details which components contain cryptographic functionality, how they are built
 to support FIPS compliance, and the mechanisms that enable FIPS-validated
 cryptography at runtime.
 
-## Purpose
-
-This documentation serves as a reference to enable developers to periodically
-review and ensure that all components containing cryptographic functionality are
-properly built with FIPS-compliant crypto libraries. This is critical for
-maintaining FIPS 140-3 compliance and security standards for government and
-regulated industry deployments.
-
-## Overview
+## Go toolchain
 
 The k8s-snap achieves FIPS compliance by using a modified Go toolchain from the
 [go snap](https://snapcraft.io/go). This snap is based on [Microsoft's Go
@@ -61,12 +53,16 @@ channels](https://ubuntu.com/tutorials/using-the-ubuntu-pro-client-to-enable-fip
 | [kubernetes][kubernetes-mod]              | Dynamic    | ✅      | TLS communications, certificate management, token signing, encryption at rest, authentication (main binary for all kube-* binaries)               |
 | [runc][runc-mod]                          | Static     | ❌      | Low-level container runtime with no network communication or cryptographic operations                                                             |
 
+<<<<<<< Updated upstream
 ## Adding or updating a component
+=======
+## Adding or updating a component to the k8s-snap
+>>>>>>> Stashed changes
 
-1. **Investigate crypto usage**:
+1. **As a developer, check if the component uses any crypto**:
 
    ```bash
-   # empty output if no crypto used
+   # Output will be empty if no crypto used
    go list -deps ./... | grep golang.org/x/crypto
    ```
 
@@ -151,5 +147,5 @@ crypto usage.
 [metallb-repo]: https://github.com/metallb/metallb
 [metrics-server-rock]: https://github.com/canonical/metrics-server-rock
 [metrics-server-repo]: https://github.com/kubernetes-sigs/metrics-server
-[rawfile-localpv-rock]: https://github.com/canonical/rawfile-localpv-rock
+[rawfile-localpv-rock]: https://github.com/canonical/rawfile-localpv
 [rawfile-localpv-repo]: https://github.com/openebs/rawfile-localpv
