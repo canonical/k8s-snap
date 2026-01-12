@@ -13,7 +13,7 @@ jobs:
     name: Validate PR title
     permissions:
       pull-requests: write # to comment
-      statuses: write # to set status
+      statuses: write # to set commit status checks for the PR title lint
     runs-on: ubuntu-latest
     steps:
       # no-semantic label is handled by the next step.
