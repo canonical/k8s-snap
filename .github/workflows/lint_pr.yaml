@@ -13,6 +13,7 @@ jobs:
     name: Validate PR title
     permissions:
       pull-requests: write # to comment
+      statuses: write # to set commit status checks for the PR title lint
     runs-on: ubuntu-latest
     steps:
       # no-semantic label is handled by the next step.
@@ -59,7 +60,7 @@ jobs:
             2. Mark this PR as Draft
             3. Prefix your title with [WIP]
             4. Add the `no-semantic` label to bypass this check
-            
+
       # Delete a previous comment when the issue has been resolved
       # or when the PR is converted to Draft or when the no-semantic
       # label is added.
