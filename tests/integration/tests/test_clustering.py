@@ -9,7 +9,7 @@ import logging
 import os
 import subprocess
 import time
-from typing import List
+from typing import Any, List
 
 import pytest
 import tenacity
@@ -604,7 +604,7 @@ def test_join_worker_with_duplicate_name_rejected(instances: List[harness.Instan
 def test_join_previously_removed_node(
     instances: List[harness.Instance],
 ):
-    """Test that joining a previously removed node can lead to any issues."""
+    """Test that a previously removed node can successfully rejoin the cluster."""
 
     cluster_node = instances[0]
     joining_node_1 = instances[1]
@@ -693,7 +693,7 @@ def _get_instance_cert(
     return cert
 
 
-def _parse_join_token(token: str) -> dict[str, any]:
+def _parse_join_token(token: str) -> dict[str, Any]:
     try:
         decoded = base64.b64decode(token, validate=True).decode("utf-8")
         payload = json.loads(decoded)
