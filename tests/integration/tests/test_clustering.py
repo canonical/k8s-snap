@@ -635,7 +635,7 @@ def test_join_previously_removed_node(
         util.get_default_ip(joining_node_2) not in decoded_token["join_addresses"]
     ), "The previously removed node's IP should not be in the joining addresses"
 
-    util.join_cluster(joining_node_2, join_token)
+    join_node_with_retry(cluster_node, joining_node_2, join_token)
 
     util.wait_until_k8s_ready(cluster_node, instances)
     assert "control-plane" in util.get_local_node_status(cluster_node)
