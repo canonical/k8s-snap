@@ -11,13 +11,13 @@ var (
 	Chart = helm.InstallableChart{
 		Name:         "ck-storage",
 		Namespace:    "kube-system",
-		ManifestPath: filepath.Join("charts", "rawfile-csi-0.9.1.tgz"),
+		ManifestPath: filepath.Join("charts", "rawfile-csi-0.9.2.tgz"),
 	}
 
 	// imageRepo is the repository to use for Rawfile LocalPV CSI.
 	imageRepo = "ghcr.io/canonical/rawfile-localpv"
 	// ImageTag is the image tag to use for Rawfile LocalPV CSI.
-	ImageTag = "0.8.2-ck3"
+	ImageTag = "0.8.3-ck0"
 
 	// csiNodeDriverImage is the image to use for the CSI node driver.
 	csiNodeDriverImage = "ghcr.io/canonical/csi-node-driver-registrar:2.15.0-ck0"

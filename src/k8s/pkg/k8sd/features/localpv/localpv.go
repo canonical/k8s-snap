@@ -27,9 +27,10 @@ func ApplyLocalStorage(ctx context.Context, snap snap.Snap, cfg types.LocalStora
 
 	values := map[string]any{
 		"storageClass": map[string]any{
-			"enabled":       true,
-			"isDefault":     cfg.GetDefault(),
-			"reclaimPolicy": cfg.GetReclaimPolicy(),
+			"enabled":              true,
+			"isDefault":            cfg.GetDefault(),
+			"reclaimPolicy":        cfg.GetReclaimPolicy(),
+			"allowVolumeExpansion": false,
 		},
 		"serviceMonitor": map[string]any{
 			"enabled": false,

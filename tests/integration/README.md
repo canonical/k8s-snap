@@ -206,7 +206,7 @@ A typical end to end test for feature `<feature>` should look like this:
 ```python
 # tests/integration/tests/test_<feature>.py
 #
-# Copyright 2025 Canonical, Ltd.
+# Copyright 2026 Canonical, Ltd.
 #
 import logging
 
