@@ -47,7 +47,7 @@ HELM_BRANCH, HELM_RELEASE_SEMVER = "main", None
 
 # MetalLB Helm repository and chart version
 METALLB_REPO = "https://metallb.github.io/metallb"
-METALLB_CHART_VERSION = "0.14.8"
+METALLB_CHART_VERSION = "0.15.3"
 
 
 def is_valid_version(pinned_ver: None | Version) -> Callable[[None | Version], bool]:
