@@ -635,7 +635,15 @@ def test_join_previously_removed_node(
         util.get_default_ip(joining_node_2) not in decoded_token["join_addresses"]
     ), "The previously removed node's IP should not be in the joining addresses"
 
-    join_node_with_retry(cluster_node, joining_node_2, join_token)
+    try:
+        joining_node_2.exec(
+            ["k8s", "join-cluster", join_token], text=True, capture_output=True
+        )
+    except subprocess.CalledProcessError as e:
+        LOG.exception(
+            "Failed to re-join previously removed node: %s %s", e.stdout, e.stderr
+        )
+        raise
 
     util.wait_until_k8s_ready(cluster_node, instances)
     assert "control-plane" in util.get_local_node_status(cluster_node)
