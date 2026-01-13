@@ -1,8 +1,10 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
+import base64
 import concurrent.futures
 import datetime
+import json
 import logging
 import os
 import subprocess
@@ -598,6 +600,47 @@ def test_join_worker_with_duplicate_name_rejected(instances: List[harness.Instan
     LOG.info(
         "Successfully prevented joining of worker node with same name as control plane"
     )
+@pytest.mark.tags(tags.NIGHTLY)
+def test_join_previously_removed_node(
+    instances: List[harness.Instance],
+):
+    """Test that joining a previously removed node can lead to any issues."""
+
+    cluster_node = instances[0]
+    joining_node_1 = instances[1]
+    joining_node_2 = instances[2]
+
+    util.wait_until_k8s_ready(cluster_node, [cluster_node])
+
+    join_token = util.get_join_token(cluster_node, joining_node_1)
+    util.join_cluster(joining_node_1, join_token)
+
+    join_token = util.get_join_token(cluster_node, joining_node_2)
+    util.join_cluster(joining_node_2, join_token)
+
+    util.wait_until_k8s_ready(cluster_node, instances)
+    assert "control-plane" in util.get_local_node_status(cluster_node)
+    assert "control-plane" in util.get_local_node_status(joining_node_1)
+    assert "control-plane" in util.get_local_node_status(joining_node_2)
+
+    # Remove joining_node_2 from the cluster
+    cluster_node.exec(["k8s", "remove-node", joining_node_2.id])
+
+    # Get a new join token for joining_node_2
+    join_token = util.get_join_token(cluster_node, joining_node_2)
+
+    decoded_token = _parse_join_token(join_token)
+
+    assert (
+        util.get_default_ip(joining_node_2) not in decoded_token["join_addresses"]
+    ), "The previously removed node's IP should not be in the joining addresses"
+
+    util.join_cluster(joining_node_2, join_token)
+
+    util.wait_until_k8s_ready(cluster_node, instances)
+    assert "control-plane" in util.get_local_node_status(cluster_node)
+    assert "control-plane" in util.get_local_node_status(joining_node_1)
+    assert "control-plane" in util.get_local_node_status(joining_node_2)
 
 
 def join_node_with_retry(
@@ -648,3 +691,12 @@ def _get_instance_cert(
     pem = result.stdout
     cert = x509.load_pem_x509_certificate(pem, default_backend())
     return cert
+
+
+def _parse_join_token(token: str) -> dict[str, any]:
+    try:
+        decoded = base64.b64decode(token, validate=True).decode("utf-8")
+        payload = json.loads(decoded)
+        return payload
+    except (ValueError, json.JSONDecodeError) as e:
+        raise RuntimeError("Invalid join token") from e
