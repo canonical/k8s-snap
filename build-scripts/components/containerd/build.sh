@@ -32,5 +32,5 @@ done
 # Restore the initial Go snap revision
 echo "Restoring Go snap to initial revision: ${INITIAL_GO_REVISION}"
 
-# Snap revert fails if the revision  is already the current one, so we ignore errors
+# Snap revert fails if the revision is already the current one, so we ignore errors
 snap revert go --revision="${INITIAL_GO_REVISION}" || true
