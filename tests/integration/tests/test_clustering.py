@@ -495,6 +495,94 @@ def test_cert_refresh(instances: List[harness.Instance]):
     util.wait_until_k8s_ready(cluster_node, instances)
 
 
+@pytest.mark.node_count(3)
+@pytest.mark.tags(tags.PULL_REQUEST)
+def test_join_cp_with_duplicate_name_rejected(instances: List[harness.Instance]):
+    """Tests that a CP node joining with the same name as a worker node in the cluster is rejected"""
+    cluster_node = instances[0]
+    joined_worker = instances[1]
+    joining_cp = instances[2]
+
+    util.wait_until_k8s_ready(cluster_node, [cluster_node])
+
+    join_token_worker = util.get_join_token(cluster_node, joined_worker, "--worker")
+    util.join_cluster(joined_worker, join_token_worker)
+    util.wait_until_k8s_ready(cluster_node, [cluster_node, joined_worker])
+
+    LOG.info("Worker node joined successfully")
+    joining_cp.exec(["hostnamectl", "set-hostname", joined_worker.id])
+    join_token_cp = util.get_join_token(cluster_node, joining_cp)
+
+    result = joining_cp.exec(
+        ["k8s", "join-cluster", join_token_cp, "--name", joined_worker.id],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    LOG.info("CP join should fail")
+    assert result.returncode != 0
+    assert (
+        "A node with the same name %q is already part of the cluster" % joined_worker.id
+        in result.stderr
+        or "node with name %q already exists" % joined_worker.id in result.stdout
+    ), "Join error message should indicate duplicate node name"
+
+    nodes = util.ready_nodes(cluster_node)
+    assert len(nodes) == 2, "Only master node and worker should be in the cluster"
+    node_names = [node["metadata"]["name"] for node in nodes]
+    assert cluster_node.id in node_names
+    assert joining_cp.id in node_names
+
+    LOG.info("Successfully prevented joining of CP node with same name as worker")
+
+
+@pytest.mark.node_count(3)
+@pytest.mark.tags(tags.PULL_REQUEST)
+def test_join_worker_with_duplicate_name_rejected(instances: List[harness.Instance]):
+    """Tests that a worker node joining with the same name as a control plane node in the cluster is rejected"""
+    cluster_node = instances[0]
+    joined_cp = instances[1]
+    joining_worker = instances[2]
+
+    util.wait_until_k8s_ready(cluster_node, [cluster_node])
+
+    join_token_cp = util.get_join_token(cluster_node, joined_cp)
+    util.join_cluster(joined_cp, join_token_cp)
+    util.wait_until_k8s_ready(cluster_node, [cluster_node, joined_cp])
+
+    LOG.info("Control plane node joined successfully")
+    joining_worker.exec(["hostnamectl", "set-hostname", joined_cp.id])
+    join_token_worker = util.get_join_token(cluster_node, joining_worker, "--worker")
+
+    result = joining_worker.exec(
+        ["k8s", "join-cluster", join_token_worker, "--name", joined_cp.id],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    LOG.info("Worker join should fail")
+    assert result.returncode != 0
+    assert (
+        "A node with the same name %q is already part of the cluster" % joined_cp.id
+        in result.stderr
+        or "node with name %q already exists" % joined_cp.id in result.stdout
+    ), "Join error message should indicate duplicate node name"
+
+    nodes = util.ready_nodes(cluster_node)
+    assert (
+        len(nodes) == 2
+    ), "Only master node and control plane should be in the cluster"
+    node_names = [node["metadata"]["name"] for node in nodes]
+    assert cluster_node.id in node_names
+    assert joining_worker.id in node_names
+
+    LOG.info(
+        "Successfully prevented joining of worker node with same name as control plane"
+    )
+
+
 def join_node_with_retry(
     cluster_node, joining_node, retries=25, delay_s=1, worker=False
 ):
