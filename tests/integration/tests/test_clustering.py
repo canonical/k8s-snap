@@ -523,9 +523,9 @@ def test_join_cp_with_duplicate_name_rejected(instances: List[harness.Instance])
     LOG.info("CP join should fail")
     assert result.returncode != 0
     assert (
-        "A node with the same name %q is already part of the cluster" % joined_worker.id
+        f"A node with the same name {joined_worker.id} is already part of the cluster"
         in result.stderr
-        or "node with name %q already exists" % joined_worker.id in result.stdout
+        or f"node with name {joined_worker.id} already exists" in result.stdout
     ), "Join error message should indicate duplicate node name"
 
     nodes = util.ready_nodes(cluster_node)
@@ -565,9 +565,9 @@ def test_join_worker_with_duplicate_name_rejected(instances: List[harness.Instan
     LOG.info("Worker join should fail")
     assert result.returncode != 0
     assert (
-        "A node with the same name %q is already part of the cluster" % joined_cp.id
+        f"A node with the same name {joined_cp.id} is already part of the cluster"
         in result.stderr
-        or "node with name %q already exists" % joined_cp.id in result.stdout
+        or f"node with name {joined_cp.id} already exists" in result.stdout
     ), "Join error message should indicate duplicate node name"
 
     nodes = util.ready_nodes(cluster_node)
