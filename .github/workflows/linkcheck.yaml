@@ -1,0 +1,39 @@
+name: Linkcheck 
+
+permissions:
+  contents: read
+
+on:
+  workflow_call:
+    inputs:
+      branch: 
+        description: 'Branch to run the tests on'
+        type: string
+        default: 'main'
+  
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to run the tests on'
+        type: string
+        default: 'main'
+
+jobs:
+  linkcheck: 
+    name: Run linkchecker on all versions
+    runs-on: ubuntu-latest 
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.branch }}
+      - name: Set up Python
+        uses: actions/setup-python@v5
+      - name: Run linkcheck 
+        run: |
+          python3 docs/canonicalk8s/.sphinx/linkcheck.py docs/canonicalk8s .\
+          --install_target install \
+          --linkcheck_target linkcheck \
+          --makefile Makefile
+        shell: bash  
