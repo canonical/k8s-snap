@@ -12,6 +12,7 @@ options found in this script.
 
 import argparse
 import logging
+import subprocess
 import sys
 import yaml
 from packaging.version import Version
@@ -35,9 +36,6 @@ CHARTS = DIR.parent.parent / "k8s" / "manifests" / "charts"
 # - "https://dl.k8s.io/release/stable-1.xx.txt"
 # - "https://dl.k8s.io/release/latest-1.xx.txt" (e.g. for release candidate builds)
 KUBERNETES_VERSION_MARKER = "https://dl.k8s.io/release/stable.txt"
-
-# Containerd release branch to track. The most recent tag in the branch will be used.
-CONTAINERD_RELEASE_BRANCH = "release/2.1"
 
 # Helm release semver limit
 #
@@ -105,25 +103,52 @@ def get_cni_version() -> str:
         raise Exception(f"Failed to find cni dependency in {deps_file}")
 
 
-def get_containerd_version() -> str:
-    """Update containerd version using latest tag of specified branch"""
-    containerd_repo = util.read_file(COMPONENTS / "containerd/repository")
+def get_deb_src_latest_version(package_name: str) -> str | None:
+    """Query apt-cache madison for latest source package version."""
+    try:
+        output = util.parse_output(["apt-cache", "madison", package_name])
+        # Parse first line: "pkg | version | repo"
+        for line in output.split("\n"):
+            if " | " in line:
+                parts = line.split(" | ")
+                if len(parts) >= 2:
+                    return parts[1].strip()
+    except subprocess.CalledProcessError:
+        return None
+    return None
 
-    with util.git_repo(
-        containerd_repo, CONTAINERD_RELEASE_BRANCH, shallow=False
-    ) as dir:
-        # Get the latest tagged release from the current branch
-        return util.parse_output(["git", "describe", "--tags", "--abbrev=0"], cwd=dir)
 
+def update_deb_src_versions(dry_run: bool):
+    """Check and update deb-src component versions."""
+    deb_src_components = {}
 
-def get_runc_version() -> str:
-    """Update runc version based on containerd"""
-    containerd_repo = util.read_file(COMPONENTS / "containerd/repository")
-    containerd_version = util.read_file(COMPONENTS / "containerd/version")
+    # Discover deb-src components by checking for deb-src files
+    for component_dir in COMPONENTS.iterdir():
+        deb_src_file = component_dir / "deb-src"
+        if deb_src_file.exists():
+            package_name = util.read_file(deb_src_file)
+            deb_src_components[component_dir.name] = package_name
 
-    with util.git_repo(containerd_repo, containerd_version) as dir:
-        # See https://github.com/containerd/containerd/blob/main/docs/RUNC.md
-        return util.read_file(dir / "script/setup/runc-version")
+    for component, package_name in deb_src_components.items():
+        LOG.info("Updating version for deb-src component %s", component)
+        path = COMPONENTS / component / "version"
+        current = util.read_file(path) if path.exists() else None
+        latest = get_deb_src_latest_version(package_name)
+
+        if latest is None:
+            LOG.warning(
+                "Could not get latest version for %s (package: %s)",
+                component,
+                package_name,
+            )
+            continue
+
+        LOG.info("deb-src %s: current=%s, latest=%s", component, current, latest)
+
+        if current != latest:
+            LOG.info("Update %s version to %s in %s", component, latest, path)
+            if not dry_run:
+                path.write_text(latest + "\n")
 
 
 def get_helm_version() -> str:
@@ -151,8 +176,6 @@ def update_component_versions(dry_run: bool):
     for component, get_version in [
         ("kubernetes", get_kubernetes_version),
         ("cni", get_cni_version),
-        ("containerd", get_containerd_version),
-        ("runc", get_runc_version),
         ("helm", get_helm_version),
     ]:
         LOG.info("Updating version for %s", component)
@@ -183,6 +206,8 @@ def update_component_versions(dry_run: bool):
             Path(path).write_text(upstream_version_text + "\n")
 
     update_go_version(dry_run)
+
+    update_deb_src_versions(dry_run)
 
     for component, pull_helm_chart in [
         ("metallb", pull_metallb_chart),
