@@ -8,5 +8,11 @@ import (
 
 // GetName returns the name of the upgrade resource based on the version info.
 func GetName(v version.Info) string {
-	return fmt.Sprintf("cluster-upgrade-to-rev-%s", v.Revision)
+	var k8sVersionStr string
+	if v.KubernetesVersion == nil {
+		k8sVersionStr = "UNKNOWN"
+	} else {
+		k8sVersionStr = fmt.Sprintf("%v", v.KubernetesVersion)
+	}
+	return fmt.Sprintf("cluster-upgrade-to-k8s-%s-rev-%s", k8sVersionStr, v.Revision)
 }
