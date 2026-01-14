@@ -70,6 +70,23 @@ jobs:
       os: ${{ matrix.os }}
       channel: ${{ matrix.channel }}
       test-tags: 'conformance_tests'
+  
+  docs:
+    name: Docs linkcheck 
+      #    strategy: 
+      #      fail-fast: true
+        #      matrix:
+        #        branch:
+        #          [
+        #            "release-1.32",
+        #            "release-1.33",
+        #            "release-1.34",
+        #            "release-1.35",
+        #          ]
+    uses: ./.github/workflows/linkcheck.yaml
+    with:
+      branch: "release-1.32"
+      #      working-directory: docs/canonicalk8s
 
   Mattermost:
     name: Notify Mattermost

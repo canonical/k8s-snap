@@ -3,6 +3,7 @@ name: Documentation Checks
 on:
   workflow_dispatch:
 
+  
   pull_request:
     paths:
       - 'docs/**'
@@ -66,6 +67,4 @@ jobs:
         uses: canonical/documentation-workflows/inclusive-language@main
         with:
           working-directory: docs/canonicalk8s
-
-
 
