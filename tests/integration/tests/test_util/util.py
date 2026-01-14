@@ -625,14 +625,19 @@ def get_join_token(
 
 # Join an existing cluster.
 def join_cluster(
-    instance: harness.Instance, join_token: str, cfg: Optional[str] = None
+    instance: harness.Instance,
+    join_token: str,
+    cfg: Optional[str] = None,
+    name: Optional[str] = None,
 ):
+    cmd = ["k8s", "join-cluster", join_token]
+    if name:
+        cmd.extend(["--name", name])
     if cfg:
-        instance.exec(
-            ["k8s", "join-cluster", join_token, "--file", "-"], input=str.encode(cfg)
-        )
+        cmd.extend(["--file", "-"])
+        instance.exec(cmd, input=str.encode(cfg))
     else:
-        instance.exec(["k8s", "join-cluster", join_token])
+        instance.exec(cmd)
 
 
 def is_ipv6(ip: str) -> bool:
