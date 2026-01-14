@@ -514,7 +514,7 @@ def test_join_cp_with_duplicate_name_rejected(instances: List[harness.Instance])
     join_token_cp = util.get_join_token(cluster_node, joining_cp)
 
     result = joining_cp.exec(
-        ["k8s", "join-cluster", join_token_cp, "--name", joined_worker.id],
+        ["k8s", "join-cluster", join_token_cp],
         capture_output=True,
         text=True,
         check=False,
@@ -525,7 +525,7 @@ def test_join_cp_with_duplicate_name_rejected(instances: List[harness.Instance])
     assert (
         f"A node with the same name {joined_worker.id} is already part of the cluster"
         in result.stderr
-        or f"node with name {joined_worker.id} already exists" in result.stdout
+        or f"A node with the same name {joined_worker.id} is already part of the cluster" in result.stdout
     ), "Join error message should indicate duplicate node name"
 
     nodes = util.ready_nodes(cluster_node)
@@ -556,7 +556,7 @@ def test_join_worker_with_duplicate_name_rejected(instances: List[harness.Instan
     join_token_worker = util.get_join_token(cluster_node, joining_worker, "--worker")
 
     result = joining_worker.exec(
-        ["k8s", "join-cluster", join_token_worker, "--name", joined_cp.id],
+        ["k8s", "join-cluster", join_token_worker],
         capture_output=True,
         text=True,
         check=False,
@@ -567,7 +567,7 @@ def test_join_worker_with_duplicate_name_rejected(instances: List[harness.Instan
     assert (
         f"A node with the same name {joined_cp.id} is already part of the cluster"
         in result.stderr
-        or f"node with name {joined_cp.id} already exists" in result.stdout
+        or f"A node with the same name {joined_cp.id} is already part of the cluster" in result.stdout
     ), "Join error message should indicate duplicate node name"
 
     nodes = util.ready_nodes(cluster_node)
