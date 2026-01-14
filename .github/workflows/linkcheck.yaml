@@ -20,7 +20,7 @@ on:
 
 jobs:
   linkcheck: 
-    name: Run linkchecker on all versions
+    name: Run linkchecker 
     runs-on: ubuntu-latest 
     steps:
       - name: Checkout
@@ -32,8 +32,9 @@ jobs:
         uses: actions/setup-python@v5
       - name: Run linkcheck 
         run: |
-          python3 docs/canonicalk8s/.sphinx/linkcheck.py docs/canonicalk8s .\
+          python3 docs/canonicalk8s/.sphinx/linkcheck.py docs/canonicalk8s \
           --install_target install \
           --linkcheck_target linkcheck \
           --makefile Makefile
+          "."
         shell: bash  

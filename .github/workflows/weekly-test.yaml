@@ -72,20 +72,20 @@ jobs:
       test-tags: 'conformance_tests'
   
   docs:
-    name: Docs linkcheck 
-      #    strategy: 
-      #      fail-fast: true
-        #      matrix:
-        #        branch:
-        #          [
-        #            "release-1.32",
-        #            "release-1.33",
-        #            "release-1.34",
-        #            "release-1.35",
-        #          ]
+    name: Docs linkcheck (${{ matrix.branch }})
+    strategy: 
+      fail-fast: true
+      matrix:
+        branch:
+          [
+            "release-1.32",
+            "release-1.33",
+            "release-1.34",
+            "release-1.35",
+          ]
     uses: ./.github/workflows/linkcheck.yaml
     with:
-      branch: "release-1.32"
+      branch: ${{ matrix.branch }}
       #      working-directory: docs/canonicalk8s
 
   Mattermost:
