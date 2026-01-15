@@ -188,11 +188,9 @@ func New(cfg Config) (*App, error) {
 		log.L().Info("feature-controller disabled via config")
 	}
 
-	app.controllerCoordinator = controllers.NewCoordinator(
-		cfg.Snap,
-		app.readyWg.Wait,
-		controllers.UpgradeControllerOptions{
-			Disable: cfg.DisableUpgradeController,
+	var upgradeCtrlOpts controllers.UpgradeControllerOptions
+	if !cfg.DisableFeatureController {
+		upgradeCtrlOpts = controllers.UpgradeControllerOptions{
 			ControllerOptions: upgrade.ControllerOptions{
 				FeatureControllerReadyCh:   app.featureController.ReadyCh(),
 				NotifyNetworkFeature:       app.NotifyNetwork,
@@ -214,7 +212,14 @@ func New(cfg Config) (*App, error) {
 				FeatureControllerReadyTimeout:     10 * time.Minute,
 				FeatureControllerReconcileTimeout: 2 * time.Minute,
 			},
-		},
+		}
+	}
+	upgradeCtrlOpts.Disable = cfg.DisableUpgradeController || cfg.DisableFeatureController
+
+	app.controllerCoordinator = controllers.NewCoordinator(
+		cfg.Snap,
+		app.readyWg.Wait,
+		upgradeCtrlOpts,
 		controllers.CSRSigningControllerOptions{
 			Disable: cfg.DisableCSRSigningController,
 		},
