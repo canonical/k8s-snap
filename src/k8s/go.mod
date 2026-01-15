@@ -6,7 +6,7 @@ require (
 	dario.cat/mergo v1.0.2
 	github.com/canonical/go-dqlite/v2 v2.0.1
 	github.com/canonical/k8s-snap-api v1.2.0
-	github.com/canonical/lxd v0.0.0-20260112164843-ad5334629f8f
+	github.com/canonical/lxd v0.0.0-20260114083410-e420cf959746
 	github.com/canonical/microcluster/v2 v2.2.2
 	github.com/go-logr/logr v1.4.3
 	github.com/mitchellh/mapstructure v1.5.0
