@@ -48,7 +48,7 @@ def main():
             "-f",
             makefile,
             linkcheck_target,
-            f"FILES={args.changed_files}",
+            f"FILES='{args.changed_files}'",
         ]
         run_command(linkcheck_cmd, args.working_dir)
 
