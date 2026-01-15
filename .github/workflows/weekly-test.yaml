@@ -86,7 +86,6 @@ jobs:
     uses: ./.github/workflows/linkcheck.yaml
     with:
       branch: ${{ matrix.branch }}
-      #      working-directory: docs/canonicalk8s
 
   Mattermost:
     name: Notify Mattermost
@@ -94,7 +93,7 @@ jobs:
     # We don't want to ping people of failed PRs.
     if: ${{ always() && github.event_name == 'schedule' }}
     # Note: Update results check below if you change the "needs" list.
-    needs: [test-on-fips]
+    needs: [test-on-fips,docs]
     runs-on: ubuntu-latest
     steps:
       - name: Set current formatted date as env variable
