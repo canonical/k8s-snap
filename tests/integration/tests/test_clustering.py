@@ -506,12 +506,16 @@ def test_join_cp_with_duplicate_name_rejected(instances: List[harness.Instance])
 
     util.wait_until_k8s_ready(cluster_node, [cluster_node])
 
-    join_token_worker = util.get_join_token(cluster_node, joined_worker, "--worker")
+    join_token_worker = util.get_join_token(
+        cluster_node, joined_worker, "--worker", node_name=shared_node_name
+    )
     util.join_cluster(joined_worker, join_token_worker, name=shared_node_name)
     util.wait_until_k8s_ready(cluster_node, [cluster_node, joined_worker])
 
     LOG.info("Worker node joined successfully")
-    join_token_cp = util.get_join_token(cluster_node, joining_cp)
+    join_token_cp = util.get_join_token(
+        cluster_node, joining_cp, node_name=shared_node_name
+    )
 
     # Try to join with duplicate name - should fail
     try:
@@ -531,7 +535,7 @@ def test_join_cp_with_duplicate_name_rejected(instances: List[harness.Instance])
     assert len(nodes) == 2, "Only master node and worker should be in the cluster"
     node_names = [node["metadata"]["name"] for node in nodes]
     assert cluster_node.id in node_names
-    assert joined_worker.id in node_names
+    assert shared_node_name in node_names
 
     LOG.info("Successfully prevented joining of CP node with same name as worker")
 
@@ -547,12 +551,16 @@ def test_join_worker_with_duplicate_name_rejected(instances: List[harness.Instan
 
     util.wait_until_k8s_ready(cluster_node, [cluster_node])
 
-    join_token_cp = util.get_join_token(cluster_node, joined_cp)
+    join_token_cp = util.get_join_token(
+        cluster_node, joined_cp, node_name=shared_node_name
+    )
     util.join_cluster(joined_cp, join_token_cp, name=shared_node_name)
     util.wait_until_k8s_ready(cluster_node, [cluster_node, joined_cp])
 
     LOG.info("Control plane node joined successfully")
-    join_token_worker = util.get_join_token(cluster_node, joining_worker, "--worker")
+    join_token_worker = util.get_join_token(
+        cluster_node, joining_worker, "--worker", node_name=shared_node_name
+    )
 
     # Try to join with duplicate name - should fail
     try:
@@ -574,7 +582,7 @@ def test_join_worker_with_duplicate_name_rejected(instances: List[harness.Instan
     ), "Only master node and control plane should be in the cluster"
     node_names = [node["metadata"]["name"] for node in nodes]
     assert cluster_node.id in node_names
-    assert joined_cp.id in node_names
+    assert shared_node_name in node_names
 
     LOG.info(
         "Successfully prevented joining of worker node with same name as control plane"
