@@ -50,6 +50,7 @@ def main():
             linkcheck_target,
             f"FILES='{args.changed_files}'",
         ]
+        print(f"Executing: {' '.join(linkcheck_cmd)} in {args.working_dir}") # Add this line
         run_command(linkcheck_cmd, args.working_dir)
 
     except subprocess.CalledProcessError as e:
