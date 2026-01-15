@@ -507,15 +507,13 @@ def test_join_cp_with_duplicate_name_rejected(instances: List[harness.Instance])
     util.wait_until_k8s_ready(cluster_node, [cluster_node])
 
     join_token_worker = util.get_join_token(
-        cluster_node, joined_worker, "--worker", node_name=shared_node_name
+        cluster_node, joined_worker, "--worker", name=shared_node_name
     )
     util.join_cluster(joined_worker, join_token_worker, name=shared_node_name)
     util.wait_until_k8s_ready(cluster_node, [cluster_node, joined_worker])
 
     LOG.info("Worker node joined successfully")
-    join_token_cp = util.get_join_token(
-        cluster_node, joining_cp, node_name=shared_node_name
-    )
+    join_token_cp = util.get_join_token(cluster_node, joining_cp, name=shared_node_name)
 
     # Try to join with duplicate name - should fail
     try:
@@ -551,15 +549,13 @@ def test_join_worker_with_duplicate_name_rejected(instances: List[harness.Instan
 
     util.wait_until_k8s_ready(cluster_node, [cluster_node])
 
-    join_token_cp = util.get_join_token(
-        cluster_node, joined_cp, node_name=shared_node_name
-    )
+    join_token_cp = util.get_join_token(cluster_node, joined_cp, name=shared_node_name)
     util.join_cluster(joined_cp, join_token_cp, name=shared_node_name)
     util.wait_until_k8s_ready(cluster_node, [cluster_node, joined_cp])
 
     LOG.info("Control plane node joined successfully")
     join_token_worker = util.get_join_token(
-        cluster_node, joining_worker, "--worker", node_name=shared_node_name
+        cluster_node, joining_worker, "--worker", name=shared_node_name
     )
 
     # Try to join with duplicate name - should fail
