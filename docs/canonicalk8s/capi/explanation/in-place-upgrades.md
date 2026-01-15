@@ -126,7 +126,7 @@ The illustrated flow of orchestrated in-place upgrades:
 [img-orchestrated]: https://assets.ubuntu.com/v1/8f302a00-orchestrated.png
 
 <!-- LINKS -->
-[1]: https://cluster-api.sigs.k8s.io/user/concepts#machine-immutability-in-place-upgrade-vs-replace
+[1]: https://cluster-api.sigs.k8s.io/user/concepts#machine-immutability-in-place-update-vs-replace
 [2]: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 [3]: https://kubernetes.io/docs/concepts/overview/working-with-objects/#object-spec-and-status
 [4]: ../reference/annotations.md
