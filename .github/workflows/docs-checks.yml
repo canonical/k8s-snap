@@ -41,7 +41,7 @@ jobs:
     needs: get-diff 
     uses: ./.github/workflows/linkcheck.yaml
     with:
-      changed_files: "${{ needs.get-diff.outputs.file_list || '.' }}" 
+      changed_files: ${{ needs.get-diff.outputs.file_list || '.' }}
 
   spellcheck-and-inclusive-language:
     runs-on: ubuntu-latest
