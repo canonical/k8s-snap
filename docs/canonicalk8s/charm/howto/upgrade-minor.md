@@ -51,7 +51,6 @@ Machine  State    Address         Inst id              Base          AZ         
 ```
 <!-- markdownlint-restore -->
 
-
 ## Before you begin
 
 As with all upgrades, there is a possibility that there may be
@@ -59,7 +58,6 @@ unforeseen difficulties. It is highly recommended to make
 a backup of any important data, including any running workloads.
 For more details on creating backups, see the separate
 [docs on backups][backup-restore].
-
 
 Verify that:
 
@@ -71,7 +69,6 @@ Verify that:
 * You read the [Upstream release notes][upstream-notes] for details
   of Kubernetes deprecation notices and API changes that may impact
   your workloads
-
 
 It is also important to understand that Kubernetes will only
 upgrade and if necessary migrate, components relating specifically
@@ -113,7 +110,6 @@ stable release within this channel.  Continue with the
 [Pre Upgrade Check](#the-pre-upgrade-check).
 
 Otherwise, complete the [Upgrade Patch](upgrade-patch) instructions first.
-
 
 ```{caution} Only update the charm to the next minor version.
 If the current `charm-channel` is `1.31/stable`, it's critical
@@ -212,5 +208,5 @@ to ensure that the cluster is fully functional.
 [Charmhub]:            https://charmhub.io/k8s
 [cluster-validation]:  ./validate
 [juju-docs]:           https://documentation.ubuntu.com/juju/3.6/howto/manage-models/
-[upstream-notes]:      https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.34.md#deprecation
+[upstream-notes]:      https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.35.md#deprecation
 [version-skew-policy]: https://kubernetes.io/releases/version-skew-policy/
