@@ -225,7 +225,7 @@ parts:
       $CRAFT_PROJECT_DIR/build-scripts/build-component.sh containerd
 
       pip3 install -r $CRAFT_PROJECT_DIR/build-scripts/hack/requirements.txt
-      for bin in containerd ctr containerd-shim-runc-v2; do
+      for bin in containerd ctr containerd-shim-runc-v1 containerd-shim-runc-v2; do
         case "$CRAFT_ARCH_TRIPLET_BUILD_FOR" in
           x86_64-linux-gnu)
             python3 $CRAFT_PROJECT_DIR/build-scripts/hack/patchelf.py $CRAFT_PART_INSTALL/bin/${bin} \
