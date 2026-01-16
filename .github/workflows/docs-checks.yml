@@ -2,6 +2,7 @@ name: Documentation Checks
 
 on:
   workflow_dispatch:
+
   pull_request:
     paths:
       - 'docs/**'
@@ -23,6 +24,34 @@ jobs:
 
       - name: Set up Python
         uses: actions/setup-python@v5
+
+      - name: Get changed files list with git diff
+        id: changes
+        run: |
+          # Fetch the base branch to ensure we have the history for the comparison
+          git fetch origin ${{ github.event.pull_request.base.ref }}
+
+          # Use git diff to find files changed between the base branch and the PR branch
+          FILE_LIST=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD -- 'docs/canonicalk8s/**/*.md' | \
+            sed 's|^docs/canonicalk8s/||' | \
+            xargs)
+
+          # Pass the space-delimited list to the step output
+          echo "Changed files: $FILE_LIST"
+          echo "changed_files=$FILE_LIST" >> $GITHUB_OUTPUT
+
+      - name: linkcheck 
+        run: |
+          CHANGED_FILES="${{ steps.changes.outputs.changed_files }}" 
+
+          echo "Running linkcheck with files: $CHANGED_FILES"
+
+          python3 docs/canonicalk8s/.sphinx/linkcheck.py docs/canonicalk8s \
+          --install_target install \
+          --linkcheck_target linkcheck \
+          --makefile Makefile \
+          "$CHANGED_FILES"
+        shell: bash
 
       - id: spell-check
         name: Spell Check
