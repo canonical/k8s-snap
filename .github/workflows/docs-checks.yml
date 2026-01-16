@@ -2,6 +2,7 @@ name: Documentation Checks
 
 on:
   workflow_dispatch:
+  
   pull_request:
     paths:
       - 'docs/**'
@@ -9,34 +10,59 @@ permissions:
   contents: read
 
 jobs:
-  documentation-checks:
-    #    uses: canonical/documentation-workflows/.github/workflows/documentation-checks.yaml@main
-    #    with:
-      #   working-directory: "docs/canonicalk8s"
-      #  fetch-depth: 0
+  get-diff:
     runs-on: ubuntu-latest
+    outputs:
+      file_list: ${{ steps.changes.outputs.changed_files }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Get changed files list with git diff
+        id: changes
+        run: |
+          # Fetch the base branch to ensure we have the history for the comparison
+          git fetch origin ${{ github.event.pull_request.base.ref }}
 
-      - id: spell-check
-        name: Spell Check
-        if: success() || failure()
-        uses: canonical/documentation-workflows/spellcheck@main
-        with:
-          working-directory: docs/canonicalk8s
+          # Use git diff to find files changed between the base branch and the PR branch
+          FILE_LIST=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD -- 'docs/canonicalk8s/**/*.md' | \
+            sed 's|^docs/canonicalk8s/||' | \
+            xargs)
 
-      - name: Inclusive Language Check
-        id: woke-step
-        if: success() || failure()
-        uses: canonical/documentation-workflows/inclusive-language@main
-        with:
-          working-directory: docs/canonicalk8s
+          # Pass the space-delimited list to the step output
+          echo "Changed files: $FILE_LIST"
+          echo "changed_files=$FILE_LIST" >> $GITHUB_OUTPUT
 
+  linkcheck:
+    needs: get-diff 
+    uses: ./.github/workflows/linkcheck.yaml
+    with:
+      changed_files: ${{ needs.get-diff.outputs.file_list || '.' }}
 
+  spellcheck-and-inclusive-language:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+
+    - id: spell-check
+      name: Spell Check
+      if: success() || failure()
+      uses: canonical/documentation-workflows/spellcheck@main
+      with:
+        working-directory: docs/canonicalk8s
+
+    - name: Inclusive Language Check
+      id: woke-step
+      if: success() || failure()
+      uses: canonical/documentation-workflows/inclusive-language@main
+      with:
+        working-directory: docs/canonicalk8s
 
