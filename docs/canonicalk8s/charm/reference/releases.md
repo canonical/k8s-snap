@@ -6,15 +6,14 @@ new features, bug fixes and backwards-incompatible changes.
 
 ## Releases
 
-
 ```{toctree}
 :titlesonly:
 :maxdepth: 2
 /charm/reference/versions/1.32
 /charm/reference/versions/1.33
 /charm/reference/versions/1.34
+/charm/reference/versions/1.35
 ```
-
 
 ## Release policy and schedule
 
