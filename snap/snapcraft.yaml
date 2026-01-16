@@ -213,9 +213,36 @@ parts:
   containerd:
     after: [runc]
     plugin: nil
-    build-attributes: [enable-patchelf]
+    # Note(ben): patchelf messes up the segments when patching containerd
+    # due to https://github.com/NixOS/patchelf/issues/446.
+    # Instead, we use a custom script based on LIEF to manually patch the rpath and interpreter.
+    build-attributes: [no-patchelf]
     source: build-scripts/components/containerd
-    override-build: $CRAFT_PROJECT_DIR/build-scripts/build-component.sh containerd
+    override-build: |
+      # Note(Ben): This field must match the base field above.
+      BASE=core22
+
+      $CRAFT_PROJECT_DIR/build-scripts/build-component.sh containerd
+
+      pip3 install -r $CRAFT_PROJECT_DIR/build-scripts/hack/requirements.txt
+      for bin in containerd ctr containerd-shim-runc-v2; do
+        case "$CRAFT_ARCH_TRIPLET_BUILD_FOR" in
+          x86_64-linux-gnu)
+            python3 $CRAFT_PROJECT_DIR/build-scripts/hack/patchelf.py $CRAFT_PART_INSTALL/bin/${bin} \
+              --set-rpath /snap/$BASE/current/lib/x86_64-linux-gnu/ \
+              --set-interpreter /snap/$BASE/current/lib64/ld-linux-x86-64.so.2
+            ;;
+          aarch64-linux-gnu)
+            python3 $CRAFT_PROJECT_DIR/build-scripts/hack/patchelf.py $CRAFT_PART_INSTALL/bin/${bin} \
+              --set-rpath /snap/$BASE/current/lib/aarch64-linux-gnu/ \
+              --set-interpreter /snap/$BASE/current/lib/ld-linux-aarch64.so.1
+            ;;
+          *)
+            echo "Unknown architecture: $CRAFT_ARCH_TRIPLET_BUILD_FOR"
+            exit 1
+            ;;
+        esac
+      done
 
   runc:
     after: [iptables, build-deps]
