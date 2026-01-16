@@ -56,13 +56,13 @@ k8s:
   units: 3
   base: ubuntu@24.04
   constraints: arch=amd64 cores=2 mem=4096M root-disk=16384M
-  channel: 1.34/stable
+  channel: 1.35/stable
   config: {}
 k8s-worker:
   units: 2
   base: ubuntu@24.04
   constraints: arch=amd64 cores=2 mem=8192M root-disk=16384M
-  channel: 1.34/stable
+  channel: 1.35/stable
   config: {}
 ```
 
@@ -136,7 +136,6 @@ terraform apply
 ```{note}
 Make sure the deployment [channel] is set within the `manifest.yaml`
 ```
-
 
 The `terraform apply` command will deploy the k8s and k8s-worker charms to the
 Juju model. Watch the deployment progress by running:
