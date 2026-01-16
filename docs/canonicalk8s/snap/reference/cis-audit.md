@@ -1,7 +1,7 @@
 #  CIS hardening for {{product}}
 
 CIS Hardening refers to the process of implementing security configurations that
-align with the benchmarks set forth by the [Center for Internet Security (CIS)].
+align with the benchmarks set forth by the [Center for Internet Security] (CIS).
 These [benchmarks] are a set of best practices and guidelines designed to secure
 various software and hardware systems, and in our case Kubernetes clusters.
 
@@ -3689,6 +3689,7 @@ specific namespace.
 
 
 <!-- Links -->
-[Center for Internet Security (CIS)]:https://www.cisecurity.org/
+[Center for Internet Security]: https://www.cisecurity.org/
 [benchmarks]: https://www.cisecurity.org/cis-benchmarks
 [hardening guide]: /snap/howto/security/hardening
+
