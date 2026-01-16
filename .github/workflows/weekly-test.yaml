@@ -6,6 +6,7 @@ on:
   pull_request:
     paths:
       - .github/workflows/weekly-test.yaml
+      - .github/workflows/e2e-tests.yaml
 permissions:
   contents: read
   actions: read
@@ -36,13 +37,11 @@ jobs:
     strategy:
       matrix:
         arch: ["amd64", "arm64"]
-        datastore: ["etcd", "k8s-dqlite"]
         channel: ["latest/edge"]
       fail-fast: false
     uses: ./.github/workflows/e2e-tests.yaml
     with:
       arch: ${{ matrix.arch }}
-      datastore: ${{ matrix.datastore }}
       channel: ${{ matrix.channel }}
       test-tags: "up_to_nightly"
       parallel: true
