@@ -41,14 +41,16 @@ METRICS_SERVER_VERSION = "0.7.2"
 RAWFILE_LOCALPV_REPO = "https://github.com/canonical/rawfile-localpv"
 RAWFILE_LOCALPV_TAG = "main"
 SNAPCRAFT_C_COMPONENTS = ["libmnl", "libnftnl", "iptables"]
+# Git-based Go components
 SNAPCRAFT_GO_COMPONENTS = [
-    "runc",
-    "containerd",
     "cni",
     "helm",
     "kubernetes",
     "k8s-dqlite",
 ]
+
+# Deb-src Go components (use Ubuntu source packages instead of git)
+DEB_SRC_GO_COMPONENTS = ["containerd", "runc"]
 K8S_DIR = DIR / "../../src/k8s"
 
 
@@ -86,6 +88,27 @@ def go_components_external(manifest, extra_files):
                 "repo": repo_url,
                 "tag": repo_tag,
                 "revision": repo_commit,
+            },
+        }
+
+
+def go_components_deb_src(manifest, extra_files):
+    """Generate SBOM info for deb-src Go components (containerd, runc)."""
+    for component in DEB_SRC_GO_COMPONENTS:
+        LOG.info("Generating SBOM info for deb-src Go component %s", component)
+
+        deb_src_file = DIR / "../components" / component / "deb-src"
+        version_file = DIR / "../components" / component / "version"
+
+        package_name = util.read_file(deb_src_file)
+        pinned_version = util.read_file(version_file)
+
+        manifest["snap"]["external"][component] = {
+            "language": "go",
+            "source": {
+                "type": "deb-src",
+                "package": package_name,
+                "version": pinned_version,
             },
         }
 
@@ -325,6 +348,7 @@ def generate_sbom(output):
 
     c_components_from_snapcraft(manifest, extra_files)
     go_components_external(manifest, extra_files)
+    go_components_deb_src(manifest, extra_files)
     k8s_snap_go_components(manifest, extra_files)
     k8s_snap_c_dqlite_components(manifest, extra_files)
     rock_cilium(manifest, extra_files)
