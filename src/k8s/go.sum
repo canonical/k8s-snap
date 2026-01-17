@@ -40,8 +40,8 @@ github.com/canonical/go-dqlite/v3 v3.0.3 h1:JkdMD+f21yuPcS+r6gzO57lBkU5U76xmWyk8
 github.com/canonical/go-dqlite/v3 v3.0.3/go.mod h1:6O+E6MiYesijRUOECyywp16iT+N4QOrvjDWWiMJ/xF0=
 github.com/canonical/k8s-snap-api v1.2.0 h1:bFddXgrRiMlmwxGh/n12pZYpPzDIr9av5IK8K4D+fss=
 github.com/canonical/k8s-snap-api v1.2.0/go.mod h1:AKPg4cCH8qPUkuojVHBpmX5z+Mc9WuyEJ8fgpKymMCI=
-github.com/canonical/lxd v0.0.0-20260115083613-b39fc6efb943 h1:/sEOjEr3/8e2EPsJ2CDRwSu9EW1SHiXtgPcauKFSdEA=
-github.com/canonical/lxd v0.0.0-20260115083613-b39fc6efb943/go.mod h1:uUlvW6INYMPR3gOwFSgdeeYWIPm/R89R3xkmdKbtz2Y=
+github.com/canonical/lxd v0.0.0-20260116184238-66f71af3d380 h1:LU2pa7CJXUy5Y6g0FPFwvrrV0LCdT3aYlMIvRzySgTM=
+github.com/canonical/lxd v0.0.0-20260116184238-66f71af3d380/go.mod h1:uUlvW6INYMPR3gOwFSgdeeYWIPm/R89R3xkmdKbtz2Y=
 github.com/canonical/microcluster/v2 v2.2.2 h1:aeec4I9xXkcIAGrSQo+nNvdoH/cD6kq6lYxesYKuBdE=
 github.com/canonical/microcluster/v2 v2.2.2/go.mod h1:aBWqPeUY39zfeAS+T3kaRLat137LhzjEbBCpBO8NkfA=
 github.com/cenkalti/backoff/v4 v4.3.0 h1:MyRJ/UdXutAwSAT+s3wNd7MfTIcy71VQueUuFK343L8=
@@ -227,8 +227,8 @@ github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 h1:Z9n2FFNU
 github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51/go.mod h1:CzGEWj7cYgsdH8dAjBGEr58BoE7ScuLd+fwFZ44+/x8=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
-github.com/klauspost/compress v1.18.2 h1:iiPHWW0YrcFgpBYhsA6D1+fqHssJscY/Tm/y2Uqnapk=
-github.com/klauspost/compress v1.18.2/go.mod h1:R0h/fSBs8DE4ENlcrlib3PsXS61voFxhIs2DeRhCvJ4=
+github.com/klauspost/compress v1.18.3 h1:9PJRvfbmTabkOX8moIpXPbMMbYN60bWImDDU7L+/6zw=
+github.com/klauspost/compress v1.18.3/go.mod h1:R0h/fSBs8DE4ENlcrlib3PsXS61voFxhIs2DeRhCvJ4=
 github.com/kr/fs v0.1.0 h1:Jskdu9ieNAYnjxsi0LbQp1ulIKZV1LAFgK1tWhpZgl8=
 github.com/kr/fs v0.1.0/go.mod h1:FFnZGqtBN9Gxj7eW1uZ42v5BccTP0vu6NEaFoC2HwRg=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=

@@ -6,7 +6,7 @@ require (
 	dario.cat/mergo v1.0.2
 	github.com/canonical/go-dqlite/v2 v2.0.1
 	github.com/canonical/k8s-snap-api v1.2.0
-	github.com/canonical/lxd v0.0.0-20260115083613-b39fc6efb943
+	github.com/canonical/lxd v0.0.0-20260116184238-66f71af3d380
 	github.com/canonical/microcluster/v2 v2.2.2
 	github.com/go-logr/logr v1.4.3
 	github.com/mitchellh/mapstructure v1.5.0
@@ -105,7 +105,7 @@ require (
 	github.com/jmoiron/sqlx v1.4.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
-	github.com/klauspost/compress v1.18.2 // indirect
+	github.com/klauspost/compress v1.18.3 // indirect
 	github.com/kr/fs v0.1.0 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
