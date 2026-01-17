@@ -495,6 +495,96 @@ def test_cert_refresh(instances: List[harness.Instance]):
     util.wait_until_k8s_ready(cluster_node, instances)
 
 
+@pytest.mark.node_count(3)
+@pytest.mark.tags(tags.PULL_REQUEST)
+def test_join_cp_with_duplicate_name_rejected(instances: List[harness.Instance]):
+    """Tests that a CP node joining with the same name as a worker node in the cluster is rejected"""
+    cluster_node = instances[0]
+    joined_worker = instances[1]
+    joining_cp = instances[2]
+    shared_node_name = "nutella"
+
+    util.wait_until_k8s_ready(cluster_node, [cluster_node])
+
+    join_token_worker = util.get_join_token(
+        cluster_node, joined_worker, "--worker", name=shared_node_name
+    )
+    util.join_cluster(joined_worker, join_token_worker, name=shared_node_name)
+    util.wait_until_k8s_ready(cluster_node, [cluster_node, joined_worker])
+
+    LOG.info("Worker node joined successfully")
+    join_token_cp = util.get_join_token(cluster_node, joining_cp, name=shared_node_name)
+
+    # Try to join with duplicate name - should fail
+    try:
+        util.join_cluster(joining_cp, join_token_cp, name=shared_node_name)
+        assert False, "Join should have failed due to duplicate node name"
+    except subprocess.CalledProcessError as e:
+        LOG.info("CP join failed as expected")
+        error_output = e.stderr if e.stderr else e.stdout if e.stdout else ""
+        if isinstance(error_output, bytes):
+            error_output = error_output.decode()
+        assert (
+            f"A node with the same name {repr(shared_node_name)} is already part of the cluster"
+            in error_output
+        ), f"Join error message should indicate duplicate node name. Got: {error_output}"
+
+    nodes = util.ready_nodes(cluster_node)
+    assert len(nodes) == 2, "Only master node and worker should be in the cluster"
+    node_names = [node["metadata"]["name"] for node in nodes]
+    assert cluster_node.id in node_names
+    assert shared_node_name in node_names
+
+    LOG.info("Successfully prevented joining of CP node with same name as worker")
+
+
+@pytest.mark.node_count(3)
+@pytest.mark.tags(tags.PULL_REQUEST)
+def test_join_worker_with_duplicate_name_rejected(instances: List[harness.Instance]):
+    """Tests that a worker node joining with the same name as a control plane node in the cluster is rejected"""
+    cluster_node = instances[0]
+    joined_cp = instances[1]
+    joining_worker = instances[2]
+    shared_node_name = "nutella"
+
+    util.wait_until_k8s_ready(cluster_node, [cluster_node])
+
+    join_token_cp = util.get_join_token(cluster_node, joined_cp, name=shared_node_name)
+    util.join_cluster(joined_cp, join_token_cp, name=shared_node_name)
+    util.wait_until_k8s_ready(cluster_node, [cluster_node, joined_cp])
+
+    LOG.info("Control plane node joined successfully")
+    join_token_worker = util.get_join_token(
+        cluster_node, joining_worker, "--worker", name=shared_node_name
+    )
+
+    # Try to join with duplicate name - should fail
+    try:
+        util.join_cluster(joining_worker, join_token_worker, name=shared_node_name)
+        assert False, "Join should have failed due to duplicate node name"
+    except subprocess.CalledProcessError as e:
+        LOG.info("Worker join failed as expected")
+        error_output = e.stderr if e.stderr else e.stdout if e.stdout else ""
+        if isinstance(error_output, bytes):
+            error_output = error_output.decode()
+        assert (
+            f"A node with the same name {repr(shared_node_name)} is already part of the cluster"
+            in error_output
+        ), f"Join error message should indicate duplicate node name. Got: {error_output}"
+
+    nodes = util.ready_nodes(cluster_node)
+    assert (
+        len(nodes) == 2
+    ), "Only master node and control plane should be in the cluster"
+    node_names = [node["metadata"]["name"] for node in nodes]
+    assert cluster_node.id in node_names
+    assert shared_node_name in node_names
+
+    LOG.info(
+        "Successfully prevented joining of worker node with same name as control plane"
+    )
+
+
 def join_node_with_retry(
     cluster_node, joining_node, retries=25, delay_s=1, worker=False
 ):
