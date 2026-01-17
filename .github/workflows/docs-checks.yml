@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  get-diff:
+  prepare:
     runs-on: ubuntu-latest
     outputs:
       file_list: ${{ steps.changes.outputs.changed_files }}
@@ -32,15 +32,21 @@ jobs:
             sed 's|^docs/canonicalk8s/||' | \
             xargs)
 
+          REPO=${{github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name || github.repository }}
+
           # Pass the space-delimited list to the step output
           echo "Changed files: $FILE_LIST"
+          echo "Repo for tests: $REPO"
           echo "changed_files=$FILE_LIST" >> $GITHUB_OUTPUT
+          echo "repo=$REPO" >> $GITHUB_OUTPUT
 
   linkcheck:
-    needs: get-diff 
+    needs: prepare 
     uses: ./.github/workflows/linkcheck.yaml
     with:
-      changed_files: ${{ needs.get-diff.outputs.file_list || '.' }}
+      changed_files: ${{ needs.prepare.outputs.file_list || '.' }}
+      repo: ${{ needs.prepare.outputs.repo }}
+      ref: ${{ github.head_ref }}
 
   spellcheck-and-inclusive-language:
     runs-on: ubuntu-latest

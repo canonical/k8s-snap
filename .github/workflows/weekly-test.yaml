@@ -72,11 +72,11 @@ jobs:
       test-tags: 'conformance_tests'
   
   docs:
-    name: Docs linkcheck (${{ matrix.branch }})
+    name: Docs linkcheck (${{ matrix.ref }})
     strategy: 
       fail-fast: true
       matrix:
-        branch:
+        ref:
           [
             "release-1.32",
             "release-1.33",
@@ -85,7 +85,7 @@ jobs:
           ]
     uses: ./.github/workflows/linkcheck.yaml
     with:
-      branch: ${{ matrix.branch }}
+      ref: ${{ matrix.ref }}
 
   Mattermost:
     name: Notify Mattermost
