@@ -9,9 +9,9 @@ multiple instances of the `k8s` snap on Ubuntu too.
 
 Choose your OS for the install procedure
 
-````{tabs}
+````{tab-set}
 
-```{group-tab} Ubuntu/Linux
+```{tab-item} Ubuntu/Linux
 
 Multipass is shipped as a snap for Ubuntu and other Linux distributions which
 support the [snap package system][snap-support].
@@ -21,7 +21,7 @@ support the [snap package system][snap-support].
 
 ```
 
-```{group-tab} Windows
+```{tab-item} Windows
 
 Windows users should download and install the Multipass installer from the
 website.
@@ -32,7 +32,7 @@ to visit the [Multipass website][] for more details.
 
 ```
 
-```{group-tab} macOS
+```{tab-item} macOS
 
 Users running macOS should download and install the Multipass installer from the
 website.
