@@ -19,8 +19,8 @@ SR-IOV/DPDK.
 ## Prepare the environment
 
 
-`````{tabs}
-````{group-tab} Ubuntu
+`````{tab-set}
+````{tab-item} Ubuntu
 
 First, run the `numactl` command to get the number of CPUs available for NUMA:
 
@@ -282,7 +282,7 @@ With these preparation steps we have enabled the features of EPA:
 
 ````
 
-````{group-tab} MAAS
+````{tab-item} MAAS
 
 To prepare a machine for CPU isolation, HugePages, real-time kernel,
 SR-IOV and DPDK we leverage cloud-init through MAAS available to download {download}`here </assets/how-to-epa-maas-cloud-init>`.

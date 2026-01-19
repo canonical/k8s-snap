@@ -46,8 +46,8 @@ Before generating a cluster, you need to configure the infrastructure provider.
 Each provider has its own prerequisites. Please follow the instructions
 for your provider:
 
-`````{tabs}
-````{group-tab} AWS
+`````{tab-set}
+````{tab-item} AWS
 
 The AWS infrastructure provider requires the `clusterawsadm` tool to be
 installed:
@@ -93,7 +93,7 @@ export AWS_B64ENCODED_CREDENTIALS=$(clusterawsadm bootstrap credentials encode-a
 You are now all set to deploy the AWS CAPI infrastructure provider.
 ````
 
-````{group-tab} MAAS
+````{tab-item} MAAS
 Start by setting up environment variables to allow access to MAAS:
 
 ```
