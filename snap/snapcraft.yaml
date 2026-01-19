@@ -146,6 +146,7 @@ parts:
       done
       cp -P bin/dynamic/lib/*.so* "${INSTALL}/lib/"
 
+
       LD_LIBRARY_PATH="${DQLITE_BUILD_SCRIPTS_DIR}/.deps/dynamic/lib" "${INSTALL}/bin/k8s" list-images > "${INSTALL}/images.txt"
 
   cni:
