@@ -124,7 +124,7 @@ jobs:
       fail-fast: false
       matrix:
         arch: [amd64, arm64]
-    needs: [build-snap, get-e2e-tags, go-lint-and-unit, python-lint]
+    needs: [build-snap, get-e2e-tags, python-lint]
     uses: ./.github/workflows/e2e-tests.yaml
     with:
       arch: ${{ matrix.arch }}
@@ -174,7 +174,7 @@ jobs:
       matrix:
         arch: [amd64]
       fail-fast: false
-    needs: [build-snap, go-lint-and-unit, python-lint, get-charm-channel]
+    needs: [build-snap, python-lint, get-charm-channel]
     uses: ./.github/workflows/charm-e2e-tests.yaml
     secrets:
       CHARMCRAFT_AUTH: ${{ secrets.CHARMCRAFT_AUTH }}
