@@ -46,7 +46,7 @@ jobs:
     needs: prepare 
     uses: ./.github/workflows/linkcheck.yaml
     with:
-      changed_files: ${{ needs.prepare.outputs.file_list || '.' }}
+      changed_files: ${{ needs.prepare.outputs.file_list }}
       repo: ${{ needs.prepare.outputs.repo }}
       ref: ${{ github.head_ref }}
 
