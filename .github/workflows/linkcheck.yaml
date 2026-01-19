@@ -17,7 +17,7 @@ on:
         default: ${{ github.repository }}
       changed_files:
         type: string
-        default: '.'
+        default: ''
 
 jobs:
   prepare:
