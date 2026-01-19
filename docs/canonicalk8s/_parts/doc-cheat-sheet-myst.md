@@ -189,13 +189,13 @@ Keys can be defined at the top of a file, or in a `myst_substitutions` option in
 
 ## Tabs
 
-````{tabs}
-```{group-tab} Tab 1
+````{tab-set}
+```{tab-item} Tab 1
 
 Content Tab 1
 ```
 
-```{group-tab} Tab 2
+```{tab-item} Tab 2
 Content Tab 2
 ```
 ````

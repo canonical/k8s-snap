@@ -178,9 +178,9 @@ root:root
 
 #### CIS Control 1.1.7
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 **Description:**
 
@@ -209,7 +209,7 @@ permissions=600
 
 ````
 
-````{group-tab} k8s-dqlite
+````{tab-item} k8s-dqlite
 
 **Description:**
 
@@ -242,9 +242,9 @@ permissions=600
 
 #### CIS Control 1.1.8
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 **Description:**
 
@@ -273,7 +273,7 @@ root:root
 
 ````
 
-````{group-tab} k8s-dqlite
+````{tab-item} k8s-dqlite
 
 **Description:**
 
@@ -361,9 +361,9 @@ root:root
 
 #### CIS Control 1.1.11
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 **Description:**
 
@@ -395,7 +395,7 @@ permissions=700
 
 ````
 
-````{group-tab} k8s-dqlite
+````{tab-item} k8s-dqlite
 
 **Description:**
 
@@ -431,9 +431,9 @@ permissions=700
 
 #### CIS Control 1.1.12
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 **Description:**
 
@@ -465,7 +465,7 @@ root:root
 
 ````
 
-````{group-tab} k8s-dqlite
+````{tab-item} k8s-dqlite
 
 **Description:**
 
@@ -1479,9 +1479,9 @@ file=/etc/kubernetes/pki/serviceaccount.key
 
 #### CIS Control 1.2.25
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 **Description:**
 
@@ -1523,7 +1523,7 @@ snap restart k8s.kube-apiserver
 
 ````
 
-````{group-tab} k8s-dqlite
+````{tab-item} k8s-dqlite
 
 **Description:**
 
@@ -1612,9 +1612,9 @@ authority file.
 
 #### CIS Control 1.2.28
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 **Description:**
 
@@ -1651,7 +1651,7 @@ snap restart k8s.kube-apiserver
 
 ````
 
-````{group-tab} k8s-dqlite
+````{tab-item} k8s-dqlite
 
 **Description:**
 
@@ -2056,9 +2056,9 @@ and restart the kube-scheduler service
 
 #### CIS Control 2.1
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 **Description:**
 
@@ -2097,7 +2097,7 @@ snap restart k8s.etcd
 
 ````
 
-````{group-tab} k8s-dqlite
+````{tab-item} k8s-dqlite
 
 **Description:**
 
@@ -2119,9 +2119,9 @@ accessible to users with root permissions.
 
 #### CIS Control 2.2
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 **Description:**
 
@@ -2151,7 +2151,7 @@ snap restart k8s.etcd
 
 ````
 
-````{group-tab} k8s-dqlite
+````{tab-item} k8s-dqlite
 
 **Description:**
 
@@ -2172,9 +2172,9 @@ accessible to users with root permissions.
 
 #### CIS Control 2.3
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 **Description:**
 
@@ -2202,7 +2202,7 @@ The `--auto-tls` should not be present or set to `false`
 
 ````
 
-````{group-tab} k8s-dqlite
+````{tab-item} k8s-dqlite
 
 **Description:**
 
@@ -2223,9 +2223,9 @@ accessible to users with root permissions.
 
 #### CIS Control 2.4
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 **Description:**
 
@@ -2264,7 +2264,7 @@ snap restart k8s.etcd
 
 ````
 
-````{group-tab} k8s-dqlite
+````{tab-item} k8s-dqlite
 
 **Description:**
 
@@ -2298,9 +2298,9 @@ certs-found
 
 #### CIS Control 2.5
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 **Description:**
 
@@ -2331,7 +2331,7 @@ snap restart k8s.etcd
 
 ````
 
-````{group-tab} k8s-dqlite
+````{tab-item} k8s-dqlite
 
 **Description:**
 
@@ -2364,9 +2364,9 @@ is set to false in
 
 #### CIS Control 2.6
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 **Description:**
 
@@ -2394,7 +2394,7 @@ The `--peer-auto-tls` should not be present or set to `false`.
 
 ````
 
-````{group-tab} k8s-dqlite
+````{tab-item} k8s-dqlite
 
 **Description:**
 
