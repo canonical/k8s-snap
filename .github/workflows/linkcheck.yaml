@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       repo: ${{ steps.compute-ref.outputs.repo }}
-      branch: ${{ steps.compute-ref.outputs.ref }}
+      ref: ${{ steps.compute-ref.outputs.ref }}
     steps:
       - name: Compute ref for test collection
         id: compute-ref
