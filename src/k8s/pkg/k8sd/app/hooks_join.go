@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"os"
 	"slices"
 	"time"
 
@@ -21,6 +22,7 @@ import (
 	"github.com/canonical/k8s/pkg/utils/control"
 	"github.com/canonical/k8s/pkg/utils/experimental/snapdconfig"
 	"github.com/canonical/k8s/pkg/version"
+	"github.com/canonical/lxd/shared/revert"
 	"github.com/canonical/microcluster/v2/state"
 	"go.etcd.io/etcd/api/v3/v3rpc/rpctypes"
 	versionutil "k8s.io/apimachinery/pkg/util/version"
@@ -203,6 +205,11 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		return fmt.Errorf("failed to generate kubeconfigs: %w", err)
 	}
 
+	reverter := revert.New()
+	defer reverter.Fail()
+
+	// TODO: maybe wait here until node is no longer pending in microcluster?
+
 	// Configure datastore
 	switch cfg.Datastore.GetType() {
 	case "k8s-dqlite":
@@ -230,6 +237,13 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		if err := setup.K8sDqlite(snap, address, cluster, joinConfig.ExtraNodeK8sDqliteArgs); err != nil {
 			return fmt.Errorf("failed to configure k8s-dqlite with address=%s cluster=%v: %w", address, cluster, err)
 		}
+
+		// reverter.Add(func() {
+		// 	if err := os.RemoveAll(snap.K8sDqliteStateDir()); err != nil {
+		// 		log.Error(err, "failed to cleanup k8s-dqlite state directory")
+		// 	}
+
+		// })
 	case "etcd":
 		leader, err := s.Leader()
 		if err != nil {
@@ -280,6 +294,31 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		if err := setup.Etcd(snap, s.Name(), nodeIP, cfg.Datastore.GetEtcdPort(), cfg.Datastore.GetEtcdPeerPort(), initialClusterMembers, joinConfig.ExtraNodeEtcdArgs); err != nil {
 			return fmt.Errorf("failed to configure etcd: %w", err)
 		}
+
+		reverter.Add(func() {
+			// Use an independent short-lived context for revert operations so
+			// they have a chance to complete even if the join hook's ctx has
+			// already been cancelled by a timeout.
+			rmCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
+
+			// Remove node from etcd cluster to avoid orphaned membership entries.
+			if len(endpoints) > 2 {
+				etcdClient, err := snap.EtcdClient(endpoints)
+				if err != nil {
+					log.Error(err, "failed to create etcd client for member removal using peer endpoints")
+				} else {
+					defer etcdClient.Close()
+					if err := etcdClient.RemoveNodeByName(rmCtx, s.Name()); err != nil {
+						log.Error(err, "failed to remove node from etcd cluster using peer endpoints")
+					} else {
+						if err := os.RemoveAll(snap.EtcdDir()); err != nil {
+							log.Error(err, "failed to cleanup etcd state directory")
+						}
+					}
+				}
+			}
+		})
 	case "external":
 	default:
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.Datastore.GetType(), setup.SupportedDatastores)
@@ -336,6 +375,17 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		return fmt.Errorf("failed to get Kubernetes client: %w", err)
 	}
 
+	// Best-effort: if join fails after kubelet registers, remove the Node object to avoid orphans
+	reverter.Add(func() {
+		// Use an independent short-lived context for revert operations.
+		rmCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		if err := k8sClient.DeleteNode(rmCtx, s.Name()); err != nil {
+			log.Error(err, "failed to remove node from kubernetes during join revert")
+		}
+	})
+
 	// This is required for backwards compatibility.
 	log.Info("Applying custom CRDs")
 	if err := k8sClient.ApplyCRDs(ctx); err != nil {
@@ -346,6 +396,8 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		log.Error(err, "Failed to handle rollout-upgrade")
 		return fmt.Errorf("failed to handle rollout-upgrade: %w", err)
 	}
+
+	reverter.Success()
 
 	return nil
 }
