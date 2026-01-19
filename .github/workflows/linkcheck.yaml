@@ -38,7 +38,7 @@ jobs:
           REF="main"
           
           if [ -n "${{ inputs.ref }}" ]; then
-            REF="${{ inputs.ref }"
+            REF="${{ inputs.ref }}"
           fi
 
           echo "Using git ref $REF"
