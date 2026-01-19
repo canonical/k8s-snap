@@ -55,8 +55,8 @@ sudo sysctl -p
 
 Set UFW forwarding rules using one of the following methods.
 
-`````{tabs}
-````{group-tab} Allow system wide
+`````{tab-set}
+````{tab-item} Allow system wide
 Packet forwarding can be allowed system wide by editing `/etc/default/ufw`
 and changing `DEFAULT_FORWARD_POLICY` to:
 
@@ -65,7 +65,7 @@ DEFAULT_FORWARD_POLICY="ACCEPT"
 ```
 ````
 
-````{group-tab} By subnet
+````{tab-item} By subnet
 A less permissive approach would be to allow forwarding traffic only
 between the subnets of the pods and the hosts. For example, assuming the
 pods CIDR is `10.1.0.0/16` and the cluster nodes are in `10.0.20/24`, you
@@ -128,8 +128,8 @@ sudo ufw allow 10259/tcp
 To form a High Availability (HA) cluster, the datastore (etcd or k8s-dqlite)
 needs to establish direct connections among control plane nodes.
 
-`````{tabs}
-````{group-tab} etcd
+`````{tab-set}
+````{tab-item} etcd
 Allow access to the etcd peer and client port:
 
 ```sh
@@ -138,7 +138,7 @@ sudo ufw allow 2379/tcp
 ```
 ````
 
-````{group-tab} k8s-dqlite
+````{tab-item} k8s-dqlite
 Allow access to the k8s-dqlite port:
 
 ```sh
