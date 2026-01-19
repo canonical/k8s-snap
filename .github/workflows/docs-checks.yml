@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       file_list: ${{ steps.changes.outputs.changed_files }}
+      repo: ${{ steps.changes.outputs.repo }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
