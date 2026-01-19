@@ -126,9 +126,9 @@ of implementation.
 It may be helpful to combine these options for different scenarios.
 ```
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} HTTP proxy
+````{tab-item} HTTP proxy
 
 In many cases, the nodes of the air-gap deployment may not have direct access
 to upstream registries, but can reach them through the use of an HTTP proxy.
@@ -141,7 +141,7 @@ file on each node and set the appropriate `http_proxy`, `https_proxy` and
 
 ````
 
-````{group-tab} Private registry mirrors
+````{tab-item} Private registry mirrors
 In case regulations and/or network constraints do not permit the cluster nodes
 to access any upstream image registry, it is typical to deploy a private
 registry mirror. This is an image registry service that contains all the
@@ -189,7 +189,7 @@ USERNAME="$username" PASSWORD="$password" MIRROR="10.10.10.10:5050" \
 ```
 ````
 
-````{group-tab} Side-load images
+````{tab-item} Side-load images
 Image side-loading is the process of loading all required OCI images directly
 into the container runtime, so they do not have to be fetched at runtime.
 
@@ -241,14 +241,14 @@ Based on the image access type you chose in the step
 container runtime to fetch images properly:
 
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} HTTP proxy
+````{tab-item} HTTP proxy
 The HTTP proxy should be set from the earlier access images via HTTP proxy step. Refer to the
 [adding proxy configuration section][proxy] for more help if necessary.
 ````
 
-````{group-tab} Private registry mirrors
+````{tab-item} Private registry mirrors
 You should have already set up a registry mirror, as explained in the
 preparation section on the private registry mirror. Complete the following
 instructions on all nodes. For each upstream registry that needs mirroring,
@@ -301,7 +301,7 @@ from `my.mirror.io/my/own/ghcr.io/canonical/coredns:1.12.0-ck1`.
 
 ````
 
-````{group-tab} Side-load images
+````{tab-item} Side-load images
 This is only required if choosing to side-load images. Make sure
 that the directory `/var/snap/k8s/common/images` directory exists, then copy
 all `$image.tar` to that directory, such that containerd automatically picks
