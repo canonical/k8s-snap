@@ -108,7 +108,7 @@ jobs:
       - name: Get e2e test tags
         id: get-e2e-tags
         run: |
-          tags="up_to_nightly"
+          tags="pull_request"
           if ${{ github.event_name == 'pull_request' }}; then
             # Run all tests if there are test changes. In case of a PR, we'll
             # get a merge commit that includes all changes.
