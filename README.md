@@ -53,7 +53,7 @@ available in other Linux distributions that support
 Install the snap:
 
 ```bash
-sudo snap install k8s --channel=1.34-classic/stable --classic
+sudo snap install k8s --channel=1.35-classic/stable --classic
 ```
 
 Initialize the cluster:
@@ -99,4 +99,4 @@ take a look at our
 
 Canonical Kubernetes is released under the [GPL-3.0 license](LICENSE).
 
-© 2015-2025 Canonical Ltd.
+© 2015-2026 Canonical Ltd.

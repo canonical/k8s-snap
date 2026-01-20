@@ -131,15 +131,14 @@ jobs:
       fail-fast: false
       matrix:
         arch: [amd64, arm64]
-        datastore: [etcd, k8s-dqlite]
     needs: [build-snap, get-e2e-tags, go-lint-and-unit, python-lint]
     uses: ./.github/workflows/e2e-tests.yaml
     with:
       arch: ${{ matrix.arch }}
       os: ubuntu:24.04
-      datastore: ${{ matrix.datastore }}
       test-tags: ${{ needs.get-e2e-tags.outputs.test-tags }}
       artifact: k8s-${{ matrix.arch }}.snap
+      test-collection-repo: ${{github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name || github.repository }}
       test-collection-branch: ${{ github.head_ref }}
       parallel: true
 
@@ -151,7 +150,9 @@ jobs:
       artifact: ${{ needs.build-snap.outputs.snap-artifact }}
     permissions:
       contents: read # for actions/checkout to fetch code
-      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+      # security-events: write is required for github/codeql-action/upload-sarif to upload SARIF results
+      # This permission is necessary for security scanning functionality and cannot be reduced.
+      security-events: write
 
   get-charm-channel:
     name: Determine the charm channel

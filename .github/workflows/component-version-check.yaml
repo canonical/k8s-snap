@@ -6,6 +6,8 @@ on:
     branches:
     - 'release-*'
 
+permissions: {}
+
 jobs:
   validation-changes:
     runs-on: ubuntu-latest

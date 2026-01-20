@@ -1,0 +1,54 @@
+name: Check for k8sd Go dependency updates
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 11 * * *"
+  pull_request:
+    paths:
+      - .github/workflows/update-k8sd-go-deps.yaml
+
+permissions:
+  contents: read
+
+jobs:
+  update:
+    permissions:
+      contents: write # for peter-evans/create-pull-request to create branch
+      pull-requests: write # for peter-evans/create-pull-request to create a PR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checking out repo
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          ssh-key: ${{ secrets.BOT_SSH_KEY }}
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: './src/k8s/go.mod'
+
+      - name: Update k8sd Go dependencies
+        run: |
+          cd src/k8s
+          go get -u ./...
+          go mod tidy
+          cd $GITHUB_WORKSPACE/src/k8s/tools
+          go get -u ./...
+          go mod tidy
+
+      - name: Create pull request
+        if: github.event_name != 'pull_request'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "[main] Update k8sd Go dependencies"
+          title: "[main] Update k8sd Go dependencies"
+          body: "[main] Update k8sd Go dependencies"
+          branch: "autoupdate/k8sd-go-deps/main"
+          labels: |
+            automerge
+          delete-branch: true
+          token: ${{ secrets.BOT_TOKEN }}
+          author: "K8s builder bot <k8s-bot@canonical.com>"

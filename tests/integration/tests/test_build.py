@@ -1,5 +1,5 @@
 #
-# Copyright 2025 Canonical, Ltd.
+# Copyright 2026 Canonical, Ltd.
 #
 import logging
 from typing import List
@@ -34,13 +34,13 @@ def test_build(instances: List[harness.Instance]):
         "k8s-apiserver-proxy",
         "containerd",
         "cni",
+        "ctr",
+        "containerd-shim-runc-v2",
     ]
 
     # These components should be statically built as they do not contain any crypto functions
     static_components = [
-        "ctr",
         "runc",
-        "containerd-shim-runc-v2",
     ]
 
     for component in dynamic_components:

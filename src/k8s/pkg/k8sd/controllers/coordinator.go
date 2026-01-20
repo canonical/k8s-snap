@@ -13,6 +13,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
+	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/utils"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
@@ -26,33 +27,38 @@ type Coordinator struct {
 	snap      snap.Snap
 	waitReady func()
 
-	// Upgrade controller
-	disableUpgradeController bool
-	upgradeControllerOpts    upgrade.ControllerOptions
+	upgradeControllerOptions       UpgradeControllerOptions
+	csrSigningControllerOptions    CSRSigningControllerOptions
+	dnsRebalancerControllerOptions DNSRebalancerControllerOptions
+}
 
-	// CSR signing controller
-	disableCSRSigningController bool
+type UpgradeControllerOptions struct {
+	upgrade.ControllerOptions
+	Disable bool
+}
 
-	// DNS rebalancer controller
-	disableDNSRebalancerController bool
+type CSRSigningControllerOptions struct {
+	Disable bool
+}
+
+type DNSRebalancerControllerOptions struct {
+	Disable bool
 }
 
 // NewCoordinator creates a new Coordinator instance.
 func NewCoordinator(
 	snap snap.Snap,
 	waitReady func(),
-	disableUpgradeController bool,
-	upgradeControllerOpts upgrade.ControllerOptions,
-	disableCSRSiningController bool,
-	disableDNSRebalancerController bool,
+	upgradeControllerOptions UpgradeControllerOptions,
+	csrSigningControllerOptions CSRSigningControllerOptions,
+	dnsRebalancerControllerOptions DNSRebalancerControllerOptions,
 ) *Coordinator {
 	return &Coordinator{
 		snap:                           snap,
 		waitReady:                      waitReady,
-		disableUpgradeController:       disableUpgradeController,
-		upgradeControllerOpts:          upgradeControllerOpts,
-		disableCSRSigningController:    disableCSRSiningController,
-		disableDNSRebalancerController: disableDNSRebalancerController,
+		upgradeControllerOptions:       upgradeControllerOptions,
+		csrSigningControllerOptions:    csrSigningControllerOptions,
+		dnsRebalancerControllerOptions: dnsRebalancerControllerOptions,
 	}
 }
 
@@ -62,6 +68,16 @@ func (c *Coordinator) Run(
 	getClusterConfig func(context.Context) (types.ClusterConfig, error),
 ) error {
 	logger := log.FromContext(ctx).WithName("controller-coordinator")
+
+	isWorker, err := snaputil.IsWorker(c.snap)
+	if err != nil {
+		return fmt.Errorf("failed to determine if snap is running as worker: %w", err)
+	}
+	if isWorker {
+		logger.Info("Skipping controller coordinator on worker node")
+		return nil
+	}
+
 	ctrllog.SetLogger(logger)
 	ctx = log.NewContext(ctx, logger)
 
@@ -142,7 +158,7 @@ func (c *Coordinator) setupUpgradeController(
 ) error {
 	logger := mgr.GetLogger()
 
-	if c.disableUpgradeController {
+	if c.upgradeControllerOptions.Disable {
 		logger.Info("Upgrade controller is disabled. Skipping setup.")
 		return nil
 	}
@@ -160,7 +176,7 @@ func (c *Coordinator) setupUpgradeController(
 	upgradeController := upgrade.NewController(
 		logger,
 		mgr.GetClient(),
-		c.upgradeControllerOpts,
+		c.upgradeControllerOptions.ControllerOptions,
 	)
 
 	if err := upgradeController.SetupWithManager(mgr); err != nil {
@@ -176,7 +192,7 @@ func (c *Coordinator) setupCSRSigningController(
 ) error {
 	logger := mgr.GetLogger()
 
-	if c.disableCSRSigningController {
+	if c.csrSigningControllerOptions.Disable {
 		logger.Info("CSR signing controller is disabled. Skipping setup.")
 		return nil
 	}
@@ -200,7 +216,7 @@ func (c *Coordinator) setupDNSRebalancerController(
 ) error {
 	logger := mgr.GetLogger()
 
-	if c.disableDNSRebalancerController {
+	if c.dnsRebalancerControllerOptions.Disable {
 		logger.Info("DNS rebalancer controller is disabled. Skipping setup.")
 		return nil
 	}

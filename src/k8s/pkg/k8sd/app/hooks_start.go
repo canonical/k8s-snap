@@ -130,16 +130,18 @@ func (a *App) onStart(ctx context.Context, s state.State) error {
 	}
 
 	// start controller coordinator
-	go func() {
-		if err := a.controllerCoordinator.Run(
-			ctx,
-			func(ctx context.Context) (types.ClusterConfig, error) {
-				return databaseutil.GetClusterConfig(ctx, s)
-			},
-		); err != nil {
-			log.FromContext(ctx).Error(err, "Failed to start controller coordinator")
-		}
-	}()
+	if a.controllerCoordinator != nil {
+		go func() {
+			if err := a.controllerCoordinator.Run(
+				ctx,
+				func(ctx context.Context) (types.ClusterConfig, error) {
+					return databaseutil.GetClusterConfig(ctx, s)
+				},
+			); err != nil {
+				log.FromContext(ctx).Error(err, "Failed to start controller coordinator")
+			}
+		}()
+	}
 
 	// NOTE(Hue): We notify all features here to ensure that they are
 	// reconciled at least once after the app starts. This is important specifically

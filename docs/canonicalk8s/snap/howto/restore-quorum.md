@@ -57,9 +57,9 @@ Dqlite databases. If one of the databases needs to be skipped, use the
 
 On the node with the most recent Raft logs, run:
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 ```{note}
 This command creates a backup only for `k8sd`.
@@ -75,7 +75,7 @@ sudo /snap/k8s/current/bin/k8sd cluster-recover \
 
 ````
 
-````{group-tab} Dqlite
+````{tab-item} Dqlite
 
 ```
 sudo /snap/k8s/current/bin/k8sd cluster-recover \
@@ -111,9 +111,9 @@ This allows automating the recovery procedure.
 
 ## Recover the Kubernetes datastore
 
-`````{tabs}
+`````{tab-set}
 
-````{group-tab} etcd
+````{tab-item} etcd
 
 ### Take an etcd snapshot
 
@@ -183,7 +183,7 @@ etcdutl snapshot restore snapshot.db \
 
 ````
 
-````{group-tab} Dqlite
+````{tab-item} Dqlite
 
 The k8s-dqlite recovery tarballs that were created with the `cluster-recover`
 command need to be copied over to all cluster

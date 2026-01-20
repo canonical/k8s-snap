@@ -188,33 +188,44 @@ func New(cfg Config) (*App, error) {
 		log.L().Info("feature-controller disabled via config")
 	}
 
+	var upgradeCtrlOpts controllers.UpgradeControllerOptions
+	if !cfg.DisableFeatureController {
+		upgradeCtrlOpts = controllers.UpgradeControllerOptions{
+			ControllerOptions: upgrade.ControllerOptions{
+				FeatureControllerReadyCh:   app.featureController.ReadyCh(),
+				NotifyNetworkFeature:       app.NotifyNetwork,
+				NotifyGatewayFeature:       app.NotifyGateway,
+				NotifyIngressFeature:       app.NotifyIngress,
+				NotifyLoadBalancerFeature:  app.NotifyLoadBalancer,
+				NotifyLocalStorageFeature:  app.NotifyLocalStorage,
+				NotifyMetricsServerFeature: app.NotifyMetricsServer,
+				NotifyDNSFeature:           app.NotifyDNS,
+				FeatureToReconciledCh: map[types.FeatureName]<-chan struct{}{
+					features.Network:       app.featureController.ReconciledNetworkCh(),
+					features.Gateway:       app.featureController.ReconciledGatewayCh(),
+					features.Ingress:       app.featureController.ReconciledIngressCh(),
+					features.DNS:           app.featureController.ReconciledDNSCh(),
+					features.LoadBalancer:  app.featureController.ReconciledLoadBalancerCh(),
+					features.LocalStorage:  app.featureController.ReconciledLocalStorageCh(),
+					features.MetricsServer: app.featureController.ReconciledMetricsServerCh(),
+				},
+				FeatureControllerReadyTimeout:     10 * time.Minute,
+				FeatureControllerReconcileTimeout: 2 * time.Minute,
+			},
+		}
+	}
+	upgradeCtrlOpts.Disable = cfg.DisableUpgradeController || cfg.DisableFeatureController
+
 	app.controllerCoordinator = controllers.NewCoordinator(
 		cfg.Snap,
 		app.readyWg.Wait,
-		cfg.DisableUpgradeController,
-		upgrade.ControllerOptions{
-			FeatureControllerReadyCh:   app.featureController.ReadyCh(),
-			NotifyNetworkFeature:       app.NotifyNetwork,
-			NotifyGatewayFeature:       app.NotifyGateway,
-			NotifyIngressFeature:       app.NotifyIngress,
-			NotifyLoadBalancerFeature:  app.NotifyLoadBalancer,
-			NotifyLocalStorageFeature:  app.NotifyLocalStorage,
-			NotifyMetricsServerFeature: app.NotifyMetricsServer,
-			NotifyDNSFeature:           app.NotifyDNS,
-			FeatureToReconciledCh: map[types.FeatureName]<-chan struct{}{
-				features.Network:       app.featureController.ReconciledNetworkCh(),
-				features.Gateway:       app.featureController.ReconciledGatewayCh(),
-				features.Ingress:       app.featureController.ReconciledIngressCh(),
-				features.DNS:           app.featureController.ReconciledDNSCh(),
-				features.LoadBalancer:  app.featureController.ReconciledLoadBalancerCh(),
-				features.LocalStorage:  app.featureController.ReconciledLocalStorageCh(),
-				features.MetricsServer: app.featureController.ReconciledMetricsServerCh(),
-			},
-			FeatureControllerReadyTimeout:     10 * time.Minute,
-			FeatureControllerReconcileTimeout: 2 * time.Minute,
+		upgradeCtrlOpts,
+		controllers.CSRSigningControllerOptions{
+			Disable: cfg.DisableCSRSigningController,
 		},
-		cfg.DisableCSRSigningController,
-		cfg.DisableDNSRebalancerController,
+		controllers.DNSRebalancerControllerOptions{
+			Disable: cfg.DisableDNSRebalancerController,
+		},
 	)
 
 	return app, nil

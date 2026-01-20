@@ -1,20 +1,23 @@
 # Configuration files
 
-```{toctree}
-:hidden:
-Configuration Files <self>
-```
-
 {{product}} uses several configuration files to control its behavior and
-settings. Links below provides detailed information about each configuration
-file.
+settings. 
+
+## Cluster initialization 
 
 ```{toctree}
 :glob:
 :titlesonly:
+Bootstrap <bootstrap-config.md>
+Worker node join <worker-join-config.md>
+Control plane node join <control-plane-join-config.md>
+DISA STIG <disa-stig-config.md>
+```
 
-bootstrap-config
-control-plane-join-config
-worker-join-config
-refresh-external-certs-config
+## Cluster certificates
+
+```{toctree}
+:glob:
+:titlesonly:
+Refresh certificates <refresh-external-certs-config.md>
 ```

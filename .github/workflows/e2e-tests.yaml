@@ -33,10 +33,6 @@ on:
         description: Test flavor (e.g. strict), leave empty for classic
         default: ""
         type: string
-      datastore:
-        description: Datastore backend to use for the tests (e.g. etcd, k8s-dqlite)
-        default: ""
-        type: string
       extra-test-args: &extra-test-args
         description: |
           Additional pytest arguments, use "-k <test_name>" to run a specific test
@@ -66,6 +62,13 @@ on:
               "xlarge"
             ]
           }
+      test-collection-repo:
+        description: |
+          Repository to use for collecting tests. Can be used to override the default behavior of
+          collecting tests from the same repository as the workflow is running in.
+        type: string
+        required: false
+        default: ${{ github.repository }}
       test-collection-branch:
         description: |
           Branch to use for collecting tests. Can be used to override the default behavior of
@@ -125,6 +128,7 @@ jobs:
     outputs:
       tests: ${{ steps.collect-tests.outputs.tests }}
       test-runners: ${{ steps.compute-test-runners.outputs.test_runners }}
+      repo: ${{ steps.compute-ref.outputs.repo }}
       ref: ${{ steps.compute-ref.outputs.ref }}
     steps:
       - name: Compute ref for test collection
@@ -149,10 +153,12 @@ jobs:
           fi
 
           echo "Using git ref $REF for channel: $CHANNEL"
+          echo "repo=${{ inputs.test-collection-repo }}" >> $GITHUB_OUTPUT
           echo "ref=$REF" >> $GITHUB_OUTPUT
       - name: Check out code
         uses: actions/checkout@v4
         with:
+          repository: ${{ steps.compute-ref.outputs.repo }}
           ref: ${{ steps.compute-ref.outputs.ref }}
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -204,6 +210,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
         with:
+          repository: ${{ needs.prepare.outputs.repo }}
           ref: ${{ needs.prepare.outputs.ref }}
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -252,7 +259,6 @@ jobs:
           TEST_LXD_IMAGE: ${{ inputs.os }}
           TEST_MULTIPASS_IMAGE: ${{ inputs.os }}
           TEST_FLAVOR: ${{ inputs.flavor }}
-          TEST_DATASTORE: ${{ inputs.datastore }}
           TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports/${{ inputs.parallel && env.test_name || '' }}
           TEST_VERSION_UPGRADE_CHANNELS: "recent 6"
           TEST_VERSION_DOWNGRADE_CHANNELS: "recent 6"

@@ -65,7 +65,7 @@ A successfully upgraded machine shows the following annotations:
 
 ```yaml
 annotations:
-  v1beta2.k8sd.io/in-place-upgrade-release: "channel=1.34-classic/stable"
+  v1beta2.k8sd.io/in-place-upgrade-release: "channel=1.35-classic/stable"
   v1beta2.k8sd.io/in-place-upgrade-status: "done"
 ```
 
@@ -75,7 +75,7 @@ the upgrade immediately:
 ```yaml
 annotations:
   # the `upgrade-to` causes the retry to happen
-  v1beta2.k8sd.io/in-place-upgrade-to: "channel=1.34-classic/stable"
+  v1beta2.k8sd.io/in-place-upgrade-to: "channel=1.35-classic/stable"
   v1beta2.k8sd.io/in-place-upgrade-status: "failed"
 
   # orchestrator will notice this annotation and knows that the 
@@ -126,7 +126,7 @@ The illustrated flow of orchestrated in-place upgrades:
 [img-orchestrated]: https://assets.ubuntu.com/v1/8f302a00-orchestrated.png
 
 <!-- LINKS -->
-[1]: https://cluster-api.sigs.k8s.io/user/concepts#machine-immutability-in-place-upgrade-vs-replace
+[1]: https://cluster-api.sigs.k8s.io/user/concepts#machine-immutability-in-place-update-vs-replace
 [2]: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 [3]: https://kubernetes.io/docs/concepts/overview/working-with-objects/#object-spec-and-status
 [4]: ../reference/annotations.md

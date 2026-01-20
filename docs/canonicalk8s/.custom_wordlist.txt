@@ -55,6 +55,7 @@ backported
 balancer
 balancer's
 balancers
+baycarbone
 benoitblanchon
 berkayoz
 bgp
@@ -83,6 +84,7 @@ Charmcraft
 Charmed
 Charmed Kubeflow
 Charmhub
+charmlib
 cidr
 cidrs
 CIDRs
@@ -146,6 +148,7 @@ cypher
 DaemonSet
 DaemonSets
 Data Integrator
+databag
 databags
 datastore
 datastores
@@ -168,6 +171,7 @@ dodi
 DPDK
 dqlite
 DRBD
+dualstack
 drv
 DTMs
 dulmandakh
@@ -435,6 +439,8 @@ Pushgateway
 PV
 PVCs
 py
+pypi
+PyPI
 Pydantic
 Python
 qdisc
