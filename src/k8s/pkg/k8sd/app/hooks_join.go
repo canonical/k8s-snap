@@ -236,6 +236,12 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 			return fmt.Errorf("failed to configure k8s-dqlite with address=%s cluster=%v: %w", address, cluster, err)
 		}
 
+		reverter.Add(func() {
+			if err := os.RemoveAll(snap.K8sDqliteStateDir()); err != nil {
+				log.Error(err, "failed to cleanup k8s-dqlite state directory")
+			}
+		})
+
 	case "etcd":
 		leader, err := s.Leader()
 		if err != nil {
@@ -270,6 +276,30 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 			return fmt.Errorf("failed to add member %s to etcd cluster: %w", s.Name(), err)
 		}
 
+		reverter.Add(func() {
+			// Use an independent short-lived context for revert operations so
+			// they have a chance to complete even if the join hook's ctx has
+			// already been cancelled by a timeout.
+			rmCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
+
+			if len(endpoints) > 2 {
+				etcdClient, err := snap.EtcdClient(endpoints)
+				if err != nil {
+					log.Error(err, "failed to create etcd client for member removal using peer endpoints")
+				} else {
+					defer etcdClient.Close()
+					if err := etcdClient.RemoveNodeByName(rmCtx, s.Name()); err != nil {
+						log.Error(err, "failed to remove node from etcd cluster using peer endpoints")
+					} else {
+						if err := os.RemoveAll(snap.EtcdDir()); err != nil {
+							log.Error(err, "failed to cleanup etcd state directory")
+						}
+					}
+				}
+			}
+		})
+
 		// Build initial cluster members map from etcd members
 		initialClusterMembers := make(map[string]string)
 		for _, member := range memberAddResp.Members {
@@ -287,30 +317,6 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 			return fmt.Errorf("failed to configure etcd: %w", err)
 		}
 
-		reverter.Add(func() {
-			// Use an independent short-lived context for revert operations so
-			// they have a chance to complete even if the join hook's ctx has
-			// already been cancelled by a timeout.
-			rmCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-			defer cancel()
-
-			// Remove node from etcd cluster to avoid orphaned membership entries.
-			if len(endpoints) > 2 {
-				etcdClient, err := snap.EtcdClient(endpoints)
-				if err != nil {
-					log.Error(err, "failed to create etcd client for member removal using peer endpoints")
-				} else {
-					defer etcdClient.Close()
-					if err := etcdClient.RemoveNodeByName(rmCtx, s.Name()); err != nil {
-						log.Error(err, "failed to remove node from etcd cluster using peer endpoints")
-					} else {
-						if err := os.RemoveAll(snap.EtcdDir()); err != nil {
-							log.Error(err, "failed to cleanup etcd state directory")
-						}
-					}
-				}
-			}
-		})
 	case "external":
 	default:
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.Datastore.GetType(), setup.SupportedDatastores)
