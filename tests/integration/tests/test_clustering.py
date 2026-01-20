@@ -511,7 +511,11 @@ def test_join_cp_with_duplicate_name_rejected(instances: List[harness.Instance])
         cluster_node, joined_worker, "--worker", name=shared_node_name
     )
     util.join_cluster(joined_worker, join_token_worker, name=shared_node_name)
-    util.wait_until_k8s_ready(cluster_node, [cluster_node, joined_worker])
+    util.wait_until_k8s_ready(
+        cluster_node,
+        [cluster_node, joined_worker],
+        node_names={joined_worker.id: shared_node_name},
+    )
 
     LOG.info("Worker node joined successfully")
 
