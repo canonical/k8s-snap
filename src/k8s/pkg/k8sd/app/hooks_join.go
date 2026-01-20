@@ -336,11 +336,6 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		return fmt.Errorf("failed to get Kubernetes client: %w", err)
 	}
 
-	// Don't allow node join if any node (worker incl.) shares the same name.
-	if _, err := k8sClient.GetNode(ctx, s.Name()); err == nil {
-		return fmt.Errorf("A node with the same name %q is already part of the cluster", s.Name())
-	}
-
 	// This is required for backwards compatibility.
 	log.Info("Applying custom CRDs")
 	if err := k8sClient.ApplyCRDs(ctx); err != nil {

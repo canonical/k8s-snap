@@ -28,6 +28,15 @@ func (e *Endpoints) postClusterJoinTokens(s state.State, r *http.Request) respon
 		return response.BadRequest(fmt.Errorf("invalid hostname %q: %w", req.Name, err))
 	}
 
+	// Verify that the node name is not already in use by an existing node
+	k8sClient, err := e.provider.Snap().KubernetesClient("")
+	if err != nil {
+		return response.InternalError(fmt.Errorf("failed to create k8s client: %w", err))
+	}
+	if _, err := k8sClient.GetNode(r.Context(), hostname); err == nil {
+		return response.InternalError(fmt.Errorf("A node with the same name %q is already part of the cluster", hostname))
+	}
+
 	var token string
 
 	ttl := req.TTL
