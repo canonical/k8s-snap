@@ -101,27 +101,10 @@ parts:
     - BIN: $CRAFT_STAGE/bin/etcd
     override-build: $CRAFT_PROJECT_DIR/build-scripts/build-component.sh etcd
     build-attributes: [enable-patchelf]
-    override-prime: |
+    override-prime: |-
       case "$CRAFT_ARCH_TRIPLET_BUILD_FOR" in
         x86_64-linux-gnu|aarch64-linux-gnu)
-          # Note(ben): patchelf messes up the segments when patching etcd
-          # due to https://github.com/NixOS/patchelf/issues/446.
-          # Instead, we use a custom script based on LIEF to manually patch the rpath and interpreter.
-          echo "Patching ELF file: $BIN with LIEF"
-          # Only install Python deps on supported arches
-          pip3 install -r $CRAFT_PROJECT_DIR/build-scripts/hack/requirements.txt
-
-          if [ "$CRAFT_ARCH_TRIPLET_BUILD_FOR" = "x86_64-linux-gnu" ]; then
-            python3 $CRAFT_PROJECT_DIR/build-scripts/hack/patchelf.py "$BIN" \
-              --set-rpath /snap/$BASE/current/lib/x86_64-linux-gnu/ \
-              --set-interpreter /snap/$BASE/current/lib64/ld-linux-x86-64.so.2
-          else
-            python3 $CRAFT_PROJECT_DIR/build-scripts/hack/patchelf.py "$BIN" \
-              --set-rpath /snap/$BASE/current/lib/aarch64-linux-gnu/ \
-              --set-interpreter /snap/$BASE/current/lib/ld-linux-aarch64.so.1
-          fi
-          echo "==> LIEF patching complete"
-          cp "$BIN" "$CRAFT_PRIME/bin/etcd"
+          $CRAFT_PROJECT_DIR/build-scripts/patch-elf-with-lief.sh $BASE $BIN $CRAFT_ARCH_TRIPLET_BUILD_FOR
           ;;
         *)
           # Only amd64/arm64 can use the LIEF-patcher python script above.
@@ -220,36 +203,25 @@ parts:
   containerd:
     after: [runc]
     plugin: nil
-    # Note(ben): patchelf messes up the segments when patching containerd
-    # due to https://github.com/NixOS/patchelf/issues/446.
-    # Instead, we use a custom script based on LIEF to manually patch the rpath and interpreter.
-    build-attributes: [no-patchelf]
     source: build-scripts/components/containerd
-    override-build: |
-      # Note(Ben): This field must match the base field above.
-      BASE=core22
-
-      $CRAFT_PROJECT_DIR/build-scripts/build-component.sh containerd
-
-      pip3 install -r $CRAFT_PROJECT_DIR/build-scripts/hack/requirements.txt
-      for bin in containerd ctr containerd-shim-runc-v2; do
-        case "$CRAFT_ARCH_TRIPLET_BUILD_FOR" in
-          x86_64-linux-gnu)
-            python3 $CRAFT_PROJECT_DIR/build-scripts/hack/patchelf.py $CRAFT_PART_INSTALL/bin/${bin} \
-              --set-rpath /snap/$BASE/current/lib/x86_64-linux-gnu/ \
-              --set-interpreter /snap/$BASE/current/lib64/ld-linux-x86-64.so.2
-            ;;
-          aarch64-linux-gnu)
-            python3 $CRAFT_PROJECT_DIR/build-scripts/hack/patchelf.py $CRAFT_PART_INSTALL/bin/${bin} \
-              --set-rpath /snap/$BASE/current/lib/aarch64-linux-gnu/ \
-              --set-interpreter /snap/$BASE/current/lib/ld-linux-aarch64.so.1
-            ;;
-          *)
-            echo "Unknown architecture: $CRAFT_ARCH_TRIPLET_BUILD_FOR"
-            exit 1
-            ;;
-        esac
-      done
+    override-build: $CRAFT_PROJECT_DIR/build-scripts/build-component.sh containerd
+    build-environment:
+    - BASE: core22  # Note: This field must match the base field above.
+    build-attributes: [enable-patchelf]
+    override-prime: |-
+      case "$CRAFT_ARCH_TRIPLET_BUILD_FOR" in
+        x86_64-linux-gnu|aarch64-linux-gnu)
+          for BIN in containerd ctr containerd-shim-runc-v2; do
+            $CRAFT_PROJECT_DIR/build-scripts/patch-elf-with-lief.sh $BASE $CRAFT_STAGE/bin/$BIN $CRAFT_ARCH_TRIPLET_BUILD_FOR
+          done
+          ;;
+        *)
+          # Only amd64/arm64 can use the LIEF-patcher python script above.
+          # Fallback intentionally to snapcraft's patchelf on other architectures.
+          echo "==> Applying Snap-native patchelf"
+          craftctl default
+          ;;
+      esac
 
   runc:
     after: [iptables, build-deps]
