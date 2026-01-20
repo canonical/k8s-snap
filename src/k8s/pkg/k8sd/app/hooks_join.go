@@ -25,7 +25,6 @@ import (
 	"github.com/canonical/lxd/shared/revert"
 	"github.com/canonical/microcluster/v2/state"
 	"go.etcd.io/etcd/api/v3/v3rpc/rpctypes"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	versionutil "k8s.io/apimachinery/pkg/util/version"
 )
 
@@ -209,8 +208,6 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 	reverter := revert.New()
 	defer reverter.Fail()
 
-	// TODO: maybe wait here until node is no longer pending in microcluster?
-
 	// Configure datastore
 	switch cfg.Datastore.GetType() {
 	case "k8s-dqlite":
@@ -239,12 +236,6 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 			return fmt.Errorf("failed to configure k8s-dqlite with address=%s cluster=%v: %w", address, cluster, err)
 		}
 
-		// reverter.Add(func() {
-		// 	if err := os.RemoveAll(snap.K8sDqliteStateDir()); err != nil {
-		// 		log.Error(err, "failed to cleanup k8s-dqlite state directory")
-		// 	}
-
-		// })
 	case "etcd":
 		leader, err := s.Leader()
 		if err != nil {
@@ -396,23 +387,6 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 	if err := handleRollOutUpgrade(ctx, a.snap, s, k8sClient); err != nil {
 		log.Error(err, "Failed to handle rollout-upgrade")
 		return fmt.Errorf("failed to handle rollout-upgrade: %w", err)
-	}
-
-	// For testing: Wait a bit to ensure this node's kubelet has registered before checking cluster size
-	time.Sleep(5 * time.Second)
-
-	// Get list of all Kubernetes nodes
-	nodes, err := k8sClient.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
-	if err != nil {
-		return fmt.Errorf("failed to list nodes: %w", err)
-	}
-	clusterSize := len(nodes.Items)
-	log.Info("Checking cluster size for test", "clusterSize", clusterSize, "nodeName", s.Name())
-
-	// For testing fail here if this is the third node in the cluster and return an error to trigger revert
-	if clusterSize == 3 {
-		log.Info("Simulating failure on join of third node for testing purposes")
-		return fmt.Errorf("simulated failure on join of third node")
 	}
 
 	reverter.Success()
