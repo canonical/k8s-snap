@@ -38,7 +38,7 @@ and much more.
 <!-- LINKS -->
 [Architecture]:/charm/reference/architecture
 [Ports and services]:/charm/reference/ports-and-services.md
-[Release notes]:/charm/reference/releases.md
+[Release notes]:/releases/charm/index.md
 [Security overview explanation]: /charm/explanation/security.md
 [How to upgrade minor version]: /charm/howto/upgrade-minor.md
 [How to upgrade patch version]:/charm/howto/upgrade-patch.md

@@ -42,7 +42,7 @@ notes for each version.
 
 ```{toctree}
 :titlesonly:
-releases
+/releases/snap/index.md
 ```
 
 ## Security

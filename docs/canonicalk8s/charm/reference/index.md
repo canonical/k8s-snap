@@ -49,7 +49,7 @@ notes for each version.
 
 ```{toctree}
 :titlesonly:
-releases
+/releases/charm/index
 ```
 
 ## Troubleshooting

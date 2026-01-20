@@ -8,16 +8,6 @@ information such as the command reference or release notes.
 Overview <self>
 ```
 
-## Release notes
-
-New features, bug fixes, deprecations and more are included in the release
-notes for each version.
-
-```{toctree}
-:titlesonly:
-releases
-```
-
 ## Annotations
 
 A list of annotations that can be applied to CAPI resources to reflect
