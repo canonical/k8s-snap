@@ -10,6 +10,7 @@ import time
 from typing import List
 
 import pytest
+import tenacity
 import yaml
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
@@ -513,19 +514,24 @@ def test_join_cp_with_duplicate_name_rejected(instances: List[harness.Instance])
     util.wait_until_k8s_ready(cluster_node, [cluster_node, joined_worker])
 
     LOG.info("Worker node joined successfully")
-    join_token_cp = util.get_join_token(cluster_node, joining_cp, name=shared_node_name)
 
-    # Try to join with duplicate name - should fail
+    # Try to get join token with duplicate name - should fail
     try:
-        util.join_cluster(joining_cp, join_token_cp, name=shared_node_name)
-        assert False, "Join should have failed due to duplicate node name"
-    except subprocess.CalledProcessError as e:
-        LOG.info("CP join failed as expected")
-        error_output = e.stderr if e.stderr else e.stdout if e.stdout else ""
+        util.get_join_token(cluster_node, joining_cp, name=shared_node_name)
+        assert False, "get-join-token should have failed due to duplicate node name"
+    except tenacity.RetryError as e:
+        LOG.info("get-join-token failed as expected")
+        # Extract the underlying exception
+        cause = e.last_attempt.exception()
+        if not isinstance(cause, subprocess.CalledProcessError):
+            raise e
+        error_output = (
+            cause.stderr if cause.stderr else cause.stdout if cause.stdout else ""
+        )
         if isinstance(error_output, bytes):
             error_output = error_output.decode()
         assert (
-            f"A node with the same name {repr(shared_node_name)} is already part of the cluster"
+            f'A node with the same name "{shared_node_name}" is already part of the cluster'
             in error_output
         ), f"Join error message should indicate duplicate node name. Got: {error_output}"
 
@@ -538,44 +544,43 @@ def test_join_cp_with_duplicate_name_rejected(instances: List[harness.Instance])
     LOG.info("Successfully prevented joining of CP node with same name as worker")
 
 
-@pytest.mark.node_count(3)
+@pytest.mark.node_count(2)
 @pytest.mark.tags(tags.PULL_REQUEST)
 def test_join_worker_with_duplicate_name_rejected(instances: List[harness.Instance]):
     """Tests that a worker node joining with the same name as a control plane node in the cluster is rejected"""
     cluster_node = instances[0]
-    joined_cp = instances[1]
-    joining_worker = instances[2]
-    shared_node_name = "nutella"
+    joining_worker = instances[1]
+
+    # Use the cluster node's name as the duplicate name
+    shared_node_name = cluster_node.id
 
     util.wait_until_k8s_ready(cluster_node, [cluster_node])
 
-    join_token_cp = util.get_join_token(cluster_node, joined_cp, name=shared_node_name)
-    util.join_cluster(joined_cp, join_token_cp, name=shared_node_name)
-    util.wait_until_k8s_ready(cluster_node, [cluster_node, joined_cp])
+    LOG.info("Cluster initialized")
 
-    LOG.info("Control plane node joined successfully")
-    join_token_worker = util.get_join_token(
-        cluster_node, joining_worker, "--worker", name=shared_node_name
-    )
-
-    # Try to join with duplicate name - should fail
     try:
-        util.join_cluster(joining_worker, join_token_worker, name=shared_node_name)
-        assert False, "Join should have failed due to duplicate node name"
-    except subprocess.CalledProcessError as e:
-        LOG.info("Worker join failed as expected")
-        error_output = e.stderr if e.stderr else e.stdout if e.stdout else ""
+        util.get_join_token(
+            cluster_node, joining_worker, "--worker", name=shared_node_name
+        )
+        assert False, "get-join-token should have failed due to duplicate node name"
+    except tenacity.RetryError as e:
+        LOG.info("get-join-token failed as expected")
+        cause = e.last_attempt.exception()
+        if not isinstance(cause, subprocess.CalledProcessError):
+            raise e
+        error_output = (
+            cause.stderr if cause.stderr else cause.stdout if cause.stdout else ""
+        )
         if isinstance(error_output, bytes):
             error_output = error_output.decode()
         assert (
-            f"A node with the same name {repr(shared_node_name)} is already part of the cluster"
+            f'A node with the same name "{shared_node_name}" is already part of the cluster'
             in error_output
         ), f"Join error message should indicate duplicate node name. Got: {error_output}"
 
     nodes = util.ready_nodes(cluster_node)
-    assert (
-        len(nodes) == 2
-    ), "Only master node and control plane should be in the cluster"
+    assert len(nodes) == 1, "Only original cluster node should be in the cluster"
+
     node_names = [node["metadata"]["name"] for node in nodes]
     assert cluster_node.id in node_names
     assert shared_node_name in node_names
