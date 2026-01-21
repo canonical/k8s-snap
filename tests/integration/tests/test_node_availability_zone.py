@@ -23,13 +23,9 @@ def _get_failure_domain(availability_zone: str) -> int:
 @pytest.mark.tags(tags.NIGHTLY)
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.parametrize("same_az", (False, True))
-@pytest.mark.parametrize("datastore", ("k8s-dqlite", "etcd"))
-# For k8s-dqlite
-@pytest.mark.required_ports(9000)
 def test_node_availability_zone(
     instances: List[harness.Instance],
     same_az: bool,
-    datastore: str,
 ):
     # Steps:
     # * create a three-node cluster
@@ -37,17 +33,12 @@ def test_node_availability_zone(
     #   * use the same AZ if "same_az" is set, unique AZs otherwise
     # * ensure that the right Dqlite failure domain is set based on the AZ
     # * ensure that the cluster is still available
-    #   * k8sd and k8s-dqlite services are restarted in order for the failure
+    #   * k8sd is restarted in order for the failure
     #     domain changes to be applied. We need to make sure that this doesn't
     #     lead to a quorum loss.
     initial_node = instances[0]
 
-    if datastore == "k8s-dqlite":
-        bootstrap_config = (
-            config.MANIFESTS_DIR / "bootstrap-k8s-dqlite.yaml"
-        ).read_text()
-    else:
-        bootstrap_config = (config.MANIFESTS_DIR / "bootstrap-all.yaml").read_text()
+    bootstrap_config = (config.MANIFESTS_DIR / "bootstrap-all.yaml").read_text()
 
     initial_node.exec(
         ["k8s", "bootstrap", "--file", "-"],
@@ -116,14 +107,6 @@ def test_node_availability_zone(
                     "/var/snap/k8s/common/var/lib/k8sd/state/database/failure-domain",
                 ]
             )
-
-            if datastore == "k8s-dqlite":
-                # Check k8s-dqlite.
-                util.stubbornly(retries=5, delay_s=10).on(instance).until(
-                    lambda p: str(failure_domain) in p.stdout.decode()
-                ).exec(
-                    ["cat", "/var/snap/k8s/common/var/lib/k8s-dqlite/failure-domain"]
-                )
 
         # Make sure that the nodes remain available.
         util.wait_until_k8s_ready(initial_node, instances)

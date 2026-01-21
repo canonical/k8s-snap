@@ -1,5 +1,0 @@
-#!/bin/bash -e
-
-. "$SNAP/k8s/lib.sh"
-
-k8s::common::execute k8s-dqlite

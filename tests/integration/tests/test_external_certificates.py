@@ -330,12 +330,6 @@ def test_vault_certificates(instances: List[harness.Instance]):
 
     create_and_assign_certs(client, bootstrap_certs.items(), bootstrap_config)
 
-    # For BootstrapConfig, only this key has a different format.
-    bootstrap_config["kube-ControllerManager-client-key"] = bootstrap_config[
-        "kube-controller-manager-client-key"
-    ]
-    bootstrap_config.pop("kube-controller-manager-client-key")
-
     LOG.info("Certificates are ready. Bootstrapping.")
     instance.exec(
         ["k8s", "bootstrap", "--file", "-"],

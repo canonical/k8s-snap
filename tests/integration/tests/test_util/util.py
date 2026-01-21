@@ -16,7 +16,6 @@ from pathlib import Path
 from typing import Any, Callable, List, Mapping, Optional, Union
 
 import pytest
-import yaml
 from tenacity import (
     RetryCallState,
     Retrying,
@@ -954,7 +953,6 @@ def check_snap_services_ready(
         if datastore_type:
             assert datastore_type in (
                 "etcd",
-                "k8s-dqlite",
                 "external",
             ), "Invalid datastore type provided"
         else:
@@ -1076,7 +1074,7 @@ def diverged_cluster_memberships(
 
     For that it verifies that only the expected members are part of the:
     * microcluster
-    * etcd/k8s-dqlite
+    * etcd
     * Kubernetes
 
     Args:
@@ -1084,7 +1082,7 @@ def diverged_cluster_memberships(
         expected_members:      expected list of member instances
 
     Returns:
-        List of divergences found (["kubernetes", "microcluster", "etcd", "k8s-dqlite"] or empty)
+        List of divergences found (["kubernetes", "microcluster", "etcd"] or empty)
     """
     divergences = []
 
@@ -1138,21 +1136,5 @@ def diverged_cluster_memberships(
         if set(expected_node_names) != set(etcd_member_names):
             LOG.info("etcd membership diverges from expected")
             divergences.append("etcd")
-    elif datastore == "k8s-dqlite":
-        expected_addresses = [get_default_ip(instance) for instance in expected_members]
-        proc = control_node.exec(
-            ["cat", "/var/snap/k8s/common/var/lib/k8s-dqlite/cluster.yaml"],
-            capture_output=True,
-            text=True,
-        ).stdout
-        dqlite_addresses = [
-            member["Address"].split(":")[0] for member in yaml.safe_load(proc)
-        ]
-        LOG.info(
-            f"k8s-dqlite members: {dqlite_addresses}, expected: {expected_addresses}"
-        )
-        if set(expected_addresses) != set(dqlite_addresses):
-            LOG.info("k8s-dqlite membership diverges from expected")
-            divergences.append("k8s-dqlite")
 
     return divergences
