@@ -24,6 +24,20 @@ architectures:
   - build-on: [amd64]
   - build-on: [arm64]
 
+package-repositories:
+  - type: apt
+    formats: [deb-src]
+    components: [main, restricted, universe, multiverse]
+    suites: [resolute, resolute-updates]
+    key-id: F6ECB3762474EDA9D21B7022871920D1991BC93C
+    url: http://archive.ubuntu.com/ubuntu
+  - type: apt
+    formats: [deb-src]
+    components: [main restricted universe multiverse]
+    suites: [resolute-security]
+    key-id: F6ECB3762474EDA9D21B7022871920D1991BC93C
+    url: http://security.ubuntu.com/ubuntu
+
 parts:
   build-deps:
     plugin: nil
@@ -31,6 +45,7 @@ parts:
       - go/1.25-fips/stable
     build-attributes: [enable-patchelf]
     build-packages:
+      - dpkg-dev
       - sudo
       - autoconf
       - automake
