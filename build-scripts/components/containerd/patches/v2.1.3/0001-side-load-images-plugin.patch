@@ -27,7 +27,7 @@ new file mode 100644
 index 000000000..f661a8d4e
 --- /dev/null
 +++ b/custom_plugins/sideload.go
-@@ -0,0 +1,143 @@
+@@ -0,0 +1,155 @@
 +package custom_plugins
 +
 +import (
@@ -103,7 +103,11 @@ index 000000000..f661a8d4e
 +					cl  *containerd.Client
 +					err error
 +				)
-+				for cl == nil {
++
++				// Retry with exponential backoff to avoid race conditions during plugin initialization
++				retries := 0
++				maxRetries := 10
++				for cl == nil && retries < maxRetries {
 +					select {
 +					case <-ic.Context.Done():
 +						return
@@ -117,13 +121,21 @@ index 000000000..f661a8d4e
 +						containerd.WithInMemoryServices(ic),
 +						containerd.WithTimeout(2*time.Second))
 +					if err != nil {
-+						logger.Info("Failed to create containerd client")
++						retries++
++						backoff := time.Duration(retries*retries) * 100 * time.Millisecond
++						logger.WithError(err).Debugf("Failed to create containerd client (attempt %d/%d), retrying in %v", retries, maxRetries, backoff)
++						time.Sleep(backoff)
 +					}
++				}
++
++				if cl == nil {
++					logger.Error("Failed to create containerd client after retries, plugin will not load images")
++					return
 +				}
 +
 +				for {
 +				nextDir:
-+					for _, dir := range c.Sources {
++					for _, dir := range config.Sources {
 +						logger := logger.WithField("dir", dir)
 +						logger.Debug("Looking for images")
 +						files, err := filepath.Glob(filepath.Join(dir, "*.tar"))
@@ -155,14 +167,14 @@ index 000000000..f661a8d4e
 +					}
 +
 +					// retry after interval, finish if interval is zero
-+					if c.Interval == 0 {
++					if config.Interval == 0 {
 +						logger.Info("Plugin terminating")
 +						return
 +					}
 +					select {
 +					case <-ic.Context.Done():
 +						return
-+					case <-time.After(c.Interval):
++					case <-time.After(config.Interval):
 +					}
 +				}
 +			}()
@@ -171,6 +183,5 @@ index 000000000..f661a8d4e
 +		},
 +	})
 +}
--- 
+--
 2.34.1
-

@@ -60,19 +60,21 @@ parts:
   dqlite:
     after: [build-deps]
     plugin: nil
-    source: src/k8s/hack
+    source: https://github.com/canonical/k8sd.git
+    source-type: git
+    source-depth: 1
     build-attributes: [enable-patchelf]
     override-prime: ""
     override-build: |
-      DQLITE_STAGING_DIR="${CRAFT_STAGE}/static-dqlite-deps"
+      DQLITE_STAGING_DIR="${CRAFT_STAGE}/dynamic-dqlite-deps"
       if [ -d "${DQLITE_STAGING_DIR}" ]; then
         rm -rf "${DQLITE_STAGING_DIR}"
       fi
       mkdir "${DQLITE_STAGING_DIR}"
-      cp -rv * "${DQLITE_STAGING_DIR}"
+      cp -rv ./hack/* "${DQLITE_STAGING_DIR}"
 
       # Build dqlite libraries on the staging area
-      "${DQLITE_STAGING_DIR}/static-dqlite.sh"
+      "${DQLITE_STAGING_DIR}/dynamic-dqlite.sh"
 
   k8s-dqlite:
     after: [dqlite]
@@ -124,29 +126,12 @@ parts:
     stage:
       - bin/etcd
 
-  k8s-binaries:
+  k8sd:
     after: [dqlite]
-    source: src/k8s
+    source: build-scripts/components/k8sd
     build-attributes: [enable-patchelf]
     plugin: nil
-    override-build: |
-      INSTALL="${CRAFT_PART_INSTALL}"
-
-      export DQLITE_BUILD_SCRIPTS_DIR="${CRAFT_STAGE}/static-dqlite-deps"
-      export CGO_ENABLED=1
-      export GOTOOLCHAIN=local
-      export GOEXPERIMENT=opensslcrypto
-
-      make dynamic -j
-
-      mkdir -p "${INSTALL}/bin"
-      mkdir -p "${INSTALL}/lib"
-      for binary in k8s k8sd k8s-apiserver-proxy; do
-        cp -P "bin/dynamic/${binary}" "${INSTALL}/bin/${binary}"
-      done
-      cp -P bin/dynamic/lib/*.so* "${INSTALL}/lib/"
-
-      LD_LIBRARY_PATH="${DQLITE_BUILD_SCRIPTS_DIR}/.deps/dynamic/lib" "${INSTALL}/bin/k8s" list-images > "${INSTALL}/images.txt"
+    override-build: $CRAFT_PROJECT_DIR/build-scripts/build-component.sh k8sd
 
   cni:
     after: [build-deps]
@@ -305,6 +290,7 @@ parts:
       - containerd
       - helm
       - k8s-dqlite
+      - k8sd
       - kubernetes
       - runc
     plugin: nil

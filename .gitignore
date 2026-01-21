@@ -10,11 +10,6 @@ k8s_*.txt
 .tox/
 .venv
 
-# ignore binaries
-/src/k8s/k8s
-/src/k8s/k8sd
-/src/k8s/k8s-dqlite
-
 # ignore docs ephemerals
 
 /docs/canonicalk8s/_build

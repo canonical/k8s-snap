@@ -77,14 +77,15 @@ lxc delete snapcraft-k8s
 
 ### Making a change to the API
 
-The Canonical Kubernetes codebase references the `k8s-snap-api` package
-extensively. When contributing changes that require API modifications, follow
-these steps:
+The Canonical Kubernetes codebase references the `k8sd` and
+`k8s-snap-api` package extensively. When contributing changes that
+require API modifications, follow these steps:
 
-1. Clone the `k8s-snap-api` repository from
+1. Clone the `k8sd` and `k8s-snap-api` repositories from
+   https://github.com/canonical/k8sd and
    https://github.com/canonical/k8s-snap-api
 
-2. Add a module replace directive in your `src/k8s/go.mod` file to point to
+2. Add a module replace directive in your `k8sd/go.mod` file to point to
    your local API copy. For example:
 
 ```
