@@ -39,7 +39,7 @@ var (
 	ciliumAgentImageRepo = "ghcr.io/canonical/cilium"
 
 	// CiliumAgentImageTag is the tag to use for the cilium-agent image.
-	CiliumAgentImageTag = "1.18.4-ck0"
+	CiliumAgentImageTag = "51ebd402473ca61e13929067fd83dd75eb490887d45ac1b877d4ade0131e0128-amd64"
 
 	// ciliumOperatorImageRepo is the image to use for cilium-operator.
 	ciliumOperatorImageRepo = "ghcr.io/canonical/cilium-operator"
