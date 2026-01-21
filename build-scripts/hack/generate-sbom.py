@@ -47,7 +47,6 @@ SNAPCRAFT_GO_COMPONENTS = [
     "cni",
     "helm",
     "kubernetes",
-    "k8s-dqlite",
     "k8sd",
 ]
 

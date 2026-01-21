@@ -57,41 +57,6 @@ parts:
       - tcl
       - python3-pip
 
-  dqlite:
-    after: [build-deps]
-    plugin: nil
-    source: https://github.com/canonical/k8sd.git
-    source-type: git
-    source-depth: 1
-    build-attributes: [enable-patchelf]
-    override-prime: ""
-    override-build: |
-      DQLITE_STAGING_DIR="${CRAFT_STAGE}/dynamic-dqlite-deps"
-      if [ -d "${DQLITE_STAGING_DIR}" ]; then
-        rm -rf "${DQLITE_STAGING_DIR}"
-      fi
-      mkdir "${DQLITE_STAGING_DIR}"
-      cp -rv ./hack/* "${DQLITE_STAGING_DIR}"
-
-      # Build dqlite libraries on the staging area
-      "${DQLITE_STAGING_DIR}/dynamic-dqlite.sh"
-
-  k8s-dqlite:
-    after: [dqlite]
-    plugin: nil
-    source: build-scripts/components/k8s-dqlite
-    build-attributes: [enable-patchelf]
-    override-build: |
-      # Note: This field must match the base field above.
-      BASE=core22
-
-      $CRAFT_PROJECT_DIR/build-scripts/build-component.sh k8s-dqlite
-
-      # Seems like snapcraft auto patching is not working as expected here, so we do it manually.
-      for binary in k8s-dqlite dqlite; do
-        patchelf --force-rpath --set-rpath "\$ORIGIN/../../lib:/snap/$BASE/current/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR" "$CRAFT_PART_INSTALL/bin/${binary}"
-      done
-
   etcd:
     after: [build-deps]
     plugin: nil
@@ -127,7 +92,6 @@ parts:
       - bin/etcd
 
   k8sd:
-    after: [dqlite]
     source: build-scripts/components/k8sd
     build-attributes: [enable-patchelf]
     plugin: nil
@@ -289,7 +253,6 @@ parts:
       - cni
       - containerd
       - helm
-      - k8s-dqlite
       - k8sd
       - kubernetes
       - runc
@@ -322,11 +285,6 @@ apps:
     restart-condition: always
     start-timeout: 5m
     before: [kubelet]
-  k8s-dqlite:
-    command: k8s/wrappers/services/k8s-dqlite
-    install-mode: disable
-    daemon: simple
-    before: [kube-apiserver]
   etcd:
     command: k8s/wrappers/services/etcd
     install-mode: disable

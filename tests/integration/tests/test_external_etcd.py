@@ -41,9 +41,9 @@ def test_external_etcd(instances: List[harness.Instance], etcd_cluster: EtcdClus
     util.wait_for_network(k8s_instance)
 
     p = k8s_instance.exec(
-        ["systemctl", "is-active", "--quiet", "snap.k8s.k8s-dqlite"], check=False
+        ["systemctl", "is-active", "--quiet", "snap.k8s.etcd"], check=False
     )
-    assert p.returncode != 0, "k8s-dqlite service is still active"
+    assert p.returncode != 0, "managed etcd service is still active"
 
     LOG.info("Add new etcd nodes")
     etcd_cluster.add_nodes(2)
@@ -77,10 +77,10 @@ def test_external_etcd(instances: List[harness.Instance], etcd_cluster: EtcdClus
         ["k8s", "kubectl", "get", "pods", "-A"]
     )
 
-    # Changing the datastore back to k8s-dqlite after using the external datastore should fail.
+    # Changing the datastore back to managed-etcd after using the external datastore should fail.
     body = {
         "datastore": {
-            "type": "k8s-dqlite",
+            "type": "etcd",
         }
     }
 

@@ -102,8 +102,6 @@ def test_skip_services_stop_on_remove(instances: List[harness.Instance]):
 @pytest.mark.node_count(2)
 @pytest.mark.no_setup()
 @pytest.mark.tags(tags.NIGHTLY)
-# Old versions still use k8s-dqlite
-@pytest.mark.required_ports(9000)
 def test_disable_separate_feature_upgrades(
     instances: List[harness.Instance], tmp_path: Path
 ):
