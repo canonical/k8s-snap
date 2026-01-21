@@ -104,7 +104,8 @@ parts:
     override-prime: |-
       case "$CRAFT_ARCH_TRIPLET_BUILD_FOR" in
         x86_64-linux-gnu|aarch64-linux-gnu)
-          $CRAFT_PROJECT_DIR/build-scripts/patch-elf-with-lief.sh $BASE $BIN $CRAFT_ARCH_TRIPLET_BUILD_FOR
+          $CRAFT_PROJECT_DIR/build-scripts/hack/patch-elf-with-lief.sh \
+            $BASE $BIN $CRAFT_ARCH_TRIPLET_BUILD_FOR
           ;;
         *)
           # Only amd64/arm64 can use the LIEF-patcher python script above.
@@ -212,7 +213,8 @@ parts:
       case "$CRAFT_ARCH_TRIPLET_BUILD_FOR" in
         x86_64-linux-gnu|aarch64-linux-gnu)
           for BIN in containerd ctr containerd-shim-runc-v2; do
-            $CRAFT_PROJECT_DIR/build-scripts/patch-elf-with-lief.sh $BASE $CRAFT_STAGE/bin/$BIN $CRAFT_ARCH_TRIPLET_BUILD_FOR
+            $CRAFT_PROJECT_DIR/build-scripts/hack/patch-elf-with-lief.sh \
+                $BASE $CRAFT_STAGE/bin/$BIN $CRAFT_ARCH_TRIPLET_BUILD_FOR
           done
           ;;
         *)
