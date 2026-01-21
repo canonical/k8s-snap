@@ -283,6 +283,10 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 			rmCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 			defer cancel()
 
+			// Only remove the member if we have more than 2 endpoints,
+			// otherwise we lose quorum in etcd when removing a member.
+			// In such cases the join revert will be manual to avoid
+			// quorum loss.
 			if len(endpoints) > 2 {
 				etcdClient, err := snap.EtcdClient(endpoints)
 				if err != nil {
