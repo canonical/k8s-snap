@@ -1,2 +1,0 @@
-cluster-cidr: "10.244.0.0/16"
-disable-rbac: true

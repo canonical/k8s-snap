@@ -130,7 +130,7 @@ crypto usage.
 [containerd-mod]: https://github.com/containerd/containerd/blob/main/go.mod
 [etcd-mod]: https://github.com/etcd-io/etcd/blob/main/go.mod
 [helm-mod]: https://github.com/helm/helm/blob/main/go.mod
-[k8sd-mod]: ../../src/k8s/go.mod
+[k8sd-mod]: https://github.com/canonical/k8sd/go.mod
 [k8s-dqlite-mod]: https://github.com/canonical/k8s-dqlite/blob/master/go.mod
 [kubernetes-mod]: https://github.com/kubernetes/kubernetes/blob/master/go.mod
 [runc-mod]: https://github.com/opencontainers/runc/blob/main/go.mod

@@ -48,8 +48,8 @@ SNAPCRAFT_GO_COMPONENTS = [
     "helm",
     "kubernetes",
     "k8s-dqlite",
+    "k8sd",
 ]
-K8S_DIR = DIR / "../../src/k8s"
 
 
 def c_components_from_snapcraft(manifest, extra_files):
@@ -64,7 +64,7 @@ def c_components_from_snapcraft(manifest, extra_files):
         }
 
 
-def go_components_external(manifest, extra_files):
+def go_components(manifest, extra_files):
     for component in SNAPCRAFT_GO_COMPONENTS:
         LOG.info("Generating SBOM info for Go component %s", component)
         repo_url = util.read_file(DIR / "../components" / component / "repository")
@@ -81,56 +81,6 @@ def go_components_external(manifest, extra_files):
         manifest["snap"]["external"][component] = {
             "language": "go",
             "details": [go_sum_name, go_mod_name],
-            "source": {
-                "type": "git",
-                "repo": repo_url,
-                "tag": repo_tag,
-                "revision": repo_commit,
-            },
-        }
-
-
-def k8s_snap_go_components(manifest, extra_files):
-    LOG.info("Generating SBOM info for k8s-snap")
-    extra_files["k8s-snap/go.mod"] = util.read_file(K8S_DIR / "go.mod")
-    extra_files["k8s-snap/go.sum"] = util.read_file(K8S_DIR / "go.sum")
-    manifest["snap"]["k8s-snap"]["k8s-snap"] = {
-        "language": "go",
-        "details": ["k8s-snap/go.mod", "k8s-snap/go.sum"],
-        "source": {
-            "type": "git",
-            "repo": util.parse_output(["git", "remote", "get-url", "origin"]),
-            "tag": util.parse_output(["git", "rev-parse", "--abbrev-ref", "HEAD"]),
-            "revision": util.parse_output(["git", "rev-parse", "HEAD"]),
-        },
-    }
-
-
-def k8s_snap_c_dqlite_components(manifest, extra_files):
-    LOG.info("Generating SBOM info for dqlite components")
-
-    repos = {}
-    tags = {}
-    # attempt to parse repos and tags from dqlite_version.sh
-    for line in (K8S_DIR / "hack/env.sh").read_text().split():
-        # parse(REPO_DQLITE="https://github.com/ref") ==> repos["dqlite"] = "https://github.com/ref"
-        if line.startswith("REPO_"):
-            key, value = line.split("=")
-            repos[key[len("REPO_") :].lower()] = value.strip('"')
-
-        # parse(TAG_DQLITE="v1.1.3") ==> tags["dqlite"] = "v1.1.3"
-        if line.startswith("TAG_"):
-            key, value = line.split("=")
-            tags[key[len("TAG_") :].lower()] = value.strip('"')
-
-    for component in repos:
-        repo_url = repos[component]
-        repo_tag = tags[component]
-        with util.git_repo(repo_url, repo_tag) as dir:
-            repo_commit = util.parse_output(["git", "rev-parse", "HEAD"], cwd=dir)
-
-        manifest["snap"]["k8s-snap"][component] = {
-            "language": "c",
             "source": {
                 "type": "git",
                 "repo": repo_url,
@@ -324,9 +274,7 @@ def generate_sbom(output):
     extra_files = {}
 
     c_components_from_snapcraft(manifest, extra_files)
-    go_components_external(manifest, extra_files)
-    k8s_snap_go_components(manifest, extra_files)
-    k8s_snap_c_dqlite_components(manifest, extra_files)
+    go_components(manifest, extra_files)
     rock_cilium(manifest, extra_files)
     rock_coredns(manifest, extra_files)
     rock_rawfile_localpv(manifest, extra_files)

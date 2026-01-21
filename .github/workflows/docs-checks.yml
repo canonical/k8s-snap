@@ -6,6 +6,7 @@ on:
   pull_request:
     paths:
       - 'docs/**'
+      - 'build-scripts/components/k8sd/**'
 permissions:
   contents: read
 
@@ -40,9 +41,9 @@ jobs:
           echo "Changed files: $FILE_LIST"
           echo "changed_files=$FILE_LIST" >> $GITHUB_OUTPUT
 
-      - name: linkcheck 
+      - name: linkcheck
         run: |
-          CHANGED_FILES="${{ steps.changes.outputs.changed_files }}" 
+          CHANGED_FILES="${{ steps.changes.outputs.changed_files }}"
 
           echo "Running linkcheck with files: $CHANGED_FILES"
 
@@ -67,5 +68,24 @@ jobs:
         with:
           working-directory: docs/canonicalk8s
 
+  k8sd-api-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
 
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+
+      - name: Install Python dependencies
+        run: pip install -r ci/requirements-ci.txt
+
+      - name: Check k8sd API documentation
+        run: python3 ci/k8s-ci.py docs update-k8sd-api
