@@ -118,60 +118,6 @@ EOF
 
 ````
 
-## Increased memory usage using a Dqlite backend
-
-While increased memory usage can be a symptom of many issues, it is possible
-that you can improve the memory usage of your {{product}} cluster by tuning
-parameters related to creating snapshots in Dqlite. An [issue #196] reports
-increased memory usage over time. This was particularly evident in smaller
-clusters. In the future, we will use a Dqlite release which dynamically
-adjusts the parameters for optimized performance.
-
-````{dropdown} Explanation
-
-This issue was caused due to an inefficient resource configuration of
-Dqlite for smaller/ medium sized clusters. The threshold and trailing parameters are
-related to Dqlite transactions and must be adjusted. The threshold is
-the number of transactions we allow before a snapshot is taken of the
-leader. The trailing is the number of transactions we allow the follower
-node to lag behind the leader before it consumes the updated snapshot of the
-leader. Currently, the default snapshot configuration is 1024 for the
-threshold and 8192 for trailing which is too large for small to medium sized clusters.
-Only setting the trailing parameter in a configuration yaml automatically sets the
-threshold to 0. This leads to a snapshot being taken every transaction and
-increases CPU usage.
-
-````
-
-````{dropdown} Solution
-
-Apply a tuning.yaml custom configuration to the Dqlite datastore in order to
-adjust the trailing and threshold snapshot values. The trailing parameter
-should be twice the threshold value. We do not recommend setting the trailing
-below 512 and the threshold below 384 as Dqlite will be pre-occupied creating
-snapshots and struggling to make progress with these settings.
-
-Create the tuning.yaml
-file and place it in the Dqlite directory
-`/var/snap/k8s/common/var/lib/k8s-dqlite/tuning.yaml`:
-
-```
-snapshot:
-  trailing: 1024
-  threshold: 512
-```
-
-These values are a good starting point that should balance memory usage without
-inhibiting workloads from making progress for small to medium sized clusters.
-
-Restart Dqlite:
-
-```
-sudo snap restart snap.k8s.k8s-dqlite
-```
-
-````
-
 ## High disk usage for log files
 
 When using {{product}} for a longer period of time, the disk usage for
@@ -393,5 +339,4 @@ sudo k8s remove-node --force <node-name>
 [kubernetes-122955-2020403422]: https://github.com/kubernetes/kubernetes/issues/122955#issuecomment-2020403422
 [@haircommander]: https://github.com/haircommander
 [lxd-install]: /snap/howto/install/lxd.md
-[issue #196]: https://github.com/canonical/k8s-dqlite/issues/196#issuecomment-2621527026
 [reported here]: https://github.com/cilium/cilium/issues/30889

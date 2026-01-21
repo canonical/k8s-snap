@@ -42,8 +42,8 @@ and drive the cluster operations.
 - **K8s core components**: the Kubernetes services, as well as core
 workloads built from upstream and shipped in the snap.
 - **Kubernetes datastore**: uses etcd to store data on the state of the
-cluster. It can be replaced by [Dqlite] or an external datastore.
-- **Cluster datastore**: uses Dqlite as a replicated database to store cluster
+cluster.
+- **Cluster datastore**: uses [Dqlite] as a replicated database to store cluster
 configuration.
 - **Container runtime**: `containerd` is the shipped container runtime.
 - **K8sd**: implements the operations logic and exposes that
@@ -96,7 +96,7 @@ information between the `k8s` and `k8s-worker` charms
 
 <!-- IMAGES -->
 
-[cluster1]: https://assets.ubuntu.com/v1/60234b03-snap-14-08.svg 
+[cluster1]: https://assets.ubuntu.com/v1/60234b03-snap-14-08.svg
 [cluster2]: https://assets.ubuntu.com/v1/b0ae732e-k8sd-13-08.svg
 [cluster4]: https://assets.ubuntu.com/v1/53a083a9-charms.svg
 [cluster5]: https://assets.ubuntu.com/v1/bcfe150f-overview.svg
@@ -107,4 +107,4 @@ information between the `k8s` and `k8s-worker` charms
 [K8s-Worker charm]:   https://charmhub.io/k8s-worker
 [Juju docs]:          https://juju.is/docs/juju
 [COS docs]:           https://ubuntu.com/observability
-[Dqlite]:             https://github.com/canonical/k8s-dqlite
+[Dqlite]:             https://github.com/canonical/dqlite

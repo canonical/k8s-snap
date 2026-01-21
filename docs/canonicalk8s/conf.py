@@ -249,7 +249,6 @@ linkcheck_anchors_ignore_for_url = [
     'https://github.com/kubernetes/kubernetes/issues',
     'https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG',
     'https://github.com/canonical/k8s-operator',
-    'https://github.com/canonical/k8s-dqlite/issues',
     'https://github.com/vmware-tanzu/velero-plugin-for-aws?tab=readme-ov-file',
     'https://juju.is/docs/juju/relation',
     'https://github.com/kubernetes/kubernetes/blob/master/cmd/kube-apiserver/app/options/validation_test.go',

@@ -125,27 +125,14 @@ sudo ufw allow 10259/tcp
 
 ### Allow datastore communication
 
-To form a High Availability (HA) cluster, the datastore (etcd or k8s-dqlite)
+To form a High Availability (HA) cluster, etcd
 needs to establish direct connections among control plane nodes.
-
-`````{tab-set}
-````{tab-item} etcd
 Allow access to the etcd peer and client port:
 
 ```sh
 sudo ufw allow 2380/tcp
 sudo ufw allow 2379/tcp
 ```
-````
-
-````{tab-item} k8s-dqlite
-Allow access to the k8s-dqlite port:
-
-```sh
-sudo ufw allow 9000/tcp
-```
-````
-`````
 
 ## Enable UFW
 

@@ -44,9 +44,8 @@ allows integrations with alternative storage solutions.
 an admin user. The admin user can complete the integration with any identity
 management system available or do user management manually.
 - **External datastore**: By default, Canonical Kubernetes uses etcd to
-keep track of state. However, users can choose to switch to k8s-dqlite or
-use an end client owned datastore installation such as the use of an
-external `etcd`.
+keep track of state. However, users can choose to use an end client owned
+datastore installation such as the use of an external `etcd`.
 
 ## The k8s snap
 
@@ -61,7 +60,7 @@ and drive the cluster operations.
 - **K8s core components**: These are all the Kubernetes services as well as core
 workloads built from upstream and shipped in the snap.
 - **Kubernetes datastore**: uses etcd to store data on the state of the
-cluster. It can be replaced by [k8s-dqlite] or an external datastore.
+cluster. It can be replaced by an external datastore.
 - **Cluster datastore**: uses Dqlite managed by [Microcluster] as a replicated
 database to store cluster configuration. It is used
 by `k8sd` in order to carry out the orchestration of the additional Kubernetes
@@ -141,8 +140,8 @@ and flexible {{product}} deployment managed through Juju.
 
 <!-- IMAGES -->
 
-[cluster1]: https://assets.ubuntu.com/v1/60234b03-snap-14-08.svg
-[cluster2]: https://assets.ubuntu.com/v1/b0ae732e-k8sd-13-08.svg
+[cluster1]: https://assets.ubuntu.com/v1/77231bb7-k8s_snap_context_view.svg
+[cluster2]: https://assets.ubuntu.com/v1/71934f15-k8sd.svg
 [cluster4]: https://assets.ubuntu.com/v1/53a083a9-charms.svg
 [cluster5]: https://assets.ubuntu.com/v1/bcfe150f-overview.svg
 
@@ -152,5 +151,4 @@ and flexible {{product}} deployment managed through Juju.
 [K8s-Worker charm]:   https://charmhub.io/k8s-worker
 [Juju docs]:          https://juju.is/docs/juju
 [COS docs]:           https://ubuntu.com/observability
-[k8s-dqlite]:             https://github.com/canonical/k8s-dqlite
 [Microcluster]:       https://github.com/canonical/microcluster

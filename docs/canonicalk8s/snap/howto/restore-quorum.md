@@ -11,19 +11,13 @@ steps outlined in this document.
 
 {{product}} relies on two separate distributed datastores. The first
 is a Dqlite-based cluster datastore used to manage the distribution's state.
-The second database stores the Kubernetes objects' state and is either etcd
-by default or Dqlite, depending on user configuration. For more information,
-please see [the architecture guide].
+The second database is etcd which stores the Kubernetes objects' state.
+For more information, please see [the architecture guide].
 
 ```{warning}
-This guide can be used to recover the cluster datastore and the {{product}}
-managed datastore, which can be either etcd or Dqlite. Persistent volumes on
-the lost nodes are *not* recovered.
+This guide can be used to recover the cluster datastore and etcd.
+Persistent volumes on the lost nodes are *not* recovered.
 ```
-
-If you have set up Dqlite as the datastore, please consult the
-[Dqlite configuration reference] before moving forward.
-
 
 ## Stop {{product}} services on all nodes
 
@@ -51,15 +45,8 @@ Use the `cluster-recover` command to reconfigure
 the Raft members and generate recovery tarballs that are used to restore the
 cluster datastore on lost nodes. The command is an interactive tool that
 allows you to modify the relevant files and provides useful hints at each step.
-By default, the command will recover both the cluster and Kubernetes datastore
-Dqlite databases. If one of the databases needs to be skipped, use the
-`--skip-k8sd` or `--skip-k8s-dqlite` flags.
 
 On the node with the most recent Raft logs, run:
-
-`````{tab-set}
-
-````{tab-item} etcd
 
 ```{note}
 This command creates a backup only for `k8sd`.
@@ -69,24 +56,8 @@ To snapshot `etcd`, follow the upstream snapshot procedure described in the next
 ```
 sudo /snap/k8s/current/bin/k8sd cluster-recover \
     --state-dir=/var/snap/k8s/common/var/lib/k8sd/state \
-    --log-level 0 \
-    --skip-k8s-dqlite
-```
-
-````
-
-````{tab-item} Dqlite
-
-```
-sudo /snap/k8s/current/bin/k8sd cluster-recover \
-    --state-dir=/var/snap/k8s/common/var/lib/k8sd/state \
-    --k8s-dqlite-state-dir=/var/snap/k8s/common/var/lib/k8s-dqlite \
     --log-level 0
 ```
-
-````
-
-`````
 
 Use the command to update the ``cluster.yaml`` file, changing the role of the
 lost nodes to "spare". Additionally, verify the addresses and IDs specified
@@ -109,11 +80,7 @@ the command will assume that the configuration files have already been updated.
 This allows automating the recovery procedure.
 ```
 
-## Recover the Kubernetes datastore
-
-`````{tab-set}
-
-````{tab-item} etcd
+## Recover etcd
 
 ### Take an etcd snapshot
 
@@ -181,45 +148,6 @@ etcdutl snapshot restore snapshot.db \
       --data-dir /var/snap/k8s/common/var/lib/etcd/data
 ```
 
-````
-
-````{tab-item} Dqlite
-
-The k8s-dqlite recovery tarballs that were created with the `cluster-recover`
-command need to be copied over to all cluster
-nodes.
-
-The k8s-dqlite archive needs to be extracted manually. First, create a backup
-of the current k8s-dqlite state directory:
-
-```
-sudo mv /var/snap/k8s/common/var/lib/k8s-dqlite \
-  /var/snap/k8s/common/var/lib/k8s-dqlite.bkp
-```
-
-Then, extract the backup archive:
-
-```
-sudo mkdir /var/snap/k8s/common/var/lib/k8s-dqlite
-sudo tar xf  recovery-k8s-dqlite-$timestamp-post-recovery.tar.gz \
-  -C /var/snap/k8s/common/var/lib/k8s-dqlite
-```
-
-Node specific files need to be copied back to the k8s-dqlite state directory:
-
-```
-sudo cp /var/snap/k8s/common/var/lib/k8s-dqlite.bkp/cluster.crt \
-  /var/snap/k8s/common/var/lib/k8s-dqlite
-sudo cp /var/snap/k8s/common/var/lib/k8s-dqlite.bkp/cluster.key \
-  /var/snap/k8s/common/var/lib/k8s-dqlite
-sudo cp /var/snap/k8s/common/var/lib/k8s-dqlite.bkp/info.yaml \
-  /var/snap/k8s/common/var/lib/k8s-dqlite
-```
-
-````
-
-`````
-
 ## Start the services
 
 For each node, start the {{product}} services by running:
@@ -241,7 +169,7 @@ control plane nodes:      10.80.130.168:6400 (voter),
                           10.80.130.167:6400 (voter),
                           10.80.130.164:6400 (voter)
 high availability:        yes
-datastore:                k8s-dqlite
+datastore:                etcd
 network:                  enabled
 dns:                      enabled at 10.152.183.193
 ingress:                  disabled

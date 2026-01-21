@@ -238,9 +238,6 @@ of
 > keystore. To enable the minimum version of TLS to be used by the Kubernetes
 > API Server, the setting "--auto-tls" must be set.
 
-`````{tab-set}
-
-````{tab-item} etcd
 
 **Step 1/4**
 
@@ -281,8 +278,9 @@ The final line of the output will be `PASS`.
 
 **Remediation for Step 2**
 
-Set the argument of etcd service `--key-file` to `/etc/kubernetes/pki/etcd/server.key`
-in `/var/snap/k8s/common/args/etcd`.
+Set the argument of etcd service `--key-file` to
+`/etc/kubernetes/pki/etcd/server.key` in
+`/var/snap/k8s/common/args/etcd`.
 
 Restart the etcd service:
 
@@ -308,8 +306,9 @@ start with `PASS`.
 
 **Remediation for Step 3**
 
-Set the argument of etcd service `--cert-file` to `/etc/kubernetes/pki/etcd/server.crt`
-in `/var/snap/k8s/common/args/etcd`
+Set the argument of etcd service `--cert-file` to
+`/etc/kubernetes/pki/etcd/server.crt` in
+`/var/snap/k8s/common/args/etcd`
 
 Restart the etcd service:
 
@@ -335,8 +334,9 @@ start with `PASS`.
 
 **Remediation for Step 4**
 
-Set the argument of etcd service `--trusted-ca-file` to `/etc/kubernetes/pki/etcd/ca.crt`
-in `/var/snap/k8s/common/args/etcd`.
+Set the argument of etcd service `--trusted-ca-file` to
+`/etc/kubernetes/pki/etcd/ca.crt` in
+`/var/snap/k8s/common/args/etcd`.
 
 Restart the etcd service:
 
@@ -358,127 +358,7 @@ In the default configuration of the k8s-snap, resulting output lines will
 start with `PASS`.
 
 
-````
 
-````{tab-item} k8s-dqlite
-
-**Step 1/3**
-
-
-**Comments:**
-
-> This finding refers to the `--auto-tls` command line argument for the etcd
-> service.
->
-> The k8s-snap configures the Kube API Server to connect to k8s-dqlite via
-> local socket owned by root.
->
-> The Auditing section will describe how to check the ownership of the
-> k8s-dqlite socket.
->
-
-
-**Remediation for Step 1**
-
-Ensure all of the following paths have correct ownership by running:
-
-
-
-    chown -R 0:0 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
-
-
-**Auditing (as root) for Step 1**
-
-All files exist and have the correct ownership.
-
-```bash
-stat -c %u:%g '/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock' | grep -q 0:0 && echo PASS /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 0:0 || echo FAIL /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 0:0
-```
-
-In the default configuration of the `k8s-snap`, resulting output lines will
-start with `PASS`.
-
-
-
-
-
-**Step 2/3**
-
-
-**Comments:**
-
-> This check ensures the permissions on the k8s-dqlite socket.
-
-
-**Remediation for Step 2**
-
-Ensure all of the following paths have correct permissions by running:
-
-
-
-    chmod -R 600 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
-
-
-**Auditing (as root) for Step 2**
-
-All required files have permissions '600' (or stricter):
-
-```bash
-stat -c %a '/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock' | grep -q 600 && echo PASS /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 600 || echo FAIL /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 600
-```
-
-In the default configuration of the `k8s-snap`, resulting output lines will
-start with `PASS`.
-
-
-
-
-
-**Step 3/3**
-
-
-**Comments:**
-
-> This check ensures the `--etcd-servers` argument of the Kube API Server is as
-> expected.
->
-
-
-**Remediation for Step 3**
-
-Set the argument `--etcd-servers` for service `kube-apiserver` as appropriate
-in `/var/snap/k8s/common/args/kube-apiserver`
-
-Set to:
-`unix:///var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`
-
-Restart the `kube-apiserver` service:
-
-
-
-    sudo systemctl restart snap.k8s.kube-apiserver
-
-
-
-
-**Auditing (as root) for Step 3**
-
-The argument `--etcd-servers` for service `kube-apiserver` is set
-as appropriate in the service's argument file
-`/var/snap/k8s/common/args/kube-apiserver`.
-
-```bash
-grep -E -q  '\-\-etcd-servers=(unix:///var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock)' '/var/snap/k8s/common/args/kube-apiserver'
-test $? -eq 0 && echo PASS || echo FAIL
-```
-
-In the default configuration of the `k8s-snap`, resulting output lines will
-start with `PASS`.
-
-
-````
-
-`````
 
 
 ### [V-242380]
@@ -503,9 +383,6 @@ of
 > API Server, the setting "--peer-auto-tls" must be set.
 
 
-`````{tab-set}
-
-````{tab-item} etcd
 
 **Step 1/4**
 
@@ -522,7 +399,8 @@ of
 
 **Remediation for Step 1**
 
-Set the `--peer-auto-tls` argument to `false` or `0` in `/var/snap/k8s/common/args/etcd`.
+Set the `--peer-auto-tls` argument to `false` or `0` in
+`/var/snap/k8s/common/args/etcd`.
 
 Restart the etcd service:
 
@@ -625,58 +503,7 @@ In the default configuration of the k8s-snap, resulting output lines will
 start with `PASS`.
 
 
-````
 
-````{tab-item} k8s-dqlite
-
-**Comments:**
-
-> This finding refers to the `--peer-auto-tls` command line argument for the
-> etcd service.
->
-> k8s-dqlite communication defaults to using TLS unless the `--enable-tls`
-> argument is set in k8s-dqlite argument configuration file located at:
->
->     /var/snap/k8s/common/args/k8s-dqlite
->
-
-
-**Remediation**
-
-Set the argument `--enable-tls` for service `k8s-dqlite` as appropriate
-in `/var/snap/k8s/common/args/k8s-dqlite`.
-
-Do NOT set to one of: `false`, `0`
-
-Restart the `k8s-dqlite` service:
-
-
-
-    sudo systemctl restart snap.k8s.k8s-dqlite
-
-
-
-**Auditing (as root)**
-
-The argument `--enable-tls` for service `k8s-dqlite` is set as
-appropriate in the service's argument file
-`/var/snap/k8s/common/args/k8s-dqlite`.
-
-Note: This finding allows for this argument to be UNSET as well.
-
-```bash
-grep -E -qvz '\-\-enable-tls=(false|0)' '/var/snap/k8s/common/args/k8s-dqlite' && echo UNSET
-test $? -eq 0 && echo PASS || echo FAIL
-```
-
-In the default configuration of the `k8s-snap`, resulting output lines will
-start with `UNSET`.
-
-The final line of the output will be `PASS`.
-
-````
-
-`````
 
 ### [V-242381]
 
@@ -1450,9 +1277,6 @@ The final line of the output will be `PASS`.
 > authorizations inherit within Kubernetes with RBAC implemented.
 
 
-`````{tab-set}
-
-````{tab-item} etcd
 
 
 **Comments:**
@@ -1514,65 +1338,7 @@ stat -c %u:%g '/etc/containerd/config.toml' | grep -q 0:0 && echo PASS /etc/cont
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-````
 
-````{tab-item} k8s-dqlite
-
-**Comments:**
-
-> The manifest files for the Kubernetes services in the k8s-snap are located in
-> the following directories:
->
->     /etc/kubernetes
->     /etc/containerd
->
-
-
-**Remediation**
-
-Ensure all of the following paths have correct ownership by running:
-
-
-
-    chown -R 0:0 /etc/containerd /etc/containerd/config.toml
-
-**Auditing (as root)**
-
-All files exist and have the correct ownership.
-
-```bash
-stat -c %u:%g '/etc/kubernetes' | grep -q 0:0 && echo PASS /etc/kubernetes: 0:0 || echo FAIL /etc/kubernetes: 0:0
-stat -c %u:%g '/etc/kubernetes/pki' | grep -q 0:0 && echo PASS /etc/kubernetes/pki: 0:0 || echo FAIL /etc/kubernetes/pki: 0:0
-stat -c %u:%g '/etc/kubernetes/kubelet.conf' | grep -q 0:0 && echo PASS /etc/kubernetes/kubelet.conf: 0:0 || echo FAIL /etc/kubernetes/kubelet.conf: 0:0
-stat -c %u:%g '/etc/kubernetes/scheduler.conf' | grep -q 0:0 && echo PASS /etc/kubernetes/scheduler.conf: 0:0 || echo FAIL /etc/kubernetes/scheduler.conf: 0:0
-stat -c %u:%g '/etc/kubernetes/proxy.conf' | grep -q 0:0 && echo PASS /etc/kubernetes/proxy.conf: 0:0 || echo FAIL /etc/kubernetes/proxy.conf: 0:0
-stat -c %u:%g '/etc/kubernetes/admin.conf' | grep -q 0:0 && echo PASS /etc/kubernetes/admin.conf: 0:0 || echo FAIL /etc/kubernetes/admin.conf: 0:0
-stat -c %u:%g '/etc/kubernetes/controller.conf' | grep -q 0:0 && echo PASS /etc/kubernetes/controller.conf: 0:0 || echo FAIL /etc/kubernetes/controller.conf: 0:0
-stat -c %u:%g '/etc/kubernetes/pki/etcd' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/etcd: 0:0 || echo FAIL /etc/kubernetes/pki/etcd: 0:0
-stat -c %u:%g '/etc/kubernetes/pki/client-ca.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/client-ca.crt: 0:0 || echo FAIL /etc/kubernetes/pki/client-ca.crt: 0:0
-stat -c %u:%g '/etc/kubernetes/pki/front-proxy-ca.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/front-proxy-ca.key: 0:0 || echo FAIL /etc/kubernetes/pki/front-proxy-ca.key: 0:0
-stat -c %u:%g '/etc/kubernetes/pki/apiserver.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/apiserver.key: 0:0 || echo FAIL /etc/kubernetes/pki/apiserver.key: 0:0
-stat -c %u:%g '/etc/kubernetes/pki/apiserver.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/apiserver.crt: 0:0 || echo FAIL /etc/kubernetes/pki/apiserver.crt: 0:0
-stat -c %u:%g '/etc/kubernetes/pki/apiserver-kubelet-client.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/apiserver-kubelet-client.key: 0:0 || echo FAIL /etc/kubernetes/pki/apiserver-kubelet-client.key: 0:0
-stat -c %u:%g '/etc/kubernetes/pki/front-proxy-client.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/front-proxy-client.crt: 0:0 || echo FAIL /etc/kubernetes/pki/front-proxy-client.crt: 0:0
-stat -c %u:%g '/etc/kubernetes/pki/serviceaccount.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/serviceaccount.key: 0:0 || echo FAIL /etc/kubernetes/pki/serviceaccount.key: 0:0
-stat -c %u:%g '/etc/kubernetes/pki/front-proxy-client.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/front-proxy-client.key: 0:0 || echo FAIL /etc/kubernetes/pki/front-proxy-client.key: 0:0
-stat -c %u:%g '/etc/kubernetes/pki/kubelet.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/kubelet.crt: 0:0 || echo FAIL /etc/kubernetes/pki/kubelet.crt: 0:0
-stat -c %u:%g '/etc/kubernetes/pki/ca.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/ca.crt: 0:0 || echo FAIL /etc/kubernetes/pki/ca.crt: 0:0
-stat -c %u:%g '/etc/kubernetes/pki/ca.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/ca.key: 0:0 || echo FAIL /etc/kubernetes/pki/ca.key: 0:0
-stat -c %u:%g '/etc/kubernetes/pki/apiserver-kubelet-client.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/apiserver-kubelet-client.crt: 0:0 || echo FAIL /etc/kubernetes/pki/apiserver-kubelet-client.crt: 0:0
-stat -c %u:%g '/etc/kubernetes/pki/front-proxy-ca.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/front-proxy-ca.crt: 0:0 || echo FAIL /etc/kubernetes/pki/front-proxy-ca.crt: 0:0
-stat -c %u:%g '/etc/kubernetes/pki/kubelet.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/kubelet.key: 0:0 || echo FAIL /etc/kubernetes/pki/kubelet.key: 0:0
-stat -c %u:%g '/etc/containerd' | grep -q 0:0 && echo PASS /etc/containerd: 0:0 || echo FAIL /etc/containerd: 0:0
-stat -c %u:%g '/etc/containerd/config.toml' | grep -q 0:0 && echo PASS /etc/containerd/config.toml: 0:0 || echo FAIL /etc/containerd/config.toml: 0:0
-```
-
-In the default configuration of the `k8s-snap`, resulting output lines will
-start with `PASS`.
-
-````
-
-`````
 
 ### [V-242406]
 
@@ -1810,9 +1576,6 @@ The final line of the output will be `PASS`.
 > Satisfies: SRG-APP-000133-CTR-000310, SRG-APP-000133-CTR-000295,
 > SRG-APP-000516-CTR-001335
 
-`````{tab-set}
-
-````{tab-item} etcd
 
 **Comments:**
 
@@ -1855,53 +1618,7 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
 
-````
 
-````{tab-item} k8s-dqlite
-
-**Comments:**
-
-> The finding requires checking the permissions of the files within the
-> `/etc/kubernetes/manifests` directory, but the k8s-snap does not use it.
->
-> The usual manifest files for the k8s-snap are located under:
->
->     /var/snap/k8s/common/args
->
-
-
-**Remediation**
-
-Ensure all of the following paths have correct permissions by running:
-
-```
-chmod -R 644 /var/snap/k8s/common/args /var/snap/k8s/common/args/conf.d /var/snap/k8s/common/args/kube-apiserver /var/snap/k8s/common/args/kube-controller-manager /var/snap/k8s/common/args/k8sd /var/snap/k8s/common/args/kube-proxy /var/snap/k8s/common/args/kube-scheduler /var/snap/k8s/common/args/kubelet /var/snap/k8s/common/args/containerd /var/snap/k8s/common/args/k8s-dqlite /var/snap/k8s/common/args/conf.d/auth-token-webhook.conf
-```
-
-**Auditing (as root)**
-
-All required files have permissions '644' (or stricter):
-
-```bash
-[ "$(stat -c %a '/var/snap/k8s/common/args')" -le 700 ] && echo PASS /var/snap/k8s/common/args: 700 || echo FAIL /var/snap/k8s/common/args: 700
-[ "$(stat -c %a '/var/snap/k8s/common/args/conf.d')" -le 700 ] && echo PASS /var/snap/k8s/common/args/conf.d: 700 || echo FAIL /var/snap/k8s/common/args/conf.d: 700
-[ "$(stat -c %a '/var/snap/k8s/common/args/kube-apiserver')" -le 644 ] && echo PASS /var/snap/k8s/common/args/kube-apiserver: 644 || echo FAIL /var/snap/k8s/common/args/kube-apiserver: 644
-[ "$(stat -c %a '/var/snap/k8s/common/args/kube-controller-manager')" -le 644 ] && echo PASS /var/snap/k8s/common/args/kube-controller-manager: 644 || echo FAIL /var/snap/k8s/common/args/kube-controller-manager: 644
-[ "$(stat -c %a '/var/snap/k8s/common/args/k8sd')" -le 644 ] && echo PASS /var/snap/k8s/common/args/k8sd: 644 || echo FAIL /var/snap/k8s/common/args/k8sd: 644
-[ "$(stat -c %a '/var/snap/k8s/common/args/kube-proxy')" -le 644 ] && echo PASS /var/snap/k8s/common/args/kube-proxy: 644 || echo FAIL /var/snap/k8s/common/args/kube-proxy: 644
-[ "$(stat -c %a '/var/snap/k8s/common/args/kube-scheduler')" -le 644 ] && echo PASS /var/snap/k8s/common/args/kube-scheduler: 644 || echo FAIL /var/snap/k8s/common/args/kube-scheduler: 644
-[ "$(stat -c %a '/var/snap/k8s/common/args/kubelet')" -le 644 ] && echo PASS /var/snap/k8s/common/args/kubelet: 644 || echo FAIL /var/snap/k8s/common/args/kubelet: 644
-[ "$(stat -c %a '/var/snap/k8s/common/args/containerd')" -le 644 ] && echo PASS /var/snap/k8s/common/args/containerd: 644 || echo FAIL /var/snap/k8s/common/args/containerd: 644
-[ "$(stat -c %a '/var/snap/k8s/common/args/k8s-dqlite')" -le 644 ] && echo PASS /var/snap/k8s/common/args/k8s-dqlite: 644 || echo FAIL /var/snap/k8s/common/args/k8s-dqlite: 644
-[ "$(stat -c %a '/var/snap/k8s/common/args/conf.d/auth-token-webhook.conf')" -le 644 ] && echo PASS /var/snap/k8s/common/args/conf.d/auth-token-webhook.conf: 644 || echo FAIL /var/snap/k8s/common/args/conf.d/auth-token-webhook.conf: 644
-```
-
-In the default configuration of the `k8s-snap`, resulting output lines will
-start with `PASS`.
-
-````
-
-`````
 
 ### [V-242409]
 
@@ -2388,14 +2105,11 @@ service
 > must be set. This parameter gives the location of the SSL Certificate
 > Authority file used to secure Kubelet communication.
 
-`````{tab-set}
-
-````{tab-item} etcd
 
 **Comments:**
 
-> This finding refers to the `--client-cert-auth` command line argument for the etcd
-> service.
+> This finding refers to the `--client-cert-auth` command line argument for
+> the etcd service.
 >
 > The command line arguments of the etcd service in the k8s-snap are
 > defined in the following file:
@@ -2405,7 +2119,8 @@ service
 
 **Remediation**
 
-Set the `--client-cert-auth` argument to `true` in `/var/snap/k8s/common/args/etcd`.
+Set the `--client-cert-auth` argument to `true` in
+`/var/snap/k8s/common/args/etcd`.
 
 Restart the etcd service:
 
@@ -2416,133 +2131,15 @@ sudo systemctl restart snap.k8s.etcd
 **Auditing (as root)**
 
 The argument `--client-cert-auth` for service etcd is set as
-appropriate in the service’s argument file `/var/snap/k8s/common/args/etcd`.
+appropriate in the service’s argument file
+`/var/snap/k8s/common/args/etcd`.
+
 ```
 grep -E -q  '\-\-client-cert-auth=("true")' '/var/snap/k8s/common/args/etcd'
 test $? -eq 0 && echo PASS || echo FAIL
 ```
+
 The final line of the output will be `PASS`.
-
-````
-
-````{tab-item} k8s-dqlite
-
-**Step 1/3**
-
-
-**Comments:**
-
-> This finding refers to the `--client-cert-auth` command line argument for the etcd
-> service.
->
-> The k8s-snap configures the Kube API Server to connect to k8s-dqlite via
-> local socket owned by root.
->
-> The Auditing section will describe how to check the ownership of the
-> k8s-dqlite socket.
->
-
-
-**Remediation for Step 1**
-
-Ensure all of the following paths have correct ownership by running:
-
-
-
-    chown -R 0:0 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
-
-
-**Auditing (as root) for Step 1**
-
-All files exist and have the correct ownership.
-
-```bash
-stat -c %u:%g '/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock' | grep -q 0:0 && echo PASS /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 0:0 || echo FAIL /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 0:0
-```
-
-In the default configuration of the `k8s-snap`, resulting output lines will
-start with `PASS`.
-
-
-
-
-
-**Step 2/3**
-
-
-**Comments:**
-
-> This check ensures the permissions on the k8s-dqlite socket.
-
-
-**Remediation for Step 2**
-
-Ensure all of the following paths have correct permissions by running:
-
-
-
-    chmod -R 600 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
-
-
-**Auditing (as root) for Step 2**
-
-All required files have permissions '600' (or stricter):
-
-```bash
-stat -c %a '/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock' | grep -q 600 && echo PASS /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 600 || echo FAIL /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 600
-```
-
-In the default configuration of the `k8s-snap`, resulting output lines will
-start with `PASS`.
-
-
-
-
-
-**Step 3/3**
-
-
-**Comments:**
-
-> This check ensures the `--etcd-servers` argument of the Kube API Server is as
-> expected.
->
-
-
-Remediation for Step 3
-
-Set the argument `--etcd-servers` for service `kube-apiserver`
-as appropriate in `/var/snap/k8s/common/args/kube-apiserver`.
-
-Set to:
-`unix:///var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`
-
-Restart the `kube-apiserver` service:
-
-
-
-    sudo systemctl restart snap.k8s.kube-apiserver
-
-
-
-
-**Auditing (as root) for Step 3**
-
-The argument `--etcd-servers` for service `kube-apiserver` is set
-as appropriate in the service's argument file
-`/var/snap/k8s/common/args/kube-apiserver`.
-
-```bash
-grep -E -q  '\-\-etcd-servers=(unix:///var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock)' '/var/snap/k8s/common/args/kube-apiserver'
-test $? -eq 0 && echo PASS || echo FAIL
-```
-
-In the default configuration of the `k8s-snap`, resulting output lines will
-start with `PASS`.
-
-````
-
-`````
 
 ### [V-242424]
 
@@ -2723,9 +2320,6 @@ service
 > certificates.
 
 
-`````{tab-set}
-
-````{tab-item} etcd
 
 **Comments:**
 
@@ -2740,7 +2334,8 @@ service
 
 **Remediation**
 
-Set the `--peer-client-cert-auth` argument to `true` in `/var/snap/k8s/common/args/etcd`.
+Set the `--peer-client-cert-auth` argument to `true` in
+`/var/snap/k8s/common/args/etcd`.
 
 Restart the etcd service:
 
@@ -2752,64 +2347,15 @@ sudo systemctl restart snap.k8s.etcd
 
 The argument `--peer-client-cert-auth` for service etcd is set as
 appropriate in the service’s argument file `/var/snap/k8s/common/args/etcd`.
+
 ```
 grep -E -q  '\-\-peer-client-cert-auth=("true")' '/var/snap/k8s/common/args/etcd'
 test $? -eq 0 && echo PASS || echo FAIL
 ```
-The final line of the output will be `PASS`.
-
-````
-
-````{tab-item} k8s-dqlite
-
-**Comments:**
-
-> This finding refers to the `--peer-client-cert-auth` command line argument
-> for the etcd service.
->
-> k8s-dqlite peer communication defaults to using TLS unless the `--enable-tls`
-> argument is set in k8s-dqlite argument configuration file located at:
->
->     /var/snap/k8s/common/args/k8s-dqlite
->
-
-
-**Remediation**
-
-Set the argument `--enable-tls` for service `k8s-dqlite` as appropriate
-in `/var/snap/k8s/common/args/k8s-dqlite`.
-
-Do NOT set to one of: `false`, `0`
-
-Restart the `k8s-dqlite` service:
-
-
-
-    sudo systemctl restart snap.k8s.k8s-dqlite
-
-
-
-**Auditing (as root)**
-
-The argument `--enable-tls` for service `k8s-dqlite` is set as
-appropriate in the service's argument file
-`/var/snap/k8s/common/args/k8s-dqlite`.
-
-Note: This finding allows for this argument to be UNSET as well.
-
-```bash
-grep -E -qvz '\-\-enable-tls=(false|0)' '/var/snap/k8s/common/args/k8s-dqlite' && echo UNSET
-test $? -eq 0 && echo PASS || echo FAIL
-```
-
-In the default configuration of the `k8s-snap`, resulting output lines will
-start with `UNSET`.
 
 The final line of the output will be `PASS`.
 
-````
 
-`````
 
 ### [V-242427]
 
@@ -2837,9 +2383,6 @@ The final line of the output will be `PASS`.
 > set. This parameter gives the location of the key file used to secure etcd
 > communication.
 
-`````{tab-set}
-
-````{tab-item} etcd
 
 **Comments:**
 
@@ -2854,7 +2397,8 @@ The final line of the output will be `PASS`.
 
 **Remediation**
 
-Set the argument of etcd service `--key-file` to `/etc/kubernetes/pki/etcd/server.key`
+Set the argument of etcd service `--key-file` to
+`/etc/kubernetes/pki/etcd/server.key`
 in `/var/snap/k8s/common/args/etcd`.
 
 Restart the etcd service:
@@ -2876,123 +2420,7 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the k8s-snap, resulting output lines will
 start with `PASS`.
 
-````
 
-````{tab-item} k8s-dqlite
-
-
-**Step 1/3**
-
-
-**Comments:**
-
-> This finding refers to the `--key-file` command line argument for the etcd
-> service.
->
-> The k8s-snap configures the Kube API Server to connect to k8s-dqlite via
-> local socket owned by root.
->
-> The Auditing section will describe how to check the ownership of the
-> k8s-dqlite socket.
->
-
-
-**Remediation for Step 1**
-
-Ensure all of the following paths have correct ownership by running:
-
-
-
-    chown -R 0:0 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
-
-
-**Auditing (as root) for Step 1**
-
-All files exist and have the correct ownership.
-
-```bash
-stat -c %u:%g '/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock' | grep -q 0:0 && echo PASS /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 0:0 || echo FAIL /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 0:0
-```
-
-In the default configuration of the `k8s-snap`, resulting output lines will
-start with `PASS`.
-
-
-**Step 2/3**
-
-
-**Comments:**
-
-
-> This check ensures the permissions on the k8s-dqlite socket.
-
-
-**Remediation for Step 2**
-
-Ensure all of the following paths have correct permissions by running:
-
-
-
-    chmod -R 600 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
-
-
-**Auditing (as root) for Step 2**
-
-All required files have permissions '600' (or stricter):
-
-```bash
-stat -c %a '/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock' | grep -q 600 && echo PASS /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 600 || echo FAIL /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 600
-```
-
-In the default configuration of the `k8s-snap`, resulting output lines will
-start with `PASS`.
-
-
-**Step 3/3**
-
-
-**Comments:**
-
-> This check ensures the `--etcd-servers` argument of the Kube API Server is as
-> expected.
->
-
-
-Remediation for Step 3
-
-Set the argument `--etcd-servers` for service `kube-apiserver` as appropriate in
-`/var/snap/k8s/common/args/kube-apiserver`.
-
-Set to:
-`unix:///var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`
-
-Restart the `kube-apiserver` service:
-
-
-
-    sudo systemctl restart snap.k8s.kube-apiserver
-
-
-
-
-**Auditing (as root) for Step 3**
-
-The argument `--etcd-servers` for service `kube-apiserver` is set
-as appropriate in the service's argument file
-`/var/snap/k8s/common/args/kube-apiserver`.
-
-```bash
-grep -E -q  '\-\-etcd-servers=(unix:///var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock)' '/var/snap/k8s/common/args/kube-apiserver'
-test $? -eq 0 && echo PASS || echo FAIL
-```
-
-In the default configuration of the `k8s-snap`, resulting output lines will
-start with `PASS`.
-
-
-````
-
-`````
 
 ### [V-242428]
 
@@ -3020,9 +2448,6 @@ start with `PASS`.
 > set. This parameter gives the location of the SSL certification file used to
 > secure etcd communication.
 
-`````{tab-set}
-
-````{tab-item} etcd
 
 **Comments:**
 
@@ -3060,121 +2485,7 @@ In the default configuration of the k8s-snap, resulting output lines will
 start with `PASS`.
 
 
-````
 
-````{tab-item} k8s-dqlite
-
-**Step 1/3**
-
-
-**Comments:**
-
-> This finding refers to the `--cert-file` command line argument for the etcd
-> service.
->
-> The k8s-snap configures the Kube API Server to connect to k8s-dqlite via
-> local socket owned by root.
->
-> The Auditing section will describe how to check the ownership of the
-> k8s-dqlite socket.
->
-
-
-**Remediation for Step 1**
-
-Ensure all of the following paths have correct ownership by running:
-
-
-
-    chown -R 0:0 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
-
-
-**Auditing (as root) for Step 1**
-
-All files exist and have the correct ownership.
-
-```bash
-stat -c %u:%g '/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock' | grep -q 0:0 && echo PASS /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 0:0 || echo FAIL /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 0:0
-```
-
-In the default configuration of the `k8s-snap`, resulting output lines will
-start with `PASS`.
-
-
-**Step 2/3**
-
-
-**Comments:**
-
-> This check ensures the permissions on the k8s-dqlite socket.
-
-
-**Remediation for Step 2**
-
-Ensure all of the following paths have correct permissions by running:
-
-
-
-    chmod -R 600 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
-
-
-**Auditing (as root) for Step 2**
-
-All required files have permissions '600' (or stricter):
-
-```bash
-stat -c %a '/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock' | grep -q 600 && echo PASS /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 600 || echo FAIL /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 600
-```
-
-In the default configuration of the `k8s-snap`, resulting output lines will
-start with `PASS`.
-
-
-
-**Step 3/3**
-
-
-**Comments:**
-
-> This check ensures the `--etcd-servers` argument of the Kube API Server is as
-> expected.
->
-
-
-Remediation for Step 3
-
-Set the argument `--etcd-servers` for service `kube-apiserver` as appropriate in
-`/var/snap/k8s/common/args/kube-apiserver`.
-
-Set to:
-`unix:///var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`
-
-Restart the `kube-apiserver` service:
-
-
-
-    sudo systemctl restart snap.k8s.kube-apiserver
-
-
-
-
-**Auditing (as root) for Step 3**
-
-The argument `--etcd-servers` for service `kube-apiserver` is set
-as appropriate in the service's argument file
-`/var/snap/k8s/common/args/kube-apiserver`.
-
-```bash
-grep -E -q  '\-\-etcd-servers=(unix:///var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock)' '/var/snap/k8s/common/args/kube-apiserver'
-test $? -eq 0 && echo PASS || echo FAIL
-```
-
-In the default configuration of the `k8s-snap`, resulting output lines will
-start with `PASS`.
-
-````
-
-`````
 
 
 ### [V-242429]
@@ -3203,9 +2514,6 @@ start with `PASS`.
 > must be set. This parameter gives the location of the SSL Certificate
 > Authority file used to secure etcd communication.
 
-`````{tab-set}
-
-````{tab-item} etcd
 
 **Comments:**
 
@@ -3220,7 +2528,8 @@ start with `PASS`.
 
 **Remediation**
 
-Set the argument of Kubernetes API server `--etcd-cafile` to `/etc/kubernetes/pki/etcd/ca.crt`
+Set the argument of Kubernetes API server `--etcd-cafile` to
+`/etc/kubernetes/pki/etcd/ca.crt`
 in `/var/snap/k8s/common/args/kube-apiserver`.
 
 Restart the etcd service:
@@ -3243,117 +2552,7 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the k8s-snap, resulting output lines will
 start with `PASS`.
 
-````
 
-````{tab-item} k8s-dqlite
-
-**Step 1/3**
-
-
-**Comments:**
-
-> This finding refers to the `--etcd-cafile` command line argument for the Kube
-> API Service.
->
-> The k8s-snap configures the Kube API Server to connect to k8s-dqlite via
-> local socket owned by root.
->
-> The Auditing section will describe how to check the ownership of the
-> k8s-dqlite socket.
->
-
-
-**Remediation for Step 1**
-
-Ensure all of the following paths have correct ownership by running:
-
-
-
-    chown -R 0:0 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
-
-
-**Auditing (as root) for Step 1**
-
-All files exist and have the correct ownership.
-
-```bash
-stat -c %u:%g '/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock' | grep -q 0:0 && echo PASS /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 0:0 || echo FAIL /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 0:0
-```
-
-In the default configuration of the `k8s-snap`, resulting output lines will
-start with `PASS`.
-
-
-**Step 2/3**
-
-
-**Comments:**
-
-> This check ensures the permissions on the k8s-dqlite socket.
-
-
-**Remediation for Step 2**
-
-Ensure all of the following paths have correct permissions by running:
-
-
-
-    chmod -R 600 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
-
-
-**Auditing (as root) for Step 2**
-
-All required files have permissions '600' (or stricter):
-
-```bash
-stat -c %a '/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock' | grep -q 600 && echo PASS /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 600 || echo FAIL /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 600
-```
-
-In the default configuration of the `k8s-snap`, resulting output lines will
-start with `PASS`.
-
-
-**Step 3/3**
-
-
-**Comments:**
-
-> This check ensures the `--etcd-servers` argument of the Kube API Server is as
-> expected.
->
-
-
-Remediation for Step 3
-
-Set the argument `--etcd-servers` for service `kube-apiserver` as appropriate
-in `/var/snap/k8s/common/args/kube-apiserver`.
-
-Set to:
-`unix:///var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`
-
-Restart the `kube-apiserver` service:
-
-
-
-    sudo systemctl restart snap.k8s.kube-apiserver
-
-**Auditing (as root) for Step 3**
-
-The argument `--etcd-servers` for service `kube-apiserver` is set
-as appropriate in the service's argument file
-`/var/snap/k8s/common/args/kube-apiserver`.
-
-```bash
-grep -E -q  '\-\-etcd-servers=(unix:///var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock)' '/var/snap/k8s/common/args/kube-apiserver'
-test $? -eq 0 && echo PASS || echo FAIL
-```
-
-In the default configuration of the `k8s-snap`, resulting output lines will
-start with `PASS`.
-
-````
-
-`````
 
 ### [V-242430]
 
@@ -3381,9 +2580,6 @@ start with `PASS`.
 > must be set. This parameter gives the location of the SSL certification file
 > used to secure etcd communication.
 
-`````{tab-set}
-
-````{tab-item} etcd
 
 **Comments:**
 
@@ -3423,122 +2619,7 @@ In the default configuration of the k8s-snap, resulting output lines will
 start with `PASS`.
 
 
-````
 
-````{tab-item} k8s-dqlite
-
-**Step 1/3**
-
-
-**Comments:**
-
-> This finding refers to the `--etcd-certfile` command line argument for the
-> Kube API Service.
->
-> The k8s-snap configures the Kube API Server to connect to k8s-dqlite via
-> local socket owned by root.
->
-> The Auditing section will describe how to check the ownership of the
-> k8s-dqlite socket.
->
-
-
-**Remediation for Step 1**
-
-Ensure all of the following paths have correct ownership by running:
-
-
-
-    chown -R 0:0 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
-
-
-**Auditing (as root) for Step 1**
-
-All files exist and have the correct ownership.
-
-```bash
-stat -c %u:%g '/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock' | grep -q 0:0 && echo PASS /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 0:0 || echo FAIL /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 0:0
-```
-
-In the default configuration of the `k8s-snap`, resulting output lines will
-start with `PASS`.
-
-
-**Step 2/3**
-
-
-**Comments:**
-
-> This check ensures the permissions on the k8s-dqlite socket.
-
-
-**Remediation for Step 2**
-
-Ensure all of the following paths have correct permissions by running:
-
-
-
-    chmod -R 600 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
-
-
-**Auditing (as root) for Step 2**
-
-All required files have permissions '600' (or stricter):
-
-```bash
-stat -c %a '/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock' | grep -q 600 && echo PASS /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 600 || echo FAIL /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 600
-```
-
-In the default configuration of the `k8s-snap`, resulting output lines will
-start with `PASS`.
-
-
-
-**Step 3/3**
-
-
-**Comments:**
-
-> This check ensures the `--etcd-servers` argument of the Kube API Server is as
-> expected.
->
-
-
-Remediation for Step 3
-
-Set the argument `--etcd-servers` for service `kube-apiserver` as appropriate
-in `/var/snap/k8s/common/args/kube-apiserver`.
-
-Set to:
-`unix:///var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`
-
-Restart the `kube-apiserver` service:
-
-
-
-    sudo systemctl restart snap.k8s.kube-apiserver
-
-
-
-
-**Auditing (as root) for Step 3**
-
-The argument `--etcd-servers` for service `kube-apiserver` is set
-as appropriate in the service's argument file
-`/var/snap/k8s/common/args/kube-apiserver`.
-
-```bash
-grep -E -q  '\-\-etcd-servers=(unix:///var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock)' '/var/snap/k8s/common/args/kube-apiserver'
-test $? -eq 0 && echo PASS || echo FAIL
-```
-
-In the default configuration of the `k8s-snap`, resulting output lines will
-start with `PASS`.
-
-
-````
-
-`````
 
 ### [V-242431]
 
@@ -3566,9 +2647,6 @@ start with `PASS`.
 > must be set. This parameter gives the location of the key file used to secure
 > etcd communication.
 
-`````{tab-set}
-
-````{tab-item} etcd
 
 **Comments:**
 
@@ -3608,122 +2686,7 @@ In the default configuration of the k8s-snap, resulting output lines will
 start with `PASS`.
 
 
-````
 
-````{tab-item} k8s-dqlite
-
-
-**Step 1/3**
-
-
-**Comments:**
-
-> This finding refers to the `--etcd-keyfile` command line argument for the
-> Kube API Service.
->
-> The k8s-snap configures the Kube API Server to connect to k8s-dqlite via
-> local socket owned by root.
->
-> The Auditing section will describe how to check the ownership of the
-> k8s-dqlite socket.
->
-
-
-**Remediation for Step 1**
-
-Ensure all of the following paths have correct ownership by running:
-
-
-
-    chown -R 0:0 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
-
-
-**Auditing (as root) for Step 1**
-
-All files exist and have the correct ownership.
-
-```bash
-stat -c %u:%g '/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock' | grep -q 0:0 && echo PASS /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 0:0 || echo FAIL /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 0:0
-```
-
-In the default configuration of the `k8s-snap`, resulting output lines will
-start with `PASS`.
-
-
-**Step 2/3**
-
-
-**Comments:**
-
-> This check ensures the permissions on the k8s-dqlite socket.
-
-**Remediation for Step 2**
-
-Ensure all of the following paths have correct permissions by running:
-
-
-
-    chmod -R 600 /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
-
-
-**Auditing (as root) for Step 2**
-
-All required files have permissions '600' (or stricter):
-
-```bash
-stat -c %a '/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock' | grep -q 600 && echo PASS /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 600 || echo FAIL /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 600
-```
-
-In the default configuration of the `k8s-snap`, resulting output lines will
-start with `PASS`.
-
-
-
-**Step 3/3**
-
-
-**Comments:**
-
-> This check ensures the `--etcd-servers` argument of the Kube API Server is as
-> expected.
->
-
-
-Remediation for Step 3
-
-Set the argument `--etcd-servers` for service `kube-apiserver` as appropriate
-in `/var/snap/k8s/common/args/kube-apiserver`.
-
-Set to:
-`unix:///var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock`
-
-Restart the `kube-apiserver` service:
-
-
-
-    sudo systemctl restart snap.k8s.kube-apiserver
-
-
-
-
-**Auditing (as root) for Step 3**
-
-The argument `--etcd-servers` for service `kube-apiserver` is set
-as appropriate in the service's argument file
-`/var/snap/k8s/common/args/kube-apiserver`.
-
-```bash
-grep -E -q  '\-\-etcd-servers=(unix:///var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock)' '/var/snap/k8s/common/args/kube-apiserver'
-test $? -eq 0 && echo PASS || echo FAIL
-```
-
-In the default configuration of the `k8s-snap`, resulting output lines will
-start with `PASS`.
-
-
-````
-
-`````
 
 ### [V-242432]
 
@@ -3751,10 +2714,6 @@ means to be able to authenticate sessions and encrypt traffic.
 be set. This parameter gives the location of the SSL certification file used to
 secure etcd communication.
 
-`````{tab-set}
-
-````{tab-item} etcd
-
 **Comments:**
 
 > This finding refers to the `--peer-cert-file` command line argument for the
@@ -3768,7 +2727,8 @@ secure etcd communication.
 
 **Remediation**
 
-Set the argument of etcd service `--peer-cert-file` to `/etc/kubernetes/pki/etcd/peer.crt`
+Set the argument of etcd service `--peer-cert-file` to
+`/etc/kubernetes/pki/etcd/peer.crt`
 in `/var/snap/k8s/common/args/etcd`.
 
 Restart the etcd service:
@@ -3791,57 +2751,7 @@ In the default configuration of the k8s-snap, resulting output lines will
 start with `PASS`.
 
 
-````
 
-`````{tab-item} k8s-dqlite
-
-**Comments:**
-
-> This finding refers to the `--peer-cert-file` command line argument for the
-> etcd service.
->
-> The Peer Certificate File used by k8s-dqlite is located at:
->
->     /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.crt
->
-> The directory of the certificate file is governed by the `--storage-dir`
-> k8s-dqlite argument.
->
-
-
-**Remediation**
-
-set the argument `--storage-dir` for service `k8s-dqlite` as appropriate
-in `/var/snap/k8s/common/args/k8s-dqlite`
-
-Set to: `/var/snap/k8s/common/var/lib/k8s-dqlite`
-
-Restart the `k8s-dqlite` service:
-
-
-
-    sudo systemctl restart snap.k8s.k8s-dqlite
-
-
-
-**Auditing (as root)**
-
-The argument `--storage-dir` for service `k8s-dqlite` is set as
-appropriate in the service's argument file
-`/var/snap/k8s/common/args/k8s-dqlite`.
-
-```bash
-grep -E -q  '\-\-storage-dir=(/var/snap/k8s/common/var/lib/k8s-dqlite)' '/var/snap/k8s/common/args/k8s-dqlite'
-test $? -eq 0 && echo PASS || echo FAIL
-```
-
-In the default configuration of the `k8s-snap`, resulting output lines will
-start with `PASS`.
-
-
-````
-
-`````
 
 ### [V-242433]
 
@@ -3869,10 +2779,6 @@ means to be able to authenticate sessions and encrypt traffic.
 be set. This parameter gives the location of the SSL certification file used to
 secure etcd communication.
 
-`````{tab-set}
-
-````{tab-item} etcd
-
 **Comments:**
 
 > This finding refers to the `--peer-key-file` command line argument for the
@@ -3886,7 +2792,8 @@ secure etcd communication.
 
 **Remediation**
 
-Set the argument of etcd service `--peer-key-file` to `/etc/kubernetes/pki/etcd/peer.key`
+Set the argument of etcd service `--peer-key-file` to
+`/etc/kubernetes/pki/etcd/peer.key`
 in `/var/snap/k8s/common/args/etcd`.
 
 Restart the etcd service:
@@ -3908,53 +2815,7 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the k8s-snap, resulting output lines will
 start with `PASS`.
 
-````
 
-`````{tab-item} k8s-dqlite
-
-**Comments:**
-
-> This finding refers to the `--peer-key-file` command line argument for the
-> etcd service.
->
-> The Peer Key File used by k8s-dqlite is located at:
->
->     /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.key
->
-> The directory of the key file is governed by the `--storage-dir` k8s-dqlite
-> argument.
->
-
-
-**Remediation**
-
-Set the argument `--storage-dir` for service `k8s-dqlite` as appropriate
-in `/var/snap/k8s/common/args/k8s-dqlite`.
-
-Set to: `/var/snap/k8s/common/var/lib/k8s-dqlite`
-
-Restart the `k8s-dqlite` service:
-
-    sudo systemctl restart snap.k8s.k8s-dqlite
-
-
-**Auditing (as root)**
-
-The argument `--storage-dir` for service `k8s-dqlite` is set as
-appropriate in the service's argument file
-`/var/snap/k8s/common/args/k8s-dqlite`.
-
-```bash
-grep -E -q  '\-\-storage-dir=(/var/snap/k8s/common/var/lib/k8s-dqlite)' '/var/snap/k8s/common/args/k8s-dqlite'
-test $? -eq 0 && echo PASS || echo FAIL
-```
-
-In the default configuration of the `k8s-snap`, resulting output lines will
-start with `PASS`.
-
-````
-
-`````
 
 
 ### [V-242436]
@@ -4185,9 +3046,6 @@ server, controller, proxy, and scheduler. If these files can be changed, the
 scheduler will be implementing the changes immediately. Many of the security
 settings within the V-242444 document are implemented through these manifests.
 
-`````{tab-set}
-
-````{tab-item} etcd
 
 **Comments:**
 
@@ -4245,62 +3103,7 @@ stat -c %u:%g '/etc/kubernetes/pki/kubelet.key' | grep -q 0:0 && echo PASS /etc/
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-````
 
-````{tab-item} k8s-dqlite
-
-**Comments:**
-
-> The manifest files for the Kubernetes services in the k8s-snap are located in
-> the following directories:
->
->     /etc/kubernetes
->
-
-
-**Remediation**
-
-Ensure all of the following paths have correct ownership by running:
-
-
-
-    chown -R 0:0 /etc/kubernetes /etc/kubernetes/pki /etc/kubernetes/kubelet.conf /etc/kubernetes/scheduler.conf /etc/kubernetes/proxy.conf /etc/kubernetes/admin.conf /etc/kubernetes/controller.conf /etc/kubernetes/pki/etcd /etc/kubernetes/pki/client-ca.crt /etc/kubernetes/pki/front-proxy-ca.key /etc/kubernetes/pki/apiserver.key /etc/kubernetes/pki/apiserver.crt /etc/kubernetes/pki/apiserver-kubelet-client.key /etc/kubernetes/pki/front-proxy-client.crt /etc/kubernetes/pki/serviceaccount.key /etc/kubernetes/pki/front-proxy-client.key /etc/kubernetes/pki/kubelet.crt /etc/kubernetes/pki/ca.crt /etc/kubernetes/pki/ca.key /etc/kubernetes/pki/apiserver-kubelet-client.crt /etc/kubernetes/pki/front-proxy-ca.crt /etc/kubernetes/pki/kubelet.key
-
-**Auditing (as root)**
-
-All files exist and have the correct ownership.
-
-```bash
-stat -c %u:%g '/etc/kubernetes' | grep -q 0:0 && echo PASS /etc/kubernetes: 0:0 || echo FAIL /etc/kubernetes: 0:0
-stat -c %u:%g '/etc/kubernetes/pki' | grep -q 0:0 && echo PASS /etc/kubernetes/pki: 0:0 || echo FAIL /etc/kubernetes/pki: 0:0
-stat -c %u:%g '/etc/kubernetes/kubelet.conf' | grep -q 0:0 && echo PASS /etc/kubernetes/kubelet.conf: 0:0 || echo FAIL /etc/kubernetes/kubelet.conf: 0:0
-stat -c %u:%g '/etc/kubernetes/scheduler.conf' | grep -q 0:0 && echo PASS /etc/kubernetes/scheduler.conf: 0:0 || echo FAIL /etc/kubernetes/scheduler.conf: 0:0
-stat -c %u:%g '/etc/kubernetes/proxy.conf' | grep -q 0:0 && echo PASS /etc/kubernetes/proxy.conf: 0:0 || echo FAIL /etc/kubernetes/proxy.conf: 0:0
-stat -c %u:%g '/etc/kubernetes/admin.conf' | grep -q 0:0 && echo PASS /etc/kubernetes/admin.conf: 0:0 || echo FAIL /etc/kubernetes/admin.conf: 0:0
-stat -c %u:%g '/etc/kubernetes/controller.conf' | grep -q 0:0 && echo PASS /etc/kubernetes/controller.conf: 0:0 || echo FAIL /etc/kubernetes/controller.conf: 0:0
-stat -c %u:%g '/etc/kubernetes/pki/etcd' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/etcd: 0:0 || echo FAIL /etc/kubernetes/pki/etcd: 0:0
-stat -c %u:%g '/etc/kubernetes/pki/client-ca.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/client-ca.crt: 0:0 || echo FAIL /etc/kubernetes/pki/client-ca.crt: 0:0
-stat -c %u:%g '/etc/kubernetes/pki/front-proxy-ca.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/front-proxy-ca.key: 0:0 || echo FAIL /etc/kubernetes/pki/front-proxy-ca.key: 0:0
-stat -c %u:%g '/etc/kubernetes/pki/apiserver.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/apiserver.key: 0:0 || echo FAIL /etc/kubernetes/pki/apiserver.key: 0:0
-stat -c %u:%g '/etc/kubernetes/pki/apiserver.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/apiserver.crt: 0:0 || echo FAIL /etc/kubernetes/pki/apiserver.crt: 0:0
-stat -c %u:%g '/etc/kubernetes/pki/apiserver-kubelet-client.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/apiserver-kubelet-client.key: 0:0 || echo FAIL /etc/kubernetes/pki/apiserver-kubelet-client.key: 0:0
-stat -c %u:%g '/etc/kubernetes/pki/front-proxy-client.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/front-proxy-client.crt: 0:0 || echo FAIL /etc/kubernetes/pki/front-proxy-client.crt: 0:0
-stat -c %u:%g '/etc/kubernetes/pki/serviceaccount.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/serviceaccount.key: 0:0 || echo FAIL /etc/kubernetes/pki/serviceaccount.key: 0:0
-stat -c %u:%g '/etc/kubernetes/pki/front-proxy-client.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/front-proxy-client.key: 0:0 || echo FAIL /etc/kubernetes/pki/front-proxy-client.key: 0:0
-stat -c %u:%g '/etc/kubernetes/pki/kubelet.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/kubelet.crt: 0:0 || echo FAIL /etc/kubernetes/pki/kubelet.crt: 0:0
-stat -c %u:%g '/etc/kubernetes/pki/ca.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/ca.crt: 0:0 || echo FAIL /etc/kubernetes/pki/ca.crt: 0:0
-stat -c %u:%g '/etc/kubernetes/pki/ca.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/ca.key: 0:0 || echo FAIL /etc/kubernetes/pki/ca.key: 0:0
-stat -c %u:%g '/etc/kubernetes/pki/apiserver-kubelet-client.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/apiserver-kubelet-client.crt: 0:0 || echo FAIL /etc/kubernetes/pki/apiserver-kubelet-client.crt: 0:0
-stat -c %u:%g '/etc/kubernetes/pki/front-proxy-ca.crt' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/front-proxy-ca.crt: 0:0 || echo FAIL /etc/kubernetes/pki/front-proxy-ca.crt: 0:0
-stat -c %u:%g '/etc/kubernetes/pki/kubelet.key' | grep -q 0:0 && echo PASS /etc/kubernetes/pki/kubelet.key: 0:0 || echo FAIL /etc/kubernetes/pki/kubelet.key: 0:0
-```
-
-In the default configuration of the `k8s-snap`, resulting output lines will
-start with `PASS`.
-
-````
-
-`````
 
 ### [V-242445]
 
@@ -4318,9 +3121,6 @@ Control Plane would be compromised. The scheduler will implement the changes
 immediately. Many of the security settings within the document are implemented
 through this file.
 
-`````{tab-set}
-
-````{tab-item} etcd
 
 **Comments:**
 
@@ -4355,50 +3155,7 @@ find /var/snap/k8s/common/var/lib/etcd/ -exec sh -c 'stat -c "%u:%g %n" $1 | gre
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-````
 
-````{tab-item} k8s-dqlite
-
-**Comments:**
-
-> This finding refers to checking the ownership of all etcd-related files under
-> /var/lib/etcd/*.
->
-> The state directory for k8s-dqlite within the k8s-snap is located under:
->
->     /var/snap/k8s/common/var/lib/k8s-dqlite
->
-> Related finding V-242459 contains directives on the permissions of the files.
->
-
-
-**Remediation**
-
-Ensure all of the following paths have correct ownership by running:
-
-
-
-    chown 0:0 /var/snap/k8s/common/var/lib/k8s-dqlite /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.yaml /var/snap/k8s/common/var/lib/k8s-dqlite/info.yaml /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.key /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.crt /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
-
-**Auditing (as root)**
-
-All files exist and have the correct ownership.
-
-```bash
-stat -c %u:%g '/var/snap/k8s/common/var/lib/k8s-dqlite' | grep -q 0:0 && echo PASS /var/snap/k8s/common/var/lib/k8s-dqlite: 0:0 || echo FAIL /var/snap/k8s/common/var/lib/k8s-dqlite: 0:0
-stat -c %u:%g '/var/snap/k8s/common/var/lib/k8s-dqlite/cluster.yaml' | grep -q 0:0 && echo PASS /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.yaml: 0:0 || echo FAIL /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.yaml: 0:0
-stat -c %u:%g '/var/snap/k8s/common/var/lib/k8s-dqlite/info.yaml' | grep -q 0:0 && echo PASS /var/snap/k8s/common/var/lib/k8s-dqlite/info.yaml: 0:0 || echo FAIL /var/snap/k8s/common/var/lib/k8s-dqlite/info.yaml: 0:0
-stat -c %u:%g '/var/snap/k8s/common/var/lib/k8s-dqlite/cluster.key' | grep -q 0:0 && echo PASS /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.key: 0:0 || echo FAIL /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.key: 0:0
-stat -c %u:%g '/var/snap/k8s/common/var/lib/k8s-dqlite/cluster.crt' | grep -q 0:0 && echo PASS /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.crt: 0:0 || echo FAIL /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.crt: 0:0
-stat -c %u:%g '/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock' | grep -q 0:0 && echo PASS /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 0:0 || echo FAIL /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 0:0
-```
-
-In the default configuration of the `k8s-snap`, resulting output lines will
-start with `PASS`.
-
-````
-
-`````
 
 ### [V-242446]
 
@@ -5260,9 +4017,6 @@ more restrictive
 Control Plane. If these files can be changed, data to API object and Control
 Plane would be compromised.
 
-`````{tab-set}
-
-````{tab-item} etcd
 
 **Step 1/2**
 
@@ -5319,50 +4073,7 @@ find /var/snap/k8s/common/var/lib/etcd/ -type f -exec sh -c '[ "$(stat -c %a $1)
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-````
 
-````{tab-item} k8s-dqlite
-
-**Comments:**
-
-> This finding refers to checking the ownership of all etcd-related files under
-> /var/lib/etcd/*.
->
-> The state directory for k8s-dqlite within the k8s-snap is located under:
->
->     /var/snap/k8s/common/var/lib/k8s-dqlite
->
-> Related finding V-242445 contains directives on the ownership of the files.
->
-
-
-**Remediation**
-
-Ensure all of the following paths have correct permissions by running:
-
-
-
-    chmod 644 /var/snap/k8s/common/var/lib/k8s-dqlite /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.yaml /var/snap/k8s/common/var/lib/k8s-dqlite/info.yaml /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.key /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.crt /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock
-
-**Auditing (as root)**
-
-All required files have permissions '644' (or stricter):
-
-```bash
-stat -c %a '/var/snap/k8s/common/var/lib/k8s-dqlite' | grep -q 700 && echo PASS /var/snap/k8s/common/var/lib/k8s-dqlite: 700 || echo FAIL /var/snap/k8s/common/var/lib/k8s-dqlite: 700
-stat -c %a '/var/snap/k8s/common/var/lib/k8s-dqlite/cluster.yaml' | grep -q 600 && echo PASS /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.yaml: 600 || echo FAIL /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.yaml: 600
-stat -c %a '/var/snap/k8s/common/var/lib/k8s-dqlite/info.yaml' | grep -q 600 && echo PASS /var/snap/k8s/common/var/lib/k8s-dqlite/info.yaml: 600 || echo FAIL /var/snap/k8s/common/var/lib/k8s-dqlite/info.yaml: 600
-stat -c %a '/var/snap/k8s/common/var/lib/k8s-dqlite/cluster.key' | grep -q 600 && echo PASS /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.key: 600 || echo FAIL /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.key: 600
-stat -c %a '/var/snap/k8s/common/var/lib/k8s-dqlite/cluster.crt' | grep -q 600 && echo PASS /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.crt: 600 || echo FAIL /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.crt: 600
-stat -c %a '/var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock' | grep -q 600 && echo PASS /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 600 || echo FAIL /var/snap/k8s/common/var/lib/k8s-dqlite/k8s-dqlite.sock: 600
-```
-
-In the default configuration of the `k8s-snap`, resulting output lines will
-start with `PASS`.
-
-````
-
-`````
 
 
 ### [V-242460]
@@ -5839,7 +4550,7 @@ start with `UNSET`.
 The final line of the output will be `PASS`.
 
 
-## Bootstrap class 
+## Bootstrap class
 
 (242384)=
 
@@ -6736,7 +5447,7 @@ configured
 
 ## Post-deployment class
 
-(242383)= 
+(242383)=
 
 ### [V-242383]
 
@@ -6961,9 +5672,6 @@ Assurance List (PPSM CAL)
 > that fall outside the PPSM CAL must be blocked. Instructions on the PPSM can
 > be found in DoD Instruction 8551.01 Policy.
 
-`````{tab-set}
-
-````{tab-item} etcd
 
 **Comments:**
 
@@ -6981,31 +5689,7 @@ Assurance List (PPSM CAL)
 > externally.
 
 
-````
 
-````{tab-item} k8s-dqlite
-
-**Comments:**
-
-> This STIG finding relates to implementing PPSM CAL for etcd.
->
-> Since k8s-snap is set to rely on
-> [k8s-dqlite](https://github.com/canonical/k8s-dqlite) for its state handling,
-> this finding is Not Applicable.
->
-> https://www.esd.whs.mil/portals/54/documents/dd/issuances/dodi/855101p.pdf
->
-> Please, consult the [ports and services] page on the ports, protocols and
-> services used by {{product}}.
->
-> Update the PPSM list for your cluster anytime the list of ports,
-> protocols, and services used by your cluster changes. For instance, this
-> list will need to be updated each time a new service is exposed
-> externally.
-
-````
-
-`````
 
 (242414)=
 

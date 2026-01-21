@@ -19,7 +19,7 @@ System_Boundary("K8sSnapDistribution_boundary", "K8s Snap Distribution", $tags="
   Container(K8sSnapDistribution.K8sd, "K8sd", $techn="", $descr="Daemon implementing the features available in the k8s snap", $tags="", $link="")
   Container(K8sSnapDistribution.K8sddatastore, "Cluster Datastore", $techn="", $descr="Uses dqlite to store cluster configuration", $tags="", $link="")
   Container(K8sSnapDistribution.Kubectl, "Kubectl", $techn="", $descr="kubectl client for accessing the cluster", $tags="", $link="")
-  Container(K8sSnapDistribution.Kubernetesdatastore, "Kubernetes Datastore", $techn="", $descr="Uses etcd (or k8s-dqlite) to store cluster data", $tags="", $link="")
+  Container(K8sSnapDistribution.Kubernetesdatastore, "Kubernetes Datastore", $techn="", $descr="Uses etcd to store cluster data", $tags="", $link="")
 }
 
 Rel(K8sAdmin, K8sSnapDistribution.K8sd, "Sets up and configures the cluster", $techn="", $tags="", $link="")
