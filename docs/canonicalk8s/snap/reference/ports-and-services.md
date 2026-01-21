@@ -25,7 +25,6 @@
 | localhost:9891   | TCP      | cilium-operator | cilium-operator [gops](https://github.com/google/gops) server endpoint.                                                       |
 | default:2379     | TCP      | etcd            | SSL encrypted client connection to etcd. Client certificate required.                                                         |
 | default:2380     | TCP      | etcd            | SSL encrypted peer connection to etcd. Client certificate required.                                                           |
-| default:9000     | TCP      | k8s-dqlite      | SSL encrypted connection for k8s-dqlite. Client certificates required. Only applies if datastore type is set to `k8s-dqlite`. |
 | *:9963           | TCP      | cilium-operator | Prometheus metric endpoint for the Cilium operator.                                                                           |
 | *:8472           | UDP      | cilium-agent    | Default VXLAN port used by Cilium.                                                                                            |
 | *:10257          | TCP      | kube-controller | Kubernetes controller manager API. HTTPS with authentication and authorization.                                               |

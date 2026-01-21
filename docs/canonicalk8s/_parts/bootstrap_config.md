@@ -234,12 +234,6 @@ If omitted defaults to `true`.
 The port number for kube-apiserver to use.
 If omitted defaults to `6443`.
 
-### k8s-dqlite-port
-**Type:** `int`<br>
-
-The port number for k8s-dqlite to use.
-If omitted defaults to `9000`.
-
 ### datastore-type
 **Type:** `string`<br>
 
@@ -248,7 +242,7 @@ If omitted defaults to `etcd`.
 
 Can be used to point to an external datastore like etcd.
 
-Possible Values: `k8s-dqlite | etcd | external`.
+Possible Values: `etcd | external`.
 
 ### datastore-servers
 **Type:** `[]string`<br>
@@ -527,13 +521,6 @@ Additional arguments that are passed to `containerd` only for that specific node
 A parameter that is explicitly set to `null` is deleted.
 The format is `map[<--flag-name>]<value>`.
 
-### extra-node-k8s-dqlite-args
-**Type:** `map[string]string`<br>
-
-Additional arguments that are passed to `k8s-dqlite` only for that specific node.
-A parameter that is explicitly set to `null` is deleted.
-The format is `map[<--flag-name>]<value>`.
-
 ### extra-node-etcd-args
 **Type:** `map[string]string`<br>
 
@@ -542,7 +529,7 @@ A parameter that is explicitly set to `null` is deleted.
 The format is `map[<--flag-name>]<value>`.
 
 ### extra-node-containerd-config
-**Type:** `apiv1.MapStringAny`<br>
+**Type:** `api.MapStringAny`<br>
 
 Extra configuration for the containerd config.toml
 

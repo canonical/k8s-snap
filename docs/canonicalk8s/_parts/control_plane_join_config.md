@@ -176,13 +176,6 @@ Additional arguments that are passed to `containerd` only for that specific node
 A parameter that is explicitly set to `null` is deleted.
 The format is `map[<--flag-name>]<value>`.
 
-### extra-node-k8s-dqlite-args
-**Type:** `map[string]string`<br>
-
-Additional arguments that are passed to `k8s-dqlite` only for that specific node.
-A parameter that is explicitly set to `null` is deleted.
-The format is `map[<--flag-name>]<value>`.
-
 ### extra-node-etcd-args
 **Type:** `map[string]string`<br>
 
@@ -191,7 +184,7 @@ A parameter that is explicitly set to `null` is deleted.
 The format is `map[<--flag-name>]<value>`.
 
 ### extra-node-containerd-config
-**Type:** `apiv1.MapStringAny`<br>
+**Type:** `api.MapStringAny`<br>
 
 Extra configuration for the containerd config.toml
 

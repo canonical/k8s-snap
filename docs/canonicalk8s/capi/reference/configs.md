@@ -440,7 +440,6 @@ spec:
 | `datastoreServersSecretRef` | `struct{name:str, key:str}` | A reference to a secret containing the datastore servers.                                                        | `{}`      |
 | `etcdPort`                  | `int`                       | The port to use for etcd. If unset, 2379 will be used.                                                           | `2379`    |
 | `etcdPeerPort`              | `int`                       | The port to use for etcd peer communication. If unset, 2381 will be used.                                        | `2381`    |
-| `k8sDqlitePort`             | `int`                       | The port to use for k8s-dqlite. Requires `datastoreType` to be set to `k8s-dqlite`. If unset, 2379 will be used. | `2379`    |
 | `microclusterAddress`       | `string`                    | The address (or CIDR) to use for Microcluster. If unset, the default node interface is chosen.                   | `""`      |
 | `microclusterPort`          | `int`                       | The port to use for Microcluster. If unset, ":2380" (etcd peer) will be used.                                    | `":2380"` |
 | `extraKubeAPIServerArgs`    | `map[string]string`         | Extra arguments to add to kube-apiserver.                                                                        | `map[]`   |

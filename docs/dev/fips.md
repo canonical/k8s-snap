@@ -48,7 +48,6 @@ channels](https://ubuntu.com/tutorials/using-the-ubuntu-pro-client-to-enable-fip
 | [etcd][etcd-mod]                          | Dynamic    | ✅      | TLS for client-server and peer-to-peer communication, data encryption at rest, client certificate authentication                                  |
 | [helm][helm-mod]                          | Dynamic    | ✅      | TLS for chart repository communication, chart signature verification, secure connections to Kubernetes API                                        |
 | [k8s-apiserver-proxy][k8sd-mod]           | Dynamic    | ✅      | TLS proxy for API server                                                                                                                         |
-| [k8s-dqlite][k8s-dqlite-mod]              | Dynamic    | ✅      | TLS for Dqlite cluster communication, certificate-based authentication between nodes, encrypted replication streams                               |
 | [k8sd][k8sd-mod]                          | Dynamic    | ✅      | Cluster management API with TLS                                                                                                                  |
 | [kubernetes][kubernetes-mod]              | Dynamic    | ✅      | TLS communications, certificate management, token signing, encryption at rest, authentication (main binary for all kube-* binaries)               |
 | [runc][runc-mod]                          | Static     | ❌      | Low-level container runtime with no network communication or cryptographic operations                                                             |
@@ -131,7 +130,6 @@ crypto usage.
 [etcd-mod]: https://github.com/etcd-io/etcd/blob/main/go.mod
 [helm-mod]: https://github.com/helm/helm/blob/main/go.mod
 [k8sd-mod]: https://github.com/canonical/k8sd/go.mod
-[k8s-dqlite-mod]: https://github.com/canonical/k8s-dqlite/blob/master/go.mod
 [kubernetes-mod]: https://github.com/kubernetes/kubernetes/blob/master/go.mod
 [runc-mod]: https://github.com/opencontainers/runc/blob/main/go.mod
 
