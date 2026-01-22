@@ -9,10 +9,21 @@ new features, bug fixes and backwards-incompatible changes.
 ```{toctree}
 :titlesonly:
 :maxdepth: 2
-/charm/reference/versions/1.32
-/charm/reference/versions/1.33
-/charm/reference/versions/1.34
-/charm/reference/versions/1.35
+1.32
+1.33
+1.34
+1.35
+```
+
+## Upgrade notes
+
+Instructions on how to upgrade between versions on {{product}}
+
+```{toctree}
+:titlesonly:
+:maxdepth: 2
+Upgrade minor revision </charm/howto/upgrade-minor.md>
+Upgrade patch revision </charm/howto/upgrade-patch.md>
 ```
 
 ## Release policy and schedule
@@ -28,4 +39,4 @@ For the latest changes in the snap, see the [snap release page][].
 <!-- LINKS -->
 
 [release cycle page]: https://ubuntu.com/about/release-cycle#canonical-kubernetes-release-cycle
-[snap release page]: ../../snap/reference/releases.md
+[snap release page]: /releases/snap/index

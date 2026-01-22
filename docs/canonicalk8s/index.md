@@ -48,7 +48,7 @@ Deploy from Snap package </snap/index.md>
 Deploy with Juju </charm/index.md>
 Deploy with Cluster API </capi/index.md>
 Community </community.md>
-Release notes </releases.md>
+Release notes </releases/index.md>
 ```
 
 ````{grid} 3
@@ -98,4 +98,4 @@ and constructive feedback.
 [Code of Conduct]: https://ubuntu.com/community/ethos/code-of-conduct
 [community]: /snap/reference/community
 [contribute]: /snap/howto/contribute
-[releases]: /snap/reference/releases
+[releases]: /releases/index

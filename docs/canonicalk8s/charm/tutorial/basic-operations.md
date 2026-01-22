@@ -149,4 +149,4 @@ documentation and release [notes][release notes].
 [high availability]: ../../snap/explanation/high-availability
 [Juju client]: https://juju.is/docs/juju/install-and-manage-the-client
 [Kubectl]: https://kubernetes.io/docs/reference/kubectl/
-[release notes]: ../reference/releases
+[release notes]: /releases/charm/index

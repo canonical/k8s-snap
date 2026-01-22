@@ -40,10 +40,8 @@ config-files/index
 New features, bug fixes, deprecations and more are included in the release
 notes for each version.
 
-```{toctree}
-:titlesonly:
-releases
-```
+- [Release notes]
+- [Upgrade notes]
 
 ## Security
 
@@ -109,3 +107,6 @@ your knowledge and get the most out of Kubernetes.
 [Tutorials section]: ../tutorial/index
 [How-to guides]: ../howto/index
 [Explanation section]: ../explanation/index
+[Release notes]:/releases/snap/index.md
+[Upgrade notes]: /releases/snap/upgrading.md
+

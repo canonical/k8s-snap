@@ -77,7 +77,7 @@ and constructive feedback.
 [Code of Conduct]: https://ubuntu.com/community/ethos/code-of-conduct
 [community]: ../charm/reference/community
 [contribute]: ../snap/howto/contribute
-[releases]: ../snap/reference/releases
+[releases]: /releases/snap/index.md
 [overview page]: ../charm/explanation/about
 [arch]: ../charm/reference/architecture
 [Juju]: https://juju.is

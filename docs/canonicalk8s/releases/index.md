@@ -10,20 +10,8 @@ and backwards-incompatible changes.
 ```{toctree}
 :titlesonly:
 :maxdepth: 2
-/snap/reference/versions/1.32
-/snap/reference/versions/1.33
-/snap/reference/versions/1.34
-/snap/reference/versions/1.35
-```
-
-## Upgrade notes
-
-Instructions on how to upgrade between versions on {{product}}
-
-```{toctree}
-:titlesonly:
-:maxdepth: 2
-/snap/reference/upgrading.md
+Snap release notes </releases/snap/index.md>
+Charm release notes </releases/charm/index.md>
 ```
 
 
