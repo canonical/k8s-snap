@@ -148,7 +148,7 @@ sudo k8s kubectl get pods -owide
 Then query the NGINX IP address using `curl`:
 
 ```
-curl 10.1.0.44
+curl <POD_IP>
 ```
 
 The output should confirm NGINX was successfully installed and working.
