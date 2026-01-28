@@ -24,7 +24,7 @@ STATUS_PATTERNS = [
 ]
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
+@pytest.mark.tags(tags.NIGHTLY)
 def test_feature_controller(instances: List[harness.Instance], datastore_type: str):
     """
     Verifies that the feature controller won't get stuck in a chaotic situation.

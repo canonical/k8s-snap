@@ -17,7 +17,7 @@ LOG = logging.getLogger(__name__)
 
 
 @pytest.mark.node_count(4)
-@pytest.mark.tags(tags.PULL_REQUEST)
+@pytest.mark.tags(tags.NIGHTLY)
 def test_control_plane_nodes(instances: List[harness.Instance]):
     cluster_node = instances[0]
     joining_node_1 = instances[1]
@@ -60,7 +60,7 @@ def test_control_plane_nodes(instances: List[harness.Instance]):
 
 
 @pytest.mark.node_count(3)
-@pytest.mark.tags(tags.PULL_REQUEST)
+@pytest.mark.tags(tags.NIGHTLY)
 def test_worker_nodes(instances: List[harness.Instance]):
     cluster_node = instances[0]
     joining_node = instances[1]
@@ -95,7 +95,7 @@ def test_worker_nodes(instances: List[harness.Instance]):
 
 @pytest.mark.node_count(3)
 @pytest.mark.disable_k8s_bootstrapping()
-@pytest.mark.tags(tags.PULL_REQUEST)
+@pytest.mark.tags(tags.NIGHTLY)
 def test_disa_stig_clustering(instances: List[harness.Instance]):
     cluster_node = instances[0]
     joining_cp = instances[1]

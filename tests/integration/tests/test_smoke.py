@@ -27,7 +27,7 @@ STATUS_PATTERNS = [
 @pytest.mark.bootstrap_config(
     (config.MANIFESTS_DIR / "bootstrap-smoke.yaml").read_text()
 )
-@pytest.mark.tags(tags.PULL_REQUEST)
+@pytest.mark.tags(tags.NIGHTLY)
 def test_smoke(instances: List[harness.Instance], datastore_type: str):
     status_patterns = STATUS_PATTERNS.copy()
     status_patterns.insert(3, r"datastore:\s*{}".format(datastore_type))

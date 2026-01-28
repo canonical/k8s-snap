@@ -13,7 +13,7 @@ LOG = logging.getLogger(__name__)
 
 
 @pytest.mark.node_count(2)
-@pytest.mark.tags(tags.PULL_REQUEST)
+@pytest.mark.tags(tags.NIGHTLY)
 # For loadbalancer communication
 @pytest.mark.required_ports(80)
 def test_loadbalancer_ipv4(
@@ -23,7 +23,7 @@ def test_loadbalancer_ipv4(
 
 
 @pytest.mark.node_count(2)
-@pytest.mark.tags(tags.PULL_REQUEST)
+@pytest.mark.tags(tags.NIGHTLY)
 @pytest.mark.bootstrap_config(
     (config.MANIFESTS_DIR / "bootstrap-ipv6-only.yaml").read_text()
 )
@@ -39,7 +39,7 @@ def test_loadbalancer_ipv6_only(
 
 
 @pytest.mark.node_count(2)
-@pytest.mark.tags(tags.PULL_REQUEST)
+@pytest.mark.tags(tags.NIGHTLY)
 @pytest.mark.bootstrap_config(
     (config.MANIFESTS_DIR / "bootstrap-dualstack.yaml").read_text()
 )

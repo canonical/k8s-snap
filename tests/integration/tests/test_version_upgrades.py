@@ -288,7 +288,7 @@ def test_version_downgrades_with_rollback(
 
 @pytest.mark.node_count(4)
 @pytest.mark.no_setup()
-@pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.tags(tags.PULL_REQUEST)
 @pytest.mark.skipif(
     config.SUBSTRATE == "multipass", reason="runner size too small on multipass"
 )
