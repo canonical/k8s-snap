@@ -7,6 +7,7 @@ on:
     branches:
       - main
       - autoupdate/strict
+      - KU-4969/debug-k8s-dqlite-test
       - 'release-[0-9]+.[0-9]+'
       - 'autoupdate/release-[0-9]+.[0-9]+-strict'
   pull_request:
@@ -129,7 +130,7 @@ jobs:
       fail-fast: false
       matrix:
         arch: [amd64, arm64]
-        datastore: [etcd, k8s-dqlite]
+        datastore: [k8s-dqlite]
     needs: [build-snap, get-e2e-tags, go-lint-and-unit, python-lint]
     uses: ./.github/workflows/e2e-tests.yaml
     with:
