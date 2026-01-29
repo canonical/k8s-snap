@@ -237,6 +237,9 @@ If omitted defaults to `6443`.
 ### k8s-dqlite-port
 **Type:** `int`<br>
 
+Deprecated: k8s-dqlite is being deprecated and will be removed in Canonical Kubernetes 1.36 without an upgrade path.
+We recommend against bootstrapping new clusters with k8s-dqlite.
+
 The port number for k8s-dqlite to use.
 If omitted defaults to `9000`.
 
@@ -249,6 +252,8 @@ If omitted defaults to `etcd`.
 Can be used to point to an external datastore like etcd.
 
 Possible Values: `k8s-dqlite | etcd | external`.
+Deprecated: k8s-dqlite is being deprecated and will be removed in Canonical Kubernetes 1.36 without an upgrade path.
+We recommend against bootstrapping new clusters with k8s-dqlite.
 
 ### datastore-servers
 **Type:** `[]string`<br>
@@ -529,6 +534,9 @@ The format is `map[<--flag-name>]<value>`.
 
 ### extra-node-k8s-dqlite-args
 **Type:** `map[string]string`<br>
+
+Deprecated: k8s-dqlite is being deprecated and will be removed in Canonical Kubernetes 1.36 without an upgrade path.
+We recommend against bootstrapping new clusters with k8s-dqlite.
 
 Additional arguments that are passed to `k8s-dqlite` only for that specific node.
 A parameter that is explicitly set to `null` is deleted.

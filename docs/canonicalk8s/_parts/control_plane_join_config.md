@@ -179,6 +179,9 @@ The format is `map[<--flag-name>]<value>`.
 ### extra-node-k8s-dqlite-args
 **Type:** `map[string]string`<br>
 
+Deprecated: k8s-dqlite is being deprecated and will be removed in Canonical Kubernetes 1.36 without an upgrade path.
+We recommend against bootstrapping new clusters with k8s-dqlite.
+
 Additional arguments that are passed to `k8s-dqlite` only for that specific node.
 A parameter that is explicitly set to `null` is deleted.
 The format is `map[<--flag-name>]<value>`.
