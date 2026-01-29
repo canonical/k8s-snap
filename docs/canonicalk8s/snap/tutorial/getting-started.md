@@ -2,11 +2,13 @@
 
 {{product}} is a distribution of Kubernetes which includes all
 the necessary tools and services needed to easily deploy and manage a cluster.
-As the upstream Kubernetes does not come with all that is required
-for a fully functional cluster by default, we have bundled everything into a
-snap that should only take a few minutes to install. In this tutorial you will
-deploy a single node cluster by installing the snap package and execute some 
-typical cluster operations. 
+Upstream Kubernetes does not provide you with a fully functional cluster by 
+default, which is why we have bundled everything you need into a snap that 
+should only take a few minutes to install and deploy.
+
+In this tutorial you will deploy a single node cluster by installing the snap 
+package. You will also execute some typical cluster operations such as 
+deploying an NGINX server as a sample workload and configuring cluster storage.
 
 ## Prerequisites
 
@@ -19,7 +21,7 @@ typical cluster operations.
 cause conflicts. Consider using a [Multipass virtual machine] if you would like 
 an isolated working environment.
 
-### Install {{product}}
+## Install {{product}}
 
 Install the {{product}} `k8s` snap with:
 
@@ -31,7 +33,7 @@ Install the {{product}} `k8s` snap with:
 This may take a few moments as the snap installs all the necessary Kubernetes
 components for a fully functioning cluster such as the networking, storage, etc.
 
-### Bootstrap a Kubernetes cluster
+## Bootstrap a Kubernetes cluster
 
 The bootstrap command initializes your cluster and configures your host system
 as a Kubernetes node. Bootstrapping the cluster is only done once at cluster
@@ -46,7 +48,7 @@ sudo k8s bootstrap
 Once the bootstrap command has been successfully ran, the output should list the
 node address and confirm the CNI is being deployed.
 
-### Check cluster status
+## Check cluster status
 
 It may take a few minutes for the cluster to be ready. To confirm the
 installation was successful, use `k8s status` with the `wait-ready` flag
@@ -65,7 +67,10 @@ error. Please first ensure that your machine meets the system requirements to ru
 flag or re-run the command to continue waiting until the cluster is ready.
 ```
 
-### Access Kubernetes
+Congratulations, you have just deployed a single node cluster with {{product}}! 
+Now let's see what you can do with it.
+
+## Access Kubernetes
 
 The standard tool for deploying and managing workloads on Kubernetes
 is [kubectl](https://kubernetes.io/docs/reference/kubectl/).
@@ -108,7 +113,7 @@ life-cycle of the local storage solution.
 management.
 
 
-### Deploy an app
+## Deploy an app
 
 Kubernetes is meant for deploying apps and services.
 You can use the `kubectl`
@@ -132,7 +137,23 @@ sudo k8s kubectl get pods
 This command shows all pods in the default namespace.
 It may take a moment for the pod to be ready and running.
 
-### Remove an app
+Now to check the NGINX server in the pod is working correctly, get the IP 
+address of the pod by running the same command again but this time we will add 
+the `-owide` argument so we get more information about the pod: 
+
+ ```
+sudo k8s kubectl get pods -owide
+```
+
+Then query the NGINX IP address using `curl`:
+
+```
+curl <POD_IP>
+```
+
+The output should confirm NGINX was successfully installed and working.
+
+## Remove an app
 
 To remove the NGINX workload, execute the following command:
 
@@ -147,36 +168,36 @@ running:
 sudo k8s kubectl get pods
 ```
 
-### Enable local storage
+## Enable local storage
 
-In scenarios where you need to preserve application data beyond the
-life-cycle of the pod, Kubernetes provides persistent volumes.
+As we learned earlier, {{product}} comes with everything you need to run 
+and manage your cluster. Using the `enable` command you can easily turn on and 
+off the bundled services. 
 
-With {{product}}, you can enable local-storage to configure
-your storage solutions:
+For example, with {{product}} you can enable local storage:
 
 ```
 sudo k8s enable local-storage
 ```
 
-To verify that the local-storage is enabled, execute:
+To verify that the local storage is enabled, execute:
 
 ```
 sudo k8s status
 ```
 
-You should see `local-storage enabled` in the command output.
+You should see `local-storage: enabled` in the command output.
 
-Let's create a `PersistentVolumeClaim` and use it in a `Pod`.
-For example, we can deploy the following manifest:
+Enabling local storage allows you to create persistent volumes which is the 
+Kubernetes way to preserve application data beyond the life-cycle of a pod. 
+Let's create a `PersistentVolumeClaim` and use it in a `Pod`:
 
 ```
 sudo k8s kubectl apply -f https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/canonicalk8s/assets/tutorial-pod-with-pvc.yaml
 ```
 
-This command deploys a pod based on the YAML configuration of a
-storage writer pod and a persistent volume claim called `myclaim` with a
-capacity of 1G.
+This command deploys the YAML configuration of a pod called `storage-writer-pod`
+and a persistent volume claim called `myclaim` with a capacity of 1G.
 
 To confirm that the persistent volume is up and running:
 
@@ -190,7 +211,10 @@ You can inspect the storage-writer-pod with:
 sudo k8s kubectl describe pod storage-writer-pod
 ```
 
-### Disable local storage
+You should see `myclaim` listed under Volumes showing it has been 
+assigned correctly. 
+
+## Disable local storage
 
 Begin by removing the pod along with the persistent volume claim:
 
@@ -207,7 +231,7 @@ Next, disable the local storage:
 sudo k8s disable local-storage
 ```
 
-### Remove {{product}} (Optional)
+## Remove {{product}} (Optional)
 
 If you would like to maintain a snapshot of the `k8s` snap for future
 restoration, simply run :
