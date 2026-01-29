@@ -2,9 +2,9 @@
 
 {{product}} is a distribution of Kubernetes which includes all
 the necessary tools and services needed to easily deploy and manage a cluster.
-As the upstream Kubernetes does not come with all that is required
-for a fully functional cluster by default, we have bundled everything into a
-snap that should only take a few minutes to install. 
+Upstream Kubernetes does not provide you with a fully functional cluster by 
+default, which is why we have bundled everything you need into a snap that 
+should only take a few minutes to install and deploy.
 
 In this tutorial you will deploy a single node cluster by installing the snap 
 package. You will also execute some typical cluster operations such as 
@@ -189,7 +189,7 @@ sudo k8s status
 You should see `local-storage: enabled` in the command output.
 
 Enabling local storage allows you to create persistent volumes which is the 
-Kubernetes way to preserve application data beyond the life-cycle of the pod. 
+Kubernetes way to preserve application data beyond the life-cycle of a pod. 
 Let's create a `PersistentVolumeClaim` and use it in a `Pod`:
 
 ```

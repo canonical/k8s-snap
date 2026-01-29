@@ -2,7 +2,7 @@
 
 This rapidly growing community is a diverse bunch of people - developers,
 Kubernetes admins, inventors, researchers, students… and we all share the joy
-of a reliable, flexible, secure, timely version of upstream Kubernetes. The
+of a reliable, flexible and secure version of upstream Kubernetes. The
 team recognizes the important role each and every user plays in the success of
 the project as a whole and how valuable your contributions are.
 
