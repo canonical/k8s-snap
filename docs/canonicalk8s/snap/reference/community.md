@@ -2,7 +2,7 @@
 
 This rapidly growing community is a diverse bunch of people - developers,
 Kubernetes admins, inventors, researchers, students… and we all share the joy
-of a reliable, flexible, secure, timely version of upstream Kubernetes. The
+of a reliable, flexible and secure version of upstream Kubernetes. The
 team recognizes the important role each and every user plays in the success of
 the project as a whole and how valuable your contributions are.
 
@@ -25,8 +25,8 @@ but we promise to respond within three working days.
 
 ## Found a bug?
 
-You can always track what is going on with development by watching our GitHub
-repository. This is also the best place to file a bug if you find
+You can always track what is going on with development by watching our [GitHub
+repository]. This is also the best place to file a bug if you find
 one, or of course you are also welcome to contribute to the code.
 
 **Our commitment to you** - we monitor the issues on GitHub regularly and we
@@ -45,9 +45,9 @@ repository. We aim to respond to any PRs within three working days.
 
 Our documentation is extremely important to us and is actively maintained by
 the entire team. That doesn't mean that it can't be improved though. Every page
-in the documentation has an "Edit this page" link in the top right which takes
-you to GitHub to make small changes. For larger contributions, please see the
-[Contributing guide].
+in the documentation has an "Edit this page" link in the bottom right which 
+takes you to GitHub to make small changes. For larger contributions, please see 
+the [Contributing guide].
 
 **Our commitment to you**: Comments are usually read daily and we are really
 grateful for docs improvements.
@@ -70,3 +70,4 @@ the guidelines for participation.
 [Contributing guide]: /snap/howto/contribute.md
 [Developer guide]: /snap/howto/contribute.md
 [support]: https://ubuntu.com/support
+ [GitHub repository]: https://github.com/canonical/k8s-snap
