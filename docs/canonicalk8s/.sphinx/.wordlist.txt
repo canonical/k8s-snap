@@ -333,3 +333,4 @@ snapcrafting
 subcluster
 swrast
 zSystems
+yq
