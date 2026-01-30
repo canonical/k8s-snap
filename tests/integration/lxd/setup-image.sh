@@ -42,9 +42,23 @@ IMAGES=""                                                     # list of images t
 OUT_IMAGES_DIR="${OUT_IMAGES_DIR:=${DIR}/k8s-e2e-images}"     # directory where OCI images will be fetched
 OUT_IMAGE_ALIAS="${OUT_IMAGE_ALIAS:=k8s-e2e}"                 # image alias to create
 
-REGCTL="${REGCTL:=${DIR}/../../../src/k8s/tools/regctl.sh}"   # path to regctl binary
+REGCTL="${REGCTL}"                                            # path to regctl binary
 
 EXTRA_IMAGES="${EXTRA_IMAGES:=}"                              # space separated list of extra images to fetch for side-loading
+
+################################################################################
+# install regctl if not provided and images need to be fetched
+if [ -z "${REGCTL}" ] && { [ ! -z "${IMAGES}" ] || [ ! -z "${EXTRA_IMAGES}" ]; }; then
+  echo "Installing regctl via go install..."
+  go install github.com/regclient/regclient/cmd/regctl@latest
+  REGCTL="$(go env GOPATH)/bin/regctl"
+
+  if [ ! -x "${REGCTL}" ]; then
+    echo "ERROR: Failed to install regctl"
+    exit 1
+  fi
+  echo "regctl installed at ${REGCTL}"
+fi
 
 ################################################################################
 # figure out base snap and list of images

@@ -166,9 +166,14 @@ any upstream registries (e.g. `docker.io`) and the private mirror.
 
 ##### Load images with regsync
 
-We recommend using [regsync][regsync] to copy images from the upstream registry
-to your private registry.
-For that, create a `sync-images.yaml` file that maps the output from
+We recommend using [`regsync`][regsync] to copy images from the upstream registry
+to your private registry. First, install the tool:
+
+```
+go install github.com/regclient/regclient/cmd/regsync@latest
+```
+
+Create a `sync-images.yaml` file that maps the output from
 `k8s list-images` to the private registry mirror and specify a mirror for
 ghcr.io that points to the registry.
 
@@ -180,12 +185,12 @@ sync:
   ...
 ```
 
-After creating the `sync-images.yaml` file, use [regsync][regsync] to sync the
+After creating the `sync-images.yaml` file, use `regsync` to sync the
 images. Assuming your registry mirror is at `http://10.10.10.10:5050`, run:
 
 ```
 USERNAME="$username" PASSWORD="$password" MIRROR="10.10.10.10:5050" \
-./src/k8s/tools/regsync.sh once -c path/to/sync-images.yaml
+regsync once -c path/to/sync-images.yaml
 ```
 ````
 
@@ -193,11 +198,16 @@ USERNAME="$username" PASSWORD="$password" MIRROR="10.10.10.10:5050" \
 Image side-loading is the process of loading all required OCI images directly
 into the container runtime, so they do not have to be fetched at runtime.
 
-To create a bundle of images, use the [regctl][regctl] tool or invoke the
-[regctl.sh][regctl.sh] script:
+To create a bundle of images, use the [`regctl`][regctl] tool. First, install it:
 
 ```
-./src/k8s/tools/regctl.sh image export ghcr.io/canonical/k8s-snap/pause:3.10 \
+go install github.com/regclient/regclient/cmd/regctl@latest
+```
+
+Then export the images:
+
+```
+regctl image export ghcr.io/canonical/k8s-snap/pause:3.10 \
 --name ghcr.io/canonical/k8s-snap/pause:3.10 --platform=local > pause.tar
 ```
 
@@ -332,7 +342,6 @@ to the cluster.
 [proxy]: /snap/howto/networking/proxy.md
 [regsync]: https://github.com/regclient/regclient/blob/main/docs/regsync.md
 [regctl]: https://github.com/regclient/regclient/blob/main/docs/regctl.md
-[regctl.sh]: https://github.com/canonical/k8s-snap/blob/main/src/k8s/tools/regctl.sh
 [nodes]: /snap/tutorial/add-remove-nodes.md
 [squid]: https://www.squid-cache.org/
 [generate a join token]: /snap/reference/commands/#k8s-get-join-token
