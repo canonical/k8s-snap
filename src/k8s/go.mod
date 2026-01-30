@@ -5,7 +5,7 @@ go 1.24.11
 require (
 	dario.cat/mergo v1.0.1
 	github.com/canonical/go-dqlite/v2 v2.0.1
-	github.com/canonical/k8s-snap-api v1.1.0
+	github.com/canonical/k8s-snap-api v1.1.1
 	github.com/canonical/lxd v0.0.0-20251020131551-7c883edf07bb
 	github.com/canonical/microcluster/v2 v2.2.1
 	github.com/go-logr/logr v1.4.3
