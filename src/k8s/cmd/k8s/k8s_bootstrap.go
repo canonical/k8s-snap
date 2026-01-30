@@ -149,6 +149,11 @@ func newBootstrapCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				return
 			}
 
+			if bootstrapConfig.DatastoreType != nil && *bootstrapConfig.DatastoreType == "k8s-dqlite" {
+				cmd.PrintErrln("Warning: k8s-dqlite datastore is deprecated and will be removed in Canonical Kubernetes 1.36.",
+					"It is recommended to bootstrap new clusters with etcd instead.")
+			}
+
 			cmd.PrintErrln("Bootstrapping the cluster. This may take a few seconds, please wait.")
 
 			response, err := client.BootstrapCluster(cmd.Context(), apiv1.BootstrapClusterRequest{
