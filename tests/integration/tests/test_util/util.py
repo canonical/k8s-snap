@@ -670,10 +670,16 @@ def _major_minor_from_stable_upstream(maj: Optional[int] = None) -> Optional[tup
     addr = "https://dl.k8s.io/release/stable{dash_maj}.txt".format(
         dash_maj=f"-{maj}" if maj else ""
     )
-    LOG.info("Getting upstream version from %s", addr)
-    with urllib.request.urlopen(addr) as r:
-        stable = r.read().decode().strip()
-        return major_minor(stable)
+    for attempt in Retrying(stop=stop_after_attempt(3), wait=wait_fixed(2)):
+        with attempt:
+            LOG.info(
+                "Attempt %d: Fetching upstream version",
+                attempt.retry_state.attempt_number,
+            )
+            with urllib.request.urlopen(addr) as r:
+                stable = r.read().decode().strip()
+                LOG.info("Successfully fetched upstream version: %s", stable)
+                return major_minor(stable)
 
 
 def _previous_track_from_branch(branch: str) -> Optional[str]:
