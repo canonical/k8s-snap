@@ -47,20 +47,6 @@ REGCTL="${REGCTL}"                                            # path to regctl b
 EXTRA_IMAGES="${EXTRA_IMAGES:=}"                              # space separated list of extra images to fetch for side-loading
 
 ################################################################################
-# install regctl if not provided and images need to be fetched
-if [ -z "${REGCTL}" ] && { [ ! -z "${IMAGES}" ] || [ ! -z "${EXTRA_IMAGES}" ]; }; then
-  echo "Installing regctl via go install..."
-  go install github.com/regclient/regclient/cmd/regctl@latest
-  REGCTL="$(go env GOPATH)/bin/regctl"
-
-  if [ ! -x "${REGCTL}" ]; then
-    echo "ERROR: Failed to install regctl"
-    exit 1
-  fi
-  echo "regctl installed at ${REGCTL}"
-fi
-
-################################################################################
 # figure out base snap and list of images
 if [ "${TEST_SNAP}" != "" ]; then
   dir="$(mktemp -d)"
@@ -70,6 +56,21 @@ if [ "${TEST_SNAP}" != "" ]; then
   IMAGES="$(cat "${dir}/snap/images.txt")"
 
   rm -rf "${dir}"
+fi
+
+################################################################################
+# install regctl if not provided and images need to be fetched
+if [ -z "${REGCTL}" ] && { [ ! -z "${IMAGES}" ] || [ ! -z "${EXTRA_IMAGES}" ]; }; then
+  echo "Installing regctl via go install..."
+  # regclient v0.11.1
+  go install github.com/regclient/regclient/cmd/regctl@bf3bcfc47173b49ee8000d1d3a1ac15036e83cf0
+  REGCTL="$(go env GOPATH)/bin/regctl"
+
+  if [ ! -x "${REGCTL}" ]; then
+    echo "ERROR: Failed to install regctl"
+    exit 1
+  fi
+  echo "regctl installed at ${REGCTL}"
 fi
 
 ################################################################################
