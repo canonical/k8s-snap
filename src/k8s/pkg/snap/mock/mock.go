@@ -60,6 +60,7 @@ type Mock struct {
 	HelmClient                  helm.Client
 	K8sDqliteClient             *dqlite.Client
 	EtcdClient                  *etcd.Client
+	EtcdClientErr               error
 	K8sdClient                  k8sd.Client
 	SnapctlGet                  map[string][]byte
 }
@@ -305,7 +306,7 @@ func (s *Snap) K8sDqliteClient(context.Context) (*dqlite.Client, error) {
 }
 
 func (s *Snap) EtcdClient(endpoints []string) (*etcd.Client, error) {
-	return s.Mock.EtcdClient, nil
+	return s.Mock.EtcdClient, s.Mock.EtcdClientErr
 }
 
 func (s *Snap) K8sdClient(address string) (k8sd.Client, error) {
