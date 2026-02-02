@@ -285,6 +285,10 @@ def test_version_downgrades_with_rollback(
 
             LOG.info("Rollback segment complete. Proceeding to next downgrade segment.")
 
+        LOG.info("Waiting for all pods to be ready after upgrade")
+        util.wait_for_pods_ready(cp)
+        LOG.info("All pods are ready after upgrade")
+
     LOG.info("Rollback test complete. All downgrade segments verified.")
 
 
