@@ -28,8 +28,7 @@ Understand the networking capabilities in Canonical Kubernetes.
 ```{toctree}
 :titlesonly:
 :glob:
-ingress
-load-balancer
+Networking <networking.md>
 ```
 
 ## Upgrades
