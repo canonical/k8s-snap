@@ -31,10 +31,10 @@ sudo k8s kubectl
 
 This will display a list of commands possible with `kubectl`.
 
-> **Note**: On control plane nodes, `/etc/kubernetes/admin.conf` is used 
-as the `KUBECONFIG`, while on worker nodes `/etc/kubernetes/kubelet.conf` 
-is used. Therefore, on worker nodes the `k8s kubectl` command has 
-significantly fewer permissions.
+> **Note**: The `KUBECONFIG` environment variable is populated with 
+`/etc/kubernetes/admin.conf` on control plane nodes and 
+`/etc/kubernetes/kubelet.conf` on worker nodes. Therefore, on worker 
+nodes the `k8s kubectl` command has significantly fewer permissions.
 
 The format of `kubectl` commands are:
 
