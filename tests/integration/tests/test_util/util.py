@@ -448,7 +448,9 @@ def wait_for_pods_ready(
         output = p.stdout.decode().strip()
         if not output:
             if not expect_pods:
-                LOG.info("No pods found yet, but pods are not necessarily expected. Considering pods as ready.")
+                LOG.info(
+                    "No pods found yet, but pods are not necessarily expected. Considering pods as ready."
+                )
                 return True
             else:
                 LOG.info("No pods found yet")
@@ -458,7 +460,9 @@ def wait_for_pods_ready(
         items = pods.get("items", [])
         if not items:
             if not expect_pods:
-                LOG.info("No pods found yet, but pods are not necessarily expected. Considering pods as ready.")
+                LOG.info(
+                    "No pods found yet, but pods are not necessarily expected. Considering pods as ready."
+                )
                 return True
             else:
                 LOG.info("No pods found yet")
@@ -487,7 +491,10 @@ def wait_for_pods_ready(
             pod_ready_condition = next(
                 (c for c in conditions if c.get("type") == "Ready"), None
             )
-            if not pod_ready_condition or str(pod_ready_condition.get("status")).lower() != "true":
+            if (
+                not pod_ready_condition
+                or str(pod_ready_condition.get("status")).lower() != "true"
+            ):
                 LOG.info(f"Pod {pod_namespace}/{pod_name} Ready condition is not True")
                 return False
 
