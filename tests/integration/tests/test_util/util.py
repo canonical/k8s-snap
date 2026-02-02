@@ -415,6 +415,70 @@ def is_node_ready(
     return True
 
 
+def wait_for_pods_ready(
+    instance: harness.Instance,
+    namespace: str = "",
+    retries: int = config.DEFAULT_WAIT_RETRIES,
+    delay_s: int = config.DEFAULT_WAIT_DELAY_S,
+):
+    """
+    Wait for all pods to be in the Running state.
+
+    Args:
+        instance: instance on which to execute the command
+        namespace: namespace to check pods in. If empty, checks all namespaces.
+        retries: number of retries
+        delay_s: delay between retries in seconds
+    """
+    ns_args = ["-n", namespace] if namespace else ["--all-namespaces"]
+    LOG.info(
+        "Waiting for all pods to be ready%s",
+        f" in namespace {namespace}" if namespace else "",
+    )
+
+    def all_pods_running(p: subprocess.CompletedProcess) -> bool:
+        output = p.stdout.decode().strip()
+        if not output:
+            LOG.info("No pods found yet")
+            return False
+
+        pods = json.loads(output)
+        items = pods.get("items", [])
+        if not items:
+            LOG.info("No pods found yet")
+            return False
+
+        for pod in items:
+            pod_name = pod["metadata"]["name"]
+            pod_namespace = pod["metadata"]["namespace"]
+            phase = pod["status"].get("phase", "Unknown")
+
+            # Skip completed pods (e.g., Jobs)
+            if phase == "Succeeded":
+                continue
+
+            if phase != "Running":
+                LOG.info(f"Pod {pod_namespace}/{pod_name} is in phase {phase}")
+                return False
+
+            # Check container statuses
+            container_statuses = pod["status"].get("containerStatuses", [])
+            for container in container_statuses:
+                if not container.get("ready", False):
+                    LOG.info(
+                        f"Pod {pod_namespace}/{pod_name} container "
+                        f"{container['name']} is not ready"
+                    )
+                    return False
+
+        LOG.info("All pods are running and ready")
+        return True
+
+    stubbornly(retries=retries, delay_s=delay_s).on(instance).until(
+        all_pods_running
+    ).exec(["k8s", "kubectl", "get", "pods", *ns_args, "-o", "json"])
+
+
 def wait_for_dns(instance: harness.Instance):
     LOG.info("Waiting for DNS to be ready")
     instance.exec(["k8s", "x-wait-for", "dns", "--timeout", "20m"])
