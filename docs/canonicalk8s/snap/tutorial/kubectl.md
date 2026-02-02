@@ -47,9 +47,9 @@ sudo k8s kubectl <command>
 In {{product}}, the `kubeconfig` file that is being read to display
 the configuration when you run `kubectl config view` lives at
 `/etc/kubernetes/admin.conf` (for control plane nodes) and 
-`/etc/kubernetes/kubelet.conf` (for worker nodes). You can change this by setting a
-`KUBECONFIG` environment variable or passing the `--kubeconfig` flag to a
-command.
+`/etc/kubernetes/kubelet.conf` (for worker nodes). You can change this 
+by setting a `KUBECONFIG` environment variable or passing the 
+`--kubeconfig` flag to a command.
 
 To find out more, you can visit
 [the official kubeconfig documentation][kubeconfig-doc].
