@@ -139,6 +139,10 @@ def test_version_upgrades(
         current_channel = channel
         LOG.info(f"Upgraded all instances to channel {channel}")
 
+        LOG.info("Waiting for all pods to be ready after upgrade")
+        util.wait_for_pods_ready(cp)
+        LOG.info("All pods are ready after upgrade")
+
 
 @pytest.mark.node_count(3)
 @pytest.mark.no_setup()
@@ -280,6 +284,10 @@ def test_version_downgrades_with_rollback(
             util.wait_until_k8s_ready(cp, instances)
 
             LOG.info("Rollback segment complete. Proceeding to next downgrade segment.")
+
+        LOG.info("Waiting for all pods to be ready after upgrade")
+        util.wait_for_pods_ready(cp)
+        LOG.info("All pods are ready after upgrade")
 
     LOG.info("Rollback test complete. All downgrade segments verified.")
 
@@ -458,6 +466,10 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
                 "This might be due to a skipped helm apply due to same values or chart versions",
                 name,
             )
+
+    LOG.info("Waiting for all pods to be ready after upgrade")
+    util.wait_for_pods_ready(bootstrap_cp)
+    LOG.info("All pods are ready after upgrade")
 
 
 def _waiting_for_upgraded_nodes(upgraded_nodes, expected_nodes) -> bool:
