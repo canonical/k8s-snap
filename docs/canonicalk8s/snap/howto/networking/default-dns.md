@@ -96,4 +96,4 @@ sudo k8s help disable
 <!-- LINKS -->
 
 [getting-started-guide]: /snap/tutorial/getting-started
-[networking explanation]: /snap/explanation/networking.md/#default-dns.md
+[networking explanation]: /snap/explanation/networking.md#dns

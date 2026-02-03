@@ -119,5 +119,5 @@ sudo k8s help disable
 [kubectl-create-secret-TLS/]: https://kubernetes.io/docs/reference/kubectl/generated/kubectl_create/kubectl_create_secret_tls/
 [proxy-protocol]: https://kubernetes.io/docs/reference/networking/service-protocols/#protocol-proxy-special
 [getting-started-guide]: /snap/tutorial/getting-started
-[kubectl-guide]: ../../tutorial/kubectl
-[networking explanation]: /snap/explanation/networking.md/#ingress
+[kubectl-guide]: /snap/tutorial/kubectl
+[networking explanation]: /snap/explanation/networking.md#ingress
