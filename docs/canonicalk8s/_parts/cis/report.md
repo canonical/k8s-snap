@@ -1,25 +1,13 @@
-#  CIS hardening for {{product}}
+### Control Plane Security Configuration
 
-CIS Hardening refers to the process of implementing security configurations that
-align with the benchmarks set forth by the [Center for Internet Security] (CIS).
-These [benchmarks] are a set of best practices and guidelines designed to secure
-various software and hardware systems, and in our case Kubernetes clusters.
+#### Control Plane Node Configuration Files
 
-In what follows we provide information on how to comply with each recommendation
-manually. This can be used for manually auditing the CIS hardening state of a
-{{product}} cluster that has already followed the [hardening guide]
-recommendations.
-
-## Control plane security configuration
-
-### Control plane node configuration files
-
-#### CIS Control 1.1.1
+##### Control 1.1.1
 
 **Description:**
 
 Ensure that the API server configuration file permissions
-are set to 600
+are set to 600 (Automated)
 
 
 **Remediation:**
@@ -41,12 +29,12 @@ Run the following command on the control plane node.
 permissions=600
 ```
 
-#### CIS Control 1.1.2
+##### Control 1.1.2
 
 **Description:**
 
 Ensure that the API server configuration file ownership is
-set to root:root
+set to root:root (Automated)
 
 
 **Remediation:**
@@ -68,12 +56,12 @@ Run the following command on the control plane node.
 root:root
 ```
 
-#### CIS Control 1.1.3
+##### Control 1.1.3
 
 **Description:**
 
 Ensure that the controller manager configuration file
-permissions are set to 600
+permissions are set to 600 (Automated)
 
 
 **Remediation:**
@@ -95,12 +83,12 @@ Run the following command on the control plane node.
 permissions=600
 ```
 
-#### CIS Control 1.1.4
+##### Control 1.1.4
 
 **Description:**
 
 Ensure that the controller manager configuration file
-ownership is set to root:root
+ownership is set to root:root (Automated)
 
 
 **Remediation:**
@@ -122,12 +110,12 @@ Run the following command on the control plane node.
 root:root
 ```
 
-#### CIS Control 1.1.5
+##### Control 1.1.5
 
 **Description:**
 
 Ensure that the scheduler configuration file permissions are
-set to 600
+set to 600 (Automated)
 
 
 **Remediation:**
@@ -149,12 +137,12 @@ Run the following command on the control plane node.
 permissions=600
 ```
 
-#### CIS Control 1.1.6
+##### Control 1.1.6
 
 **Description:**
 
 Ensure that the scheduler configuration file ownership is
-set to root:root
+set to root:root (Automated)
 
 
 **Remediation:**
@@ -176,23 +164,26 @@ Run the following command on the control plane node.
 root:root
 ```
 
-#### CIS Control 1.1.7
+##### Control 1.1.7
 
 **Description:**
 
-Ensure that the etcd configuration file permissions are
-set to 644 or more restrictive
+Ensure that the etcd pod specification file permissions are
+set to 644 or more restrictive (Automated)
+
 
 **Remediation:**
 
-Run the following command on the control plane node.
+Run the below command (based on the file location on your
+system) on the control plane node.
+For example,
+chmod 644 /var/snap/k8s/common/args/etcd
 
-`chmod 600 /var/snap/k8s/common/args/etcd`
 
 **Audit (as root):**
 
 ```
-/bin/sh -c 'if test -e /var/snap/k8s/common/args/etcd; then stat -c permissions=%a /var/snap/k8s/common/args/etcd; fi'
+/bin/sh -c 'if test -e /var/snap/k8s/common/args/etcd; then find /var/snap/k8s/common/args/etcd -name '*etcd*' | xargs stat -c permissions=%a; fi'
 ```
 
 **Expected output:**
@@ -201,18 +192,21 @@ Run the following command on the control plane node.
 permissions=600
 ```
 
-#### CIS Control 1.1.8
+##### Control 1.1.8
 
 **Description:**
 
-Ensure that the etcd configuration file ownership is set
-to root:root
+Ensure that the etcd pod specification file ownership is set
+to root:root (Automated)
+
 
 **Remediation:**
 
-Run the following command on the control plane node.
+Run the below command (based on the file location on your
+system) on the control plane node.
+For example,
+chown root:root /var/snap/k8s/common/args/etcd
 
-`chown root:root /var/snap/k8s/common/args/etcd`
 
 **Audit (as root):**
 
@@ -226,12 +220,12 @@ Run the following command on the control plane node.
 root:root
 ```
 
-#### CIS Control 1.1.9
+##### Control 1.1.9
 
 **Description:**
 
 Ensure that the Container Network Interface file permissions
-are set to 600
+are set to 600 (Manual)
 
 
 **Remediation:**
@@ -254,12 +248,12 @@ find /etc/cni/net.d/05-cilium.conflist -type f 2> /dev/null | xargs --no-run-if-
 permissions=600
 ```
 
-#### CIS Control 1.1.10
+##### Control 1.1.10
 
 **Description:**
 
 Ensure that the Container Network Interface file ownership
-is set to root:root
+is set to root:root (Manual)
 
 
 **Remediation:**
@@ -281,26 +275,28 @@ find /etc/cni/net.d/05-cilium.conflist -type f 2> /dev/null | xargs --no-run-if-
 root:root
 ```
 
-#### CIS Control 1.1.11
+##### Control 1.1.11
 
 **Description:**
 
 Ensure that the etcd data directory permissions are set to
-700 or more restrictive
+700 or more restrictive (Automated)
+
 
 **Remediation:**
 
-etcd data are kept by default under
-`/var/snap/k8s/common/var/lib/etcd`.
-Modify the permissions for this directory:
+On the etcd server node, get the etcd data directory, passed
+as an argument --data-dir,
+from the command 'ps -ef | grep etcd'.
+Run the below command (based on the etcd data directory
+found above). For example,
+chmod 700 /var/snap/k8s/common/var/lib/etcd/data
 
-`chmod 700 /var/snap/k8s/common/var/lib/etcd`
 
 **Audit (as root):**
 
 ```
-DATA_DIR='/var/snap/k8s/common/var/lib/etcd'
-stat -c permissions=%a "$DATA_DIR"
+stat -c permissions=%a /var/snap/k8s/common/var/lib/etcd/data
 ```
 
 **Expected output:**
@@ -309,26 +305,29 @@ stat -c permissions=%a "$DATA_DIR"
 permissions=700
 ```
 
-#### CIS Control 1.1.12
+##### Control 1.1.12
 
 **Description:**
 
 Ensure that the etcd data directory ownership is set to
-etcd:etcd
+root:root (Automated)
+
 
 **Remediation:**
 
-Not applicable. Etcd data is kept by default under
-`/var/snap/k8s/common/var/lib/etcd` and is owned by root.
-To comply with the spirit of this CIS recommendation:
+On the etcd server node, get the etcd data directory, passed
+as an argument --data-dir,
+from the command 'ps -ef | grep etcd'.
+Run the below command (based on the etcd data directory
+found above).
+For example, chown root:root
+/var/snap/k8s/common/var/lib/etcd/data
 
-`chown root:root /var/snap/k8s/common/var/lib/etcd`
 
 **Audit (as root):**
 
 ```
-DATA_DIR='/var/snap/k8s/common/var/lib/etcd'
-stat -c %U:%G "$DATA_DIR"
+stat -c %U:%G /var/snap/k8s/common/var/lib/etcd/data
 ```
 
 **Expected output:**
@@ -337,17 +336,20 @@ stat -c %U:%G "$DATA_DIR"
 root:root
 ```
 
-#### CIS Control 1.1.13
+##### Control 1.1.13
 
 **Description:**
 
 Ensure that the admin.conf file permissions are set to 600
+(Automated)
+
 
 **Remediation:**
 
 Run the following command on the control plane node.
 
 `chmod 600 /etc/kubernetes/admin.conf`
+
 
 **Audit (as root):**
 
@@ -361,12 +363,12 @@ Run the following command on the control plane node.
 permissions=600
 ```
 
-#### CIS Control 1.1.14
+##### Control 1.1.14
 
 **Description:**
 
 Ensure that the admin.conf file ownership is set to
-root:root
+root:root (Automated)
 
 
 **Remediation:**
@@ -388,12 +390,12 @@ Run the following command on the control plane node.
 root:root
 ```
 
-#### CIS Control 1.1.15
+##### Control 1.1.15
 
 **Description:**
 
 Ensure that the scheduler.conf file permissions are set to
-600
+600 (Automated)
 
 
 **Remediation:**
@@ -415,12 +417,12 @@ Run the following command on the control plane node.
 permissions=600
 ```
 
-#### CIS Control 1.1.16
+##### Control 1.1.16
 
 **Description:**
 
 Ensure that the scheduler.conf file ownership is set to
-root:root
+root:root (Automated)
 
 
 **Remediation:**
@@ -442,12 +444,12 @@ Run the following command on the control plane node.
 root:root
 ```
 
-#### CIS Control 1.1.17
+##### Control 1.1.17
 
 **Description:**
 
 Ensure that the controller-manager.conf file permissions are
-set to 600
+set to 600 (Automated)
 
 
 **Remediation:**
@@ -469,12 +471,12 @@ Run the following command on the control plane node.
 permissions=600
 ```
 
-#### CIS Control 1.1.18
+##### Control 1.1.18
 
 **Description:**
 
 Ensure that the controller-manager.conf file ownership is
-set to root:root
+set to root:root (Automated)
 
 
 **Remediation:**
@@ -496,12 +498,12 @@ Run the following command on the control plane node.
 root:root
 ```
 
-#### CIS Control 1.1.19
+##### Control 1.1.19
 
 **Description:**
 
 Ensure that the Kubernetes PKI directory and file ownership
-is set to root:root
+is set to root:root (Automated)
 
 
 **Remediation:**
@@ -523,12 +525,12 @@ find /etc/kubernetes/pki/ | xargs stat -c %U:%G
 root:root
 ```
 
-#### CIS Control 1.1.20
+##### Control 1.1.20
 
 **Description:**
 
 Ensure that the Kubernetes PKI certificate file permissions
-are set to 600
+are set to 600 (Manual)
 
 
 **Remediation:**
@@ -550,12 +552,12 @@ find /etc/kubernetes/pki/ -name '*.crt' | xargs stat -c permissions=%a
 permissions=600
 ```
 
-#### CIS Control 1.1.21
+##### Control 1.1.21
 
 **Description:**
 
 Ensure that the Kubernetes PKI key file permissions are set
-to 600
+to 600 (Manual)
 
 
 **Remediation:**
@@ -577,19 +579,19 @@ find /etc/kubernetes/pki/ -name '*.key' | xargs stat -c permissions=%a
 permissions=600
 ```
 
-### API Server
+#### API Server
 
-#### CIS Control 1.2.1
+##### Control 1.2.1
 
 **Description:**
 
-Ensure that the `--anonymous-auth` argument is set to false
+Ensure that the --anonymous-auth argument is set to false
+(Manual)
 
 
 **Remediation:**
 
-Edit the API server configuration file
-`/var/snap/k8s/common/args/kube-apiserver`
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the following argument.
 
 `--anonymous-auth=false`
@@ -607,11 +609,12 @@ on the control plane node and set the following argument.
 --anonymous-auth=false
 ```
 
-#### CIS Control 1.2.2
+##### Control 1.2.2
 
 **Description:**
 
-Ensure that the `--token-auth-file` parameter is not set
+Ensure that the --token-auth-file parameter is not set
+(Automated)
 
 
 **Remediation:**
@@ -619,8 +622,8 @@ Ensure that the `--token-auth-file` parameter is not set
 Follow the Kubernetes documentation and configure alternate
 mechanisms for
 authentication. Then, edit the API server configuration file
-`/var/snap/k8s/common/args/kube-apiserver`
-on the control plane node and remove the `--token-auth-file`
+/var/snap/k8s/common/args/kube-apiserver
+on the control plane node and remove the --token-auth-file
 argument.
 
 
@@ -636,17 +639,17 @@ argument.
 --token-auth-file is not set
 ```
 
-#### CIS Control 1.2.3
+##### Control 1.2.3
 
 **Description:**
 
-Ensure that the `--DenyServiceExternalIPs` is not set
+Ensure that the --DenyServiceExternalIPs is not set
+(Automated)
 
 
 **Remediation:**
 
-Edit the API server configuration file
-`/var/snap/k8s/common/args/kube-apiserver`
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and remove the
 `DenyServiceExternalIPs`
 from enabled admission plugins.
@@ -665,12 +668,12 @@ from enabled admission plugins.
 DenyServiceExternalIPs
 ```
 
-#### CIS Control 1.2.4
+##### Control 1.2.4
 
 **Description:**
 
-Ensure that the `--kubelet-client-certificate` and `--kubelet-client-key`
-arguments are set as appropriate
+Ensure that the --kubelet-client-certificate and --kubelet-
+client-key arguments are set as appropriate (Automated)
 
 
 **Remediation:**
@@ -679,11 +682,12 @@ Follow the Kubernetes documentation and set up the TLS
 connection between the
 apiserver and kubelets. Then, edit API server configuration
 file
-`/var/snap/k8s/common/args/kube-apiserver` on the control plane node and set the
+/var/snap/k8s/common/args/kube-apiserver on the control plane node and set the
 kubelet client certificate and key parameters as follows.
 
 ```
---kubelet-client-certificate=<path/to/client-certificate-file>
+--kubelet-client-certificate=<path/to/client-certificate-
+file>
 --kubelet-client-key=<path/to/client-key-file>
 ```
 
@@ -697,16 +701,17 @@ kubelet client certificate and key parameters as follows.
 **Expected output:**
 
 ```
---kubelet-client-certificate=/etc/kubernetes/pki/apiserver-kubelet-client.crt
-and --kubelet-client-key=/etc/kubernetes/pki/apiserver-kubelet-client.key
+--kubelet-client-certificate=/etc/kubernetes/pki/apiserver-
+kubelet-client.crt and --kubelet-client-
+key=/etc/kubernetes/pki/apiserver-kubelet-client.key
 ```
 
-#### CIS Control 1.2.5
+##### Control 1.2.5
 
 **Description:**
 
-Ensure that the `--kubelet-certificate-authority` argument is
-set as appropriate
+Ensure that the --kubelet-certificate-authority argument is
+set as appropriate (Automated)
 
 
 **Remediation:**
@@ -715,8 +720,8 @@ Follow the Kubernetes documentation and setup the TLS
 connection between
 the apiserver and kubelets. Then, edit the API server
 configuration file
-`/var/snap/k8s/common/args/kube-apiserver` on the control plane node and set the
-`--kubelet-certificate-authority` parameter to the path to the
+/var/snap/k8s/common/args/kube-apiserver on the control plane node and set the
+--kubelet-certificate-authority parameter to the path to the
 cert file for the certificate authority.
 
 `--kubelet-certificate-authority=<ca-string>`
@@ -734,20 +739,19 @@ cert file for the certificate authority.
 --kubelet-certificate-authority=/etc/kubernetes/pki/ca.crt
 ```
 
-#### CIS Control 1.2.6
+##### Control 1.2.6
 
 **Description:**
 
-Ensure that the `--authorization-mode` argument is not set to
-`AlwaysAllow`
+Ensure that the --authorization-mode argument is not set to
+AlwaysAllow (Automated)
 
 
 **Remediation:**
 
-Edit the API server configuration file
-`/var/snap/k8s/common/args/kube-apiserver`
-on the control plane node and set the `--authorization-mode`
-parameter to values other than `AlwaysAllow`.
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+on the control plane node and set the --authorization-mode
+parameter to values other than AlwaysAllow.
 One such example could be as follows.
 
 `--authorization-mode=Node,RBAC`
@@ -765,18 +769,18 @@ One such example could be as follows.
 --authorization-mode=Node,RBAC
 ```
 
-#### CIS Control 1.2.7
+##### Control 1.2.7
 
 **Description:**
 
-Ensure that the `--authorization-mode` argument includes Node
+Ensure that the --authorization-mode argument includes Node
+(Automated)
 
 
 **Remediation:**
 
-Edit the API server configuration file
-`/var/snap/k8s/common/args/kube-apiserver`
-on the control plane node and set the `--authorization-mode`
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+on the control plane node and set the --authorization-mode
 parameter to a value that includes Node.
 
 `--authorization-mode=Node,RBAC`
@@ -794,18 +798,18 @@ parameter to a value that includes Node.
 --authorization-mode=Node,RBAC
 ```
 
-#### CIS Control 1.2.8
+##### Control 1.2.8
 
 **Description:**
 
-Ensure that the `--authorization-mode` argument includes RBAC
+Ensure that the --authorization-mode argument includes RBAC
+(Automated)
 
 
 **Remediation:**
 
-Edit the API server configuration file
-`/var/snap/k8s/common/args/kube-apiserver`
-on the control plane node and set the `--authorization-mode`
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+on the control plane node and set the --authorization-mode
 parameter to a value that includes RBAC,
 
 `--authorization-mode=Node,RBAC`
@@ -823,20 +827,19 @@ parameter to a value that includes RBAC,
 --authorization-mode=Node,RBAC
 ```
 
-#### CIS Control 1.2.9
+##### Control 1.2.9
 
 **Description:**
 
 Ensure that the admission control plugin EventRateLimit is
-set
+set (Manual)
 
 
 **Remediation:**
 
 Follow the Kubernetes documentation and set the desired
 limits in a configuration file.
-Then, edit the API server configuration file
-`/var/snap/k8s/common/args/kube-apiserver`
+Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 and set the following arguments.
 
 ```
@@ -858,21 +861,20 @@ and set the following arguments.
 plugins=NodeRestriction,EventRateLimit,AlwaysPullImages
 ```
 
-#### CIS Control 1.2.10
+##### Control 1.2.10
 
 **Description:**
 
-Ensure that the admission control plugin `AlwaysAdmit` is not
-set
+Ensure that the admission control plugin AlwaysAdmit is not
+set (Automated)
 
 
 **Remediation:**
 
-Edit the API server configuration file
-`/var/snap/k8s/common/args/kube-apiserver`
-on the control plane node and either remove the
-`--enable-admission-plugins` parameter, or set it to a
-value that does not include `AlwaysAdmit`.
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+on the control plane node and either remove the --enable-
+admission-plugins parameter, or set it to a
+value that does not include AlwaysAdmit.
 
 
 **Audit (as root):**
@@ -888,21 +890,20 @@ value that does not include `AlwaysAdmit`.
 plugins=NodeRestriction,EventRateLimit,AlwaysPullImages
 ```
 
-#### CIS Control 1.2.11
+##### Control 1.2.11
 
 **Description:**
 
-Ensure that the admission control plugin `AlwaysPullImages` is
-set
+Ensure that the admission control plugin AlwaysPullImages is
+set (Manual)
 
 
 **Remediation:**
 
-Edit the API server configuration file
-`/var/snap/k8s/common/args/kube-apiserver`
-on the control plane node and set the
-`--enable-admission-plugins` parameter to include
-`AlwaysPullImages`.
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+on the control plane node and set the --enable-admission-
+plugins parameter to include
+AlwaysPullImages.
 
 `--enable-admission-plugins=...,AlwaysPullImages,...`
 
@@ -920,21 +921,20 @@ on the control plane node and set the
 plugins=NodeRestriction,EventRateLimit,AlwaysPullImages
 ```
 
-#### CIS Control 1.2.12
+##### Control 1.2.12
 
 **Description:**
 
-Ensure that the admission control plugin `SecurityContextDeny`
-is set if `PodSecurityPolicy` is not used
+Ensure that the admission control plugin SecurityContextDeny
+is set if PodSecurityPolicy is not used (Manual)
 
 
 **Remediation:**
 
-Edit the API server configuration file
-`/var/snap/k8s/common/args/kube-apiserver`
-on the control plane node and set the `--enable-admission-plugins`
-parameter to include
-`SecurityContextDeny`, unless PodSecurityPolicy is already in
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+on the control plane node and set the --enable-admission-
+plugins parameter to include
+SecurityContextDeny, unless PodSecurityPolicy is already in
 place.
 
 `--enable-admission-plugins=...,SecurityContextDeny,...`
@@ -953,22 +953,22 @@ place.
 plugins=NodeRestriction,EventRateLimit,AlwaysPullImages
 ```
 
-#### CIS Control 1.2.13
+##### Control 1.2.13
 
 **Description:**
 
 Ensure that the admission control plugin ServiceAccount is
-set
+set (Automated)
 
 
 **Remediation:**
 
 Follow the documentation and create ServiceAccount objects
-as per your environment. Then, edit the API server configuration
-file `/var/snap/k8s/common/args/kube-apiserver`
-on the control plane node and ensure that the
-`--disable-admission-plugins` parameter is set to a
-value that does not include `ServiceAccount`.
+as per your environment.
+Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+on the control plane node and ensure that the --disable-
+admission-plugins parameter is set to a
+value that does not include ServiceAccount.
 
 
 **Audit (as root):**
@@ -983,20 +983,20 @@ value that does not include `ServiceAccount`.
 --disable-admission-plugins is not set
 ```
 
-#### CIS Control 1.2.14
+##### Control 1.2.14
 
 **Description:**
 
 Ensure that the admission control plugin NamespaceLifecycle
-is set
+is set (Automated)
 
 
 **Remediation:**
 
-Edit the API server configuration file
-`/var/snap/k8s/common/args/kube-apiserver`
-on the control plane node and set the `--disable-admission-plugins` parameter to
-ensure it does not include `NamespaceLifecycle`.
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+on the control plane node and set the --disable-admission-
+plugins parameter to
+ensure it does not include NamespaceLifecycle.
 
 
 **Audit (as root):**
@@ -1011,21 +1011,22 @@ ensure it does not include `NamespaceLifecycle`.
 --disable-admission-plugins is not set
 ```
 
-#### CIS Control 1.2.15
+##### Control 1.2.15
 
 **Description:**
 
 Ensure that the admission control plugin NodeRestriction is
-set
+set (Automated)
 
 
 **Remediation:**
 
 Follow the Kubernetes documentation and configure
-NodeRestriction plug-in on kubelets. Then, edit the API server
-configuration file `/var/snap/k8s/common/args/kube-apiserver`
-on the control plane node and set the `--enable-admission-plugins` parameter to
-a value that includes `NodeRestriction`.
+NodeRestriction plug-in on kubelets.
+Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+on the control plane node and set the --enable-admission-
+plugins parameter to a
+value that includes NodeRestriction.
 
 `--enable-admission-plugins=...,NodeRestriction,...`
 
@@ -1043,18 +1044,19 @@ a value that includes `NodeRestriction`.
 plugins=NodeRestriction,EventRateLimit,AlwaysPullImages
 ```
 
-#### CIS Control 1.2.16
+##### Control 1.2.16
 
 **Description:**
 
-Ensure that the `--secure-port` argument is not set to 0
+Ensure that the --secure-port argument is not set to 0
+(Automated)
 
 
 **Remediation:**
 
-Edit the API server configuration file
-`/var/snap/k8s/common/args/kube-apiserver`
-on the control plane node and either remove the `--secure-port` parameter or
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+on the control plane node and either remove the --secure-
+port parameter or
 set it to a different (non-zero) desired port.
 
 
@@ -1070,17 +1072,17 @@ set it to a different (non-zero) desired port.
 --secure-port=6443
 ```
 
-#### CIS Control 1.2.17
+##### Control 1.2.17
 
 **Description:**
 
-Ensure that the `--profiling` argument is set to false
+Ensure that the --profiling argument is set to false
+(Automated)
 
 
 **Remediation:**
 
-Edit the API server configuration file
-`/var/snap/k8s/common/args/kube-apiserver`
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the following argument.
 
 `--profiling=false`
@@ -1098,22 +1100,21 @@ on the control plane node and set the following argument.
 --profiling=false
 ```
 
-#### CIS Control 1.2.18
+##### Control 1.2.18
 
 **Description:**
 
-Ensure that the `--audit-log-path` argument is set
+Ensure that the --audit-log-path argument is set (Automated)
 
 
 **Remediation:**
 
-Edit the API server configuration file
-`/var/snap/k8s/common/args/kube-apiserver`
-on the control plane node and set the `--audit-log-path`
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+on the control plane node and set the --audit-log-path
 parameter to a suitable path and
 file where you would like audit logs to be written.
 
-`--audit-log-path=/var/log/kubernetes/audit.log`
+`--audit-log-path=/var/log/apiserver/audit.log`
 
 
 **Audit (as root):**
@@ -1125,22 +1126,21 @@ file where you would like audit logs to be written.
 **Expected output:**
 
 ```
---audit-log-path=/var/log/kubernetes/audit.log
+--audit-log-path=/var/log/apiserver/audit.log
 ```
 
-#### CIS Control 1.2.19
+##### Control 1.2.19
 
 **Description:**
 
-Ensure that the `--audit-log-maxage` argument is set to 30 or
-as appropriate
+Ensure that the --audit-log-maxage argument is set to 30 or
+as appropriate (Automated)
 
 
 **Remediation:**
 
-Edit the API server configuration file
-`/var/snap/k8s/common/args/kube-apiserver`
-on the control plane node and set the `--audit-log-maxage`
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+on the control plane node and set the --audit-log-maxage
 parameter to 30
 or as an appropriate number of days.
 
@@ -1159,19 +1159,18 @@ or as an appropriate number of days.
 --audit-log-maxage=30
 ```
 
-#### CIS Control 1.2.20
+##### Control 1.2.20
 
 **Description:**
 
-Ensure that the `--audit-log-maxbackup` argument is set to 10
-or as appropriate
+Ensure that the --audit-log-maxbackup argument is set to 10
+or as appropriate (Automated)
 
 
 **Remediation:**
 
-Edit the API server configuration file
-`/var/snap/k8s/common/args/kube-apiserver`
-on the control plane node and set the `--audit-log-maxbackup`
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+on the control plane node and set the --audit-log-maxbackup
 parameter to 10 or to an appropriate
 value.
 
@@ -1190,19 +1189,18 @@ value.
 --audit-log-maxbackup=10
 ```
 
-#### CIS Control 1.2.21
+##### Control 1.2.21
 
 **Description:**
 
-Ensure that the `--audit-log-maxsize` argument is set to 100
-or as appropriate
+Ensure that the --audit-log-maxsize argument is set to 100
+or as appropriate (Automated)
 
 
 **Remediation:**
 
-Edit the API server configuration file
-`/var/snap/k8s/common/args/kube-apiserver`
-on the control plane node and set the `--audit-log-maxsize`
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+on the control plane node and set the --audit-log-maxsize
 parameter to an appropriate size in MB.
 
 `--audit-log-maxsize=100`
@@ -1220,18 +1218,17 @@ parameter to an appropriate size in MB.
 --audit-log-maxsize=100
 ```
 
-#### CIS Control 1.2.22
+##### Control 1.2.22
 
 **Description:**
 
-Ensure that the `--request-timeout` argument is set as
-appropriate
+Ensure that the --request-timeout argument is set as
+appropriate (Manual)
 
 
 **Remediation:**
 
-Edit the API server configuration file
-`/var/snap/k8s/common/args/kube-apiserver`
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 and set the following argument as appropriate and if needed.
 
 `--request-timeout=300s`
@@ -1249,23 +1246,22 @@ and set the following argument as appropriate and if needed.
 --request-timeout=300s
 ```
 
-#### CIS Control 1.2.23
+##### Control 1.2.23
 
 **Description:**
 
-Ensure that the `--service-account-lookup` argument is set to
-true
+Ensure that the --service-account-lookup argument is set to
+true (Automated)
 
 
 **Remediation:**
 
-Edit the API server configuration file
-`/var/snap/k8s/common/args/kube-apiserver`
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the following argument.
 
 `--service-account-lookup=true`
 
-Alternatively, you can delete the `--service-account-lookup`
+Alternatively, you can delete the --service-account-lookup
 argument from this file so
 that the default takes effect.
 
@@ -1282,19 +1278,19 @@ that the default takes effect.
 --service-account-lookup is not set
 ```
 
-#### CIS Control 1.2.24
+##### Control 1.2.24
 
 **Description:**
 
-Ensure that the `--service-account-key-file` argument is set
-as appropriate
+Ensure that the --service-account-key-file argument is set
+as appropriate (Automated)
 
 
 **Remediation:**
 
-Edit the API server configuration file
-`/var/snap/k8s/common/args/kube-apiserver`
-on the control plane node and set the `--service-account-key-file` parameter
+Edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+on the control plane node and set the --service-account-key-
+file parameter
 to the public key file for service accounts.
 
 `--service-account-key-file=<filename>`
@@ -1313,31 +1309,25 @@ to the public key file for service accounts.
 file=/etc/kubernetes/pki/serviceaccount.key
 ```
 
-#### CIS Control 1.2.25
+##### Control 1.2.25
 
 **Description:**
 
-Ensure that the `--etcd-certfile` and `--etcd-keyfile` arguments
-are set as appropriate
+Ensure that the --etcd-certfile and --etcd-keyfile arguments
+are set as appropriate (Automated)
+
 
 **Remediation:**
 
-Edit the API server configuration file
-`/var/snap/k8s/common/args/kube-apiserver` on the control plane node and set
-the `--etcd-certfile` and `--etcd-keyfile` parameters to the certificate and
-private key files respectively.
+Follow the Kubernetes documentation and set up the TLS
+connection between the apiserver and etcd.
+Then, edit the API server pod specification file
+/var/snap/k8s/common/args/kube-apiserver
+on the control plane node and set the etcd certificate and
+key file parameters.
+--etcd-certfile=<path/to/client-certificate-file>
+--etcd-keyfile=<path/to/client-key-file>
 
-```
---etcd-certfile="/etc/kubernetes/pki/apiserver-etcd-client.crt"
---etcd-keyfile="/etc/kubernetes/pki/apiserver-etcd-client.key"
-
-```
-
-Restart the `kube-apiserver` service.
-
-```
-snap restart k8s.kube-apiserver
-```
 
 **Audit (as root):**
 
@@ -1345,27 +1335,19 @@ snap restart k8s.kube-apiserver
 /bin/ps -ef | grep kube-apiserver | grep -v grep
 ```
 
-**Expected output:**
-
-```
---etcd-certfile="/etc/kubernetes/pki/apiserver-etcd-client.crt"
---etcd-keyfile="/etc/kubernetes/pki/apiserver-etcd-client.key"
-```
-
-#### CIS Control 1.2.26
+##### Control 1.2.26
 
 **Description:**
 
-Ensure that the `--tls-cert-file` and `--tls-private-key-file`
-arguments are set as appropriate
+Ensure that the --tls-cert-file and --tls-private-key-file
+arguments are set as appropriate (Automated)
 
 
 **Remediation:**
 
 Follow the Kubernetes documentation and set up the TLS
 connection on the apiserver.
-Then, edit the API server configuration file
-`/var/snap/k8s/common/args/kube-apiserver`
+Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the TLS certificate and
 private key file parameters.
 
@@ -1388,19 +1370,19 @@ private key file parameters.
 private-key-file=/etc/kubernetes/pki/apiserver.key
 ```
 
-#### CIS Control 1.2.27
+##### Control 1.2.27
 
 **Description:**
 
-Ensure that the `--client-ca-file` argument is set as
-appropriate
+Ensure that the --client-ca-file argument is set as
+appropriate (Automated)
 
 
 **Remediation:**
 
 Follow the Kubernetes documentation and set up the TLS
-connection on the apiserver. Then, edit the API server configuration
-file `/var/snap/k8s/common/args/kube-apiserver`
+connection on the apiserver.
+Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
 on the control plane node and set the client certificate
 authority file.
 
@@ -1419,27 +1401,24 @@ authority file.
 --client-ca-file=/etc/kubernetes/pki/client-ca.crt
 ```
 
-#### CIS Control 1.2.28
+##### Control 1.2.28
 
 **Description:**
 
-Ensure that the `--etcd-cafile` argument is set as appropriate
+Ensure that the --client-ca-file argument is set as
+appropriate (Automated)
+
 
 **Remediation:**
 
-Edit the API server configuration file
-`/var/snap/k8s/common/args/kube-apiserver` on the control plane node and set
-the `--etcd-cafile` parameter to the CA certificate file that is used by etcd.
+Follow the Kubernetes documentation and set up the TLS
+connection on the apiserver.
+Then, edit the API server pod specification file
+/var/snap/k8s/common/args/kube-apiserver
+on the control plane node and set the client certificate
+authority file.
+--client-ca-file=<path/to/client-ca-file>
 
-```
---etcd-cafile=/etc/kubernetes/pki/etcd/ca.crt
-```
-
-Restart the `kube-apiserver` service.
-
-```
-snap restart k8s.kube-apiserver
-```
 
 **Audit (as root):**
 
@@ -1447,29 +1426,24 @@ snap restart k8s.kube-apiserver
 /bin/ps -ef | grep kube-apiserver | grep -v grep
 ```
 
-**Expected output:**
-
-```
---etcd-cafile=/etc/kubernetes/pki/etcd/ca.crt
-```
-
-#### CIS Control 1.2.29
+##### Control 1.2.29
 
 **Description:**
 
-Ensure that the `--encryption-provider-config` argument is set
-as appropriate
+Ensure that the --encryption-provider-config argument is set
+as appropriate (Manual)
 
 
 **Remediation:**
 
 Follow the Kubernetes documentation and configure a
-`EncryptionConfiguration` file. Then, edit the API server configuration
-file `/var/snap/k8s/common/args/kube-apiserver`
-on the control plane node and set the `--encryption-provider-config` parameter
-to the path of that file.
+EncryptionConfig file.
+Then, edit the API server configuration file /var/snap/k8s/common/args/kube-apiserver
+on the control plane node and set the --encryption-provider-
+config parameter to the path of that file.
 
-`--encryption-provider-config=</path/to/EncryptionConfiguration/File>`
+`--encryption-provider-
+config=</path/to/EncryptionConfig/File>`
 
 
 **Audit (as root):**
@@ -1484,19 +1458,19 @@ to the path of that file.
 --encryption-provider-config is set
 ```
 
-#### CIS Control 1.2.30
+##### Control 1.2.30
 
 **Description:**
 
 Ensure that encryption providers are appropriately
-configured
+configured (Manual)
 
 
 **Remediation:**
 
 Follow the Kubernetes documentation and configure a
-`EncryptionConfiguration` file.
-In this file, choose AES-CBC, KMS or SecretBox as the
+EncryptionConfig file.
+In this file, choose aescbc, kms or secretbox as the
 encryption provider.
 
 
@@ -1514,18 +1488,18 @@ if test -e $ENCRYPTION_PROVIDER_CONFIG; then grep -A1 'providers:' $ENCRYPTION_P
 aescbc,kms,secretbox
 ```
 
-#### CIS Control 1.2.31
+##### Control 1.2.31
 
 **Description:**
 
 Ensure that the API Server only makes use of Strong
-Cryptographic Ciphers
+Cryptographic Ciphers (Manual)
 
 
 **Remediation:**
 
 Edit the API server configuration file
-`/etc/kubernetes/manifests/kube-apiserver.yaml`
+/etc/kubernetes/manifests/kube-apiserver.yaml
 on the control plane node and set the following argument.
 
 ```
@@ -1571,22 +1545,22 @@ AES_128_CBC_SHA,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES
 _256_CBC_SHA,TLS_RSA_WITH_AES_256_GCM_SHA384
 ```
 
-### Controller manager
+#### Controller Manager
 
-#### CIS Control 1.3.1
+##### Control 1.3.1
 
 **Description:**
 
-Ensure that the `--terminated-pod-gc-threshold` argument is
-set as appropriate
+Ensure that the --terminated-pod-gc-threshold argument is
+set as appropriate (Manual)
 
 
 **Remediation:**
 
 Edit the Controller Manager configuration file
-`/var/snap/k8s/common/args/kube-controller-manager`
-on the control plane node and set the `--terminated-pod-gc-threshold`
- to an appropriate threshold.
+/var/snap/k8s/common/args/kube-controller-manager
+on the control plane node and set the --terminated-pod-gc-
+threshold to an appropriate threshold.
 
 `--terminated-pod-gc-threshold=12500`
 
@@ -1603,17 +1577,18 @@ on the control plane node and set the `--terminated-pod-gc-threshold`
 --terminated-pod-gc-threshold=12500
 ```
 
-#### CIS Control 1.3.2
+##### Control 1.3.2
 
 **Description:**
 
-Ensure that the `--profiling` argument is set to false
+Ensure that the --profiling argument is set to false
+(Automated)
 
 
 **Remediation:**
 
 Edit the Controller Manager configuration file
-`/var/snap/k8s/common/args/kube-controller-manager`
+/var/snap/k8s/common/args/kube-controller-manager
 on the control plane node and set the following argument.
 
 `--profiling=false`
@@ -1631,18 +1606,18 @@ on the control plane node and set the following argument.
 --profiling=false
 ```
 
-#### CIS Control 1.3.3
+##### Control 1.3.3
 
 **Description:**
 
-Ensure that the `--use-service-account-credentials` argument
-is set to true
+Ensure that the --use-service-account-credentials argument
+is set to true (Automated)
 
 
 **Remediation:**
 
 Edit the Controller Manager configuration file
-`/var/snap/k8s/common/args/kube-controller-manager`
+/var/snap/k8s/common/args/kube-controller-manager
 on the control plane node to set the following argument.
 
 `--use-service-account-credentials=true`
@@ -1660,20 +1635,21 @@ on the control plane node to set the following argument.
 --use-service-account-credentials=true
 ```
 
-#### CIS Control 1.3.4
+##### Control 1.3.4
 
 **Description:**
 
-Ensure that the `--service-account-private-key-file` argument
-is set as appropriate
+Ensure that the --service-account-private-key-file argument
+is set as appropriate (Automated)
 
 
 **Remediation:**
 
 Edit the Controller Manager configuration file
-`/var/snap/k8s/common/args/kube-controller-manager`
-on the control plane node and set the `--service-account-private-key-file`
-parameter to the private key file for service accounts.
+/var/snap/k8s/common/args/kube-controller-manager
+on the control plane node and set the --service-account-
+private-key-file parameter
+to the private key file for service accounts.
 
 `--service-account-private-key-file=<filename>`
 
@@ -1687,22 +1663,23 @@ parameter to the private key file for service accounts.
 **Expected output:**
 
 ```
---service-account-private-key-file=/etc/kubernetes/pki/serviceaccount.key
+--service-account-private-key-
+file=/etc/kubernetes/pki/serviceaccount.key
 ```
 
-#### CIS Control 1.3.5
+##### Control 1.3.5
 
 **Description:**
 
-Ensure that the `--root-ca-file` argument is set as
-appropriate
+Ensure that the --root-ca-file argument is set as
+appropriate (Automated)
 
 
 **Remediation:**
 
 Edit the Controller Manager configuration file
-`/var/snap/k8s/common/args/kube-controller-manager`
-on the control plane node and set the `--root-ca-file`
+/var/snap/k8s/common/args/kube-controller-manager
+on the control plane node and set the --root-ca-file
 parameter to the certificate bundle file.
 
 `--root-ca-file=<path/to/file>`
@@ -1720,20 +1697,20 @@ parameter to the certificate bundle file.
 --root-ca-file=/etc/kubernetes/pki/ca.crt
 ```
 
-#### CIS Control 1.3.6
+##### Control 1.3.6
 
 **Description:**
 
-Ensure that the `RotateKubeletServerCertificate` argument is
-set to true
+Ensure that the RotateKubeletServerCertificate argument is
+set to true (Automated)
 
 
 **Remediation:**
 
 Edit the Controller Manager configuration file
-`/var/snap/k8s/common/args/kube-controller-manager`
-on the control plane node and set the `--feature-gates`
-parameter to include `RotateKubeletServerCertificate=true`.
+/var/snap/k8s/common/args/kube-controller-manager
+on the control plane node and set the --feature-gates
+parameter to include RotateKubeletServerCertificate=true.
 
 `--feature-gates=RotateKubeletServerCertificate=true`
 
@@ -1751,19 +1728,20 @@ RotateKubeletServerCertificate feature gate is not set, or set
 to true
 ```
 
-#### CIS Control 1.3.7
+##### Control 1.3.7
 
 **Description:**
 
-Ensure that the `--bind-address` argument is set to 127.0.0.1
+Ensure that the --bind-address argument is set to 127.0.0.1
+(Automated)
 
 
 **Remediation:**
 
 Edit the Controller Manager configuration file
-`/var/snap/k8s/common/args/kube-controller-manager`
+/var/snap/k8s/common/args/kube-controller-manager
 on the control plane node and ensure the correct value for
-the `--bind-address` parameter
+the --bind-address parameter
 and restart the controller manager service
 
 
@@ -1779,18 +1757,19 @@ and restart the controller manager service
 ---bind-address=127.0.0.1
 ```
 
-### Scheduler
+#### Scheduler
 
-#### CIS Control 1.4.1
+##### Control 1.4.1
 
 **Description:**
 
-Ensure that the `--profiling` argument is set to false
+Ensure that the --profiling argument is set to false
+(Automated)
 
 
 **Remediation:**
 
-Edit the Scheduler configuration file `/var/snap/k8s/common/args/kube-scheduler`
+Edit the Scheduler configuration file /var/snap/k8s/common/args/kube-scheduler file
 on the control plane node and set the following argument.
 
 `--profiling=false`
@@ -1808,18 +1787,19 @@ on the control plane node and set the following argument.
 --profiling=false
 ```
 
-#### CIS Control 1.4.2
+##### Control 1.4.2
 
 **Description:**
 
-Ensure that the `--bind-address` argument is set to 127.0.0.1
+Ensure that the --bind-address argument is set to 127.0.0.1
+(Automated)
 
 
 **Remediation:**
 
-Edit the Scheduler configuration file `/var/snap/k8s/common/args/kube-scheduler`
+Edit the Scheduler configuration file /var/snap/k8s/common/args/kube-scheduler
 on the control plane node and ensure the correct value for
-the `--bind-address` parameter
+the --bind-address parameter
 and restart the kube-scheduler service
 
 
@@ -1835,211 +1815,193 @@ and restart the kube-scheduler service
 ---bind-address=127.0.0.1
 ```
 
-### Datastore node configuration
+### Etcd Node Configuration
 
-#### CIS Control 2.1
+#### Etcd Node Configuration
+
+##### Control 2.1
 
 **Description:**
 
-Ensure that the `--cert-file` and `--key-file` arguments are set
-as appropriate
+Ensure that the --cert-file and --key-file arguments are set
+as appropriate (Automated)
+
 
 **Remediation:**
 
-Edit the etcd configuration file
-`/var/snap/k8s/common/args/etcd` on the control plane node and set
-the `--cert-file` and `--key-file` parameters appropriately.
+Follow the etcd service documentation and configure TLS
+encryption.
+Then, edit the etcd pod specification file
+/etc/kubernetes/manifests/etcd.yaml
+on the master node and set the below parameters.
+--cert-file=</path/to/ca-file>
+--key-file=</path/to/key-file>
 
-```
---cert-file="/etc/kubernetes/pki/etcd/server.crt"
---key-file="/etc/kubernetes/pki/etcd/server.key"
-```
-
-Restart the `etcd` service.
-
-```
-snap restart k8s.etcd
-```
 
 **Audit (as root):**
 
 ```
-/bin/ps -ef | grep -E 'etcd\s' | grep -v grep
+/bin/ps -ef | /bin/grep etcd | /bin/grep -v grep
 ```
 
-**Expected output:**
-
-```
---cert-file="/etc/kubernetes/pki/etcd/server.crt"
---key-file="/etc/kubernetes/pki/etcd/server.key"
-```
-
-#### CIS Control 2.2
+##### Control 2.2
 
 **Description:**
 
-Ensure that the `--client-cert-auth` argument is set to true
+Ensure that the --client-cert-auth argument is set to true
+(Automated)
+
 
 **Remediation:**
 
-Edit the etcd configuration file
-`/var/snap/k8s/common/args/etcd` on the control plane node and set
-the `--client-cert-auth` argument to true. Then restart the `etcd` service.
-
-```
-snap restart k8s.etcd
-```
-
-**Audit (as root):**
-
-```
-/bin/ps -ef | grep -E 'etcd\s' | grep -v grep
-```
-
-**Expected output:**
-
-```
+Edit the etcd pod specification file /var/snap/k8s/common/args/etcd on the master
+node and set the below parameter.
 --client-cert-auth="true"
-```
 
-#### CIS Control 2.3
-
-**Description:**
-
-Ensure that the `--auto-tls` argument is not set to true
-
-**Remediation:**
-
-Edit the etcd configuration file
-`/var/snap/k8s/common/args/etcd` on the control plane node and remove the
-`--auto-tls` argument. Then restart the `etcd` service.
-
-```
-snap restart k8s.etcd
-```
 
 **Audit (as root):**
 
 ```
-/bin/ps -ef | grep -E 'etcd\s' | grep -v grep
+/bin/ps -ef | /bin/grep etcd | /bin/grep -v grep
 ```
 
-**Expected output:**
-
-The `--auto-tls` should not be present or set to `false`
-
-#### CIS Control 2.4
+##### Control 2.3
 
 **Description:**
 
-Ensure that the `--peer-cert-file` and `--peer-key-file`
-arguments are set as appropriate
+Ensure that the --auto-tls argument is not set to true
+(Automated)
+
 
 **Remediation:**
 
-Edit the etcd configuration file
-`/var/snap/k8s/common/args/etcd` on the control plane node and set
-the `--peer-cert-file` and `--peer-key-file` parameters appropriately.
+Edit the etcd pod specification file /var/snap/k8s/common/args/etcd on the master
+node and either remove the --auto-tls parameter or set it to
+false.
+  --auto-tls=false
 
-```
---peer-cert-file="/etc/kubernetes/pki/etcd/peer.crt"
---peer-key-file="/etc/kubernetes/pki/etcd/peer.key"
-```
-
-Restart the `etcd` service.
-
-```
-snap restart k8s.etcd
-```
 
 **Audit (as root):**
 
 ```
-/bin/ps -ef | grep -E 'etcd\s' | grep -v grep
+/bin/ps -ef | /bin/grep etcd | /bin/grep -v grep
+```
+
+##### Control 2.4
+
+**Description:**
+
+Ensure that the --peer-cert-file and --peer-key-file
+arguments are set as appropriate (Automated)
+
+
+**Remediation:**
+
+Follow the etcd service documentation and configure peer TLS
+encryption as appropriate
+for your etcd cluster.
+Then, edit the etcd pod specification file /var/snap/k8s/common/args/etcd on the
+master node and set the below parameters.
+--peer-client-file=</path/to/peer-cert-file>
+--peer-key-file=</path/to/peer-key-file>
+
+
+**Audit (as root):**
+
+```
+/bin/ps -ef | /bin/grep etcd | /bin/grep -v grep
 ```
 
 **Expected output:**
 
 ```
---peer-cert-file="/etc/kubernetes/pki/etcd/peer.crt"
---peer-key-file="/etc/kubernetes/pki/etcd/peer.key"
+certs-found
 ```
 
-#### CIS Control 2.5
+##### Control 2.5
 
 **Description:**
 
-Ensure that the `--peer-client-cert-auth` argument is set to
-true
+Ensure that the --peer-client-cert-auth argument is set to
+true (Automated)
+
 
 **Remediation:**
 
-Edit the etcd configuration file
-`/var/snap/k8s/common/args/etcd` on the control plane node and set
-the `--peer-client-cert-auth` argument to true. Then restart the `etcd` service.
+Edit the etcd pod specification file /var/snap/k8s/common/args/etcd on the master
+node and set the below parameter.
+--peer-client-cert-auth=true
 
-```
-snap restart k8s.etcd
-```
 
 **Audit (as root):**
 
 ```
-/bin/ps -ef | grep -E 'etcd\s' | grep -v grep
+/bin/ps -ef | /bin/grep etcd | /bin/grep -v grep
 ```
 
 **Expected output:**
 
 ```
---peer-client-cert-auth="true"
+0
 ```
 
-#### CIS Control 2.6
+##### Control 2.6
 
 **Description:**
 
-Ensure that the `--peer-auto-tls` argument is not set to true
+Ensure that the --peer-auto-tls argument is not set to true
+(Automated)
+
 
 **Remediation:**
 
-Edit the etcd configuration file
-`/var/snap/k8s/common/args/etcd` on the control plane node and remove the
-`--peer-auto-tls` argument. Then restart the `etcd` service.
+Edit the etcd pod specification file /var/snap/k8s/common/args/etcd on the master
+node and either remove the --peer-auto-tls parameter or set
+it to false.
+--peer-auto-tls=false
 
-```
-snap restart k8s.etcd
-```
 
 **Audit (as root):**
 
 ```
-/bin/ps -ef | grep -E 'etcd\s' | grep -v grep
+/bin/ps -ef | /bin/grep etcd | /bin/grep -v grep
 ```
 
-**Expected output:**
-
-The `--peer-auto-tls` should not be present or set to `false`.
-
-#### CIS Control 2.7
+##### Control 2.7
 
 **Description:**
 
-Ensure that a unique Certificate Authority is used for the
-datastore
+Ensure that a unique Certificate Authority is used for etcd
+(Manual)
+
 
 **Remediation:**
 
-Not applicable. All Certificates and CAs used by the `etcd`
-are created upon cluster setup and therefore are unique.
+[Manual test]
+Follow the etcd documentation and create a dedicated
+certificate authority setup for the
+etcd service.
+Then, edit the etcd pod specification file /var/snap/k8s/common/args/etcd on the
+master node and set the below parameter.
+--trusted-ca-file=</path/to/ca-file>
 
-### Authentication and authorization
 
-#### CIS Control 3.1.1
+**Audit (as root):**
+
+```
+/bin/ps -ef | /bin/grep etcd | /bin/grep -v grep
+```
+
+### Control Plane Configuration
+
+#### Authentication and Authorization
+
+##### Control 3.1.1
 
 **Description:**
 
 Client certificate authentication should not be used for
-users
+users (Manual)
 
 
 **Remediation:**
@@ -2049,13 +2011,13 @@ use of OIDC should be
 implemented in place of client certificates.
 
 
-### Logging
+#### Logging
 
-#### CIS Control 3.2.1
+##### Control 3.2.1
 
 **Description:**
 
-Ensure that a minimal audit policy is created
+Ensure that a minimal audit policy is created (Manual)
 
 
 **Remediation:**
@@ -2075,11 +2037,12 @@ Create an audit policy file for your cluster.
 --audit-policy-file=/var/snap/k8s/common/etc/audit-policy.yaml
 ```
 
-#### CIS Control 3.2.2
+##### Control 3.2.2
 
 **Description:**
 
 Ensure that the audit policy covers key security concerns
+(Manual)
 
 
 **Remediation:**
@@ -2102,16 +2065,16 @@ is recommended
 (the most basic level of logging).
 
 
-## Worker node security configuration
+### Worker Node Security Configuration
 
-### Worker node configuration files
+#### Worker Node Configuration Files
 
-#### CIS Control 4.1.1
+##### Control 4.1.1
 
 **Description:**
 
 Ensure that the kubelet service file permissions are set to
-600
+600 (Automated)
 
 
 **Remediation:**
@@ -2134,12 +2097,12 @@ Run the following command on each worker node.
 permissions=600
 ```
 
-#### CIS Control 4.1.2
+##### Control 4.1.2
 
 **Description:**
 
 Ensure that the kubelet service file ownership is set to
-root:root
+root:root (Automated)
 
 
 **Remediation:**
@@ -2162,12 +2125,12 @@ Run the following command on each worker node.
 root:root
 ```
 
-#### CIS Control 4.1.3
+##### Control 4.1.3
 
 **Description:**
 
 If proxy kubeconfig file exists ensure permissions are set
-to 600
+to 600 (Manual)
 
 
 **Remediation:**
@@ -2190,12 +2153,12 @@ Run the following command on each worker node.
 permissions=600
 ```
 
-#### CIS Control 4.1.4
+##### Control 4.1.4
 
 **Description:**
 
 If proxy kubeconfig file exists ensure ownership is set to
-root:root
+root:root (Manual)
 
 
 **Remediation:**
@@ -2218,12 +2181,12 @@ Run the following command on each worker node.
 root:root
 ```
 
-#### CIS Control 4.1.5
+##### Control 4.1.5
 
 **Description:**
 
-Ensure that the `--kubeconfig` kubelet.conf file permissions
-are set to 600
+Ensure that the --kubeconfig kubelet.conf file permissions
+are set to 600 (Automated)
 
 
 **Remediation:**
@@ -2246,12 +2209,12 @@ Run the following command on each worker node.
 permissions=600
 ```
 
-#### CIS Control 4.1.6
+##### Control 4.1.6
 
 **Description:**
 
-Ensure that the `--kubeconfig` kubelet.conf file ownership is
-set to root:root
+Ensure that the --kubeconfig kubelet.conf file ownership is
+set to root:root (Automated)
 
 
 **Remediation:**
@@ -2274,18 +2237,19 @@ Run the following command on each worker node.
 root:root
 ```
 
-#### CIS Control 4.1.7
+##### Control 4.1.7
 
 **Description:**
 
 Ensure that the certificate authorities file permissions are
-set to 600
+set to 600 (Manual)
 
 
 **Remediation:**
 
 Run the following command to modify the file permissions of
-the `--client-ca-file`.
+the
+--client-ca-file.
 
 `chmod 600 /etc/kubernetes/pki/client-ca.crt`
 
@@ -2304,18 +2268,18 @@ if test -e $CAFILE; then stat -c permissions=%a $CAFILE; fi
 permissions=600
 ```
 
-#### CIS Control 4.1.8
+##### Control 4.1.8
 
 **Description:**
 
 Ensure that the client certificate authorities file
-ownership is set to root:root
+ownership is set to root:root (Manual)
 
 
 **Remediation:**
 
 Run the following command to modify the ownership of the
-`--client-ca-file`.
+--client-ca-file.
 
 `chown root:root /etc/kubernetes/pki/client-ca.crt`
 
@@ -2334,12 +2298,12 @@ if test -e $CAFILE; then stat -c %U:%G $CAFILE; fi
 root:root
 ```
 
-#### CIS Control 4.1.9
+##### Control 4.1.9
 
 **Description:**
 
 If the kubelet config.yaml configuration file is being used
-validate permissions set to 600
+validate permissions set to 600 (Manual)
 
 
 **Remediation:**
@@ -2363,12 +2327,12 @@ identified in the Audit step)
 permissions=600
 ```
 
-#### CIS Control 4.1.10
+##### Control 4.1.10
 
 **Description:**
 
 If the kubelet config.yaml configuration file is being used
-validate file ownership is set to root:root
+validate file ownership is set to root:root (Manual)
 
 
 **Remediation:**
@@ -2392,19 +2356,20 @@ identified in the Audit step)
 root:root
 ```
 
-### Kubelet
+#### Kubelet
 
-#### CIS Control 4.2.1
+##### Control 4.2.1
 
 **Description:**
 
-Ensure that the `--anonymous-auth` argument is set to false
+Ensure that the --anonymous-auth argument is set to false
+(Automated)
 
 
 **Remediation:**
 
 Edit the kubelet configuration file
-`/var/snap/k8s/common/args/kubelet` on each worker node and set the following
+/var/snap/k8s/common/args/kubelet on each worker node and set the following
 argument.
 
 `--anonymous-auth=false`
@@ -2426,18 +2391,18 @@ Restart the kubelet service.
 --anonymous-auth=false
 ```
 
-#### CIS Control 4.2.2
+##### Control 4.2.2
 
 **Description:**
 
-Ensure that the `--authorization-mode` argument is not set to
-`AlwaysAllow`
+Ensure that the --authorization-mode argument is not set to
+AlwaysAllow (Automated)
 
 
 **Remediation:**
 
 Edit the kubelet configuration file
-`/var/snap/k8s/common/args/kubelet` on each worker node and set the following
+/var/snap/k8s/common/args/kubelet on each worker node and set the following
 argument.
 
 `--authorization-mode=Webhook`
@@ -2459,18 +2424,18 @@ Restart the kubelet service:
 --authorization-mode=Webhook
 ```
 
-#### CIS Control 4.2.3
+##### Control 4.2.3
 
 **Description:**
 
-Ensure that the `--client-ca-file` argument is set as
-appropriate
+Ensure that the --client-ca-file argument is set as
+appropriate (Automated)
 
 
 **Remediation:**
 
 Edit the kubelet configuration file
-`/var/snap/k8s/common/args/kubelet` on each worker node and set the following
+/var/snap/k8s/common/args/kubelet on each worker node and set the following
 argument.
 
 `--client-ca-file=/etc/kubernetes/pki/client-ca.crt`
@@ -2492,17 +2457,18 @@ Restart the kubelet service:
 --client-ca-file=/etc/kubernetes/pki/client-ca.crt
 ```
 
-#### CIS Control 4.2.4
+##### Control 4.2.4
 
 **Description:**
 
-Verify that the `--read-only-port` argument is set to 0
+Verify that the --read-only-port argument is set to 0
+(Manual)
 
 
 **Remediation:**
 
 Edit the kubelet configuration file
-`/var/snap/k8s/common/args/kubelet` on each worker node and set the following
+/var/snap/k8s/common/args/kubelet on each worker node and set the following
 argument.
 
 `--read-only-port=0`
@@ -2524,18 +2490,18 @@ Restart the kubelet service:
 --read-only-port=0
 ```
 
-#### CIS Control 4.2.5
+##### Control 4.2.5
 
 **Description:**
 
-Ensure that the `--streaming-connection-idle-timeout` argument
-is not set to 0
+Ensure that the --streaming-connection-idle-timeout argument
+is not set to 0 (Manual)
 
 
 **Remediation:**
 
 Edit the kubelet configuration file
-`/var/snap/k8s/common/args/kubelet` on each worker node and set the following
+/var/snap/k8s/common/args/kubelet on each worker node and set the following
 argument.
 
 `--streaming-connection-idle-timeout=5m`
@@ -2558,18 +2524,18 @@ Restart the kubelet service:
 value greater or equal to 5m
 ```
 
-#### CIS Control 4.2.6
+##### Control 4.2.6
 
 **Description:**
 
-Ensure that the `--protect-kernel-defaults` argument is set to
-true
+Ensure that the --protect-kernel-defaults argument is set to
+true (Automated)
 
 
 **Remediation:**
 
 Edit the kubelet configuration file
-`/var/snap/k8s/common/args/kubelet` on each worker node and set the following
+/var/snap/k8s/common/args/kubelet on each worker node and set the following
 argument:
 
 `--protect-kernel-defaults=true`
@@ -2591,18 +2557,18 @@ Restart the kubelet service:
 --protect-kernel-defaults=true
 ```
 
-#### CIS Control 4.2.7
+##### Control 4.2.7
 
 **Description:**
 
-Ensure that the `--make-iptables-util-chains` argument is set
-to true
+Ensure that the --make-iptables-util-chains argument is set
+to true (Automated)
 
 
 **Remediation:**
 
 Edit the kubelet configuration file
-`/var/snap/k8s/common/args/kubelet` on each worker node and
+/var/snap/k8s/common/args/kubelet on each worker node and
 set the following argument:
 
 `--make-iptables-util-chains=true`
@@ -2624,17 +2590,18 @@ For example: `snap restart k8s.kubelet`
 --make-iptables-util-chains is not set or set to true
 ```
 
-#### CIS Control 4.2.8
+##### Control 4.2.8
 
 **Description:**
 
-Ensure that the `--hostname-override` argument is not set
+Ensure that the --hostname-override argument is not set
+(Manual)
 
 
 **Remediation:**
 
-Edit the kubelet configuration file `/var/snap/k8s/common/args/kubelet`
-on each worker node and remove the `--hostname-override`
+Edit the kubelet configuration file /var/snap/k8s/common/args/kubelet
+on each worker node and remove the --hostname-override
 argument.
 
 Restart the kubelet service.
@@ -2654,19 +2621,19 @@ Restart the kubelet service.
 --hostname-override is set to false
 ```
 
-#### CIS Control 4.2.9
+##### Control 4.2.9
 
 **Description:**
 
-Ensure that the `--event-qps` argument is set to a level which
-ensures appropriate event capture
+Ensure that the --event-qps argument is set to a level which
+ensures appropriate event capture (Manual)
 
 
 **Remediation:**
 
-Edit the kubelet configuration file `/var/snap/k8s/common/args/kubelet` on each
+Edit the kubelet configuration file /var/snap/k8s/common/args/kubelet on each
 worker node and
-set the `--event-qps` parameter as appropriate.
+set the --event-qps parameter as appropriate.
 
 Restart the kubelet service.
 
@@ -2685,17 +2652,17 @@ Restart the kubelet service.
 --event-qps is not set, or set to a value greater than 0
 ```
 
-#### CIS Control 4.2.10
+##### Control 4.2.10
 
 **Description:**
 
-Ensure that the `--tls-cert-file` and `--tls-private-key-file`
-arguments are set as appropriate
+Ensure that the --tls-cert-file and --tls-private-key-file
+arguments are set as appropriate (Manual)
 
 
 **Remediation:**
 
-Edit the kubelet configuration file `/var/snap/k8s/common/args/kubelet` on each
+Edit the kubelet configuration file /var/snap/k8s/common/args/kubelet on each
 worker node and
 set the following arguments:
 
@@ -2722,19 +2689,19 @@ Restart the kubelet service.
 private-key-file=/etc/kubernetes/pki/kubelet.key
 ```
 
-#### CIS Control 4.2.11
+##### Control 4.2.11
 
 **Description:**
 
-Ensure that the `--rotate-certificates` argument is not set to
-false
+Ensure that the --rotate-certificates argument is not set to
+false (Automated)
 
 
 **Remediation:**
 
-Edit the kubelet configuration file `/var/snap/k8s/common/args/kubelet` on each
+Edit the kubelet configuration file /var/snap/k8s/common/args/kubelet on each
 worker node and
-remove the `--rotate-certificates=false` argument.
+remove the --rotate-certificates=false argument.
 
 Restart the kubelet service.
 
@@ -2753,19 +2720,20 @@ Restart the kubelet service.
 --rotate-certificates is not set, or set to true
 ```
 
-#### CIS Control 4.2.12
+##### Control 4.2.12
 
 **Description:**
 
-Verify that the `RotateKubeletServerCertificate` argument is
-set to true
+Verify that the RotateKubeletServerCertificate argument is
+set to true (Manual)
 
 
 **Remediation:**
 
-Edit the kubelet configuration file `/var/snap/k8s/common/args/kubelet` on each
+Edit the kubelet configuration file /var/snap/k8s/common/args/kubelet on each
 worker node and
-set the argument `--feature-gates=RotateKubeletServerCertificate=true`
+set the argument --feature-
+gates=RotateKubeletServerCertificate=true
 on each worker node.
 
 Restart the kubelet service.
@@ -2786,19 +2754,19 @@ RotateKubeletServerCertificate feature gate is not set, or set
 to true
 ```
 
-#### CIS Control 4.2.13
+##### Control 4.2.13
 
 **Description:**
 
 Ensure that the Kubelet only makes use of Strong
-Cryptographic Ciphers
+Cryptographic Ciphers (Manual)
 
 
 **Remediation:**
 
-Edit the kubelet configuration file `/var/snap/k8s/common/args/kubelet` on each
+Edit the kubelet configuration file /var/snap/k8s/common/args/kubelet on each
 worker node and
-set the `--tls-cipher-suites` parameter as follows, or to a
+set the --tls-cipher-suites parameter as follows, or to a
 subset of these values.
 
 ```
@@ -2831,35 +2799,35 @@ H_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_
 RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_128_GCM_SHA256
 ```
 
-### RBAC and service accounts
+### Kubernetes Policies
 
-#### CIS Control 5.1.1
+#### RBAC and Service Accounts
+
+##### Control 5.1.1
 
 **Description:**
 
 Ensure that the cluster-admin role is only used where
-required
+required (Manual)
 
 
 **Remediation:**
 
-Identify all ClusterRoleBindings to the cluster-admin role.
+Identify all clusterrolebindings to the cluster-admin role.
 Check if they are used and
 if they need this role or if they could use a role with
 fewer privileges.
 Where possible, first bind users to a lower privileged role
 and then remove the
-ClusterRoleBinding to the cluster-admin role :
-
-```
+clusterrolebinding to the cluster-admin role :
 kubectl delete clusterrolebinding [name]
-```
 
-#### CIS Control 5.1.2
+
+##### Control 5.1.2
 
 **Description:**
 
-Minimize access to secrets
+Minimize access to secrets (Manual)
 
 
 **Remediation:**
@@ -2868,25 +2836,25 @@ Where possible, remove get, list and watch access to Secret
 objects in the cluster.
 
 
-#### CIS Control 5.1.3
+##### Control 5.1.3
 
 **Description:**
 
-Minimize wildcard use in Roles and ClusterRoles
+Minimize wildcard use in Roles and ClusterRoles (Manual)
 
 
 **Remediation:**
 
-Where possible replace any use of wildcards in ClusterRoles
+Where possible replace any use of wildcards in clusterroles
 and roles with specific
 objects or actions.
 
 
-#### CIS Control 5.1.4
+##### Control 5.1.4
 
 **Description:**
 
-Minimize access to create pods
+Minimize access to create pods (Manual)
 
 
 **Remediation:**
@@ -2895,11 +2863,12 @@ Where possible, remove create access to pod objects in the
 cluster.
 
 
-#### CIS Control 5.1.5
+##### Control 5.1.5
 
 **Description:**
 
 Ensure that default service accounts are not actively used.
+(Manual)
 
 
 **Remediation:**
@@ -2909,15 +2878,15 @@ workload requires specific access
 to the Kubernetes API server.
 Modify the configuration of each default service account to
 include this value
-`automountServiceAccountToken: false`
+automountServiceAccountToken: false
 
 
-#### CIS Control 5.1.6
+##### Control 5.1.6
 
 **Description:**
 
 Ensure that Service Account Tokens are only mounted where
-necessary
+necessary (Manual)
 
 
 **Remediation:**
@@ -2927,24 +2896,25 @@ not need to mount service
 account tokens to disable it.
 
 
-#### CIS Control 5.1.7
+##### Control 5.1.7
 
 **Description:**
-<!-- vale off -->
-Avoid use of system:masters group
+
+Avoid use of system:masters group (Manual)
 
 
 **Remediation:**
+
 Remove the system:masters group from all users in the
 cluster.
-<!-- vale on -->
 
-#### CIS Control 5.1.8
+
+##### Control 5.1.8
 
 **Description:**
 
 Limit use of the Bind, Impersonate and Escalate permissions
-in the Kubernetes cluster
+in the Kubernetes cluster (Manual)
 
 
 **Remediation:**
@@ -2953,14 +2923,14 @@ Where possible, remove the impersonate, bind and escalate
 rights from subjects.
 
 
-### Pod security standards
+#### Pod Security Standards
 
-#### CIS Control 5.2.1
+##### Control 5.2.1
 
 **Description:**
 
 Ensure that the cluster has at least one active policy
-control mechanism in place
+control mechanism in place (Manual)
 
 
 **Remediation:**
@@ -2970,11 +2940,11 @@ policy control system is in place
 for every namespace which contains user workloads.
 
 
-#### CIS Control 5.2.2
+##### Control 5.2.2
 
 **Description:**
 
-Minimize the admission of privileged containers
+Minimize the admission of privileged containers (Manual)
 
 
 **Remediation:**
@@ -2984,12 +2954,12 @@ workloads to restrict the
 admission of privileged containers.
 
 
-#### CIS Control 5.2.3
+##### Control 5.2.3
 
 **Description:**
 
 Minimize the admission of containers wishing to share the
-host process ID namespace
+host process ID namespace (Automated)
 
 
 **Remediation:**
@@ -2999,12 +2969,12 @@ workloads to restrict the
 admission of `hostPID` containers.
 
 
-#### CIS Control 5.2.4
+##### Control 5.2.4
 
 **Description:**
 
 Minimize the admission of containers wishing to share the
-host IPC namespace
+host IPC namespace (Automated)
 
 
 **Remediation:**
@@ -3014,12 +2984,12 @@ workloads to restrict the
 admission of `hostIPC` containers.
 
 
-#### CIS Control 5.2.5
+##### Control 5.2.5
 
 **Description:**
 
 Minimize the admission of containers wishing to share the
-host network namespace
+host network namespace (Automated)
 
 
 **Remediation:**
@@ -3029,12 +2999,12 @@ workloads to restrict the
 admission of `hostNetwork` containers.
 
 
-#### CIS Control 5.2.6
+##### Control 5.2.6
 
 **Description:**
 
 Minimize the admission of containers with
-allowPrivilegeEscalation
+allowPrivilegeEscalation (Automated)
 
 
 **Remediation:**
@@ -3045,11 +3015,11 @@ admission of containers with
 `.spec.allowPrivilegeEscalation` set to `true`.
 
 
-#### CIS Control 5.2.7
+##### Control 5.2.7
 
 **Description:**
 
-Minimize the admission of root containers
+Minimize the admission of root containers (Automated)
 
 
 **Remediation:**
@@ -3060,12 +3030,12 @@ or `MustRunAs` with the range of UIDs not including 0, is
 set.
 
 
-#### CIS Control 5.2.8
+##### Control 5.2.8
 
 **Description:**
 
 Minimize the admission of containers with the NET_RAW
-capability
+capability (Automated)
 
 
 **Remediation:**
@@ -3075,11 +3045,12 @@ workloads to restrict the
 admission of containers with the `NET_RAW` capability.
 
 
-#### CIS Control 5.2.9
+##### Control 5.2.9
 
 **Description:**
 
 Minimize the admission of containers with added capabilities
+(Automated)
 
 
 **Remediation:**
@@ -3089,29 +3060,30 @@ for the cluster unless
 it is set to an empty array.
 
 
-#### CIS Control 5.2.10
+##### Control 5.2.10
 
 **Description:**
 
 Minimize the admission of containers with capabilities
-assigned
+assigned (Manual)
 
 
 **Remediation:**
 
-Review the use of capabilities in applications running on
+Review the use of capabilites in applications running on
 your cluster. Where a namespace
-contains applications which do not require any Linux
-capabilities to operate consider adding
+contains applicaions which do not require any Linux
+capabities to operate consider adding
 a PSP which forbids the admission of containers which do not
 drop all capabilities.
 
 
-#### CIS Control 5.2.11
+##### Control 5.2.11
 
 **Description:**
 
 Minimize the admission of Windows HostProcess containers
+(Manual)
 
 
 **Remediation:**
@@ -3122,11 +3094,11 @@ admission of containers that have
 `.securityContext.windowsOptions.hostProcess` set to `true`.
 
 
-#### CIS Control 5.2.12
+##### Control 5.2.12
 
 **Description:**
 
-Minimize the admission of HostPath volumes
+Minimize the admission of HostPath volumes (Manual)
 
 
 **Remediation:**
@@ -3136,11 +3108,12 @@ workloads to restrict the
 admission of containers with `hostPath` volumes.
 
 
-#### CIS Control 5.2.13
+##### Control 5.2.13
 
 **Description:**
 
 Minimize the admission of containers which use HostPorts
+(Manual)
 
 
 **Remediation:**
@@ -3150,13 +3123,13 @@ workloads to restrict the
 admission of containers which use `hostPort` sections.
 
 
-### Network policies and CNI
+#### Network Policies and CNI
 
-#### CIS Control 5.3.1
+##### Control 5.3.1
 
 **Description:**
 
-Ensure that the CNI in use supports NetworkPolicies
+Ensure that the CNI in use supports NetworkPolicies (Manual)
 
 
 **Remediation:**
@@ -3168,11 +3141,12 @@ mechanism for restricting traffic
 in the Kubernetes cluster.
 
 
-#### CIS Control 5.3.2
+##### Control 5.3.2
 
 **Description:**
 
 Ensure that all Namespaces have NetworkPolicies defined
+(Manual)
 
 
 **Remediation:**
@@ -3181,14 +3155,14 @@ Follow the documentation and create NetworkPolicy objects as
 you need them.
 
 
-### Secrets management
+#### Secrets Management
 
-#### CIS Control 5.4.1
+##### Control 5.4.1
 
 **Description:**
 
 Prefer using Secrets as files over Secrets as environment
-variables
+variables (Manual)
 
 
 **Remediation:**
@@ -3198,11 +3172,11 @@ mounted secret files, rather than
 from environment variables.
 
 
-#### CIS Control 5.4.2
+##### Control 5.4.2
 
 **Description:**
 
-Consider external secret storage
+Consider external secret storage (Manual)
 
 
 **Remediation:**
@@ -3212,14 +3186,14 @@ cloud provider or a third-party
 secrets management solution.
 
 
-### Extensible admission control
+#### Extensible Admission Control
 
-#### CIS Control 5.5.1
+##### Control 5.5.1
 
 **Description:**
 
 Configure Image Provenance using ImagePolicyWebhook
-admission controller
+admission controller (Manual)
 
 
 **Remediation:**
@@ -3228,14 +3202,14 @@ Follow the Kubernetes documentation and setup image
 provenance.
 
 
-### General policies
+#### General Policies
 
-#### CIS Control 5.7.1
+##### Control 5.7.1
 
 **Description:**
 
 Create administrative boundaries between resources using
-namespaces
+namespaces (Manual)
 
 
 **Remediation:**
@@ -3245,12 +3219,12 @@ in your deployment as you need
 them.
 
 
-#### CIS Control 5.7.2
+##### Control 5.7.2
 
 **Description:**
 
 Ensure that the seccomp profile is set to docker/default in
-your Pod definitions
+your Pod definitions (Manual)
 
 
 **Remediation:**
@@ -3258,18 +3232,16 @@ your Pod definitions
 Use `securityContext` to enable the docker/default seccomp
 profile in your pod definitions.
 An example is as follows:
-
-```
   securityContext:
     seccompProfile:
       type: RuntimeDefault
-```
 
-#### CIS Control 5.7.3
+
+##### Control 5.7.3
 
 **Description:**
 
-Apply SecurityContext to your Pods and Containers
+Apply SecurityContext to your Pods and Containers (Manual)
 
 
 **Remediation:**
@@ -3281,11 +3253,11 @@ Security Benchmark for Docker
 Containers.
 
 
-#### CIS Control 5.7.4
+##### Control 5.7.4
 
 **Description:**
 
-The default namespace should not be used
+The default namespace should not be used (Manual)
 
 
 **Remediation:**
@@ -3296,7 +3268,3 @@ resources and that all new resources are created in a
 specific namespace.
 
 
-<!-- Links -->
-[Center for Internet Security]: https://www.cisecurity.org/
-[benchmarks]: https://www.cisecurity.org/cis-benchmarks
-[hardening guide]: /snap/howto/security/hardening
