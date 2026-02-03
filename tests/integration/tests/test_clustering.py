@@ -626,6 +626,9 @@ def test_join_previously_removed_node(
     # Remove joining_node_2 from the cluster
     cluster_node.exec(["k8s", "remove-node", joining_node_2.id])
 
+    # Wait for all services except k8sd to stop on the removed node
+    util.wait_for_services_stopped(joining_node_2, exclude_services=["k8sd"])
+
     # Get a new join token for joining_node_2
     join_token = util.get_join_token(cluster_node, joining_node_2)
 

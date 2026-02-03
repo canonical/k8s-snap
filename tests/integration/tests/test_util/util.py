@@ -1050,6 +1050,55 @@ def sonobuoy_tar_gz(architecture: str) -> str:
     return f"https://github.com/vmware-tanzu/sonobuoy/releases/download/{version}/sonobuoy_{version[1:]}_linux_{architecture}.tar.gz"  # noqa
 
 
+def get_snap_service_status(instance: harness.Instance) -> dict:
+    """Get the status of all k8s snap services.
+
+    Args:
+        instance: the harness instance to check the snap services on
+
+    Returns:
+        A dictionary mapping service names to their status ("active" or "inactive")
+    """
+    result = instance.exec(["snap", "services", "k8s"], capture_output=True, text=True)
+    services_output = result.stdout.split("\n")[1:-1]  # Skip the header line
+
+    service_status = {}
+    for line in services_output:
+        parts = line.split()
+        if len(parts) >= 3:  # Ensure there are enough columns
+            service_name = parts[0].replace("k8s.", "", 1)
+            service_status[service_name] = parts[2]  # "active" or "inactive"
+
+    return service_status
+
+
+def wait_for_services_stopped(
+    instance: harness.Instance,
+    exclude_services: List[str] = None,
+    retries: int = 30,
+    delay_s: int = 2,
+):
+    """Wait for k8s snap services to stop, except for specified exclusions.
+
+    Args:
+        instance: the harness instance to check the snap services on
+        exclude_services: list of service names that are allowed to remain active
+        retries: number of times to retry
+        delay_s: delay in seconds between retries
+    """
+    exclude_services = exclude_services or []
+
+    def services_stopped():
+        service_status = get_snap_service_status(instance)
+        for service_name, status in service_status.items():
+            if service_name not in exclude_services and status == "active":
+                LOG.debug(f"Service {service_name} is still {status}")
+                return False
+        return True
+
+    stubbornly(retries=retries, delay_s=delay_s).until(lambda: services_stopped())
+
+
 def check_snap_services_ready(
     instance: harness.Instance,
     node_type: Optional[str] = None,
@@ -1126,15 +1175,7 @@ def check_snap_services_ready(
             s for s in expected_active_services if s not in skip_services
         ]
 
-    result = instance.exec(["snap", "services", "k8s"], capture_output=True, text=True)
-    services_output = result.stdout.split("\n")[1:-1]  # Skip the header line
-
-    service_status = {}
-    for line in services_output:
-        parts = line.split()
-        if len(parts) >= 3:  # Ensure there are enough columns
-            service_name = parts[0].replace("k8s.", "", 1)
-            service_status[service_name] = parts[2]  # "active" or "inactive"
+    service_status = get_snap_service_status(instance)
 
     for service in expected_active_services:
         assert (
