@@ -318,9 +318,9 @@ root:root
 
 **Remediation:**
 
-etcd data are kept by default under
-`/var/snap/k8s/common/var/lib/etcd`.
-Modify the directory ownership accordingly:
+Not applicable. Etcd data is kept by default under
+`/var/snap/k8s/common/var/lib/etcd` and is owned by root.
+To comply with the spirit of this CIS recommendation:
 
 `chown root:root /var/snap/k8s/common/var/lib/etcd`
 
