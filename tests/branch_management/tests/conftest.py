@@ -1,12 +1,16 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
+import logging
 from pathlib import Path
 from typing import Optional
 
 import pytest
 import requests
 import semver
+from tenacity import Retrying, stop_after_attempt, wait_fixed
+
+LOG = logging.getLogger(__name__)
 
 STABLE_URL = "https://dl.k8s.io/release/stable.txt"
 RELEASE_URL = "https://dl.k8s.io/release/stable-{}.{}.txt"
@@ -42,9 +46,17 @@ def _previous_release(ver: semver.Version) -> semver.Version:
 @pytest.fixture(scope="session")
 def stable_release() -> semver.Version:
     """Return the latest stable k8s in the release series"""
-    r = requests.get(STABLE_URL)
-    r.raise_for_status()
-    return semver.Version.parse(r.content.decode().lstrip("v"))
+    for attempt in Retrying(stop=stop_after_attempt(3), wait=wait_fixed(2)):
+        with attempt:
+            LOG.info(
+                "Attempt %d: Fetching upstream stable version",
+                attempt.retry_state.attempt_number,
+            )
+            r = requests.get(STABLE_URL)
+            r.raise_for_status()
+            version = semver.Version.parse(r.content.decode().lstrip("v"))
+            LOG.info("Successfully fetched upstream stable version: %s", version)
+            return version
 
 
 @pytest.fixture(scope="session")
