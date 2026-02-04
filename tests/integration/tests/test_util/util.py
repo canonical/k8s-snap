@@ -1099,6 +1099,54 @@ def wait_for_services_stopped(
     stubbornly(retries=retries, delay_s=delay_s).until(lambda: services_stopped())
 
 
+def wait_for_ports_available(
+    instance: harness.Instance,
+    ports: List[int] = None,
+    retries: int = 30,
+    delay_s: int = 2,
+):
+    """Wait for specified ports to become available (not in use).
+
+    Args:
+        instance: the harness instance to check the ports on
+        ports: list of port numbers to check. If None, checks default k8s ports
+        retries: number of times to retry
+        delay_s: delay in seconds between retries
+    """
+    if ports is None:
+        # Default Kubernetes service ports (including kube-apiserver)
+        ports = [6443, 10248, 10249, 10250, 10256, 10257, 10259]
+
+    def ports_available():
+        try:
+            # Check if any port is in use using ss command
+            result = instance.exec(
+                ["ss", "-tuln"],
+                capture_output=True,
+                text=True,
+            )
+            ports_in_use = []
+            for port in ports:
+                # Check for both IPv4 and IPv6 patterns
+                port_with_space = f":{port} "
+                port_with_newline = f":{port}\n"
+                if (
+                    port_with_space in result.stdout
+                    or port_with_newline in result.stdout
+                ):
+                    ports_in_use.append(port)
+
+            if ports_in_use:
+                LOG.debug(f"Ports still in use: {ports_in_use}")
+                return False
+            return True
+        except subprocess.CalledProcessError as e:
+            LOG.warning(f"Failed to check ports: {e}")
+            return False
+
+    stubbornly(retries=retries, delay_s=delay_s).until(lambda: ports_available())
+
+
 def check_snap_services_ready(
     instance: harness.Instance,
     node_type: Optional[str] = None,
