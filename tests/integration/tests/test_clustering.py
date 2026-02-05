@@ -535,7 +535,7 @@ def test_join_cp_with_duplicate_name_rejected(instances: List[harness.Instance])
         if isinstance(error_output, bytes):
             error_output = error_output.decode()
         assert (
-            f'A node with the same name "{shared_node_name}" is already part of the cluster'
+            f'a node with this name is already part of the cluster: "{shared_node_name}"'
             in error_output
         ), f"Join error message should indicate duplicate node name. Got: {error_output}"
 
@@ -578,7 +578,7 @@ def test_join_worker_with_duplicate_name_rejected(instances: List[harness.Instan
         if isinstance(error_output, bytes):
             error_output = error_output.decode()
         assert (
-            f'A node with the same name "{shared_node_name}" is already part of the cluster'
+            f'a node with this name is already part of the cluster: "{shared_node_name}"'
             in error_output
         ), f"Join error message should indicate duplicate node name. Got: {error_output}"
 
