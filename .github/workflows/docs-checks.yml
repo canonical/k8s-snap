@@ -11,20 +11,16 @@ permissions:
   contents: read
 
 jobs:
-  documentation-checks:
-    #    uses: canonical/documentation-workflows/.github/workflows/documentation-checks.yaml@main
-    #    with:
-      #   working-directory: "docs/canonicalk8s"
-      #  fetch-depth: 0
+  prepare:
     runs-on: ubuntu-latest
+    outputs:
+      file_list: ${{ steps.changes.outputs.changed_files }}
+      repo: ${{ steps.changes.outputs.repo }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
 
       - name: Get changed files list with git diff
         id: changes
@@ -37,36 +33,46 @@ jobs:
             sed 's|^docs/canonicalk8s/||' | \
             xargs)
 
+          REPO=${{github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name || github.repository }}
+
           # Pass the space-delimited list to the step output
           echo "Changed files: $FILE_LIST"
+          echo "Repo for tests: $REPO"
           echo "changed_files=$FILE_LIST" >> $GITHUB_OUTPUT
+          echo "repo=$REPO" >> $GITHUB_OUTPUT
 
-      - name: linkcheck
-        run: |
-          CHANGED_FILES="${{ steps.changes.outputs.changed_files }}"
+  linkcheck:
+    needs: prepare 
+    uses: ./.github/workflows/linkcheck.yaml
+    with:
+      changed_files: ${{ needs.prepare.outputs.file_list }}
+      repo: ${{ needs.prepare.outputs.repo }}
+      ref: ${{ github.head_ref }}
 
-          echo "Running linkcheck with files: $CHANGED_FILES"
+  spellcheck-and-inclusive-language:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
-          python3 docs/canonicalk8s/.sphinx/linkcheck.py docs/canonicalk8s \
-          --install_target install \
-          --linkcheck_target linkcheck \
-          --makefile Makefile \
-          "$CHANGED_FILES"
-        shell: bash
+    - name: Set up Python
+      uses: actions/setup-python@v5
 
-      - id: spell-check
-        name: Spell Check
-        if: success() || failure()
-        uses: canonical/documentation-workflows/spellcheck@main
-        with:
-          working-directory: docs/canonicalk8s
+    - id: spell-check
+      name: Spell Check
+      if: success() || failure()
+      uses: canonical/documentation-workflows/spellcheck@main
+      with:
+        working-directory: docs/canonicalk8s
 
-      - name: Inclusive Language Check
-        id: woke-step
-        if: success() || failure()
-        uses: canonical/documentation-workflows/inclusive-language@main
-        with:
-          working-directory: docs/canonicalk8s
+    - name: Inclusive Language Check
+      id: woke-step
+      if: success() || failure()
+      uses: canonical/documentation-workflows/inclusive-language@main
+      with:
+        working-directory: docs/canonicalk8s
 
   k8sd-api-docs:
     runs-on: ubuntu-latest
