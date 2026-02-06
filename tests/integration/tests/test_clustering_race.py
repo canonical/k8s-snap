@@ -24,9 +24,7 @@ def test_wrong_token_race(instances: List[harness.Instance]):
     # "No truststore entry found for node"
     # The heartbeat is every 2 seconds, so waiting for 3 seconds
     # should be sufficient.
-    util.stubbornly(retries=3, delay_s=1).on(cluster_node).cluster_node.exec(
-        ["k8s", "remove-node", instances[1].id]
-    )
+    util.remove_node_with_retry(cluster_node, instances[1].id, retries=3)
 
     another_join_token = util.get_join_token(cluster_node, instances[2])
 
