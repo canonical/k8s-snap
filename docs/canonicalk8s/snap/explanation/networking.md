@@ -2,8 +2,8 @@
 
 In Kubernetes, understanding how traffic is managed inside of your
 cluster can be complex.
-This explanation provides you with the essentials
-to successfully manage your {{product}} cluster.
+This explanation provides you with the a more in-depth explanation of
+how networking is handled in {{product}}.
 
 ## Network
 
@@ -21,31 +21,6 @@ please follow the [alternative CNI] guide.
 Learn how to use the {{product}} default network
 in the [networking how-to guide][Network].
 
-## Kubernetes pods and services
-
-In Kubernetes, the smallest unit is a pod, which encapsulates application
-containers. Since pods are ephemeral and their IP addresses change when
-destroyed and restarted, they are exposed through services.
-Services offer a stable network interface by providing discoverable names and
-load balancing functionality for managing a set of pods.
-
-Kubernetes allows you to expose your cluster's workloads in the following ways:
-
-- **ClusterIP**: Exposes the service on a cluster-internal IP. With ClusterIP
-  the service is only reachable from within the cluster.
-- **NodePort**: Exposes the service on each Node's IP at a static port.
-- **LoadBalancer**: Exposes a single IP address to distribute the incoming
-  network traffic across multiple cluster nodes.
-
-```{note}
-The load balancer service type at layer 4 should not be confused with the
-Ingress Controller which operates at layer 7 (HTTP/HTTPS) and routes traffic
-from outside of your cluster to services inside of your cluster. 
-```
-
-For further details on Kubernetes Services,
-refer to the [upstream Kubernetes Service documentation][Service].
-
 ## Load balancer
 
 {{ product }}' load balancer feature allows you to expose your workloads
@@ -54,6 +29,12 @@ cluster to the services inside. The {{ product }}' load balancer feature is
 suitable for bare-metal setups and private data-centers. If you are operating 
 {{ product }} in a public cloud you should evaluate your cloud-provider's load 
 balancing solution as well.
+
+```{note}
+The load balancer service type at layer 4 should not be confused with the
+Ingress Controller which operates at layer 7 (HTTP/HTTPS) and routes traffic
+from outside of your cluster to services inside of your cluster. 
+```
 
 ### IP address allocation
 
@@ -94,10 +75,10 @@ When you expose a service with a load balancer, the following steps occur:
   balancer.
 - The load balancer decides which Kubernetes node should handle the request
   based on the selected underlying mechanism (BGP or Layer 2).
-- [kube-proxy] routes the request to a specific pod in the service. 
+- kube-proxy routes the request to a specific pod in the service. 
 
 Create a service of the type LoadBalancer to expose your workloads externally
-by following the [upstream guide].
+by following the [upstream guide] or consult our [default load balancer] guide.
 
 ## Ingress
 
@@ -107,13 +88,18 @@ your cluster. Traffic routed through the Ingress is directed to a service,
 which in turn forwards it to the relevant pod running the desired application 
 within a container.
 
-The Ingress resource lets you define rules on how traffic should get handled.
-Refer to the [Kubernetes documentation on Ingress rules][Ingress Rules]
-for up to date information on the available rules and their implementation.
+The underlying mechanism provided by default is currently Cilium.
+However, it should always be operated through the provided CLI rather than
+directly. This way, we can provide the best experience for future cluster
+maintenance and upgrades.
+
+With {{product}}, Ingress is not enabled by default. Once enabled 
+(see the [default Ingress guide][Ingress]), you will have a working
+Ingress Controller in your cluster. 
 
 ### Ingress controller
 
-While the Ingress resource manages the routing rules for the incoming traffic,
+The Ingress resource defines the routing rules for the incoming traffic while 
 the [Ingress Controller][Ingress Controller] is responsible for implementing
 those rules by configuring the underlying networking infrastructure of
 the cluster. Ingress does not work without an Ingress Controller.
@@ -125,16 +111,6 @@ Kubernetes Service LoadBalancer type which operates at layer 4 and routes
 traffic directly to individual pods.
 
 ![cluster6][]
-
-With {{product}}, enabling Ingress is easy:
-See the [default Ingress guide][Ingress].
-Once enabled, you will have a working
-[Ingress Controller][Cilium Ingress Controller] in your cluster.
-
-The underlying mechanism provided by default is currently Cilium.
-However, it should always be operated through the provided CLI rather than
-directly. This way, we can provide the best experience for future cluster
-maintenance and upgrades.
 
 If your cluster requires different Ingress Controllers,
 the responsibility of implementation falls upon you.
@@ -193,8 +169,5 @@ at a time.
 [Network]: /snap/howto/networking/default-network
 [Cilium]: https://cilium.io/
 [network plugin]: https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/
-[Service]: https://kubernetes.io/docs/concepts/services-networking/service/
 [Ingress K8s]: https://kubernetes.io/docs/concepts/services-networking/ingress/
-[Ingress Rules]: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules
 [Ingress Controller]: https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/
-[Cilium Ingress Controller]: https://docs.cilium.io/en/stable/network/servicemesh/ingress/
