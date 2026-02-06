@@ -211,7 +211,7 @@ To confirm that the persistent volume is up and running:
 sudo k8s kubectl get pvc myclaim
 ```
 
-`myclaim` status should be Bound. Now let's inspect the 
+The persistent volume claim status should be Bound. Now let's inspect the 
 storage-writer-pod:
 
 ```
@@ -219,7 +219,7 @@ sudo k8s kubectl describe pod storage-writer-pod
 ```
 
 This output provides a detailed description of the storage-writer-pod. You 
-should see `myclaim` listed under Volumes showing it has been assigned 
+should see `myclaim` listed under Volumes showing that it has been assigned 
 correctly.
 
 ```
