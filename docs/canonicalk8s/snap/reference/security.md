@@ -66,4 +66,3 @@ and much more.
 [How to install in air-gapped environments]:/snap/howto/install/offline/
 [How to harden your cluster]: /snap/howto/security/hardening.md
 [Security explanation]: /snap/explanation/security.md
-[CIS hardening]: /snap/explanation/security/cis

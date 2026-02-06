@@ -51,9 +51,7 @@ Understand the networking capabilities in {{product}}.
 
 ```{toctree}
 :titlesonly:
-ingress
-load-balancer
-default-dns
+Networking <networking>
 ```
 
 ## Security and compliance

@@ -40,8 +40,7 @@ Understand the networking capabilities in {{product}}.
 
 ```{toctree}
 :titlesonly:
-ingress
-load-balancer
+Networking <networking.md>
 ```
 
 ## Upgrades
