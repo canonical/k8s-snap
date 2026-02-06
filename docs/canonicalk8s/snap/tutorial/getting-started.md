@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: Learn how to deploy your first Canonical Kubernetes cluster using the k8s snap and execute typical cluster operations in this tutorial.
+---
+
 # Getting started
 
 {{product}} is a distribution of Kubernetes which includes all
@@ -205,15 +211,24 @@ To confirm that the persistent volume is up and running:
 sudo k8s kubectl get pvc myclaim
 ```
 
-You can inspect the storage-writer-pod with:
+The persistent volume claim status should be Bound. Now let's inspect the 
+storage-writer-pod:
 
 ```
 sudo k8s kubectl describe pod storage-writer-pod
 ```
 
-You should see `myclaim` listed under Volumes showing it has been 
-assigned correctly. 
+This output provides a detailed description of the storage-writer-pod. You 
+should see `myclaim` listed under Volumes showing that it has been assigned 
+correctly.
 
+```
+Volumes:
+  storage-volume:
+    Type:       PersistentVolumeClaim
+    ClaimName:  myclaim
+```
+ 
 ## Disable local storage
 
 Begin by removing the pod along with the persistent volume claim:
