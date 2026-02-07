@@ -15,7 +15,7 @@ LOG = logging.getLogger(__name__)
 @pytest.mark.bootstrap_config(
     (config.MANIFESTS_DIR / "bootstrap-node-taints.yaml").read_text()
 )
-@pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.tags(tags.NIGHTLY, tags.PROMOTE_CANDIDATE)
 def test_node_taints(instances: List[harness.Instance]):
     """Test node taints are returned by the GetNodeStatus RPC."""
     cp_node = instances[0]
