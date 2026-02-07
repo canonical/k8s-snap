@@ -43,12 +43,10 @@ def test_no_remove(instances: List[harness.Instance]):
     #   failed to POST /k8sd/cluster/remove: failed to delete cluster member
     #   k8s-integration-c1aee0-2: No truststore entry found for node with name
     #   "k8s-integration-c1aee0-2"
-    util.stubbornly(retries=3, delay_s=5).on(cluster_node).exec(
-        ["k8s", "remove-node", joining_cp.id]
-    )
+    util.remove_node_with_retry(cluster_node, joining_cp.id, retries=3, delay_s=5)
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 3, "cp node should not have been removed from cluster"
-    cluster_node.exec(["k8s", "remove-node", joining_worker.id])
+    util.remove_node_with_retry(cluster_node, joining_worker.id)
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 3, "worker node should not have been removed from cluster"
 
@@ -75,9 +73,7 @@ def test_skip_services_stop_on_remove(instances: List[harness.Instance]):
     util.wait_until_k8s_ready(cluster_node, instances)
 
     # TODO: skip retrying this once the microcluster trust store issue is addressed.
-    util.stubbornly(retries=3, delay_s=5).on(cluster_node).exec(
-        ["k8s", "remove-node", joining_cp.id]
-    )
+    util.remove_node_with_retry(cluster_node, joining_cp.id, retries=3, delay_s=5)
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 2, "cp node should have been removed from the cluster"
     # We cannot determine the node type of the removed node, so we need to set it explicitly here.
@@ -93,7 +89,7 @@ def test_skip_services_stop_on_remove(instances: List[harness.Instance]):
         datastore_type=datastore_type,
     )
 
-    cluster_node.exec(["k8s", "remove-node", worker.id])
+    util.remove_node_with_retry(cluster_node, worker.id)
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 1, "worker node should have been removed from the cluster"
     util.check_snap_services_ready(worker, node_type="worker", skip_services=["k8sd"])

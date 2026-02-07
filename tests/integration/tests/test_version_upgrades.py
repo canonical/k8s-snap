@@ -558,7 +558,7 @@ def test_feature_upgrades_rollout_upgrade(
         ), f"Expected NodeUpgrade but got {crs[0]['status']['phase']}"
 
         # Remove old node from cluster
-        new_instance.exec(["k8s", "remove-node", cluster_node.id])
+        util.remove_node_with_retry(new_instance, cluster_node.id, retries=3)
 
     # After all nodes are upgraded, the phase should be FeatureUpgrade/Completed
     # and the helm releases should be updated.
