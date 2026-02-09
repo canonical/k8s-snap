@@ -8,9 +8,19 @@ NIGHTLY = "nightly"
 WEEKLY = "weekly"
 GPU = "gpu"
 CONFORMANCE = "conformance_tests"
+PROMOTE_CANDIDATE = "beta_to_candidate"
+PROMOTE_STABLE = "candidate_to_stable"
 
-TEST_LEVELS = [PULL_REQUEST, NIGHTLY, WEEKLY, CONFORMANCE]
+TEST_LEVELS = [
+    PULL_REQUEST,
+    NIGHTLY,
+    WEEKLY,
+    CONFORMANCE,
+    PROMOTE_CANDIDATE,
+    PROMOTE_STABLE,
+]
 
 # Those tags can be used for a convenient way to run multiple test levels.
 combine_tags("up_to_nightly", PULL_REQUEST, NIGHTLY)
 combine_tags("up_to_weekly", PULL_REQUEST, NIGHTLY, WEEKLY)
+combine_tags("edge_to_beta", PULL_REQUEST)
