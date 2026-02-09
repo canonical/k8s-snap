@@ -15,7 +15,7 @@ LOG = logging.getLogger(__name__)
 
 @pytest.mark.node_count(1)
 @pytest.mark.bootstrap_config((config.MANIFESTS_DIR / "bootstrap-all.yaml").read_text())
-@pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.tags(tags.NIGHTLY, tags.PROMOTE_CANDIDATE)
 def test_no_unnecessary_helm_revisions(instances: List[harness.Instance]):
     """Verifies that calling 'k8s set' with the same configuration multiple times
     does not create new helm chart revisions.
