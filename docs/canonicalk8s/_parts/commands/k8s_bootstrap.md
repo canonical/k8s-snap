@@ -4,7 +4,7 @@ Bootstrap a new Kubernetes cluster
 
 ### Synopsis
 
-Generate certificates, configure service arguments and start the Kubernetes services.
+Bootstrap a new Kubernetes cluster by generating certificates, configuring service arguments, and starting the Kubernetes services.
 
 ```
 k8s bootstrap [flags]

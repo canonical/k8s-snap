@@ -4,12 +4,11 @@ Generate inspection report
 
 ### Synopsis
 
+Generate an inspection report tarball containing diagnostics and relevant information from a Kubernetes node.
 
-This command collects diagnostics and other relevant information from a Kubernetes
-node (either control-plane or worker node) and compiles them into a tarball report.
-The collected data includes service arguments, Kubernetes cluster info, SBOM, system
-diagnostics, network diagnostics, and more. The command needs to be run with
-elevated permissions (sudo).
+This command collects diagnostics from either a control-plane or worker node and compiles them into
+a tarball report. The collected data includes service arguments, Kubernetes cluster info, SBOM, system
+diagnostics, network diagnostics, and more. The command needs to be run with elevated permissions (sudo).
 
 Arguments:
   output-file             (Optional) The full path and filename for the generated tarball.
@@ -26,6 +25,12 @@ Arguments:
 
 ```
 k8s inspect <output-file> [flags]
+```
+
+```{warning}
+This command removes sensitive information, such as secrets and certificates,
+from the generated report, but it is recommended to review the contents of
+the tarball before sharing it with support or other parties.
 ```
 
 ### Options
