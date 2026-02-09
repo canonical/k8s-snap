@@ -17,7 +17,7 @@ LOG = logging.getLogger(__name__)
     (config.MANIFESTS_DIR / "bootstrap-dualstack.yaml").read_text()
 )
 @pytest.mark.dualstack()
-@pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.tags(tags.NIGHTLY, tags.PROMOTE_CANDIDATE)
 @pytest.mark.skipif(
     config.SUBSTRATE == "multipass", reason="QUEMU does not properly support IPv6"
 )
@@ -111,7 +111,7 @@ def test_dualstack(instances: List[harness.Instance]):
 @pytest.mark.node_count(3)
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.network_type("dualstack")
-@pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.tags(tags.NIGHTLY, tags.PROMOTE_CANDIDATE)
 @pytest.mark.skipif(
     config.SUBSTRATE == "multipass", reason="QUEMU does not properly support IPv6"
 )
