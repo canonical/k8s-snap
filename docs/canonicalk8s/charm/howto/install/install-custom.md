@@ -11,7 +11,7 @@ This guide assumes the following:
 configured and a controller bootstrapped
 - A Juju model is created and selected
 
-## Creating the configuration file
+## Create the configuration file
 
 Before deploying the charm, create a YAML file with your desired configuration
 options. Here's an example configuration, which for this guide we'll save as
@@ -62,7 +62,7 @@ deployment and cannot be changed afterward. Always review the
 align with your requirements.
 ```
 
-## Deploying the charm with custom configuration
+## Deploy the charm with custom configuration
 
 Deploy the `k8s` charm with your custom configuration:
 

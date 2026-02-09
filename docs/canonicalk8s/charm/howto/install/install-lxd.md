@@ -1,4 +1,4 @@
-# How to install to localhost/LXD
+# How to install {{product}} using localhost/LXD
 
 The main [install instructions][install] cover most situations for installing
 {{product}} using a charm. However, using LXD requires special consideration.

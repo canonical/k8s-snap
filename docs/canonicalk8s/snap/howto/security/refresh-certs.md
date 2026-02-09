@@ -25,7 +25,7 @@ Only Kubernetes component certificates refreshes are supported with the
 initially set up with self-signed certificates during the bootstrap process.
 ```
 
-### Refresh Control Plane node certificates
+## Refresh Control Plane node certificates
 
 1. To refresh the certificates on control plane nodes, perform the following
 steps on each control plane node in your cluster:
@@ -71,7 +71,7 @@ displayed in the command output:
 Certificates have been successfully refreshed, and will expire at 2025-08-27 21:00:00 +0000 UTC.
 ```
 
-### Refresh Worker node certificates
+## Refresh Worker node certificates
 
 1. To refresh the certificates on worker nodes, perform the following steps on
 each worker node in your cluster:

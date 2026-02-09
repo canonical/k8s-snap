@@ -74,7 +74,7 @@ identified and solved.
 :titlesonly:
 Troubleshooting <troubleshooting>
 Validate the cluster <validate>
-Integrate with COS Lite <cos-lite>
+Setup cluster observability <cos-lite>
 ```
 
 ## Security
