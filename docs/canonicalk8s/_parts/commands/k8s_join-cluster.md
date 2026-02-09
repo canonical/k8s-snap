@@ -4,7 +4,7 @@ Join a cluster using the provided token
 
 ### Synopsis
 
-Join a new node to an existing Kubernetes cluster using a join token obtained from a control plane node.
+Join a new node to an existing cluster using a join token obtained from a control plane node.
 
 ```
 k8s join-cluster <join-token> [flags]

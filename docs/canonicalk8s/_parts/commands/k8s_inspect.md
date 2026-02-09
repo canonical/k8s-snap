@@ -27,6 +27,12 @@ Arguments:
 k8s inspect <output-file> [flags]
 ```
 
+```{warning}
+This command removes sensitive information, such as secrets and certificates,
+from the generated report, but it is recommended to review the contents of
+the tarball before sharing it with support or other parties.
+```
+
 ### Options
 
 ```
