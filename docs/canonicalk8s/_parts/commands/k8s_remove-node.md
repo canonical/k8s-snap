@@ -2,6 +2,10 @@
 
 Remove a node from the cluster
 
+### Synopsis
+
+Gracefully remove a node from the Kubernetes cluster.
+
 ```
 k8s remove-node <node-name> [flags]
 ```

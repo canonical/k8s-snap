@@ -2,6 +2,10 @@
 
 Display certificate and certificate authority expiration details
 
+### Synopsis
+
+Display detailed information about certificate and certificate authority expiration dates, including residual time until expiration.
+
 ```
 k8s certs-status [flags]
 ```

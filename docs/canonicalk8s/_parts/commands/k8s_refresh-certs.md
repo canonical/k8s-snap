@@ -2,6 +2,10 @@
 
 Refresh the certificates of the running node
 
+### Synopsis
+
+Refresh the certificates of the running node. This can be used to renew expiring certificates or update certificates with new SANs.
+
 ```
 k8s refresh-certs [flags]
 ```
