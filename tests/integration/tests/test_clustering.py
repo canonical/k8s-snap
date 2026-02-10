@@ -45,7 +45,7 @@ def test_control_plane_nodes(instances: List[harness.Instance]):
 
     # Verify that the initial node can be removed
     # Verify that the initial node can be removed
-    joining_node_1.exec(["k8s", "remove-node", cluster_node.id])
+    util.remove_node_with_retry(joining_node_1, cluster_node.id)
     util.stubbornly(retries=5, delay_s=3).until(
         lambda _: not util.diverged_cluster_memberships(
             joining_node_1, [joining_node_1, joining_node_2, joining_node_3]
@@ -53,7 +53,7 @@ def test_control_plane_nodes(instances: List[harness.Instance]):
     )
 
     # Verify that a node can remove itself
-    joining_node_1.exec(["k8s", "remove-node", joining_node_1.id])
+    util.remove_node_with_retry(joining_node_1, joining_node_1.id)
     util.stubbornly(retries=5, delay_s=3).until(
         lambda _: not util.diverged_cluster_memberships(
             joining_node_2, [joining_node_2, joining_node_3]
@@ -89,7 +89,7 @@ def test_worker_nodes(instances: List[harness.Instance]):
         other_joining_node
     ), f"{other_joining_node.id} should be ready and in the cluster"
 
-    cluster_node.exec(["k8s", "remove-node", joining_node.id])
+    util.remove_node_with_retry(cluster_node, joining_node.id)
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 2, "worker should have been removed from cluster"
     assert cluster_node.id in [
@@ -174,8 +174,12 @@ def test_concurrent_cp_membership_operations(instances: List[harness.Instance]):
         assert "control-plane" in util.get_local_node_status(node)
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        future_A = executor.submit(remove_node_with_retry, cluster_node, joining_cp_A)
-        future_B = executor.submit(remove_node_with_retry, cluster_node, joining_cp_B)
+        future_A = executor.submit(
+            util.remove_node_with_retry, cluster_node, joining_cp_A.id
+        )
+        future_B = executor.submit(
+            util.remove_node_with_retry, cluster_node, joining_cp_B.id
+        )
         concurrent.futures.wait([future_A, future_B])
 
     util.wait_until_k8s_ready(cluster_node, [cluster_node])
@@ -213,10 +217,10 @@ def test_concurrent_worker_membership_operations(instances: List[harness.Instanc
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
         future_A = executor.submit(
-            remove_node_with_retry, cluster_node, joining_worker_A
+            util.remove_node_with_retry, cluster_node, joining_worker_A.id
         )
         future_B = executor.submit(
-            remove_node_with_retry, cluster_node, joining_worker_B
+            util.remove_node_with_retry, cluster_node, joining_worker_B.id
         )
         concurrent.futures.wait([future_A, future_B])
 
@@ -246,7 +250,9 @@ def test_mixed_concurrent_membership_operations(instances: List[harness.Instance
     assert "control-plane" in util.get_local_node_status(joining_cp_A)
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        future_A = executor.submit(remove_node_with_retry, cluster_node, joining_cp_A)
+        future_A = executor.submit(
+            util.remove_node_with_retry, cluster_node, joining_cp_A.id
+        )
         future_B = executor.submit(join_node_with_retry, cluster_node, joining_cp_B)
         concurrent.futures.wait([future_A, future_B])
 
@@ -329,7 +335,7 @@ def test_node_join_succeeds_when_original_control_plane_is_down(
         lambda p: "NotReady" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "node", cluster_node_id])
 
-    joining_cp_A.exec(["k8s", "remove-node", cluster_node_id, "--force"])
+    util.remove_node_with_retry(joining_cp_A, cluster_node_id, force=True)
 
     # Now join a new node to verify that the cluster is still functional.
     join_token_C = util.get_join_token(joining_cp_A, joining_cp_C)
@@ -368,7 +374,7 @@ def test_node_removal_during_concurrent_join(
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
         future_remove = executor.submit(
-            remove_node_with_retry, cluster_node, joining_cp_A
+            util.remove_node_with_retry, cluster_node, joining_cp_A.id
         )
         future_join = executor.submit(join_node_with_retry, cluster_node, joining_cp_B)
         concurrent.futures.wait([future_remove, future_join])
@@ -431,11 +437,11 @@ extra-sans:
         cluster_node, instances, node_names={joining_cp.id: "my-node"}
     )
 
-    cluster_node.exec(["k8s", "remove-node", "my-node"])
+    util.remove_node_with_retry(cluster_node, "my-node")
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 2, "cp node should be removed from the cluster"
 
-    cluster_node.exec(["k8s", "remove-node", joining_cp_with_hostname.id])
+    util.remove_node_with_retry(cluster_node, joining_cp_with_hostname.id)
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 1, "cp node with hostname should be removed from the cluster"
 
@@ -512,21 +518,6 @@ def join_node_with_retry(
                 raise
             LOG.info(
                 f"Join attempt {attempt + 1} failed, retrying in {delay_s} second(s): {e}"
-            )
-            time.sleep(delay_s)
-
-
-def remove_node_with_retry(cluster_node, remove_node, retries=25, delay_s=1):
-    """Remove node with retry"""
-    for attempt in range(retries):
-        try:
-            cluster_node.exec(["k8s", "remove-node", remove_node.id])
-            break
-        except Exception as e:
-            if attempt == retries - 1:  # Last attempt
-                raise
-            LOG.info(
-                f"Remove attempt {attempt + 1} failed, retrying in {delay_s} second(s): {e}"
             )
             time.sleep(delay_s)
 
