@@ -30,11 +30,6 @@ suitable for bare-metal setups and private data-centers. If you are operating
 {{ product }} in a public cloud you should evaluate your cloud-provider's load 
 balancing solution as well.
 
-```{note}
-The load balancer service type at layer 4 should not be confused with the
-Ingress Controller which operates at layer 7 (HTTP/HTTPS) and routes traffic
-from outside of your cluster to services inside of your cluster. 
-```
 
 ### IP address allocation
 
@@ -113,10 +108,7 @@ traffic directly to individual pods.
 ![cluster6][]
 
 If your cluster requires different Ingress Controllers,
-the responsibility of implementation falls upon you.
-
-You will need to create the Ingress resource,
-outlining rules that direct traffic to your application's Kubernetes service.
+the responsibility of implementation falls upon you. 
 
 ## DNS
 
