@@ -608,14 +608,18 @@ def ready_nodes(control_node: harness.Instance) -> List[Any]:
 
 # Create a token to join a node to an existing cluster
 def get_join_token(
-    initial_node: harness.Instance, joining_node: harness.Instance, *args: str
+    initial_node: harness.Instance,
+    joining_node: harness.Instance,
+    *args: str,
+    name: Optional[str] = None,
 ) -> str:
+    node_name = name or joining_node.id
     out = (
         stubbornly(retries=5, delay_s=3)
         .on(initial_node)
         .until(lambda p: len(p.stdout.decode().strip()) > 0)
         .exec(
-            ["k8s", "get-join-token", joining_node.id, *args],
+            ["k8s", "get-join-token", node_name, *args],
             capture_output=True,
         )
     )
@@ -625,14 +629,19 @@ def get_join_token(
 
 # Join an existing cluster.
 def join_cluster(
-    instance: harness.Instance, join_token: str, cfg: Optional[str] = None
+    instance: harness.Instance,
+    join_token: str,
+    cfg: Optional[str] = None,
+    name: Optional[str] = None,
 ):
+    cmd = ["k8s", "join-cluster", join_token]
+    if name:
+        cmd.extend(["--name", name])
     if cfg:
-        instance.exec(
-            ["k8s", "join-cluster", join_token, "--file", "-"], input=str.encode(cfg)
-        )
+        cmd.extend(["--file", "-"])
+        instance.exec(cmd, input=str.encode(cfg))
     else:
-        instance.exec(["k8s", "join-cluster", join_token])
+        instance.exec(cmd)
 
 
 def remove_node_with_retry(
