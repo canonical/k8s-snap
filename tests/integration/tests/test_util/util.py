@@ -529,6 +529,38 @@ def join_cluster(
         instance.exec(["k8s", "join-cluster", join_token])
 
 
+def remove_node_with_retry(
+    cluster_node: harness.Instance,
+    remove_node_id: str,
+    retries: int = 25,
+    delay_s: int = 1,
+    force: bool = False,
+):
+    """Remove node with retry.
+
+    Args:
+        cluster_node: The node from which to execute the remove command
+        remove_node_id: The ID of the node to remove
+        retries: Number of retry attempts (default: 25)
+        delay_s: Delay between retries in seconds (default: 1)
+        force: Whether to use --force flag (default: False)
+    """
+    for attempt in range(retries):
+        try:
+            cmd = ["k8s", "remove-node", remove_node_id]
+            if force:
+                cmd.append("--force")
+            cluster_node.exec(cmd)
+            break
+        except Exception as e:
+            if attempt == retries - 1:  # Last attempt
+                raise
+            LOG.info(
+                f"Remove attempt {attempt + 1} failed, retrying in {delay_s} second(s): {e}"
+            )
+            time.sleep(delay_s)
+
+
 def is_ipv6(ip: str) -> bool:
     addr = ipaddress.ip_address(ip)
     return isinstance(addr, ipaddress.IPv6Address)
