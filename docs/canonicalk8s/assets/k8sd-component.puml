@@ -13,7 +13,7 @@ Person(K8sAdmin, "K8s Admin", $descr="Responsible for the K8s cluster, has eleva
 Container(K8sSnapDistribution.Runtime, "Runtime", $techn="", $descr="Containerd and runc", $tags="", $link="")
 System(CharmK8s, "Charm K8s", $descr="Orchestrating the lifecycle management of K8s", $tags="", $link="")
 Container(K8sSnapDistribution.ClusterDatastore, "Cluster datastore", $techn="", $descr="Uses dqlite to store cluster configuration", $tags="", $link="")
-Container(K8sSnapDistribution.KubernetesDatastore, "Kubernetes datastore", $techn="", $descr="Uses etcd or k8s-dqlite to store cluster data", $tags="", $link="")
+Container(K8sSnapDistribution.KubernetesDatastore, "Kubernetes datastore", $techn="", $descr="Uses etcd to store cluster data", $tags="", $link="")
 Container(K8sSnapDistribution.KubernetesCoreComponents, "Kubernetes Core Components", $techn="", $descr="API server, kubelet, kube-proxy, scheduler, kube-controller", $tags="", $link="")
 
 Container_Boundary("K8sSnapDistribution.K8sd_boundary", "K8sd", $tags="") {

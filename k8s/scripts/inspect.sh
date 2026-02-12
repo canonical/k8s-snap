@@ -150,12 +150,9 @@ function collect_k8s_diagnostics {
   run_with_timeout "k8s kubectl get cm k8sd-config -n kube-system -o yaml &>$INSPECT_DUMP/k8s.k8sd/k8sd-configmap.log"
   run_with_timeout "k8s kubectl get cm -n kube-system &>$INSPECT_DUMP/k8s-configmaps.log"
 
-  cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.yaml "$INSPECT_DUMP/k8s.k8s-dqlite/k8s-dqlite-cluster.yaml"
-  cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8s-dqlite/info.yaml "$INSPECT_DUMP/k8s.k8s-dqlite/k8s-dqlite-info.yaml"
   cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8sd/state/database/cluster.yaml "$INSPECT_DUMP/k8s.k8sd/k8sd-cluster.yaml"
   cp --no-preserve=mode,ownership /var/snap/k8s/common/var/lib/k8sd/state/database/info.yaml "$INSPECT_DUMP/k8s.k8sd/k8sd-info.yaml"
 
-  ls -la /var/snap/k8s/common/var/lib/k8s-dqlite &>"$INSPECT_DUMP/k8s.k8s-dqlite/k8s-dqlite-files.log"
   ls -la /var/snap/k8s/common/var/lib/k8sd &>"$INSPECT_DUMP/k8s.k8sd/k8sd-files.log"
 }
 
@@ -294,7 +291,7 @@ mkdir -p "$INSPECT_DUMP"
 
 printf -- 'Collecting service information\n'
 
-control_plane_services=("k8s.containerd" "k8s.etcd" "k8s.kube-proxy" "k8s.k8s-dqlite" "k8s.k8sd" "k8s.kube-apiserver" "k8s.kube-controller-manager" "k8s.kube-scheduler" "k8s.kubelet")
+control_plane_services=("k8s.containerd" "k8s.etcd" "k8s.kube-proxy" "k8s.k8sd" "k8s.kube-apiserver" "k8s.kube-controller-manager" "k8s.kube-scheduler" "k8s.kubelet")
 worker_services=("k8s.containerd" "k8s.k8s-apiserver-proxy" "k8s.kubelet" "k8s.k8sd" "k8s.kube-proxy")
 
 if is_worker_node; then

@@ -47,10 +47,8 @@ Security <security>
 New features, bug fixes, deprecations and more are included in the release
 notes for each version.
 
-```{toctree}
-:titlesonly:
-releases
-```
+
+- [Release notes]
 
 ## Troubleshooting
 
@@ -86,3 +84,4 @@ your knowledge and get the most out of Kubernetes.
 [Tutorials section]: ../tutorial/index
 [How-to guides]: ../howto/index
 [Explanation section]: ../explanation/index
+ [Release notes]: /releases/charm/index

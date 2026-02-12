@@ -2,6 +2,10 @@
 
 Integrated Kubernetes kubectl client
 
+### Synopsis
+
+Run kubectl commands against the cluster using the integrated kubectl client.
+
 ```
 k8s kubectl [flags]
 ```

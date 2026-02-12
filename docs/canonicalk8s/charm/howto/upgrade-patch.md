@@ -203,5 +203,5 @@ to ensure that the cluster is fully functional.
 [Charmhub]:            https://charmhub.io/k8s
 [cluster-validation]: ./validate
 [juju-docs]:          https://documentation.ubuntu.com/juju/3.6/howto/manage-models/
-[release-notes]:      ../reference/releases
+[release-notes]:      /releases/charm/index
 [upstream-notes]:     https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG

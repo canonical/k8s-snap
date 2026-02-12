@@ -82,7 +82,7 @@ and constructive feedback.
 [Code of Conduct]: https://ubuntu.com/community/ethos/code-of-conduct
 [community]: reference/community
 [contribute]: /snap/howto/contribute
-[releases]: /charm/reference/releases
+[releases]: /releases/charm/index
 [what is Canonical Kubernetes page]: /charm/explanation/about
 [arch]: /charm/explanation/architecture
 [Juju]: https://juju.is

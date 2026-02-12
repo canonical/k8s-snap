@@ -1,18 +1,12 @@
 # Dqlite database
 
-{{product}} may use not one, but two Dqlite databases:
-
-* k8s-dqlite – By default, Kubernetes uses etcd as its datastore,
-but you can choose k8s-dqlite as an alternative. Any references to k8s-dqlite
-are relevant only if it has been selected as the Kubernetes datastore
-on bootstrap.
-* k8sd - Kubernetes cluster management data
+{{product}} uses Dqlite for k8sd, which manages Kubernetes cluster management
+data.
 
 ## Database files
 
-Each database has its own state directory:
+The k8sd database state directory is located at:
 
-* ``/var/snap/k8s/common/var/lib/k8s-dqlite``
 * ``/var/snap/k8s/common/var/lib/k8sd/state``
 
 The state directory normally contains:
@@ -25,14 +19,10 @@ The state directory normally contains:
 * ``snapshot-abc-abc-abc.meta``
 * ``metadata{1,2}``
 * ``*.sock`` - control unix sockets
-
-K8sd contains additional files to manage cluster memberships and member's
-secure communication:
-
-* ``server.crt``, ``server.key`` certificates
-* ``truststore`` folder, containing trusted certificates
+* ``server.crt``, ``server.key`` - certificates
+* ``truststore`` - folder containing trusted certificates
 * ``daemon.yaml`` - k8sd daemon configuration
-* separate ``database`` folder
+* ``database`` - separate database folder
 
 Dqlite cluster members have one of the following roles:
 
@@ -42,30 +32,12 @@ Dqlite cluster members have one of the following roles:
 | 1         | stand-by  | yes                 | no                         |
 | 2         | spare     | no                  | no                         |
 
-## Inspecting the databases
-
-Use the following command to connect to the k8s-dqlite database:
-
-```
-sudo /snap/k8s/current/bin/dqlite \
-  -s file:///var/snap/k8s/common/var/lib/k8s-dqlite/cluster.yaml \
-  -c /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.crt \
-  -k /var/snap/k8s/common/var/lib/k8s-dqlite/cluster.key \
-  k8s
-```
-
-The ``.leader`` command displays the current cluster leader.
-
-The kine key-value pairs are stored in the ``kine`` database and can be
-retrieved like so:
-
-```
-select id, name, value from kine limit 100;
-```
+## Inspecting the database
 
 Use ``/snap/k8s/current/bin/k8sd sql`` to issue SQL queries to the k8sd
-Dqlite database. Note that a very limited subset of SQL syntax is available,
-however the following can be used to enumerate the tables:
+Dqlite database. Note that a very limited subset of SQL syntax is available.
+
+The following command can be used to enumerate the tables:
 
 ```
 /snap/k8s/current/bin/k8sd sql \

@@ -34,7 +34,6 @@ their issuance.
 | `system:kube-proxy`              | Client      | `/etc/kubernetes/pki/proxy.crt`                       | Communication between kube-proxy and the API server                                              | `kubernetes-ca-client`      |
 | `system:node:$hostname`          | Client      | `/etc/kubernetes/pki/kubelet-client.crt`              | Authentication of kubelet to the API server                                                      | `kubernetes-ca-client`      |
 | `etcd`                           | Client      | `/etc/kubernetes/pki/etcd`                            | Communication between etcd and API server                                                        | `self-signed`               |
-| `k8s-dqlite`                     | Client      | `/var/snap/k8s/common/var/lib/k8s-dqlite/cluster.crt` | Communication between k8s-dqlite nodes and API server (if datastore type is set to `k8s-dqlite`) | `self-signed`               |
 | `root@$hostname`                 | Client      | `/var/snap/k8s/common/var/lib/k8sd/state/cluster.crt` | Communication between k8sd nodes                                                                 | `self-signed`               |
 
 ## Configuration files for Kubernetes components

@@ -1,5 +1,5 @@
 # Contains the bootstrap configuration for the node taints test.
-control-plane-taints: 
+control-plane-taints:
   - "taint1=:PreferNoSchedule"
   - "taint2=value:PreferNoSchedule"
 cluster-config:
@@ -31,5 +31,3 @@ extra-node-kubelet-args:
   --authentication-token-webhook-cache-ttl: 3m
 extra-node-containerd-args:
   --log-level: debug
-extra-node-k8s-dqlite-args:
-  --watch-storage-available-size-interval: 6s

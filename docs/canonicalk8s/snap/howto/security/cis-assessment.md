@@ -58,7 +58,7 @@ This will override your ~/.kube/config if you already have kubectl installed in 
 
 ```
 sudo snap install kubectl --classic
-mkdir ~/.kube/
+mkdir -p ~/.kube/
 sudo k8s kubectl config view --raw > ~/.kube/config
 export KUBECONFIG=~/.kube/config
 ```
@@ -66,7 +66,7 @@ export KUBECONFIG=~/.kube/config
 Get CIS hardening checks applicable for {{product}}:
 
 ```
-git clone -b ck8s-dqlite https://github.com/canonical/kube-bench.git kube-bench-ck8s-cfg
+git clone -b ck8s-etcd https://github.com/canonical/kube-bench.git kube-bench-ck8s-cfg
 ```
 
 Test-run kube-bench against {{product}}:
@@ -80,11 +80,11 @@ Review the warnings detected and address any failing checks you see fit.
 ```
 [INFO] 1 Control Plane Security Configuration
 ...
-[PASS] 1.1.7 Ensure that the dqlite configuration file permissions are set to 644 or more restrictive (Automated)
-[PASS] 1.1.8 Ensure that the dqlite configuration file ownership is set to root:root (Automated)
+[PASS] 1.1.7 Ensure that the etcd pod specification file permissions are set to 644 or more restrictive (Automated)
+[PASS] 1.1.8 Ensure that the etcd pod specification file ownership is set to root:root (Automated)
 ...
-[PASS] 1.1.11 Ensure that the dqlite data directory permissions are set to 700 or more restrictive (Automated)
-[PASS] 1.1.12 Ensure that the dqlite data directory ownership is set to root:root (Automated)
+[PASS] 1.1.11 Ensure that the etcd data directory permissions are set to 700 or more restrictive (Automated)
+[PASS] 1.1.12 Ensure that the etcd data directory ownership is set to root:root (Automated)
 ...
 == Summary master ==
 55 checks PASS

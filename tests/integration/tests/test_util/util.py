@@ -16,7 +16,6 @@ from pathlib import Path
 from typing import Any, Callable, List, Mapping, Optional, Union
 
 import pytest
-import yaml
 from tenacity import (
     RetryCallState,
     Retrying,
@@ -416,6 +415,113 @@ def is_node_ready(
     return True
 
 
+def wait_for_pods_ready(
+    instance: harness.Instance,
+    namespace: str = "",
+    retries: int = config.DEFAULT_WAIT_RETRIES,
+    delay_s: int = config.DEFAULT_WAIT_DELAY_S,
+    expect_pods: bool = True,
+):
+    """
+    Wait for all pods to be Running and Ready.
+
+    A pod is considered ready when:
+    - It is not terminating (no deletionTimestamp)
+    - Its phase is "Running" (or "Succeeded" for completed Jobs)
+    - The pod's "Ready" condition is "True"
+    - All containers are ready
+
+    Args:
+        instance: instance on which to execute the command
+        namespace: namespace to check pods in. If empty, checks all namespaces.
+        retries: number of retries
+        delay_s: delay between retries in seconds
+        expect_pods: if False, consider no pods as ready
+    """
+    ns_args = ["-n", namespace] if namespace else ["--all-namespaces"]
+    LOG.info(
+        "Waiting for all pods to be ready%s",
+        f" in namespace {namespace}" if namespace else "",
+    )
+
+    def all_pods_ready(p: subprocess.CompletedProcess) -> bool:
+        output = p.stdout.decode().strip()
+        if not output:
+            if not expect_pods:
+                LOG.info(
+                    "No pods found yet, but pods are not necessarily expected. Considering pods as ready."
+                )
+                return True
+            else:
+                LOG.info("No pods found yet")
+                return False
+
+        pods = json.loads(output)
+        items = pods.get("items", [])
+        if not items:
+            if not expect_pods:
+                LOG.info(
+                    "No pods found yet, but pods are not necessarily expected. Considering pods as ready."
+                )
+                return True
+            else:
+                LOG.info("No pods found yet")
+                return False
+
+        for pod in items:
+            pod_name = pod["metadata"]["name"]
+            pod_namespace = pod["metadata"]["namespace"]
+            phase = pod["status"].get("phase", "Unknown")
+
+            # Skip completed pods (e.g., Jobs)
+            if phase == "Succeeded":
+                continue
+
+            # Check if pod is terminating
+            if pod["metadata"].get("deletionTimestamp"):
+                LOG.info(f"Pod {pod_namespace}/{pod_name} is terminating")
+                return False
+
+            if phase != "Running":
+                LOG.info(f"Pod {pod_namespace}/{pod_name} is in phase {phase}")
+                return False
+
+            # Check pod Ready condition
+            conditions = pod["status"].get("conditions", [])
+            pod_ready_condition = next(
+                (c for c in conditions if c.get("type") == "Ready"), None
+            )
+            if (
+                not pod_ready_condition
+                or str(pod_ready_condition.get("status")).lower() != "true"
+            ):
+                LOG.info(f"Pod {pod_namespace}/{pod_name} Ready condition is not True")
+                return False
+
+            # Check container statuses
+            container_statuses = pod["status"].get("containerStatuses", [])
+            if not container_statuses:
+                LOG.info(
+                    f"Pod {pod_namespace}/{pod_name} has no container statuses yet"
+                )
+                return False
+
+            for container in container_statuses:
+                if str(container.get("ready")).lower() != "true":
+                    LOG.info(
+                        f"Pod {pod_namespace}/{pod_name} container "
+                        f"{container['name']} is not ready"
+                    )
+                    return False
+
+        LOG.info("All pods are running and ready")
+        return True
+
+    stubbornly(retries=retries, delay_s=delay_s).on(instance).until(
+        all_pods_ready
+    ).exec(["k8s", "kubectl", "get", "pods", *ns_args, "-o", "json"])
+
+
 def wait_for_dns(instance: harness.Instance):
     LOG.info("Waiting for DNS to be ready")
     instance.exec(["k8s", "x-wait-for", "dns", "--timeout", "20m"])
@@ -502,14 +608,18 @@ def ready_nodes(control_node: harness.Instance) -> List[Any]:
 
 # Create a token to join a node to an existing cluster
 def get_join_token(
-    initial_node: harness.Instance, joining_node: harness.Instance, *args: str
+    initial_node: harness.Instance,
+    joining_node: harness.Instance,
+    *args: str,
+    name: Optional[str] = None,
 ) -> str:
+    node_name = name or joining_node.id
     out = (
         stubbornly(retries=5, delay_s=3)
         .on(initial_node)
         .until(lambda p: len(p.stdout.decode().strip()) > 0)
         .exec(
-            ["k8s", "get-join-token", joining_node.id, *args],
+            ["k8s", "get-join-token", node_name, *args],
             capture_output=True,
         )
     )
@@ -519,14 +629,51 @@ def get_join_token(
 
 # Join an existing cluster.
 def join_cluster(
-    instance: harness.Instance, join_token: str, cfg: Optional[str] = None
+    instance: harness.Instance,
+    join_token: str,
+    cfg: Optional[str] = None,
+    name: Optional[str] = None,
 ):
+    cmd = ["k8s", "join-cluster", join_token]
+    if name:
+        cmd.extend(["--name", name])
     if cfg:
-        instance.exec(
-            ["k8s", "join-cluster", join_token, "--file", "-"], input=str.encode(cfg)
-        )
+        cmd.extend(["--file", "-"])
+        instance.exec(cmd, input=str.encode(cfg))
     else:
-        instance.exec(["k8s", "join-cluster", join_token])
+        instance.exec(cmd)
+
+
+def remove_node_with_retry(
+    cluster_node: harness.Instance,
+    remove_node_id: str,
+    retries: int = 25,
+    delay_s: int = 1,
+    force: bool = False,
+):
+    """Remove node with retry.
+
+    Args:
+        cluster_node: The node from which to execute the remove command
+        remove_node_id: The ID of the node to remove
+        retries: Number of retry attempts (default: 25)
+        delay_s: Delay between retries in seconds (default: 1)
+        force: Whether to use --force flag (default: False)
+    """
+    for attempt in range(retries):
+        try:
+            cmd = ["k8s", "remove-node", remove_node_id]
+            if force:
+                cmd.append("--force")
+            cluster_node.exec(cmd)
+            break
+        except Exception as e:
+            if attempt == retries - 1:  # Last attempt
+                raise
+            LOG.info(
+                f"Remove attempt {attempt + 1} failed, retrying in {delay_s} second(s): {e}"
+            )
+            time.sleep(delay_s)
 
 
 def is_ipv6(ip: str) -> bool:
@@ -670,10 +817,16 @@ def _major_minor_from_stable_upstream(maj: Optional[int] = None) -> Optional[tup
     addr = "https://dl.k8s.io/release/stable{dash_maj}.txt".format(
         dash_maj=f"-{maj}" if maj else ""
     )
-    LOG.info("Getting upstream version from %s", addr)
-    with urllib.request.urlopen(addr) as r:
-        stable = r.read().decode().strip()
-        return major_minor(stable)
+    for attempt in Retrying(stop=stop_after_attempt(3), wait=wait_fixed(2)):
+        with attempt:
+            LOG.info(
+                "Attempt %d: Fetching upstream version",
+                attempt.retry_state.attempt_number,
+            )
+            with urllib.request.urlopen(addr) as r:
+                stable = r.read().decode().strip()
+                LOG.info("Successfully fetched upstream version: %s", stable)
+                return major_minor(stable)
 
 
 def _previous_track_from_branch(branch: str) -> Optional[str]:
@@ -954,7 +1107,6 @@ def check_snap_services_ready(
         if datastore_type:
             assert datastore_type in (
                 "etcd",
-                "k8s-dqlite",
                 "external",
             ), "Invalid datastore type provided"
         else:
@@ -1076,7 +1228,7 @@ def diverged_cluster_memberships(
 
     For that it verifies that only the expected members are part of the:
     * microcluster
-    * etcd/k8s-dqlite
+    * etcd
     * Kubernetes
 
     Args:
@@ -1084,7 +1236,7 @@ def diverged_cluster_memberships(
         expected_members:      expected list of member instances
 
     Returns:
-        List of divergences found (["kubernetes", "microcluster", "etcd", "k8s-dqlite"] or empty)
+        List of divergences found (["kubernetes", "microcluster", "etcd"] or empty)
     """
     divergences = []
 
@@ -1138,21 +1290,5 @@ def diverged_cluster_memberships(
         if set(expected_node_names) != set(etcd_member_names):
             LOG.info("etcd membership diverges from expected")
             divergences.append("etcd")
-    elif datastore == "k8s-dqlite":
-        expected_addresses = [get_default_ip(instance) for instance in expected_members]
-        proc = control_node.exec(
-            ["cat", "/var/snap/k8s/common/var/lib/k8s-dqlite/cluster.yaml"],
-            capture_output=True,
-            text=True,
-        ).stdout
-        dqlite_addresses = [
-            member["Address"].split(":")[0] for member in yaml.safe_load(proc)
-        ]
-        LOG.info(
-            f"k8s-dqlite members: {dqlite_addresses}, expected: {expected_addresses}"
-        )
-        if set(expected_addresses) != set(dqlite_addresses):
-            LOG.info("k8s-dqlite membership diverges from expected")
-            divergences.append("k8s-dqlite")
 
     return divergences

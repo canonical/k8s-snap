@@ -61,7 +61,7 @@ and much more.
 [CIS compliance audit]: /snap/reference/cis-audit.md
 [Assess for CIS compliance]: /snap/howto/security/cis-assessment.md
 [How to deploy a cluster with FIPS]: /snap/howto/install/fips.md
-[Release notes]:/snap/reference/releases.md
+[Release notes]:/releases/snap/index.md
 [How to upgrade the Canonical Kubernetes snap]:/snap/howto/upgrades.md
 [How to install in air-gapped environments]:/snap/howto/install/offline/
 [How to harden your cluster]: /snap/howto/security/hardening.md

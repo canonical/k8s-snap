@@ -126,5 +126,5 @@ charms are on the way to simplify usage and extend the base functionality of
 [Juju client]: https://juju.is/docs/juju/install-and-manage-the-client
 [Juju tutorial]: https://juju.is/docs/juju/tutorial
 [the channel explanation page]: ../../snap/explanation/channels
-[releases page]: ../reference/releases
+[releases page]: /releases/charm/index
 [basic operations]: ./basic-operations.md

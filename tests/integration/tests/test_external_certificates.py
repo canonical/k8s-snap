@@ -192,7 +192,7 @@ def delete_nginx_pod(instance: harness.Instance):
 
 @pytest.mark.node_count(3)
 @pytest.mark.disable_k8s_bootstrapping()
-@pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.tags(tags.NIGHTLY, tags.PROMOTE_STABLE)
 # For communication with Vault
 @pytest.mark.required_ports(8200)
 def test_vault_intermediate_ca(instances: List[harness.Instance]):
@@ -252,7 +252,7 @@ def test_vault_intermediate_ca(instances: List[harness.Instance]):
 
 @pytest.mark.node_count(3)
 @pytest.mark.disable_k8s_bootstrapping()
-@pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.tags(tags.NIGHTLY, tags.PROMOTE_STABLE)
 # For communication with Vault
 @pytest.mark.required_ports(8200)
 def test_vault_certificates(instances: List[harness.Instance]):
@@ -329,12 +329,6 @@ def test_vault_certificates(instances: List[harness.Instance]):
     bootstrap_certs.update(worker_certs)
 
     create_and_assign_certs(client, bootstrap_certs.items(), bootstrap_config)
-
-    # For BootstrapConfig, only this key has a different format.
-    bootstrap_config["kube-ControllerManager-client-key"] = bootstrap_config[
-        "kube-controller-manager-client-key"
-    ]
-    bootstrap_config.pop("kube-controller-manager-client-key")
 
     LOG.info("Certificates are ready. Bootstrapping.")
     instance.exec(
@@ -457,7 +451,7 @@ def test_vault_certificates(instances: List[harness.Instance]):
 
 @pytest.mark.node_count(2)
 @pytest.mark.disable_k8s_bootstrapping()
-@pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.tags(tags.NIGHTLY, tags.PROMOTE_STABLE)
 # For communication with Vault
 @pytest.mark.required_ports(8200)
 def test_partial_refresh(instances: List[harness.Instance]):

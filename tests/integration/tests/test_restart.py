@@ -42,6 +42,10 @@ def test_restart(instances: List[harness.Instance]):
         util.stubbornly(retries=15, delay_s=10).on(instance).until(
             condition=lambda p: util.status_output_matches(p, STATUS_PATTERNS),
         ).exec(["k8s", "status", "--wait-ready"])
+        5
+
+    # Verify all nodes are ready, not just k8s status
+    util.wait_until_k8s_ready(main, instances)
 
     for instance in instances:
         LOG.info("Restart the instance %s", instance.id)
@@ -55,5 +59,5 @@ def test_restart(instances: List[harness.Instance]):
             condition=lambda p: util.status_output_matches(p, STATUS_PATTERNS),
         ).exec(["k8s", "status", "--wait-ready"])
 
-    # An additional check to ensure the cluster is still functional
-    assert len(util.ready_nodes(main)) == 3
+    # Verify all nodes are ready in Kubernetes after restart
+    util.wait_until_k8s_ready(main, instances)

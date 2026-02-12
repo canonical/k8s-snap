@@ -2,6 +2,10 @@
 
 Create a token for a node to join the cluster
 
+### Synopsis
+
+Create a join token that allows a new node to join the cluster. The node name is required for control plane nodes but optional for worker nodes.
+
 ```
 k8s get-join-token <node-name> [flags]
 ```

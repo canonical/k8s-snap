@@ -3,6 +3,16 @@
 
 k8s::common::setup_env
 
+# Reject upgrade if deprecated k8s-dqlite datastore is used.
+# In older releases, the k8s-dqlite directory is created regardless
+# of whether k8s-dqlite is used or not. Therefore, we also check
+# that the directory is not empty.
+if [ -d "$SNAP_COMMON/var/lib/k8s-dqlite" ] && [ -n "$(ls -A "$SNAP_COMMON/var/lib/k8s-dqlite" 2>/dev/null)" ]; then
+  echo "ERROR: upgrade blocked: k8s-dqlite is no longer supported in version 1.36 and later."
+  echo "Remain on version 1.35 or deploy a new cluster with etcd."
+  exit 1
+fi
+
 # Indicate that an update has been performed.
 # Many actions require k8sd to be active which is not
 # the case in the snap hook. Hence, we use a lock file
