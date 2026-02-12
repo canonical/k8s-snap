@@ -3,10 +3,10 @@ name: Documentation Checks
 on:
   workflow_dispatch:
 
-  
   pull_request:
     paths:
       - 'docs/**'
+      - 'build-scripts/components/k8sd/**'
 permissions:
   contents: read
 
@@ -74,3 +74,24 @@ jobs:
       with:
         working-directory: docs/canonicalk8s
 
+  k8sd-api-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+
+      - name: Install Python dependencies
+        run: pip install -r ci/requirements-ci.txt
+
+      - name: Check k8sd API documentation
+        run: python3 ci/k8s-ci.py docs update-k8sd-api

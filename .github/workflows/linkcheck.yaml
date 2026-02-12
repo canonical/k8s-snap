@@ -59,10 +59,13 @@ jobs:
         uses: actions/setup-python@v5
       - name: Run linkcheck 
         run: |
-          echo "Changed files: ${{ inputs.changed_files }}"
+          CHANGED_FILES="${{ inputs.changed_files }}"
+          echo "Running linkcheck with files: $CHANGED_FILES"
+
+          # echo "Changed files: ${{ inputs.changed_files }}"
           python3 docs/canonicalk8s/.sphinx/linkcheck.py docs/canonicalk8s \
             --install_target install \
             --linkcheck_target linkcheck \
             --makefile Makefile \
-            "${{ inputs.changed_files }}"
+            "$CHANGED_FILES"
         shell: bash  
