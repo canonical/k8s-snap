@@ -30,7 +30,7 @@ SNAPCRAFT_YAML = yaml.safe_load(util.read_file(DIR / "../../snap/snapcraft.yaml"
 # FIXME: This information should not be hardcoded here
 CILIUM_ROCK_REPO = "https://github.com/canonical/cilium-rocks"
 CILIUM_ROCK_TAG = "main"
-CILIUM_VERSION = "1.17.1"
+CILIUM_VERSION = "1.17.12"
 COREDNS_ROCK_REPO = "https://github.com/canonical/coredns-rock"
 COREDNS_ROCK_TAG = "release-1.32"
 COREDNS_VERSION = "1.11.3"
