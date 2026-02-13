@@ -12,7 +12,7 @@ Before you begin, make sure you have the following:
 - A bootstrapped {{product}} cluster (see
   [getting started] tutorial)
 
-### The kubectl command
+## The kubectl command
 
 The `kubectl` command communicates with the
 [Kubernetes API server][kubernetes-api-server].
@@ -21,7 +21,7 @@ The `kubectl` command communicates with the
 original upstream source into the `k8s` snap you have installed and is
 configured to work with the cluster out of the box.
 
-### How to use kubectl
+## How to use kubectl
 
 To access `kubectl`, run the following:
 
@@ -42,7 +42,7 @@ The format of `kubectl` commands are:
 sudo k8s kubectl <command>
 ```
 
-### Configuration
+## Configuration
 
 In {{product}}, the `kubeconfig` file that is being read to display
 the configuration when you run `kubectl config view` lives at
@@ -54,7 +54,7 @@ by setting a `KUBECONFIG` environment variable or passing the
 To find out more, you can visit
 [the official kubeconfig documentation][kubeconfig-doc].
 
-### Viewing objects
+## View objects
 
 Let's review what was created in the [getting started]
 guide.
@@ -79,7 +79,7 @@ The `kubernetes` service in the `default` namespace is where the Kubernetes API
 server resides, and it's the endpoint with which other nodes in your cluster
 will communicate.
 
-### Creating and managing objects
+## Create and manage objects
 
 Let's deploy an NGINX server using this command:
 

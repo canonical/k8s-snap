@@ -1,4 +1,4 @@
-# Provisioning a {{product}} cluster with CAPI
+# Provision a {{product}} cluster with CAPI
 
 This guide covers how to deploy a {{product}} multi-node cluster
 using Cluster API (CAPI).

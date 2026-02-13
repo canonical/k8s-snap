@@ -10,7 +10,7 @@ cluster, manage workers, and interact with the cluster using `kubectl`.
 - The Juju [client][Juju client]
 - [Kubectl] (installation instructions included below)
 
-## Scaling Your Cluster
+## Scaling your cluster
 
 The `k8s` charm provides flexibility to scale your cluster as needed by adding
 or removing control plane nodes or worker nodes.

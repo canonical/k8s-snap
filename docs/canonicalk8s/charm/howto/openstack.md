@@ -31,7 +31,7 @@ vxlan device: creating vxlan device: setting up device cilium_vxlan: address
 already in use
 ```
 
-## Installing {{product}} on OpenStack
+## Install {{product}} on OpenStack
 
 To deploy the {{product}} [bundle][bundle] on OpenStack you need an overlay
 bundle which serves as an extension of the core bundle. Through the overlay,

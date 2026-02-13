@@ -15,7 +15,7 @@ will be passed as-is to the {{product}} snap.
 See the [Bootstrap configuration file reference] for more details about the
 available settings.
 
-## Passing the bootstrap configuration directly
+## Pass the bootstrap configuration directly
 
 The bootstrap configuration can be specified in the ``CK8sControlPlane`` spec:
 
@@ -51,7 +51,7 @@ spec:
 Note that the k8sd annotations allow the CAPI provider to properly remove
 nodes.
 
-## Using secrets to store the bootstrap configuration
+## Use secrets to store the bootstrap configuration
 
 The bootstrap configuration may contain sensitive data. For this reason, the
 provider also allows passing it as a secret.

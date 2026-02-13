@@ -99,7 +99,7 @@ echo 1 > /proc/sys/fs/suid_dumpable
 snap set system system.coredump.enable=true
 ```
 
-## ``--timeout``
+### ``--timeout``
 
 This argument adjusts the timeout used when executing various commands that
 collect report data.

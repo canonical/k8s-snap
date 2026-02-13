@@ -72,9 +72,9 @@ identified and solved.
 
 ```{toctree}
 :titlesonly:
-Troubleshooting <troubleshooting>
+Troubleshoot <troubleshooting>
 Validate the cluster <validate>
-Integrate with COS Lite <cos-lite>
+Set up cluster observability <cos-lite>
 ```
 
 ## Security
