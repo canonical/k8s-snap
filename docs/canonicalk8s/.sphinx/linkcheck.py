@@ -48,8 +48,13 @@ def main():
             "-f",
             makefile,
             linkcheck_target,
-            f"FILES={args.changed_files}",
         ]
+
+        # Only add the FILES variable if changed_files is not empty
+        if args.changed_files and args.changed_files.strip():
+            linkcheck_cmd.append(f"FILES={args.changed_files}")
+
+        print(f"Executing: {' '.join(linkcheck_cmd)} in {args.working_dir}")
         run_command(linkcheck_cmd, args.working_dir)
 
     except subprocess.CalledProcessError as e:
