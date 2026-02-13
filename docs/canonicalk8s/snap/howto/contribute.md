@@ -201,7 +201,7 @@ press `F5` in your browser to reload the page without caching)!
 <!-- LINKS -->
 
 [install lxd]: https://documentation.ubuntu.com/lxd/en/latest/tutorial/first_steps/
-[Snapcraft documentation]: https://snapcraft.io/docs/snapcraft-setup
+[Snapcraft documentation]: https://documentation.ubuntu.com/snapcraft/stable/how-to/set-up-snapcraft/
 [code repo]: https://github.com/canonical/k8s-snap
 [Diátaxis website]: https://diataxis.fr/
 [_parts]: https://github.com/canonical/k8s-snap/blob/main/docs/canonicalk8s/_parts/doc-cheat-sheet-myst.md
