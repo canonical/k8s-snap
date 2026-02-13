@@ -239,6 +239,8 @@ linkcheck_ignore = [
     'https://www.squid-cache.org/',
     'https://www.esd.whs.mil/portals/54/documents/dd/issuances/dodi/855101p.pdf',
     r'https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-24',
+    'https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/',
+    'https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/',
     ]
 
 
@@ -258,7 +260,7 @@ linkcheck_anchors_ignore_for_url = [
     'https://microk8s.io/docs/how-to-cis-harden',
     'https://registry.terraform.io/providers/juju/juju/latest/docs',
     'https://snapcraft.io/docs/managing-updates',
-    'https://documentation.ubuntu.com/juju/latest/reference/constraint/'
+    'https://documentation.ubuntu.com/juju/latest/reference/constraint/',
     ]
 
 # give linkcheck multiple tries on failure
