@@ -92,5 +92,5 @@ Use `juju status` to watch these units approach the active/idle state.
 [channels]:      ../../explanation/channels
 [credentials]:   https://documentation.ubuntu.com/juju/3.6/reference/credential/
 [juju]:          https://juju.is/docs/juju/install-juju
-[charm]:         https://juju.is/docs/juju/charmed-operator
+[charm]:         https://documentation.ubuntu.com/juju/3.6/reference/charm/
 [localhost]:     install-lxd
