@@ -105,9 +105,12 @@ device with the k8s InternalIP/ExternalIP or the device with a default route.
 However, bridge type devices are ignored in this automatic selection. In the
 case of deploying on MAAS, a bridge interface is used as the default route and
 therefore Cilium enters a failed state being unable to find the direct routing
-device. The bridge interface must be added to the list of `devices` using
-cluster annotations so that `direct-routing-device` will not skip the bridge
-interface.
+device.
+
+The solution is to add the bridge interface to the list of `devices` using
+cluster annotations. Once the bridge interface is included in `devices`,
+Cilium will automatically populate `direct-routing-device` when the pod
+restarts—there is no need to set `direct-routing-device` manually.
 
 ### Solution
 

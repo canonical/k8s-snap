@@ -13,7 +13,7 @@ verify which certificates are externally managed by running `k8s certs-status`
 on a control plane node.
 ```
 
-### Assemble certificates data
+## Assemble certificates data
 
 To simplify the process and avoid complex CLI commands, the `refresh-certs`
 command accepts new node external certificates via the `--external-certificates`
@@ -36,7 +36,7 @@ If you are managing some of the Certificate Authorities (CAs)
 externally, provide only the certificates that require updates. Identify the
 externally managed CAs by running `k8s certs-status` on a control plane node.
 
-### Refresh Control Plane node certificates
+## Refresh Control Plane node certificates
 
 Execute the following command to refresh certificates on each control plane
 node:
@@ -78,7 +78,7 @@ kubernetes-ca-client       Mar 19, 2035 01:06 UTC  9y             yes
 kubernetes-front-proxy-ca  Mar 19, 2035 01:06 UTC  9y             yes
 ```
 
-### Refresh Worker node certificates
+## Refresh Worker node certificates
 
 To refresh the certificates on worker nodes, perform this step on each worker
 node in your cluster:

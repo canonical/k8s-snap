@@ -18,7 +18,7 @@ Kubernetes and some common first steps.
 - The [Juju client][]
 - Access to a Juju-supported cloud for creating the required instances
 
-## 1. Get prepared
+## Get prepared
 
 Deploying charms with Juju requires a substrate or backing cloud to actually
 run the instances. If you are unfamiliar with Juju, it would be useful to run
@@ -54,7 +54,7 @@ Charm deployments default to "latest/stable", but if you want to choose a
 specific version, it can be indicated when deploying with the `--channel=`
 argument, for example `--channel=latest/edge`.
 
-## 2. Deploy the K8s charm
+## Deploy the K8s charm
 
 To make sure that Juju creates an instance which has enough resources to
 actually run Kubernetes, we will make use of 'constraints'. These specify the
@@ -79,7 +79,7 @@ juju status --watch 2s
 When the status reports that K8s is "idle/ready" you have successfully deployed
 a {{product}} control-plane using Juju.
 
-## 3. Deploy a worker
+## Deploy a worker
 
 Before we start doing things in Kubernetes, we should consider adding a worker.
 The K8s worker is an additional node for the cluster which focuses on running

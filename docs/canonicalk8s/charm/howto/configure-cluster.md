@@ -11,7 +11,7 @@ This guide assumes the following:
 - [Juju][juju install] CLI installed on your machine
 - A working Kubernetes cluster deployed with the `k8s` charm
 
-## Understanding the charm configuration
+## Understand the charm configuration
 
 The `k8s` charm offers a wide range of configurable options and features
 including networking, DNS, labels, taints, and more. Review the charm
@@ -34,7 +34,7 @@ The charm's configuration options include:
   - Feature specific configuration options (e.g., `dns-cluster-domain`)
 - **Cluster wide configurations** (e.g., labels, taints).
 
-## Applying the configuration
+## Apply the configuration
 
 You can configure your cluster either during the initial deployment or by
 updating an existing deployment.
@@ -70,7 +70,7 @@ Alternatively, deploy the application by specifying the configuration directly:
 juju deploy k8s --base="ubuntu@24.04" --config dns-enabled=true --config dns-cluster-domain=cluster.local
 ```
 
-### Option 2: Updating an existing deployment
+### Option 2: Update an existing deployment
 
 Modify the configuration of an existing deployment using a YAML file or the
 `--config` flag.
@@ -91,7 +91,7 @@ Specify the configuration options directly:
 juju config k8s dns-enabled=true dns-cluster-domain=cluster.local
 ```
 
-### Monitoring and verifying the configuration
+### Monitor and verify the configuration
 
 After applying the configuration, the charm will automatically apply the changes
 and update the cluster. Monitor the progress by running:

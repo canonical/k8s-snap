@@ -15,21 +15,21 @@ interruptions, offering built-in redundancy and fault tolerance.
 
 A highly available Kubernetes cluster exhibits the following characteristics:
 
-### 1. **Multiple nodes for redundancy**
+### Multiple nodes for redundancy
 
 Having multiple nodes in the cluster ensures workload distribution and
 redundancy. If one node fails, workloads will be rescheduled automatically on
 other available nodes without disrupting services. This node-level redundancy
 minimizes the impact of hardware or network failures.
 
-### 2. **Control plane redundancy**
+### Control plane redundancy
 
 The control plane manages the cluster’s state and operations. For high
 availability, the control plane components—such as the API server, scheduler,
 and controller-manager—are distributed across multiple nodes. This prevents a
 single point of failure from rendering the cluster inoperable.
 
-### 3. **Highly available datastore**
+### Highly available datastore
 
 {{ product }} uses **etcd** to manage the Kubernetes
 cluster state.

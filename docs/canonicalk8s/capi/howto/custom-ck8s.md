@@ -18,7 +18,7 @@ details on the required setup.
 
 This guide will call the generated cluster spec manifest `cluster.yaml`.
 
-## Using the configuration specification
+## Use the configuration specification
 
 {{product}} can be installed on machines using a specific `channel`,
 `revision` or `localPath` by specifying the respective field in the spec

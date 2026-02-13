@@ -33,7 +33,7 @@ juju info k8s-worker
 ...which will output a list of currently available channels. See the [channels
 page][channels] for an explanation of the different types of channel.
 
-## Deploying the charm
+## Deploy the charm
 
 The charm can be installed with the `juju` command:
 
@@ -57,7 +57,7 @@ initializes properly and is running with no issues.
 
 Once the unit is active/idle, You'll know the cluster is installed.
 
-## Expanding the cluster
+## Expand the cluster
 
 At this point, you should have one control-plane node. To expand your cluster,
 add more units with the following command
@@ -70,7 +70,7 @@ This will create 2 more control-plane units clustered with the first.
 
 Use `juju status` to watch these units approach active/idle
 
-## Adding Workers
+## Add workers
 
 In many cases, it is desirable to have additional 'worker only' units in
 the cluster. Rather than adding more control-plane units, we'll deploy
@@ -92,5 +92,5 @@ Use `juju status` to watch these units approach the active/idle state.
 [channels]:      ../../explanation/channels
 [credentials]:   https://documentation.ubuntu.com/juju/3.6/reference/credential/
 [juju]:          https://juju.is/docs/juju/install-juju
-[charm]:         https://juju.is/docs/juju/charmed-operator
+[charm]:         https://documentation.ubuntu.com/juju/3.6/reference/charm/
 [localhost]:     install-lxd

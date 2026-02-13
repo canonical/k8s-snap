@@ -10,6 +10,7 @@ import time
 from typing import List
 
 import pytest
+import tenacity
 import yaml
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
@@ -45,7 +46,7 @@ def test_control_plane_nodes(instances: List[harness.Instance]):
 
     # Verify that the initial node can be removed
     # Verify that the initial node can be removed
-    joining_node_1.exec(["k8s", "remove-node", cluster_node.id])
+    util.remove_node_with_retry(joining_node_1, cluster_node.id)
     util.stubbornly(retries=5, delay_s=3).until(
         lambda _: not util.diverged_cluster_memberships(
             joining_node_1, [joining_node_1, joining_node_2, joining_node_3]
@@ -53,7 +54,7 @@ def test_control_plane_nodes(instances: List[harness.Instance]):
     )
 
     # Verify that a node can remove itself
-    joining_node_1.exec(["k8s", "remove-node", joining_node_1.id])
+    util.remove_node_with_retry(joining_node_1, joining_node_1.id)
     util.stubbornly(retries=5, delay_s=3).until(
         lambda _: not util.diverged_cluster_memberships(
             joining_node_2, [joining_node_2, joining_node_3]
@@ -89,7 +90,7 @@ def test_worker_nodes(instances: List[harness.Instance]):
         other_joining_node
     ), f"{other_joining_node.id} should be ready and in the cluster"
 
-    cluster_node.exec(["k8s", "remove-node", joining_node.id])
+    util.remove_node_with_retry(cluster_node, joining_node.id)
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 2, "worker should have been removed from cluster"
     assert cluster_node.id in [
@@ -174,8 +175,12 @@ def test_concurrent_cp_membership_operations(instances: List[harness.Instance]):
         assert "control-plane" in util.get_local_node_status(node)
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        future_A = executor.submit(remove_node_with_retry, cluster_node, joining_cp_A)
-        future_B = executor.submit(remove_node_with_retry, cluster_node, joining_cp_B)
+        future_A = executor.submit(
+            util.remove_node_with_retry, cluster_node, joining_cp_A.id
+        )
+        future_B = executor.submit(
+            util.remove_node_with_retry, cluster_node, joining_cp_B.id
+        )
         concurrent.futures.wait([future_A, future_B])
 
     util.wait_until_k8s_ready(cluster_node, [cluster_node])
@@ -213,10 +218,10 @@ def test_concurrent_worker_membership_operations(instances: List[harness.Instanc
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
         future_A = executor.submit(
-            remove_node_with_retry, cluster_node, joining_worker_A
+            util.remove_node_with_retry, cluster_node, joining_worker_A.id
         )
         future_B = executor.submit(
-            remove_node_with_retry, cluster_node, joining_worker_B
+            util.remove_node_with_retry, cluster_node, joining_worker_B.id
         )
         concurrent.futures.wait([future_A, future_B])
 
@@ -246,7 +251,9 @@ def test_mixed_concurrent_membership_operations(instances: List[harness.Instance
     assert "control-plane" in util.get_local_node_status(joining_cp_A)
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        future_A = executor.submit(remove_node_with_retry, cluster_node, joining_cp_A)
+        future_A = executor.submit(
+            util.remove_node_with_retry, cluster_node, joining_cp_A.id
+        )
         future_B = executor.submit(join_node_with_retry, cluster_node, joining_cp_B)
         concurrent.futures.wait([future_A, future_B])
 
@@ -329,7 +336,7 @@ def test_node_join_succeeds_when_original_control_plane_is_down(
         lambda p: "NotReady" in p.stdout.decode()
     ).exec(["k8s", "kubectl", "get", "node", cluster_node_id])
 
-    joining_cp_A.exec(["k8s", "remove-node", cluster_node_id, "--force"])
+    util.remove_node_with_retry(joining_cp_A, cluster_node_id, force=True)
 
     # Now join a new node to verify that the cluster is still functional.
     join_token_C = util.get_join_token(joining_cp_A, joining_cp_C)
@@ -368,7 +375,7 @@ def test_node_removal_during_concurrent_join(
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
         future_remove = executor.submit(
-            remove_node_with_retry, cluster_node, joining_cp_A
+            util.remove_node_with_retry, cluster_node, joining_cp_A.id
         )
         future_join = executor.submit(join_node_with_retry, cluster_node, joining_cp_B)
         concurrent.futures.wait([future_remove, future_join])
@@ -431,11 +438,11 @@ extra-sans:
         cluster_node, instances, node_names={joining_cp.id: "my-node"}
     )
 
-    cluster_node.exec(["k8s", "remove-node", "my-node"])
+    util.remove_node_with_retry(cluster_node, "my-node")
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 2, "cp node should be removed from the cluster"
 
-    cluster_node.exec(["k8s", "remove-node", joining_cp_with_hostname.id])
+    util.remove_node_with_retry(cluster_node, joining_cp_with_hostname.id)
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 1, "cp node with hostname should be removed from the cluster"
 
@@ -495,6 +502,104 @@ def test_cert_refresh(instances: List[harness.Instance]):
     util.wait_until_k8s_ready(cluster_node, instances)
 
 
+@pytest.mark.node_count(3)
+@pytest.mark.tags(tags.PULL_REQUEST)
+def test_join_cp_with_duplicate_name_rejected(instances: List[harness.Instance]):
+    """Tests that a CP node joining with the same name as a worker node in the cluster is rejected"""
+    cluster_node = instances[0]
+    joined_worker = instances[1]
+    joining_cp = instances[2]
+    shared_node_name = "nutella"
+
+    util.wait_until_k8s_ready(cluster_node, [cluster_node])
+
+    join_token_worker = util.get_join_token(
+        cluster_node, joined_worker, "--worker", name=shared_node_name
+    )
+    util.join_cluster(joined_worker, join_token_worker, name=shared_node_name)
+    util.wait_until_k8s_ready(
+        cluster_node,
+        [cluster_node, joined_worker],
+        node_names={joined_worker.id: shared_node_name},
+    )
+
+    LOG.info("Worker node joined successfully")
+
+    # Try to get join token with duplicate name - should fail
+    try:
+        util.get_join_token(cluster_node, joining_cp, name=shared_node_name)
+        assert False, "get-join-token should have failed due to duplicate node name"
+    except tenacity.RetryError as e:
+        LOG.info("get-join-token failed as expected")
+        # Extract the underlying exception
+        cause = e.last_attempt.exception()
+        if not isinstance(cause, subprocess.CalledProcessError):
+            raise e
+        error_output = (
+            cause.stderr if cause.stderr else cause.stdout if cause.stdout else ""
+        )
+        if isinstance(error_output, bytes):
+            error_output = error_output.decode()
+        assert (
+            f'a node with this name is already part of the cluster: "{shared_node_name}"'
+            in error_output
+        ), f"Join error message should indicate duplicate node name. Got: {error_output}"
+
+    nodes = util.ready_nodes(cluster_node)
+    assert len(nodes) == 2, "Only master node and worker should be in the cluster"
+    node_names = [node["metadata"]["name"] for node in nodes]
+    assert cluster_node.id in node_names
+    assert shared_node_name in node_names
+
+    LOG.info("Successfully prevented joining of CP node with same name as worker")
+
+
+@pytest.mark.node_count(2)
+@pytest.mark.tags(tags.PULL_REQUEST)
+def test_join_worker_with_duplicate_name_rejected(instances: List[harness.Instance]):
+    """Tests that a worker node joining with the same name as a control plane node in the cluster is rejected"""
+    cluster_node = instances[0]
+    joining_worker = instances[1]
+
+    # Use the cluster node's name as the duplicate name
+    shared_node_name = cluster_node.id
+
+    util.wait_until_k8s_ready(cluster_node, [cluster_node])
+
+    LOG.info("Cluster initialized")
+
+    try:
+        util.get_join_token(
+            cluster_node, joining_worker, "--worker", name=shared_node_name
+        )
+        assert False, "get-join-token should have failed due to duplicate node name"
+    except tenacity.RetryError as e:
+        LOG.info("get-join-token failed as expected")
+        cause = e.last_attempt.exception()
+        if not isinstance(cause, subprocess.CalledProcessError):
+            raise e
+        error_output = (
+            cause.stderr if cause.stderr else cause.stdout if cause.stdout else ""
+        )
+        if isinstance(error_output, bytes):
+            error_output = error_output.decode()
+        assert (
+            f'a node with this name is already part of the cluster: "{shared_node_name}"'
+            in error_output
+        ), f"Join error message should indicate duplicate node name. Got: {error_output}"
+
+    nodes = util.ready_nodes(cluster_node)
+    assert len(nodes) == 1, "Only original cluster node should be in the cluster"
+
+    node_names = [node["metadata"]["name"] for node in nodes]
+    assert cluster_node.id in node_names
+    assert shared_node_name in node_names
+
+    LOG.info(
+        "Successfully prevented joining of worker node with same name as control plane"
+    )
+
+
 def join_node_with_retry(
     cluster_node, joining_node, retries=25, delay_s=1, worker=False
 ):
@@ -512,21 +617,6 @@ def join_node_with_retry(
                 raise
             LOG.info(
                 f"Join attempt {attempt + 1} failed, retrying in {delay_s} second(s): {e}"
-            )
-            time.sleep(delay_s)
-
-
-def remove_node_with_retry(cluster_node, remove_node, retries=25, delay_s=1):
-    """Remove node with retry"""
-    for attempt in range(retries):
-        try:
-            cluster_node.exec(["k8s", "remove-node", remove_node.id])
-            break
-        except Exception as e:
-            if attempt == retries - 1:  # Last attempt
-                raise
-            LOG.info(
-                f"Remove attempt {attempt + 1} failed, retrying in {delay_s} second(s): {e}"
             )
             time.sleep(delay_s)
 

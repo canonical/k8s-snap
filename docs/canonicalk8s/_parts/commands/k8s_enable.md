@@ -1,10 +1,12 @@
 ## k8s enable
 
-Enable core cluster features
+Enable one or more core cluster features
 
 ### Synopsis
 
-Enable one of network, dns, gateway, ingress, local-storage, load-balancer.
+Enable one or more core cluster features.
+
+Available features: network, dns, gateway, ingress, local-storage, load-balancer
 
 ```
 k8s enable [network|dns|gateway|ingress|local-storage|load-balancer] ... [flags]

@@ -4,7 +4,10 @@ Get cluster configuration
 
 ### Synopsis
 
-Show configuration of one of network, dns, gateway, ingress, local-storage, load-balancer.
+Get the cluster configuration for a specific feature. If no feature is specified,
+display all configuration.
+
+Available features: network, dns, gateway, ingress, local-storage, load-balancer
 
 ```
 k8s get <feature.key> [flags]

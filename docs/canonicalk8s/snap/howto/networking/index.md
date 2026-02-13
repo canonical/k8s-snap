@@ -15,5 +15,5 @@ Use an alternative CNI <alternative-cni.md>
 Enable Dual-Stack networking <dualstack.md>
 Set up an IPv6-only cluster <ipv6.md>
 Configure proxy settings <proxy.md>
-Configure UFW <ufw.md>
+Configure firewall <ufw.md>
 ```

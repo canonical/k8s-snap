@@ -241,6 +241,7 @@ linkcheck_ignore = [
     r'https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-24',
     'https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/',
     'https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/',
+    'https://developer.hashicorp.com/vault/docs',
     ]
 
 

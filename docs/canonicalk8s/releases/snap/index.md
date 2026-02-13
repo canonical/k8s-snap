@@ -10,7 +10,7 @@ and backwards-incompatible changes.
 ```{toctree}
 :titlesonly:
 :maxdepth: 2
-1.32
+1.32 LTS <1.32.md>
 1.33
 1.34
 1.35
