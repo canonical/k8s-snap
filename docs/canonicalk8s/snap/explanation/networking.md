@@ -30,7 +30,6 @@ suitable for bare-metal setups and private data-centers. If you are operating
 {{ product }} in a public cloud you should evaluate your cloud-provider's load 
 balancing solution as well.
 
-
 ### IP address allocation
 
 The load balancer feature assigns and releases IP addresses
