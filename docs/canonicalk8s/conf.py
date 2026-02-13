@@ -239,6 +239,7 @@ linkcheck_ignore = [
     'https://www.squid-cache.org/',
     'https://www.esd.whs.mil/portals/54/documents/dd/issuances/dodi/855101p.pdf',
     r'https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-24',
+    'https://developer.hashicorp.com/vault/docs',
     ]
 
 
