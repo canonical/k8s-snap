@@ -3,7 +3,7 @@
 Dual-stack networking allows Kubernetes to support both IPv4 and IPv6 addresses
 simultaneously. This means that your pods, services can be assigned
 both IPv4 and IPv6 addresses, allowing them to communicate over either protocol.
-This document will guide you through enabling dual-stack on {{product}}, 
+This document will guide you through enabling dual-stack on {{product}},
 including necessary configurations, known limitations, and common issues.
 
 ## Prerequisites
@@ -64,7 +64,7 @@ manifest that creates a service with `ipFamilyPolicy: RequireDualStack`.
 It also creates an nginx deployment sample workload.
 
 ```
-sudo k8s kubectl apply -f https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/canonicalk8s/assethow-to-dualstack-manifest.yaml
+sudo k8s kubectl apply -f https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/canonicalk8s/asset/how-to-dualstack-manifest.yaml
 ```
 
 ## Check IPv6 connectivity
