@@ -43,7 +43,7 @@ on:
           (e.g. use ["self-hosted", "linux", "jammy", "xlarge"] instead of ["self-hosted-linux-amd64-noble-2xlarge"])
         type: string
         required: false
-        default: '{"tests/test_version_upgrades.py::test_version_upgrades": ["self-hosted", "linux", "jammy", "large"]}'
+        default: '{"tests/test_version_upgrades.py::test_version_upgrades": ["self-hosted", "linux", "jammy", "large"], "tests/test_smoke.py::test_smoke": ["self-hosted", "linux", "jammy", "xlarge"]}'
 
 jobs:
   prepare:

@@ -71,6 +71,15 @@ case "${BASE_DISTRO}" in
     lxc shell tmp-builder -- bash -c 'snap install '"${BASE_SNAP}"
     # NOTE(aznashwan): 'nf_conntrack' required by kube-proxy:
     lxc shell tmp-builder -- bash -c 'apt update && apt install -y "linux-modules-$(uname -r)"'
+    # NOTE: Workaround for Ubuntu 20.04: disable AppArmor to prevent Cilium
+    # operator crashes ("listen tcp 127.0.0.1:9891: socket: permission denied")
+    # on host kernels >= 6.14, which enforce AppArmor profiles more strictly
+    # than 20.04's older profiles expect. 22.04+ ships updated profiles and is
+    # unaffected. This is a temporary workaround.
+    if [[ "${BASE_IMAGE}" == *"20.04"* ]]; then
+      lxc shell tmp-builder -- bash -c 'systemctl disable apparmor --now'
+      lxc shell tmp-builder -- bash -c 'aa-teardown'
+    fi
     ;;
   almalinux)
     # install snapd and ensure /snap/bin is in the environment
