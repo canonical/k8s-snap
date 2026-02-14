@@ -5,7 +5,7 @@ have security implications on {{product}}.
 
 ## Security pages
 
-- [Security overview explanation]
+- [Security explanation]
 - [Cryptography in Canonical Kubernetes explanation]
 - [How to report a security issue]
 
@@ -39,10 +39,10 @@ and much more.
 [Architecture]:/charm/reference/architecture
 [Ports and services]:/charm/reference/ports-and-services.md
 [Release notes]:/releases/charm/index.md
-[Security overview explanation]: /charm/explanation/security.md
+[Security explanation]: /charm/explanation/security.md
 [How to upgrade minor version]: /charm/howto/upgrade-minor.md
 [How to upgrade patch version]:/charm/howto/upgrade-patch.md
 [Charm configurations]: /charm/reference/charm-configurations.md
-[Cryptography in Canonical Kubernetes explanation]: /snap/explanation/security/crypto.md
-[Certificates explanation]: /snap/explanation/security/certificates
+[Cryptography in Canonical Kubernetes explanation]: /charm/explanation/security.md#cryptography
+[Certificates explanation]: /charm/explanation/security.md#certificates
 [How to report a security issue]: /charm/howto/report-security-issue.md
