@@ -124,3 +124,8 @@ def test_smoke(instances: List[harness.Instance]):
     util.stubbornly(retries=15, delay_s=10).on(instance).until(
         condition=lambda p: util.status_output_matches(p, STATUS_PATTERNS),
     ).exec(["k8s", "status", "--wait-ready"])
+
+    LOG.info("Verifying snap service health")
+    util.check_snap_services_ready(instance)
+    util.check_service_restarts(instance)
+    util.check_service_logs_for_panics(instance)
