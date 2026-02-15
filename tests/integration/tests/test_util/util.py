@@ -1153,6 +1153,103 @@ def check_snap_services_ready(
             ), f"Unexpected service {service} is {status} but should be inactive"
 
 
+def _get_enabled_services(instance: harness.Instance) -> List[str]:
+    """Return enabled k8s snap service names without the 'k8s.' prefix."""
+    result = instance.exec(["snap", "services", "k8s"], capture_output=True, text=True)
+    services = []
+    for line in result.stdout.strip().split("\n")[1:]:
+        parts = line.split()
+        if len(parts) >= 3 and parts[1] == "enabled":
+            services.append(parts[0].replace("k8s.", "", 1))
+    return services
+
+
+def check_service_restarts(
+    instance: harness.Instance,
+    services: Optional[List[str]] = None,
+    max_restarts: int = 0,
+):
+    """
+    Check that k8s snap services have not restarted excessively.
+    Uses systemctl show to read the NRestarts counter for each service.
+    By default, fails if any service has restarted at all (max_restarts=0).
+    """
+    if services is None:
+        services = _get_enabled_services(instance)
+
+    violations = []
+    for service in services:
+        result = instance.exec(
+            ["systemctl", "show", f"snap.k8s.{service}", "-p", "NRestarts"],
+            capture_output=True,
+            text=True,
+        )
+        n_restarts = int(result.stdout.strip().split("=")[1])
+        if n_restarts > max_restarts:
+            violations.append((service, n_restarts))
+
+    assert (
+        not violations
+    ), f"Services have restarted more than {max_restarts} time(s): " + ", ".join(
+        f"{s} ({n} restarts)" for s, n in violations
+    )
+
+
+def check_service_logs_for_panics(
+    instance: harness.Instance,
+    services: Optional[List[str]] = None,
+    num_log_lines: int = 10000,
+):
+    """
+    Check that k8s snap service logs do not contain Go panic traces or segfaults.
+    Scans the last N lines of journalctl output for each service, looking for
+    panic indicators and segmentation faults.
+    """
+    PANIC_PATTERNS = [
+        r"panic:",
+        r"runtime error:",
+        r"goroutine \d+ \[",
+        r"SIGSEGV",
+        r"segfault",
+    ]
+    panic_re = re.compile("|".join(PANIC_PATTERNS), flags=re.IGNORECASE)
+
+    if services is None:
+        services = _get_enabled_services(instance)
+
+    panics_found = {}
+    for service in services:
+        result = instance.exec(
+            [
+                "journalctl",
+                "-n",
+                str(num_log_lines),
+                "-u",
+                f"snap.k8s.{service}",
+                "--no-pager",
+            ],
+            capture_output=True,
+            text=True,
+        )
+        matching_lines = [
+            line.strip() for line in result.stdout.split("\n") if panic_re.search(line)
+        ]
+        if matching_lines:
+            panics_found[service] = matching_lines
+
+    if panics_found:
+        details = []
+        for service, lines in panics_found.items():
+            sample = lines[:5]
+            suffix = f"\n    (... and {len(lines) - 5} more)" if len(lines) > 5 else ""
+            details.append(
+                f"  {service}:\n" + "\n".join(f"    {line}" for line in sample) + suffix
+            )
+        assert False, "Panic/segfault traces found in service logs:\n" + "\n".join(
+            details
+        )
+
+
 def is_fips_enabled(instance: harness.Instance):
     """
     Returns True if the provided instance is running with FIPS enabled, False otherwise.
