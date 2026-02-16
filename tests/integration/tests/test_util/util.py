@@ -1115,7 +1115,7 @@ def wait_for_ports_available(
     """
     if ports is None:
         # Default Kubernetes service ports (including kube-apiserver)
-        ports = [6443, 10248, 10249, 10250, 10256, 10257, 10259]
+        ports = [6443, 10248, 10249, 10250, 10256, 10257, 10259, 2379, 2380]
 
     def ports_available():
         try:
