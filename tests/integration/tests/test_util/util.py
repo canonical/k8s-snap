@@ -1102,8 +1102,8 @@ def wait_for_services_stopped(
 def wait_for_ports_available(
     instance: harness.Instance,
     ports: List[int] = None,
-    retries: int = 30,
-    delay_s: int = 2,
+    retries: int = 60,
+    delay_s: int = 5,
 ):
     """Wait for specified ports to become available (not in use).
 
@@ -1116,6 +1116,8 @@ def wait_for_ports_available(
     if ports is None:
         # Default Kubernetes service ports (including kube-apiserver)
         ports = [6443, 10248, 10249, 10250, 10256, 10257, 10259, 2379, 2380]
+
+    LOG.info(f"Waiting for ports {ports} to become available...")
 
     def ports_available():
         try:
@@ -1137,8 +1139,9 @@ def wait_for_ports_available(
                     ports_in_use.append(port)
 
             if ports_in_use:
-                LOG.debug(f"Ports still in use: {ports_in_use}")
+                LOG.info(f"Ports still in use: {ports_in_use}")
                 return False
+            LOG.info("All ports are now available")
             return True
         except subprocess.CalledProcessError as e:
             LOG.warning(f"Failed to check ports: {e}")
