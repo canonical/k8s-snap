@@ -11,7 +11,7 @@ var (
 	ChartCilium = helm.InstallableChart{
 		Name:         "ck-network",
 		Namespace:    "kube-system",
-		ManifestPath: filepath.Join("charts", "cilium-1.17.1.tgz"),
+		ManifestPath: filepath.Join("charts", "cilium-1.17.12.tgz"),
 	}
 
 	// ChartCiliumLoadBalancer represents manifests to deploy Cilium LoadBalancer resources.
