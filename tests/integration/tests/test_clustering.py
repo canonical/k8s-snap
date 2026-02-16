@@ -603,9 +603,6 @@ def test_join_worker_with_duplicate_name_rejected(instances: List[harness.Instan
 
 
 @pytest.mark.tags(tags.NIGHTLY)
-@pytest.mark.xfail(
-    reason="Microcluster currently does not support properly handle node re-joining after removal"
-)
 def test_join_previously_removed_node(
     instances: List[harness.Instance],
 ):
