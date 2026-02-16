@@ -603,6 +603,7 @@ def test_join_worker_with_duplicate_name_rejected(instances: List[harness.Instan
 
 
 @pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.node_count(3)
 def test_join_previously_removed_node(
     instances: List[harness.Instance],
 ):
