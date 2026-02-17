@@ -20,7 +20,6 @@ If you cannot meet these requirements, please see the [Installing][] page for
 alternative options.
 ```
 
-```{note}
 The snap may conflict with other software such as Docker or containerd,
 which is why we recommend using a clean, isolated environment when trying
 out {{product}}. If using LXD, use virtual machines rather than containers
@@ -28,7 +27,6 @@ out {{product}}. If using LXD, use virtual machines rather than containers
 
 See the [development env guide] if you'd rather install the snap directly
 on your development machine.
-```
 
 ## Check available channels (optional)
 
