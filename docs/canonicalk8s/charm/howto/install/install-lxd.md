@@ -11,8 +11,11 @@ Juju can leverage LXD by:
   the 'to:' directive to install to an existing machine)
 
 ```{warning}
-LXD privileged containers are no longer supported and some Kubernetes services,
-such as the Cilium CNI, cannot run inside unprivileged containers.
+Using LXD containers for Canonical Kubernetes deployments is not recommended.
+Some Kubernetes services, such as Cilium, require privileged containers
+to function properly. However, privileged containers allow the root user in the
+container to be the root user on the host, creating security risks. Additionally,
+newer versions of Ubuntu and systemd have compatibility issues with this setup.
 ```
 
 As such, we recommend using LXD virtual machines, which also ensure that the
