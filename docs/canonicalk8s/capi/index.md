@@ -79,6 +79,5 @@ and constructive feedback.
 [contribute]: ../snap/howto/contribute
 [releases]: /releases/snap/index.md
 [overview page]: /about
-[arch]: ../charm/reference/architecture
 [Juju]: https://juju.is
 [k8s snap package]: ../snap/index

@@ -44,12 +44,10 @@ understand the security posture of {{product}} such as what ports are exposed,
 what are the different security configuration options available during bootstrap
 and much more.
 
-- [Architecture]
 - [Ports and services]
 - [Configuration files]
 
 <!-- LINKS -->
-[Architecture]:/snap/reference/architecture
 [Ports and services]:/snap/reference/ports-and-services.md
 [Configuration files]:/snap/reference/config-files/index
 [How to report a security issue]:/snap/howto/security/report-security-issue.md
