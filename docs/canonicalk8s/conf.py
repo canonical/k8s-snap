@@ -216,7 +216,7 @@ templates_path = [".sphinx/_templates"]
 # NOTE: If undefined, set to None, or empty,
 #       the sphinx_reredirects extension will be disabled.
 
-redirects = {}
+rediraffe_redirects = "redirects.txt"
 
 
 ###########################
