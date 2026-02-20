@@ -2,9 +2,9 @@
 #     "<old path>" "<current path>"
 # Paths must be represented as source files relative to the root of the `docs` dir.
 
-"latest/snap/explanation/about" "latest/about"
-"latest/charm/explanation/about" "latest/about"
-"latest/capi/explanation/about" "latest/about"
-"latest/snap/reference/community/" "latest/community"
-"latest/charm/reference/community/" "latest/community"
-"latest/capi/reference/community/" "latest/community"
+"snap/explanation/about" "about"
+"charm/explanation/about" "about"
+"capi/explanation/about" "about"
+"snap/reference/community" "community"
+"charm/reference/community" "community"
+"capi/reference/community" "community"
