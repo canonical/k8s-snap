@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: Overview of security in Canonical Kubernetes 
+---
+
 # Security in {{product}}
 
 This page provides links to the various pages across our documentation that
