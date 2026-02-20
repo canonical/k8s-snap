@@ -13,7 +13,7 @@ on how to best achieve a certain goal or maybe some aspect of your Kubernetes
 doesn't behave the way you expect. Perhaps you'd just like some advice from
 more experienced users. There are a number of ways to get in touch:
 
-- Using the [Kubernetes slack][slack]: find us in the 
+- Using the [Kubernetes slack][slack]: find us in the
   [#canonical-kubernetes][canonical-k8s] channel
 - On the [Ubuntu Discourse][discourse]
 
@@ -45,8 +45,8 @@ repository. We aim to respond to any PRs within three working days.
 
 Our documentation is extremely important to us and is actively maintained by
 the entire team. That doesn't mean that it can't be improved though. Every page
-in the documentation has an "Edit this page" link in the bottom right which 
-takes you to GitHub to make small changes. For larger contributions, please see 
+in the documentation has an "Edit this page" link in the bottom right which
+takes you to GitHub to make small changes. For larger contributions, please see
 the [Contributing guide].
 
 **Our commitment to you**: Comments are usually read daily and we are really
