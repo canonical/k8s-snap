@@ -80,10 +80,10 @@ and constructive feedback.
 <!-- LINKS -->
 
 [Code of Conduct]: https://ubuntu.com/community/ethos/code-of-conduct
-[community]: reference/community
+[community]: /community
 [contribute]: /snap/howto/contribute
 [releases]: /releases/charm/index
-[what is Canonical Kubernetes page]: /charm/explanation/about
+[what is Canonical Kubernetes page]: /about
 [arch]: /charm/explanation/architecture
 [Juju]: https://juju.is
 [k8s snap package]: /snap/index

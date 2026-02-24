@@ -1,0 +1,10 @@
+# Client-side page redirects. Each mapping takes the format:
+#     "<old path>" "<current path>"
+# Paths must be represented as source files relative to the root of the `docs/canonicalk8s` dir.
+
+"snap/explanation/about" "about"
+"charm/explanation/about" "about"
+"capi/explanation/about" "about"
+"snap/reference/community" "community"
+"charm/reference/community" "community"
+"capi/reference/community" "community"

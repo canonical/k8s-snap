@@ -75,10 +75,10 @@ and constructive feedback.
 <!-- LINKS -->
 
 [Code of Conduct]: https://ubuntu.com/community/ethos/code-of-conduct
-[community]: ../charm/reference/community
+[community]: /community
 [contribute]: ../snap/howto/contribute
 [releases]: /releases/snap/index.md
-[overview page]: ../charm/explanation/about
+[overview page]: /about
 [arch]: ../charm/reference/architecture
 [Juju]: https://juju.is
 [k8s snap package]: ../snap/index

@@ -7,6 +7,6 @@ Support for {{product}} is available in a variety of ways:
 - Professional support services with [Ubuntu Support]
 
 <!--LINKS -->
-[{{product}} Community]: ../reference/community
+[{{product}} Community]: /community
 [Troubleshooting Techniques]: ../reference/troubleshooting
 [Ubuntu Support]: https://ubuntu.com/support

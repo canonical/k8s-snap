@@ -205,7 +205,7 @@ press `F5` in your browser to reload the page without caching)!
 [code repo]: https://github.com/canonical/k8s-snap
 [Diátaxis website]: https://diataxis.fr/
 [_parts]: https://github.com/canonical/k8s-snap/blob/main/docs/canonicalk8s/_parts/doc-cheat-sheet-myst.md
-[community page]: ../reference/community
+[community page]: /community
 [Tutorial template]: https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/canonicalk8s/_parts/template-tutorial
 [How to template]: https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/canonicalk8s/_parts/template-howto
 [Explanation template]: https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/canonicalk8s/_parts/template-explanation

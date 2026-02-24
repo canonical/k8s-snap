@@ -96,6 +96,6 @@ and constructive feedback.
 <!-- LINKS -->
 
 [Code of Conduct]: https://ubuntu.com/community/ethos/code-of-conduct
-[community]: /snap/reference/community
+[community]: /community
 [contribute]: /snap/howto/contribute
 [releases]: /releases/index

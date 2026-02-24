@@ -1,12 +1,12 @@
-From f445271144cb0d880a290424badb40ea7db268d9 Mon Sep 17 00:00:00 2001
+From 5894b02d173f83ee07cac29841e59533a30aa76a Mon Sep 17 00:00:00 2001
 From: Angelos Kolaitis <angelos.kolaitis@canonical.com>
 Date: Sun, 16 Jun 2024 16:58:03 +0300
 Subject: [PATCH] side-load images plugin
 
 ---
  cmd/containerd/builtins_custom.go |   6 ++
- custom_plugins/sideload.go        | 143 ++++++++++++++++++++++++++++++
- 2 files changed, 149 insertions(+)
+ custom_plugins/sideload.go        | 144 ++++++++++++++++++++++++++++++
+ 2 files changed, 150 insertions(+)
  create mode 100644 cmd/containerd/builtins_custom.go
  create mode 100644 custom_plugins/sideload.go
 
@@ -24,10 +24,10 @@ index 000000000..d4bfd80c5
 +)
 diff --git a/custom_plugins/sideload.go b/custom_plugins/sideload.go
 new file mode 100644
-index 000000000..f661a8d4e
+index 000000000..05b480b65
 --- /dev/null
 +++ b/custom_plugins/sideload.go
-@@ -0,0 +1,155 @@
+@@ -0,0 +1,144 @@
 +package custom_plugins
 +
 +import (
@@ -84,6 +84,13 @@ index 000000000..f661a8d4e
 +		Type:   plugins.ServicePlugin,
 +		ID:     pluginName,
 +		Config: c,
++		Requires: []plugin.Type{
++			plugins.EventPlugin,
++			plugins.LeasePlugin,
++			plugins.SandboxStorePlugin,
++			plugins.TransferPlugin,
++			plugins.ServicePlugin,
++		},
 +		InitFn: func(ic *plugin.InitContext) (interface{}, error) {
 +			config := ic.Config.(*Config)
 +			config.SetDefaults()
@@ -97,42 +104,24 @@ index 000000000..f661a8d4e
 +				return nil, fmt.Errorf("no sources configured: %w", plugin.ErrSkipPlugin)
 +			}
 +
++			cl, err := containerd.New(
++				"",
++				containerd.WithDefaultNamespace(config.Namespace),
++				containerd.WithDefaultPlatform(platforms.Default()),
++				containerd.WithInMemoryServices(ic),
++				containerd.WithTimeout(2*time.Second),
++			)
++			if err != nil {
++				return nil, fmt.Errorf("sideload: failed to create containerd client: %w", err)
++			}
++
++			ctx := ic.Context
 +			go func() {
-+				// get a containerd client
-+				var (
-+					cl  *containerd.Client
-+					err error
-+				)
-+
-+				// Retry with exponential backoff to avoid race conditions during plugin initialization
-+				retries := 0
-+				maxRetries := 10
-+				for cl == nil && retries < maxRetries {
-+					select {
-+					case <-ic.Context.Done():
-+						return
-+					default:
++				defer func() {
++					if err := cl.Close(); err != nil {
++						logger.WithError(err).Warn("Failed to close containerd client")
 +					}
-+
-+					cl, err = containerd.New(
-+						"",
-+						containerd.WithDefaultNamespace(config.Namespace),
-+						containerd.WithDefaultPlatform(platforms.Default()),
-+						containerd.WithInMemoryServices(ic),
-+						containerd.WithTimeout(2*time.Second))
-+					if err != nil {
-+						retries++
-+						backoff := time.Duration(retries*retries) * 100 * time.Millisecond
-+						logger.WithError(err).Debugf("Failed to create containerd client (attempt %d/%d), retrying in %v", retries, maxRetries, backoff)
-+						time.Sleep(backoff)
-+					}
-+				}
-+
-+				if cl == nil {
-+					logger.Error("Failed to create containerd client after retries, plugin will not load images")
-+					return
-+				}
-+
++				}()
 +				for {
 +				nextDir:
 +					for _, dir := range config.Sources {
@@ -152,8 +141,8 @@ index 000000000..f661a8d4e
 +								logger.WithError(err).Warn("Failed to open file")
 +								continue nextFile
 +							}
-+							ctx := namespaces.WithNamespace(ic.Context, config.Namespace)
-+							images, err := cl.Import(ctx, r, containerd.WithImportPlatform(platforms.DefaultStrict()))
++							nsCtx := namespaces.WithNamespace(ctx, config.Namespace)
++							images, err := cl.Import(nsCtx, r, containerd.WithImportPlatform(platforms.DefaultStrict()))
 +							if err != nil {
 +								logger.WithError(err).Error("Failed to import images")
 +							} else {
@@ -172,7 +161,7 @@ index 000000000..f661a8d4e
 +						return
 +					}
 +					select {
-+					case <-ic.Context.Done():
++					case <-ctx.Done():
 +						return
 +					case <-time.After(config.Interval):
 +					}
@@ -183,5 +172,5 @@ index 000000000..f661a8d4e
 +		},
 +	})
 +}
---
-2.34.1
+-- 
+2.43.0

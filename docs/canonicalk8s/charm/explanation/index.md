@@ -20,7 +20,6 @@ method that best suits your orchestration needs.
 
 ```{toctree}
 :titlesonly:
-about
 architecture
 installation-methods.md
 ```

@@ -80,13 +80,6 @@ troubleshooting
 inspection-reports
 ```
 
-## Contributing
-
-```{toctree}
-:titlesonly:
-Community <community>
-```
-
 ---
 
 ## Other documentation types

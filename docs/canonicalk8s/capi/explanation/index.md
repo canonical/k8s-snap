@@ -16,7 +16,6 @@ method that best suits your orchestration needs.
 
 ```{toctree}
 :titlesonly:
-about
 capi-ck8s.md
 installation-methods.md
 ```
