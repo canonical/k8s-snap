@@ -37,13 +37,6 @@ Ports and services <ports-and-services>
 
 ```
 
-## Contributing
-
-```{toctree}
-:titlesonly:
-Community <community>
-```
-
 ---
 
 ## Other documentation types

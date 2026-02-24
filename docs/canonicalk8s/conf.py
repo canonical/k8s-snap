@@ -207,17 +207,21 @@ templates_path = [".sphinx/_templates"]
 # Redirects #
 #############
 
-# To set up redirects: https://documatt.gitlab.io/sphinx-reredirects/usage.html
-# For example: 'explanation/old-name.html': '../how-to/prettify.html',
-
 # To set up redirects in the Read the Docs project dashboard:
 # https://docs.readthedocs.io/en/stable/guides/redirects.html
 
+# Internal redirects
+# Handled by rediraffe 
+rediraffe_redirects = "redirects.txt"
+
+# External redirects 
+# Docs for sphinx_reredirect: https://documatt.gitlab.io/sphinx-reredirects/usage.html
+# For example: 'explanation/old-name.html': '../how-to/prettify.html',
+
 # NOTE: If undefined, set to None, or empty,
 #       the sphinx_reredirects extension will be disabled.
-
-redirects = {}
-
+redirects = {
+}
 
 ###########################
 # Link checker exceptions #
@@ -305,6 +309,7 @@ extensions = [
     "sphinx_last_updated_by_git",
     "sphinx.ext.intersphinx",
     "sphinx_sitemap",
+    "sphinxext.rediraffe",
 ]
 
 # Excludes files or directories from processing
