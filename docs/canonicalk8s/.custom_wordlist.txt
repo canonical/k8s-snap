@@ -387,6 +387,7 @@ openssl
 OpenSSL's
 OpenStack
 openstack
+opentelemetry
 orchestrator
 OSD
 OSDs
