@@ -241,6 +241,7 @@ linkcheck_ignore = [
     r'https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-24',
     'https://multipass.run/docs',
     'https://developer.hashicorp.com/vault/docs',
+    'https://kubernetes.io/docs/reference/command-line-tools-reference/feature-gates-removed',
     ]
 
 
