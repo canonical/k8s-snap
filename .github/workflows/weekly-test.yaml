@@ -73,7 +73,7 @@ jobs:
   
   docs:
     name: Docs linkcheck (${{ matrix.ref }})
-    strategy: 
+    strategy:
       fail-fast: false
       matrix:
         ref:
