@@ -94,23 +94,23 @@ juju consume cos-lite.grafana
 juju consume cos-lite.prometheus
 ```
 
-Deploy the grafana-agent:
+Deploy the opentelemetry-collector:
 
 ```
-juju deploy grafana-agent
+juju deploy opentelemetry-collector --channel=2/stable
 ```
 
-Relate `grafana-agent` to `k8s`:
+Relate `opentelemetry-collector` to `k8s`:
 
 ```
-juju integrate grafana-agent:cos-agent k8s:cos-agent
+juju integrate opentelemetry-collector:cos-agent k8s:cos-agent
 ```
 
-Relate `grafana-agent` to the COS Lite offered interfaces:
+Relate `opentelemetry-collector` to the COS Lite offered interfaces:
 
 ```
-juju integrate grafana-agent grafana
-juju integrate grafana-agent prometheus
+juju integrate opentelemetry-collector grafana
+juju integrate opentelemetry-collector prometheus
 ```
 
 Get the credentials and login URL for Grafana:
