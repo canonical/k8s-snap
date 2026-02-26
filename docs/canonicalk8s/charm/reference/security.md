@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: Overview of security in Canonical Kubernetes 
+---
+
 # Security in {{product}}
 
 This page provides links to the various pages across our documentation that
@@ -30,13 +36,11 @@ understand the security posture of {{product}}, such as which ports are
 exposed, the available security configuration options during bootstrap, 
 and much more.
 
-- [Architecture]
 - [Ports and services]
 - [Charm configurations]
 
 
 <!-- LINKS -->
-[Architecture]:/charm/reference/architecture
 [Ports and services]:/charm/reference/ports-and-services.md
 [Release notes]:/releases/charm/index.md
 [Security explanation]: /charm/explanation/security.md
