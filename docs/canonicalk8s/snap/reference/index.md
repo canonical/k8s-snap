@@ -82,6 +82,7 @@ inspection-reports
 ## Hardware Requirements
 
 Suggested minimum hardware requirements to run Kubernetes.
+
 ```{toctree}
 :titlesonly:
 hw-requirements

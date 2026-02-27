@@ -1,4 +1,4 @@
-# Hardware Requirements
+# Hardware requirements
 
 The following are the suggested minimum hardware requirements 
 for running Canonical's various Kubernetes products. Note 
@@ -10,7 +10,7 @@ complex use cases.
 
 | Component | Specification | Notes |
 | --- | --- | --- |
-| CPU | 2 core | amd64/arm64 only |
+| CPU | 2 cores | amd64/arm64 only |
 | RAM | 8 GiB | |
 | Root Disk | 20 GiB of free space | SSD |
 
@@ -18,7 +18,7 @@ complex use cases.
 
 | Component | Specification | Notes |
 | --- | --- | --- |
-| CPU | 2 core | amd64/arm64 only |
+| CPU | 2 cores | amd64/arm64 only |
 | RAM | 16 GiB | |
 | Root Disk | 40 GiB of free space | SSD |
 
@@ -26,7 +26,7 @@ complex use cases.
 
 | Component | Specification | Notes |
 | --- | --- | --- |
-| CPU | 4 core | amd64/arm64 only |
+| CPU | 4 cores | amd64/arm64 only |
 | RAM | 32 GiB | |
 | Root Disk | 128 GiB of free space | SSD |
 
@@ -34,6 +34,6 @@ complex use cases.
 
 | Component | Specification | Notes |
 | --- | --- | --- |
-| CPU | 2 core | amd64/arm64 only |
+| CPU | 2 cores | amd64/arm64 only |
 | RAM | 4 GiB | |
 | Root Disk | 20 GiB of free space | SSD |
