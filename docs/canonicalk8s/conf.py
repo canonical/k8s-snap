@@ -240,6 +240,7 @@ linkcheck_ignore = [
     'https://www.esd.whs.mil/portals/54/documents/dd/issuances/dodi/855101p.pdf',
     r'https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-24',
     'https://developer.hashicorp.com/vault/docs',
+    'https://kubernetes.io/docs/reference/config-api/',
     ]
 
 
@@ -264,7 +265,7 @@ linkcheck_anchors_ignore_for_url = [
     ]
 
 # give linkcheck multiple tries on failure
-# linkcheck_timeout = 30
+linkcheck_timeout = 30
 linkcheck_retries = 3
 
 ########################
