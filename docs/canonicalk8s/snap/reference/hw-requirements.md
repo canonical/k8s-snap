@@ -1,10 +1,13 @@
 # Hardware Requirements
 
-The following are the suggested minimum hardware requirements for running Canonical's 
-various Kubernetes products. Note that running with these resources will only allow
-for basic usage, and extra resource allotment is expected for complex use cases.
+The following are the suggested minimum hardware requirements 
+for running Canonical's various Kubernetes products. Note 
+that running with these resources will only allow for 
+basic usage, and extra resource allotment is expected for 
+complex use cases.
 
 ## Canonical Kubernetes (Snap)
+
 | Component | Specification | Notes |
 | --- | --- | --- |
 | CPU | 2 core | amd64/arm64 only |
