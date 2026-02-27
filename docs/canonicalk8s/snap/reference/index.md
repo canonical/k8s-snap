@@ -87,6 +87,7 @@ Suggested minimum hardware requirements to run Kubernetes.
 :titlesonly:
 hw-requirements
 ```
+
 ---
 
 ## Other documentation types
