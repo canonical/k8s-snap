@@ -332,7 +332,7 @@ to the cluster.
 [proxy]: /snap/howto/networking/proxy.md
 [regsync]: https://github.com/regclient/regclient/blob/main/docs/regsync.md
 [regctl]: https://github.com/regclient/regclient/blob/main/docs/regctl.md
-[regctl.sh]: https://github.com/canonical/k8s-snap/blob/main/src/k8s/tools/regctl.sh
+[regctl.sh]: https://github.com/canonical/k8s-snap/blob/release-1.35/src/k8s/tools/regctl.sh
 [nodes]: /snap/tutorial/add-remove-nodes.md
 [squid]: https://www.squid-cache.org/
 [generate a join token]: /snap/reference/commands/#k8s-get-join-token
