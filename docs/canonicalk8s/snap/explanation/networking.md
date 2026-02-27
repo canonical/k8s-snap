@@ -78,7 +78,7 @@ down at a time.
 The load balancer feature allows you to expose your workloads externally
 and distribute incoming network traffic from outside of your cluster to the
 services inside. The load balancer feature is suitable for bare-metal setups
-and private data centres. If you are operating {{product}} in a public cloud
+and private data centers. If you are operating {{product}} in a public cloud
 you should evaluate your cloud provider's load balancing solution as well.
 
 Learn how to configure the load balancer in the
@@ -100,17 +100,17 @@ Layer 2 mode or Border Gateway Protocol (BGP) mode.
 
 In Layer 2 mode, a cluster node takes responsibility for advertising the
 service IP to the local network. Traffic routing relies on Address Resolution
-Protocol ([ARP]) for IPv4 and Neighbour Discovery Protocol ([NDP]) for IPv6.
+Protocol ([ARP]) for IPv4 and Neighbor Discovery Protocol ([NDP]) for IPv6.
 While this mode is straightforward to set up, it is best suited for
 small-scale deployments. Consult the [Layer 2 mode documentation] for more
 information.
 
 #### BGP mode
 
-With BGP mode, cluster nodes establish peering sessions with neighbouring
+With BGP mode, cluster nodes establish peering sessions with neighboring
 routers to exchange routing information, enabling efficient traffic
 distribution. Traffic is balanced across nodes ensuring efficient resource
-utilisation. While this approach requires more configuration, it is suitable
+utilization. While this approach requires more configuration, it is suitable
 for large-scale deployments. Refer to the [BGP mode documentation] for more
 details.
 
