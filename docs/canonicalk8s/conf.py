@@ -332,7 +332,7 @@ html_css_files = [
 
 html_js_files = [
         "github_issue_links.js",
-        "js/bundle.js"
+        "bundle.js"
         ]
 
 
