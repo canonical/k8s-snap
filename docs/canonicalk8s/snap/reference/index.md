@@ -71,11 +71,10 @@ ports-and-services
 
 ## Troubleshooting
 
-Common issues faced by users and their solutions.
+Generate a report to help troubleshoot your cluster
 
 ```{toctree}
 :titlesonly:
-troubleshooting
 inspection-reports
 ```
 

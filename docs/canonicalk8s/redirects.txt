@@ -12,3 +12,5 @@
 "snap/reference/architecture" "snap/explanation/architecture"
 "snap/reference/config-files/control-plane-join-config" "snap/reference/config-files/node-join-config"
 "snap/reference/config-files/worker-join-config" "snap/reference/config-files/node-join-config"
+"snap/reference/troubleshooting" "snap/howto/troubleshooting"
+"charm/reference/troubleshooting" "charm/howto/troubleshooting"

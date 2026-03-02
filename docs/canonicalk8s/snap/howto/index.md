@@ -84,7 +84,7 @@ identified and solved.
 :titlesonly:
 Set up cluster observability  <observability>
 Recover a cluster after quorum loss <restore-quorum>
-Troubleshooting <troubleshooting>
+Troubleshoot <troubleshooting>
 Get support <support>
 ```
 
