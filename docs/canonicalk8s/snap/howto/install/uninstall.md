@@ -8,7 +8,7 @@ snap from your system.
 ```{important}
 You must remove the node from the cluster **before** deleting the snap.
 Deleting the snap while the node is part of the cluster can cause the node to enter an unreachable state.
-In this case, the node needs to be removed with the `--force` flag as explained in the [troubleshooting page].
+In this case, the node needs to be removed with the `--force` flag as explained in the {ref}`remove-permanently-lost-node` section of the troubleshooting guide.
 ```
 
 From any control plane node:
@@ -53,6 +53,3 @@ This command should produce an output similar to:
 ```
 error: no matching snaps installed
 ```
-
-<!-- Links -->
-[troubleshooting page]: ../../reference/troubleshooting.md#remove-a-permanently-lost-node-from-the-cluster

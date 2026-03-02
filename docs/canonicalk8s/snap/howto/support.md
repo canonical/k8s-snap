@@ -8,5 +8,5 @@ Support for {{product}} is available in a variety of ways:
 
 <!--LINKS -->
 [{{product}} Community]: /community
-[Troubleshooting Techniques]: ../reference/troubleshooting
+[Troubleshooting Techniques]: /charm/howto/troubleshooting
 [Ubuntu Support]: https://ubuntu.com/support
