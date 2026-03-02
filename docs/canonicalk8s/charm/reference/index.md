@@ -8,13 +8,6 @@ information such as the command reference or release notes.
 Overview <self>
 ```
 
-## System components
-
-```{toctree}
-:titlesonly:
-Architecture diagrams <architecture>
-```
-
 ## Charms
 
 Learn about the `k8s` and `k8s-worker` charms, their configurations and actions.

@@ -1,13 +1,15 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
+import base64
 import concurrent.futures
 import datetime
+import json
 import logging
 import os
 import subprocess
 import time
-from typing import List
+from typing import Any, List
 
 import pytest
 import tenacity
@@ -600,6 +602,70 @@ def test_join_worker_with_duplicate_name_rejected(instances: List[harness.Instan
     )
 
 
+@pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.node_count(3)
+@pytest.mark.xfail(
+    run=False,
+    reason="Microcluster currently does not support rejoining of removed nodes",
+)
+def test_join_previously_removed_node(
+    instances: List[harness.Instance],
+):
+    """Test that a previously removed node can successfully rejoin the cluster."""
+
+    cluster_node = instances[0]
+    joining_node_1 = instances[1]
+    joining_node_2 = instances[2]
+
+    util.wait_until_k8s_ready(cluster_node, [cluster_node])
+
+    join_token = util.get_join_token(cluster_node, joining_node_1)
+    util.join_cluster(joining_node_1, join_token)
+
+    join_token = util.get_join_token(cluster_node, joining_node_2)
+    util.join_cluster(joining_node_2, join_token)
+
+    util.wait_until_k8s_ready(cluster_node, instances)
+    assert "control-plane" in util.get_local_node_status(cluster_node)
+    assert "control-plane" in util.get_local_node_status(joining_node_1)
+    assert "control-plane" in util.get_local_node_status(joining_node_2)
+
+    # Remove joining_node_2 from the cluster
+    cluster_node.exec(["k8s", "remove-node", joining_node_2.id])
+
+    # Wait for all services except k8sd to stop on the removed node
+    LOG.info("Waiting for services to stop on the removed node...")
+    util.wait_for_services_stopped(joining_node_2, exclude_services=["k8sd"])
+
+    # Wait for all ports to become available again
+    LOG.info("Waiting for ports to become available on the removed node...")
+    util.wait_for_ports_available(joining_node_2)
+
+    # Get a new join token for joining_node_2
+    join_token = util.get_join_token(cluster_node, joining_node_2)
+
+    decoded_token = _parse_join_token(join_token)
+
+    assert (
+        util.get_default_ip(joining_node_2) not in decoded_token["join_addresses"]
+    ), "The previously removed node's IP should not be in the joining addresses"
+
+    try:
+        joining_node_2.exec(
+            ["k8s", "join-cluster", join_token], text=True, capture_output=True
+        )
+    except subprocess.CalledProcessError as e:
+        LOG.exception(
+            "Failed to re-join previously removed node: %s %s", e.stdout, e.stderr
+        )
+        raise
+
+    util.wait_until_k8s_ready(cluster_node, instances)
+    assert "control-plane" in util.get_local_node_status(cluster_node)
+    assert "control-plane" in util.get_local_node_status(joining_node_1)
+    assert "control-plane" in util.get_local_node_status(joining_node_2)
+
+
 def join_node_with_retry(
     cluster_node, joining_node, retries=25, delay_s=1, worker=False
 ):
@@ -648,3 +714,12 @@ def _get_instance_cert(
     pem = result.stdout
     cert = x509.load_pem_x509_certificate(pem, default_backend())
     return cert
+
+
+def _parse_join_token(token: str) -> dict[str, Any]:
+    try:
+        decoded = base64.b64decode(token, validate=True).decode("utf-8")
+        payload = json.loads(decoded)
+        return payload
+    except (ValueError, json.JSONDecodeError) as e:
+        raise RuntimeError("Invalid join token") from e

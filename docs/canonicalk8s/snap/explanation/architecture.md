@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: Learn about Canonical Kubernetes architectural design.
+---
+
 # Architecture
 
 A system architecture document is the starting point for many interested
