@@ -21,19 +21,3 @@ complex use cases.
 | CPU | 2 cores | amd64/arm64 only |
 | RAM | 16 GiB | |
 | Root Disk | 40 GiB of free space | SSD |
-
-## Charmed Kubernetes
-
-| Component | Specification | Notes |
-| --- | --- | --- |
-| CPU | 4 cores | amd64/arm64 only |
-| RAM | 32 GiB | |
-| Root Disk | 128 GiB of free space | SSD |
-
-## MicroK8s
-
-| Component | Specification | Notes |
-| --- | --- | --- |
-| CPU | 2 cores | amd64/arm64 only |
-| RAM | 4 GiB | |
-| Root Disk | 20 GiB of free space | SSD |
