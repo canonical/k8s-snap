@@ -103,6 +103,43 @@ sudo ufw allow 4240/tcp
 sudo ufw allow 8472/udp
 ```
 
+### Optional: allow Cilium metrics endpoints
+
+Allow metrics and health check endpoints for Cilium agent on all nodes:
+
+```sh
+sudo ufw allow 9879/tcp
+sudo ufw allow 9890/tcp
+sudo ufw allow 4244/tcp
+```
+
+### Optional: allow Cilium operator metrics
+
+Allow metrics and API endpoints for cilium-operator on control plane nodes:
+
+```sh
+sudo ufw allow 9234/tcp
+sudo ufw allow 9891/tcp
+sudo ufw allow 9963/tcp
+```
+
+### Optional: allow kube-proxy metrics and health checks
+
+Allow metrics and health check endpoints for kube-proxy on all nodes:
+
+```sh
+sudo ufw allow 10249/tcp
+sudo ufw allow 10256/tcp
+```
+
+### Optional: allow kubelet localhost health checks
+
+Allow kubelet localhost health check endpoint on all nodes:
+
+```sh
+sudo ufw allow 10248/tcp
+```
+
 ## Firewall rules for control plane nodes only
 
 Apply the following rules on all control plane nodes.
