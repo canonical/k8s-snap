@@ -1,3 +1,10 @@
+---
+myst:
+  html_meta:
+    description: Overview of Canonical Kubernetes networking features 
+    including CNI, DNS, load balancing, Ingress, and Gateway API.
+---
+
 # Networking
 
 In Kubernetes, understanding how traffic is managed inside of your
@@ -32,7 +39,8 @@ across the cluster.
 
 Key capabilities provided by the network feature:
 
-- **Pod connectivity**: All pods can communicate with each other without NAT.
+- **Pod connectivity**: All pods can communicate with each other without network
+  address translation (NAT).
 - **Service networking**: Kubernetes Services receive virtual IPs that route
   traffic to the correct set of pods.
 - **Network policy**: Network policies can be used to restrict traffic between
