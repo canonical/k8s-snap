@@ -20,6 +20,7 @@ customize new worker and control plane nodes.
 ---
 
 (worker-node-join-config)=
+
 ## Worker configuration options
 
 ```{include} /_parts/worker_join_config.md
