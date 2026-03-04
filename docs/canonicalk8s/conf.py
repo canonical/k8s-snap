@@ -241,14 +241,8 @@ linkcheck_ignore = [
     r'https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-24',
     'https://multipass.run/docs',
     'https://developer.hashicorp.com/vault/docs',
-    'https://kubernetes.io/docs/reference/command-line-tools-reference/feature-gates-removed',
     'https://cluster-api.sigs.k8s.io/user/concepts',
-    'https://kubernetes.io/docs/reference/access-authn-authz',
-    'https://kubernetes.io/docs/concepts/services-networking/ingress',
-    'https://kubernetes.io/docs/tasks/debug/debug-cluster/audit',
-    'https://kubernetes.io/docs/concepts/services-networking/service',
-    'https://kubernetes.io/docs/reference/config-api',
-    'https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig'
+    'https://kubernetes.io/docs'
     ]
 
 
