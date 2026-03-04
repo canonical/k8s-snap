@@ -1,8 +1,7 @@
 ---
 myst:
   html_meta:
-    description: Overview of Canonical Kubernetes networking features 
-    including CNI, DNS, load balancing, Ingress, and Gateway API.
+    description: Overview of Canonical Kubernetes networking features including CNI, DNS, load balancing, Ingress, and Gateway API.
 ---
 
 # Networking
