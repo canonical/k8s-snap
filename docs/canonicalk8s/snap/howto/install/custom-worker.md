@@ -63,7 +63,7 @@ sudo k8s join-cluster --output-format=json <JOIN-TOKEN>
 ### Configuration file
 
 More configuration options are available when a configuration file is specified.
-Please consult the {ref}`worker-node-join-config` reference page for all of the 
+Please consult the {ref}`worker-node-join-config` reference page for all of the
 available configuration options and their defaults.
 
 In this example, the configuration file provided at cluster join will set the
