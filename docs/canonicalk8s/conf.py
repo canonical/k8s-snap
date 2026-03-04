@@ -245,6 +245,7 @@ linkcheck_ignore = [
     'https://cluster-api.sigs.k8s.io/user/concepts',
     'https://kubernetes.io/docs/reference/access-authn-authz',
     'https://kubernetes.io/docs/concepts/services-networking/ingress',
+    'https://kubernetes.io/docs/tasks/debug/debug-cluster/audit',
     ]
 
 
