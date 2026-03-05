@@ -239,10 +239,12 @@ linkcheck_ignore = [
     'https://www.squid-cache.org',
     'https://www.esd.whs.mil/portals/54/documents/dd/issuances/dodi/855101p.pdf',
     r'https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-24',
+    'https://multipass.run/docs',
     'https://developer.hashicorp.com/vault/docs',
     'https://kubernetes.io/docs',
     'https://helm.sh',
-    'https://etcd.io/docs/latest/faq'
+    'https://etcd.io/docs/latest/faq',
+    'https://cluster-api.sigs.k8s.io',
     ]
 
 
