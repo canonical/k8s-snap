@@ -1,7 +1,7 @@
 ---
 myst:
   html_meta:
-    description: Troubleshoot your Canonical Kubernetes cluster using this how-to guide.
+    description: Troubleshoot and resolve common issues with a Canonical Kubernetes (k8s) snap based cluster in this how-to guide.
 ---
 
 # How to troubleshoot {{product}}
