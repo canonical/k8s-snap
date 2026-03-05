@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: Learn how to upgrade the Canonical Kubernetes snap, revert a failed upgrade, and freeze automatic updates.
+---
+
 # How to upgrade the snap
 
 Upgrading the Kubernetes version of a node is a critical operation that
