@@ -10,3 +10,5 @@
 "capi/reference/community" "community"
 "charm/reference/architecture" "charm/explanation/architecture"
 "snap/reference/architecture" "snap/explanation/architecture"
+"snap/reference/troubleshooting" "snap/howto/troubleshooting"
+"charm/reference/troubleshooting" "charm/howto/troubleshooting"
