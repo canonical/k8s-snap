@@ -211,6 +211,7 @@ GCM
 GCP
 ghcr
 Gi
+GiB
 github
 GitPython
 golang
@@ -512,6 +513,7 @@ SR-IOV
 src
 SRG
 SRGID
+SSD
 sshd
 SSL
 SSLv
