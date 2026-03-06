@@ -243,7 +243,7 @@ linkcheck_ignore = [
     'https://kubernetes.io/docs',
     'https://kubernetes.io/blog',
     'https://kubernetes.io/releases',
-    'https://etcd.io/docs/latest/faq',
+    'https://etcd.io/docs',
     'https://cluster-api.sigs.k8s.io',
     'https://helm.sh',
     ]
