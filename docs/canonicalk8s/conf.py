@@ -245,7 +245,7 @@ linkcheck_ignore = [
     'https://kubernetes.io/blog',
     'https://helm.sh',
     'https://kubernetes.io/releases',
-    'https://etcd.io/docs/latest/faq',
+    'https://etcd.io/docs',
     'https://cluster-api.sigs.k8s.io',
     ]
 
