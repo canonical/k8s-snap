@@ -61,7 +61,7 @@ juju run k8s/leader get-kubeconfig | yq .kubeconfig > cluster-kubeconfig.yaml
 ```
 
 ```{warning}
-When running `juju run k8s/leader get-kubeconfig` you retrieve the kubeconfig file that uses one of the unit's  public IP addresses in the Kubernetes endpoint. This endpoint ip can be overridden by providing a `server` argument if the API is exposed through a load balancer.
+When running `juju run k8s/leader get-kubeconfig` you retrieve the kubeconfig file that uses one of the unit's public IP addresses in the Kubernetes endpoint. This endpoint IP can be overridden by providing a `server` argument if the API is exposed through a load balancer.
 ```
 
 Verify that the API server is healthy and reachable by running:
@@ -78,7 +78,7 @@ NAME                 TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE
 service/kubernetes   ClusterIP   10.152.183.1   <none>        443/TCP   29m
 ```
 
-A typical error message may look like this if the API server can not be reached:
+A typical error message may look like this if the API server cannot be reached:
 
 ```
 The connection to the server 127.0.0.1:6443 was refused - did you specify the right host or port?
@@ -235,7 +235,9 @@ tarball when filing a bug.
 
 ## Common issues
 
-If you find any issue while working with {{product}} it is highly likely that someone from the community has already faced the same problem. We have documented some common issues users face and their workarounds.
+If you find any issue while working with {{product}} it is highly likely that 
+someone from the community has already faced the same problem. We have 
+documented some common issues users face and their workarounds.
 
 
 ### Adjusting Kubernetes node labels
@@ -251,7 +253,7 @@ node-role.kubernetes.io/worker=
 
 ````{dropdown} Explanation
 
-Each kubernetes node comes with a set of node labels enabled by default. The k8s
+Each Kubernetes node comes with a set of node labels enabled by default. The k8s
 snap defaults with both control-plane and worker role labels, while the worker
 node only has a role label.
 
@@ -273,7 +275,7 @@ juju-c212aa-2   Ready    control-plane,worker   3h44m   v1.32.0
 
 ````{dropdown} Solution
 
-Adjusting the roles (or any label) be executed by adjusting the application's
+Adjusting the roles (or any label) can be accomplished by adjusting the application's
 configuration of `node-labels`.
 
 To add another node label:
@@ -306,7 +308,7 @@ fi
 
 #### Node Role example
 
-To remove the worker node-rule on a control-plane:
+To remove the worker node-role on a control-plane:
 
 ```sh
 juju config k8s node-labels="node-role.kubernetes.io/worker=-"
@@ -392,7 +394,7 @@ sudo k8s kubectl get pods -n kube-system
 ```
 ````
 
-### Cilium pod fails to start as `cilum_vxlan: address already in use`
+### Cilium pod fails to start as `cilium_vxlan: address already in use`
 
 When deploying {{product}} on a cloud provider such as OpenStack, the Cilium
 pods fail to start and reports the error:
@@ -408,7 +410,7 @@ already in use
 
 Fan networking is automatically enabled in some substrates. This causes
 conflicts with some CNIs such as Cilium. This conflict of
-`address already in use` causes Cilium to be unable to set up it's VXLAN
+`address already in use` causes Cilium to be unable to set up its VXLAN
 tunneling network. There may also be other networking components on the system
 attempting to use the default port for their own VXLAN interface that will
 cause the same error.
