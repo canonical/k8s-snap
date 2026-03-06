@@ -243,7 +243,7 @@ linkcheck_ignore = [
     'https://developer.hashicorp.com/vault/docs',
     'https://kubernetes.io/docs',
     'https://helm.sh',
-    'https://etcd.io/docs/latest/faq',
+    'https://etcd.io/docs',
     'https://cluster-api.sigs.k8s.io',
     'https://kubernetes.io/blog',
     'https://kubernetes.io/releases',
