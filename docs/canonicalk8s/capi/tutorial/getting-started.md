@@ -154,9 +154,9 @@ clusterctl init --bootstrap canonical-kubernetes --control-plane canonical-kuber
 ```
 
 ```{note}
-For AWS, pin CAPA to v2.8.4 to avoid a CRD version mismatch with CAPI core.
+For AWS, pin CAPI core version to v1.9.6 and CAPA to v2.8.4 to avoid a CRD version mismatch.
 
-    clusterctl init --bootstrap canonical-kubernetes --control-plane canonical-kubernetes -i aws:v2.8.4
+    clusterctl init --core cluster-api:v1.9.6 --bootstrap canonical-kubernetes --control-plane canonical-kubernetes -i aws:v2.8.4
 ```
 
 Once the bootstrap and control-plane controllers are up and running, you can
