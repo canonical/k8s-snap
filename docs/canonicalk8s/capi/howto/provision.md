@@ -97,16 +97,18 @@ KUBECONFIG=./${CLUSTER_NAME}-kubeconfig sudo k8s kubectl get node
 
 ### Troubleshooting
 For AWS, if nodes fail to bootstrap {{product}}, add the following
-`preRunCommands` to `CK8sControlPlane` and `CK8sConfigTemplate` in the generated `cluster.yaml` to remove the
-containerd directory created by the AMI on boot:
+`preRunCommands` to `CK8sControlPlane` and `CK8sConfigTemplate` in the 
+generated `cluster.yaml` to remove the containerd directory created 
+by the AMI on boot:
 
     preRunCommands:
       - rm -rf /run/containerd
 
-If control plane nodes fail to join the cluster, add the following `cniIngressRules` in `AWSCluster`
-in `cluster.yaml` to use port 2381, as the etcd might configure etcd to use port 2381 for peer communication. 
-Note that manually updating the AWS security group rule will not persist, as it will be removed by the
-CAPA reconciliation loop.
+If control plane nodes fail to join the cluster, add the following 
+`cniIngressRules` in `AWSCluster` in `cluster.yaml` to use port 2381, 
+as the etcd might configure etcd to use port 2381 for peer communication. 
+Note that manually updating the AWS security group rule will not persist, 
+as it will be removed by the CAPA reconciliation loop.
 
     network:
       cni:
