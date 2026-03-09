@@ -96,6 +96,7 @@ KUBECONFIG=./${CLUSTER_NAME}-kubeconfig sudo k8s kubectl get node
 ```
 
 ### Troubleshooting
+
 For AWS, if nodes fail to bootstrap {{product}}, add the following
 `preRunCommands` to `CK8sControlPlane` and `CK8sConfigTemplate` in the 
 generated `cluster.yaml` to remove the containerd directory created 
