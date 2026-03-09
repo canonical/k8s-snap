@@ -613,3 +613,6 @@ zsh
 tmpfs
 ErrImagePull
 rapour
+CAPA
+AMI
+urls
