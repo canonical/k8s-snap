@@ -30,6 +30,12 @@ export CLUSTER_NAME=yourk8scluster
 clusterctl generate cluster ${CLUSTER_NAME} --from ./templates/<infrastructure-provider>/cluster-template.yaml --list-variables
 ```
 
+```{note}
+For AWS, if no AMI images are available in your region for the bastion host,
+set `AWS_CREATE_BASTION` to `false` in
+`./templates/aws/template-variables.rc` to avoid provisioning failures.
+```
+
 Set the respective environment variables by editing the rc file as needed
 before sourcing it. Then generate the cluster manifest:
 
@@ -49,6 +55,29 @@ sudo k8s kubectl explain CK8sConfig.spec
 Review the available options in the respective
 definitions file and edit the cluster manifest (`cluster.yaml` above) to match
 your needs.
+
+```{note}
+For AWS, if nodes fail to bootstrap {{product}}, add the following
+`preRunCommands` to `CK8sControlPlane` and `CK8sConfigTemplate` in the generated `cluster.yaml` to remove the
+containerd directory created by the AMI on boot:
+
+    preRunCommands:
+      - rm -rf /run/containerd
+```
+
+```{note}
+If control plane nodes fail to join the cluster, add the following `cniIngressRules` in `AWSCluster`
+in `cluster.yaml` to use port 2381, as the etcd might configure etcd to use port 2381 for peer communication. 
+Note that manually updating the AWS security group rule will not persist, as it will be removed by the
+CAPA reconciliation loop.
+
+    network:
+      cni:
+        cniIngressRules:
+        - description: etcd-peer-join
+          protocol: tcp
+          toPort: 2381
+```
 
 ## Deploy the cluster
 
