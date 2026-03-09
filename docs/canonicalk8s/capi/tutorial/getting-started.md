@@ -160,6 +160,7 @@ For AWS, pin CAPI core version to v1.9.6 and CAPA to v2.8.4 to avoid a CRD versi
     clusterctl init --bootstrap canonical-kubernetes --control-plane canonical-kubernetes -i <infra-provider-of-choice>
 ```
 `````
+
 Once the bootstrap and control-plane controllers are up and running, you can
 apply the cluster manifests with the specifications of the cluster you want to
 provision.
