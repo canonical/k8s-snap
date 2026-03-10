@@ -63,8 +63,8 @@ sudo k8s join-cluster --output-format=json <JOIN-TOKEN>
 ### Configuration file
 
 More configuration options are available when a configuration file is specified.
-Please consult the [reference page] for all of the available configuration
-options and their defaults.
+Please consult the {ref}`worker-node-join-config` reference page for all of the
+available configuration options and their defaults.
 
 In this example, the configuration file provided at cluster join will set the
 proxy mode of the worker machine to `ipvs`.
@@ -98,7 +98,3 @@ sudo k8s kubectl get nodes
 The output should list the worker node in a `Ready` state.
 
 Also verify if any custom configuration has been applied to the worker.
-
-<!-- LINKS -->
-
-[reference page]: /snap/reference/config-files/worker-join-config.md
