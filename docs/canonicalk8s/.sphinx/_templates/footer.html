@@ -1,5 +1,3 @@
-{# ru-fu: copied from Furo, with modifications as stated below. Modifications are marked 'mod:'. #}
-
 <div class="related-pages">
   {# mod: Per-page navigation #}
   {% if meta %}
@@ -54,7 +52,7 @@
     {%- endif %}
 
     {# mod: removed "Made with" #}
-<div class="cookies"><a href="" class="js-revoke-cookie-manager muted-link">Manage your tracker settings</a></div>
+
     {%- if last_updated -%}
     <div class="last-updated">
       {% trans last_updated=last_updated|e -%}
@@ -62,6 +60,7 @@
       {%- endtrans -%}
     </div>
     {%- endif %}
+    <div class="cookies"><a href="" class="js-revoke-cookie-manager muted-link">Manage your tracker settings</a></div>
   </div>
   <div>
     {% if github_url and repo_folder and pagename and page_source_suffix and display_contributors %}
@@ -93,18 +92,6 @@
     </div>
     {% endif %}
 
-    {% if mattermost %}
-    <div class="ask-mattermost">
-      <a class="muted-link" href="{{ mattermost }}">Ask a question on Mattermost</a>
-    </div>
-    {% endif %}
-
-    {% if matrix %}
-    <div class="ask-matrix">
-      <a class="muted-link" href="{{ matrix }}">Ask a question on Matrix</a>
-    </div>
-    {% endif %}
-
     {% if slack %}
     <div class="ask-slack">
       <a class="muted-link" href="{{ slack }}">Ask a question on Slack</a>
@@ -123,7 +110,6 @@
       <a class="muted-link" href="{{ github_url }}/edit/{{ repo_default_branch }}{{ repo_folder }}{{ pagename }}{{ page_source_suffix }}">Edit this page on GitHub</a>
     </div>
     {% endif %}
-
 
     </div>
   </div>
