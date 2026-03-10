@@ -72,6 +72,7 @@ jobs:
       test-tags: 'conformance_tests'
   
   docs:
+    # Run linkcheck on release branches
     name: Docs linkcheck (${{ matrix.ref }})
     strategy:
       fail-fast: false
