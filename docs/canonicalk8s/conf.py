@@ -231,16 +231,22 @@ linkcheck_ignore = [
     'http://127.0.0.1:8000',
     'http://rocks.canonical.com',
     'about',
-    'https://ceph.io/',
-    'https://charmhub.io/k8s/',
-    'https://charmhub.io/k8s-worker/',
-    'http://slack.kubernetes.io/',
+    'https://ceph.io',
+    'https://charmhub.io/k8s',
+    'https://charmhub.io/k8s-worker',
+    'http://slack.kubernetes.io',
     r'https://www\.stigviewer\.com/.*',
-    'https://www.squid-cache.org/',
+    'https://www.squid-cache.org',
     'https://www.esd.whs.mil/portals/54/documents/dd/issuances/dodi/855101p.pdf',
     r'https://stigviewer.com/stigs/kubernetes/2024-06-10/finding/V-24',
+    'https://multipass.run/docs',
     'https://developer.hashicorp.com/vault/docs',
-    'https://kubernetes.io/docs/reference/config-api/',
+    'https://kubernetes.io/docs',
+    'https://helm.sh',
+    'https://etcd.io/docs',
+    'https://cluster-api.sigs.k8s.io',
+    'https://kubernetes.io/blog',
+    'https://kubernetes.io/releases',
     ]
 
 
@@ -327,7 +333,7 @@ html_css_files = [
 
 html_js_files = [
         "github_issue_links.js",
-        "js/bundle.js"
+        "bundle.js"
         ]
 
 
