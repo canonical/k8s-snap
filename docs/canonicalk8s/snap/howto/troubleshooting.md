@@ -11,7 +11,11 @@ users. With {{product}} we aim to make deploying and managing your cluster as
 easy as possible. This how-to guide will walk you through the steps to
 troubleshoot your {{product}} cluster.
 
-## Check the cluster status
+## Check the basics 
+
+First ensure that all the cluster components are up and in a healthy state.
+
+### Check the cluster status
 
 Verify that the cluster status is ready by running the following command:
 
@@ -35,7 +39,7 @@ gateway                   enabled
 ```
 
 
-## Test the API server health
+### Test the API server health
 
 Verify that the API server is healthy and reachable by running the following
 command on a control plane node:
@@ -85,7 +89,7 @@ When running `sudo k8s config` on a control plane node you retrieve the kubeconf
 Try reaching the API server on a different control plane node by updating the
 IP address that's used in the kubeconfig file.
 
-## Check the cluster nodes' health
+### Check the cluster nodes' health
 
 Confirm that the nodes in the cluster are healthy by looking for the `Ready`
 status:
@@ -103,7 +107,7 @@ node-2   Ready    control-plane,worker   6m51s   v1.32.0
 node-3   Ready    control-plane,worker   6m21s   v1.32.0
 ```
 
-## Troubleshooting an unhealthy node
+### Troubleshoot an unhealthy node
 
 Every healthy {{ product }} node has certain services up and running. The
 required services depend on the type of node.
@@ -145,7 +149,7 @@ node, examine the arguments used to run these services.
 The arguments of a service on the failing node can be examined by reading the
 file located at `/var/snap/k8s/common/args/<service>`.
 
-## Investigating system pods' health
+### Investigate system pods' health
 
 Check whether all of the cluster's pods are `Running` and `Ready`:
 
@@ -157,7 +161,7 @@ The pods in the `kube-system` namespace belong to {{product}} features such as
 `network`. Unhealthy pods could be related to configuration issues or nodes not
 meeting certain requirements.
 
-## Troubleshooting a failing pod
+### Troubleshoot a failing pod
 
 Look at the events on a failing pod by running:
 
@@ -174,23 +178,7 @@ sudo k8s kubectl logs <pod-name> -n <namespace>
 You can check out the upstream [debug pods documentation][] for more
 information.
 
-## Using the built-in inspection command
-
-{{product}} ships with a command to compile a complete report on {{product}} and
-its underlying system. This is an essential tool for bug reports and for
-investigating whether a system is (or isn’t) working.
-
-Run the inspection command, by entering the command (admin privileges are
-required to collect all the data):
-
-```
-sudo k8s inspect
-```
-
-See the [inspection report reference page] for more details.
-
-
-## Common issues
+## Common issues and solutions
 
 If you find any issue while working with {{product}} it is highly
 likely that someone from the community has already faced the same problem. We
@@ -523,6 +511,21 @@ Use the `--force` flag to forcibly remove the node:
 sudo k8s remove-node --force <node-name>
 ```
 ````
+
+## Use the built-in inspection command
+
+{{product}} ships with a command to compile a complete report on {{product}} and
+its underlying system. This is an essential tool for bug reports and for
+investigating whether a system is (or isn’t) working.
+
+Run the inspection command, by entering the command (admin privileges are
+required to collect all the data):
+
+```
+sudo k8s inspect
+```
+
+See the [inspection report reference page] for more details.
 
 ## Report a bug
 

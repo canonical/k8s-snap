@@ -11,7 +11,11 @@ users. With {{product}} we aim to make deploying and managing your cluster as
 easy as possible. This how-to guide will walk you through the steps to
 troubleshoot your {{product}} cluster.
 
-## Check the cluster status
+## Check the basics 
+
+First ensure that all the cluster components are up and in a healthy state.
+
+### Check the cluster status
 
 Verify that the cluster status is ready by running:
 
@@ -52,7 +56,7 @@ During normal cluster operation the `Workload` column reads `active`, the
 `Agent` column shows `idle`, and the messages will either read `Ready` or
 another descriptive term.
 
-## Test the API server health
+### Test the API server health
 
 Fetch the kubeconfig file for a control-plane node in the cluster by running:
 
@@ -106,7 +110,7 @@ Try reaching the API server on a different unit by retrieving the kubeconfig
 file with `juju run <k8s/unit#> get-kubeconfig`. Please replace `#` with the
 desired unit's number.
 
-## Check the cluster nodes' health
+### Check the cluster nodes' health
 
 Confirm that the nodes in the cluster are healthy by looking for the `Ready`
 status:
@@ -123,8 +127,7 @@ juju-380ff2-0   Ready    control-plane,worker   9m30s   v1.32.0
 juju-380ff2-1   Ready    worker                 77s     v1.32.0
 ```
 
-
-## Troubleshoot an unhealthy node
+### Troubleshoot an unhealthy node
 
 Every healthy {{ product }} node has certain services up and running. The
 required services depend on the type of node.
@@ -171,7 +174,7 @@ node, examine the arguments used to run these services.
 The arguments of a service on the failing node can be examined by reading the
 file located at `/var/snap/k8s/common/args/<service>`.
 
-## Investigate system pods' health
+### Investigate system pods' health
 
 Check whether all of the cluster's pods are `Running` and `Ready`:
 
@@ -183,7 +186,7 @@ The pods in the `kube-system` namespace belong to {{product}}' features such as
 `network`. Unhealthy pods could be related to configuration issues or nodes not
 meeting certain requirements.
 
-## Troubleshoot a failing pod
+### Troubleshoot a failing pod
 
 Look at the events on a failing pod by running:
 
@@ -200,47 +203,14 @@ kubectl --kubeconfig cluster-kubeconfig.yaml logs <pod-name> -n <namespace>
 You can check out the upstream [debug pods documentation][] for more
 information.
 
-## Use the built-in inspection command
-
-{{product}} ships with a command to compile a complete report on {{product}} and
-its underlying system. This is an essential tool for bug reports and for
-investigating whether a system is (or isn’t) working.
-
-The inspection command can be executed on a specific unit by running the
-following commands:
-
-```
-juju exec --unit <k8s/unit#> -- sudo k8s inspect /home/ubuntu/inspection-report.tar.gz
-juju scp <k8s/unit#>:/home/ubuntu/inspection-report.tar.gz ./
-```
-
-See the [inspection report reference page] for more details.
-
-## Collect debug information
-
-To collect comprehensive debug output from your {{product}} cluster, install
-and run [juju-crashdump][] on a computer that has the Juju client installed.
-Please ensure that the current controller and model are pointing at your
-{{product}} deployment.
-
-```
-sudo snap install juju-crashdump --classic --channel edge
-juju-crashdump -a debug-layer -a config
-```
-
-Running the `juju-crashdump` script will generate a tarball of debug
-information that includes [systemd][] unit status and logs, Juju logs, charm
-unit data, and Kubernetes cluster information. Please include the generated
-tarball when filing a bug.
-
-## Common issues
+## Common issues and solutions
 
 If you find any issue while working with {{product}} it is highly likely that 
 someone from the community has already faced the same problem. We have 
 documented some common issues users face and their workarounds.
 
 
-### Adjusting Kubernetes node labels
+### Adjust Kubernetes node labels
 
 Control-Plane or Worker nodes are automatically marked with a label that is
 unwanted. For example, the control-plane node may be marked with both 
@@ -506,6 +476,44 @@ The appropriate adjustment is to update the configuration value:
 juju config k8s bootstrap-datastore='managed-etcd'
 ```
 ````
+
+## Generate a debugging report
+
+If you have not identified the issue in your cluster, generate a debugging 
+report to gather more important information.
+
+### Use the built-in inspection command
+
+{{product}} ships with a command to compile a complete report on {{product}} and
+its underlying system. This is an essential tool for bug reports and for
+investigating whether a system is (or isn’t) working.
+
+The inspection command can be executed on a specific unit by running the
+following commands:
+
+```
+juju exec --unit <k8s/unit#> -- sudo k8s inspect /home/ubuntu/inspection-report.tar.gz
+juju scp <k8s/unit#>:/home/ubuntu/inspection-report.tar.gz ./
+```
+
+See the [inspection report reference page] for more details.
+
+### Use `juju-crashdump`
+
+To collect comprehensive debug output from your {{product}} cluster, install
+and run [juju-crashdump][] on a computer that has the Juju client installed.
+Please ensure that the current controller and model are pointing at your
+{{product}} deployment.
+
+```
+sudo snap install juju-crashdump --classic --channel edge
+juju-crashdump -a debug-layer -a config
+```
+
+Running the `juju-crashdump` script will generate a tarball of debug
+information that includes [systemd][] unit status and logs, Juju logs, charm
+unit data, and Kubernetes cluster information. Please include the generated
+tarball when filing a bug.
 
 ## Report a bug
 
