@@ -97,10 +97,12 @@ KUBECONFIG=./${CLUSTER_NAME}-kubeconfig sudo k8s kubectl get node
 
 ### Troubleshooting
 
-For AWS, if nodes fail to bootstrap {{product}}, add the following
-`preRunCommands` to `CK8sControlPlane` and `CK8sConfigTemplate` in the 
-generated `cluster.yaml` to remove the containerd directory created 
-by the AMI on boot:
+If nodes fail to bootstrap {{product}} on AWS, you can attempt to 
+retry by adding the following `preRunCommands` to `CK8sControlPlane` 
+and `CK8sConfigTemplate` in the generated cluster.yaml. 
+This removes the containerd directory created by the AMI on boot, 
+ensuring a clean state with no conflicts, but does not necessarily 
+resolve the original cause of the bootstrap failure.
 
     preRunCommands:
       - rm -rf /run/containerd
