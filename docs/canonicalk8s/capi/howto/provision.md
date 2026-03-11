@@ -108,7 +108,7 @@ resolve the original cause of the bootstrap failure.
       - rm -rf /run/containerd
 
 If control plane nodes fail to join the cluster, add the following 
-`cniIngressRules` in `AWSCluster` in `cluster.yaml` to use port 2381, 
+`cniIngressRules` in `AWSCluster` in `cluster.yaml` to use port 2381 for etcd's peer to peer communication. Note that manually ....
 as the etcd might configure etcd to use port 2381 for peer communication. 
 Note that manually updating the AWS security group rule will not persist, 
 as it will be removed by the CAPA reconciliation loop.
