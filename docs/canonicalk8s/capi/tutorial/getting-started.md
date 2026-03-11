@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: Learn how to setup Management Cluster for deployment of canonical k8s on clouds using Cluster API.
+---
+
 # Getting started with Cluster API
 
 This guide covers how to deploy a {{product}} management cluster for Cluster

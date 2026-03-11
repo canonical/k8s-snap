@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: Learn how to deploy your first Canonical Kubernetes cluster using the CAPI and execute typical cluster operations in this tutorial.
+---
+
 # Provision a {{product}} cluster with CAPI
 
 This guide covers how to deploy a {{product}} multi-node cluster
