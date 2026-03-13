@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: Learn how to set up a management cluster to deploy your first Canonical Kubernetes cluster using the Cluster API in this tutorial.
+---
+
 # Getting started with Cluster API
 
 This guide covers how to deploy a {{product}} management cluster for Cluster
@@ -149,9 +155,17 @@ You are now all set to deploy the MAAS CAPI infrastructure provider.
 To initialize the management cluster with the latest released version of the
 providers and the infrastructure of your choice:
 
+`````{tab-set}
+```{tab-item} AWS
+For AWS, pin CAPI core version to v1.9.6 and CAPA to v2.8.4 to avoid a CRD version mismatch.
+
+    clusterctl init --core cluster-api:v1.9.6 --bootstrap canonical-kubernetes --control-plane canonical-kubernetes -i aws:v2.8.4
 ```
-clusterctl init --bootstrap canonical-kubernetes --control-plane canonical-kubernetes -i <infra-provider-of-choice>
+
+```{tab-item} MAAS
+    clusterctl init --bootstrap canonical-kubernetes --control-plane canonical-kubernetes -i <infra-provider-of-choice>
 ```
+`````
 
 Once the bootstrap and control-plane controllers are up and running, you can
 apply the cluster manifests with the specifications of the cluster you want to

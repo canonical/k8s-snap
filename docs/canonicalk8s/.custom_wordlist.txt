@@ -192,6 +192,7 @@ enum
 env
 esd
 etcd
+etcd's
 eth
 EventRateLimit
 evilnick
@@ -575,6 +576,7 @@ unsquashed
 upgrader
 USG
 url
+urls
 uuid
 UV
 ValidatingAdmissionWebhook
@@ -613,3 +615,5 @@ zsh
 tmpfs
 ErrImagePull
 rapour
+CAPA
+AMI

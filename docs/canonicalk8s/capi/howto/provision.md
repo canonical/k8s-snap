@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: Deploy a Canonical Kubernetes cluster using the Cluster API and execute typical cluster operations in this how-to guide.
+---
+
 # Provision a {{product}} cluster with CAPI
 
 This guide covers how to deploy a {{product}} multi-node cluster
@@ -28,6 +34,12 @@ Review the list of variables needed for the cluster template:
 cd cluster-api-k8s
 export CLUSTER_NAME=yourk8scluster
 clusterctl generate cluster ${CLUSTER_NAME} --from ./templates/<infrastructure-provider>/cluster-template.yaml --list-variables
+```
+
+```{note}
+For AWS, if no AMI images are available in your region for the bastion host,
+set `AWS_CREATE_BASTION` to `false` in
+`./templates/aws/template-variables.rc` to avoid provisioning failures.
 ```
 
 Set the respective environment variables by editing the rc file as needed
@@ -88,6 +100,31 @@ You can then see the workload nodes using:
 ```
 KUBECONFIG=./${CLUSTER_NAME}-kubeconfig sudo k8s kubectl get node
 ```
+
+### Troubleshooting
+
+If nodes fail to bootstrap {{product}} on AWS, you can attempt to 
+retry by adding the following `preRunCommands` to `CK8sControlPlane` 
+and `CK8sConfigTemplate` in the generated cluster.yaml. 
+This removes the containerd directory created by the AMI on boot, 
+ensuring a clean state with no conflicts, but does not necessarily 
+resolve the original cause of the bootstrap failure.
+
+    preRunCommands:
+      - rm -rf /run/containerd
+
+If control plane nodes fail to join the cluster, add the following 
+`cniIngressRules` in `AWSCluster` in `cluster.yaml` to use port 2381 
+for etcd's peer to peer communication. 
+Note that manually updating the AWS security group rule will not persist, 
+as it will be removed by the CAPA reconciliation loop.
+
+    network:
+      cni:
+        cniIngressRules:
+        - description: etcd-peer-join
+          protocol: tcp
+          toPort: 2381
 
 ## Delete the cluster
 
