@@ -76,6 +76,7 @@ jobs:
     name: Docs linkcheck (${{ matrix.ref }})
     strategy:
       fail-fast: false
+      # Update when new release branches are created
       matrix:
         ref:
           [
