@@ -85,6 +85,13 @@ Report a security issue <report-security-issue>
 Harden the cluster <hardening>
 ```
 
+## Backup
+
+```{toctree}
+:titlesonly:
+Backup and restore with Velero Operator <velero-operator-backup-restore>
+```
+
 ## Contribute
 
 Contribute to the {{product}} project! Add to the code, documentation or both!
