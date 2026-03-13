@@ -43,15 +43,6 @@ notes for each version.
 
 - [Release notes]
 
-## Troubleshooting
-
-Common issues faced by users and their solutions.
-
-```{toctree}
-:titlesonly:
-troubleshooting
-```
-
 ## Other documentation types
 
 Alternatively, the [Tutorials section] contains step-by-step tutorials to help
