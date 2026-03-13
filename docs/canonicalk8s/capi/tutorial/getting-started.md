@@ -1,7 +1,7 @@
 ---
 myst:
   html_meta:
-    description: Learn how to setup Management Cluster for deployment of canonical k8s on clouds using Cluster API.
+    description: Learn how to set up a management cluster to deploy your first Canonical Kubernetes cluster using the Cluster API in this tutorial.
 ---
 
 # Getting started with Cluster API

@@ -1,7 +1,7 @@
 ---
 myst:
   html_meta:
-    description: Learn how to deploy your first Canonical Kubernetes cluster using the CAPI and execute typical cluster operations in this tutorial.
+    description: Deploy a Canonical Kubernetes cluster using the Cluster API and execute typical cluster operations in this how-to guide.
 ---
 
 # Provision a {{product}} cluster with CAPI
