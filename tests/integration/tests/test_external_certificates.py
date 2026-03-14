@@ -591,3 +591,53 @@ def test_partial_refresh(instances: List[harness.Instance]):
 
     # Deploy the Pod again to verify the cluster functionality.
     check_nginx_pod_runs(instance)
+
+
+@pytest.mark.node_count(1)
+@pytest.mark.tags(tags.NIGHTLY)
+def test_csr_signed_with_client_ca(instances: List[harness.Instance]):
+    instance = instances[0]
+
+    # Bootstrap with default config
+    instance.exec(["k8s", "bootstrap"])
+
+    util.wait_until_k8s_ready(instance, instances)
+
+    # Generate key and CSR
+    instance.exec(["openssl", "genrsa", "-out", "/tmp/test.key", "2048"])
+    instance.exec(["openssl", "req", "-new", "-key", "/tmp/test.key", "-out", "/tmp/test.csr", "-subj", "/CN=test"])
+
+    # Get CSR in base64
+    csr_b64 = instance.exec(["base64", "-w", "0", "/tmp/test.csr"], capture_output=True).stdout.decode().strip()
+
+    # Create CSR YAML
+    csr_yaml = f"""
+apiVersion: certificates.k8s.io/v1
+kind: CertificateSigningRequest
+metadata:
+  name: test-csr
+spec:
+  groups:
+  - system:authenticated
+  request: {csr_b64}
+  signerName: kubernetes.io/kube-apiserver-client
+  usages:
+  - client auth
+"""
+
+    # Apply CSR
+    instance.exec(["k8s", "kubectl", "apply", "-f", "-"], input=csr_yaml.encode())
+
+    # Approve CSR
+    instance.exec(["k8s", "kubectl", "certificate", "approve", "test-csr"])
+
+    # Get certificate
+    cert_b64 = instance.exec(["k8s", "kubectl", "get", "csr", "test-csr", "-o", "jsonpath={.status.certificate}"], capture_output=True).stdout.decode().strip()
+
+    # Decode certificate
+    instance.exec(["echo", cert_b64, "|", "base64", "-d"], stdout="/tmp/test.crt")
+
+    # Check issuer
+    issuer = instance.exec(["openssl", "x509", "-in", "/tmp/test.crt", "-noout", "-issuer"], capture_output=True).stdout.decode().strip()
+
+    assert "CN = kubernetes-ca-client" in issuer
