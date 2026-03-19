@@ -1,18 +1,18 @@
 ## Description
 
-What issue is this PR trying to solve?
+<!-- What issue is this PR trying to solve? -->
 
 ## Solution
 
-A clear and concise description of how your changes address the above issue.
+<!-- A clear and concise description of how your changes address the above issue. -->
 
 ## Issue
 
-Include a link to the Github issue number if applicable.
+<!-- Include a link to the GitHub issue number if applicable. -->
 
 ## Backport
 
-Should this PR be backported? If so, to which release?
+<!-- Should this PR be backported? If so, to which release? -->
 
 <!-- Label the PR with `backport release-1.XX` to automatically create a backport once this PR is merged -->
 
@@ -24,10 +24,11 @@ Should this PR be backported? If so, to which release?
 - [ ] Documentation updated
 - [ ] CLA signed
 - [ ] Backport label added if necessary 
+- [ ] Confirm whether the `release-notes` label should be kept or removed
 
 If any item on the checklist is not complete, please provide justification why.
 
-The PR title is expected to contain one of the following prefixes, following the
+<!-- The PR title is expected to contain one of the following prefixes, following the
 [Conventional Commits specification](https://www.conventionalcommits.org/en/v1.0.0/):
 
 * feat: A new feature
@@ -40,4 +41,5 @@ The PR title is expected to contain one of the following prefixes, following the
 * build: Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)
 * ci: Changes to our CI configuration files and scripts (example scopes: Travis, Circle, BrowserStack, SauceLabs)
 * chore: Other changes that don't modify src or test files
-* revert: Reverts a previous commit
+* revert: Reverts a previous commit -->
+
