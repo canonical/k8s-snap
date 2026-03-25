@@ -23,18 +23,18 @@ networks, load balancers, and VPCs, as well as the cluster configuration are
 all defined in the same way that cluster operators are already familiar with.
 {{product}} supports deploying and operating Kubernetes through CAPI.
 
-## How this documentation is organised
+## How this documentation is organized
 
 This documentation embodies the [Diátaxis framework].
 
 - The [Tutorial](tutorial/getting-started) takes you step-by-step through 
-deploying your first {{product}} cluster.
+  deploying your first {{product}} cluster.
 - [How-to guides](howto/index) provide directions covering key cluster 
-operations and common tasks.
+  operations and common tasks.
 - [Reference](reference/index) contains technical definitions of APIs, 
-configuration and internal components.
+  configuration and internal components.
 - [Explanation](explanation/index) includes topic overviews, background and 
-context and detailed discussion.
+  context and detailed discussion.
 
 ## Project and community
 
@@ -42,10 +42,24 @@ context and detailed discussion.
 project which welcomes community involvement, contributions, suggestions, fixes
 and constructive feedback.
 
-- Our [Code of Conduct]
+### Get involved
+
+- [Canonical Kubernetes Slack]
+- [Canonical Kubernetes Discourse]
 - Our [community]
 - How to [contribute]
+
+### Releases 
+
 - Our [release notes][releases]
+
+### Governance and policies
+
+- Our [Code of Conduct]
+
+### Commercial support
+
+Thinking about using {{product}} for your next project? [Get in touch!]
 
 <!-- IMAGES -->
 

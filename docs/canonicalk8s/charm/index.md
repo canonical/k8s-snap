@@ -28,18 +28,18 @@ Kubernetes deployment. You can find out more about {{product}} on the
 [what is Canonical Kubernetes page][] or see a more detailed explanation in our 
 [architecture documentation][arch].
 
-## How this documentation is organised
+## How this documentation is organized
 
 This documentation embodies the [Diátaxis framework].
 
 - The [Tutorial](tutorial/getting-started) takes you step-by-step through 
-deploying your first {{product}} cluster.
+  deploying your first {{product}} cluster.
 - [How-to guides](howto/index) provide directions covering key cluster 
-operations and common tasks.
+  operations and common tasks.
 - [Reference](reference/index) contains technical definitions of APIs, 
-configuration and internal components.
+  configuration and internal components.
 - [Explanation](explanation/index) includes topic overviews, background and 
-context and detailed discussion.
+  context and detailed discussion.
 
 ## Project and community
 
@@ -47,7 +47,7 @@ context and detailed discussion.
 project which welcomes community involvement, contributions, suggestions, fixes
 and constructive feedback.
 
-### Get involved 
+### Get involved
 
 - [Canonical Kubernetes Slack]
 - [Canonical Kubernetes Discourse]

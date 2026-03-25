@@ -84,7 +84,7 @@ Using Cluster API's declarative tooling, deploy and manage multiple {{product}} 
 project which welcomes community involvement, contributions, suggestions, fixes
 and constructive feedback.
 
-### Get involved 
+### Get involved
 
 - [Canonical Kubernetes Slack]
 - [Canonical Kubernetes Discourse]
