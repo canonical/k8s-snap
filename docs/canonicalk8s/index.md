@@ -84,10 +84,24 @@ Using Cluster API's declarative tooling, deploy and manage multiple {{product}} 
 project which welcomes community involvement, contributions, suggestions, fixes
 and constructive feedback.
 
-- Our [Code of Conduct]
+### Get involved 
+
+- [Canonical Kubernetes Slack]
+- [Canonical Kubernetes Discourse]
 - Our [community]
 - How to [contribute]
+
+### Releases 
+
 - Our [release notes][releases]
+
+### Governance and policies
+
+- Our [Code of Conduct]
+
+### Commercial support
+
+Thinking about using {{product}} for your next project? [Get in touch!]
 
 <!-- IMAGES -->
 
@@ -99,3 +113,6 @@ and constructive feedback.
 [community]: /community
 [contribute]: /snap/howto/contribute
 [releases]: /releases/index
+[Canonical Kubernetes Slack]: https://kubernetes.slack.com/archives/CG1V2CAMB
+[Canonical Kubernetes Discourse]: https://discourse.ubuntu.com/c/kubernetes/180
+[Get in touch!]: https://ubuntu.com/kubernetes/contact-us

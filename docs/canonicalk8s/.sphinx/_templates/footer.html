@@ -82,35 +82,5 @@
         {% endif %}
     {% endif %}
   </div>
-  <div class="right-details">
-
-    {# mod: replaced RTD icons with our links #}
-
-    {% if discourse %}
-    <div class="ask-discourse">
-      <a class="muted-link" href="{{ discourse }}">Ask a question on Discourse</a>
-    </div>
-    {% endif %}
-
-    {% if slack %}
-    <div class="ask-slack">
-      <a class="muted-link" href="{{ slack }}">Ask a question on Slack</a>
-    </div>
-    {% endif %}
-
-    {% if github_url and repo_default_branch and repo_folder %}
-
-    {% if github_issues %}
-    <div class="issue-github">
-      <a class="muted-link" href="{{ github_url }}/issues/new?title=doc%3A+ADD+A+TITLE&body=DESCRIBE+THE+ISSUE%0A%0A---%0ADocument: {{ pagename }}{{ page_source_suffix }}">Open a GitHub issue for this page</a>
-    </div>
-    {% endif %}
-
-    <div class="edit-github">
-      <a class="muted-link" href="{{ github_url }}/edit/{{ repo_default_branch }}{{ repo_folder }}{{ pagename }}{{ page_source_suffix }}">Edit this page on GitHub</a>
-    </div>
-    {% endif %}
-
-    </div>
   </div>
 </div>

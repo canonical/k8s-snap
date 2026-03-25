@@ -23,39 +23,18 @@ networks, load balancers, and VPCs, as well as the cluster configuration are
 all defined in the same way that cluster operators are already familiar with.
 {{product}} supports deploying and operating Kubernetes through CAPI.
 
-![Illustration depicting working on components and clouds][logo]
+## How this documentation is organised
 
-## In this documentation
+This documentation embodies the [Diátaxis framework].
 
-````{grid} 1 1 2 2
-
-```{grid-item-card} [Tutorial](tutorial/getting-started)
-
-**Start here!** A hands-on introduction to {{product}} for new users
-```
-
-```{grid-item-card} [How-to guides](howto/index)
-
-**Step-by-step guides** covering key operations and common tasks
-```
-
-````
-
-````{grid} 1 1 2 2
-
-```{grid-item-card} [Explanation](explanation/index)
-
-**Discussion and clarification** of key topics
-```
-
-```{grid-item-card} [Reference](reference/index)
-
-**Technical information** - specifications, APIs, architecture
-```
-
-````
-
----
+- The [Tutorial](tutorial/getting-started) takes you step-by-step through 
+deploying your first {{product}} cluster.
+- [How-to guides](howto/index) provide directions covering key cluster 
+operations and common tasks.
+- [Reference](reference/index) contains technical definitions of APIs, 
+configuration and internal components.
+- [Explanation](explanation/index) includes topic overviews, background and 
+context and detailed discussion.
 
 ## Project and community
 
@@ -80,4 +59,7 @@ and constructive feedback.
 [releases]: /releases/snap/index.md
 [overview page]: /about
 [Juju]: https://juju.is
-[k8s snap package]: ../snap/index
+[Diátaxis framework]: https://diataxis.fr/
+[Canonical Kubernetes Slack]: https://kubernetes.slack.com/archives/CG1V2CAMB
+[Canonical Kubernetes Discourse]: https://discourse.ubuntu.com/c/kubernetes/180
+[Get in touch!]: https://ubuntu.com/kubernetes/contact-us

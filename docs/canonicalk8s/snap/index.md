@@ -26,41 +26,18 @@ You can find out more about {{product}} on the
 For deployment at scale, {{product}} is also available as a
 [Juju charm][]
 
-![Illustration depicting working on components and clouds][logo]
+## How this documentation is organised
 
----
+This documentation embodies the [Diátaxis framework].
 
-## In this documentation
-
-````{grid} 1 1 2 2
-
-```{grid-item-card} [Tutorial](tutorial/getting-started)
-
-**Start here!** A hands-on introduction to Canonical K8s for new users
-```
-
-```{grid-item-card} [How-to guides](howto/index)
-
-**Step-by-step guides** covering key operations and common tasks
-```
-
-````
-
-````{grid} 1 1 2 2
-
-```{grid-item-card} [Explanation](explanation/index)
-
-**Discussion and clarification** of key topics
-```
-
-```{grid-item-card} [Reference](reference/index)
-
-**Technical information** - specifications, APIs, architecture
-```
-
-````
-
----
+- The [Tutorial](tutorial/getting-started) takes you step-by-step through 
+deploying your first {{product}} cluster.
+- [How-to guides](howto/index) provide directions covering key cluster 
+operations and common tasks.
+- [Reference](reference/index) contains technical definitions of APIs, 
+configuration and internal components.
+- [Explanation](explanation/index) includes topic overviews, background and 
+context and detailed discussion.
 
 ## Project and community
 
@@ -68,10 +45,24 @@ For deployment at scale, {{product}} is also available as a
 project which welcomes community involvement, contributions, suggestions, fixes
 and constructive feedback.
 
-- Our [Code of Conduct]
+### Get involved 
+
+- [Canonical Kubernetes Slack]
+- [Canonical Kubernetes Discourse]
 - Our [community]
 - How to [contribute]
+
+### Releases 
+
 - Our [release notes][releases]
+
+### Governance and policies
+
+- Our [Code of Conduct]
+
+### Commercial support
+
+Thinking about using {{product}} for your next project? [Get in touch!]
 
 <!-- IMAGES -->
 
@@ -86,3 +77,7 @@ and constructive feedback.
 [what is Canonical Kubernetes page]: /about
 [architecture documentation]: /snap/explanation/architecture
 [Juju charm]: /charm/index
+[Diátaxis framework]: https://diataxis.fr/
+[Canonical Kubernetes Slack]: https://kubernetes.slack.com/archives/CG1V2CAMB
+[Canonical Kubernetes Discourse]: https://discourse.ubuntu.com/c/kubernetes/180
+[Get in touch!]: https://ubuntu.com/kubernetes/contact-us
