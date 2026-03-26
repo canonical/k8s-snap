@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Explore how to deploy and manage Canonical Kubernetes with Cluster API through step-by-step tutorials, practical how-to guides, in-depth explanations, and technical reference."
+---
+
 # Installing {{product}} with Cluster API
 
 ```{toctree}

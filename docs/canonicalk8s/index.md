@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Official Canonical Kubernetes documentation. Learn to deploy and manage lightweight, secure clusters on Ubuntu. Includes tutorials, how-to guides, explanation and reference docs."
+---
+
 # {{product}} documentation
 
 {{product}} is a performant, lightweight, secure and

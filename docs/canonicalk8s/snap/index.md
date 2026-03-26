@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Explore the official Canonical Kubernetes snap documentation. Includes step-by-step tutorials, practical how-to guides, in-depth explanations, and technical reference."
+---
+
 # {{product}} snap documentation
 
 ```{toctree}
