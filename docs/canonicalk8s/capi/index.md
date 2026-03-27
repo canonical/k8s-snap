@@ -76,7 +76,7 @@ Thinking about using {{product}} for your next project? [Get in touch!]
 [Code of Conduct]: https://ubuntu.com/community/ethos/code-of-conduct
 [community]: /community
 [contribute]: ../snap/howto/contribute
-[releases]: /releases/snap/index.md
+[releases]: https://github.com/canonical/cluster-api-k8s/releases
 [overview page]: /about
 [Juju]: https://juju.is
 [Diátaxis framework]: https://diataxis.fr/
