@@ -1,49 +1,51 @@
 name: Semgrep SAST
 
 on:
-  push:
-    paths-ignore:
-      - 'docs/**'
-    branches:
-      - main
-      - 'release-[0-9]+.[0-9]+'
+    push:
+        paths-ignore:
+            - "docs/**"
+        branches:
+            - main
+            - "release-[0-9]+.[0-9]+"
 
-  pull_request:
-    paths-ignore:
-      - 'docs/**'
+    pull_request:
+        paths-ignore:
+            - "docs/**"
 
 permissions:
-  contents: read
+    contents: read
 
 jobs:
-  semgrep:
-    name: Semgrep scan
-    runs-on: ubuntu-latest
-    permissions:
-      security-events: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    semgrep:
+        name: Semgrep scan
+        runs-on: ubuntu-latest
+        permissions:
+            security-events: write
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+            - name: Setup Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.12"
 
-      - name: Install Semgrep
-        run: pip install semgrep
+            - name: Install Semgrep
+              run: |
+                  python -m pip install --upgrade pip
+                  python -m pip install semgrep==1.92.0
 
-      - name: Run Semgrep scan
-        run: |
-          semgrep scan \
-            --config p/python \
-            --config p/github-actions \
-            --sarif \
-            --output semgrep-results.sarif \
-            .
+            - name: Run Semgrep scan
+              run: |
+                  semgrep scan \
+                    --config p/python \
+                    --config p/github-actions \
+                    --sarif \
+                    --output semgrep-results.sarif \
+                    .
 
-      - name: Upload SARIF results
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: semgrep-results.sarif
+            - name: Upload SARIF results
+              uses: github/codeql-action/upload-sarif@v3
+              if: always()
+              with:
+                  sarif_file: semgrep-results.sarif
