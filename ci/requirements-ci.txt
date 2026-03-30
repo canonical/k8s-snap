@@ -1,4 +1,4 @@
-bandit==1.7.10
+bandit[toml]==1.7.10
 black==24.3.0
 codespell==2.2.4
 flake8==6.0.0
