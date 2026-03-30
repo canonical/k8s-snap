@@ -1,0 +1,4 @@
+[tool.bandit]
+exclude_dirs = [
+    ".tox",
+]

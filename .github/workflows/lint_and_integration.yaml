@@ -86,6 +86,13 @@ jobs:
         run: |
           cd tests/integration && tox -e lint
           cd ../../ci && tox -e lint
+      - name: Bandit security scan
+        run: |
+          pip install bandit==1.7.10
+          cd tests/integration && tox -e bandit
+          cd ../../ci && tox -e bandit
+          cd ..
+          bandit -r build-scripts/ docs/tools/ -c pyproject.toml -lll
 
   get-e2e-tags:
     name: Get e2e test tags
