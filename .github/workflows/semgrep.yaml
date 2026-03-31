@@ -31,9 +31,7 @@ jobs:
                   python-version: "3.12"
 
             - name: Install Semgrep
-              run: |
-                  python -m pip install --upgrade pip setuptools
-                  python -m pip install semgrep==1.92.0
+              run: pip install semgrep==1.156.0
 
             - name: Run Semgrep scan
               run: |
