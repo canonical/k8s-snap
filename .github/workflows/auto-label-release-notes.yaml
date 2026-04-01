@@ -1,4 +1,4 @@
-name: Auto label PRs with release notes 
+name: Auto label PRs with release notes
 on:
   pull_request_target:
     types: [opened, ready_for_review, reopened]
