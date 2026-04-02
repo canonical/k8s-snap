@@ -126,12 +126,12 @@ LXD_DUAL_NIC_NETWORK = os.getenv("TEST_LXD_DUAL_NIC_NETWORK") or "dual-nic-br0"
 
 # LXD_DUAL_NIC_PROFILE_NAME is the profile name to use for LXD containers with dual NIC setup.
 LXD_DUAL_NIC_PROFILE_NAME = (
-    os.getenv("LXD_DUAL_NIC_PROFILE_NAME") or "k8s-integration-dual-nic"
+    os.getenv("TEST_LXD_DUAL_NIC_PROFILE_NAME") or "k8s-integration-dual-nic"
 )
 
 # LXD_DUAL_NIC_PROFILE is the profile to use for LXD containers with dual NIC setup.
 LXD_DUAL_NIC_PROFILE = (
-    os.getenv("LXD_DUAL_NIC_PROFILE")
+    os.getenv("TEST_LXD_DUAL_NIC_PROFILE")
     or (DIR / ".." / ".." / "lxd-dual-nic-profile.yaml").read_text()
 )
 
