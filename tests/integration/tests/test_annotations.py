@@ -106,7 +106,9 @@ def test_disable_separate_feature_upgrades(
 
     start_branch = util.previous_track(config.SNAP)
     for instance in instances:
-        instance.exec(f"snap install k8s --classic --channel={start_branch}".split())
+        util.stubbornly(retries=3, delay_s=30).on(instance).exec(
+            ["snap", "install", "k8s", "--classic", f"--channel={start_branch}"]
+        )
 
     cluster_node.exec(
         "k8s bootstrap --file -".split(),

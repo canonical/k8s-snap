@@ -271,7 +271,7 @@ def setup_k8s_snap(
         LOG.info("Install k8s snap by least risky channel: %s", channel)
         cmd += [config.SNAP_NAME, "--channel", channel]
 
-    instance.exec(cmd)
+    stubbornly(retries=3, delay_s=30).on(instance).exec(cmd)
     if connect_interfaces:
         LOG.info("Ensure k8s interfaces and network requirements")
         instance.exec(["/snap/k8s/current/k8s/hack/init.sh"], stdout=subprocess.DEVNULL)
@@ -290,6 +290,41 @@ def snap_channel_args(channel: str) -> List[str]:
         return ["--channel", chan, "--revision", revision]
     else:
         return ["--channel", channel]
+
+
+def snap_refresh(
+    instance: harness.Instance,
+    channel: str,
+    *extra_args: str,
+    retries: int = 3,
+    delay_s: int = 30,
+):
+    """Refresh the k8s snap on an instance with retry logic.
+
+    Snap refresh operations can fail transiently due to snap store issues,
+    network timeouts, or snapd being busy. This function wraps the refresh
+    command with retries to handle these cases.
+
+    Args:
+        instance:   instance on which to refresh the snap
+        channel:    snap channel to refresh to
+        *extra_args: additional arguments to pass to snap refresh (e.g. "--amend")
+        retries:    number of retry attempts (default: 3)
+        delay_s:    delay in seconds between retries (default: 30)
+    """
+    cmd = [
+        "snap",
+        "refresh",
+        config.SNAP_NAME,
+        *snap_channel_args(channel),
+        # note: the `--classic` flag will be ignored by snapd for strict snaps.
+        "--classic",
+        *extra_args,
+    ]
+    LOG.info(
+        "Refreshing %s to channel %s on %s", config.SNAP_NAME, channel, instance.id
+    )
+    stubbornly(retries=retries, delay_s=delay_s).on(instance).exec(cmd)
 
 
 def remove_k8s_snap(instance: harness.Instance):
