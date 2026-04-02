@@ -60,10 +60,20 @@ jobs:
         run: |
           cp $GITHUB_WORKSPACE/trivy-scan.sh ./tests/trivy-scan.sh
           ./tests/trivy-scan.sh ${{ steps.download-snap.outputs.snap-path }}
+      - name: Get checked out commit SHA
+        id: scan-ref
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - name: Upload Trivy scan results to Github Security tab
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: ./.trivy/sarifs/trivy-k8s-repo-scan--results.sarif
+          # Attribute results to the branch that was actually scanned,
+          # not the branch that triggered the workflow. Without this,
+          # scheduled scans of release branches get attributed to main
+          # and create alerts that can never be resolved.
+          ref: ${{ inputs.checkout-ref && format('refs/heads/{0}', inputs.checkout-ref) || github.ref }}
+          sha: ${{ inputs.checkout-ref && steps.scan-ref.outputs.sha || github.sha }}
+          category: trivy-repo-scan/${{ inputs.checkout-ref || github.ref_name }}
       - name: Send vulnerability records
         if: ${{ inputs.upload-reports-to-jira == true }}
         uses: canonical/k8s-workflows/.github/actions/send-cve-reports@main
