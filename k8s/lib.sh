@@ -284,7 +284,7 @@ k8s::kubelet::ensure_shared_root_dir() {
 k8s::util::load_kernel_modules() {
   k8s::common::setup_env
 
-  modprobe $@
+  modprobe "$@"
 }
 
 k8s::containerd::ensure_systemd_defaults() {
