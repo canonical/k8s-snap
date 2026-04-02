@@ -71,7 +71,7 @@ jobs:
           # not the branch that triggered the workflow. Without this,
           # scheduled scans of release branches get attributed to main
           # and create alerts that can never be resolved.
-          ref: ${{ inputs.checkout-ref && format('refs/heads/{0}', inputs.checkout-ref) || github.ref }}
+          ref: ${{ inputs.checkout-ref && (startsWith(inputs.checkout-ref, 'refs/') && inputs.checkout-ref || format('refs/heads/{0}', inputs.checkout-ref)) || github.ref }}
           sha: ${{ inputs.checkout-ref && steps.scan-ref.outputs.sha || github.sha }}
           category: trivy-repo-scan/${{ inputs.checkout-ref || github.ref_name }}
       - name: Send vulnerability records
