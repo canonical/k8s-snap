@@ -40,8 +40,10 @@ runs:
     - name: Download snap channel
       if: inputs.channel != ''
       shell: bash
+      env:
+        INPUT_CHANNEL: ${{ inputs.channel }}
       run: |
-        snap download k8s --channel=${{ inputs.channel }} --basename k8s
+        snap download k8s --channel="$INPUT_CHANNEL" --basename k8s
         full_path=`realpath k8s.snap`
         echo "Downloaded snap: $full_path"
         ls -lh $full_path
@@ -49,11 +51,14 @@ runs:
     - name: Retrieve resulting snap path
       shell: bash
       id: retrieve-path
+      env:
+        INPUT_ARTIFACT: ${{ inputs.artifact }}
+        WORKSPACE: ${{ github.workspace }}
       run: |
-        if [[ -n "${{ inputs.artifact }}" ]]; then
-          snap_path="${{ github.workspace }}/${{ inputs.artifact }}"
+        if [[ -n "$INPUT_ARTIFACT" ]]; then
+          snap_path="${WORKSPACE}/${INPUT_ARTIFACT}"
         else
-          snap_path="${{ github.workspace }}/k8s.snap"
+          snap_path="${WORKSPACE}/k8s.snap"
         fi
         echo "snap-path=$snap_path" >> "$GITHUB_OUTPUT"
 

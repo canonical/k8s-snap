@@ -29,8 +29,10 @@ jobs:
         uses: actions/checkout@v4
       - name: Apply flavor-specific patches
         if: inputs.flavor != ''
+        env:
+          INPUT_FLAVOR: ${{ inputs.flavor }}
         run: |
-          ./build-scripts/patches/${{ inputs.flavor }}/apply
+          ./build-scripts/patches/"$INPUT_FLAVOR"/apply
       - name: Setup LXD
         uses: canonical/setup-lxd@v0.1.3
       - name: Install snapcraft
@@ -40,11 +42,12 @@ jobs:
         id: build
         env:
           flavor: ${{ inputs.flavor }}
+          INPUT_ARCH: ${{ inputs.arch }}
         run: |
           if [[ -n "$flavor" ]]; then
-            out_snap=k8s-$flavor-${{ inputs.arch }}.snap
+            out_snap=k8s-$flavor-${INPUT_ARCH}.snap
           else
-            out_snap=k8s-${{ inputs.arch }}.snap
+            out_snap=k8s-${INPUT_ARCH}.snap
           fi
 
           sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- snapcraft --use-lxd

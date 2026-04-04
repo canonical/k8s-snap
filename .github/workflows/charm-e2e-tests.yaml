@@ -48,8 +48,9 @@ jobs:
         working-directory: ci
         env:
           CHARMCRAFT_AUTH: ${{ secrets.CHARMCRAFT_AUTH }}
+          INPUT_CHARM_CHANNEL: ${{ inputs.charm-channel }}
         run: |
-          if tox -e k8s-ci -- charm channel-available "${{ inputs.charm-channel }}"; then
+          if tox -e k8s-ci -- charm channel-available "$INPUT_CHARM_CHANNEL"; then
             echo "channel-available=true" >> $GITHUB_OUTPUT
           else
             echo "channel-available=false" >> $GITHUB_OUTPUT
@@ -97,21 +98,24 @@ jobs:
           sudo snap install juju --channel=3/stable --classic
           sudo snap install juju-crashdump --classic
       - name: Download charms ${{ inputs.charm-channel }} ${{ inputs.arch }}
+        env:
+          INPUT_ARCH: ${{ inputs.arch }}
+          INPUT_CHARM_CHANNEL: ${{ inputs.charm-channel }}
         run: |
           # The operator tests expect the charm file name to have the
           # ${charmName}_ prefix and include the arch and ubuntu base.
           # https://github.com/canonical/k8s-operator/blob/eba756ddc723e9aa5242c7804712807495356c6f/tests/integration/helpers.py#L334-L342
           # The charm base (e.g. ubuntu@22.04) must match the one used by other
           # related charms (e.g. ceph) used by the k8s-operator tests.
-          arch=${{ inputs.arch }}
+          arch=$INPUT_ARCH
           k8sCharmFile=${GITHUB_WORKSPACE}/k8s_ubuntu-22.04-${arch}.charm
           k8sWorkerChamFile=${GITHUB_WORKSPACE}/k8s-worker_ubuntu-22.04-${arch}.charm
           juju download k8s \
-            --channel ${{ inputs.charm-channel }} \
+            --channel "$INPUT_CHARM_CHANNEL" \
             --filepath $k8sCharmFile \
             --base ubuntu@22.04
           juju download k8s-worker \
-            --channel ${{ inputs.charm-channel }} \
+            --channel "$INPUT_CHARM_CHANNEL" \
             --filepath $k8sWorkerChamFile \
             --base ubuntu@22.04
       - name: Check system resources
@@ -137,9 +141,11 @@ jobs:
           # The charm tests can't handle ipv6 dualstack.
           lxc network set lxdbr0 ipv6.address none
       - name: Run e2e test ${{matrix.test}}
+        env:
+          INPUT_ARCH: ${{ inputs.arch }}
         run: |
           set -x
-          arch=${{ inputs.arch }}
+          arch=$INPUT_ARCH
           k8sCharmFile=${GITHUB_WORKSPACE}/k8s_ubuntu-22.04-${arch}.charm
           k8sWorkerCharmFile=${GITHUB_WORKSPACE}/k8s-worker_ubuntu-22.04-${arch}.charm
           snapInstallRes=${GITHUB_WORKSPACE}/snap_installation.tar.gz
@@ -152,7 +158,7 @@ jobs:
             --charm-file $k8sCharmFile \
             --charm-file $k8sWorkerCharmFile \
             --snap-installation-resource $snapInstallRes \
-            --arch ${{ inputs.arch }} \
+            --arch "$INPUT_ARCH" \
             -k "test_smoke"
       - name: Collect Juju Status
         if: failure()

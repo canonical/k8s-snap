@@ -30,6 +30,9 @@ jobs:
       - name: Compute ref for test collection
         id: compute-ref
         shell: bash
+        env:
+          INPUT_REF: ${{ inputs.ref }}
+          INPUT_REPO: ${{ inputs.repo }}
         run: |
           # Determine from which rev to collect the tests, resolved in order:
           # 1. inputs.ref if set
@@ -37,12 +40,12 @@ jobs:
 
           REF="main"
           
-          if [ -n "${{ inputs.ref }}" ]; then
-            REF="${{ inputs.ref }}"
+          if [ -n "$INPUT_REF" ]; then
+            REF="$INPUT_REF"
           fi
 
           echo "Using git ref $REF"
-          echo "repo=${{ inputs.repo }}" >> $GITHUB_OUTPUT
+          echo "repo=$INPUT_REPO" >> $GITHUB_OUTPUT
           echo "ref=$REF" >> $GITHUB_OUTPUT
   linkcheck: 
     name: Run linkchecker 
@@ -58,11 +61,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
       - name: Run linkcheck 
+        env:
+          INPUT_CHANGED_FILES: ${{ inputs.changed_files }}
         run: |
-          CHANGED_FILES="${{ inputs.changed_files }}"
+          CHANGED_FILES="$INPUT_CHANGED_FILES"
           echo "Running linkcheck with files: $CHANGED_FILES"
 
-          # echo "Changed files: ${{ inputs.changed_files }}"
           python3 docs/canonicalk8s/.sphinx/linkcheck.py docs/canonicalk8s \
             --install_target install \
             --linkcheck_target linkcheck \

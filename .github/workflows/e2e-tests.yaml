@@ -134,13 +134,17 @@ jobs:
       - name: Compute ref for test collection
         id: compute-ref
         shell: bash
+        env:
+          INPUT_CHANNEL: ${{ inputs.channel }}
+          INPUT_TEST_COLLECTION_BRANCH: ${{ inputs.test-collection-branch }}
+          INPUT_TEST_COLLECTION_REPO: ${{ inputs.test-collection-repo }}
         run: |
           # Determine from which rev to collect the tests, resolved in order:
           # 1. inputs.test-collection-branch if set
           # 2. release branch matching the channel (e.g. release-1.33 for 1.33-classic/edge)
           # 3. main branch
 
-          CHANNEL="${{ inputs.channel }}"
+          CHANNEL="$INPUT_CHANNEL"
           REF="main"
           # Match X.YY or X.YY-classic, optionally followed by a risk suffix like /edge or /candidate
           # e.g. "1.33-classic/edge" or "1.33/edge"
@@ -148,12 +152,12 @@ jobs:
             REF="release-${BASH_REMATCH[1]}.${BASH_REMATCH[2]}"
           fi
 
-          if [ -n "${{ inputs.test-collection-branch }}" ]; then
-            REF="${{ inputs.test-collection-branch }}"
+          if [ -n "$INPUT_TEST_COLLECTION_BRANCH" ]; then
+            REF="$INPUT_TEST_COLLECTION_BRANCH"
           fi
 
           echo "Using git ref $REF for channel: $CHANNEL"
-          echo "repo=${{ inputs.test-collection-repo }}" >> $GITHUB_OUTPUT
+          echo "repo=$INPUT_TEST_COLLECTION_REPO" >> $GITHUB_OUTPUT
           echo "ref=$REF" >> $GITHUB_OUTPUT
       - name: Check out code
         uses: actions/checkout@v4
