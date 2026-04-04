@@ -22,7 +22,7 @@ def get_gateway_service_node_port(p):
     gateway_services = [
         svc
         for svc in services["items"]
-        if svc["metadata"].get("labels").get("io.cilium.gateway/owning-gateway")
+        if svc["metadata"].get("labels", {}).get("io.cilium.gateway/owning-gateway")
         == "my-gateway"
     ]
 
@@ -40,7 +40,7 @@ def get_external_service_ip(instance: harness.Instance) -> str:
     LOG.info("Waiting for gateway IP to be available...")
     try_count = 0
     gateway_ip = None
-    while not gateway_ip and try_count < 30:
+    while not gateway_ip and try_count < 60:
         LOG.info(f"Attempt {try_count + 1} to get gateway IP...")
         try_count += 1
         try:
@@ -83,10 +83,44 @@ def test_gateway(instances: List[harness.Instance]):
     util.wait_for_network(instance)
     util.wait_for_dns(instance)
 
+    # Wait for the GatewayClass to be accepted by Cilium before applying
+    # gateway resources. Without this, the Gateway controller may not be
+    # ready to reconcile the Gateway and HTTPRoute resources.
+    LOG.info("Waiting for GatewayClass ck-gateway to be accepted...")
+    util.stubbornly(retries=30, delay_s=10).on(instance).until(
+        lambda p: "True" in p.stdout.decode()
+    ).exec(
+        [
+            "k8s",
+            "kubectl",
+            "get",
+            "gatewayclass",
+            "ck-gateway",
+            "-o=jsonpath={.status.conditions[?(@.type=='Accepted')].status}",
+        ]
+    )
+
     manifest = MANIFESTS_DIR / "gateway-test.yaml"
     instance.exec(
         ["k8s", "kubectl", "apply", "-f", "-"],
         input=Path(manifest).read_bytes(),
+    )
+
+    # Wait for the Gateway to be programmed. The Cilium gateway controller
+    # needs time to reconcile the Gateway resource, create the underlying
+    # service/endpoints, and set status conditions.
+    LOG.info("Waiting for Gateway my-gateway to be programmed...")
+    util.stubbornly(retries=30, delay_s=10).on(instance).until(
+        lambda p: "True" in p.stdout.decode()
+    ).exec(
+        [
+            "k8s",
+            "kubectl",
+            "get",
+            "gateway",
+            "my-gateway",
+            "-o=jsonpath={.status.conditions[?(@.type=='Programmed')].status}",
+        ]
     )
 
     LOG.info("Waiting for nginx pod to show up...")
@@ -112,7 +146,7 @@ def test_gateway(instances: List[harness.Instance]):
     # Get gateway node port
     gateway_http_port = None
     result = (
-        util.stubbornly(retries=10, delay_s=3)
+        util.stubbornly(retries=20, delay_s=5)
         .on(instance)
         .until(lambda p: get_gateway_service_node_port(p))
         .exec(["k8s", "kubectl", "get", "service", "-o", "json"])
@@ -121,13 +155,13 @@ def test_gateway(instances: List[harness.Instance]):
 
     assert gateway_http_port, "No Gateway nodePort found."
 
-    # Test the Gateway service via loadbalancer IP.
-    util.stubbornly(retries=10, delay_s=5).on(instance).until(
+    # Test the Gateway service via nodePort.
+    util.stubbornly(retries=15, delay_s=5).on(instance).until(
         lambda p: "Welcome to nginx!" in p.stdout.decode()
     ).exec(["curl", f"localhost:{gateway_http_port}"])
 
     gateway_ip = get_external_service_ip(instance)
     assert gateway_ip, "No Gateway IP found."
-    util.stubbornly(retries=10, delay_s=5).on(instance).until(
+    util.stubbornly(retries=15, delay_s=5).on(instance).until(
         lambda p: "Welcome to nginx!" in p.stdout.decode()
     ).exec(["curl", f"{gateway_ip}", "-H", "Host: foo.bar.com"])
