@@ -273,9 +273,13 @@ def test_version_downgrades_with_rollback(
 
             LOG.info("Rollback segment complete. Proceeding to next downgrade segment.")
 
-        LOG.info("Waiting for all pods to be ready after upgrade")
-        util.wait_for_pods_ready(cp)
-        LOG.info("All pods are ready after upgrade")
+        LOG.info("Waiting for all pods to be ready after downgrade segment")
+        # Use a generous timeout for pod readiness after downgrade segments.
+        # Multiple rapid version transitions (downgrade + rollback + final downgrade
+        # across all nodes) can leave pods in a degraded state that takes longer than
+        # the default 10 minutes to recover, especially on arm64.
+        util.wait_for_pods_ready(cp, retries=180, delay_s=5)
+        LOG.info("All pods are ready after downgrade segment")
 
     LOG.info("Rollback test complete. All downgrade segments verified.")
 
