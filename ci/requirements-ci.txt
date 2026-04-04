@@ -1,7 +1,7 @@
 bandit[toml]==1.7.10
-black==24.3.0
+black==26.3.1
 codespell==2.2.4
 flake8==6.0.0
 isort==5.12.0
 licenseheaders==0.8.8
-requests==2.32.5
+requests==2.33.1
