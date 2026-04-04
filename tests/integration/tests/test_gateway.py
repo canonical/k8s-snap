@@ -3,8 +3,6 @@
 #
 import json
 import logging
-import subprocess
-import time
 from pathlib import Path
 from typing import List
 
@@ -37,33 +35,37 @@ def get_gateway_service_node_port(p):
 
 
 def get_external_service_ip(instance: harness.Instance) -> str:
+    """Wait for the Gateway resource to be assigned an external IP address.
+
+    Polls the gateway status.addresses field until a non-empty IP is returned.
+    Uses 60 retries with a 5-second delay (up to ~5 minutes) to account for
+    slow LB-IPAM convergence in CI environments.
+    """
     LOG.info("Waiting for gateway IP to be available...")
-    try_count = 0
-    gateway_ip = None
-    while not gateway_ip and try_count < 60:
-        LOG.info(f"Attempt {try_count + 1} to get gateway IP...")
-        try_count += 1
-        try:
-            gateway_ip = (
-                instance.exec(
-                    [
-                        "k8s",
-                        "kubectl",
-                        "get",
-                        "gateway",
-                        "my-gateway",
-                        "-o=jsonpath='{.status.addresses[0].value}'",
-                    ],
-                    capture_output=True,
-                )
-                .stdout.decode()
-                .replace("'", "")
-            )
-        except subprocess.CalledProcessError:
-            gateway_ip = None
-            pass
-        time.sleep(3)
-    return gateway_ip
+
+    def _has_gateway_ip(p) -> bool:
+        ip = p.stdout.decode().replace("'", "").strip()
+        if ip:
+            return True
+        LOG.info("Gateway IP not yet assigned...")
+        return False
+
+    result = (
+        util.stubbornly(retries=60, delay_s=5)
+        .on(instance)
+        .until(_has_gateway_ip)
+        .exec(
+            [
+                "k8s",
+                "kubectl",
+                "get",
+                "gateway",
+                "my-gateway",
+                "-o=jsonpath='{.status.addresses[0].value}'",
+            ],
+        )
+    )
+    return result.stdout.decode().replace("'", "").strip()
 
 
 @pytest.mark.bootstrap_config((config.MANIFESTS_DIR / "bootstrap-all.yaml").read_text())
