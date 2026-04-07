@@ -1,0 +1,3 @@
+# Direct bandit dependency. Compile with:
+#   pip-compile --generate-hashes --strip-extras ci/requirements-bandit.in
+bandit[toml]==1.7.10

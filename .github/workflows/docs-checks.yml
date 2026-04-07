@@ -91,7 +91,7 @@ jobs:
           go-version: 'stable'
 
       - name: Install Python dependencies
-        run: pip install -r ci/requirements-ci.txt
+        run: pip install --require-hashes -r ci/requirements-ci.txt
 
       - name: Check k8sd API documentation
         run: python3 ci/k8s-ci.py docs update-k8sd-api

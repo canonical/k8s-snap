@@ -1,0 +1,3 @@
+# Direct semgrep dependency. Compile with:
+#   pip-compile --generate-hashes --strip-extras ci/requirements-semgrep.in
+semgrep==1.156.0
