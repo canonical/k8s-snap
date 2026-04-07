@@ -119,7 +119,7 @@ jobs:
              github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_ENV
          fi
       - name: Notify Mattermost
-        uses: mattermost/action-mattermost-notify@master
+        uses: mattermost/action-mattermost-notify@d317daebed2a792679f68fd0248557a8d21d82b6 # master
         with:
           MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }}
           PAYLOAD: |

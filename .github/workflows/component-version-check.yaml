@@ -18,14 +18,14 @@ jobs:
     steps:
       # Checkout the PR branch
       - name: Checkout PR
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0
 
       # Fetch all labels on the PR
       - name: Get PR labels
         id: labels
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             const pr = await github.rest.pulls.get({
@@ -51,7 +51,7 @@ jobs:
           git diff origin/${{ github.event.pull_request.base.ref }}...HEAD > pr.diff
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.10'
       - run: pip3 install packaging
@@ -74,7 +74,7 @@ jobs:
       # Comment on the PR if invalid
       - name: Comment on PR if invalid
         if: steps.validate.outputs.invalid == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             github.rest.issues.createComment({

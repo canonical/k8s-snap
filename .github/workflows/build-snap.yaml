@@ -26,13 +26,13 @@ jobs:
       snap-artifact: ${{ steps.build.outputs.snap-artifact }}
     steps:
       - name: Checking out repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Apply flavor-specific patches
         if: inputs.flavor != ''
         run: |
           ./build-scripts/patches/${{ inputs.flavor }}/apply
       - name: Setup LXD
-        uses: canonical/setup-lxd@v0.1.3
+        uses: canonical/setup-lxd@a3c85fc6fb7fff43fcfeae87659e41a8f635b7dd # v0.1.3
       - name: Install snapcraft
         run: |
           sudo snap install snapcraft --classic
@@ -52,7 +52,7 @@ jobs:
 
           echo "snap-artifact=$out_snap" >> "$GITHUB_OUTPUT"
       - name: Upload k8s snap
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: ${{ steps.build.outputs.snap-artifact }}
           path: ${{ steps.build.outputs.snap-artifact }}

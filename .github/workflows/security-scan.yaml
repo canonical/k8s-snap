@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
           # We run into rate limiting issues if we don't authenticate
           registry: ghcr.io
@@ -38,7 +38,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       # Need to fetch the GH actions first.
       - name: Checking out repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Save trivy-scan.sh script
         run: |
           # We'll need to scan other branches, let's create a copy of
@@ -51,7 +51,7 @@ jobs:
           channel: ${{ inputs.channel }}
           artifact: ${{ inputs.artifact }}
       - name: Checking out tested repo branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           ref: ${{ inputs.checkout-ref }}
           # Persist downloaded artifacts
@@ -64,7 +64,7 @@ jobs:
         id: scan-ref
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - name: Upload Trivy scan results to Github Security tab
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@5c8a8a642e79153f5d047b10ec1cba1d1cc65699 # v3
         with:
           sarif_file: ./.trivy/sarifs/trivy-k8s-repo-scan--results.sarif
           # Attribute results to the branch that was actually scanned,
@@ -76,7 +76,7 @@ jobs:
           category: trivy-repo-scan/${{ inputs.checkout-ref || github.ref_name }}
       - name: Send vulnerability records
         if: ${{ inputs.upload-reports-to-jira == true }}
-        uses: canonical/k8s-workflows/.github/actions/send-cve-reports@main
+        uses: canonical/k8s-workflows/.github/actions/send-cve-reports@6b24c265636d618fb98d5f56231c5581a1b429ab # main
         with:
           reports: "./.trivy/sarifs/trivy-k8s-repo-scan--results.sarif,./.trivy/sarifs/snap.sarif"
           jira-url: ${{ secrets.CVE_JIRA_WEBHOOK_URL }}
