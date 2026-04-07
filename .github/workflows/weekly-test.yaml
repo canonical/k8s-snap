@@ -1,6 +1,7 @@
 name: Weekly
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: "0 0 * * 6" # Runs every saturday at midnight
   pull_request:
