@@ -16,10 +16,6 @@ MANIFESTS_DIR = DIR / ".." / ".." / "templates"
 CLOUD_INIT_DIR = MANIFESTS_DIR / "cloud-init"
 DISA_STIG_DIR = MANIFESTS_DIR / "disa_stig"
 
-# DATASTORE is the datastore backend to use for the tests.
-# One of 'etcd' (default) or 'k8s-dqlite'.
-DATASTORE = os.getenv("TEST_DATASTORE") or "etcd"
-
 # ETCD_DIR contains all templates required to setup an etcd database.
 ETCD_DIR = MANIFESTS_DIR / "etcd"
 

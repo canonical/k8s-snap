@@ -2,15 +2,9 @@
 # Copyright 2026 Canonical, Ltd.
 #
 
-from test_util import config
-
 ETCD_PORTS = [
     2379,  # etcd client
     2380,  # etcd peer
-]
-
-K8S_DQLITE_PORTS = [
-    9000,
 ]
 
 # K8S_CORE_PORTS are ports used by core Kubernetes components.
@@ -29,6 +23,4 @@ K8S_CORE_PORTS = [
 # in the firewall for every test.
 # Tests can specify additional ports via the @pytest.mark.required_ports()
 # decorator.
-DEFAULT_OPEN_PORTS = K8S_CORE_PORTS + (
-    K8S_DQLITE_PORTS if config.DATASTORE == "k8s-dqlite" else ETCD_PORTS
-)
+DEFAULT_OPEN_PORTS = K8S_CORE_PORTS + ETCD_PORTS
