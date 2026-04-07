@@ -50,18 +50,93 @@ def test_control_plane_nodes(instances: List[harness.Instance]):
     # Verify that the initial node can be removed
     util.remove_node_with_retry(joining_node_1, cluster_node.id)
     util.stubbornly(retries=5, delay_s=3).until(
-        lambda _: not util.diverged_cluster_memberships(
-            joining_node_1, [joining_node_1, joining_node_2, joining_node_3]
+        lambda _: (
+            not util.diverged_cluster_memberships(
+                joining_node_1, [joining_node_1, joining_node_2, joining_node_3]
+            )
         )
     )
 
     # Verify that a node can remove itself
     util.remove_node_with_retry(joining_node_1, joining_node_1.id)
     util.stubbornly(retries=5, delay_s=3).until(
-        lambda _: not util.diverged_cluster_memberships(
-            joining_node_2, [joining_node_2, joining_node_3]
+        lambda _: (
+            not util.diverged_cluster_memberships(
+                joining_node_2, [joining_node_2, joining_node_3]
+            )
         )
     )
+
+
+@pytest.mark.node_count(2)
+@pytest.mark.tags(tags.PULL_REQUEST)
+def test_etcd_learner_promotion(instances: List[harness.Instance]):
+    """Test that joining a second node to an embedded etcd cluster works correctly.
+
+    This validates the learner-based join flow that prevents quorum loss.
+    When going from 1 to 2 etcd members, the new node must be added as a
+    non-voting learner first, then promoted to a voting member after it has
+    caught up with the leader. Without this, the quorum requirement changes
+    from 1/1 to 2/2 before the new node is ready, causing a deadlock.
+    """
+    cluster_node = instances[0]
+    joining_node = instances[1]
+
+    util.wait_until_k8s_ready(cluster_node, [cluster_node])
+
+    # Verify the cluster uses embedded etcd datastore
+    datastore = util.get_datastore_type(cluster_node)
+    assert datastore == "etcd", f"Expected etcd datastore, got {datastore}"
+
+    # Join a second control plane node (the critical 1->2 etcd transition)
+    join_token = util.get_join_token(cluster_node, joining_node)
+    util.join_cluster(joining_node, join_token)
+
+    util.wait_until_k8s_ready(cluster_node, instances)
+    assert "control-plane" in util.get_local_node_status(cluster_node)
+    assert "control-plane" in util.get_local_node_status(joining_node)
+
+    # Verify etcd cluster membership is consistent (no leftover learners)
+    util.stubbornly(retries=5, delay_s=3).until(
+        lambda _: (
+            not util.diverged_cluster_memberships(
+                cluster_node, [cluster_node, joining_node]
+            )
+        )
+    )
+
+    # Verify that etcd members are all voting (no learners remain)
+    proc = cluster_node.exec(
+        [
+            "curl",
+            "--cacert",
+            "/etc/kubernetes/pki/etcd/ca.crt",
+            "--cert",
+            "/etc/kubernetes/pki/apiserver-etcd-client.crt",
+            "--key",
+            "/etc/kubernetes/pki/apiserver-etcd-client.key",
+            "https://127.0.0.1:2379/v3/cluster/member/list",
+            "-X",
+            "POST",
+            "-H",
+            "'Content-Type: application/json'",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    etcd_members = json.loads(proc.stdout).get("members", [])
+    assert len(etcd_members) == 2, f"Expected 2 etcd members, got {len(etcd_members)}"
+    for member in etcd_members:
+        assert not member.get("isLearner", False), (
+            f"etcd member {member.get('name', 'unknown')} should not be a learner after join"
+        )
+
+    # Verify API server is healthy on both nodes by running kubectl
+    for instance in instances:
+        result = instance.exec(["k8s", "kubectl", "get", "nodes"], capture_output=True)
+        assert result.returncode == 0, (
+            f"kubectl failed on {instance.id}: {result.stderr}"
+        )
 
 
 @pytest.mark.node_count(3)
@@ -85,21 +160,21 @@ def test_worker_nodes(instances: List[harness.Instance]):
     util.wait_until_k8s_ready(cluster_node, instances)
 
     assert "control-plane" in util.get_local_node_status(cluster_node)
-    assert "worker" in util.get_local_node_status(
-        joining_node
-    ), f"{joining_node.id} should be ready and in the cluster"
-    assert "worker" in util.get_local_node_status(
-        other_joining_node
-    ), f"{other_joining_node.id} should be ready and in the cluster"
+    assert "worker" in util.get_local_node_status(joining_node), (
+        f"{joining_node.id} should be ready and in the cluster"
+    )
+    assert "worker" in util.get_local_node_status(other_joining_node), (
+        f"{other_joining_node.id} should be ready and in the cluster"
+    )
 
     util.remove_node_with_retry(cluster_node, joining_node.id)
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 2, "worker should have been removed from cluster"
     assert cluster_node.id in [
         node["metadata"]["name"] for node in nodes
-    ] and other_joining_node.id in [
-        node["metadata"]["name"] for node in nodes
-    ], f"only {cluster_node.id} should be left in cluster"
+    ] and other_joining_node.id in [node["metadata"]["name"] for node in nodes], (
+        f"only {cluster_node.id} should be left in cluster"
+    )
 
 
 @pytest.mark.node_count(3)
@@ -146,15 +221,15 @@ def test_disa_stig_clustering(instances: List[harness.Instance]):
     util.join_cluster(joining_worker, join_token_worker, yaml.dump(worker_data))
 
     util.wait_until_k8s_ready(cluster_node, instances)
-    assert "control-plane" in util.get_local_node_status(
-        cluster_node
-    ), f"{cluster_node.id} should be ready and in the cluster"
-    assert "control-plane" in util.get_local_node_status(
-        joining_cp
-    ), f"{joining_cp.id} should be ready and in the cluster"
-    assert "worker" in util.get_local_node_status(
-        joining_worker
-    ), f"{joining_worker.id} should be ready and in the cluster"
+    assert "control-plane" in util.get_local_node_status(cluster_node), (
+        f"{cluster_node.id} should be ready and in the cluster"
+    )
+    assert "control-plane" in util.get_local_node_status(joining_cp), (
+        f"{joining_cp.id} should be ready and in the cluster"
+    )
+    assert "worker" in util.get_local_node_status(joining_worker), (
+        f"{joining_worker.id} should be ready and in the cluster"
+    )
 
 
 @pytest.mark.node_count(3)
@@ -188,9 +263,9 @@ def test_concurrent_cp_membership_operations(instances: List[harness.Instance]):
     util.wait_until_k8s_ready(cluster_node, [cluster_node])
 
     nodes = util.ready_nodes(cluster_node)
-    assert (
-        len(nodes) == 1
-    ), "two control-plane nodes, should have been removed from cluster"
+    assert len(nodes) == 1, (
+        "two control-plane nodes, should have been removed from cluster"
+    )
 
     assert cluster_node.id in [node["metadata"]["name"] for node in nodes]
 
@@ -269,9 +344,9 @@ def test_mixed_concurrent_membership_operations(instances: List[harness.Instance
 
     assert cluster_node.id in [
         node["metadata"]["name"] for node in nodes
-    ] and joining_cp_B.id in [
-        node["metadata"]["name"] for node in nodes
-    ], f"only {cluster_node.id} and {joining_cp_B.id} should be left in cluster"
+    ] and joining_cp_B.id in [node["metadata"]["name"] for node in nodes], (
+        f"only {cluster_node.id} and {joining_cp_B.id} should be left in cluster"
+    )
 
 
 @pytest.mark.node_count(2)
@@ -297,9 +372,9 @@ def test_concurrent_membership_restart_operations(instances: List[harness.Instan
 
     assert cluster_node.id in [
         node["metadata"]["name"] for node in nodes
-    ] and joining_cp_A.id in [
-        node["metadata"]["name"] for node in nodes
-    ], f"{cluster_node.id} and {joining_cp_A.id} should be in the cluster"
+    ] and joining_cp_A.id in [node["metadata"]["name"] for node in nodes], (
+        f"{cluster_node.id} and {joining_cp_A.id} should be in the cluster"
+    )
 
     assert "control-plane" in util.get_local_node_status(cluster_node)
     assert "control-plane" in util.get_local_node_status(joining_cp_A)
@@ -347,14 +422,14 @@ def test_node_join_succeeds_when_original_control_plane_is_down(
     util.wait_until_k8s_ready(joining_cp_A, [joining_cp_A, joining_cp_B, joining_cp_C])
 
     nodes = util.ready_nodes(joining_cp_A)
-    assert (
-        len(nodes) == 3
-    ), "three control plane nodes should be ready, original node is removed"
+    assert len(nodes) == 3, (
+        "three control plane nodes should be ready, original node is removed"
+    )
 
     node_names = {node["metadata"]["name"] for node in nodes}
-    assert {joining_cp_A.id, joining_cp_B.id, joining_cp_C.id}.issubset(
-        node_names
-    ), f"{joining_cp_A.id}, {joining_cp_B.id}, and {joining_cp_C.id} should be ready and in the cluster"
+    assert {joining_cp_A.id, joining_cp_B.id, joining_cp_C.id}.issubset(node_names), (
+        f"{joining_cp_A.id}, {joining_cp_B.id}, and {joining_cp_C.id} should be ready and in the cluster"
+    )
 
 
 @pytest.mark.node_count(3)
@@ -388,9 +463,9 @@ def test_node_removal_during_concurrent_join(
     assert len(nodes) == 2, "There should be two control-plane nodes in the cluster"
 
     node_names = {node["metadata"]["name"] for node in nodes}
-    assert {cluster_node.id, joining_cp_B.id}.issubset(
-        node_names
-    ), f"{cluster_node.id} and {joining_cp_B.id} should be ready and in the cluster"
+    assert {cluster_node.id, joining_cp_B.id}.issubset(node_names), (
+        f"{cluster_node.id} and {joining_cp_B.id} should be ready and in the cluster"
+    )
 
 
 @pytest.mark.node_count(3)
@@ -464,12 +539,12 @@ def test_cert_refresh(instances: List[harness.Instance]):
     util.join_cluster(joining_worker, join_token_worker)
 
     util.wait_until_k8s_ready(cluster_node, instances)
-    assert "control-plane" in util.get_local_node_status(
-        cluster_node
-    ), f"{cluster_node.id} should be ready and in the cluster"
-    assert "worker" in util.get_local_node_status(
-        joining_worker
-    ), f"{joining_worker.id} should be ready and in the cluster"
+    assert "control-plane" in util.get_local_node_status(cluster_node), (
+        f"{cluster_node.id} should be ready and in the cluster"
+    )
+    assert "worker" in util.get_local_node_status(joining_worker), (
+        f"{joining_worker.id} should be ready and in the cluster"
+    )
 
     extra_san = "test_san.local"
 
@@ -545,7 +620,9 @@ def test_join_cp_with_duplicate_name_rejected(instances: List[harness.Instance])
         assert (
             f'a node with this name is already part of the cluster: "{shared_node_name}"'
             in error_output
-        ), f"Join error message should indicate duplicate node name. Got: {error_output}"
+        ), (
+            f"Join error message should indicate duplicate node name. Got: {error_output}"
+        )
 
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 2, "Only master node and worker should be in the cluster"
@@ -588,7 +665,9 @@ def test_join_worker_with_duplicate_name_rejected(instances: List[harness.Instan
         assert (
             f'a node with this name is already part of the cluster: "{shared_node_name}"'
             in error_output
-        ), f"Join error message should indicate duplicate node name. Got: {error_output}"
+        ), (
+            f"Join error message should indicate duplicate node name. Got: {error_output}"
+        )
 
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 1, "Only original cluster node should be in the cluster"
@@ -646,9 +725,9 @@ def test_join_previously_removed_node(
 
     decoded_token = _parse_join_token(join_token)
 
-    assert (
-        util.get_default_ip(joining_node_2) not in decoded_token["join_addresses"]
-    ), "The previously removed node's IP should not be in the joining addresses"
+    assert util.get_default_ip(joining_node_2) not in decoded_token["join_addresses"], (
+        "The previously removed node's IP should not be in the joining addresses"
+    )
 
     try:
         joining_node_2.exec(
