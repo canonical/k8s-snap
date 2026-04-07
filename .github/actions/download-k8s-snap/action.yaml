@@ -55,8 +55,9 @@ runs:
         INPUT_ARTIFACT: ${{ inputs.artifact }}
         WORKSPACE: ${{ github.workspace }}
       run: |
-        if [[ -n "$INPUT_ARTIFACT" ]]; then
-          snap_path="${WORKSPACE}/${INPUT_ARTIFACT}"
+        ARTIFACT=$(printf '%s' "$INPUT_ARTIFACT" | tr -d '\r\n')
+        if [[ -n "$ARTIFACT" ]]; then
+          snap_path="${WORKSPACE}/${ARTIFACT}"
         else
           snap_path="${WORKSPACE}/k8s.snap"
         fi

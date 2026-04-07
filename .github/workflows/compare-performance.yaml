@@ -99,7 +99,11 @@ jobs:
         env:
           INPUT_OS: ${{ inputs.os }}
           INPUT_ARCH: ${{ inputs.arch }}
-        run: echo "test_prefix=${INPUT_OS}-${INPUT_ARCH}" | sed 's/[:\.\]/-/g' >> $GITHUB_ENV
+        run: |
+          sanitized_os=$(printf '%s' "$INPUT_OS" | tr -d '\r\n')
+          sanitized_arch=$(printf '%s' "$INPUT_ARCH" | tr -d '\r\n')
+          test_prefix=$(printf '%s' "${sanitized_os}-${sanitized_arch}" | sed 's/[:\.\]/-/g')
+          printf '%s\n' "test_prefix=${test_prefix}" >> "$GITHUB_ENV"
       - name: Download performance results
         uses: actions/download-artifact@v4
         with:

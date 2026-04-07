@@ -157,8 +157,14 @@ jobs:
           fi
 
           echo "Using git ref $REF for channel: $CHANNEL"
-          echo "repo=$INPUT_TEST_COLLECTION_REPO" >> $GITHUB_OUTPUT
-          echo "ref=$REF" >> $GITHUB_OUTPUT
+          {
+            echo "repo<<EOF"
+            printf '%s\n' "$INPUT_TEST_COLLECTION_REPO"
+            echo "EOF"
+            echo "ref<<EOF"
+            printf '%s\n' "$REF"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
       - name: Check out code
         uses: actions/checkout@v4
         with:

@@ -45,8 +45,14 @@ jobs:
           fi
 
           echo "Using git ref $REF"
-          echo "repo=$INPUT_REPO" >> $GITHUB_OUTPUT
-          echo "ref=$REF" >> $GITHUB_OUTPUT
+          {
+            echo "repo<<EOF"
+            printf '%s\n' "$INPUT_REPO"
+            echo "EOF"
+            echo "ref<<EOF"
+            printf '%s\n' "$REF"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
   linkcheck: 
     name: Run linkchecker 
     runs-on: ubuntu-latest 
