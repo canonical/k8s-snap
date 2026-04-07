@@ -33,6 +33,14 @@ on:
         description: Test flavor (e.g. strict), leave empty for classic
         default: ""
         type: string
+      datastore:
+        description: Datastore backend to use for the tests (e.g. etcd, k8s-dqlite)
+        default: ""
+        type: string
+      required-snaps:
+        description: "Required snaps to install on the test instances (JSON dict, e.g. '{\"core22\": \"fips-updates/stable\"}')"
+        default: ""
+        type: string
       extra-test-args: &extra-test-args
         description: |
           Additional pytest arguments, use "-k <test_name>" to run a specific test
@@ -196,7 +204,7 @@ jobs:
   run-tests:
     name: ${{ matrix.test }}
     needs: prepare
-    runs-on: ${{ fromJson(needs.prepare.outputs.test-runners)[matrix.test] || (inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04') }}
+    runs-on: ${{ fromJson(needs.prepare.outputs.test-runners)[matrix.test] || fromJson(needs.prepare.outputs.test-runners)['all'] || (inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04') }}
     strategy:
       fail-fast: false
       max-parallel: ${{ inputs.max-parallel }}
@@ -259,6 +267,8 @@ jobs:
           TEST_LXD_IMAGE: ${{ inputs.os }}
           TEST_MULTIPASS_IMAGE: ${{ inputs.os }}
           TEST_FLAVOR: ${{ inputs.flavor }}
+          TEST_DATASTORE: ${{ inputs.datastore }}
+          TEST_REQUIRED_SNAPS: ${{ inputs.required-snaps }}
           TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports/${{ inputs.parallel && env.test_name || '' }}
           TEST_VERSION_UPGRADE_CHANNELS: "recent 6"
           TEST_VERSION_DOWNGRADE_CHANNELS: "recent 6"

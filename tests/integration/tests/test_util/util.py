@@ -229,6 +229,38 @@ def setup_core_dumps(instance: harness.Instance):
     instance.exec(["snap", "set", "system", "system.coredump.enable=true"])
 
 
+def ensure_required_snaps(instance: harness.Instance, required_snaps: dict) -> None:
+    """Ensure that the required snaps are installed on the instance.
+
+    :param instance: The harness instance to install snaps on
+    :param required_snaps: A dictionary mapping snap names to channels
+    """
+    for snap_name, channel in required_snaps.items():
+        out = instance.exec(
+            ["snap", "list", snap_name], capture_output=True, text=True, check=False
+        )
+
+        if snap_name in out.stdout:
+            LOG.info(
+                "Snap %s is already installed on instance %s. Refreshing to channel %s",
+                snap_name,
+                instance.id,
+                channel,
+            )
+            instance.exec(["snap", "refresh", snap_name, f"--channel={channel}"])
+            continue
+
+        LOG.info(
+            "Installing required snap %s on instance %s from channel %s",
+            snap_name,
+            instance.id,
+            channel,
+        )
+        instance.exec(
+            ["snap", "install", snap_name, "--classic", f"--channel={channel}"]
+        )
+
+
 def setup_k8s_snap(
     instance: harness.Instance,
     snap: Optional[str] = None,
@@ -976,7 +1008,7 @@ def find_suitable_cidr(parent_cidr: str, excluded_ips: List[str]):
     # /30 because this is the smallest CIDR cilium hands out IPs from.
     # For ipv6, we use a /126 block that contains 4 total ips.
     for i in range(4, 255, 4):
-        lb_net = ipaddress.ip_network(f"{str(net[0]+i)}/{ip_range}", False)
+        lb_net = ipaddress.ip_network(f"{str(net[0] + i)}/{ip_range}", False)
 
         contains_excluded = False
         for excluded in excluded_ips:
@@ -1063,7 +1095,7 @@ def wait_for_daemonset(
         if int(proc.stdout.decode()) >= expected_pods_ready:
             LOG.info(
                 f"Successfully waited for daemonset '{name}' after "
-                f"{(i+1)*retry_delay_s} seconds"
+                f"{(i + 1) * retry_delay_s} seconds"
             )
             return
 
@@ -1264,20 +1296,20 @@ def check_snap_services_ready(
     service_status = get_snap_service_status(instance)
 
     for service in expected_active_services:
-        assert (
-            service in service_status
-        ), f"Service {service} is missing from 'snap services' output"
-        assert (
-            service_status[service] == "active"
-        ), f"Service {service} should be active, but it is {service_status[service]}"
+        assert service in service_status, (
+            f"Service {service} is missing from 'snap services' output"
+        )
+        assert service_status[service] == "active", (
+            f"Service {service} should be active, but it is {service_status[service]}"
+        )
 
     for service, status in service_status.items():
         if service in skip_services:
             continue
         if service not in expected_active_services:
-            assert (
-                status == "inactive"
-            ), f"Unexpected service {service} is {status} but should be inactive"
+            assert status == "inactive", (
+                f"Unexpected service {service} is {status} but should be inactive"
+            )
 
 
 def _get_enabled_services(instance: harness.Instance) -> List[str]:
@@ -1315,10 +1347,9 @@ def check_service_restarts(
         if n_restarts > max_restarts:
             violations.append((service, n_restarts))
 
-    assert (
-        not violations
-    ), f"Services have restarted more than {max_restarts} time(s): " + ", ".join(
-        f"{s} ({n} restarts)" for s, n in violations
+    assert not violations, (
+        f"Services have restarted more than {max_restarts} time(s): "
+        + ", ".join(f"{s} ({n} restarts)" for s, n in violations)
     )
 
 

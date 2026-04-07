@@ -41,7 +41,10 @@ class MultipassHarness(Harness):
         LOG.debug("Configured Multipass substrate (image %s)", self.image)
 
     def new_instance(
-        self, network_type: str = "IPv4", name_suffix: str = ""
+        self,
+        network_type: str = "IPv4",
+        name_suffix: str = "",
+        required_ports: List[int] = None,
     ) -> Instance:
         if network_type not in ("IPv4", "IPv6", "dualstack"):
             raise HarnessError(
@@ -70,7 +73,6 @@ class MultipassHarness(Harness):
             ]
 
             if self.cloud_init:
-
                 cloud_init_content = Path(
                     config.CLOUD_INIT_DIR / self.cloud_init
                 ).read_text()
@@ -152,6 +154,9 @@ class MultipassHarness(Harness):
                 raise HarnessError(
                     f"Failed to configure IPv6 in instance {instance_id}"
                 ) from e
+
+        if required_ports:
+            self.open_ports(instance_id, required_ports)
 
         return instance
 
