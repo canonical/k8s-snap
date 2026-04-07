@@ -1296,20 +1296,20 @@ def check_snap_services_ready(
     service_status = get_snap_service_status(instance)
 
     for service in expected_active_services:
-        assert service in service_status, (
-            f"Service {service} is missing from 'snap services' output"
-        )
-        assert service_status[service] == "active", (
-            f"Service {service} should be active, but it is {service_status[service]}"
-        )
+        assert (
+            service in service_status
+        ), f"Service {service} is missing from 'snap services' output"
+        assert (
+            service_status[service] == "active"
+        ), f"Service {service} should be active, but it is {service_status[service]}"
 
     for service, status in service_status.items():
         if service in skip_services:
             continue
         if service not in expected_active_services:
-            assert status == "inactive", (
-                f"Unexpected service {service} is {status} but should be inactive"
-            )
+            assert (
+                status == "inactive"
+            ), f"Unexpected service {service} is {status} but should be inactive"
 
 
 def _get_enabled_services(instance: harness.Instance) -> List[str]:
@@ -1347,9 +1347,10 @@ def check_service_restarts(
         if n_restarts > max_restarts:
             violations.append((service, n_restarts))
 
-    assert not violations, (
-        f"Services have restarted more than {max_restarts} time(s): "
-        + ", ".join(f"{s} ({n} restarts)" for s, n in violations)
+    assert (
+        not violations
+    ), f"Services have restarted more than {max_restarts} time(s): " + ", ".join(
+        f"{s} ({n} restarts)" for s, n in violations
     )
 
 
