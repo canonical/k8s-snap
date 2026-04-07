@@ -1,6 +1,6 @@
 # Canonical Kubernetes Snap
 
-[![End to End Tests](https://github.com/canonical/k8s-snap/actions/workflows/integration.yaml/badge.svg)](https://github.com/canonical/k8s-snap/actions/workflows/integration.yaml)
+[![Lint and integration](https://github.com/canonical/k8s-snap/actions/workflows/lint_and_integration.yaml/badge.svg)](https://github.com/canonical/k8s-snap/actions/workflows/lint_and_integration.yaml)
 [![](https://snapcraft.io/k8s/badge.svg)](https://snapcraft.io/k8s)
 
 [![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/k8s)
