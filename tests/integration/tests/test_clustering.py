@@ -8,6 +8,7 @@ import json
 import logging
 import os
 import subprocess
+import threading
 import time
 from typing import Any, List
 
@@ -71,13 +72,14 @@ def test_control_plane_nodes(instances: List[harness.Instance]):
 @pytest.mark.node_count(2)
 @pytest.mark.tags(tags.PULL_REQUEST)
 def test_etcd_learner_promotion(instances: List[harness.Instance]):
-    """Test that joining a second node to an embedded etcd cluster works correctly.
+    """Test that joining a second node doesn't cause etcd quorum loss.
 
-    This validates the learner-based join flow that prevents quorum loss.
     When going from 1 to 2 etcd members, the new node must be added as a
-    non-voting learner first, then promoted to a voting member after it has
-    caught up with the leader. Without this, the quorum requirement changes
-    from 1/1 to 2/2 before the new node is ready, causing a deadlock.
+    non-voting learner first. Without this, MemberAdd changes quorum from
+    1/1 to 2/2 before the new etcd starts, causing a deadlock.
+
+    This test creates continuous write pressure on etcd during the join to
+    ensure any quorum loss is immediately detected as write timeouts.
     """
     cluster_node = instances[0]
     joining_node = instances[1]
@@ -88,9 +90,65 @@ def test_etcd_learner_promotion(instances: List[harness.Instance]):
     datastore = util.get_datastore_type(cluster_node)
     assert datastore == "etcd", f"Expected etcd datastore, got {datastore}"
 
-    # Join a second control plane node (the critical 1->2 etcd transition)
-    join_token = util.get_join_token(cluster_node, joining_node)
-    util.join_cluster(joining_node, join_token)
+    # Create continuous write pressure on etcd during the join.
+    # Each iteration creates a ConfigMap via the k8s API (which writes to etcd).
+    # If quorum is lost (bug: MemberAdd instead of MemberAddAsLearner), these
+    # writes will hang or fail because the single etcd member can no longer
+    # commit Raft entries without a second voter that hasn't started yet.
+    write_failures = []
+    write_count = [0]
+    stop_writer = threading.Event()
+
+    def _continuous_etcd_writes():
+        seq = 0
+        while not stop_writer.is_set():
+            try:
+                result = cluster_node.exec(
+                    [
+                        "k8s",
+                        "kubectl",
+                        "create",
+                        "configmap",
+                        f"etcd-quorum-test-{seq}",
+                        f"--from-literal=seq={seq}",
+                        "-n",
+                        "default",
+                    ],
+                    capture_output=True,
+                    text=True,
+                    timeout=30,
+                )
+                if result.returncode != 0:
+                    write_failures.append(
+                        f"write {seq}: exit {result.returncode}: {result.stderr.strip()}"
+                    )
+            except subprocess.TimeoutExpired:
+                write_failures.append(f"write {seq}: timed out after 30s")
+            except Exception as e:
+                write_failures.append(f"write {seq}: {e}")
+            seq += 1
+            write_count[0] = seq
+            stop_writer.wait(0.5)
+
+    writer = threading.Thread(target=_continuous_etcd_writes, daemon=True)
+    writer.start()
+
+    try:
+        join_token = util.get_join_token(cluster_node, joining_node)
+        util.join_cluster(joining_node, join_token)
+    finally:
+        stop_writer.set()
+        writer.join(timeout=60)
+
+    LOG.info("Background writer completed %d writes during join", write_count[0])
+
+    # If etcd quorum was lost during join, some writes will have failed or
+    # timed out. This is the core assertion that catches the MemberAdd bug.
+    assert not write_failures, (
+        f"etcd writes failed during node join, indicating quorum loss. "
+        f"{len(write_failures)} failures out of {write_count[0]} writes: "
+        + "; ".join(write_failures[:5])
+    )
 
     util.wait_until_k8s_ready(cluster_node, instances)
     assert "control-plane" in util.get_local_node_status(cluster_node)
@@ -131,7 +189,7 @@ def test_etcd_learner_promotion(instances: List[harness.Instance]):
             f"etcd member {member.get('name', 'unknown')} should not be a learner after join"
         )
 
-    # Verify API server is healthy on both nodes by running kubectl
+    # Verify API server is healthy on both nodes
     for instance in instances:
         result = instance.exec(["k8s", "kubectl", "get", "nodes"], capture_output=True)
         assert result.returncode == 0, (
