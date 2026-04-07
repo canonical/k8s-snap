@@ -34,13 +34,13 @@ jobs:
       channel-available: ${{ steps.check-channel.outputs.channel-available }}
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
       - name: Setup Astral UV
-        uses: astral-sh/setup-uv@v6.4.1
+        uses: astral-sh/setup-uv@7edac99f961f18b581bbd960d59d049f04c0002f # v6.4.1
       - name: Install tox with UV
         run: uv tool install tox --with tox-uv
       - name: Check charm channel availability
@@ -65,9 +65,9 @@ jobs:
     timeout-minutes: 600
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.10'
       - name: Download k8s-snap
@@ -77,7 +77,7 @@ jobs:
           channel: ${{ inputs.channel }}
           artifact: ${{ inputs.artifact }}
       - name: Setup LXD
-        uses: canonical/setup-lxd@v0.1.3
+        uses: canonical/setup-lxd@a3c85fc6fb7fff43fcfeae87659e41a8f635b7dd # v0.1.3
       - name: Install virtualenv
         run: sudo apt install -y python3.10-venv
       - name: Generate snap tarball
@@ -86,7 +86,7 @@ jobs:
           mv ${{ steps.download-snap.outputs.snap-path }} snap_installation/k8s.snap
           tar cvzf snap_installation.tar.gz -C snap_installation/ .
       - name: Setup Astral UV
-        uses: astral-sh/setup-uv@v6.4.1
+        uses: astral-sh/setup-uv@7edac99f961f18b581bbd960d59d049f04c0002f # v6.4.1
         with:
           python-version: ${{ env.python-version }}
       - name: Install tox with UV
@@ -127,7 +127,7 @@ jobs:
       - name: Bootstrap Juju controller (lxd)
         run: |
           juju bootstrap localhost lxd
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: canonical/k8s-operator
           ref: ${{ github.base_ref || github.ref_name }}
@@ -167,7 +167,7 @@ jobs:
           echo "path=${path}/" >> $GITHUB_OUTPUT
       - name: Upload debug artifacts
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: charm-e2e-tests-${{ inputs.arch }}
           path: ${{ steps.collect-juju-status.outputs.path }}
