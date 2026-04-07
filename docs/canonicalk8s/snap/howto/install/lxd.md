@@ -168,4 +168,4 @@ lxc delete k8s-vm
 [default-bridged-networking]: https://documentation.ubuntu.com/lxd/en/latest/reference/network_bridge/
 [Microbot]: https://github.com/dontrebootme/docker-microbot
 [channels]: ../../explanation/channels
-[privileged container]: https://documentation.ubuntu.com/server/how-to/containers/lxd-containers/index.html#uid-mappings-and-privileged-containers
+[privileged container]: https://documentation.ubuntu.com/lxd/en/latest/explanation/security/#privileged-containers
