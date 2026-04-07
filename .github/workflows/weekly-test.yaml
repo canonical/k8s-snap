@@ -1,6 +1,7 @@
 name: Weekly
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: "0 0 * * 6" # Runs every saturday at midnight
   pull_request:
@@ -37,16 +38,18 @@ jobs:
     strategy:
       matrix:
         arch: ["amd64", "arm64"]
+        datastore: ["etcd", "k8s-dqlite"]
         channel: ["latest/edge"]
       fail-fast: false
     uses: ./.github/workflows/e2e-tests.yaml
     with:
       arch: ${{ matrix.arch }}
+      datastore: ${{ matrix.datastore }}
       channel: ${{ matrix.channel }}
       test-tags: "up_to_nightly"
       parallel: true
       # We need to reduce the max parallelism here to avoid occupying all runners.
-      # os * arch * channel * max-parallel = 160 jobs
+      # arch * datastore * channel * max-parallel = 40 jobs
       max-parallel: 10
 
   cncf:
@@ -95,7 +98,7 @@ jobs:
     # We don't want to ping people of failed PRs.
     if: ${{ always() && github.event_name == 'schedule' }}
     # Note: Update results check below if you change the "needs" list.
-    needs: [test-on-fips, docs]
+    needs: [test-on-fips, test-spread-datastore, cncf, docs]
     runs-on: ubuntu-latest
     steps:
       - name: Set current formatted date as env variable
