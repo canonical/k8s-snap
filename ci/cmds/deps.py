@@ -276,20 +276,27 @@ def cmd_update_pip_locks(args: argparse.Namespace) -> int:
     for infile in in_files:
         outfile = infile.removesuffix(".in") + ".txt"
         print(f"Compiling {Path(infile).relative_to(root)} ...")
-        r = subprocess.run(
-            [
-                "pip-compile",
-                "--upgrade",
-                "--generate-hashes",
-                "--strip-extras",
-                "--no-header",
-                "--output-file",
-                outfile,
-                infile,
-            ],
-            capture_output=True,
-            text=True,
-        )
+        try:
+            r = subprocess.run(
+                [
+                    "pip-compile",
+                    "--upgrade",
+                    "--generate-hashes",
+                    "--strip-extras",
+                    "--no-header",
+                    "--output-file",
+                    outfile,
+                    infile,
+                ],
+                capture_output=True,
+                text=True,
+            )
+        except FileNotFoundError:
+            print(
+                "ERROR: pip-compile not found. Install it with: pip install pip-tools",
+                file=sys.stderr,
+            )
+            return 1
         if r.returncode != 0:
             print(
                 f"ERROR: pip-compile failed for {infile}:\n{r.stderr}", file=sys.stderr
