@@ -19,6 +19,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
+      - name: Install Python dependencies
+        run: pip install requests
+
       - name: Check for action updates
         id: check
         env:
@@ -36,6 +39,7 @@ jobs:
 
             ${{ steps.check.outputs.summary }}
           branch: automation/update-actions
+          base: main
           labels: automerge
           delete-branch: true
           token: ${{ secrets.BOT_TOKEN }}
@@ -56,7 +60,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install pip-tools
-        run: pip install "pip-tools==7.4.1"
+        run: pip install "pip-tools==7.4.1" requests
 
       - name: Update pip lock files
         id: check
@@ -73,6 +77,7 @@ jobs:
 
             ${{ steps.check.outputs.summary }}
           branch: automation/update-pip-deps
+          base: main
           labels: automerge
           delete-branch: true
           token: ${{ secrets.BOT_TOKEN }}
