@@ -2,9 +2,11 @@
 # Copyright 2025 Canonical, Ltd.
 #
 import datetime
+import json
 import logging
 import os
 import subprocess
+import threading
 from typing import List
 
 import pytest
@@ -45,18 +47,136 @@ def test_control_plane_nodes(instances: List[harness.Instance]):
     # Verify that the initial node can be removed
     joining_node_1.exec(["k8s", "remove-node", cluster_node.id])
     util.stubbornly(retries=5, delay_s=3).until(
-        lambda _: not util.diverged_cluster_memberships(
-            joining_node_1, [joining_node_1, joining_node_2, joining_node_3]
+        lambda _: (
+            not util.diverged_cluster_memberships(
+                joining_node_1, [joining_node_1, joining_node_2, joining_node_3]
+            )
         )
     )
 
     # Verify that a node can remove itself
     joining_node_2.exec(["k8s", "remove-node", joining_node_1.id])
     util.stubbornly(retries=5, delay_s=3).until(
-        lambda _: not util.diverged_cluster_memberships(
-            joining_node_2, [joining_node_2, joining_node_3]
+        lambda _: (
+            not util.diverged_cluster_memberships(
+                joining_node_2, [joining_node_2, joining_node_3]
+            )
         )
     )
+
+
+@pytest.mark.node_count(2)
+@pytest.mark.tags(tags.PULL_REQUEST)
+def test_etcd_learner_promotion(instances: List[harness.Instance]):
+    """Test that joining a second node doesn't cause etcd quorum loss.
+
+    When going from 1 to 2 etcd members, the new node must be added as a
+    non-voting learner first. Without this, MemberAdd changes quorum from
+    1/1 to 2/2 before the new etcd starts, causing a deadlock.
+
+    This test creates continuous write pressure on etcd during the join to
+    ensure any quorum loss is immediately detected as write timeouts.
+    """
+    cluster_node = instances[0]
+    joining_node = instances[1]
+
+    util.wait_until_k8s_ready(cluster_node, [cluster_node])
+
+    write_failures = []
+    write_count = [0]
+    stop_writer = threading.Event()
+
+    def _continuous_etcd_writes():
+        seq = 0
+        while not stop_writer.is_set():
+            try:
+                result = cluster_node.exec(
+                    [
+                        "k8s",
+                        "kubectl",
+                        "create",
+                        "configmap",
+                        f"etcd-quorum-test-{seq}",
+                        f"--from-literal=seq={seq}",
+                        "-n",
+                        "default",
+                    ],
+                    capture_output=True,
+                    text=True,
+                    timeout=30,
+                )
+                if result.returncode != 0:
+                    write_failures.append(
+                        f"write {seq}: exit {result.returncode}: {result.stderr.strip()}"
+                    )
+            except subprocess.TimeoutExpired:
+                write_failures.append(f"write {seq}: timed out after 30s")
+            except Exception as e:
+                write_failures.append(f"write {seq}: {e}")
+            seq += 1
+            write_count[0] = seq
+            stop_writer.wait(0.5)
+
+    writer = threading.Thread(target=_continuous_etcd_writes, daemon=True)
+    writer.start()
+
+    try:
+        join_token = util.get_join_token(cluster_node, joining_node)
+        util.join_cluster(joining_node, join_token)
+    finally:
+        stop_writer.set()
+        writer.join(timeout=60)
+
+    LOG.info("Background writer completed %d writes during join", write_count[0])
+
+    assert not write_failures, (
+        f"etcd writes failed during node join, indicating quorum loss. "
+        f"{len(write_failures)} failures out of {write_count[0]} writes: "
+        + "; ".join(write_failures[:5])
+    )
+
+    util.wait_until_k8s_ready(cluster_node, instances)
+    assert "control-plane" in util.get_local_node_status(cluster_node)
+    assert "control-plane" in util.get_local_node_status(joining_node)
+
+    util.stubbornly(retries=5, delay_s=3).until(
+        lambda _: (
+            not util.diverged_cluster_memberships(
+                cluster_node, [cluster_node, joining_node]
+            )
+        )
+    )
+
+    proc = cluster_node.exec(
+        [
+            "curl",
+            "--cacert",
+            "/etc/kubernetes/pki/etcd/ca.crt",
+            "--cert",
+            "/etc/kubernetes/pki/apiserver-etcd-client.crt",
+            "--key",
+            "/etc/kubernetes/pki/apiserver-etcd-client.key",
+            "https://127.0.0.1:2379/v3/cluster/member/list",
+            "-X",
+            "POST",
+            "-H",
+            "'Content-Type: application/json'",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    etcd_members = json.loads(proc.stdout).get("members", [])
+    assert len(etcd_members) == 2, f"Expected 2 etcd members, got {len(etcd_members)}"
+    for member in etcd_members:
+        assert not member.get("isLearner", False), (
+            f"etcd member {member.get('name', 'unknown')} should not be a learner after join"
+        )
+
+    for instance in instances:
+        result = instance.exec(["k8s", "kubectl", "get", "nodes"], capture_output=True)
+        assert result.returncode == 0, (
+            f"kubectl failed on {instance.id}: {result.stderr}"
+        )
 
 
 @pytest.mark.node_count(3)
@@ -88,9 +208,9 @@ def test_worker_nodes(instances: List[harness.Instance]):
     assert len(nodes) == 2, "worker should have been removed from cluster"
     assert cluster_node.id in [
         node["metadata"]["name"] for node in nodes
-    ] and other_joining_node.id in [
-        node["metadata"]["name"] for node in nodes
-    ], f"only {cluster_node.id} should be left in cluster"
+    ] and other_joining_node.id in [node["metadata"]["name"] for node in nodes], (
+        f"only {cluster_node.id} should be left in cluster"
+    )
 
 
 @pytest.mark.node_count(3)
