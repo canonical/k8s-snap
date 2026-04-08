@@ -3,9 +3,11 @@
 #
 import concurrent.futures
 import datetime
+import json
 import logging
 import os
 import subprocess
+import threading
 import time
 from typing import List
 
@@ -47,18 +49,146 @@ def test_control_plane_nodes(instances: List[harness.Instance]):
     # Verify that the initial node can be removed
     util.remove_node_with_retry(joining_node_1, cluster_node.id)
     util.stubbornly(retries=5, delay_s=3).until(
-        lambda _: not util.diverged_cluster_memberships(
-            joining_node_1, [joining_node_1, joining_node_2, joining_node_3]
+        lambda _: (
+            not util.diverged_cluster_memberships(
+                joining_node_1, [joining_node_1, joining_node_2, joining_node_3]
+            )
         )
     )
 
     # Verify that a node can remove itself
     util.remove_node_with_retry(joining_node_1, joining_node_1.id)
     util.stubbornly(retries=5, delay_s=3).until(
-        lambda _: not util.diverged_cluster_memberships(
-            joining_node_2, [joining_node_2, joining_node_3]
+        lambda _: (
+            not util.diverged_cluster_memberships(
+                joining_node_2, [joining_node_2, joining_node_3]
+            )
         )
     )
+
+
+@pytest.mark.node_count(2)
+@pytest.mark.tags(tags.PULL_REQUEST)
+def test_etcd_learner_promotion(instances: List[harness.Instance]):
+    """Test that joining a second node doesn't cause etcd quorum loss.
+
+    When going from 1 to 2 etcd members, the new node must be added as a
+    non-voting learner first. Without this, MemberAdd changes quorum from
+    1/1 to 2/2 before the new etcd starts, causing a deadlock.
+
+    This test creates continuous write pressure on etcd during the join to
+    ensure any quorum loss is immediately detected as write timeouts.
+    """
+    cluster_node = instances[0]
+    joining_node = instances[1]
+
+    util.wait_until_k8s_ready(cluster_node, [cluster_node])
+
+    # Create continuous write pressure on etcd during the join.
+    # Each iteration creates a ConfigMap via the k8s API (which writes to etcd).
+    # If quorum is lost (bug: MemberAdd instead of MemberAddAsLearner), these
+    # writes will hang or fail because the single etcd member can no longer
+    # commit Raft entries without a second voter that hasn't started yet.
+    write_failures = []
+    write_count = [0]
+    stop_writer = threading.Event()
+
+    def _continuous_etcd_writes():
+        seq = 0
+        while not stop_writer.is_set():
+            try:
+                result = cluster_node.exec(
+                    [
+                        "k8s",
+                        "kubectl",
+                        "create",
+                        "configmap",
+                        f"etcd-quorum-test-{seq}",
+                        f"--from-literal=seq={seq}",
+                        "-n",
+                        "default",
+                    ],
+                    capture_output=True,
+                    text=True,
+                    timeout=30,
+                )
+                if result.returncode != 0:
+                    write_failures.append(
+                        f"write {seq}: exit {result.returncode}: {result.stderr.strip()}"
+                    )
+            except subprocess.TimeoutExpired:
+                write_failures.append(f"write {seq}: timed out after 30s")
+            except Exception as e:
+                write_failures.append(f"write {seq}: {e}")
+            seq += 1
+            write_count[0] = seq
+            stop_writer.wait(0.5)
+
+    writer = threading.Thread(target=_continuous_etcd_writes, daemon=True)
+    writer.start()
+
+    try:
+        join_token = util.get_join_token(cluster_node, joining_node)
+        util.join_cluster(joining_node, join_token)
+    finally:
+        stop_writer.set()
+        writer.join(timeout=60)
+
+    LOG.info("Background writer completed %d writes during join", write_count[0])
+
+    # If etcd quorum was lost during join, some writes will have failed or
+    # timed out. This is the core assertion that catches the MemberAdd bug.
+    assert not write_failures, (
+        f"etcd writes failed during node join, indicating quorum loss. "
+        f"{len(write_failures)} failures out of {write_count[0]} writes: "
+        + "; ".join(write_failures[:5])
+    )
+
+    util.wait_until_k8s_ready(cluster_node, instances)
+    assert "control-plane" in util.get_local_node_status(cluster_node)
+    assert "control-plane" in util.get_local_node_status(joining_node)
+
+    # Verify etcd cluster membership is consistent (no leftover learners)
+    util.stubbornly(retries=5, delay_s=3).until(
+        lambda _: (
+            not util.diverged_cluster_memberships(
+                cluster_node, [cluster_node, joining_node]
+            )
+        )
+    )
+
+    # Verify that etcd members are all voting (no learners remain)
+    proc = cluster_node.exec(
+        [
+            "curl",
+            "--cacert",
+            "/etc/kubernetes/pki/etcd/ca.crt",
+            "--cert",
+            "/etc/kubernetes/pki/apiserver-etcd-client.crt",
+            "--key",
+            "/etc/kubernetes/pki/apiserver-etcd-client.key",
+            "https://127.0.0.1:2379/v3/cluster/member/list",
+            "-X",
+            "POST",
+            "-H",
+            "'Content-Type: application/json'",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    etcd_members = json.loads(proc.stdout).get("members", [])
+    assert len(etcd_members) == 2, f"Expected 2 etcd members, got {len(etcd_members)}"
+    for member in etcd_members:
+        assert not member.get("isLearner", False), (
+            f"etcd member {member.get('name', 'unknown')} should not be a learner after join"
+        )
+
+    # Verify API server is healthy on both nodes
+    for instance in instances:
+        result = instance.exec(["k8s", "kubectl", "get", "nodes"], capture_output=True)
+        assert result.returncode == 0, (
+            f"kubectl failed on {instance.id}: {result.stderr}"
+        )
 
 
 @pytest.mark.node_count(3)
@@ -82,21 +212,21 @@ def test_worker_nodes(instances: List[harness.Instance]):
     util.wait_until_k8s_ready(cluster_node, instances)
 
     assert "control-plane" in util.get_local_node_status(cluster_node)
-    assert "worker" in util.get_local_node_status(
-        joining_node
-    ), f"{joining_node.id} should be ready and in the cluster"
-    assert "worker" in util.get_local_node_status(
-        other_joining_node
-    ), f"{other_joining_node.id} should be ready and in the cluster"
+    assert "worker" in util.get_local_node_status(joining_node), (
+        f"{joining_node.id} should be ready and in the cluster"
+    )
+    assert "worker" in util.get_local_node_status(other_joining_node), (
+        f"{other_joining_node.id} should be ready and in the cluster"
+    )
 
     util.remove_node_with_retry(cluster_node, joining_node.id)
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 2, "worker should have been removed from cluster"
     assert cluster_node.id in [
         node["metadata"]["name"] for node in nodes
-    ] and other_joining_node.id in [
-        node["metadata"]["name"] for node in nodes
-    ], f"only {cluster_node.id} should be left in cluster"
+    ] and other_joining_node.id in [node["metadata"]["name"] for node in nodes], (
+        f"only {cluster_node.id} should be left in cluster"
+    )
 
 
 @pytest.mark.node_count(3)
@@ -143,15 +273,15 @@ def test_disa_stig_clustering(instances: List[harness.Instance]):
     util.join_cluster(joining_worker, join_token_worker, yaml.dump(worker_data))
 
     util.wait_until_k8s_ready(cluster_node, instances)
-    assert "control-plane" in util.get_local_node_status(
-        cluster_node
-    ), f"{cluster_node.id} should be ready and in the cluster"
-    assert "control-plane" in util.get_local_node_status(
-        joining_cp
-    ), f"{joining_cp.id} should be ready and in the cluster"
-    assert "worker" in util.get_local_node_status(
-        joining_worker
-    ), f"{joining_worker.id} should be ready and in the cluster"
+    assert "control-plane" in util.get_local_node_status(cluster_node), (
+        f"{cluster_node.id} should be ready and in the cluster"
+    )
+    assert "control-plane" in util.get_local_node_status(joining_cp), (
+        f"{joining_cp.id} should be ready and in the cluster"
+    )
+    assert "worker" in util.get_local_node_status(joining_worker), (
+        f"{joining_worker.id} should be ready and in the cluster"
+    )
 
 
 @pytest.mark.node_count(3)
@@ -185,9 +315,9 @@ def test_concurrent_cp_membership_operations(instances: List[harness.Instance]):
     util.wait_until_k8s_ready(cluster_node, [cluster_node])
 
     nodes = util.ready_nodes(cluster_node)
-    assert (
-        len(nodes) == 1
-    ), "two control-plane nodes, should have been removed from cluster"
+    assert len(nodes) == 1, (
+        "two control-plane nodes, should have been removed from cluster"
+    )
 
     assert cluster_node.id in [node["metadata"]["name"] for node in nodes]
 
@@ -266,9 +396,9 @@ def test_mixed_concurrent_membership_operations(instances: List[harness.Instance
 
     assert cluster_node.id in [
         node["metadata"]["name"] for node in nodes
-    ] and joining_cp_B.id in [
-        node["metadata"]["name"] for node in nodes
-    ], f"only {cluster_node.id} and {joining_cp_B.id} should be left in cluster"
+    ] and joining_cp_B.id in [node["metadata"]["name"] for node in nodes], (
+        f"only {cluster_node.id} and {joining_cp_B.id} should be left in cluster"
+    )
 
 
 @pytest.mark.node_count(2)
@@ -294,9 +424,9 @@ def test_concurrent_membership_restart_operations(instances: List[harness.Instan
 
     assert cluster_node.id in [
         node["metadata"]["name"] for node in nodes
-    ] and joining_cp_A.id in [
-        node["metadata"]["name"] for node in nodes
-    ], f"{cluster_node.id} and {joining_cp_A.id} should be in the cluster"
+    ] and joining_cp_A.id in [node["metadata"]["name"] for node in nodes], (
+        f"{cluster_node.id} and {joining_cp_A.id} should be in the cluster"
+    )
 
     assert "control-plane" in util.get_local_node_status(cluster_node)
     assert "control-plane" in util.get_local_node_status(joining_cp_A)
@@ -344,14 +474,14 @@ def test_node_join_succeeds_when_original_control_plane_is_down(
     util.wait_until_k8s_ready(joining_cp_A, [joining_cp_A, joining_cp_B, joining_cp_C])
 
     nodes = util.ready_nodes(joining_cp_A)
-    assert (
-        len(nodes) == 3
-    ), "three control plane nodes should be ready, original node is removed"
+    assert len(nodes) == 3, (
+        "three control plane nodes should be ready, original node is removed"
+    )
 
     node_names = {node["metadata"]["name"] for node in nodes}
-    assert {joining_cp_A.id, joining_cp_B.id, joining_cp_C.id}.issubset(
-        node_names
-    ), f"{joining_cp_A.id}, {joining_cp_B.id}, and {joining_cp_C.id} should be ready and in the cluster"
+    assert {joining_cp_A.id, joining_cp_B.id, joining_cp_C.id}.issubset(node_names), (
+        f"{joining_cp_A.id}, {joining_cp_B.id}, and {joining_cp_C.id} should be ready and in the cluster"
+    )
 
 
 @pytest.mark.node_count(3)
@@ -385,9 +515,9 @@ def test_node_removal_during_concurrent_join(
     assert len(nodes) == 2, "There should be two control-plane nodes in the cluster"
 
     node_names = {node["metadata"]["name"] for node in nodes}
-    assert {cluster_node.id, joining_cp_B.id}.issubset(
-        node_names
-    ), f"{cluster_node.id} and {joining_cp_B.id} should be ready and in the cluster"
+    assert {cluster_node.id, joining_cp_B.id}.issubset(node_names), (
+        f"{cluster_node.id} and {joining_cp_B.id} should be ready and in the cluster"
+    )
 
 
 @pytest.mark.node_count(3)
@@ -461,12 +591,12 @@ def test_cert_refresh(instances: List[harness.Instance]):
     util.join_cluster(joining_worker, join_token_worker)
 
     util.wait_until_k8s_ready(cluster_node, instances)
-    assert "control-plane" in util.get_local_node_status(
-        cluster_node
-    ), f"{cluster_node.id} should be ready and in the cluster"
-    assert "worker" in util.get_local_node_status(
-        joining_worker
-    ), f"{joining_worker.id} should be ready and in the cluster"
+    assert "control-plane" in util.get_local_node_status(cluster_node), (
+        f"{cluster_node.id} should be ready and in the cluster"
+    )
+    assert "worker" in util.get_local_node_status(joining_worker), (
+        f"{joining_worker.id} should be ready and in the cluster"
+    )
 
     extra_san = "test_san.local"
 
