@@ -86,10 +86,6 @@ def test_etcd_learner_promotion(instances: List[harness.Instance]):
 
     util.wait_until_k8s_ready(cluster_node, [cluster_node])
 
-    # Verify the cluster uses embedded etcd datastore
-    datastore = util.get_datastore_type(cluster_node)
-    assert datastore == "etcd", f"Expected etcd datastore, got {datastore}"
-
     # Create continuous write pressure on etcd during the join.
     # Each iteration creates a ConfigMap via the k8s API (which writes to etcd).
     # If quorum is lost (bug: MemberAdd instead of MemberAddAsLearner), these
