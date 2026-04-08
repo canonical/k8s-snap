@@ -168,15 +168,15 @@ def test_etcd_learner_promotion(instances: List[harness.Instance]):
     etcd_members = json.loads(proc.stdout).get("members", [])
     assert len(etcd_members) == 2, f"Expected 2 etcd members, got {len(etcd_members)}"
     for member in etcd_members:
-        assert not member.get("isLearner", False), (
-            f"etcd member {member.get('name', 'unknown')} should not be a learner after join"
-        )
+        assert not member.get(
+            "isLearner", False
+        ), f"etcd member {member.get('name', 'unknown')} should not be a learner after join"
 
     for instance in instances:
         result = instance.exec(["k8s", "kubectl", "get", "nodes"], capture_output=True)
-        assert result.returncode == 0, (
-            f"kubectl failed on {instance.id}: {result.stderr}"
-        )
+        assert (
+            result.returncode == 0
+        ), f"kubectl failed on {instance.id}: {result.stderr}"
 
 
 @pytest.mark.node_count(3)
@@ -208,9 +208,9 @@ def test_worker_nodes(instances: List[harness.Instance]):
     assert len(nodes) == 2, "worker should have been removed from cluster"
     assert cluster_node.id in [
         node["metadata"]["name"] for node in nodes
-    ] and other_joining_node.id in [node["metadata"]["name"] for node in nodes], (
-        f"only {cluster_node.id} should be left in cluster"
-    )
+    ] and other_joining_node.id in [
+        node["metadata"]["name"] for node in nodes
+    ], f"only {cluster_node.id} should be left in cluster"
 
 
 @pytest.mark.node_count(3)
