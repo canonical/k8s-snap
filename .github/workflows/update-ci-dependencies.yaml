@@ -1,7 +1,6 @@
 name: Update CI dependencies
 
 on:
-  pull_request:  # temporary: testing the workflow
   workflow_dispatch:
   schedule:
     - cron: "0 3 * * *"
