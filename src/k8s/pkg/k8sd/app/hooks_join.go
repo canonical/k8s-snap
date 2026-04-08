@@ -17,6 +17,7 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
 	"github.com/canonical/k8s/pkg/snap"
+	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	upgradepkg "github.com/canonical/k8s/pkg/upgrade"
 	"github.com/canonical/k8s/pkg/utils"
 	"github.com/canonical/k8s/pkg/utils/control"
@@ -24,6 +25,7 @@ import (
 	"github.com/canonical/k8s/pkg/version"
 	"github.com/canonical/lxd/shared/revert"
 	"github.com/canonical/microcluster/v2/state"
+	"go.etcd.io/etcd/api/v3/etcdserverpb"
 	"go.etcd.io/etcd/api/v3/v3rpc/rpctypes"
 	versionutil "k8s.io/apimachinery/pkg/util/version"
 )
@@ -265,33 +267,112 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		}
 		defer etcdClient.Close()
 
-		memberAddResp, err := etcdClient.MemberAdd(ctx, []string{fmt.Sprintf("https://%s", utils.JoinHostPort(nodeIP.String(), cfg.Datastore.GetEtcdPeerPort()))})
+		peerURL := fmt.Sprintf("https://%s", utils.JoinHostPort(nodeIP.String(), cfg.Datastore.GetEtcdPeerPort()))
+
+		// Add the new member as a learner (non-voting) first.
+		// This prevents quorum loss when going from 1->2 members, since a
+		// learner does not count towards quorum until promoted.
+		memberAddResp, err := etcdClient.MemberAddAsLearner(ctx, []string{peerURL})
 		if err != nil {
 			if errors.Is(err, rpctypes.ErrMemberNotEnoughStarted) || errors.Is(err, rpctypes.ErrUnhealthy) {
-				return fmt.Errorf("failed to add member %s to etcd cluster: cluster is unhealthy or another node is currently joining the cluster", s.Name())
+				return fmt.Errorf("failed to add learner member %s to etcd cluster: cluster is unhealthy or another node is currently joining the cluster", s.Name())
 			}
-			return fmt.Errorf("failed to add member %s to etcd cluster: %w", s.Name(), err)
+			return fmt.Errorf("failed to add learner member %s to etcd cluster: %w", s.Name(), err)
 		}
 
-		// Register reverter for safe member removal on join failure
-		registerEtcdMemberReverter(snap, s.Name(), endpoints, reverter)
+		learnerID := memberAddResp.Member.ID
+		promoted := false
+		etcdStarted := false
+
+		// Register a single reverter that handles all etcd cleanup on join
+		// failure. The reverter adapts its behavior based on whether the
+		// learner has been promoted to a voting member.
+		//
+		// We remove by member ID rather than name, because a learner added
+		// via MemberAddAsLearner may not have its Name populated until the
+		// local etcd instance starts.
+		//
+		// Ordering matters for quorum safety:
+		//   - Learner (not promoted): stop etcd first, then remove the
+		//     learner by ID. Learners do not count toward quorum, so
+		//     removal is always safe.
+		//   - Voting member (promoted): remove the member by ID FIRST
+		//     while local etcd is still running to preserve quorum
+		//     (critical for 2-node clusters), then stop local etcd.
+		reverter.Add(func() {
+			rmCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
+			cleanupLog := log.WithValues("step", "etcd-cleanup", "node", s.Name(), "memberID", learnerID, "promoted", promoted)
+
+			removeMember := func() bool {
+				if len(endpoints) == 0 {
+					cleanupLog.Info("Skipping etcd member removal: no client endpoints available")
+					return false
+				}
+				cleanupClient, err := snap.EtcdClient(endpoints)
+				if err != nil {
+					cleanupLog.Error(err, "Failed to create etcd client for member removal")
+					return false
+				}
+				defer cleanupClient.Close()
+				if _, err := cleanupClient.MemberRemove(rmCtx, learnerID); err != nil {
+					cleanupLog.Error(err, "Failed to remove etcd member")
+					return false
+				}
+				return true
+			}
+
+			// For a promoted (voting) member, remove it from the cluster
+			// before stopping local etcd to preserve quorum.
+			if promoted {
+				removeMember()
+			}
+
+			if etcdStarted {
+				if err := snaputil.StopEtcdServices(rmCtx, snap); err != nil {
+					cleanupLog.Error(err, "Failed to stop etcd during join revert")
+				}
+			}
+
+			// For a learner, removal is safe after stopping local etcd
+			// because learners do not affect quorum.
+			if !promoted {
+				removeMember()
+			}
+
+			if err := os.RemoveAll(snap.EtcdDir()); err != nil {
+				cleanupLog.Error(err, "Failed to cleanup etcd state directory")
+			}
+		})
 
 		// Build initial cluster members map from etcd members
-		initialClusterMembers := make(map[string]string)
-		for _, member := range memberAddResp.Members {
-			// Below check excludes learners, joiner nodes that didn't start yet(this should include self)
-			if member.IsLearner || len(member.PeerURLs) == 0 || member.Name == "" {
-				log.Info("Excluding etcd member from initial-cluster", "name", member.Name, "isLearner", member.IsLearner, "peerURLs", member.PeerURLs)
-				continue
-			}
-
-			// Use the first peer URL for each member
-			initialClusterMembers[member.Name] = member.PeerURLs[0]
-		}
+		initialClusterMembers := buildInitialClusterMembers(memberAddResp.Members)
 
 		if err := setup.Etcd(snap, s.Name(), nodeIP, cfg.Datastore.GetEtcdPort(), cfg.Datastore.GetEtcdPeerPort(), initialClusterMembers, joinConfig.ExtraNodeEtcdArgs); err != nil {
 			return fmt.Errorf("failed to configure etcd: %w", err)
 		}
+
+		// Start etcd as a learner so it can sync data from the leader before being promoted.
+		log.Info("Starting etcd learner")
+		if err := snaputil.StartEtcdServices(ctx, snap); err != nil {
+			return fmt.Errorf("failed to start etcd learner: %w", err)
+		}
+		etcdStarted = true
+
+		// Promote the learner to a full voting member once it has caught up.
+		// The etcd server will reject the promotion if the learner is not
+		// ready, so we retry until it succeeds or the context expires.
+		log.Info("Promoting etcd learner to voting member", "memberID", learnerID)
+		if err := control.RetryFor(ctx, 30, 2*time.Second, func() error {
+			if _, err := etcdClient.MemberPromote(ctx, learnerID); err != nil {
+				return fmt.Errorf("failed to promote etcd learner %s (ID: %d): %w", s.Name(), learnerID, err)
+			}
+			return nil
+		}); err != nil {
+			return fmt.Errorf("failed to promote etcd learner after retries: %w", err)
+		}
+		promoted = true
+		log.Info("Successfully promoted etcd learner to voting member")
 	case "external":
 	default:
 		return fmt.Errorf("unsupported datastore %s, must be one of %v", cfg.Datastore.GetType(), setup.SupportedDatastores)
@@ -580,4 +661,23 @@ func lowestHighestK8sVersions(k8sVersionMap map[string]*versionutil.Version) (lo
 		}
 	}
 	return lowest, highest
+}
+
+// buildInitialClusterMembers builds the initial cluster members map from the
+// etcd member list. Members without a name or peer URLs are excluded because
+// they have not started yet (this includes the joining node itself, which will
+// be added separately by setup.Etcd).
+//
+// Note: learner members that have already started (i.e. have a name and peer
+// URLs) are included, since they are legitimate peers that the joining node
+// needs to know about during bootstrap.
+func buildInitialClusterMembers(members []*etcdserverpb.Member) map[string]string {
+	initialCluster := make(map[string]string)
+	for _, member := range members {
+		if len(member.PeerURLs) == 0 || member.Name == "" {
+			continue
+		}
+		initialCluster[member.Name] = member.PeerURLs[0]
+	}
+	return initialCluster
 }
