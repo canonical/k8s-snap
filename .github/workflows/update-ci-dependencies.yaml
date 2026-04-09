@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Install Python dependencies
-        run: pip install requests
+        run: pip install "requests==2.33.1"
 
       - name: Check for action updates
         id: check
@@ -59,7 +59,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install pip-tools
-        run: pip install "pip-tools==7.4.1" requests
+        run: pip install "pip-tools==7.4.1" "requests==2.33.1"
 
       - name: Update pip lock files
         id: check
