@@ -60,21 +60,21 @@ jobs:
           - { branch: main }
     steps:
       - name: Checking out repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Save tics-scan.sh script
         run: |
           # We'll need to scan other branches, let's create a copy of
           # the TICS scan script.
           cp tests/tics-scan.sh /tmp/tics-scan.sh
       - name: Checking out tested repo branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           ref: ${{matrix.branch}}
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
       - name: Install Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version-file: './src/k8s/go.mod'
       - name: go mod download
@@ -115,7 +115,7 @@ jobs:
               github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_ENV
           fi
       - name: Notify Mattermost
-        uses: mattermost/action-mattermost-notify@master
+        uses: mattermost/action-mattermost-notify@d317daebed2a04ac2c5ff2ca7f6cee40722063f8 # master
         with:
           MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }}
           PAYLOAD: |
