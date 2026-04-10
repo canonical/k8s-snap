@@ -10,7 +10,7 @@ from typing import List, Optional, Dict
 
 import requests
 from packaging.version import Version
-from hack.update_utils import GO_MOD, SNAPCRAFT, update_go_version
+from hack.update_utils import SNAPCRAFT, update_go_version
 
 K8S_TAGS_URL = "https://api.github.com/repos/kubernetes/kubernetes/tags"
 EXEC_TIMEOUT = 60
@@ -211,7 +211,7 @@ class PrereleasePreparer:
 
     def _update_go_version(self):
         go_version = update_go_version(dry_run=False)
-        self._commit(f"Update go version to {go_version}", str(SNAPCRAFT), str(GO_MOD))
+        self._commit(f"Update go version to {go_version}", str(SNAPCRAFT))
 
     def _checkout_branch(self, branch):
         # Reset branch to remote main

@@ -10,7 +10,6 @@ LOG = logging.getLogger(__name__)
 DIR = Path(__file__).absolute().parent
 SNAPCRAFT = DIR.parent.parent / "snap/snapcraft.yaml"
 COMPONENTS = DIR.parent / "components"
-GO_MOD = DIR.parent.parent / "src/k8s/go.mod"
 
 
 def update_go_version(dry_run: bool) -> str:
@@ -22,7 +21,6 @@ def update_go_version(dry_run: bool) -> str:
     LOG.info("Upstream go version is %s", go_version)
 
     _update_go_version_in_snapcraft(k8s_version, go_version, dry_run)
-    _update_go_version_in_go_mod(go_version, dry_run)
 
     return go_version
 
@@ -45,15 +43,3 @@ def _update_go_version_in_snapcraft(k8s_version: str, go_version: str, dry_run: 
             r"- go/\d+\.\d+(?:-fips)?/stable", f"- {go_snap}", snapcraft_yaml
         )
         SNAPCRAFT.write_text(updated)
-
-
-def _update_go_version_in_go_mod(go_version: str, dry_run: bool):
-    go_mod = GO_MOD.read_text()
-    if f"go {go_version}" in go_mod:
-        LOG.info("go.mod already contains go version %s", go_version)
-        return
-
-    LOG.info("Update go version to %s in %s", go_version, GO_MOD)
-    if not dry_run:
-        updated = re.sub(r"go \d+\.\d+\.\d+", f"go {go_version}", go_mod)
-        GO_MOD.write_text(updated)
