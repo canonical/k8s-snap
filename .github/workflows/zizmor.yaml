@@ -4,7 +4,6 @@ on:
   push:
     branches: ["main"]
   pull_request:
-    branches: ["**"]
   schedule:
     - cron: "0 6 * * 1" # Every Monday at 06:00 UTC
 
@@ -15,13 +14,13 @@ jobs:
     name: Run zizmor
     runs-on: ubuntu-latest
     permissions:
-      security-events: write # Required for upload-sarif to upload SARIF files
+      security-events: write # Required for upload-sarif to upload SARIF files due to `advanced-security:true`
       contents: read # Needed to clone the repo
       actions: read # Needed for upload-sarif to read workflow run info
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           persist-credentials: false
 
@@ -29,5 +28,6 @@ jobs:
         uses: zizmorcore/zizmor-action@71321a20a9ded102f6e9ce5718a2fcec2c4f70d8 # v0.5.2
         with:
           zizmor-args: --pedantic
+          advanced-security: "true"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
