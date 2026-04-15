@@ -6,14 +6,12 @@ and backwards-incompatible changes.
 
 ## Releases
 
-
 ```{toctree}
 :titlesonly:
 :maxdepth: 2
 Snap release notes </releases/snap/index.md>
 Charm release notes </releases/charm/index.md>
 ```
-
 
 ## Release policy and schedule
 

@@ -17,7 +17,6 @@ Both of the above charms are published to Charmhub.
 For an explanation of the releases and channels, please see the documentation
 [explaining channels][].
 
-
 ## Source
 
 The source code for both charms is contained in a single repository:

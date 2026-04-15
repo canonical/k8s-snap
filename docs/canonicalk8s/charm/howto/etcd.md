@@ -110,6 +110,7 @@ to verify that all components are functioning correctly. Use the `juju status`
 command to inspect the current status of your cluster.
 
 <!-- markdownlint-disable -->
+
 ```
 Model       Controller  Cloud/Region   Version  SLA          Timestamp
 my-cluster  canonicaws  aws/us-east-1  3.4.2    unsupported  16:02:18-05:00
@@ -137,6 +138,7 @@ Machine  State    Address         Inst id              Base          AZ         
 5        started  3.238.230.3     i-0773583e7a5fbf07e  ubuntu@22.04  us-east-1f  running
 6        started  34.229.202.243  i-0f03b9833a338380c  ubuntu@22.04  us-east-1b  running
 ```
+
 <!-- markdownlint-restore -->
 
 <!-- LINKS -->

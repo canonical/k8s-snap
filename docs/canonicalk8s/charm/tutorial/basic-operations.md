@@ -51,7 +51,6 @@ juju remove-unit k8s-worker/1
 Replace the unit name with the appropriate application name (e.g., `k8s` or
 `k8s-worker`) and unit number.
 
-
 ## Set up `kubectl`
 
 [kubectl] is the standard upstream tool for interacting with a Kubernetes

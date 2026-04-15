@@ -10,7 +10,6 @@ their needs. This guide covers using [kube-bench] to automatically check whether
 your Kubernetes clusters are configured according to the
 [CIS Kubernetes Benchmark].
 
-
 ## Prerequisites
 
 This guide assumes the following:

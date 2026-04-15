@@ -38,7 +38,6 @@ local-storage:            enabled at /var/snap/k8s/common/rawfile-storage
 gateway                   enabled
 ```
 
-
 ### Test the API server health
 
 Verify that the API server is healthy and reachable by running the following
@@ -405,7 +404,9 @@ sudo k8s kubectl get pods -n kube-system
 ````
 
 <!-- markdownlint-disable -->
+
 ### Cilium pod `unable to determine direct routing device`
+
 <!-- markdownlint-restore -->
 
 When deploying {{product}}, the Cilium pods fail to start and reports

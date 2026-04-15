@@ -16,7 +16,6 @@ sudo snap refresh k8s --channel=1.35-classic/stable
 
 All components will be updated automatically.
 
-
 ### Verify the upgrade
 
 Check the `k8s` snap version has been updated and the cluster is back in the

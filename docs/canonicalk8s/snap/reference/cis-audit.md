@@ -2048,7 +2048,6 @@ Alternative mechanisms provided by Kubernetes such as the
 use of OIDC should be
 implemented in place of client certificates.
 
-
 ### Logging
 
 #### CIS Control 3.2.1
@@ -2100,7 +2099,6 @@ TokenReviews, in
 For most requests, minimally logging at the Metadata level
 is recommended
 (the most basic level of logging).
-
 
 ## Worker node security configuration
 
@@ -2867,7 +2865,6 @@ Minimize access to secrets
 Where possible, remove get, list and watch access to Secret
 objects in the cluster.
 
-
 #### CIS Control 5.1.3
 
 **Description:**
@@ -2881,7 +2878,6 @@ Where possible replace any use of wildcards in ClusterRoles
 and roles with specific
 objects or actions.
 
-
 #### CIS Control 5.1.4
 
 **Description:**
@@ -2893,7 +2889,6 @@ Minimize access to create pods
 
 Where possible, remove create access to pod objects in the
 cluster.
-
 
 #### CIS Control 5.1.5
 
@@ -2911,7 +2906,6 @@ Modify the configuration of each default service account to
 include this value
 `automountServiceAccountToken: false`
 
-
 #### CIS Control 5.1.6
 
 **Description:**
@@ -2925,7 +2919,6 @@ necessary
 Modify the definition of pods and service accounts which do
 not need to mount service
 account tokens to disable it.
-
 
 #### CIS Control 5.1.7
 
@@ -2952,7 +2945,6 @@ in the Kubernetes cluster
 Where possible, remove the impersonate, bind and escalate
 rights from subjects.
 
-
 ### Pod security standards
 
 #### CIS Control 5.2.1
@@ -2969,7 +2961,6 @@ Ensure that either Pod Security Admission or an external
 policy control system is in place
 for every namespace which contains user workloads.
 
-
 #### CIS Control 5.2.2
 
 **Description:**
@@ -2982,7 +2973,6 @@ Minimize the admission of privileged containers
 Add policies to each namespace in the cluster which has user
 workloads to restrict the
 admission of privileged containers.
-
 
 #### CIS Control 5.2.3
 
@@ -2998,7 +2988,6 @@ Add policies to each namespace in the cluster which has user
 workloads to restrict the
 admission of `hostPID` containers.
 
-
 #### CIS Control 5.2.4
 
 **Description:**
@@ -3013,7 +3002,6 @@ Add policies to each namespace in the cluster which has user
 workloads to restrict the
 admission of `hostIPC` containers.
 
-
 #### CIS Control 5.2.5
 
 **Description:**
@@ -3027,7 +3015,6 @@ host network namespace
 Add policies to each namespace in the cluster which has user
 workloads to restrict the
 admission of `hostNetwork` containers.
-
 
 #### CIS Control 5.2.6
 
@@ -3044,7 +3031,6 @@ workloads to restrict the
 admission of containers with
 `.spec.allowPrivilegeEscalation` set to `true`.
 
-
 #### CIS Control 5.2.7
 
 **Description:**
@@ -3058,7 +3044,6 @@ Create a policy for each namespace in the cluster, ensuring
 that either `MustRunAsNonRoot`
 or `MustRunAs` with the range of UIDs not including 0, is
 set.
-
 
 #### CIS Control 5.2.8
 
@@ -3074,7 +3059,6 @@ Add policies to each namespace in the cluster which has user
 workloads to restrict the
 admission of containers with the `NET_RAW` capability.
 
-
 #### CIS Control 5.2.9
 
 **Description:**
@@ -3087,7 +3071,6 @@ Minimize the admission of containers with added capabilities
 Ensure that `allowedCapabilities` is not present in policies
 for the cluster unless
 it is set to an empty array.
-
 
 #### CIS Control 5.2.10
 
@@ -3106,7 +3089,6 @@ capabilities to operate consider adding
 a PSP which forbids the admission of containers which do not
 drop all capabilities.
 
-
 #### CIS Control 5.2.11
 
 **Description:**
@@ -3121,7 +3103,6 @@ workloads to restrict the
 admission of containers that have
 `.securityContext.windowsOptions.hostProcess` set to `true`.
 
-
 #### CIS Control 5.2.12
 
 **Description:**
@@ -3135,7 +3116,6 @@ Add policies to each namespace in the cluster which has user
 workloads to restrict the
 admission of containers with `hostPath` volumes.
 
-
 #### CIS Control 5.2.13
 
 **Description:**
@@ -3148,7 +3128,6 @@ Minimize the admission of containers which use HostPorts
 Add policies to each namespace in the cluster which has user
 workloads to restrict the
 admission of containers which use `hostPort` sections.
-
 
 ### Network policies and CNI
 
@@ -3167,7 +3146,6 @@ making use of a different plugin, or finding an alternate
 mechanism for restricting traffic
 in the Kubernetes cluster.
 
-
 #### CIS Control 5.3.2
 
 **Description:**
@@ -3179,7 +3157,6 @@ Ensure that all Namespaces have NetworkPolicies defined
 
 Follow the documentation and create NetworkPolicy objects as
 you need them.
-
 
 ### Secrets management
 
@@ -3197,7 +3174,6 @@ If possible, rewrite application code to read Secrets from
 mounted secret files, rather than
 from environment variables.
 
-
 #### CIS Control 5.4.2
 
 **Description:**
@@ -3210,7 +3186,6 @@ Consider external secret storage
 Refer to the Secrets management options offered by your
 cloud provider or a third-party
 secrets management solution.
-
 
 ### Extensible admission control
 
@@ -3227,7 +3202,6 @@ admission controller
 Follow the Kubernetes documentation and setup image
 provenance.
 
-
 ### General policies
 
 #### CIS Control 5.7.1
@@ -3243,7 +3217,6 @@ namespaces
 Follow the documentation and create namespaces for objects
 in your deployment as you need
 them.
-
 
 #### CIS Control 5.7.2
 
@@ -3279,7 +3252,6 @@ SecurityContexts to your Pods. For a
 suggested list of SecurityContexts, you may refer to the CIS
 Security Benchmark for Docker
 Containers.
-
 
 #### CIS Control 5.7.4
 
