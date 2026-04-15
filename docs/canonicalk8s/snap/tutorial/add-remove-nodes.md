@@ -54,6 +54,7 @@ Install {{product}} on both VMs with the following command:
 <!-- markdownlint-capture -->
 <!-- markdownlint-disable -->
 (step2)=
+
 ### 2. Bootstrap your control plane node
 
 <!-- markdownlint-restore -->

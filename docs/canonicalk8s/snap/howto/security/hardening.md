@@ -67,7 +67,6 @@ EOL'
 
 Securing the contents of this key file is left as a separate exercise.
 
-
 #### Configure authorization modes
 
 Enforce RBAC (Role-Based Access Control) policies and confirm the value of the
@@ -91,7 +90,6 @@ By default, the value is `Node,RBAC`
 
  To apply RBAC to other cluster resources, see the upstream Kubernetes
  [RBAC guide].
-
 
 #### Configure log auditing
 
@@ -211,7 +209,6 @@ Restart the API server.
 ```
 sudo systemctl restart snap.k8s.kube-apiserver
 ```
-
 
 #### Set the Kubernetes scheduler and controller manager bind address
 

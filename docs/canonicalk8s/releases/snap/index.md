@@ -6,7 +6,6 @@ and backwards-incompatible changes.
 
 ## Releases
 
-
 ```{toctree}
 :titlesonly:
 :maxdepth: 2
@@ -25,7 +24,6 @@ Instructions on how to upgrade between versions on {{product}}
 :maxdepth: 2
 upgrading.md
 ```
-
 
 ## Release policy and schedule
 

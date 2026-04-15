@@ -22,14 +22,12 @@ cluster.
 
 **Not Applicable**: Not applicable to {{product}}.
 
-
 | Class                  | Guideline                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `Default` (62)         | V-242376, V-242377, V-242378, V-242379, V-242380, V-242381, V-242382, V-242387, V-242388, V-242389, V-242390, V-242391, V-242392, V-242395, V-242396, V-242397, V-242404, V-242405, V-242406, V-242407, V-242408, V-242409, V-242418, V-242419, V-242420, V-242421, V-242422, V-242423, V-242424, V-242425, V-242426, V-242427, V-242428, V-242429, V-242430, V-242431, V-242432, V-242433, V-242436, V-242438, V-242442, V-242443, V-242444, V-242445, V-242446, V-242447, V-242448, V-242449, V-242450, V-242451, V-242452, V-242453, V-242456, V-242457, V-242459, V-242460, V-242466, V-242467, V-245542, V-245543, V-245544, V-254801 |
 | `Bootstrap` (13)       | V-242384, V-242385, V-242400, V-242402, V-242403, V-242434, V-242461, V-242462, V-242463, V-242464, V-242465, V-245541, V-254800                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | `Post-Deployment` (10) | V-242383, V-242393, V-242394, V-242410, V-242411, V-242412, V-242413, V-242414, V-242415, V-242417                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | `Not Applicable` (6)   | V-242386, V-242398, V-242399, V-242437, V-242454, V-242455                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-
 
 ## Default class
 
@@ -54,10 +52,6 @@ of
 > store. To enable the minimum version of TLS to be used by the Kubernetes
 > Controller Manager, the setting "tls-min-version" must be set.
 
-
-
-
-
 **Comments:**
 
 > The command line arguments of the Kubernetes Controller Manager in the
@@ -65,7 +59,6 @@ of
 >
 >     /var/snap/k8s/common/args/kube-controller-manager
 >
-
 
 **Remediation**
 
@@ -76,11 +69,7 @@ Set to one of: `VersionTLS12`, `VersionTLS13`
 
 Restart the `kube-controller-manager` service:
 
-
-
     sudo systemctl restart snap.k8s.kube-controller-manager
-
-
 
 **Auditing (as root)**
 
@@ -116,10 +105,6 @@ of
 > keystore. To enable the minimum version of TLS to be used by the Kubernetes
 > API Server, the setting "tls-min-version" must be set.
 
-
-
-
-
 **Comments:**
 
 > The command line arguments of the Kubernetes Scheduler in the k8s-snap are
@@ -127,7 +112,6 @@ of
 >
 >     /var/snap/k8s/common/args/kube-scheduler
 >
-
 
 **Remediation**
 
@@ -138,11 +122,7 @@ Set to one of: `VersionTLS12`, `VersionTLS13`
 
 Restart the `kube-scheduler` service:
 
-
-
     sudo systemctl restart snap.k8s.kube-scheduler
-
-
 
 **Auditing (as root)**
 
@@ -156,7 +136,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 ```
 
 The final line of the output will be `PASS`.
-
 
 ### [V-242378]
 
@@ -179,7 +158,6 @@ of
 > keystore. To enable the minimum version of TLS to be used by the Kubernetes
 > API Server, the setting "tls-min-version" must be set.
 
-
 **Comments:**
 
 > The command line arguments of the Kubernetes Scheduler in the k8s-snap are
@@ -187,7 +165,6 @@ of
 >
 >     /var/snap/k8s/common/args/kube-scheduler
 >
-
 
 **Remediation**
 
@@ -201,8 +178,6 @@ Restart the `kube-apiserver` service:
 
 
     sudo systemctl restart snap.k8s.kube-apiserver
-
-
 
 **Auditing (as root)**
 
@@ -237,7 +212,6 @@ of
 > users or services from the container platform runtime, registry, and
 > keystore. To enable the minimum version of TLS to be used by the Kubernetes
 > API Server, the setting "--auto-tls" must be set.
-
 
 **Step 1/4**
 
@@ -301,7 +275,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the k8s-snap, resulting output lines will
 start with `PASS`.
 
-
 **Step 3/4**
 
 **Remediation for Step 3**
@@ -328,7 +301,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the k8s-snap, resulting output lines will
 start with `PASS`.
-
 
 **Step 4/4**
 
@@ -357,10 +329,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the k8s-snap, resulting output lines will
 start with `PASS`.
 
-
-
-
-
 ### [V-242380]
 
 **Guideline:** The Kubernetes etcd must use TLS to protect the confidentiality
@@ -381,8 +349,6 @@ of
 > users or services from the container platform runtime, registry, and
 > keystore. To enable the minimum version of TLS to be used by the Kubernetes
 > API Server, the setting "--peer-auto-tls" must be set.
-
-
 
 **Step 1/4**
 
@@ -422,7 +388,6 @@ The final line of the output will be `PASS`.
 
 **Step 2/4**
 
-
 **Remediation for Step 2**
 
 Set the argument of etcd service `--peer-key-file` to
@@ -446,7 +411,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the k8s-snap, resulting output lines will
 start with `PASS`.
-
 
 **Step 3/4**
 
@@ -474,9 +438,7 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the k8s-snap, resulting output lines will
 start with `PASS`.
 
-
 **Step 4/4**
-
 
 **Remediation for Step 4**
 
@@ -502,9 +464,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the k8s-snap, resulting output lines will
 start with `PASS`.
 
-
-
-
 ### [V-242381]
 
 **Guideline:** The Kubernetes Controller Manager must create unique service
@@ -525,7 +484,6 @@ accounts for each work payload
 > surface by generating unique service accounts settings for each controller
 > instance.
 
-
 **Comments:**
 
 > The command line arguments of the Kubernetes Controller Manager in the
@@ -533,7 +491,6 @@ accounts for each work payload
 >
 >     /var/snap/k8s/common/args/kube-controller-manager
 >
-
 
 **Remediation**
 
@@ -545,11 +502,7 @@ Set to one of: `true`, `1`
 
 Restart the `kube-controller-manager` service:
 
-
-
     sudo systemctl restart snap.k8s.kube-controller-manager
-
-
 
 **Auditing (as root)**
 
@@ -564,7 +517,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
-
 
 ### [V-242382]
 
@@ -595,10 +547,6 @@ authorization mode
 > Satisfies: SRG-APP-000340-CTR-000770, SRG-APP-000033-CTR-000095,
 > SRG-APP-000378-CTR-000880, SRG-APP-000033-CTR-000090
 
-
-
-
-
 **Comments:**
 
 > The command line arguments of the Kubernetes API Server in the k8s-snap are
@@ -609,7 +557,6 @@ authorization mode
 > Note that the ordering of the values is mandatory.
 >
 
-
 **Remediation**
 
 Set the argument `--authorization-mode` for service `kube-apiserver` as
@@ -619,11 +566,7 @@ Set to: `Node,RBAC`
 
 Restart the `kube-apiserver` service:
 
-
-
     sudo systemctl restart snap.k8s.kube-apiserver
-
-
 
 **Auditing (as root)**
 
@@ -638,11 +581,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
-
-
-
-
-
 
 ### [V-242387]
 
@@ -660,10 +598,6 @@ start with `PASS`.
 > and containers to malicious attacks or compromise. Port 10255 is deprecated
 > and should be disabled.
 
-
-
-
-
 **Comments:**
 
 > The k8s-snap does not pass a `--config` command line argument to the Kubelet
@@ -676,7 +610,6 @@ start with `PASS`.
 >     /var/snap/k8s/common/args/kubelet
 >
 
-
 **Remediation**
 
 Set the argument `--read-only-port` for service `kubelet` as appropriate in
@@ -686,11 +619,7 @@ Set to: `0`
 
 Restart the `kubelet` service:
 
-
-
     sudo systemctl restart snap.k8s.kubelet
-
-
 
 **Auditing (as root)**
 
@@ -706,8 +635,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
-
-
 
 ### [V-242388]
 
@@ -732,10 +659,6 @@ not set
 > "--insecure-bind-address" flag to an IP or leave it unset and ensure that the
 > "--insecure-bind-port" is not set.
 
-
-
-
-
 **Comments:**
 
 > The command line arguments of the Kubernetes API Server in the k8s-snap are
@@ -743,7 +666,6 @@ not set
 >
 >     /var/snap/k8s/common/args/kube-apiserver
 >
-
 
 **Remediation**
 
@@ -754,11 +676,7 @@ Do NOT set to any value.
 
 Restart the `kube-apiserver` service:
 
-
-
     sudo systemctl restart snap.k8s.kube-apiserver
-
-
 
 **Auditing (as root)**
 
@@ -797,10 +715,6 @@ The final line of the output will be `PASS`.
 > Open the secure port by setting the API server's "--secure-port" flag to a
 > value other than "0".
 
-
-
-
-
 **Comments:**
 
 > The command line arguments of the Kubernetes API Server in the k8s-snap are
@@ -808,7 +722,6 @@ The final line of the output will be `PASS`.
 >
 >     /var/snap/k8s/common/args/kube-apiserver
 >
-
 
 **Remediation**
 
@@ -819,11 +732,7 @@ Do NOT set to one of: `0`
 
 Restart the `kube-apiserver` service:
 
-
-
     sudo systemctl restart snap.k8s.kube-apiserver
-
-
 
 **Auditing (as root)**
 
@@ -840,8 +749,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
-
-
 
 ### [V-242390]
 
@@ -868,10 +775,6 @@ disabled
 > the anonymous access, this access should be disabled, and only enabled when
 > necessary.
 
-
-
-
-
 **Comments:**
 
 > The command line arguments of the Kubernetes API Server in the k8s-snap are
@@ -879,7 +782,6 @@ disabled
 >
 >     /var/snap/k8s/common/args/kube-apiserver
 >
-
 
 **Remediation**
 
@@ -890,11 +792,7 @@ Set to one of: `false`, `0`
 
 Restart the `kube-apiserver` service:
 
-
-
     sudo systemctl restart snap.k8s.kube-apiserver
-
-
 
 **Auditing (as root)**
 
@@ -908,8 +806,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 ```
 
 The final line of the output will be `PASS`.
-
-
 
 ### [V-242391]
 
@@ -935,10 +831,6 @@ disabled
 > the anonymous access, this access must be disabled and only enabled when
 > necessary.
 
-
-
-
-
 **Comments:**
 
 > The k8s-snap does not pass a `--config` command line argument to the Kubelet
@@ -951,7 +843,6 @@ disabled
 >     /var/snap/k8s/common/args/kubelet
 >
 
-
 **Remediation**
 
 Set the argument `--anonymous-auth` for service `kubelet` as appropriate
@@ -961,11 +852,7 @@ Set to one of: `false`, `0`
 
 Restart the `kubelet` service:
 
-
-
     sudo systemctl restart snap.k8s.kubelet
-
-
 
 **Auditing (as root)**
 
@@ -979,7 +866,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
-
 
 ### [V-242392]
 
@@ -999,10 +885,6 @@ start with `PASS`.
 > perform within the Kubernetes cluster. To change this behavior, the default
 > setting of AlwaysAllow for the authorization mode must be set to "Webhook".
 
-
-
-
-
 **Comments:**
 
 > The k8s-snap does not pass a `--config` command line argument to the Kubelet
@@ -1015,7 +897,6 @@ start with `PASS`.
 >     /var/snap/k8s/common/args/kubelet
 >
 
-
 **Remediation**
 
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
@@ -1025,11 +906,7 @@ Set to: `Webhook`
 
 Restart the `kubelet` service:
 
-
-
     sudo systemctl restart snap.k8s.kubelet
-
-
 
 **Auditing (as root)**
 
@@ -1065,10 +942,6 @@ The final line of the output will be `PASS`.
 > reach it. In increasingly rare circumstances, the Kubernetes dashboard is
 > exposed publicly to the internet.
 
-
-
-
-
 **Comments:**
 
 > The k8s-snap does not automatically deploy or configure the Kubernetes
@@ -1078,8 +951,6 @@ The final line of the output will be `PASS`.
 > post-snap-setup by running:
 >
 >     k8s kubectl get pods --all-namespaces -l k8s-app=kubernetes-dashboard
->
-
 
 ### [V-242396]
 
@@ -1102,10 +973,6 @@ results
 > anywhere on the host machine. This flaw has been fixed in later versions of
 > the tool. It is recommended to use kubectl versions newer than 1.12.9.
 
-
-
-
-
 **Comments:**
 
 > This finding refers to checking the `kubectl version --client` to avoid a
@@ -1127,7 +994,6 @@ from tracks `1.13+`:
 snap install kubectl --classic
 ```
 
-
 ### [V-242397]
 
 **Guideline:** The Kubernetes kubelet staticPodPath must not enable static pods
@@ -1148,10 +1014,6 @@ snap install kubectl --classic
 > for pods such as the API server, scheduler, controller, etc., not workload
 > pods that need to be governed by the API Server.
 
-
-
-
-
 **Comments:**
 
 > The finding refers to checking the 'staticPodPath' in kubectl's `--config`
@@ -1166,7 +1028,6 @@ snap install kubectl --classic
 >     /var/snap/k8s/common/args/kubelet
 >
 
-
 **Remediation**
 
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
@@ -1176,11 +1037,7 @@ Do NOT set to any value.
 
 Restart the `kubelet` service :
 
-
-
     sudo systemctl restart snap.k8s.kubelet
-
-
 
 **Auditing (as root)**
 
@@ -1199,7 +1056,6 @@ start with `UNSET`.
 
 The final line of the output will be `PASS`.
 
-
 ### [V-242404]
 
 **Guideline:** Kubernetes Kubelet must deny hostname override
@@ -1217,10 +1073,6 @@ The final line of the output will be `PASS`.
 > better practice is to setup nodes with resolvable FQDNs and avoid overriding
 > the hostnames.
 
-
-
-
-
 **Comments:**
 
 > The command line arguments of Kubelet in the k8s-snap are defined in the
@@ -1228,7 +1080,6 @@ The final line of the output will be `PASS`.
 >
 >     /var/snap/k8s/common/args/kubelet
 >
-
 
 **Remediation**
 
@@ -1239,11 +1090,7 @@ Do NOT set to any value.
 
 Restart the `kubelet` service:
 
-
-
     sudo systemctl restart snap.k8s.kubelet
-
-
 
 **Auditing (as root)**
 
@@ -1258,8 +1105,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 ```
 
 The final line of the output will be `PASS`.
-
-
 
 ### [V-242405]
 
@@ -1276,9 +1121,6 @@ The final line of the output will be `PASS`.
 > these files, changes can be made to open vulnerabilities and bypass user
 > authorizations inherit within Kubernetes with RBAC implemented.
 
-
-
-
 **Comments:**
 
 > The manifest files for the Kubernetes services in the k8s-snap are located in
@@ -1288,12 +1130,9 @@ The final line of the output will be `PASS`.
 >     /etc/containerd
 >
 
-
 **Remediation**
 
 Ensure all of the following paths have correct ownership by running:
-
-
 
     chown -R 0:0 /etc/containerd /etc/containerd/config.toml
 
@@ -1338,8 +1177,6 @@ stat -c %u:%g '/etc/containerd/config.toml' | grep -q 0:0 && echo PASS /etc/cont
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-
-
 ### [V-242406]
 
 **Guideline:** The Kubernetes KubeletConfiguration file must be owned by root
@@ -1355,11 +1192,7 @@ start with `PASS`.
 > made to open vulnerabilities and bypass user authorizations inherent within
 > Kubernetes with RBAC implemented.
 
-
-
-
 **Step 1/2**
-
 
 **Comments:**
 
@@ -1376,15 +1209,11 @@ start with `PASS`.
 > The Auditing section will advise on how to check the ownership of said file.
 >
 
-
 **Remediation for Step 1**
 
 Ensure all of the following paths have correct ownership by running:
 
-
-
     chown -R 0:0 /var/snap/k8s/common/args/kubelet
-
 
 **Auditing (as root) for Step 1**
 
@@ -1397,19 +1226,13 @@ stat -c %u:%g '/var/snap/k8s/common/args/kubelet' | grep -q 0:0 && echo PASS /va
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-
-
-
-
 **Step 2/2**
-
 
 **Comments:**
 
 > This check is defined to ensure that Kubelet is not passed a `--config` file
 > argument in the k8s-snap.
 >
-
 
 **Remediation for Step 2**
 
@@ -1420,12 +1243,7 @@ Do NOT set to any value.
 
 Restart the `kubelet` service:
 
-
-
     sudo systemctl restart snap.k8s.kubelet
-
-
-
 
 **Auditing (as root) for Step 2**
 
@@ -1443,10 +1261,6 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `UNSET`.
 
 The final line of the output will be `PASS`.
-
-
-
-
 
 ### [V-242407]
 
@@ -1464,11 +1278,7 @@ permissions set to 644 or more restrictive
 > made to open vulnerabilities and bypass user authorizations inherit within
 > Kubernetes with RBAC implemented.
 
-
-
-
 **Step 1/2**
-
 
 **Comments:**
 
@@ -1486,15 +1296,11 @@ permissions set to 644 or more restrictive
 > file.
 >
 
-
 **Remediation for Step 1**
 
 Ensure all of the following paths have correct permissions by running:
 
-
-
     chmod -R 644 /var/snap/k8s/common/args/kubelet
-
 
 **Auditing (as root) for Step 1**
 
@@ -1507,19 +1313,13 @@ stat -c %a '/var/snap/k8s/common/args/kubelet' | grep -q 600 && echo PASS /var/s
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-
-
-
-
 **Step 2/2**
-
 
 **Comments:**
 
 > This check is defined to ensure that Kubelet is not passed a `--config` file
 > argument in the k8s-snap.
 >
-
 
 **Remediation for Step 2**
 
@@ -1529,13 +1329,7 @@ Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
 Do NOT set to any value.
 
 Restart the `kubelet` service:
-
-
-
     sudo systemctl restart snap.k8s.kubelet
-
-
-
 
 **Auditing (as root) for Step 2**
 
@@ -1553,10 +1347,6 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `UNSET`.
 
 The final line of the output will be `PASS`.
-
-
-
-
 
 ### [V-242408]
 
@@ -1576,7 +1366,6 @@ The final line of the output will be `PASS`.
 > Satisfies: SRG-APP-000133-CTR-000310, SRG-APP-000133-CTR-000295,
 > SRG-APP-000516-CTR-001335
 
-
 **Comments:**
 
 > The finding requires checking the permissions of the files within the
@@ -1586,7 +1375,6 @@ The final line of the output will be `PASS`.
 >
 >     /var/snap/k8s/common/args
 >
-
 
 **Remediation**
 
@@ -1617,9 +1405,6 @@ All required files have permissions '644' (or stricter):
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-
-
-
 ### [V-242409]
 
 **Guideline:** Kubernetes Controller Manager must disable profiling
@@ -1635,10 +1420,6 @@ start with `PASS`.
 > service can expose details about the Kubernetes architecture. This service
 > must not be enabled unless deemed necessary.
 
-
-
-
-
 **Comments:**
 
 > The command line arguments of the Kubernetes Controller Manager in the
@@ -1646,7 +1427,6 @@ start with `PASS`.
 >
 >     /var/snap/k8s/common/args/kube-controller-manager
 >
-
 
 **Remediation**
 
@@ -1657,11 +1437,7 @@ Set to one of: `false`, `0`
 
 Restart the `kube-controller-manager` service:
 
-
-
     sudo systemctl restart snap.k8s.kube-controller-manager
-
-
 
 **Auditing (as root)**
 
@@ -1676,7 +1452,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
-
 
 ### [V-242418]
 
@@ -1695,10 +1470,6 @@ start with `PASS`.
 > protection of the transmitted information, confidentiality, and integrity so
 > that the attacker cannot read or alter this communication.
 
-
-
-
-
 **Comments:**
 
 > The command line arguments of the Kubernetes API Server in the k8s-snap are
@@ -1706,7 +1477,6 @@ start with `PASS`.
 >
 >     /var/snap/k8s/common/args/kube-apiserver
 >
-
 
 **Remediation**
 
@@ -1720,10 +1490,7 @@ Set to one of: `.*TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256.*`,
 
 Restart the `kube-apiserver` service:
 
-
-
     sudo systemctl restart snap.k8s.kube-apiserver
-
 
 
 **Auditing (as root)**
@@ -1739,8 +1506,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
-
-
 
 ### [V-242419]
 
@@ -1768,10 +1533,6 @@ start with `PASS`.
 > client-ca-file must be set. This parameter gives the location of the SSL
 > Certificate Authority file used to secure API Server communication.
 
-
-
-
-
 **Comments:**
 
 > The command line arguments of the Kubernetes API Server in the k8s-snap are
@@ -1779,7 +1540,6 @@ start with `PASS`.
 >
 >     /var/snap/k8s/common/args/kube-apiserver
 >
-
 
 **Remediation**
 
@@ -1790,11 +1550,7 @@ Set to: `/etc/kubernetes/pki/client-ca\.crt`
 
 Restart the `kube-apiserver` service:
 
-
-
     sudo systemctl restart snap.k8s.kube-apiserver
-
-
 
 **Auditing (as root)**
 
@@ -1809,9 +1565,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
-
-
-
 
 ### [V-242420]
 
@@ -1839,10 +1592,6 @@ start with `PASS`.
 > This parameter gives the location of the SSL Certificate Authority file used
 > to secure Kubelet communication.
 
-
-
-
-
 **Comments:**
 
 > The k8s-snap does not pass a `--config` command line argument to the Kubelet
@@ -1855,7 +1604,6 @@ start with `PASS`.
 >     /var/snap/k8s/common/args/kubelet
 >
 
-
 **Remediation**
 
 Set the argument `--client-ca-file` for service `kubelet` as appropriate in
@@ -1865,11 +1613,7 @@ Set to: `/etc/kubernetes/pki/client-ca\.crt`
 
 Restart the `kubelet` service:
 
-
-
     sudo systemctl restart snap.k8s.kubelet
-
-
 
 **Auditing (as root)**
 
@@ -1883,9 +1627,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
-
-
-
 
 ### [V-242421]
 
@@ -1914,10 +1655,6 @@ Authority set
 > protocols, such as TLS. TLS provides the Kubernetes Controller Manager with a
 > means to be able to authenticate sessions and encrypt traffic.
 
-
-
-
-
 **Comments:**
 
 > The command line arguments of the Kubernetes Controller Manager in the
@@ -1925,7 +1662,6 @@ Authority set
 >
 >     /var/snap/k8s/common/args/kube-controller-manager
 >
-
 
 **Remediation**
 
@@ -1936,11 +1672,7 @@ Set to: `/etc/kubernetes/pki/ca\.crt`
 
 Restart the `kube-controller-manager` service:
 
-
-
     sudo systemctl restart snap.k8s.kube-controller-manager
-
-
 
 **Auditing (as root)**
 
@@ -1955,9 +1687,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
-
-
-
 
 ### [V-242422]
 
@@ -1985,11 +1714,7 @@ start with `PASS`.
 > must be set. This parameter gives the location of the SSL Certificate
 > Authority file used to secure API Server communication.
 
-
-
-
 **Step 1/2**
-
 
 **Comments:**
 
@@ -1998,7 +1723,6 @@ start with `PASS`.
 >
 >     /var/snap/k8s/common/args/kube-apiserver
 >
-
 
 **Remediation for Step 1**
 
@@ -2009,12 +1733,7 @@ Set to: `/etc/kubernetes/pki/apiserver\.crt`
 
 Restart the `kube-apiserver` service:
 
-
-
     sudo systemctl restart snap.k8s.kube-apiserver
-
-
-
 
 **Auditing (as root) for Step 1**
 
@@ -2030,11 +1749,7 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-
-
-
 **Step 2/2**
-
 
 **Comments:**
 
@@ -2044,7 +1759,6 @@ start with `PASS`.
 >     /var/snap/k8s/common/args/kube-apiserver
 >
 
-
 **Remediation for Step 2**
 
 Set the argument `--tls-private-key-file` for service `kube-apiserver` as
@@ -2053,13 +1767,7 @@ appropriate in `/var/snap/k8s/common/args/kube-apiserver`.
 Set to: `/etc/kubernetes/pki/apiserver\.key`
 
 Restart the `kube-apiserver` service:
-
-
-
     sudo systemctl restart snap.k8s.kube-apiserver
-
-
-
 
 **Auditing (as root) for Step 2**
 
@@ -2074,9 +1782,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
-
-
-
 
 ### [V-242423]
 
@@ -2104,7 +1809,6 @@ service
 > To enable encrypted communication for Kubelet, the parameter client-cert-auth
 > must be set. This parameter gives the location of the SSL Certificate
 > Authority file used to secure Kubelet communication.
-
 
 **Comments:**
 
@@ -2168,10 +1872,6 @@ authentication to secure service
 > set. This parameter gives the location of the SSL Certificate Authority file
 > used to secure Kubelet communication.
 
-
-
-
-
 **Comments:**
 
 > The k8s-snap does not pass a `--config` command line argument to the Kubelet
@@ -2185,7 +1885,6 @@ authentication to secure service
 >     /var/snap/k8s/common/args/kubelet
 >
 
-
 **Remediation**
 
 Set the argument `--tls-private-key-file` for service `kubelet` as appropriate
@@ -2195,11 +1894,7 @@ Set to: `/etc/kubernetes/pki/kubelet\.key`
 
 Restart the `kubelet` service:
 
-
-
     sudo systemctl restart snap.k8s.kubelet
-
-
 
 **Auditing (as root)**
 
@@ -2213,8 +1908,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 ```
 
 The final line of the output will be `PASS`.
-
-
 
 ### [V-242425]
 
@@ -2243,10 +1936,6 @@ authentication to secure service
 > be set. This parameter gives the location of the SSL Certificate Authority
 > file used to secure Kubelet communication.
 
-
-
-
-
 **Comments:**
 
 > The k8s-snap does not pass a `--config` command line argument to the Kubelet
@@ -2259,7 +1948,6 @@ authentication to secure service
 >     /var/snap/k8s/common/args/kubelet
 >
 
-
 **Remediation**
 
 Set the argument `--tls-cert-file` for service `kubelet` as appropriate
@@ -2269,11 +1957,7 @@ Set to: `/etc/kubernetes/pki/kubelet\.crt`
 
 Restart the `kubelet` service:
 
-
-
     sudo systemctl restart snap.k8s.kubelet
-
-
 
 **Auditing (as root)**
 
@@ -2286,8 +1970,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 ```
 
 The final line of the output will be `PASS`.
-
-
 
 ### [V-242426]
 
@@ -2318,8 +2000,6 @@ service
 > etcd cluster. The parameter "--peer-client-cert-auth" must be set for etcd to
 > check all incoming peer requests from the cluster for valid client
 > certificates.
-
-
 
 **Comments:**
 
@@ -2355,8 +2035,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 The final line of the output will be `PASS`.
 
-
-
 ### [V-242427]
 
 **Guideline:** Kubernetes etcd must have a key file for secure communication
@@ -2382,7 +2060,6 @@ The final line of the output will be `PASS`.
 > To enable encrypted communication for etcd, the parameter key-file must be
 > set. This parameter gives the location of the key file used to secure etcd
 > communication.
-
 
 **Comments:**
 
@@ -2420,8 +2097,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the k8s-snap, resulting output lines will
 start with `PASS`.
 
-
-
 ### [V-242428]
 
 **Guideline:** Kubernetes etcd must have a certificate for communication
@@ -2447,7 +2122,6 @@ start with `PASS`.
 > To enable encrypted communication for etcd, the parameter cert-file must be
 > set. This parameter gives the location of the SSL certification file used to
 > secure etcd communication.
-
 
 **Comments:**
 
@@ -2484,10 +2158,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the k8s-snap, resulting output lines will
 start with `PASS`.
 
-
-
-
-
 ### [V-242429]
 
 **Guideline:** Kubernetes etcd must have the SSL Certificate Authority set
@@ -2513,7 +2183,6 @@ start with `PASS`.
 > To enable encrypted communication for etcd, the parameter "--etcd-cafile"
 > must be set. This parameter gives the location of the SSL Certificate
 > Authority file used to secure etcd communication.
-
 
 **Comments:**
 
@@ -2552,8 +2221,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the k8s-snap, resulting output lines will
 start with `PASS`.
 
-
-
 ### [V-242430]
 
 **Guideline:** Kubernetes etcd must have a certificate for communication
@@ -2579,7 +2246,6 @@ start with `PASS`.
 > To enable encrypted communication for etcd, the parameter "--etcd-certfile"
 > must be set. This parameter gives the location of the SSL certification file
 > used to secure etcd communication.
-
 
 **Comments:**
 
@@ -2618,9 +2284,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the k8s-snap, resulting output lines will
 start with `PASS`.
 
-
-
-
 ### [V-242431]
 
 **Guideline:** Kubernetes etcd must have a key file for secure communication
@@ -2646,7 +2309,6 @@ start with `PASS`.
 > To enable encrypted communication for etcd, the parameter "--etcd-keyfile"
 > must be set. This parameter gives the location of the key file used to secure
 > etcd communication.
-
 
 **Comments:**
 
@@ -2684,9 +2346,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the k8s-snap, resulting output lines will
 start with `PASS`.
-
-
-
 
 ### [V-242432]
 
@@ -2750,9 +2409,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the k8s-snap, resulting output lines will
 start with `PASS`.
 
-
-
-
 ### [V-242433]
 
 **Guideline:** Kubernetes etcd must have a peer-key-file set for secure
@@ -2815,9 +2471,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the k8s-snap, resulting output lines will
 start with `PASS`.
 
-
-
-
 ### [V-242436]
 
 **Guideline:** The Kubernetes API server must have the
@@ -2838,10 +2491,6 @@ ValidatingAdmissionWebhook enabled
 > policy that does not allow root or privileged pods, the pod users are limited
 > in what the pod can do and access.
 
-
-
-
-
 **Comments:**
 
 > This finding stipulates that the `ValidatingAdmissionWebhook` Admission
@@ -2855,7 +2504,6 @@ ValidatingAdmissionWebhook enabled
 > `--disable-admission-plugins` argument.
 >
 
-
 **Remediation**
 
 Edit `/var/snap/k8s/common/args/kube-apiserver` in order to set the argument
@@ -2865,10 +2513,7 @@ Do NOT set to one of: `.*ValidatingAdmissionWebhook.*`
 
 Restart the `kube-apiserver` service:
 
-
-
     sudo systemctl restart snap.k8s.kube-apiserver
-
 
 
 **Auditing (as root)**
@@ -2888,7 +2533,6 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `UNSET`.
 
 The final line of the output will be `PASS`.
-
 
 ### [V-242438]
 
@@ -2911,12 +2555,10 @@ information system to go offline. The "--request-timeout" value must never be
 set to "0". This disables the request-timeout feature. (By default, the
 "--request-timeout" is set to "1 minute".)
 
-
 **Comments:**
 
 > The finding also allows for setting a timeout larger than 300s.
 >
-
 
 **Remediation**
 
@@ -2927,11 +2569,7 @@ Set to: `300s`
 
 Restart the `kube-apiserver` service:
 
-
-
     sudo systemctl restart snap.k8s.kube-apiserver
-
-
 
 **Auditing (as root)**
 
@@ -2945,7 +2583,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 ```
 
 The final line of the output will be `PASS`.
-
 
 ### [V-242442]
 
@@ -2963,7 +2600,6 @@ have been installed may be exploited by adversaries by allowing the
 vulnerabilities to still exist within the cluster. It is important for
 Kubernetes to remove old pods when newer pods are created using new images to
 always be at the desired security state.
-
 
 **Comments:**
 
@@ -3017,7 +2653,6 @@ availability of the update. The container platform registry will ensure the
 images are current. The specific time period will be defined by an
 authoritative source (e.g., IAVM, CTOs, DTMs, and STIGs).
 
-
 **Comments:**
 
 > This finding recommends checking all Kubernetes component versions are
@@ -3026,9 +2661,6 @@ authoritative source (e.g., IAVM, CTOs, DTMs, and STIGs).
 > https://kubernetes.io/releases/version-skew-policy/#supported-versions
 >
 > Supported versions of the k8s-snap are security maintained by Canonical.
->
-
-
 
 ### [V-242444]
 
@@ -3046,21 +2678,17 @@ server, controller, proxy, and scheduler. If these files can be changed, the
 scheduler will be implementing the changes immediately. Many of the security
 settings within the V-242444 document are implemented through these manifests.
 
-
 **Comments:**
 
 > The manifest files for the Kubernetes services in the k8s-snap are located in
 > the following directories:
 >
 >     /etc/kubernetes
->
 
 
 **Remediation**
 
 Ensure all of the following paths have correct ownership by running:
-
-
 
     chown -R 0:0 /etc/kubernetes /etc/kubernetes/pki /etc/kubernetes/kubelet.conf /etc/kubernetes/scheduler.conf /etc/kubernetes/proxy.conf /etc/kubernetes/admin.conf /etc/kubernetes/controller.conf /etc/kubernetes/pki/etcd /etc/kubernetes/pki/apiserver-etcd-client.crt /etc/kubernetes/pki/apiserver-etcd-client.key /etc/kubernetes/pki/etcd/ca.crt /etc/kubernetes/pki/etcd/peer.crt /etc/kubernetes/pki/etcd/peer.key /etc/kubernetes/pki/etcd/server.crt /etc/kubernetes/pki/etcd/server.key /etc/kubernetes/pki/client-ca.crt /etc/kubernetes/pki/front-proxy-ca.key /etc/kubernetes/pki/apiserver.key /etc/kubernetes/pki/apiserver.crt /etc/kubernetes/pki/apiserver-kubelet-client.key /etc/kubernetes/pki/front-proxy-client.crt /etc/kubernetes/pki/serviceaccount.key /etc/kubernetes/pki/front-proxy-client.key /etc/kubernetes/pki/kubelet.crt /etc/kubernetes/pki/ca.crt /etc/kubernetes/pki/ca.key /etc/kubernetes/pki/apiserver-kubelet-client.crt /etc/kubernetes/pki/front-proxy-ca.crt /etc/kubernetes/pki/kubelet.key
 
@@ -3103,8 +2731,6 @@ stat -c %u:%g '/etc/kubernetes/pki/kubelet.key' | grep -q 0:0 && echo PASS /etc/
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-
-
 ### [V-242445]
 
 **Guideline:** The Kubernetes component etcd must be owned by etcd
@@ -3121,7 +2747,6 @@ Control Plane would be compromised. The scheduler will implement the changes
 immediately. Many of the security settings within the document are implemented
 through this file.
 
-
 **Comments:**
 
 > This finding refers to checking the ownership of all etcd-related files under
@@ -3134,7 +2759,6 @@ through this file.
 >
 > Related finding V-242459 contains directives on the permissions of the files.
 >
-
 
 **Remediation**
 
@@ -3155,8 +2779,6 @@ find /var/snap/k8s/common/var/lib/etcd/ -exec sh -c 'stat -c "%u:%g %n" $1 | gre
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-
-
 ### [V-242446]
 
 **Guideline:** The Kubernetes conf files must be owned by root
@@ -3172,7 +2794,6 @@ Plane services. These services are controller and scheduler. If these files can
 be changed, the scheduler will be implementing the changes immediately. Many of
 the security settings within the document are implemented through this file.
 
-
 **Comments:**
 
 > Note that the original finding references 'controller-manager.conf', but the
@@ -3181,12 +2802,9 @@ the security settings within the document are implemented through this file.
 > Finding V-242460 defines the permissions checks for these files.
 >
 
-
 **Remediation**
 
 Ensure all of the following paths have correct ownership by running:
-
-
 
     chown -R 0:0 /etc/kubernetes/admin.conf /etc/kubernetes/scheduler.conf /etc/kubernetes/controller.conf
 
@@ -3202,7 +2820,6 @@ stat -c %u:%g '/etc/kubernetes/controller.conf' | grep -q 0:0 && echo PASS /etc/
 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
-
 
 ### [V-242447]
 
@@ -3222,10 +2839,7 @@ changed, data traversing between the Kubernetes Control Panel components would
 be compromised. Many of the security settings within the document are
 implemented through this file.
 
-
-
 **Step 1/2**
-
 
 **Comments:**
 
@@ -3235,12 +2849,9 @@ implemented through this file.
 > Finding V-242448 defines the associated file ownership requirements.
 >
 
-
 **Remediation for Step 1**
 
 Ensure all of the following paths have correct permissions by running:
-
-
 
     chmod -R 644 /etc/kubernetes/proxy.conf
 
@@ -3256,16 +2867,13 @@ stat -c %a '/etc/kubernetes/proxy.conf' | grep -q 600 && echo PASS /etc/kubernet
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-
 **Step 2/2**
-
 
 **Comments:**
 
 > This check was added to ensure the Kubernetes Proxy configuration file path
 > is set as expected.
 >
-
 
 **Remediation for Step 2**
 
@@ -3276,12 +2884,7 @@ Set to: `/etc/kubernetes/proxy\.conf`
 
 Restart the `kube-proxy` service:
 
-
-
     sudo systemctl restart snap.k8s.kube-proxy
-
-
-
 
 **Auditing (as root) for Step 2**
 
@@ -3296,7 +2899,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
-
 
 ### [V-242448]
 
@@ -3315,11 +2917,7 @@ changed, data traversing between the Kubernetes Control Panel components would
 be compromised. Many of the security settings within the document are
 implemented through this file.
 
-
-
-
 **Step 1/2**
-
 
 **Comments:**
 
@@ -3328,11 +2926,9 @@ implemented through this file.
 > Finding V-242447 defines the associated file permissions requirements.
 >
 
-
 **Remediation for Step 1**
 
 Ensure all of the following paths have correct ownership by running:
-
 
     chown -R 0:0 /etc/kubernetes/proxy.conf
 
@@ -3348,16 +2944,12 @@ stat -c %u:%g '/etc/kubernetes/proxy.conf' | grep -q 0:0 && echo PASS /etc/kuber
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-
-
 **Step 2/2**
-
 
 **Comments:**
 
 > This check was added to ensure the proxy config is as expected.
 >
-
 
 **Remediation for Step 2**
 
@@ -3369,7 +2961,6 @@ Set to: `/etc/kubernetes/proxy\.conf`
 Restart the `kube-proxy` service:
 
     sudo systemctl restart snap.k8s.kube-proxy
-
 
 **Auditing (as root) for Step 2**
 
@@ -3384,7 +2975,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
-
 
 ### [V-242449]
 
@@ -3405,9 +2995,7 @@ certificate. If this file can be changed, the Kubernetes architecture could be
 compromised. The scheduler will implement the changes immediately. Many of the
 security settings within the document are implemented through this file.
 
-
 **Step 1/2**
-
 
 **Comments:**
 >
@@ -3418,15 +3006,11 @@ security settings within the document are implemented through this file.
 > V-242451 defines the associated directory ownership requirements.
 >
 
-
 **Remediation for Step 1**
 
 Ensure all of the following paths have correct permissions by running:
 
-
-
     chmod 644 /etc/kubernetes/pki/client-ca.crt
-
 
 **Auditing (as root) for Step 1**
 
@@ -3439,16 +3023,12 @@ stat -c %a '/etc/kubernetes/pki/client-ca.crt' | grep -q 600 && echo PASS /etc/k
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-
-
 **Step 2/2**
-
 
 **Comments:**
 
 > This check was added to ensure the `--client-ca-file` is as expected.
 >
-
 
 **Remediation for Step 2**
 
@@ -3459,12 +3039,7 @@ Set to: `/etc/kubernetes/pki/client-ca\.crt`
 
 Restart the `kubelet` service:
 
-
-
     sudo systemctl restart snap.k8s.kubelet
-
-
-
 
 **Auditing (as root) for Step 2**
 
@@ -3478,7 +3053,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
-
 
 ### [V-242450]
 
@@ -3498,9 +3072,7 @@ changed, data traversing between the Kubernetes Control Panel components would
 be compromised. Many of the security settings within the document are
 implemented through this file.
 
-
 **Step 1/2**
-
 
 **Comments:**
 
@@ -3509,15 +3081,11 @@ implemented through this file.
 > Finding V-242449 defines the associated file permissions requirements.
 >
 
-
 **Remediation for Step 1**
 
 Ensure all of the following paths have correct ownership by running:
 
-
-
     chown -R 0:0 /etc/kubernetes/pki/client-ca.crt
-
 
 **Auditing (as root) for Step 1**
 
@@ -3530,16 +3098,12 @@ stat -c %u:%g '/etc/kubernetes/pki/client-ca.crt' | grep -q 0:0 && echo PASS /et
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-
-
 **Step 2/2**
-
 
 **Comments:**
 
 > This check was added to ensure the `--client-ca-file` is as expected.
 >
-
 
 **Remediation for Step 2**
 
@@ -3550,10 +3114,7 @@ Set to: `/etc/kubernetes/pki/client-ca\.crt`
 
 Restart the `kubelet` service:
 
-
-
     sudo systemctl restart snap.k8s.kubelet
-
 
 **Auditing (as root) for Step 2**
 
@@ -3567,7 +3128,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
-
 
 ### [V-242451]
 
@@ -3585,7 +3145,6 @@ these files can be modified, data traversing within the architecture components
 would become insecure and compromised. Many of the security settings within the
 document are implemented through this file.
 
-
 **Comments:**
 
 > The k8s-snap stores PKI-related files in the following directory:
@@ -3595,12 +3154,9 @@ document are implemented through this file.
 > Finding V-242466 stipulates the permissions of this directory.
 >
 
-
 **Remediation**
 
 Ensure all of the following paths have correct ownership by running:
-
-
 
     chown -R 0:0 /etc/kubernetes/pki /etc/kubernetes/pki/etcd /etc/kubernetes/pki/client-ca.crt /etc/kubernetes/pki/front-proxy-ca.key /etc/kubernetes/pki/apiserver.key /etc/kubernetes/pki/apiserver.crt /etc/kubernetes/pki/apiserver-kubelet-client.key /etc/kubernetes/pki/front-proxy-client.crt /etc/kubernetes/pki/serviceaccount.key /etc/kubernetes/pki/front-proxy-client.key /etc/kubernetes/pki/kubelet.crt /etc/kubernetes/pki/ca.crt /etc/kubernetes/pki/ca.key /etc/kubernetes/pki/apiserver-kubelet-client.crt /etc/kubernetes/pki/front-proxy-ca.crt /etc/kubernetes/pki/kubelet.key
 
@@ -3630,8 +3186,6 @@ stat -c %u:%g '/etc/kubernetes/pki/kubelet.key' | grep -q 0:0 && echo PASS /etc/
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-
-
 ### [V-242452]
 
 **Guideline:** The Kubernetes kubelet KubeConfig must have file permissions set
@@ -3649,9 +3203,7 @@ If these files can be modified, the information system would be unaware of pod
 or container degradation. Many of the security settings within the document are
 implemented through this file.
 
-
 **Step 1/2**
-
 
 **Comments:**
 
@@ -3659,13 +3211,11 @@ implemented through this file.
 > also be set to be more restrictive.
 >
 
-
 **Remediation for Step 1**
 
 Ensure all of the following paths have correct permissions by running:
 
     chmod -R 644 /etc/kubernetes/kubelet.conf
-
 
 **Auditing (as root) for Step 1**
 
@@ -3678,15 +3228,11 @@ stat -c %a '/etc/kubernetes/kubelet.conf' | grep -q 600 && echo PASS /etc/kubern
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-
-
 **Step 2/2**
-
 
 **Comments:**
 
 > This check was added to ensure Kubelet's `--kubeconfig` is as expected.
-
 
 **Remediation for Step 2**
 
@@ -3697,10 +3243,7 @@ Set to: `/etc/kubernetes/kubelet\.conf`
 
 Restart the `kubelet` service:
 
-
-
     sudo systemctl restart snap.k8s.kubelet
-
 
 **Auditing (as root) for Step 2**
 
@@ -3714,7 +3257,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
-
 
 ### [V-242453]
 
@@ -3731,9 +3273,7 @@ health checks to containers within pods. If these files can be modified, the
 information system would be unaware of pod or container degradation. Many of
 the security settings within the document are implemented through this file.
 
-
 **Step 1/2**
-
 
 **Comments:**
 
@@ -3744,10 +3284,7 @@ the security settings within the document are implemented through this file.
 
 Ensure all of the following paths have correct ownership by running:
 
-
-
     chown -R 0:0 /etc/kubernetes/kubelet.conf
-
 
 **Auditing (as root) for Step 1**
 
@@ -3760,15 +3297,11 @@ stat -c %u:%g '/etc/kubernetes/kubelet.conf' | grep -q 0:0 && echo PASS /etc/kub
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-
-
 **Step 2/2**
-
 
 **Comments:**
 
 > This check was added to ensure Kubelet's `--kubeconfig` is as expected.
-
 
 **Remediation for Step 2**
 
@@ -3779,10 +3312,7 @@ Set to: `/etc/kubernetes/kubelet\.conf`
 
 Restart the `kubelet` service:
 
-
-
     sudo systemctl restart snap.k8s.kubelet
-
 
 **Auditing (as root) for Step 2**
 
@@ -3796,7 +3326,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
-
 
 ### [V-242456]
 
@@ -3813,9 +3342,7 @@ start with `PASS`.
 health checks to containers within pods. If this file can be modified, the
 information system would be unaware of pod or container degradation.
 
-
 **Step 1/2**
-
 
 **Comments:**
 
@@ -3834,15 +3361,11 @@ information system would be unaware of pod or container degradation.
 > file.
 >
 
-
 **Remediation for Step 1**
 
 Ensure all of the following paths have correct permissions by running:
 
-
-
     chmod -R 644 /var/snap/k8s/common/args/kubelet
-
 
 **Auditing (as root) for Step 1**
 
@@ -3855,19 +3378,13 @@ stat -c %a '/var/snap/k8s/common/args/kubelet' | grep -q 600 && echo PASS /var/s
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-
-
-
-
 **Step 2/2**
-
 
 **Comments:**
 
 > This check is defined to ensure that Kubelet is not passed a `--config` file
 > argument in the k8s-snap.
 >
-
 
 **Remediation for Step 2**
 
@@ -3878,12 +3395,7 @@ Do NOT set to any value.
 
 Restart the `kubelet` service:
 
-
-
     sudo systemctl restart snap.k8s.kubelet
-
-
-
 
 **Auditing (as root) for Step 2**
 
@@ -3902,8 +3414,6 @@ start with `UNSET`.
 
 The final line of the output will be `PASS`.
 
-
-
 ### [V-242457]
 
 **Guideline:** The Kubernetes kubelet config must be owned by root
@@ -3918,9 +3428,7 @@ The final line of the output will be `PASS`.
 health checks to containers within pods. If this file can be modified, the
 information system would be unaware of pod or container degradation.
 
-
 **Step 1/2**
-
 
 **Comments:**
 
@@ -3939,14 +3447,10 @@ information system would be unaware of pod or container degradation.
 > file.
 >
 
-
 **Remediation for Step 1**
 
 Ensure all of the following paths have correct permissions by running:
-
-
     chmod -R 644 /var/snap/k8s/common/args/kubelet
-
 
 **Auditing (as root) for Step 1**
 
@@ -3959,16 +3463,13 @@ stat -c %a '/var/snap/k8s/common/args/kubelet' | grep -q 600 && echo PASS /var/s
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-
 **Step 2/2**
-
 
 **Comments:**
 
 > This check is defined to ensure that Kubelet is not passed a `--config` file
 > argument in the k8s-snap.
 >
-
 
 **Remediation for Step 2**
 
@@ -3979,10 +3480,7 @@ Do NOT set to any value.
 
 Restart the `kubelet` service:
 
-
-
     sudo systemctl restart snap.k8s.kubelet
-
 
 **Auditing (as root) for Step 2**
 
@@ -4001,7 +3499,6 @@ start with `UNSET`.
 
 The final line of the output will be `PASS`.
 
-
 ### [V-242459]
 
 **Guideline:** The Kubernetes etcd must have file permissions set to 644 or
@@ -4016,7 +3513,6 @@ more restrictive
 > The Kubernetes etcd key-value store provides a way to store data to the
 Control Plane. If these files can be changed, data to API object and Control
 Plane would be compromised.
-
 
 **Step 1/2**
 
@@ -4073,9 +3569,6 @@ find /var/snap/k8s/common/var/lib/etcd/ -type f -exec sh -c '[ "$(stat -c %a $1)
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-
-
-
 ### [V-242460]
 
 **Guideline:** The Kubernetes admin kubeconfig must have file permissions set
@@ -4092,7 +3585,6 @@ the Control Plane services. These services are controller and scheduler. If
 these files can be changed, the scheduler will be implementing the changes
 immediately.
 
-
 **Comments:**
 
 > Note that the original finding references 'controller-manager.conf', but the
@@ -4100,7 +3592,6 @@ immediately.
 >
 > Finding V-242446 defines the ownership checks for these files.
 >
-
 
 **Remediation**
 
@@ -4120,7 +3611,6 @@ stat -c %a '/etc/kubernetes/controller.conf' | grep -q 600 && echo PASS /etc/kub
 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
-
 
 ### [V-242466]
 
@@ -4146,7 +3636,6 @@ would become insecure and compromised.
 > Finding V-242467 stipulates the permissions of the '*.key' files.
 >
 
-
 **Remediation**
 
 Ensure all of the following paths have correct permissions by running:
@@ -4169,7 +3658,6 @@ stat -c %a '/etc/kubernetes/pki/front-proxy-client.crt' | grep -q 600 && echo PA
 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
-
 
 ### [V-242467]
 
@@ -4195,7 +3683,6 @@ become insecure and compromised.
 > Finding V-242467 stipulates the permissions of the '*.crt' files.
 >
 
-
 **Remediation**
 
 Ensure all of the following paths have correct permissions by running:
@@ -4220,8 +3707,6 @@ stat -c %a '/etc/kubernetes/pki/kubelet.key' | grep -q 600 && echo PASS /etc/kub
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-
-
 ### [V-245542]
 
 **Guideline:** Kubernetes API Server must disable basic authentication to
@@ -4240,10 +3725,6 @@ protect information in transit
 > secure channel to ensure confidentiality and integrity. Basic authentication
 > must not be set in the manifest file.
 
-
-
-
-
 **Comments:**
 
 > The command line arguments of the Kubernetes API Server in the k8s-snap are
@@ -4252,7 +3733,6 @@ protect information in transit
 >     /var/snap/k8s/common/args/kube-apiserver
 >
 
-
 **Remediation**
 
 Ensure the `--basic-auth-file` argument is not set for the `kube-apiserver`
@@ -4260,11 +3740,7 @@ service in `/var/snap/k8s/common/args/kube-apiserver`.
 
 Restart the `kube-apiserver` service:
 
-
-
     sudo systemctl restart snap.k8s.kube-apiserver
-
-
 
 **Auditing (as root)**
 
@@ -4283,8 +3759,6 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `UNSET`.
 
 The final line of the output will be `PASS`.
-
-
 
 ### [V-245543]
 
@@ -4305,10 +3779,6 @@ protect information in transit
 > access to the token. With this token a threat actor can impersonate the
 > service account gaining access to the Rest API service.
 
-
-
-
-
 **Comments:**
 
 > The command line arguments of the Kubernetes API Server in the k8s-snap are
@@ -4316,7 +3786,6 @@ protect information in transit
 >
 >     /var/snap/k8s/common/args/kube-apiserver
 >
-
 
 **Remediation**
 
@@ -4329,11 +3798,7 @@ Do NOT set to any value.
 
 Restart the `kube-apiserver` service:
 
-
-
     sudo systemctl restart snap.k8s.kube-apiserver
-
-
 
 **Auditing (as root)**
 
@@ -4352,8 +3817,6 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `UNSET`.
 
 The final line of the output will be `PASS`.
-
-
 
 ### [V-245544]
 
@@ -4384,11 +3847,7 @@ and key pair to protect information in transit
 > parameter gives the location of the certificate and key pair used to secure
 > API Server communication.
 
-
-
-
 **Step 1/2**
-
 
 **Comments:**
 
@@ -4397,7 +3856,6 @@ and key pair to protect information in transit
 >
 >     /var/snap/k8s/common/args/kube-apiserver
 >
-
 
 **Remediation for Step 1**
 
@@ -4408,12 +3866,7 @@ Set to: `/etc/kubernetes/pki/apiserver-kubelet-client\.crt`
 
 Restart the `kube-apiserver` service:
 
-
-
     sudo systemctl restart snap.k8s.kube-apiserver
-
-
-
 
 **Auditing (as root) for Step 1**
 
@@ -4429,9 +3882,7 @@ test $? -eq 0 && echo PASS || echo FAIL
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
 
-
 **Step 2/2**
-
 
 **Comments:**
 
@@ -4440,7 +3891,6 @@ start with `PASS`.
 >
 >     /var/snap/k8s/common/args/kube-apiserver
 >
-
 
 **Remediation for Step 2**
 
@@ -4451,11 +3901,7 @@ Set to: `/etc/kubernetes/pki/apiserver-kubelet-client\.key`
 
 Restart the `kube-apiserver` service:
 
-
-
     sudo systemctl restart snap.k8s.kube-apiserver
-
-
 
 
 **Auditing (as root) for Step 2**
@@ -4471,8 +3917,6 @@ test $? -eq 0 && echo PASS || echo FAIL
 
 In the default configuration of the `k8s-snap`, resulting output lines will
 start with `PASS`.
-
-
 
 ### [V-254801]
 
@@ -4499,10 +3943,6 @@ pods and Kubelets
 >
 > (Note: The PodSecurity feature gate is GA as of  v1.25.)
 
-
-
-
-
 **Comments:**
 
 > This finding refers to setting the `--feature-gates=PodSecurity=true` feature
@@ -4516,7 +3956,6 @@ pods and Kubelets
 > `PodSecurity` is NOT disabled.
 >
 
-
 **Remediation**
 
 Set the argument `--feature-gates` for service `kubelet` as appropriate
@@ -4526,10 +3965,7 @@ Do NOT set to one of: `.*PodSecurity=false.*`, `.*PodSecurity=0.*`
 
 Restart the `kubelet` service:
 
-
-
     sudo systemctl restart snap.k8s.kubelet
-
 
 
 **Auditing (as root)**
@@ -4548,7 +3984,6 @@ In the default configuration of the `k8s-snap`, resulting output lines will
 start with `UNSET`.
 
 The final line of the output will be `PASS`.
-
 
 ## Bootstrap class
 
@@ -4574,10 +4009,6 @@ The final line of the output will be `PASS`.
 > those internal services that require health and metrics information can
 > access the Scheduler API.
 
-
-
-
-
 **Comments:**
 
 > The command line arguments of the Kubernetes Scheduler in the k8s-snap are
@@ -4587,7 +4018,6 @@ The final line of the output will be `PASS`.
 >
 > The necessary argument is already set when following the
 > [DISA STIG hardening deployment guide].
-
 
 **Remediation**
 
@@ -4605,10 +4035,7 @@ Set the argument `--bind-address` for service `kube-scheduler` to `127.0.0.1`.
 
 Restart the `kube-scheduler` service:
 
-
-
     sudo systemctl restart snap.k8s.kube-scheduler
-
 
 
 **Auditing (as root)**
@@ -4646,7 +4073,6 @@ The final line of the output will be `PASS`.
 > 127.0.0.1), only those internal services that require health and metrics
 > information can access the Control Manager API.
 
-
 **Comments:**
 
 > The command line arguments of the Kubernetes Controller Manager in the
@@ -4656,7 +4082,6 @@ The final line of the output will be `PASS`.
 >
 > The necessary argument is already set when following the
 > [DISA STIG hardening deployment guide].
-
 
 **Remediation**
 
@@ -4676,10 +4101,7 @@ to `127.0.0.1`.
 
 Restart the `kube-controller-manager` service:
 
-
-
     sudo systemctl restart snap.k8s.kube-controller-manager
-
 
 
 **Auditing (as root)**
@@ -4713,17 +4135,12 @@ The final line of the output will be `PASS`.
 > are rectified as the feature matures. To keep the Kubernetes cluster secure
 > and stable, these alpha features must not be used.
 
-
-
-
-
 **Comments:**
 
 > The k8s-snap does not set the `--feature-gate` flag on the `kube-apiserver`.
 >
 > The necessary argument is already set when following the
 > [DISA STIG hardening deployment guide].
-
 
 **Remediation**
 
@@ -4745,11 +4162,7 @@ If you'd like to explicitly set it, set to one of:
 
 Restart the `kube-apiserver` service:
 
-
-
     sudo systemctl restart snap.k8s.kube-apiserver
-
-
 
 **Auditing (as root)**
 
@@ -4790,7 +4203,6 @@ The final line of the output will be `PASS`.
 > the audit logs are to be stored. If an audit log path is not specified, all
 > audit data is sent to studio.
 
-
 **Comments:**
 
 > This finding refers to the `--audit-log-path` argument of the Kubernetes API
@@ -4808,7 +4220,6 @@ The final line of the output will be `PASS`.
 >
 > This finding is basically a duplicate of V-242465.
 
-
 Pre-deployment:
 
 Follow the instructions in the [DISA STIG hardening deployment guide] to
@@ -4824,11 +4235,7 @@ Set to any explicit value.
 
 Restart the `kube-apiserver` service:
 
-
-
     sudo systemctl restart snap.k8s.kube-apiserver
-
-
 
 **Auditing (as root)**
 
@@ -4885,10 +4292,6 @@ the event
 > SRG-APP-000492-CTR-001220, SRG-APP-000343-CTR-000780,
 > SRG-APP-000381-CTR-000905
 
-
-
-
-
 **Comments:**
 
 > This finding refers to the `--audit-policy-file` argument of the Kubernetes
@@ -4898,7 +4301,6 @@ the event
 >
 > The necessary argument is already set when following the
 > [DISA STIG hardening deployment guide].
-
 
 **Remediation**
 
@@ -4918,11 +4320,7 @@ Set to any explicit value.
 
 Restart the `kube-apiserver` service:
 
-
-
     sudo systemctl restart snap.k8s.kube-apiserver
-
-
 
 **Auditing (as root)**
 
@@ -4956,7 +4354,6 @@ The final line of the output will be `PASS`.
 > hijack the Kubernetes architecture. It is vital to implement protections
 > through Kubernetes components to reduce the attack surface.
 
-
 **Comments:**
 
 > The finding stipulates that `--protect-kernel-defaults` must be set on the
@@ -4971,7 +4368,6 @@ The final line of the output will be `PASS`.
 > https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/howto/install/disa-stig/
 >
 
-
 **Remediation**
 
 Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
@@ -4981,11 +4377,7 @@ Set to one of: `true`, `1`
 
 Restart the `kubelet` service:
 
-
-
     sudo systemctl restart snap.k8s.kubelet
-
-
 
 **Auditing (as root)**
 
@@ -5023,7 +4415,6 @@ events or misuse of information. Audit logs are necessary to provide evidence
 in the case the Kubernetes API Server is compromised requiring a cybersecurity
 investigation.
 
-
 **Comments:**
 
 > This finding refers to the `--audit-policy-file` argument of the Kubernetes
@@ -5033,7 +4424,6 @@ investigation.
 >
 > The necessary argument is already set when following the
 > [DISA STIG hardening deployment guide].
-
 
 **Remediation**
 
@@ -5054,11 +4444,7 @@ Set to any explicit value.
 
 Restart the `kube-apiserver` service:
 
-
-
     sudo systemctl restart snap.k8s.kube-apiserver
-
-
 
 **Auditing (as root)**
 
@@ -5090,7 +4476,6 @@ information over the period required. When audit logs are large in size, the
 monitoring service for events becomes degraded. The function of the maximum log
 file size is to set these limits.
 
-
 **Comments:**
 
 > This finding refers to the `--audit-log-maxsize` argument of the Kubernetes
@@ -5121,10 +4506,7 @@ Set to a minimum of `10`.
 
 Restart the `kube-apiserver` service:
 
-
-
     sudo systemctl restart snap.k8s.kube-apiserver
-
 
 
 **Auditing (as root)**
@@ -5166,7 +4548,6 @@ evidence for cybersecurity investigations.
 > The necessary argument is already set when following the
 > [DISA STIG hardening deployment guide].
 
-
 **Remediation**
 
 Pre-deployment:
@@ -5189,7 +4570,6 @@ Restart the `kube-apiserver` service:
 
 
     sudo systemctl restart snap.k8s.kube-apiserver
-
 
 
 **Auditing (as root)**
@@ -5254,8 +4634,6 @@ Restart the `kube-apiserver` service:
 
     sudo systemctl restart snap.k8s.kube-apiserver
 
-
-
 **Auditing (as root)**
 
 The argument `--audit-log-maxage` for service `kube-apiserver` is
@@ -5298,7 +4676,6 @@ events in the audit log the log path value must be set.
 >
 > This finding is basically a duplicate of V-242402.
 
-
 **Remediation**
 
 Pre-deployment:
@@ -5319,7 +4696,6 @@ Set to any explicit value.
 Restart the `kube-apiserver` service:
 
     sudo systemctl restart snap.k8s.kube-apiserver
-
 
 **Auditing (as root)**
 
@@ -5353,7 +4729,6 @@ defines the maximum time an idle session is permitted prior to disconnect.
 Setting the value to "0" never disconnects any idle sessions. Idle timeouts
 must never be set to "0" and should be defined at "5m" (the default is 4hr).
 
-
 **Comments:**
 
 > The k8s-snap does not pass a `--config` command line argument to the Kubelet
@@ -5367,7 +4742,6 @@ must never be set to "0" and should be defined at "5m" (the default is 4hr).
 >
 > The necessary argument is already set when following the
 > [DISA STIG hardening deployment guide].
-
 
 **Remediation**
 
@@ -5429,10 +4803,6 @@ configured
 > Pods. These standards define how to restrict the behavior of pods in a clear,
 > consistent fashion.
 
-
-
-
-
 **Comments:**
 
 > This finding stipulates the presence of a Pod Security Admission Control File
@@ -5442,8 +4812,6 @@ configured
 > Instructions on how to configure an `--admission-control-config-file` for the
 > Kube API Server of the k8s-snap can be found in the
 > [DISA STIG hardening deployment guide].
->
-
 
 ## Post-deployment class
 
@@ -5465,10 +4833,6 @@ configured
 > segmentation. If user-managed resources are placed within the default
 > namespaces, it becomes impossible to implement policies for RBAC permission,
 > service account usage, network policies, and more.
-
-
-
-
 
 **Comments:**
 
@@ -5498,10 +4862,6 @@ configured
 > nodes should be treated as immutable and updated via replacement rather than
 > in-place upgrades.
 
-
-
-
-
 **Comments:**
 
 > This finding aims to completely prohibit the *running* of SSHD on all worker
@@ -5528,10 +4888,6 @@ configured
 > and manipulation of the nodes must not take place by administrators. Worker
 > nodes must be treated as immutable and updated via replacement rather than
 > in-place upgrades.
-
-
-
-
 
 **Comments:**
 
@@ -5560,8 +4916,6 @@ Category Assurance List (PPSM CAL)
 > Kubernetes API Server PPSs must be controlled and conform to the PPSM CAL.
 > Those PPS that fall outside the PPSM CAL must be blocked. Instructions on the
 > PPSM can be found in DoD Instruction 8551.01 Policy.
-
-
 
 **Comments:**
 
@@ -5597,10 +4951,6 @@ Category Assurance List (PPSM CAL)
 > blocked. Instructions on the PPSM can be found in DoD Instruction 8551.01
 > Policy.
 
-
-
-
-
 **Comments:**
 
 > This STIG finding relates to implementing PPSM CAL for kube-scheduler, and
@@ -5635,10 +4985,6 @@ Category Assurance List (PPSM CAL)
 > blocked. Instructions on the PPSM can be found in DoD Instruction 8551.01
 > Policy.
 
-
-
-
-
 **Comments:**
 
 > This STIG finding relates to implementing PPSM CAL for
@@ -5672,7 +5018,6 @@ Assurance List (PPSM CAL)
 > that fall outside the PPSM CAL must be blocked. Instructions on the PPSM can
 > be found in DoD Instruction 8551.01 Policy.
 
-
 **Comments:**
 
 > This STIG finding relates to implementing PPSM CAL for etcd, and
@@ -5687,9 +5032,6 @@ Assurance List (PPSM CAL)
 > protocols, and services used by your cluster changes. For instance, this
 > list will need to be updated each time a new service is exposed
 > externally.
-
-
-
 
 (242414)=
 
@@ -5712,10 +5054,6 @@ user pods
 > needed. An example is mapping port 8080 externally to port 80 in the
 > container.
 
-
-
-
-
 **Comments:**
 
 > The Kubernetes System Administrators must manually inspect the Pods in all of
@@ -5724,7 +5062,6 @@ user pods
 >
 >     kubectl get pods --all-namespaces
 >     kubectl -n NAMESPACE get pod PODNAME -o yaml | grep -i port
->
 
 (242415)=
 
@@ -5743,10 +5080,6 @@ user pods
 > inside Kubernetes by the "Get Pod" API call, and by any system, such as CI/CD
 > pipeline, which has access to the definition file of the container. Secrets
 > must be mounted from files or stored within password vaults.
-
-
-
-
 
 **Comments:**
 
@@ -5802,10 +5135,6 @@ sudo k8s kubectl get statefulset --all-namespaces -o yaml| grep -A5 "env:"
 > method to bypass testing and validation of functions before introduced into a
 > production environment.
 
-
-
-
-
 **Comments:**
 
 > The Kubernetes System Administrators must manually inspect the Pods in all of
@@ -5815,8 +5144,6 @@ sudo k8s kubectl get statefulset --all-namespaces -o yaml| grep -A5 "env:"
 >     kubectl -n kube-system get pods
 >     kubectl -n kube-public get pods
 >     kubectl -n kube-node-lease get pods
->
-
 
 ## Not applicable class
 
@@ -5842,10 +5169,6 @@ disabled
 > Close the insecure port by setting the API server's "--insecure-port" flag to
 > "0", ensuring that the "--insecure-bind-address" is not set.
 
-
-
-
-
 **Comments:**
 
 > This finding refers to the `--insecure-port` command line argument for the
@@ -5856,7 +5179,6 @@ disabled
 > any versions of the k8s-snap.
 >
 > https://github.com/kubernetes/kubernetes/issues/91506
->
 
 ### [V-242398]
 
@@ -5880,10 +5202,6 @@ disabled
 > original target. This can be done in Kubernetes through the configuration of
 > dynamic audit webhooks through the DynamicAuditing flag.
 
-
-
-
-
 **Comments:**
 
 > This finding relates to the `--feature-gate=DynamicAuditing` feature gate
@@ -5893,8 +5211,6 @@ disabled
 > and is thus Not Applicable to any version of the k8s-snap.
 >
 > https://kubernetes.io/docs/reference/command-line-tools-reference/feature-gates-removed/
->
-
 
 ### [V-242399]
 
@@ -5914,10 +5230,6 @@ disabled
 > posture of the kubelet, which includes allowing the ability to run arbitrary
 > commands in any container running on that node.
 
-
-
-
-
 **Comments:**
 
 > Checks related to the `--feature-gate=DynamicKubeletConfig` feature gate
@@ -5927,7 +5239,6 @@ disabled
 > and is thus Not Applicable to any version of the k8s-snap.
 >
 > https://kubernetes.io/docs/reference/command-line-tools-reference/feature-gates-removed/
->
 
 ### [V-242437]
 
@@ -5948,10 +5259,6 @@ disabled
 > policy that does not allow root or privileged pods, the pod users are limited
 > in what the pod can do and access.
 
-
-
-
-
 **Comments:**
 
 > This finding stipulates some checks on the Pod Security Policy object which
@@ -5959,8 +5266,6 @@ disabled
 > versions of the k8s-snap.
 >
 > https://kubernetes.io/docs/concepts/security/pod-security-policy/
->
-
 
 ### [V-242454]
 
@@ -5977,7 +5282,6 @@ cluster nodes configuration. If this file can be modified, the Kubernetes
 Platform Plane would be degraded or compromised for malicious intent. Many of
 the security settings within the document are implemented through this file.
 
-
 **Comments:**
 
 > This finding stipulates the file ownership of the kubeadm executable, which
@@ -5986,11 +5290,10 @@ the security settings within the document are implemented through this file.
 > The Auditor may check whether the binary was installed separately and its
 > permissions are correct by performing:
 >
->     # Should print 'root:root' if the kubeadm binary exists in $PATH.
->     stat -c %U:%G $(which kubeadm)
->
-
-
+>```
+># Should print 'root:root' if the kubeadm binary exists in $PATH.
+>stat -c %U:%G $(which kubeadm)
+>```
 
 ### [V-242455]
 
@@ -6008,7 +5311,6 @@ cluster nodes configuration. If this file can be modified, the Kubernetes
 Platform Plane would be degraded or compromised for malicious intent. Many of
 the security settings within the document are implemented through this file.
 
-
 **Comments:**
 
 > This finding stipulates the file ownership of the kubeadm executable, which
@@ -6017,12 +5319,10 @@ the security settings within the document are implemented through this file.
 > The Auditor may check whether the binary was installed separately and its
 > permissions are correct by performing:
 >
->     # Should print 'root:root' if the kubeadm binary exists in $PATH.
->     stat -c %U:%G $(which kubeadm)
->
-
-
-
+>```
+># Should print 'root:root' if the kubeadm binary exists in $PATH.
+>stat -c %U:%G $(which kubeadm)
+>```
 
 <!-- Links -->
 [DISA STIG hardening deployment guide]: /snap/howto/install/disa-stig.md

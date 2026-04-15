@@ -8,7 +8,6 @@ security standard regulating the use of cryptography. Compliance is crucial for
 US government and regulated industries. This how-to guide provides the steps to
 set up a FIPS compliant Kubernetes cluster using the {{ product }} snap.
 
-
 ## Prerequisites
 
 This guide assumes the following:
