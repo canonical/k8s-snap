@@ -25,7 +25,7 @@ import yaml
 # TODO: Update with the official name of your project or product
 
 project = "Canonical Kubernetes"
-author = "Canonical Group Ltd"
+author = "Canonical Ltd."
 
 # The year in the copyright statement defaults to the current year, so
 # individual document versions show when they were built.
@@ -153,8 +153,8 @@ html_context = {
     #       it inherits the code license instead; specify it instead of 'CC-BY-SA'.
 
     "license": {
-        "name": "CC-BY-SA-3.0",
-        "url": "https://github.com/canonical/sphinx-docs-starter-pack/blob/main/LICENSE",
+        "name": "GPL-3.0-only",
+        "url": "https://github.com/canonical/k8s-snap/blob/main/LICENSE",
     },
 }
 
