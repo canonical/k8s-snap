@@ -493,6 +493,8 @@ Additional arguments that are passed to the `kube-controller-manager` only for t
 A parameter that is explicitly set to `null` is deleted.
 The format is `map[<--flag-name>]<value>`.
 
+Note: The kube-controller-manager signs CertificateSigningRequests using the client CA by default.
+
 ### extra-node-kube-scheduler-args
 **Type:** `map[string]string`<br>
 

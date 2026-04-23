@@ -1,0 +1,27 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Moe Salah <salahkhw15@gmail.com>
+Date: Mon, 9 Mar 2026 00:00:00 +0000
+Subject: [PATCH] change cluster signing to client ca
+
+---
+ cmd/kube-controller-manager/app/options/options.go | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/cmd/kube-controller-manager/app/options/options.go b/cmd/kube-controller-manager/app/options/options.go
+index 0000000..0000000 100644
+--- a/cmd/kube-controller-manager/app/options/options.go
++++ b/cmd/kube-controller-manager/app/options/options.go
+@@ -1,6 +1,6 @@
+ // ... existing code ...
+ 
+ func NewControllerManagerOptions() *ControllerManagerOptions {
+-    return &ControllerManagerOptions{
++    return &ControllerManagerOptions{
+         // ... other options ...
+-        ClusterSigningCertFile: "ca.crt",
+-        ClusterSigningKeyFile:  "ca.key",
++        ClusterSigningCertFile: "client-ca.crt",
++        ClusterSigningKeyFile:  "client-ca.key",
+         // ... other options ...
+     }
+ }

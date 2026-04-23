@@ -36,6 +36,8 @@ their issuance.
 | `etcd`                           | Client      | `/etc/kubernetes/pki/etcd`                            | Communication between etcd and API server                                                        | `self-signed`               |
 | `root@$hostname`                 | Client      | `/var/snap/k8s/common/var/lib/k8sd/state/cluster.crt` | Communication between k8sd nodes                                                                 | `self-signed`               |
 
+Note: CertificateSigningRequests approved via `kubectl certificate approve` are signed using the `kubernetes-ca-client` CA.
+
 ## Configuration files for Kubernetes components
 
 The following tables provide an overview of the configuration files used to
