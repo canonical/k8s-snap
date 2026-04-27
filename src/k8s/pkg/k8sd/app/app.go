@@ -37,6 +37,10 @@ type Config struct {
 	PprofAddress string
 	// DisableNodeConfigController is a bool flag to disable node config controller
 	DisableNodeConfigController bool
+	// NodeConfigControllerWatchDuration specifies how long watch is in progress before getting
+	// cancelled and restarts. The restart is meant to trigger a fresh guaranteed reconciliation
+	// of the k8sd-config configmap. Should be greater than 30 seconds.
+	NodeConfigControllerWatchDuration time.Duration
 	// DisableNodeLabelController is a bool flag to disable node label controller
 	DisableNodeLabelController bool
 	// DisableControlPlaneConfigController is a bool flag to disable control-plane config controller
@@ -120,6 +124,7 @@ func New(cfg Config) (*App, error) {
 		app.nodeConfigController = controllers.NewNodeConfigurationController(
 			cfg.Snap,
 			app.readyWg.Wait,
+			max(cfg.NodeConfigControllerWatchDuration, 30*time.Second),
 		)
 	} else {
 		log.L().Info("node-config-controller disabled via config")
