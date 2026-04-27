@@ -25,6 +25,8 @@ var rootCmdOpts struct {
 	featureControllerMaxRetryAttempts   int
 	disableUpgradeController            bool
 	drainConnectionsTimeout             time.Duration
+	disableServiceArgsController        bool
+	serviceArgsControllerCheckInterval  time.Duration
 }
 
 func addCommands(root *cobra.Command, group *cobra.Group, commands ...*cobra.Command) {
@@ -65,6 +67,8 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				FeatureControllerMaxRetryAttempts:   rootCmdOpts.featureControllerMaxRetryAttempts,
 				DisableUpgradeController:            rootCmdOpts.disableUpgradeController,
 				DrainConnectionsTimeout:             rootCmdOpts.drainConnectionsTimeout,
+				DisableServiceArgsController:        rootCmdOpts.disableServiceArgsController,
+				ServiceArgsControllerCheckInterval:  rootCmdOpts.serviceArgsControllerCheckInterval,
 			})
 			if err != nil {
 				cmd.PrintErrf("Error: Failed to initialize k8sd: %v", err)
@@ -102,6 +106,8 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd.Flags().MarkDeprecated("port", "this flag does not have any effect, and will be removed in a future version")
 	cmd.Flags().IntVar(&rootCmdOpts.featureControllerMaxRetryAttempts, "feature-controller-max-retry-attempts", 64, "Maximum number of retry attempts for the feature controller before giving up. Zero or negative values mean no limit.")
 	cmd.Flags().DurationVar(&rootCmdOpts.drainConnectionsTimeout, "drain-connection-timeout", 10*time.Second, "amount of time to allow for all connections to drain when shutting down")
+	cmd.Flags().BoolVar(&rootCmdOpts.disableServiceArgsController, "disable-service-args-controller", false, "Disable the Service Args Controller")
+	cmd.Flags().DurationVar(&rootCmdOpts.serviceArgsControllerCheckInterval, "service-args-controller-check-interval", 2*time.Minute, "Interval at which the service args controller checks for changes. Should be greater than 30 seconds.")
 
 	cmd.AddCommand(newSqlCmd(env))
 
