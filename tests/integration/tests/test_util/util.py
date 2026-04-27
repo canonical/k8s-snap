@@ -821,6 +821,66 @@ def _major_minor_from_stable_upstream(maj: Optional[int] = None) -> Optional[tup
                 return major_minor(stable)
 
 
+def _find_stable_track(major: int, minor: int, flavor: str) -> Optional[str]:
+    """Find the latest track with a stable snap, walking back from (major, minor).
+
+    Queries the snap store once and checks each minor version starting from
+    the given one until a track with a stable revision for the host
+    architecture is found.
+
+    Args:
+        major: the major Kubernetes version
+        minor: the minor Kubernetes version to start from
+        flavor: the snap flavor (e.g. 'classic', '')
+
+    Returns:
+        the track string (e.g. '1.35-classic') or None if no stable track is found
+    """
+    INFO_URL = f"https://api.snapcraft.io/v2/snaps/info/{config.SNAP_NAME}"
+    HEADERS = {
+        "Snap-Device-Series": "16",
+        "User-Agent": "Mozilla/5.0",
+    }
+
+    try:
+        req = urllib.request.Request(INFO_URL, headers=HEADERS)
+        with urllib.request.urlopen(req) as response:
+            snap_info = json.loads(response.read().decode())
+    except urllib.error.URLError:
+        LOG.warning(
+            "Failed to query snap store for %s", config.SNAP_NAME, exc_info=True
+        )
+        return None
+
+    arch = subprocess.run(
+        ["dpkg", "--print-architecture"],
+        text=True,
+        capture_output=True,
+        check=True,
+    ).stdout.strip()
+
+    stable_tracks = {
+        ch["channel"]["track"]
+        for ch in snap_info.get("channel-map", [])
+        if ch["channel"]["risk"] == "stable" and ch["channel"]["architecture"] == arch
+    }
+
+    _min = minor
+    while _min >= 0:
+        track = f"{major}.{_min}" + (flavor and f"-{flavor}")
+        if track in stable_tracks:
+            LOG.info("Found stable snap for track %s (arch=%s)", track, arch)
+            return track
+        LOG.info(
+            "No stable snap for track %s (arch=%s), trying previous minor",
+            track,
+            arch,
+        )
+        _min -= 1
+
+    return None
+
+
 def _previous_track_from_branch(branch: str) -> Optional[str]:
     """Determine the previous track from the branch.
 
@@ -834,8 +894,9 @@ def _previous_track_from_branch(branch: str) -> Optional[str]:
         # NOTE(Hue): `latest/stable` is not populated at the moment.
         # When it is, we should return `latest` instead.
         LOG.info("Getting current version from upstream k8s")
-        # For the main branch, the previous track is the latest release-branch, e.g.
-        # `1.32/stable` for `main` branch which matches the current upstream version.
+        # For the main branch, the previous track is the latest release that
+        # has a snap published to the stable channel. Start from the current
+        # upstream version and walk back until we find one.
         maj_min = _major_minor_from_stable_upstream()
         if not maj_min:
             LOG.info("Failed to determine upstream version")
@@ -857,8 +918,11 @@ def _previous_track_from_branch(branch: str) -> Optional[str]:
         )
         return None
 
+    if not maj_min:
+        return None
+
     flavor = _get_flavor()
-    return f"{maj_min[0]}.{maj_min[1]}" + (flavor and f"-{flavor}") if maj_min else None
+    return _find_stable_track(maj_min[0], maj_min[1], flavor)
 
 
 def previous_track(snap_version: str) -> str:
@@ -913,9 +977,14 @@ def previous_track(snap_version: str) -> str:
         )
 
     flavor_track = _get_flavor()
-    track = f"{maj_min[0]}.{maj_min[1]}" + (flavor_track and f"-{flavor_track}")
-    LOG.info("Previous track for %s is from track: %s", snap_version, track)
-    return track
+    track = _find_stable_track(maj_min[0], maj_min[1], flavor_track)
+    if track:
+        LOG.info("Previous track for %s is from track: %s", snap_version, track)
+        return track
+
+    raise ValueError(
+        f"Failed to find a stable snap track for current version: {snap_version}"
+    )
 
 
 def find_suitable_cidr(parent_cidr: str, excluded_ips: List[str]):
