@@ -58,6 +58,11 @@ type Config struct {
 	FeatureControllerMaxRetryAttempts int
 	// DrainConnectionsTimeout is the amount of time to allow for all connections to drain when shutting down.
 	DrainConnectionsTimeout time.Duration
+	// DisableServiceArgsController is a bool flag to disable the service args controller.
+	DisableServiceArgsController bool
+	// ServiceArgsControllerCheckInterval is the interval at which the service args controller checks for
+	// argument drift between the args file and the running process. Should be greater than 30 seconds.
+	ServiceArgsControllerCheckInterval time.Duration
 }
 
 // App is the k8sd microcluster instance.
@@ -76,6 +81,7 @@ type App struct {
 	nodeConfigController         *controllers.NodeConfigurationController
 	nodeLabelController          *controllers.NodeLabelController
 	controlPlaneConfigController *controllers.ControlPlaneConfigurationController
+	serviceArgsController        *controllers.ServiceArgsController
 	controllerCoordinator        *controllers.Coordinator
 
 	// updateNodeConfigController
@@ -152,6 +158,15 @@ func New(cfg Config) (*App, error) {
 		)
 	} else {
 		log.L().Info("control-plane-config-controller disabled via config")
+	}
+
+	if !cfg.DisableServiceArgsController {
+		app.serviceArgsController = controllers.NewServiceArgsController(controllers.ServiceArgsControllerOpts{
+			Snap:      cfg.Snap,
+			TriggerCh: time.NewTicker(max(cfg.ServiceArgsControllerCheckInterval, 30*time.Second)).C,
+		})
+	} else {
+		log.L().Info("service-args-controller disabled via config")
 	}
 
 	app.triggerUpdateNodeConfigControllerCh = make(chan struct{}, 1)
