@@ -16,6 +16,7 @@ var rootCmdOpts struct {
 	stateDir                            string
 	pprofAddress                        string
 	disableNodeConfigController         bool
+	nodeConfigControllerWatchDuration   time.Duration
 	disableNodeLabelController          bool
 	disableControlPlaneConfigController bool
 	disableFeatureController            bool
@@ -55,6 +56,7 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 				Snap:                                env.Snap,
 				PprofAddress:                        rootCmdOpts.pprofAddress,
 				DisableNodeConfigController:         rootCmdOpts.disableNodeConfigController,
+				NodeConfigControllerWatchDuration:   rootCmdOpts.nodeConfigControllerWatchDuration,
 				DisableNodeLabelController:          rootCmdOpts.disableNodeLabelController,
 				DisableControlPlaneConfigController: rootCmdOpts.disableControlPlaneConfigController,
 				DisableUpdateNodeConfigController:   rootCmdOpts.disableUpdateNodeConfigController,
@@ -88,6 +90,7 @@ func NewRootCmd(env cmdutil.ExecutionEnvironment) *cobra.Command {
 	cmd.PersistentFlags().StringVar(&rootCmdOpts.stateDir, "state-dir", "", "Directory with the dqlite datastore")
 	cmd.PersistentFlags().StringVar(&rootCmdOpts.pprofAddress, "pprof-address", "", "Listen address for pprof endpoints, e.g. \"127.0.0.1:4217\"")
 	cmd.PersistentFlags().BoolVar(&rootCmdOpts.disableNodeConfigController, "disable-node-config-controller", false, "Disable the Node Config Controller")
+	cmd.Flags().DurationVar(&rootCmdOpts.nodeConfigControllerWatchDuration, "node-config-controller-watch-duration", 5*time.Minute, "The duration that node config controller watches k8sd-config map before restarting and triggering a fresh GET/WATCH. Should be greater than 30 seconds.")
 	cmd.PersistentFlags().BoolVar(&rootCmdOpts.disableNodeLabelController, "disable-node-label-controller", false, "Disable the Node Label Controller")
 	cmd.PersistentFlags().BoolVar(&rootCmdOpts.disableControlPlaneConfigController, "disable-control-plane-config-controller", false, "Disable the Control Plane Config Controller")
 	cmd.PersistentFlags().BoolVar(&rootCmdOpts.disableUpdateNodeConfigController, "disable-update-node-config-controller", false, "Disable the Update Node Config Controller")
