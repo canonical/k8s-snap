@@ -13,8 +13,10 @@ cluster. Keeping up-to-date ensures you have the latest bug-fixes
 and security patches for smooth operation of your cluster.
 
 
-```{note} Kubernetes will not automatically handle release upgrades. The cluster will not perform an unattended
-automatic upgrade between minor versions, e.g. 1.30.1 to 1.31.0 or between patch versions e.g. 1.31.0 to 1.31.1.
+```{note} Kubernetes will not automatically handle release upgrades. The 
+cluster will not perform an unattended
+automatic upgrade between minor versions, e.g. 1.30.1 to 1.31.0 or between 
+patch versions e.g. 1.31.0 to 1.31.1.
 ```
 
 Check the latest release version on the [Kubernetes release page].

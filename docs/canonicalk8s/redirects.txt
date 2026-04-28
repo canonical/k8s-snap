@@ -78,5 +78,5 @@
 "snap/howto/networking/load-balancer" "snap/howto/networking/default-loadbalancer"
 
 # Combined charm upgrade pages in 1.36
-"charm/howto/upgrade-minor.md" "charm/howto/upgrade.md"
-"charm/howto/upgrade-patch.md" "charm/howto/upgrade.md"
+"charm/howto/upgrade-minor" "charm/howto/upgrade"
+"charm/howto/upgrade-patch" "charm/howto/upgrade"
