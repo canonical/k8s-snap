@@ -80,9 +80,7 @@ This may not include any customized configuration of Kubernetes,
 or no-build-in generated objects (e.g. storage classes) or deployments which
 rely on deprecated APIs.
 
-## Specific upgrade instructions
-
-### Decide if an upgrade is available
+## Decide if an upgrade is available
 
 Juju will contact [Charmhub] daily to find new revisions of charms
 deployed in your models. To see if the `k8s` or `k8s-worker` charms
@@ -115,7 +113,7 @@ complete.
 Otherwise continue with the pre-upgrade-check.
 
 
-### The pre-upgrade-check
+## The pre-upgrade-check
 
 Before running an upgrade, check that the cluster is
 steady and ready for upgrade. The charm will perform checks
@@ -129,9 +127,9 @@ juju run k8s/leader pre-upgrade-check
 If no error appears, the `pre-upgrade-check` completed successfully.
 
 
-### Refresh charm applications
+## Refresh charm applications
 
-#### Control Plane units (k8s)
+### Control Plane units (k8s)
 
 Following the `pre-upgrade-check` update the control-plane nodes.
 
@@ -154,7 +152,7 @@ After the `k8s` charm is upgraded, the application `Version` from `juju status`
 will reflect the updated version of the control-plane nodes making up the
 cluster.
 
-#### Worker units (k8s-worker)
+### Worker units (k8s-worker)
 
 After updating the control-plane applications, worker nodes may be upgraded
 by running the `pre-upgrade-check` action.
@@ -180,7 +178,6 @@ application using the k8s-worker charm, if multiple k8s-worker
 applications appear in the same model.
 ```
 
-
 ## Verify an upgrade
 
 Once an upgrade is complete, confirm the successful upgrade by running:
@@ -196,6 +193,25 @@ version of **Kubernetes** is listed in the application's **Version**
 
 It is recommended that you run a [cluster validation][cluster-validation]
 to ensure that the cluster is fully functional.
+
+## Recover from a failed upgrade 
+
+If anything goes wrong during the upgrade, Juju will print an error message to 
+the console to highlight the upgrade has not been successful. It will also 
+provide the command needed to return to a previous safe revision of the charm.
+This information is also available in the Juju debug logs. 
+
+If you are upgrading a control plane node:
+
+```
+juju debug-log --include=k8s
+```
+
+If you are upgrading a worker node:
+
+```
+juju debug-log --include=k8s-worker
+```
 
 <!-- LINKS -->
 [Kubernetes release page]: https://kubernetes.io/releases/
