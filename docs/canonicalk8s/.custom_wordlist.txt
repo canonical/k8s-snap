@@ -142,6 +142,7 @@ CSR
 CSRs
 CTOs
 cve
+CVEs
 cybersecurity
 cyclictest
 cypher
@@ -321,6 +322,7 @@ literalinclude
 LoadBalancer
 LocalHarness
 localhost
+localpv
 logfile
 Lookaside
 lookups
@@ -401,6 +403,7 @@ opentelemetry
 orchestrator
 OSD
 OSDs
+OSSF
 pagename
 ParseDuration
 passthrough
