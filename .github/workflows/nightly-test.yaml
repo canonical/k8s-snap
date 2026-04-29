@@ -81,7 +81,7 @@ jobs:
               break
             fi
             # Download artifacts in parallel (up to 10 at a time) for performance.
-            echo "$names" | xargs -P10 -I{} gh run download ${{ github.run_id }} --name "{}" --dir "results/{}"
+            echo "$names" | xargs -P10 -I{} gh run download ${{ github.run_id }} --repo ${{ github.repository }} --name "{}" --dir "results/{}"
             page=$((page + 1))
           done
           echo "Downloaded $(find results -mindepth 1 -maxdepth 1 -type d | wc -l) result artifacts"
