@@ -78,6 +78,15 @@ Generate a report to help troubleshoot your cluster
 inspection-reports
 ```
 
+## Hardware Requirements
+
+Suggested minimum hardware requirements to run Kubernetes.
+
+```{toctree}
+:titlesonly:
+hw-requirements
+```
+
 ---
 
 ## Other documentation types
