@@ -31,6 +31,7 @@ if [ ! -d "${COMPONENT_BUILD_DIRECTORY}" ]; then
 fi
 
 cd "${COMPONENT_BUILD_DIRECTORY}"
+echo "Building ${COMPONENT_NAME} at commit $(git rev-parse HEAD)"
 git config user.name "K8s builder bot"
 git config user.email "k8s-bot@canonical.com"
 
