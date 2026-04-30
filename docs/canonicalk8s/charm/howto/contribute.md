@@ -15,8 +15,7 @@ To build the snap locally, you will need the following:
 
 - The latest, snap-based version of LXD (see the [install guide here][install
    lxd])
-- The Snapcraft build tool, for building the snap (see the [Snapcraft
-   documentation][]).
+- The Snapcraft build tool, for building the snap (see the [Snapcraft documentation][]).
 
 Clone the [GitHub repository for the k8s snap][code repo] and then open a
 terminal in that directory. Run the command:
@@ -40,7 +39,7 @@ is a safeguard to make sure the user is aware that the snap is not signed by
 the snap store, and is not confined:
 
 ```
-sudo snap install k8s_v1.29.2_multi.snap --dangerous --classic
+sudo snap install k8s_v1.35.3_multi.snap --dangerous --classic
 ```
 
 ```{note} You will not be able to install this snap if there is already a
@@ -72,6 +71,22 @@ We welcome any improvements and bug-fixes to the {{product}} code.
 Once you have tested your changes, please make a pull request on the [code
 repository][code repo] and we will review it as soon as possible.
 
+
+## PR review process
+
+When you create your PR, a member of the team will review it. Your PR must
+receive at least one approval from a Canonical Kubernetes team member before
+it's eligible to be merged.
+
+For faster reviews, ensure your PR:
+
+* Passes all automated tests
+* Has a clear title and description of the changes
+* Links to related issues
+* Includes test cases if relevant
+* Contains only changes that are relevant to the PRs stated purpose
+* Updates relevant documentation
+
 ## Contribute to the documentation
 
 Our aim is to provide easy-to-understand documentation on all aspects of
@@ -97,30 +112,39 @@ Every page of documentation should fit into one of those categories. If it
 doesn't you may consider if it is actually two pages (e.g. a How to *and* an
 explanation).
 
+We have included some tips and outlines of the different types of docs we
+create to help you get started:
+
+- [Tutorial template][]
+- [How to template][]
+- [Explanation template][]
+- [Reference template][]
+
 ### Small changes
 
 If you are simply correcting a typo or updating a link, you can follow the
-'Edit this page on GitHub' link on any page and it will take you to the online
-editor to make your change. You will still need to raise a pull request and
-explain your change to get it reviewed.
+'Contribute to this page' link (the pencil icon) on any page and it will take 
+you to the online GitHub editor to make your change. You will still need to 
+raise a pull request and explain your change to get it reviewed.
 
 ### Myst, Markdown and Sphinx
 
-We use the Sphinx documentation tools to actually build the documentation. You
-will find all the Sphinx tooling in the `docs/tools` directory.
+We use Canonical's [Sphinx-based starter pack] to build the documentation which
+is then hosted on ReadtheDocs. The documentation source files are kept in the
+`docs/canonicalk8s` directory.
 
 Although Sphinx is normally associated with the `ReSTructured text` format, we
 write all our documentation in Markdown to make it easier for humans to work
 with. There are a few extra things that come with this - certain features need
 to be specially marked up (e.g. admonitions) to be processed properly. There is
 a guide to using `Myst` (which is a Markdown extension for Sphinx) directives
-and formatting contained in the [_parts][] directory of the docs.
+and formatting available at [Canonical starter pack documentation].
 
 ### Local testing
 
 To test your changes locally, you can build a local version of the
-documentation. Open a terminal and go to the `/docs/tools` directory. From
-there you can run the command:
+documentation. Open a terminal and go to the `/docs/canonicalk8s` directory. 
+From there you can run the command:
 
 ```
 make run
@@ -138,5 +162,10 @@ press `F5` in your browser to reload the page without caching)!
 [Snapcraft documentation]: https://documentation.ubuntu.com/snapcraft/stable/how-to/set-up-snapcraft/
 [code repo]: https://github.com/canonical/k8s-snap
 [Diátaxis website]: https://diataxis.fr/
-[_parts]: https://github.com/canonical/k8s-snap/blob/main/docs/canonicalk8s/_parts/doc-cheat-sheet-myst.md
 [community page]: /community
+[Tutorial template]: https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/canonicalk8s/_templates/template-tutorial
+[How to template]: https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/canonicalk8s/_templates/template-howto
+[Explanation template]: https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/canonicalk8s/_templates/template-explanation
+[Reference template]: https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/canonicalk8s/_templates/template-reference
+[Canonical starter pack documentation]: https://canonical-starter-pack.readthedocs-hosted.com/stable/reference/myst-syntax-reference
+[Sphinx-based starter pack]: https://github.com/canonical/sphinx-docs-starter-pack 
