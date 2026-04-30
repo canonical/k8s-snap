@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: How to contribute to Canonical Kubernetes. Learn to build the snap locally, modify the API, and update documentation.
+---
+
 # How to contribute to {{product}}
 
 {{product}} is proudly open source, published under the GPLv3 license.
