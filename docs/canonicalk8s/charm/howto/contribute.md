@@ -21,7 +21,8 @@ To build the snap locally, you will need the following:
 
 - The latest, snap-based version of LXD (see the [install guide here][install
    lxd])
-- The Snapcraft build tool, for building the snap (see the [Snapcraft documentation][]).
+- The Snapcraft build tool, for building the snap (see the 
+[Snapcraft documentation][]).
 
 Clone the [GitHub repository for the k8s snap][code repo] and then open a
 terminal in that directory. Run the command:
