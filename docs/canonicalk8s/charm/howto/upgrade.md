@@ -252,7 +252,7 @@ After the `k8s-worker` charm is upgraded, the application `Version`
 from `juju status`
 will reflect the updated version of the worker nodes making up the cluster.
 
-Repeat this these steps on refreshing worker units for every
+Repeat these steps on refreshing worker units for every
 application using the k8s-worker charm, if multiple k8s-worker
 applications appear in the same model.
 
@@ -272,10 +272,9 @@ to ensure that the cluster is fully functional.
 
 ## Recover from a failed upgrade 
 
-If anything goes wrong during the upgrade, Juju will print an error message to 
-the console to highlight the upgrade has not been successful. It will also 
-provide the command needed to return to a previous safe revision of the charm.
-This information is also available in the Juju debug logs. 
+If anything goes wrong during the upgrade, the Juju application will surface 
+the error in the application message, indicating that the unit failed to 
+upgrade. See the Juju debug logs for more details.
 
 If you are upgrading a control plane node:
 
