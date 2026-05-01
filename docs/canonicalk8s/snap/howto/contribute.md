@@ -71,9 +71,9 @@ press `F5` in your browser to reload the page without caching)!
 ## Report an issue 
 
 If you would rather not work on the docs yourself or simply want to suggest 
-improvements, please raise an issue on the k8s snap repo. The "Give Feedback" 
-button on the top of each documentation page will bring you directly to GitHub 
-issues page.
+improvements, please raise an issue on the k8s snap repository. The 
+"Give Feedback" button on the top of each documentation page will bring you 
+directly to GitHub issues page.
 
 <!-- LINKS -->
 

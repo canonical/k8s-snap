@@ -12,9 +12,11 @@ you should first make sure you can build and test the snap locally.
 To build the snap locally, you will need the following:
 
 - The latest, snap-based version of LXD (see the 
-[install guide here](https://documentation.ubuntu.com/lxd/en/latest/tutorial/first_steps/))
+[install guide here](https://documentation.ubuntu.com/lxd/en/latest/tutorial/first_steps/)
+)
 - The Snapcraft build tool, for building the snap (see the 
-[Snapcraft documentation](https://documentation.ubuntu.com/snapcraft/stable/how-to/set-up-snapcraft/))
+[Snapcraft documentation](https://documentation.ubuntu.com/snapcraft/stable/how-to/set-up-snapcraft/)
+)
 
 
 Clone this repo and then open a terminal in that directory. Run the command:
@@ -117,4 +119,5 @@ it as soon as possible.
 
 Our aim is to provide easy-to-understand documentation on all aspects of 
 Canonical Kubernetes, so we greatly appreciate your feedback and contributions. 
-Our docs contribution guide is hosted here: https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/howto/contribute/
+Our docs contribution guide is hosted here: 
+https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/howto/contribute/
