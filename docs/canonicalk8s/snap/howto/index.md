@@ -100,11 +100,11 @@ Set up Enhanced Platform Awareness <epa>
 
 ## Contribute
 
-Contribute to the {{product}} project! Add to the code, documentation or both!
+Contribute to the {{product}} project! 
 
 ```{toctree}
 :titlesonly:
-Contribute <contribute>
+Contribute to the docs <contribute>
 ```
 
 ---

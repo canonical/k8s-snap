@@ -20,37 +20,26 @@ more experienced users. There are a number of ways to get in touch:
 For more formal support, please see the support options available to you on the
 [Ubuntu website][support].
 
-**Our commitment to you** - we may not always be able to answer your questions,
-but we promise to respond within three working days.
-
 ## Found a bug?
 
 You can always track what is going on with development by watching our [GitHub
 repository]. This is also the best place to file a bug if you find
 one, or of course you are also welcome to contribute to the code.
 
-**Our commitment to you** - we monitor the issues on GitHub regularly and we
-aim to triage all bug reports within three working days.
-
 ## Contributing to the code?
 
 {{product}} is proudly open source, published under the GPLv3 license.
-We welcome and encourage contributions to the code. Please see the [Developer
-guide] for more information on contributing.
-
-**Our commitment to you** - we closely follow activity on the source
-repository. We aim to respond to any PRs within three working days.
+We welcome contributions to the code. Please see the 
+[repository `CONTRIBUTING.md` file](https://github.com/canonical/k8s-snap/blob/main/CONTRIBUTING.md) 
+for more information on contributing.
 
 ## Contributing to docs?
 
 Our documentation is extremely important to us and is actively maintained by
 the entire team. That doesn't mean that it can't be improved though. Every page
-in the documentation has an "Edit this page" link in the bottom right which
-takes you to GitHub to make small changes. For larger contributions, please see
-the [Contributing guide].
-
-**Our commitment to you**: Comments are usually read daily and we are really
-grateful for docs improvements.
+in the documentation has an "Contribute to this page" link (pencil icon) which 
+takes you to the GitHub editor to make small changes. For larger contributions, 
+please see the [docs contributing guide].
 
 ## Code of conduct
 
@@ -66,8 +55,6 @@ the guidelines for participation.
 [slack]: http://slack.kubernetes.io/
 [canonical-k8s]: https://kubernetes.slack.com/archives/CG1V2CAMB
 [Discourse]: https://discourse.ubuntu.com/c/kubernetes/180
-[bugs]: https://github.com/canonical/k8s-snap/issues
-[Contributing guide]: /snap/howto/contribute.md
-[Developer guide]: /snap/howto/contribute.md
+[docs contributing guide]: /snap/howto/contribute.md
 [support]: https://ubuntu.com/support
 [GitHub repository]: https://github.com/canonical/k8s-snap

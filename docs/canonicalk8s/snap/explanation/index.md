@@ -63,6 +63,14 @@ done to strive for compliance with industry standards.
 Security <security.md>
 ```
 
+## Documentation
+
+Understand how {{product}} documentation is created, hosted and maintained.
+
+```{toctree}
+:titlesonly:
+Documentation <documentation.md>
+```
 ---
 
 ## Other documentation types
