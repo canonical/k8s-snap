@@ -9,7 +9,7 @@ myst:
 Our aim with this documentation set is to provide easy-to-understand 
 documentation on all aspects of {{product}}. The source documentation files for 
 snap, charm and CAPI based deployment as well as the system configuration used 
-to build the docs are included in the 
+to build the docs are included in the
 [main repository for the {{product}} snap](https://github.com/canonical/k8s-snap)
 .
 
@@ -63,7 +63,7 @@ as edge and not stable.
 - **Stable versions** - Versioned documentation that correspond with {{product}}
 releases.
 
-Our documentation is updated whenever a new {{product}} version is release. We 
+Our documentation is updated whenever a new {{product}} version is released. We 
 also backport critical documentation updates to earlier versions when needed. 
 
 ## Maintaining the docs 
