@@ -30,7 +30,8 @@ one, or of course you are also welcome to contribute to the code.
 
 {{product}} is proudly open source, published under the GPLv3 license.
 We welcome contributions to the code. Please see the 
-[repository `CONTRIBUTING.md` file](https://github.com/canonical/k8s-snap/blob/main/CONTRIBUTING.md)
+[repository `CONTRIBUTING.md` 
+file](https://github.com/canonical/k8s-snap/blob/main/CONTRIBUTING.md)
 for more information on contributing.
 
 ## Contributing to docs?

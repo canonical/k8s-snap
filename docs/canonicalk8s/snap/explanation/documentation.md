@@ -10,7 +10,8 @@ Our aim with this documentation set is to provide easy-to-understand
 documentation on all aspects of {{product}}. The source documentation files for 
 snap, charm and CAPI based deployment as well as the system configuration used 
 to build the docs are included in the
-[main repository for the {{product}} snap](https://github.com/canonical/k8s-snap)
+[main repository for the {{product}} 
+snap](https://github.com/canonical/k8s-snap)
 .
 
 ## Structure
