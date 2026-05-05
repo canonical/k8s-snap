@@ -76,3 +76,7 @@
 "snap/howto/two-node-ha" "index"
 ## For GA, renamed 
 "snap/howto/networking/load-balancer" "snap/howto/networking/default-loadbalancer"
+
+# Combined charm upgrade pages in 1.36
+"charm/howto/upgrade-minor" "charm/howto/upgrade"
+"charm/howto/upgrade-patch" "charm/howto/upgrade"

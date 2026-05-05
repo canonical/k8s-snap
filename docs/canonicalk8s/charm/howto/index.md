@@ -51,9 +51,7 @@ Perform major and minor upgrades of your {{product}} cluster.
 ```{toctree}
 :glob:
 :titlesonly:
-Upgrade minor version <upgrade-minor>
-Upgrade patch version <upgrade-patch>
-
+Upgrade <upgrade>
 ```
 
 ## Image registry
