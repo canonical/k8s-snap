@@ -18,31 +18,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Checkout upstream spread script
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: canonical/operator-workflows
           sparse-checkout: |
             spread/create_spread_task_file.py
           sparse-checkout-cone-mode: false
           path: workflow-scripts
+          persist-credentials: false
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.x"
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version: "1.23"
 
       - name: Generate tasks.yaml for changed docs
         shell: bash
+        env:
+          CHANGED_FILES_INPUT: ${{ inputs.changed_files }}
         run: |
           set -euo pipefail
 
@@ -52,8 +56,9 @@ jobs:
           # Create all suite directories so spread doesn't fail reading spread.yaml
           mkdir -p tests/spread-generated/{snap_clean,snap_bootstrapped}
 
-          changed_files_input='${{ inputs.changed_files }}'
+          changed_files_input="${CHANGED_FILES_INPUT:-}"
 
+          # Append the docs/canonicalk8s/ prefix to each changed file and store in an array
           if [[ -n "$changed_files_input" ]]; then
             mapfile -t changed_files < <(
               printf '%s\n' "$changed_files_input" \
@@ -77,6 +82,7 @@ jobs:
           generated_any=false
 
           for file in "${changed_files[@]}"; do
+            # Look for suite marker in the file like "SPREAD SUITE: snap_clean" to determine which suite to place it in
             marker_suite="$(grep -Eo 'SPREAD SUITE:\s*[a-z_]+' "$file" | head -n1 | sed -E 's/.*:\s*//' || true)"
 
             if [[ -z "$marker_suite" ]]; then
@@ -86,6 +92,7 @@ jobs:
 
             suite="$marker_suite"
 
+            # Validate suite value against allowed list
             case "$suite" in
               snap_clean|snap_bootstrapped) ;;
               *)
@@ -100,6 +107,7 @@ jobs:
             task_name=$(echo "$rel" | sed 's|/|-|g')
             out_dir="tests/spread-generated/${suite}/${task_name}"
 
+            # Generate the task.yaml for this file using the upstream script
             mkdir -p "$out_dir"
             python3 workflow-scripts/spread/create_spread_task_file.py \
               "$file" \
