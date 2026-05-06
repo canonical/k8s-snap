@@ -37,6 +37,10 @@ type Config struct {
 	PprofAddress string
 	// DisableNodeConfigController is a bool flag to disable node config controller
 	DisableNodeConfigController bool
+	// NodeConfigControllerWatchDuration specifies how long watch is in progress before getting
+	// cancelled and restarts. The restart is meant to trigger a fresh guaranteed reconciliation
+	// of the k8sd-config configmap. Should be greater than 30 seconds.
+	NodeConfigControllerWatchDuration time.Duration
 	// DisableNodeLabelController is a bool flag to disable node label controller
 	DisableNodeLabelController bool
 	// DisableControlPlaneConfigController is a bool flag to disable control-plane config controller
@@ -45,6 +49,8 @@ type Config struct {
 	DisableUpdateNodeConfigController bool
 	// DisableFeatureController is a bool flag to disable feature controller
 	DisableFeatureController bool
+	// DisableDNSRebalancerController is a bool flag to disable dns rebalancer controller
+	DisableDNSRebalancerController bool
 	// DisableCSRSigningController is a bool flag to disable csrsigning controller.
 	DisableCSRSigningController bool
 	// DisableUpgradeController is a bool flag to disable upgrade controller.
@@ -54,6 +60,11 @@ type Config struct {
 	// FeatureControllerMaxRetryAttempts is the maximum number of retry attempts for the reconcile loop
 	// of the feature controller. Zero or negative values mean no limit.
 	FeatureControllerMaxRetryAttempts int
+	// DisableServiceArgsController is a bool flag to disable the service args controller.
+	DisableServiceArgsController bool
+	// ServiceArgsControllerCheckInterval is the interval at which the service args controller checks for
+	// argument drift between the args file and the running process. Should be greater than 30 seconds.
+	ServiceArgsControllerCheckInterval time.Duration
 }
 
 // App is the k8sd microcluster instance.
@@ -72,6 +83,7 @@ type App struct {
 	nodeConfigController         *controllers.NodeConfigurationController
 	nodeLabelController          *controllers.NodeLabelController
 	controlPlaneConfigController *controllers.ControlPlaneConfigurationController
+	serviceArgsController        *controllers.ServiceArgsController
 	controllerCoordinator        *controllers.Coordinator
 
 	// updateNodeConfigController
@@ -118,6 +130,7 @@ func New(cfg Config) (*App, error) {
 		app.nodeConfigController = controllers.NewNodeConfigurationController(
 			cfg.Snap,
 			app.readyWg.Wait,
+			max(cfg.NodeConfigControllerWatchDuration, 30*time.Second),
 		)
 	} else {
 		log.L().Info("node-config-controller disabled via config")
@@ -147,6 +160,15 @@ func New(cfg Config) (*App, error) {
 		)
 	} else {
 		log.L().Info("control-plane-config-controller disabled via config")
+	}
+
+	if !cfg.DisableServiceArgsController {
+		app.serviceArgsController = controllers.NewServiceArgsController(controllers.ServiceArgsControllerOpts{
+			Snap:      cfg.Snap,
+			TriggerCh: time.NewTicker(max(cfg.ServiceArgsControllerCheckInterval, 30*time.Second)).C,
+		})
+	} else {
+		log.L().Info("service-args-controller disabled via config")
 	}
 
 	app.triggerUpdateNodeConfigControllerCh = make(chan struct{}, 1)
@@ -212,6 +234,7 @@ func New(cfg Config) (*App, error) {
 			FeatureControllerReconcileTimeout: 2 * time.Minute,
 		},
 		cfg.DisableCSRSigningController,
+		cfg.DisableDNSRebalancerController,
 	)
 
 	return app, nil

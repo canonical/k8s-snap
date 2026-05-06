@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: Learn how to upgrade the Canonical Kubernetes snap, revert a failed upgrade, and freeze automatic updates.
+---
+
 # How to upgrade the snap
 
 Upgrading the Kubernetes version of a node is a critical operation that
@@ -87,6 +93,37 @@ sudo k8s status --wait-ready
 
 ```{note}
 In a multi-node cluster, the upgrade should be performed on all nodes.
+```
+
+## Revert a failed upgrade
+
+If an upgrade does not complete successfully or introduces unexpected issues,
+the snap can be reverted to the previously installed revision.
+
+```{warning}
+Before reverting, ensure you have a recent backup of your cluster data by
+following the steps outlined in the [backup guide]. A revert changes the
+Kubernetes binary versions on the node and may affect running workloads.
+```
+
+1. **Revert the snap:**
+
+```
+sudo snap revert k8s
+```
+
+2. **Verify the revert:**
+
+Ensure that the revert was successful by checking the version of the snap and
+confirming that the cluster is ready:
+
+```
+snap info k8s
+sudo k8s status --wait-ready
+```
+
+```{note}
+In a multi-node cluster, the revert should be performed on all nodes.
 ```
 
 ## Freeze upgrades
