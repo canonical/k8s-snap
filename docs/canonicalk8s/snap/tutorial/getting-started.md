@@ -166,6 +166,7 @@ Now to check the NGINX server in the pod is working correctly, get the IP
 address of the pod by running the same command again but this time we will add 
 the `-owide` argument so we get more information about the pod: 
 
+<!-- SPREAD SKIP -->
 ```
 sudo k8s kubectl get pods -owide
 ```
@@ -175,6 +176,7 @@ Then query the NGINX IP address using `curl`:
 ```
 curl <POD_IP>
 ```
+<!-- SPREAD SKIP END -->
 
 The output should confirm NGINX was successfully installed and working.
 
