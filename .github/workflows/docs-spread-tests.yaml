@@ -144,6 +144,6 @@ jobs:
             echo "Running docs suite: $suite"
             (
               cd docs
-              spread -vv "multipass:ubuntu-24.04-64:tests/spread-generated/${suite}/"
+              spread -vv "github-ci:ubuntu-24.04-64:tests/spread-generated/${suite}/"
             )
           done <<< "$SPREAD_SUITES"
