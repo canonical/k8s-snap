@@ -49,6 +49,12 @@ jobs:
       repo: ${{ needs.prepare.outputs.repo }}
       ref: ${{ github.head_ref }}
 
+  docs-spread-tests:
+    needs: prepare
+    uses: ./.github/workflows/docs-spread-tests.yaml
+    with:
+      changed_files: ${{ needs.prepare.outputs.file_list }}
+
   spellcheck-and-inclusive-language:
     runs-on: ubuntu-latest
     steps:

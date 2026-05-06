@@ -1,0 +1,65 @@
+project: k8s-snap
+
+path: /k8s-snap
+reroot: ..
+
+backends:
+  multipass:
+    type: adhoc
+    allocate: |
+
+      multipass_image=24.04
+      instance_name="example-multipass-vm"
+
+      # Launch Multipass VM
+      multipass launch --cpus 4 --disk 20G --memory 8G --name "${instance_name}" "${multipass_image}"
+
+      # Enable PasswordAuthentication for root over SSH.
+      multipass exec "$instance_name" -- \
+        sudo sh -c "echo root:${SPREAD_PASSWORD} | sudo chpasswd"
+      multipass exec "$instance_name" -- \
+        sudo sh -c \
+        "if [ -d /etc/ssh/sshd_config.d/ ]
+        then
+          echo 'PasswordAuthentication yes' > /etc/ssh/sshd_config.d/10-spread.conf
+          echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config.d/10-spread.conf
+        else
+          sed -i /etc/ssh/sshd_config -E -e 's/^#?PasswordAuthentication.*/PasswordAuthentication yes/' -e 's/^#?PermitRootLogin.*/PermitRootLogin yes/'
+        fi"
+      multipass exec "$instance_name" -- \
+        sudo systemctl restart ssh
+
+      # Get the IP from the instance
+      ip=$(multipass info --format csv "$instance_name" | tail -1 | cut -d\, -f3)
+      ADDRESS "$ip"
+    connect-attempts: 15
+
+    discard: |
+      instance_name="example-multipass-vm"
+      multipass delete --purge "${instance_name}"
+
+    systems:
+      - ubuntu-24.04-64:
+          workers: 1
+          username: root
+
+suites:
+  tests/spread-generated/snap_clean/:
+    summary: docs tests that run from a clean VM and perform install/bootstrap in-task
+    restore-each: |
+      sudo snap remove k8s --purge || true
+      sudo rm -rf /var/snap/k8s || true
+    systems:
+      - ubuntu-24.04-64
+
+  tests/spread-generated/snap_bootstrapped/:
+    summary: docs tests that assume a bootstrapped snap cluster
+    prepare-each: |
+      sudo snap install k8s --classic --channel=1.35-classic/stable
+      sudo k8s bootstrap --timeout 10m
+      sudo k8s status --wait-ready --timeout 3m
+    restore-each: |
+      sudo snap remove k8s --purge || true
+      sudo rm -rf /var/snap/k8s || true
+    systems:
+      - ubuntu-24.04-64
