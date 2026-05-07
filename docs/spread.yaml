@@ -16,6 +16,7 @@ backends:
       ADDRESS localhost:22
     discard: |
       echo "Discarding ad-hoc $SPREAD_SYSTEM"
+      sudo rm -f /etc/sudoers.d/99-spread-users || true
     systems:
       - ubuntu-24.04-64:
           username: ubuntu

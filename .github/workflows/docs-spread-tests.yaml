@@ -8,8 +8,6 @@ on:
         required: false
         type: string
 
-  workflow_dispatch:
-
 permissions:
   contents: read
 

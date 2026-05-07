@@ -11,7 +11,7 @@ function repeat_checks {
     bash -lc "$cmd" > output.txt 2>&1
     cat output.txt
 
-    if grep -q "$expected" output.txt; then
+    if grep -Fq -- "$expected" output.txt; then
       return 0
     fi
 
