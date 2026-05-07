@@ -135,7 +135,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          go install github.com/canonical/spread/cmd/spread@v0.0.0
+          go install github.com/canonical/spread/cmd/spread@latest
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
 
       - name: Run spread suites
