@@ -27,6 +27,7 @@ jobs:
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: canonical/operator-workflows
+          ref: df449f1e3d1b8babbe9df48bbebcff1e58c9fda9 # main as of 2026-05-07
           sparse-checkout: |
             spread/create_spread_task_file.py
           sparse-checkout-cone-mode: false

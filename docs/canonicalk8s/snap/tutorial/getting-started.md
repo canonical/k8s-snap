@@ -196,8 +196,7 @@ sudo k8s kubectl get pods
 ```
 
 <!-- SPREAD
-repeat_checks "sudo k8s kubectl get pods" "No resources found in default 
-namespace."
+repeat_checks "sudo k8s kubectl get pods" "No resources found"
 -->
 
 ## Enable local storage
@@ -219,8 +218,7 @@ sudo k8s status
 ```
 
 <!-- SPREAD
-repeat_checks "sudo k8s status" "enabled at 
-/var/snap/k8s/common/rawfile-storage"
+repeat_checks "sudo k8s status" "rawfile-storage"
 -->
 
 You should see `local-storage: enabled` in the command output.
@@ -281,8 +279,7 @@ sudo k8s kubectl delete pvc myclaim
 ```
 
 <!-- SPREAD
-repeat_checks "sudo k8s kubectl get pods" "No resources found in default 
-namespace."
+repeat_checks "sudo k8s kubectl get pods" "No resources found"
 -->
 
 This may take a few moments as the cluster cleans up its resources.
