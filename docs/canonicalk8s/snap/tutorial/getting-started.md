@@ -70,7 +70,7 @@ to wait for {{product}} to bring up the cluster:
 
 
 ```
-sudo k8s status --wait-ready --timeout 3m
+sudo k8s status --wait-ready
 ```
 
 <!-- SPREAD SKIP -->
