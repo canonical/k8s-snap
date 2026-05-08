@@ -20,6 +20,7 @@ jobs:
           # with private forks, but it is equivalent to the following:
           # repository: ${{ github.event.pull_request.head.repo.full_name }}
           # ref: ${{ github.event.pull_request.head.ref }}
+          persist-credentials: false
           fetch-depth: 0
           path: compare
       - name: Checkout base branch
@@ -27,6 +28,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.base.ref }}
           repository: ${{ github.event.pull_request.base.repo.full_name }}
+          persist-credentials: false
           fetch-depth: 0
           path: base
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
