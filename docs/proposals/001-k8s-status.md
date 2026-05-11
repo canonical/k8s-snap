@@ -27,7 +27,7 @@ Kubernetes features.
 This can be used to allow users to verify that all built-in features of
 Canonical Kubernetes (e.g. `network`, `dns`, etc) are deployed on the cluster.
 
-Otherwise, if an error has occured (e.g. configuration is not valid, or some
+Otherwise, if an error has occurred (e.g. configuration is not valid, or some
 resource could not be deployed), this error will be raised to the user as well.
 
 ## Rationale
