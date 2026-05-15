@@ -138,12 +138,14 @@ CSR
 CSRs
 CTOs
 cve
+CVEs
 cybersecurity
 cyclictest
 cypher
 DaemonSet
 DaemonSets
 Data Integrator
+databag
 databags
 datastore
 datastores
@@ -312,6 +314,7 @@ literalinclude
 LoadBalancer
 LocalHarness
 localhost
+localpv
 logfile
 Lookaside
 lookups
@@ -393,6 +396,7 @@ opentelemetry
 orchestrator
 OSD
 OSDs
+OSSF
 pagename
 ParseDuration
 passthrough
