@@ -51,6 +51,7 @@ aws
 AWS EKS
 aznashwan
 backend
+backport
 backported
 balancer
 balancer's
@@ -460,6 +461,7 @@ rc
 RCU
 README
 readOnlyPort
+ReadtheDocs
 regctl
 regsync
 remediations
