@@ -64,12 +64,32 @@ jobs:
     outputs:
       matrix: ${{ steps.aggregate.outputs.matrix }}
     steps:
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
-      - run: |
-          results=$(find . -type f -name 'result.json' -exec cat {} \; | jq -c --slurp .)
+      - name: Download and aggregate results
+        id: aggregate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Download all result-* artifacts using the GitHub API with proper pagination.
+          # We avoid the download-artifact action because it has a 1000-artifact limit
+          # which causes results to be silently dropped when total artifacts exceed 1000.
+          page=1
+          mkdir -p results
+          while true; do
+            names=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts?per_page=100&page=${page}" \
+              --jq '.artifacts[] | select(.name | startswith("result-")) | .name')
+            if [ -z "$names" ]; then
+              break
+            fi
+            # Download artifacts in parallel (up to 10 at a time) for performance.
+            echo "$names" | xargs -P10 -I{} gh run download ${{ github.run_id }} --repo ${{ github.repository }} --name "{}" --dir "results/{}"
+            page=$((page + 1))
+          done
+          echo "Downloaded $(find results -mindepth 1 -maxdepth 1 -type d | wc -l) result artifacts"
+
+          # Merge all result.json files into a single array.
+          results=$(find results -type f -name 'result.json' -exec cat {} \; | jq -c --slurp .)
           echo "$results" > aggregated-results.json
           echo "matrix=$results" >> $GITHUB_OUTPUT
-        id: aggregate
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: aggregated-results
