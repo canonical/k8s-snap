@@ -1,13 +1,10 @@
 # Environment
 *env*/
-.sphinx/venv/
+.venv/
 
 # Sphinx
-.sphinx/warnings.txt
-.sphinx/.wordlist.dic
 .sphinx/.doctrees/
 .sphinx/update/
-.sphinx/node_modules/
 
 # Vale
 .sphinx/styles/*
