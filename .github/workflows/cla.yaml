@@ -8,7 +8,7 @@ on:
 
 permissions:
   contents: read
-   
+
 jobs:
   cla-check:
     runs-on: ubuntu-latest
