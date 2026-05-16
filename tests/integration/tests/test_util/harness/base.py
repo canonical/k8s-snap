@@ -61,13 +61,17 @@ class Harness:
     name: str
 
     def new_instance(
-        self, network_type: str = "IPv4", name_suffix: str = ""
+        self,
+        network_type: str = "IPv4",
+        name_suffix: str = "",
+        required_ports: List[int] = None,
     ) -> Instance:
         """Creates a new instance on the infrastructure and returns an object
         which can be used to interact with it.
 
         network_type: ipv4, ipv6 or dualstack.
         name_suffix: a suffix to be appended to the instance name.
+        required_ports: ports that need to be open on the instance.
 
         If the operation fails, a HarnessError is raised.
         """
