@@ -52,6 +52,7 @@ rely on deprecated APIs.
 Determine which version of each application is currently deployed by running:
 
 <!-- markdownlint-disable -->
+
 ```
 juju status
 ```
