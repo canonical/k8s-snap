@@ -4,6 +4,47 @@ path: /k8s-snap
 reroot: ..
 
 backends:
+  multipass:
+    type: adhoc
+    allocate: |
+      multipass_image=24.04
+      instance_name="spread-k8s-snap"
+
+      # Launch Multipass VM only if it doesn't already exist
+      if ! multipass info "$instance_name" &>/dev/null; then
+        multipass launch --cpus 4 --disk 10G --memory 8G --name "${instance_name}" "${multipass_image}"
+
+        # Enable PasswordAuthentication for root over SSH.
+        multipass exec "$instance_name" -- \
+          sudo sh -c "echo root:${SPREAD_PASSWORD} | sudo chpasswd"
+        multipass exec "$instance_name" -- \
+          sudo sh -c \
+          "if [ -d /etc/ssh/sshd_config.d/ ]
+          then
+            echo 'PasswordAuthentication yes' > /etc/ssh/sshd_config.d/99-spread.conf
+            echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config.d/99-spread.conf
+          else
+            sed -i /etc/ssh/sshd_config -E -e 's/^#?PasswordAuthentication.*/PasswordAuthentication yes/' -e 's/^#?PermitRootLogin.*/PermitRootLogin yes/'
+          fi"
+        multipass exec "$instance_name" -- \
+          sudo systemctl restart ssh
+      elif [ "$(multipass info --format csv "$instance_name" | tail -1 | cut -d, -f2)" = "Stopped" ]; then
+        multipass start "$instance_name"
+      fi
+
+      # Get the IP from the instance
+      ip=$(multipass info --format csv "$instance_name" | tail -1 | cut -d\, -f3)
+      ADDRESS "$ip"
+    discard: |
+      instance_name=$(multipass list --format csv | awk -F',' -v ip="$SPREAD_SYSTEM_ADDRESS" '$3==ip {print $1}' || true)
+      [ -n "$instance_name" ] && multipass delete --purge "${instance_name}" || true
+
+    systems:
+      - ubuntu-24.04-64:
+          username: root
+          password: ubuntu
+          workers: 1
+
   github-ci:
     type: adhoc
     allocate: |
