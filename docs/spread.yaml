@@ -1,0 +1,54 @@
+project: k8s-snap
+
+path: /k8s-snap
+reroot: ..
+
+backends:
+  github-ci:
+    type: adhoc
+    allocate: |
+      echo "Allocating ad-hoc $SPREAD_SYSTEM"
+      if [ -z "${GITHUB_RUN_ID:-}" ]; then
+        FATAL "this back-end only works inside GitHub CI"
+        exit 1
+      fi
+      echo 'ubuntu ALL=(ALL) NOPASSWD:ALL' | sudo tee /etc/sudoers.d/99-spread-users
+      ADDRESS localhost:22
+    discard: |
+      echo "Discarding ad-hoc $SPREAD_SYSTEM"
+      sudo rm -f /etc/sudoers.d/99-spread-users || true
+    systems:
+      - ubuntu-24.04-64:
+          username: ubuntu
+          password: ubuntu
+          workers: 1
+
+suites:
+  tests/spread-generated/snap_clean/:
+    summary: docs tests that run from a clean VM and perform install/bootstrap in-task
+    prepare-each: |
+      # GitHub runners ship with containerd; stop it and remove the socket so
+      # the k8s snap can create /run/containerd without conflict.
+      sudo systemctl stop containerd || true
+      sudo systemctl disable containerd || true
+      sudo rm -rf /run/containerd || true
+    restore-each: |
+      sudo snap remove k8s --purge || true
+      sudo rm -rf /var/snap/k8s || true
+    systems:
+      - ubuntu-24.04-64
+
+  tests/spread-generated/snap_bootstrapped/:
+    summary: docs tests that assume a bootstrapped snap cluster
+    prepare-each: |
+      sudo systemctl stop containerd || true
+      sudo systemctl disable containerd || true
+      sudo rm -rf /run/containerd || true
+      sudo snap install k8s --classic --channel=1.35-classic/stable
+      sudo k8s bootstrap --timeout 10m
+      sudo k8s status --wait-ready --timeout 3m
+    restore-each: |
+      sudo snap remove k8s --purge || true
+      sudo rm -rf /var/snap/k8s || true
+    systems:
+      - ubuntu-24.04-64
