@@ -55,9 +55,11 @@ minimal effort required to access {{product}} services inside the LXD VM.
 Simply note the interface IP address from the command:
 
 <!-- markdownlint-disable -->
+
 ```
 lxc list k8s-vm
 ```
+
 ```
 +--------+---------+------------------------+------------------------------------------------+-----------------+-----------+
 |  NAME  |  STATE  |         IPV4           |                     IPV6                       |      TYPE       | SNAPSHOTS |
@@ -102,6 +104,7 @@ lxc exec k8s-vm -- sudo k8s kubectl get all
 ...should return an output similar to:
 
 <!-- markdownlint-disable -->
+
 ```
 NAME                            READY   STATUS    RESTARTS   AGE
 pod/microbot-6d97548556-hchb7   1/1     Running   0          21m
@@ -115,6 +118,7 @@ deployment.apps/microbot   1/1     1            1           21m
 NAME                                  DESIRED   CURRENT   READY   AGE
 replicaset.apps/microbot-6d97548556   1         1         1       21m
 ```
+
 <!-- markdownlint-restore -->
 
 Now that Microbot is up and running, let's make it accessible to the LXD

@@ -61,7 +61,6 @@ applied:
 * ``/etc/kubernetes/pki/ca.crt``
 * ``/etc/kubernetes/pki/ca.key``
 
-
 ## Further reading
 
 See this [Vault article] for more details on how to integrate Vault as a

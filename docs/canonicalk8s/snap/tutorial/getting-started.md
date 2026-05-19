@@ -118,7 +118,6 @@ life-cycle of the local storage solution.
 - **Storage agent (`ck-storage-rawfile-csi-node`)** : Facilitates local storage
 management.
 
-
 ## Deploy an app
 
 Kubernetes is meant for deploying apps and services.

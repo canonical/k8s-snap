@@ -11,7 +11,6 @@ installation the controller needs to be [configured with a repository (called a
 This document describes how to setup Velero with the MinIO provider acting as
 an S3 compatible object store.
 
-
 ## What you will need
 
 - A running {{product}} with DNS enabled
@@ -59,7 +58,6 @@ sudo k8s kubectl create namespace workloads
 sudo k8s kubectl create deployment nginx -n workloads --image nginx
 sudo k8s kubectl expose deployment nginx -n workloads --port 80
 ```
-
 
 ## Install Velero
 
@@ -114,7 +112,6 @@ velero install \
 --snapshot-location-config region=$REGION \
 --secret-file ./credentials-velero
 ```
-
 
 ## Backup workloads
 
@@ -196,7 +193,6 @@ Backup Volumes:
 HooksAttempted:  0
 HooksFailed:     0
 ```
-
 
 ## Restore workloads
 

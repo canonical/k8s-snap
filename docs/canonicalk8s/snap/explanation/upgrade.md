@@ -6,7 +6,6 @@ of the latest security patches as well as increased stability and performance
 by incorporating the latest optimizations and features. The [release cadence]
 of {{product}} follows the [release cycle] set by upstream Kubernetes.
 
-
 ## Patch vs minor upgrades
 
 Patch upgrades address bug fixes and are typically safe, introducing no
@@ -36,7 +35,6 @@ It is important to upgrade your cluster with the same method that you used to
 install the cluster. If you have deployed {{product}} using Juju, you should
 upgrade your cluster using Juju controller commands. Similarly, with snap and
 CAPI deployments, the original install method should be used.
-
 
 ## Snap upgrades
 

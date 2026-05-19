@@ -15,7 +15,6 @@ and locations on the disk.
 | `kubernetes-front-proxy-ca` | CA for front-end proxy     | `/etc/kubernetes/pki/front-proxy-ca.crt` | Signing certificates for the front-proxy    |
 | `client-ca`                 | CA for client certificates | `/etc/kubernetes/pki/client-ca.crt`      | Signing certificates for the client         |
 
-
 ## Certificates
 
 This table provides an overview of the certificates currently in use,
