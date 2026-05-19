@@ -1329,7 +1329,10 @@ Edit `/var/snap/k8s/common/args/kubelet` in order to set the argument
 Do NOT set to any value.
 
 Restart the `kubelet` service:
-    sudo systemctl restart snap.k8s.kubelet
+
+```
+sudo systemctl restart snap.k8s.kubelet
+```
 
 **Auditing (as root) for Step 2**
 
@@ -1767,7 +1770,10 @@ appropriate in `/var/snap/k8s/common/args/kube-apiserver`.
 Set to: `/etc/kubernetes/pki/apiserver\.key`
 
 Restart the `kube-apiserver` service:
-    sudo systemctl restart snap.k8s.kube-apiserver
+
+```
+sudo systemctl restart snap.k8s.kube-apiserver
+```
 
 **Auditing (as root) for Step 2**
 
