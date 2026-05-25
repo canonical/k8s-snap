@@ -12,7 +12,7 @@ jobs:
   prepare:
     runs-on: ubuntu-latest
     outputs:
-      file_list: ${{ steps.changes.outputs.changed_files }}
+      changed_files: ${{ steps.changes.outputs.changed_files }}
       repo: ${{ steps.changes.outputs.repo }}
     steps:
       - name: Checkout
@@ -44,7 +44,7 @@ jobs:
     needs: prepare 
     uses: ./.github/workflows/linkcheck.yaml
     with:
-      changed_files: ${{ needs.prepare.outputs.file_list }}
+      changed_files: ${{ needs.prepare.outputs.changed_files }}
       repo: ${{ needs.prepare.outputs.repo }}
       ref: ${{ github.head_ref }}
 
@@ -52,7 +52,7 @@ jobs:
     needs: prepare
     uses: ./.github/workflows/docs-spread-tests.yaml
     with:
-      changed_files: ${{ needs.prepare.outputs.file_list }}
+      file_list: ${{ needs.prepare.outputs.changed_files }}
 
   spellcheck-and-inclusive-language:
     runs-on: ubuntu-latest
