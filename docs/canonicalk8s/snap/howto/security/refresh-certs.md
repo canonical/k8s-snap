@@ -10,10 +10,10 @@ nodes in your {{product}} cluster.
 
 ```{warning}
 Only Kubernetes component certificates refreshes are supported with the
- `k8s refresh-certs` command. Microcluster and etcd certificates' expiration
- is set to 20 years, so renewal is not typically necessary. They are not automatically
- renewed by the command and currently cannot be refreshed manually.
- Additionally, like upstream Kubernetes, rotating the Certificate Authority (CA) is not supported.
+ `k8s refresh-certs` command. Microcluster and etcd certificates are set to
+ expire after 20 years, are not automatically renewed by this command, and
+ cannot currently be refreshed manually. CA rotation is not currently supported
+ in Canonical Kubernetes.
 ```
 
 ## Prerequisites
