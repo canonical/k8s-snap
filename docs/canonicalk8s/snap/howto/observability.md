@@ -1,5 +1,7 @@
 # How to use Prometheus with {{product}}
 
+<!-- SPREAD SUITE: snap_bootstrapped -->
+
 Observability is an essential component in any system for understanding,
 managing, and improving its performance and reliability. The main pillars of
 observability are metrics, logs and traces.
@@ -22,6 +24,16 @@ This guide assumes the following:
 - You have [installed Helm][install-helm].
 - You have enabled a persistent storage solution in your cluster
   (see How-to [Enable persistent storage][enable-storage]).
+
+<!-- SPREAD
+sudo snap install helm --classic
+sudo k8s enable local-storage
+source ${SPREAD_PATH}/docs/tools/repeat_checks.sh
+sudo k8s get local-storage | grep "enabled: true"
+mkdir -p ~/.kube
+sudo k8s config > ~/.kube/config
+chmod 600 ~/.kube/config
+-->
 
 ## Install Prometheus
 
@@ -55,10 +67,20 @@ sudo k8s kubectl get storageclass
 After the Prometheus deployment has been customized with the
 `values.yaml` file, run the following command:
 
+<!-- SPREAD SKIP -->
 ```
 sudo helm install prometheus prometheus-community/kube-prometheus-stack \
   --create-namespace --namespace observability -f values.yaml
 ```
+
+<!-- SPREAD SKIP END -->
+
+<!-- SPREAD
+sudo helm install prometheus prometheus-community/kube-prometheus-stack \
+  --create-namespace --namespace observability -f values.yaml \
+  --kubeconfig /root/.kube/config
+sudo k8s kubectl wait --for=condition=Ready pods --all -n observability --timeout=300s
+-->
 
 Note that this Helm chart installs a few dependent charts:
 
@@ -75,6 +97,10 @@ without issues. Check that the Prometheus pods are running:
 sudo k8s kubectl get pods -n observability -l "app.kubernetes.io/name=prometheus"
 ```
 
+<!-- SPREAD 
+repeat_checks 'sudo k8s kubectl get pods -n observability -l "app.kubernetes.io/name=prometheus"' 'Running'
+-->
+
 Next, connect to the Prometheus dashboard through its Kubernetes Service:
 
 ```
@@ -89,6 +115,7 @@ If you do not have access to the cluster network, or if the Prometheus
 Kubernetes service is not exposed externally, you can instead create a
 temporary local port-forward to the Prometheus dashboard:
 
+<!-- SPREAD SKIP -->
 ```
 export POD_NAME=$(sudo k8s kubectl get pods --namespace observability -l "app.kubernetes.io/name=prometheus" -o jsonpath="{.items[0].metadata.name}")
 sudo k8s kubectl --namespace observability port-forward $POD_NAME 9090
@@ -99,6 +126,7 @@ You can check the metrics that have been scraped so far by running:
 ```
 curl -s http://${CLUSTER_IP}:${CLUSTER_IP_PORT}/metrics
 ```
+<!-- SPREAD SKIP END -->
 
 ## Accessing Grafana
 
@@ -112,6 +140,10 @@ have Grafana deployed in your cluster:
 ```
 sudo k8s kubectl get pods -n observability -l "app.kubernetes.io/name=grafana"
 ```
+
+<!-- SPREAD 
+repeat_checks 'sudo k8s kubectl get pods -n observability -l "app.kubernetes.io/name=grafana"' 'Running'
+-->
 
 Next, connect to the Grafana dashboard through its Kubernetes service:
 
@@ -127,10 +159,12 @@ If you do not have access to the cluster network, or if the Grafana Kubernetes
 service is not exposed externally, you can instead create a temporary local
 port-forward to the Grafana dashboard:
 
+<!-- SPREAD SKIP -->
 ```
 export POD_NAME=$(sudo k8s kubectl get pods --namespace observability -l "app.kubernetes.io/name=grafana" -o jsonpath="{.items[0].metadata.name}")
 sudo k8s kubectl --namespace observability port-forward $POD_NAME 3000
 ```
+<!-- SPREAD SKIP END -->
 
 The default username/password for Grafana are: `admin`/`prom-operator`
 
@@ -151,6 +185,10 @@ sudo helm delete prometheus -n observability
 sudo k8s kubectl get -n observability pvc
 sudo k8s kubectl get pv
 ```
+
+<!-- SPREAD
+repeat_checks "sudo k8s kubectl get all -n observability" "No resources found"
+-->
 
 <!-- LINKS -->
 

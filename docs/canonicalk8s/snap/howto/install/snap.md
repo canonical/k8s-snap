@@ -1,5 +1,7 @@
 # How to install {{product}} from a snap
 
+<!-- SPREAD SUITE: snap_clean -->
+
 {{product}} is packaged as a [snap], available from the
 snap store for all supported platforms.
 
@@ -44,10 +46,16 @@ page] for an explanation of the different types of channel.
 
 The snap can be installed with the snap command:
 
+<!-- SPREAD SKIP -->
 ```{literalinclude} ../../../_parts/install.md
 :start-after: <!-- snap start -->
 :end-before: <!-- snap end -->
 ```
+<!-- SPREAD SKIP END -->
+
+<!-- SPREAD
+sudo snap install k8s --classic --channel=1.35-classic/stable
+-->
 
 ## Bootstrap the cluster
 

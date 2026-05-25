@@ -1,5 +1,7 @@
 # How to use the default Network
 
+<!-- SPREAD SUITE: snap_bootstrapped -->
+
 {{product}} includes a high-performance, advanced network plugin
 called Cilium. The network component allows cluster administrators to leverage
 software-defined networking to automatically scale and secure network policies
@@ -21,7 +23,11 @@ Find out whether Network is enabled or disabled with the following command:
 sudo k8s status
 ```
 
-The default state for the cluster is `network disabled`.
+<!-- SPREAD
+sudo k8s get network | grep "enabled: true"
+-->
+
+The default state for the cluster is `network enabled`.
 
 ## Enable Network
 
@@ -31,11 +37,19 @@ To enable Network, run:
 sudo k8s enable network
 ```
 
+<!-- SPREAD
+sudo k8s get network | grep "enabled: true"
+-->
+
 For more information on the command, execute:
 
 ```
 sudo k8s enable --help
 ```
+
+<!-- SPREAD
+sudo k8s enable --help | grep "Enable one of network, dns"
+-->
 
 ## Configure Network
 
@@ -50,17 +64,24 @@ Let's look at the detailed status of the network as reported by Cilium.
 
 First, find the name of the Cilium pod:
 
-```sh
+```
 sudo k8s kubectl get pod -n kube-system -l k8s-app=cilium
 ```
 
 Once you have the name of the pod, run the following command to see Cilium's
 status:
 
-```sh
+<!-- SPREAD SKIP -->
+```
 sudo k8s kubectl exec -it cilium-97vcw -n kube-system -c cilium-agent \
   -- cilium status
 ```
+<!-- SPREAD SKIP END -->
+
+<!-- SPREAD
+CILIUM_POD=$(sudo k8s kubectl get pod -n kube-system -l k8s-app=cilium -o jsonpath='{.items[0].metadata.name}')
+sudo k8s kubectl exec "$CILIUM_POD" -n kube-system -c cilium-agent -- cilium status
+-->
 
 You should see a wide range of metrics and configuration values for your
 cluster.
@@ -79,15 +100,26 @@ You can `disable` the built-in network:
 If your underlying network is Cilium you will have to run
 `sudo k8s disable gateway` before disabling network.
 
+<!-- SPREAD 
+sudo k8s disable gateway
+-->
+
 ```
 sudo k8s disable network
 ```
+<!-- SPREAD 
+sudo k8s get network | grep "enabled: false"
+-->
 
 For more information on this command, run:
 
 ```
 sudo k8s disable --help
 ```
+
+<!-- SPREAD
+sudo k8s disable --help | grep "Disable one of network, dns"
+-->
 
 <!-- LINKS -->
 

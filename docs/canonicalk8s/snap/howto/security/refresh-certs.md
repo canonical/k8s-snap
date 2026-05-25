@@ -1,5 +1,7 @@
 # How to refresh Kubernetes certificates
 
+<!-- SPREAD SUITE: snap_bootstrapped -->
+
 To keep your {{product}} cluster secure and functional, it is essential
 to regularly refresh its certificates. Certificates in Kubernetes ensure
 secure communication between the various components of the cluster. Expired
@@ -40,9 +42,12 @@ This command refreshes the certificates for the control plane node, adding an
 extra [Subject Alternative Name][] (SAN) to the certificate. Check the
 current SANs on your node by running the following command:
 
+<!-- SPREAD SKIP -->
 ```
 openssl x509 -in /etc/kubernetes/pki/apiserver.crt -noout -text | grep -A 1 "Subject Alternative Name"
 ```
+
+<!-- SPREAD SKIP END -->
 
 If your node setup includes additional SANs, be sure to provide the
 specific SANs for each node as needed using the `--extra-sans` flag. While this
@@ -67,10 +72,13 @@ see available options.
 node and restart the necessary services. The new expiration date will be
 displayed in the command output:
 
+<!-- SPREAD SKIP -->
 ```
 Certificates have been successfully refreshed, and will expire at 2025-08-27 21:00:00 +0000 UTC.
 ```
+<!-- SPREAD SKIP END -->
 
+<!-- SPREAD SKIP -->
 ## Refresh Worker node certificates
 
 1. To refresh the certificates on worker nodes, perform the following steps on
@@ -124,6 +132,7 @@ refresh its certificates and restart the necessary services:
 ```
 Certificates have been successfully refreshed, and will expire at 2034-08-27 21:00:00 +0000 UTC.
 ```
+<!-- SPREAD SKIP END -->
 
 <!-- Links -->
 

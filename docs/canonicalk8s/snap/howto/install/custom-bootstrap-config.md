@@ -1,5 +1,11 @@
 # How to install with a custom bootstrap configuration
 
+<!-- SPREAD SUITE: snap_clean -->
+
+<!-- SPREAD
+sudo snap install k8s --classic --channel=1.35-classic/stable
+-->
+
 When creating a {{ product }} cluster that differs from the default
 configuration you can choose to use a custom bootstrap configuration.
 The CLI interactive mode or a custom bootstrap configuration file allow you
@@ -24,6 +30,7 @@ CIDR and the Service CIDR.
 
 To bootstrap interactively, run:
 
+<!-- SPREAD SKIP -->
 ```
 sudo k8s bootstrap --timeout 10m --interactive
 ```
@@ -43,6 +50,7 @@ Bootstrapping the cluster. This may take a few seconds, please wait.
 Bootstrapped a new Kubernetes cluster with node address "192.122.3.111:6400".
 The node will be 'Ready' to host workloads after the CNI is deployed successfully.
 ```
+<!-- SPREAD SKIP END -->
 
 ## Bootstrap configuration file
 
@@ -68,9 +76,16 @@ EOF
 
 Then, apply the bootstrap configuration file:
 
+<!-- SPREAD SKIP -->
 ```
 sudo k8s bootstrap --file /path/to/bootstrap.yaml
 ```
+<!-- SPREAD SKIP END -->
+
+<!-- SPREAD
+sudo k8s bootstrap --file bootstrap.yaml
+sudo k8s status --wait-ready
+-->
 
 To verify any changes to the built-in features run:
 

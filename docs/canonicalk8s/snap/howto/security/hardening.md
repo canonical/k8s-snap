@@ -1,5 +1,7 @@
 # How to harden your {{product}} cluster
 
+<!-- SPREAD SUITE: snap_bootstrapped -->
+
 The {{product}} hardening guide provides actionable steps to enhance the
 security posture of your deployment. These steps are designed to help you align
 with industry-standard frameworks such as CIS.
@@ -32,15 +34,18 @@ costs for the benefit of an increased security posture.
 
 Encrypt key-value store secrets rather than leaving it as base64 encoded values
 as described in the upstream Kubernetes documentation on
-[encrypting secrets][encryption_at_rest].
+[encrypting secrets](https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/).
 
 Create the `EncryptionConfiguration` file under
 `/var/snap/k8s/common/etc/encryption/`.
 
+<!-- SPREAD
+export BASE_64_ENCODED_SECRET=$(head -c 32 /dev/urandom | base64)
+-->
+
 ```
-sudo sh -c '
-mkdir -p /var/snap/k8s/common/etc/encryption/
-cat >/var/snap/k8s/common/etc/encryption/enc.yaml << EOL
+sudo mkdir -p /var/snap/k8s/common/etc/encryption/
+cat << EOL | sudo tee /var/snap/k8s/common/etc/encryption/enc.yaml > /dev/null
 kind: "EncryptionConfiguration"
 apiVersion: apiserver.config.k8s.io/v1
 resources:
@@ -49,11 +54,17 @@ resources:
   - aesgcm:
       keys:
       - name: key1
-        secret: ${BASE 64 ENCODED SECRET}
+        secret: ${BASE_64_ENCODED_SECRET}
   - identity: {}
 EOL
-chmod 600 /var/snap/k8s/common/etc/encryption/enc.yaml
+sudo chmod 600 /var/snap/k8s/common/etc/encryption/enc.yaml
 ```
+
+<!-- SPREAD
+source ${SPREAD_PATH}/docs/tools/repeat_checks.sh
+sudo test -s /var/snap/k8s/common/etc/encryption/enc.yaml
+sudo stat -c '%a' /var/snap/k8s/common/etc/encryption/enc.yaml | grep "600"
+-->
 
 Set the `--encryption-provider-config` file as an argument to the kubernetes
 apiserver.
@@ -65,12 +76,16 @@ cat >>/var/snap/k8s/common/args/kube-apiserver <<EOL
 EOL'
 ```
 
+<!-- SPREAD
+sudo cat /var/snap/k8s/common/args/kube-apiserver | grep -e "--encryption-provider-config=/var/snap/k8s/common/etc/encryption/enc.yaml"
+-->
+
 Securing the contents of this key file is left as a separate exercise.
 
 #### Configure authorization modes
 
 Enforce RBAC (Role-Based Access Control) policies and confirm the value of the
-apiserver [`authorization-mode`][authorization_mode]:
+apiserver [`authorization-mode`](https://kubernetes.io/docs/reference/access-authn-authz/authorization/#authorization-modules):
 
 * includes `RBAC`
 * doesn't include `AlwaysAllow`
@@ -82,14 +97,21 @@ sudo grep authorization-mode /var/snap/k8s/common/args/kube-apiserver | \
     grep -q "AlwaysAllow" && echo "Remove AlwaysAllow" || echo "okay"
 ```
 
+<!-- SPREAD
+sudo grep authorization-mode /var/snap/k8s/common/args/kube-apiserver | \
+    grep -q "RBAC" && echo "okay" || echo "missing" | grep "okay"
+sudo grep authorization-mode /var/snap/k8s/common/args/kube-apiserver | \
+    grep -q "AlwaysAllow" && echo "Remove AlwaysAllow" || echo "okay" | grep "okay"
+-->
+
 By default, the value is `Node,RBAC`
 
 * `Node`:
-  A special-purpose authorization mode that grants permissions
-  to kubelets based on the pods they are scheduled to run.
+   A special-purpose authorization mode that grants permissions
+   to kubelets based on the pods they are scheduled to run.
 
- To apply RBAC to other cluster resources, see the upstream Kubernetes
- [RBAC guide].
+To apply RBAC to other cluster resources, see the upstream Kubernetes
+[RBAC guide](https://kubernetes.io/docs/reference/access-authn-authz/rbac/).
 
 #### Configure log auditing
 
@@ -99,7 +121,7 @@ may incur performance penalties in the form of disk I/O.
 ```
 
 Create an audit-policy.yaml file under `/var/snap/k8s/common/etc/` and specify
-the level of auditing you desire based on the [upstream instructions].
+the level of auditing you desire based on the [upstream instructions](https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/).
 Here is a minimal example of such a policy file.
 
 ```
@@ -113,6 +135,10 @@ rules:
 EOL'
 ```
 
+<!-- SPREAD 
+sudo test -s /var/snap/k8s/common/etc/audit-policy.yaml
+-->
+
 Enable auditing at the API server level by adding the following arguments.
 
 ```
@@ -125,11 +151,20 @@ sudo sh -c 'cat >>/var/snap/k8s/common/args/kube-apiserver <<EOL
 EOL'
 ```
 
+<!-- SPREAD
+sudo cat /var/snap/k8s/common/args/kube-apiserver | grep -e "--audit-log-path=/var/log/kubernetes/audit.log"
+-->
+
 Restart the API server:
 
 ```
 sudo systemctl restart snap.k8s.kube-apiserver
 ```
+
+<!-- SPREAD
+repeat_checks "sudo k8s kubectl get nodes" "Ready"
+sudo test -f /var/log/kubernetes/audit.log
+-->
 
 #### Set event rate limits
 
@@ -138,8 +173,7 @@ Configuring event rate limits requires the cluster administrator's input
 in assessing the hardware and workload specifications/requirements.
 ```
 
-
-Create a configuration file with the [rate limits] and place it under
+Create a configuration file with the [rate limits](https://kubernetes.io/docs/reference/config-api/apiserver-eventratelimit.v1alpha1) and place it under
 `/var/snap/k8s/common/etc/`.
 For example:
 
@@ -155,6 +189,10 @@ limits:
 EOL'
 ```
 
+<!-- SPREAD
+sudo test -s /var/snap/k8s/common/etc/eventconfig.yaml
+-->
+
 Create an admissions control config file under `/var/k8s/snap/common/etc/` .
 
 ```
@@ -168,12 +206,25 @@ plugins:
 EOL'
 ```
 
+<!-- SPREAD
+sudo test -s /var/snap/k8s/common/etc/admission-control-config-file.yaml
+-->
+
 Make sure the EventRateLimit admission plugin is loaded in the
 `/var/snap/k8s/common/args/kube-apiserver` .
+
+<!-- SPREAD SKIP -->
 
 ```
 --enable-admission-plugins=...,EventRateLimit,...
 ```
+
+<!-- SPREAD SKIP END -->
+
+<!-- SPREAD 
+sudo sed -i 's/\(--enable-admission-plugins="[^"]*\)"/\1,EventRateLimit"/' /var/snap/k8s/common/args/kube-apiserver
+sudo cat /var/snap/k8s/common/args/kube-apiserver | grep "EventRateLimit"
+-->
 
 Load the admission control config file.
 
@@ -183,11 +234,19 @@ sudo sh -c 'cat >>/var/snap/k8s/common/args/kube-apiserver <<EOL
 EOL'
 ```
 
+<!-- SPREAD
+sudo cat /var/snap/k8s/common/args/kube-apiserver | grep -e "--admission-control-config-file=/var/snap/k8s/common/etc/admission-control-config-file.yaml"
+-->
+
 Restart the API server.
 
 ```
 sudo systemctl restart snap.k8s.kube-apiserver
 ```
+
+<!-- SPREAD
+repeat_checks "sudo k8s kubectl get nodes" "Ready"
+-->
 
 #### Enable AlwaysPullImages admission control plugin
 
@@ -200,15 +259,28 @@ that use image sideloading.
 Make sure the AlwaysPullImages admission plugin is loaded in the
 `/var/snap/k8s/common/args/kube-apiserver`
 
-```
+<!-- SPREAD SKIP -->
+
+```sh
 --enable-admission-plugins=...,AlwaysPullImages,...
 ```
+
+<!-- SPREAD SKIP END -->
+
+<!-- SPREAD
+sudo sed -i 's/\(--enable-admission-plugins="[^"]*\)"/\1,AlwaysPullImages"/' /var/snap/k8s/common/args/kube-apiserver
+sudo cat /var/snap/k8s/common/args/kube-apiserver | grep "AlwaysPullImages"
+-->
 
 Restart the API server.
 
 ```
 sudo systemctl restart snap.k8s.kube-apiserver
 ```
+
+<!-- SPREAD
+repeat_checks "sudo k8s kubectl get nodes" "Ready"
+-->
 
 #### Set the Kubernetes scheduler and controller manager bind address
 
@@ -227,6 +299,10 @@ sudo sh -c 'cat >>/var/snap/k8s/common/args/kube-scheduler <<EOL
 EOL'
 ```
 
+<!-- SPREAD
+sudo cat /var/snap/k8s/common/args/kube-scheduler | grep -e "--bind-address=127.0.0.1"
+-->
+
 Do the same for the Kubernetes controller manager
 (`/var/snap/k8s/common/args/kube-controller-manager`):
 
@@ -236,12 +312,20 @@ sudo sh -c 'cat >>/var/snap/k8s/common/args/kube-controller-manager <<EOL
 EOL'
 ```
 
+<!-- SPREAD
+sudo cat /var/snap/k8s/common/args/kube-controller-manager | grep -e "--bind-address=127.0.0.1"
+-->
+
 Restart both services.
 
 ```
 sudo systemctl restart snap.k8s.kube-scheduler
 sudo systemctl restart snap.k8s.kube-controller-manager
 ```
+
+<!-- SPREAD
+repeat_checks "sudo k8s kubectl get nodes" "Ready"
+-->
 
 ### Worker nodes
 
@@ -256,13 +340,17 @@ This configuration may affect compatibility of workloads.
 ```
 
 Kubelet will not start if it finds kernel configurations incompatible with its
- defaults.
+defaults.
 
 ```
 sudo sh -c 'cat >>/var/snap/k8s/common/args/kubelet <<EOL
 --protect-kernel-defaults=true
 EOL'
 ```
+
+<!-- SPREAD
+sudo cat /var/snap/k8s/common/args/kubelet | grep -e "--protect-kernel-defaults=true"
+-->
 
 Restart `kubelet`.
 
@@ -275,6 +363,10 @@ Reload the system daemons:
 ```
 sudo systemctl daemon-reload
 ```
+
+<!-- SPREAD
+repeat_checks "sudo k8s kubectl get nodes" "Ready"
+-->
 
 #### Edit kubelet service file permissions
 
@@ -291,11 +383,19 @@ permission needs to be performed every time the k8s snap refreshes.
 chmod 600 /etc/systemd/system/snap.k8s.kubelet.service
 ```
 
+<!-- SPREAD
+stat -c '%a' /etc/systemd/system/snap.k8s.kubelet.service | grep "600"
+-->
+
 Restart `kubelet`.
 
 ```
 sudo systemctl restart snap.k8s.kubelet
 ```
+
+<!-- SPREAD
+repeat_checks "sudo k8s kubectl get nodes" "Ready"
+-->
 
 #### Set the maximum time an idle session is permitted prior to disconnect
 
@@ -312,27 +412,23 @@ sudo sh -c 'cat >>/var/snap/k8s/common/args/kubelet <<EOL
 EOL'
 ```
 
+<!-- SPREAD
+sudo cat /var/snap/k8s/common/args/kubelet | grep -e "--streaming-connection-idle-timeout=5m"
+-->
+
 Restart `kubelet`.
 
 ```
 sudo systemctl restart snap.k8s.kubelet
 ```
 
+<!-- SPREAD
+repeat_checks "sudo k8s kubectl get nodes" "Ready"
+-->
+
 <!-- Charm end here -->
 
 ## CIS hardening
 
 To assess compliance to the CIS hardening guidelines, please see the [CIS
-assessment page].
-
-<!-- Links -->
-[DISA STIG assessment page]: /snap/reference/disa-stig-audit.md
-[CIS assessment page]: cis-assessment.md
-[upstream instructions]:https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/
-[rate limits]:https://kubernetes.io/docs/reference/config-api/apiserver-eventratelimit.v1alpha1
-[controlling_access]: https://kubernetes.io/docs/concepts/security/controlling-access/
-[RBAC guide]: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
-[encryption_at_rest]: https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/
-[authorization_mode]: https://kubernetes.io/docs/reference/access-authn-authz/authorization/#authorization-modules
-[how to set up a FIPS compliant Kubernetes cluster]:/snap/howto/install/fips.md
-[how to install Canonical Kubernetes with DISA STIG hardening]: /snap/howto/install/disa-stig.md
+assessment page](cis-assessment.md).

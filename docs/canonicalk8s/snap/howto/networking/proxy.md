@@ -1,5 +1,7 @@
 # How to configure proxy settings for {{product}}
 
+<!-- SPREAD SUITE: snap_bootstrapped -->
+
 {{product}} packages a number of utilities (for example curl, Helm) which need
 to fetch resources they expect to find on the internet. In a restricted
 network environment, such access is usually controlled through proxies.
@@ -11,7 +13,7 @@ To set up a proxy using Squid follow the
 
 If necessary, create the `snap.k8s.containerd.service.d` directory:
 
-```bash
+```
 sudo mkdir -p /etc/systemd/system/snap.k8s.containerd.service.d
 ```
 
@@ -24,8 +26,10 @@ we are using the networks `10.0.0.0/8`,`192.168.0.0/16` and `172.16.0.0/12`.
 We would add the configuration to the
 (`/etc/systemd/system/snap.k8s.containerd.service.d/http-proxy.conf`) file:
 
-```bash
-# /etc/systemd/system/snap.k8s.containerd.service.d/http-proxy.conf
+<!-- SPREAD
+  sudo tee /etc/systemd/system/snap.k8s.containerd.service.d/http-proxy.conf <<'EOF'  
+-->
+```
 [Service]
 Environment="HTTPS_PROXY=http://squid.internal:3128"
 Environment="HTTP_PROXY=http://squid.internal:3128"
@@ -34,7 +38,9 @@ Environment="https_proxy=http://squid.internal:3128"
 Environment="http_proxy=http://squid.internal:3128"
 Environment="no_proxy=10.1.0.0/16,10.152.183.0/24,192.168.0.0/16,127.0.0.1,172.16.0.0/12"
 ```
-
+<!-- SPREAD
+EOF
+-->
 Note that you may need to restart for these settings to take effect.
 You can restart with the following commands:
 
@@ -43,6 +49,10 @@ sudo systemctl daemon-reload
 sudo systemctl restart snap.k8s.containerd.service
 ```
 
+<!-- SPREAD 
+source ${SPREAD_PATH}/docs/tools/repeat_checks.sh
+repeat_checks "sudo k8s kubectl get node" "Ready"
+-->
 
 ```{note}
 Include the CIDRs **10.152.183.0/24** and **10.1.0.0/16** in both the

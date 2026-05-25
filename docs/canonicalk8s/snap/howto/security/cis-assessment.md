@@ -1,5 +1,7 @@
 # How to assess CIS compliance
 
+<!-- SPREAD SUITE: snap_bootstrapped -->
+
 CIS Hardening refers to the process of implementing security configurations that
 align with the benchmarks set by the [Center for Internet Security (CIS)].
 Out of the box {{product}} complies with the majority of the recommended
@@ -47,6 +49,10 @@ Verify kube-bench installation:
 kube-bench version
 ```
 
+<!-- SPREAD 
+kube-bench version | grep 0.8.0
+-->
+
 The output should list the version installed.
 
 Install `kubectl` and configure it to interact with the cluster:
@@ -75,6 +81,8 @@ sudo -E kube-bench --version ck8s-cis-1.24 --config-dir ./kube-bench-ck8s-cfg/cf
 ```
 
 Review the warnings detected and address any failing checks you see fit.
+
+<!-- SPREAD SKIP -->
 
 ```
 [INFO] 1 Control Plane Security Configuration
@@ -122,6 +130,10 @@ Review the warnings detected and address any failing checks you see fit.
 0 checks INFO
 
 ```
+
+<!-- TODO: This test will fail without hardening applied. When pages are testing with each other, test 0 checks FAIL -- >
+
+<!-- SPREAD SKIP END -->
 
 <!-- LINKS -->
 [Center for Internet Security (CIS)]:https://www.cisecurity.org/

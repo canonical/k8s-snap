@@ -1,5 +1,7 @@
 # How to configure Uncomplicated Firewall (UFW)
 
+<!-- SPREAD SUITE: snap_clean -->
+
 This how-to presents a set of firewall rules/guidelines that should be
 considered when setting up {{product}}. These rules may be incompatible
 with some network setups, so we recommend you review and tune them to
@@ -16,21 +18,25 @@ This guide assumes the following:
 
 Install Uncomplicated Firewall:
 
-```sh
+```
 sudo apt update
 sudo apt install ufw
 ```
 
 Verify that UFW is installed:
 
-```sh
+```
 sudo ufw status verbose
 ```
+
+<!-- SPREAD
+sudo ufw status verbose | grep "Status: inactive"
+-->
 
 To maintain SSH access to the machine, allow `OpenSSH` through UFW
 before enabling the firewall:
 
-```sh
+```
 sudo ufw allow OpenSSH
 ```
 
@@ -46,14 +52,20 @@ internal network and the outside world.
 
 To enable IP forwarding:
 
-```sh
+```
 sudo sed -i 's|^.*net.ipv4.ip_forward.*$|net.ipv4.ip_forward=1|' /etc/sysctl.conf
 sudo sysctl -p
 ```
 
+<!-- SPREAD 
+sudo sysctl -p | grep "net.ipv4.ip_forward = 1"
+-->
+
 ### Set forwarding rules
 
 Set UFW forwarding rules using one of the following methods.
+
+<!-- SPREAD SKIP -->
 
 `````{tab-set}
 ````{tab-item} Allow system wide
@@ -78,9 +90,17 @@ sudo ufw route allow from 10.1.0.0/16 to 10.1.0.0/16
 ````
 `````
 
+<!-- SPREAD SKIP END -->
+
+<!-- SPREAD
+sudo grep -qE '^\s*#?\s*DEFAULT_FORWARD_POLICY=' /etc/default/ufw \
+  && sudo sed -i -E 's|^\s*#?\s*DEFAULT_FORWARD_POLICY=.*|DEFAULT_FORWARD_POLICY="ACCEPT"|' /etc/default/ufw \
+  || echo 'DEFAULT_FORWARD_POLICY="ACCEPT"' | sudo tee -a /etc/default/ufw
+-->
+
 ### Allow access to kubelet
 
-```sh
+```
 sudo ufw allow 10250/tcp
 ```
 
@@ -89,7 +109,7 @@ sudo ufw allow 10250/tcp
 Allow access to the {{product}} daemon (required for
 cluster formation):
 
-```sh
+```
 sudo ufw allow 6400/tcp
 ```
 
@@ -98,7 +118,7 @@ sudo ufw allow 6400/tcp
 Allow the cluster-wide Cilium agent health checks and VXLAN traffic on
 all nodes:
 
-```sh
+```
 sudo ufw allow 4240/tcp
 sudo ufw allow 8472/udp
 ```
@@ -111,14 +131,14 @@ Apply the following rules on all control plane nodes.
 
 Allow access to the API server:
 
-```sh
+```
 sudo ufw allow 6443/tcp
 ```
 
 Allow access to kube-controller-manager and kube-scheduler
 (e.g. for metrics gathering):
 
-```sh
+```
 sudo ufw allow 10257/tcp
 sudo ufw allow 10259/tcp
 ```
@@ -129,7 +149,7 @@ To form a High Availability (HA) cluster, etcd
 needs to establish direct connections among control plane nodes.
 Allow access to the etcd peer and client port:
 
-```sh
+```
 sudo ufw allow 2380/tcp
 sudo ufw allow 2379/tcp
 ```
@@ -138,9 +158,27 @@ sudo ufw allow 2379/tcp
 
 Now enable UFW:
 
+<!-- SPREAD SKIP -->
 ```sh
 sudo ufw enable
 ```
+<!-- SPREAD SKIP END -->
+<!-- SPREAD
+echo "y" | sudo ufw enable
+# Confirm all settings are correct
+sudo ufw status verbose | grep "Status: active"
+sysctl net.ipv4.ip_forward | grep "net.ipv4.ip_forward = 1"
+sudo ufw status | grep "OpenSSH"
+sudo ufw status | grep "10250/tcp"
+sudo ufw status | grep "6400/tcp"
+sudo ufw status | grep "4240/tcp"
+sudo ufw status | grep "8472/udp"
+sudo ufw status | grep "6443/tcp"
+sudo ufw status | grep "10257/tcp"
+sudo ufw status | grep "10259/tcp"
+sudo ufw status | grep "2380/tcp"
+sudo ufw status | grep "2379/tcp"
+-->
 
 ## UFW troubleshooting
 
@@ -148,15 +186,18 @@ The [ports-and-services] page has a list of all ports {{product}} uses.
 
 To inspect a failing service you can enable logging:
 
-```sh
+```
 sudo ufw logging on
 ```
 
 Monitor the firewall logs with:
 
-```sh
+<!-- SPREAD SKIP -->
+```
 tail -f /var/log/ufw.log
 ```
+
+<!-- SPREAD SKIP END -->
 
 The logs will show you which packets are dropped, their destination and
 source as well as the protocol used and the destination port. This
@@ -166,7 +207,7 @@ enable within UFW.
 After troubleshooting, keep the resources used by UFW to a minimum by
 disabling logging:
 
-```sh
+```
 sudo ufw logging off
 ```
 

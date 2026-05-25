@@ -6,6 +6,8 @@ myst:
 
 # How to upgrade the snap
 
+<!-- SPREAD SUITE: snap_clean -->
+
 Upgrading the Kubernetes version of a node is a critical operation that
 requires careful planning and execution. {{product}} is shipped as a snap,
 which simplifies the upgrade process.
@@ -31,11 +33,22 @@ Snaps automatically check for updates of their specific track
 These updates ensure that the latest changes in the installed track are applied.
 Patch upgrades can also be triggered manually by following the steps below.
 
+<!-- SPREAD 
+sudo snap install k8s --classic --channel=1.34-classic/stable
+sudo k8s bootstrap
+sudo k8s status --wait-ready
+-->
+
 1. **List available revisions:**
 
 ```
 snap info k8s
 ```
+
+<!-- SPREAD 
+snap info k8s | grep "tracking:     1.34-classic/stable"
+-->
+
 
 2. **Refresh the snap:**
 
@@ -77,6 +90,7 @@ steps before upgrading.
 The {{product}} snap channel can be changed by using the `snap refresh`
 command.
 
+
 ```
 snap refresh --channel=1.35-classic/stable k8s
 ```
@@ -90,6 +104,10 @@ and confirming that the cluster is ready:
 snap info k8s
 sudo k8s status --wait-ready
 ```
+
+<!-- SPREAD 
+snap info k8s | grep "installed:                v1.35"
+-->
 
 ```{note}
 In a multi-node cluster, the upgrade should be performed on all nodes.
@@ -121,6 +139,10 @@ confirming that the cluster is ready:
 snap info k8s
 sudo k8s status --wait-ready
 ```
+
+<!-- SPREAD 
+snap info k8s | grep "installed:                v1.34"
+-->
 
 ```{note}
 In a multi-node cluster, the revert should be performed on all nodes.

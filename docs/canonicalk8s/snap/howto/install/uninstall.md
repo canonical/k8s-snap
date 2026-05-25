@@ -1,5 +1,7 @@
 # How to uninstall the {{product}} snap
 
+<!-- SPREAD SUITE: snap_bootstrapped -->
+
 This guide provides step-by-step instructions for removing the {{ product }}
 snap from your system.
 
@@ -13,6 +15,8 @@ In this case, the node needs to be removed with the `--force` flag as explained 
 
 From any control plane node:
 
+<!-- SPREAD SKIP -->
+
 ```
 sudo k8s remove-node <NODE_NAME>
 ```
@@ -23,10 +27,13 @@ Ensure the node has been removed from the cluster:
 sudo k8s kubectl get nodes
 ```
 
+<!-- SPREAD SKIP END -->
+
 ## Remove the k8s snap
 
 Uninstall the `k8s` snap:
 
+<!-- SPREAD SKIP -->
 ```
 sudo snap remove k8s
 ```
@@ -34,6 +41,7 @@ sudo snap remove k8s
 This command uninstalls the snap but may leave some configurations and data
 files on the system.
 For a complete removal, including all cluster data, use the `--purge` option:
+<!-- SPREAD SKIP END -->
 
 ```
 sudo snap remove k8s --purge
@@ -44,6 +52,7 @@ sudo snap remove k8s --purge
 To confirm the snap is successfully removed, check the list of installed
 snaps:
 
+<!-- SPREAD SKIP -->
 ```
 snap list k8s
 ```
@@ -53,3 +62,4 @@ This command should produce an output similar to:
 ```
 error: no matching snaps installed
 ```
+<!-- SPREAD SKIP END -->
