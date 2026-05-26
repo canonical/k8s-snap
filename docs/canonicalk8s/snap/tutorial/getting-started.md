@@ -6,6 +6,8 @@ myst:
 
 # Getting started
 
+<!-- SPREAD SUITE: snap_clean -->
+
 {{product}} is a distribution of Kubernetes which includes all
 the necessary tools and services needed to easily deploy and manage a cluster.
 Upstream Kubernetes does not provide you with a fully functional cluster by 
@@ -31,10 +33,16 @@ an isolated working environment.
 
 Install the {{product}} `k8s` snap with:
 
+<!-- SPREAD SKIP -->
 ```{literalinclude} ../../_parts/install.md
 :start-after: <!-- snap start -->
 :end-before: <!-- snap end -->
 ```
+<!-- SPREAD SKIP END -->
+
+<!-- SPREAD
+sudo snap install k8s --classic --channel=1.35-classic/stable
+-->
 
 This may take a few moments as the snap installs all the necessary Kubernetes
 components for a fully functioning cluster such as the networking, storage, etc.
@@ -65,6 +73,7 @@ to wait for {{product}} to bring up the cluster:
 sudo k8s status --wait-ready
 ```
 
+<!-- SPREAD SKIP -->
 ```{important}
 This command waits a few minutes before timing out.
 On a very slow network connection, or a system with very limited resources,
@@ -72,6 +81,7 @@ this default timeout might be insufficient resulting in a "Context canceled"
 error. Please first ensure that your machine meets the system requirements to run a Kubernetes cluster. Then, you can either increase the timeout using the  `--timeout`
 flag or re-run the command to continue waiting until the cluster is ready.
 ```
+<!-- SPREAD SKIP END -->
 
 Congratulations, you have just deployed a single node cluster with {{product}}! 
 Now let's see what you can do with it.
@@ -87,6 +97,11 @@ For example, to view your node you can run the command:
 ```
 sudo k8s kubectl get nodes
 ```
+
+<!-- SPREAD
+source ${SPREAD_PATH}/docs/tools/repeat_checks.sh
+repeat_checks "sudo k8s kubectl get nodes" "Ready"
+-->
 
 …or to see the running services:
 
@@ -140,6 +155,10 @@ You can check the status of your pods by running:
 sudo k8s kubectl get pods
 ```
 
+<!-- SPREAD
+repeat_checks "sudo k8s kubectl get pods" "Running"
+-->
+
 This command shows all pods in the default namespace.
 It may take a moment for the pod to be ready and running.
 
@@ -147,7 +166,8 @@ Now to check the NGINX server in the pod is working correctly, get the IP
 address of the pod by running the same command again but this time we will add 
 the `-owide` argument so we get more information about the pod: 
 
- ```
+<!-- SPREAD SKIP -->
+```
 sudo k8s kubectl get pods -owide
 ```
 
@@ -156,6 +176,7 @@ Then query the NGINX IP address using `curl`:
 ```
 curl <POD_IP>
 ```
+<!-- SPREAD SKIP END -->
 
 The output should confirm NGINX was successfully installed and working.
 
@@ -174,6 +195,10 @@ running:
 sudo k8s kubectl get pods
 ```
 
+<!-- SPREAD
+repeat_checks "sudo k8s kubectl get pods" "No resources found"
+-->
+
 ## Enable local storage
 
 As we learned earlier, {{product}} comes with everything you need to run 
@@ -191,6 +216,10 @@ To verify that the local storage is enabled, execute:
 ```
 sudo k8s status
 ```
+
+<!-- SPREAD
+repeat_checks "sudo k8s status" "rawfile-storage"
+-->
 
 You should see `local-storage: enabled` in the command output.
 
@@ -211,6 +240,10 @@ To confirm that the persistent volume is up and running:
 sudo k8s kubectl get pvc myclaim
 ```
 
+<!-- SPREAD
+repeat_checks "sudo k8s kubectl get pvc myclaim" "Bound"
+-->
+
 The persistent volume claim status should be Bound. Now let's inspect the 
 storage-writer-pod:
 
@@ -218,16 +251,23 @@ storage-writer-pod:
 sudo k8s kubectl describe pod storage-writer-pod
 ```
 
+<!-- SPREAD
+repeat_checks "sudo k8s kubectl describe pod storage-writer-pod" "Running"
+-->
+
 This output provides a detailed description of the storage-writer-pod. You 
 should see `myclaim` listed under Volumes showing that it has been assigned 
 correctly.
 
+<!-- SPREAD SKIP -->
 ```
 Volumes:
   storage-volume:
     Type:       PersistentVolumeClaim
     ClaimName:  myclaim
 ```
+
+<!-- SPREAD SKIP END -->
  
 ## Disable local storage
 
@@ -238,6 +278,10 @@ sudo k8s kubectl delete pod storage-writer-pod
 sudo k8s kubectl delete pvc myclaim
 ```
 
+<!-- SPREAD
+repeat_checks "sudo k8s kubectl get pods" "No resources found"
+-->
+
 This may take a few moments as the cluster cleans up its resources.
 
 Next, disable the local storage:
@@ -246,14 +290,20 @@ Next, disable the local storage:
 sudo k8s disable local-storage
 ```
 
+<!-- SPREAD
+repeat_checks "sudo k8s disable local-storage" "local-storage disabled."
+-->
+
 ## Remove {{product}} (Optional)
 
 If you would like to maintain a snapshot of the `k8s` snap for future
 restoration, simply run :
 
+<!-- SPREAD SKIP -->
 ```
 sudo snap remove k8s
 ```
+<!-- SPREAD SKIP END -->
 
 The snapshot is a copy of the user, system and configuration data stored by
 snapd for the `k8s` snap. This data can be found in `/var/snap/k8s`.

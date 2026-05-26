@@ -1,0 +1,156 @@
+name: Docs Spread Tests
+
+on:
+  workflow_call:
+    inputs:
+      changed_files:
+        description: "Space-delimited docs/canonicalk8s-relative file list from docs-checks prepare job"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  docs-spread-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Checkout upstream spread script
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          repository: canonical/operator-workflows
+          ref: df449f1e3d1b8babbe9df48bbebcff1e58c9fda9 # main as of 2026-05-07
+          sparse-checkout: |
+            spread/create_spread_task_file.py
+          sparse-checkout-cone-mode: false
+          path: workflow-scripts
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.x"
+
+      - name: Set up Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version: "1.23"
+
+      - name: Generate tasks.yaml for changed docs
+        shell: bash
+        env:
+          CHANGED_FILES_INPUT: ${{ inputs.changed_files }}
+        run: |
+          set -euo pipefail
+
+          rm -rf tests/spread-generated
+          mkdir -p tests/spread-generated
+          
+          # Create all suite directories so spread doesn't fail reading spread.yaml
+          mkdir -p tests/spread-generated/{snap_clean,snap_bootstrapped}
+
+          changed_files_input="${CHANGED_FILES_INPUT:-}"
+
+          # Append the docs/canonicalk8s/ prefix to each changed file and store in an array
+          if [[ -n "$changed_files_input" ]]; then
+            mapfile -t changed_files < <(
+              printf '%s\n' "$changed_files_input" \
+              | tr ' ' '\n' \
+              | sed 's|^|docs/canonicalk8s/|' \
+              || true
+            )
+          else
+            echo "No changed_files input provided; skipping docs spread generation."
+            echo "NO_SUITES=true" >> "$GITHUB_ENV"
+            exit 0
+          fi
+
+          if [[ ${#changed_files[@]} -eq 0 ]]; then
+            echo "No docs files needing spread tests changed in this PR."
+            echo "NO_SUITES=true" >> "$GITHUB_ENV"
+            exit 0
+          fi
+
+          declare -A suites_seen=()
+          generated_any=false
+
+          for file in "${changed_files[@]}"; do
+            # Look for suite marker in the file like "SPREAD SUITE: snap_clean" to determine which suite to place it in
+            marker_suite="$(grep -Eo 'SPREAD SUITE:\s*[a-z_]+' "$file" | head -n1 | sed -E 's/.*:\s*//' || true)"
+
+            if [[ -z "$marker_suite" ]]; then
+              echo "Skipping $file (no SPREAD SUITE marker)"
+              continue
+            fi
+
+            suite="$marker_suite"
+
+            # Validate suite value against allowed list
+            case "$suite" in
+              snap_clean|snap_bootstrapped) ;;
+              *)
+                echo "Unsupported SPREAD SUITE marker '$suite' in $file"
+                exit 1
+                ;;
+            esac
+
+            rel="${file#docs/canonicalk8s/}"
+            rel="${rel%.*}"
+            # Flatten: use sanitized path with slashes replaced to avoid intermediate dirs
+            task_name=$(echo "$rel" | sed 's|/|-|g')
+            out_dir="tests/spread-generated/${suite}/${task_name}"
+
+            # Generate the task.yaml for this file using the upstream script
+            mkdir -p "$out_dir"
+            python3 workflow-scripts/spread/create_spread_task_file.py \
+              "$file" \
+              "$out_dir/task.yaml"
+
+            suites_seen["$suite"]=1
+            generated_any=true
+          done
+
+          if [[ "$generated_any" != true ]]; then
+            echo "No docs files with SPREAD SUITE markers changed in this PR."
+            echo "NO_SUITES=true" >> "$GITHUB_ENV"
+            exit 0
+          fi
+
+          printf "%s\n" "${!suites_seen[@]}" | sort > /tmp/spread_suites.txt
+
+          {
+            echo "SPREAD_SUITES<<EOF"
+            cat /tmp/spread_suites.txt
+            echo "EOF"
+          } >> "$GITHUB_ENV"
+
+      - name: Install spread
+        if: env.NO_SUITES != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          go install github.com/canonical/spread/cmd/spread@latest
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Run spread suites
+        if: env.NO_SUITES != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo adduser --gecos "" --disabled-password ubuntu || true
+          echo "ubuntu:ubuntu" | sudo chpasswd || true
+
+          while IFS= read -r suite; do
+            [[ -z "$suite" ]] && continue
+            echo "Running docs suite: $suite"
+            (
+              cd docs
+              spread -vv "github-ci:ubuntu-24.04-64:tests/spread-generated/${suite}/"
+            )
+          done <<< "$SPREAD_SUITES"

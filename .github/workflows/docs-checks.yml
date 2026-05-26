@@ -1,8 +1,6 @@
 name: Documentation Checks
 
 on:
-  workflow_dispatch:
-
   pull_request:
     paths:
       - 'docs/**'
@@ -14,7 +12,7 @@ jobs:
   prepare:
     runs-on: ubuntu-latest
     outputs:
-      file_list: ${{ steps.changes.outputs.changed_files }}
+      changed_files: ${{ steps.changes.outputs.changed_files }}
       repo: ${{ steps.changes.outputs.repo }}
     steps:
       - name: Checkout
@@ -24,30 +22,37 @@ jobs:
 
       - name: Get changed files list with git diff
         id: changes
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          EVENT_REPO: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name || github.repository }}
         run: |
           # Fetch the base branch to ensure we have the history for the comparison
-          git fetch origin ${{ github.event.pull_request.base.ref }}
+          git fetch origin "$BASE_REF"
 
           # Use git diff to find files changed between the base branch and the PR branch
-          FILE_LIST=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD -- 'docs/canonicalk8s/**/*.md' | \
+          FILE_LIST=$(git diff --name-only "origin/${BASE_REF}...HEAD" -- 'docs/canonicalk8s/**/*.md' | \
             sed 's|^docs/canonicalk8s/||' | \
             xargs)
 
-          REPO=${{github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name || github.repository }}
-
           # Pass the space-delimited list to the step output
           echo "Changed files: $FILE_LIST"
-          echo "Repo for tests: $REPO"
+          echo "Repo for tests: $EVENT_REPO"
           echo "changed_files=$FILE_LIST" >> $GITHUB_OUTPUT
-          echo "repo=$REPO" >> $GITHUB_OUTPUT
+          echo "repo=$EVENT_REPO" >> $GITHUB_OUTPUT
 
   linkcheck:
     needs: prepare 
     uses: ./.github/workflows/linkcheck.yaml
     with:
-      changed_files: ${{ needs.prepare.outputs.file_list }}
+      changed_files: ${{ needs.prepare.outputs.changed_files }}
       repo: ${{ needs.prepare.outputs.repo }}
       ref: ${{ github.head_ref }}
+
+  docs-spread-tests:
+    needs: prepare
+    uses: ./.github/workflows/docs-spread-tests.yaml
+    with:
+      changed_files: ${{ needs.prepare.outputs.changed_files }}
 
   spellcheck-and-inclusive-language:
     runs-on: ubuntu-latest
