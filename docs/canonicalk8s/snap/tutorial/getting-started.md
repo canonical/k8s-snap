@@ -306,9 +306,11 @@ restoration, simply run :
 
 <!-- SPREAD SKIP -->
 
+
 ```
 sudo snap remove k8s
 ```
+
 
 <!-- SPREAD SKIP END -->
 
