@@ -54,6 +54,8 @@ sha256:873ed75102791e5b0b8a7fcd41606c92fcec98d56d05ead4ac5131650004c136
 <!-- SPREAD SKIP END -->
 
 <!-- SPREAD 
+# Ensure all pods are up and images pulled before query
+sudo k8s kubectl wait --namespace kube-system --for=condition=Ready pods --all --timeout=300s
 sudo /snap/k8s/current/bin/ctr --address /run/containerd/containerd.sock --namespace k8s.io images list -q | grep "ghcr.io"
 -->
 

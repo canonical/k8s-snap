@@ -79,6 +79,8 @@ sudo k8s kubectl exec -it cilium-97vcw -n kube-system -c cilium-agent \
 <!-- SPREAD SKIP END -->
 
 <!-- SPREAD
+# Ensure all pods are up before query
+sudo k8s kubectl wait --namespace kube-system --for=condition=Ready pods --all --timeout=300s
 CILIUM_POD=$(sudo k8s kubectl get pod -n kube-system -l k8s-app=cilium -o jsonpath='{.items[0].metadata.name}')
 sudo k8s kubectl exec "$CILIUM_POD" -n kube-system -c cilium-agent -- cilium status
 -->

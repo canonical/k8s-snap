@@ -41,6 +41,8 @@ sudo k8s enable gateway
 
 <!-- SPREAD
 sudo k8s get gateway | grep "enabled: true"
+# Ensure all pods are up before continuing 
+sudo k8s kubectl wait --namespace kube-system --for=condition=Ready pods --all --timeout=300s
 --> 
 
 ## Deploy sample workload
@@ -160,7 +162,7 @@ curl 10.0.1.0:80
 The output should display a welcome to Nginx message.
 
 <!-- SPREAD
-repeat_checks "sudo k8s kubectl get service cilium-gateway-my-gateway" "10.0.1."
+repeat_checks "sudo k8s kubectl get service cilium-gateway-my-gateway" "10.0.1." 30
 LOADBALANCER_IP=$(sudo k8s kubectl get service cilium-gateway-my-gateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 repeat_checks "curl --connect-timeout 2 --max-time 4 $LOADBALANCER_IP:80" "Welcome to nginx"
 --> 

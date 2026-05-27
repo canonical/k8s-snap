@@ -131,7 +131,7 @@ Review the warnings detected and address any failing checks you see fit.
 
 ```
 
-<!-- TODO: This test will fail without hardening applied. When pages are testing with each other, test 0 checks FAIL -- >
+<!-- TODO: This test will fail without hardening applied. When pages are testing with each other, test 0 checks FAIL -->
 
 <!-- SPREAD SKIP END -->
 

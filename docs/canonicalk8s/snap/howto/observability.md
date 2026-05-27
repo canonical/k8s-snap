@@ -78,7 +78,7 @@ sudo helm install prometheus prometheus-community/kube-prometheus-stack \
 <!-- SPREAD
 sudo helm install prometheus prometheus-community/kube-prometheus-stack \
   --create-namespace --namespace observability -f values.yaml \
-  --kubeconfig /root/.kube/config
+  --kubeconfig ~/.kube/config
 sudo k8s kubectl wait --for=condition=Ready pods --all -n observability --timeout=300s
 -->
 

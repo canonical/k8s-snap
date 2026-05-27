@@ -98,10 +98,8 @@ sudo grep authorization-mode /var/snap/k8s/common/args/kube-apiserver | \
 ```
 
 <!-- SPREAD
-sudo grep authorization-mode /var/snap/k8s/common/args/kube-apiserver | \
-    grep -q "RBAC" && echo "okay" || echo "missing" | grep "okay"
-sudo grep authorization-mode /var/snap/k8s/common/args/kube-apiserver | \
-    grep -q "AlwaysAllow" && echo "Remove AlwaysAllow" || echo "okay" | grep "okay"
+sudo grep authorization-mode /var/snap/k8s/common/args/kube-apiserver | grep -q "RBAC" 
+! sudo grep -qE "authorization-mode.*AlwaysAllow" /var/snap/k8s/common/args/kube-apiserver
 -->
 
 By default, the value is `Node,RBAC`

@@ -146,11 +146,21 @@ jobs:
           sudo adduser --gecos "" --disabled-password ubuntu || true
           echo "ubuntu:ubuntu" | sudo chpasswd || true
 
+          ANY_SUITE_FAILED=0
+
           while IFS= read -r suite; do
             [[ -z "$suite" ]] && continue
             echo "Running docs suite: $suite"
-            (
+            if !(
               cd docs
               spread -vv "github-ci:ubuntu-24.04-64:tests/spread-generated/${suite}/"
-            )
+            ); then
+              echo "Suite '$suite' encountered errors, but continuing pipeline..."
+              ANY_SUITE_FAILED=1
+            fi
           done <<< "$SPREAD_SUITES"
+
+          if [[ "$ANY_SUITE_FAILED" -ne 0 ]]; then
+            echo "GitHub Action failing because one or more documentation suites failed."
+            exit 1
+          fi
