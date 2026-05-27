@@ -63,3 +63,7 @@ This command should produce an output similar to:
 error: no matching snaps installed
 ```
 <!-- SPREAD SKIP END -->
+
+<!-- SPREAD 
+! snap list k8s >/dev/null 2>&1
+-->

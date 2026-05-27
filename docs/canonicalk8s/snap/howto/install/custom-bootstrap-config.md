@@ -85,6 +85,7 @@ sudo k8s bootstrap --file /path/to/bootstrap.yaml
 <!-- SPREAD
 sudo k8s bootstrap --file bootstrap.yaml
 sudo k8s status --wait-ready
+sudo k8s get network | grep "enabled: true"
 -->
 
 To verify any changes to the built-in features run:

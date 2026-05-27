@@ -25,7 +25,7 @@ sudo k8s status
 ```
 
 <!-- SPREAD
-sudo k8s get dns | grep "enabled: true"
+sudo k8s status | grep "dns:                      enabled at"
 -->
 
 The default state for the cluster is `dns enabled`.
@@ -61,7 +61,9 @@ sudo k8s get dns
 ```
 
 <!-- SPREAD
-sudo k8s get dns | grep "enabled: true"
+sudo k8s get dns | grep "upstream-nameservers"
+sudo k8s get dns | grep "cluster-domain"
+sudo k8s get dns | grep "service-ip"
 -->
 
 You should see three options:
@@ -76,22 +78,45 @@ Set a new DNS server IP for forwarding known entries:
 ```
 sudo k8s set dns.upstream-nameservers=<new-ips>
 ```
+<!-- SPREAD SKIP END -->
+
+<!-- SPREAD 
+sudo k8s set dns.upstream-nameservers=8.8.8.8
+sudo k8s get dns | grep "8.8.8.8"
+-->
 
 Change the cluster domain name:
 
+<!-- SPREAD SKIP -->
 ```
 sudo k8s set dns.cluster-domain=<new-domain-name>
 ```
+<!-- SPREAD SKIP END -->
 
-Assign a new cluster IP to the DNS service:
+<!-- SPREAD 
+sudo k8s set dns.cluster-domain=k8s.testing
+sudo k8s get dns | grep "cluster-domain: k8s.testing"
+-->
+
+Assign a new cluster IP to the DNS service (DNS must be disabled in order to 
+do this):
+
+<!-- SPREAD SKIP -->
 
 ```
 sudo k8s set dns.service-ip=<new-cluster-ip>
 ```
+<!-- SPREAD SKIP END -->
+
+<!-- SPREAD 
+sudo k8s disable dns
+sudo k8s set dns.service-ip="10.152.183.254"
+sudo k8s enable dns
+sudo k8s get dns | grep "service-ip: 10.152.183.254"
+-->
 
 Replace `<new-ip>`, `<new-domain-name>`, and `<new-cluster-ip>` with the
 desired values for your DNS configuration.
-<!-- SPREAD SKIP END -->
 
 ## Disable DNS
 

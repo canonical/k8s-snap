@@ -23,7 +23,7 @@ sudo k8s status
 ```
 
 <!-- SPREAD
-sudo k8s get ingress | grep "enabled: false"
+sudo k8s status | grep "ingress:                  disabled"
 -->
 
 Please ensure that Ingress is enabled on your cluster.
@@ -65,7 +65,8 @@ sudo k8s get ingress
 ```
 
 <!-- SPREAD
-sudo k8s get ingress | grep "enabled: true"
+sudo k8s get ingress | grep "default-tls-secret"
+sudo k8s get ingress | grep "enable-proxy-protocol"
 -->
 
 You should see three options:

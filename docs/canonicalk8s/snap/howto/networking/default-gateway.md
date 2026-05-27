@@ -26,7 +26,7 @@ sudo k8s status
 
 <!-- SPREAD
 source ${SPREAD_PATH}/docs/tools/repeat_checks.sh
-sudo k8s get gateway | grep "enabled: true"
+sudo k8s status | grep "gateway                   enabled"
 -->
 
 Please ensure that Gateway is enabled on your cluster.
@@ -78,6 +78,10 @@ View the workload and service deployed:
 sudo k8s kubectl get all -owide
 ```
 
+<!-- SPREAD 
+sudo k8s kubectl get service -owide | grep "my-nginx"
+-->
+
 The output should look similar to below:
 
 <!-- SPREAD SKIP -->
@@ -108,7 +112,7 @@ curl 10.152.183.189:80
 
 <!-- SPREAD
 GATEWAY_IP=$(sudo k8s kubectl get service cilium-gateway-my-gateway -o jsonpath='{.spec.clusterIP}')
-repeat_checks "curl $GATEWAY_IP:80" "Welcome to nginx"
+repeat_checks "curl --connect-timeout 2 --max-time 4 $GATEWAY_IP:80" "Welcome to nginx"
 --> 
 
 To gain access from outside of the cluster, the Gateway needs an
@@ -158,7 +162,7 @@ The output should display a welcome to Nginx message.
 <!-- SPREAD
 repeat_checks "sudo k8s kubectl get service cilium-gateway-my-gateway" "10.0.1."
 LOADBALANCER_IP=$(sudo k8s kubectl get service cilium-gateway-my-gateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-repeat_checks "curl $LOADBALANCER_IP:80" "Welcome to nginx"
+repeat_checks "curl --connect-timeout 2 --max-time 4 $LOADBALANCER_IP:80" "Welcome to nginx"
 --> 
 
 ## Disable gateway

@@ -53,12 +53,8 @@ containerd-related files (e.g.: `/ck8s/etc/containerd`,
 
 <!-- SPREAD
 sudo k8s status --wait-ready
-source ${SPREAD_PATH}/docs/tools/repeat_checks.sh
 ps -ef | grep kubelet | grep container-runtime-endpoint=/ck8s/etc/containerd/k8s-containerd
 -->
-
-
-<!-- repeat_checks "ps -ef | grep kubelet | grep container-runtime-endpoint" "--container-runtime-endpoint=/ck8s/etc/containerd/k8s-containerd" -->
 
 ### State Directory on tmpfs — Disk Pressure & ErrImagePull
 

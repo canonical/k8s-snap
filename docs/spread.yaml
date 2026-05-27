@@ -88,5 +88,3 @@ suites:
       sudo rm -rf /var/snap/k8s || true
     systems:
       - ubuntu-24.04-64
-
-

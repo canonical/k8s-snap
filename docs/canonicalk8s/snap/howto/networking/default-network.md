@@ -24,7 +24,7 @@ sudo k8s status
 ```
 
 <!-- SPREAD
-sudo k8s get network | grep "enabled: true"
+sudo k8s status | grep "network:                  enabled"
 -->
 
 The default state for the cluster is `network enabled`.

@@ -79,10 +79,6 @@ docker.io/library/hello-world:latest
 ```
 <!-- SPREAD SKIP END -->
 
-<!-- SPREAD 
-sudo /snap/k8s/current/bin/ctr --address /run/containerd/containerd.sock --namespace k8s.io images list -q | grep docker.io/library/hello-world:latest
--->
-
 <!-- LINKS -->
 
 [snap-install-howto]: ./install/snap

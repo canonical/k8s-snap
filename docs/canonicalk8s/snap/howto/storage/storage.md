@@ -55,6 +55,8 @@ sudo k8s set local-storage.default=true
 
 <!-- SPREAD
 sudo k8s get local-storage | grep "default: true"
+sudo k8s get local-storage | grep "local-path"
+sudo k8s get local-storage | grep "reclaim-policy"
 -->
 
 The local-storage feature provides the following configuration options:

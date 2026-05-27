@@ -223,7 +223,7 @@ Make sure the EventRateLimit admission plugin is loaded in the
 
 <!-- SPREAD 
 sudo sed -i 's/\(--enable-admission-plugins="[^"]*\)"/\1,EventRateLimit"/' /var/snap/k8s/common/args/kube-apiserver
-sudo cat /var/snap/k8s/common/args/kube-apiserver | grep "EventRateLimit"
+sudo cat /var/snap/k8s/common/args/kube-apiserver | grep "enable-admission-plugins" | grep "EventRateLimit"
 -->
 
 Load the admission control config file.
@@ -261,7 +261,7 @@ Make sure the AlwaysPullImages admission plugin is loaded in the
 
 <!-- SPREAD SKIP -->
 
-```sh
+```
 --enable-admission-plugins=...,AlwaysPullImages,...
 ```
 
@@ -269,7 +269,7 @@ Make sure the AlwaysPullImages admission plugin is loaded in the
 
 <!-- SPREAD
 sudo sed -i 's/\(--enable-admission-plugins="[^"]*\)"/\1,AlwaysPullImages"/' /var/snap/k8s/common/args/kube-apiserver
-sudo cat /var/snap/k8s/common/args/kube-apiserver | grep "AlwaysPullImages"
+sudo cat /var/snap/k8s/common/args/kube-apiserver | grep "enable-admission-plugins"| grep "AlwaysPullImages"
 -->
 
 Restart the API server.

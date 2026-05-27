@@ -24,7 +24,7 @@ sudo k8s status
 ```
 
 <!-- SPREAD
-sudo k8s get load-balancer | grep "enabled: false"
+sudo k8s status | grep "load-balancer:            disabled"
 -->
 
 The load balancer is not enabled by default.
@@ -37,6 +37,14 @@ sudo k8s get load-balancer
 
 <!-- SPREAD
 sudo k8s get load-balancer | grep "enabled: false"
+sudo k8s get load-balancer | grep "cidrs"
+sudo k8s get load-balancer | grep "l2-mode"
+sudo k8s get load-balancer | grep "l2-interfaces"
+sudo k8s get load-balancer | grep "bgp-mode"
+sudo k8s get load-balancer | grep "bgp-local-asn"
+sudo k8s get load-balancer | grep "bgp-peer-address"
+sudo k8s get load-balancer | grep "bgp-peer-asn"
+sudo k8s get load-balancer | grep "bgp-peer-port"
 -->
 
 This should output a list of values like this:
