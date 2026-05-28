@@ -39,6 +39,11 @@ sudo k8s enable network
 
 <!-- SPREAD
 sudo k8s get network | grep "enabled: true"
+# Make sure cluster is fully up before continuing 
+sudo k8s kubectl rollout status daemonset/cilium -n kube-system --timeout=10m
+sudo k8s kubectl rollout status deployment/cilium-operator -n kube-system --timeout=10m
+sudo k8s kubectl rollout status deployment/coredns -n kube-system --timeout=10m
+sudo k8s kubectl wait --for=condition=Ready pods --all -n kube-system --timeout=10m
 -->
 
 For more information on the command, execute:
@@ -79,8 +84,6 @@ sudo k8s kubectl exec -it cilium-97vcw -n kube-system -c cilium-agent \
 <!-- SPREAD SKIP END -->
 
 <!-- SPREAD
-# Ensure all pods are up before query
-sudo k8s kubectl wait --namespace kube-system --for=condition=Ready pods --all --timeout=300s
 CILIUM_POD=$(sudo k8s kubectl get pod -n kube-system -l k8s-app=cilium -o jsonpath='{.items[0].metadata.name}')
 sudo k8s kubectl exec "$CILIUM_POD" -n kube-system -c cilium-agent -- cilium status
 -->

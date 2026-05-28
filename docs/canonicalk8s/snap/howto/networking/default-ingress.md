@@ -38,6 +38,10 @@ sudo k8s enable ingress
 
 <!-- SPREAD
 sudo k8s get ingress | grep "enabled: true"
+# Ensure all pods are up and ready before continuing
+sudo k8s kubectl rollout status daemonset/cilium -n kube-system --timeout=10m
+sudo k8s kubectl rollout status deployment/cilium-operator -n kube-system --timeout=10m
+sudo k8s kubectl wait --for=condition=Ready pods --all -n kube-system --timeout=10m
 --> 
 
 For more information on the command, execute:

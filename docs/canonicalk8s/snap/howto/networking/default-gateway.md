@@ -42,7 +42,10 @@ sudo k8s enable gateway
 <!-- SPREAD
 sudo k8s get gateway | grep "enabled: true"
 # Ensure all pods are up before continuing 
-sudo k8s kubectl wait --namespace kube-system --for=condition=Ready pods --all --timeout=300s
+sudo k8s kubectl rollout status daemonset/cilium -n kube-system --timeout=10m
+sudo k8s kubectl rollout status deployment/cilium-operator -n kube-system --timeout=10m
+sudo k8s kubectl wait --for=condition=Ready pods --all -n kube-system --timeout=10m
+sudo k8s kubectl wait --for=jsonpath='{.status.conditions[?(@.type=="Accepted")].status}'=True gatewayclass/ck-gateway --timeout=10m
 --> 
 
 ## Deploy sample workload

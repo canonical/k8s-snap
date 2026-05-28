@@ -60,7 +60,7 @@ backends:
           workers: 1
 
 suites:
-  tests/spread-generated/snap_clean/:
+  tests/spread_generated/snap_clean/:
     summary: docs tests that run from a clean VM and perform install/bootstrap in-task
     prepare-each: |
       # GitHub runners ship with containerd; stop it and remove the socket so
@@ -74,7 +74,7 @@ suites:
     systems:
       - ubuntu-24.04-64
 
-  tests/spread-generated/snap_bootstrapped/:
+  tests/spread_generated/snap_bootstrapped/:
     summary: docs tests that assume a bootstrapped snap cluster
     prepare-each: |
       sudo systemctl stop containerd || true
