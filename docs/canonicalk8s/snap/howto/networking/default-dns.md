@@ -75,9 +75,11 @@ You should see three options:
 Set a new DNS server IP for forwarding known entries:
 
 <!-- SPREAD SKIP -->
+
 ```
 sudo k8s set dns.upstream-nameservers=<new-ips>
 ```
+
 <!-- SPREAD SKIP END -->
 
 <!-- SPREAD 
@@ -88,9 +90,11 @@ sudo k8s get dns | grep "8.8.8.8"
 Change the cluster domain name:
 
 <!-- SPREAD SKIP -->
+
 ```
 sudo k8s set dns.cluster-domain=<new-domain-name>
 ```
+
 <!-- SPREAD SKIP END -->
 
 <!-- SPREAD 
@@ -106,6 +110,7 @@ do this):
 ```
 sudo k8s set dns.service-ip=<new-cluster-ip>
 ```
+
 <!-- SPREAD SKIP END -->
 
 <!-- SPREAD 

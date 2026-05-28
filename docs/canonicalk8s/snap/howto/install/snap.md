@@ -47,10 +47,12 @@ page] for an explanation of the different types of channel.
 The snap can be installed with the snap command:
 
 <!-- SPREAD SKIP -->
+
 ```{literalinclude} ../../../_parts/install.md
 :start-after: <!-- snap start -->
 :end-before: <!-- snap end -->
 ```
+
 <!-- SPREAD SKIP END -->
 
 <!-- SPREAD

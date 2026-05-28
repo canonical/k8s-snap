@@ -42,6 +42,7 @@ sudo /snap/k8s/current/bin/ctr --address /run/containerd/containerd.sock --names
 You should see:
 
 <!-- SPREAD SKIP -->
+
 ```
 ghcr.io/canonical/cilium-operator-generic:1.17.1-ck0
 ghcr.io/canonical/cilium-operator-generic@sha256:e02dcce1e175312bf4dc2da6a97df49456a8eef6b2a1a9f2d68d4342dc0d3664
@@ -76,9 +77,11 @@ sudo /snap/k8s/current/bin/ctr --address /run/containerd/containerd.sock --names
 You should see:
 
 <!-- SPREAD SKIP -->
+
 ```
 docker.io/library/hello-world:latest
 ```
+
 <!-- SPREAD SKIP END -->
 
 <!-- LINKS -->

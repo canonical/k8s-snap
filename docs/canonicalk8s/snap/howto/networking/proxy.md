@@ -29,6 +29,7 @@ We would add the configuration to the
 <!-- SPREAD
   sudo tee /etc/systemd/system/snap.k8s.containerd.service.d/http-proxy.conf <<'EOF'  
 -->
+
 ```
 [Service]
 Environment="HTTPS_PROXY=http://squid.internal:3128"
@@ -38,9 +39,11 @@ Environment="https_proxy=http://squid.internal:3128"
 Environment="http_proxy=http://squid.internal:3128"
 Environment="no_proxy=10.1.0.0/16,10.152.183.0/24,192.168.0.0/16,127.0.0.1,172.16.0.0/12"
 ```
+
 <!-- SPREAD
 EOF
 -->
+
 Note that you may need to restart for these settings to take effect.
 You can restart with the following commands:
 

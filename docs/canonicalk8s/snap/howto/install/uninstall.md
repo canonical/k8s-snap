@@ -34,6 +34,7 @@ sudo k8s kubectl get nodes
 Uninstall the `k8s` snap:
 
 <!-- SPREAD SKIP -->
+
 ```
 sudo snap remove k8s
 ```
@@ -53,6 +54,7 @@ To confirm the snap is successfully removed, check the list of installed
 snaps:
 
 <!-- SPREAD SKIP -->
+
 ```
 snap list k8s
 ```
@@ -62,6 +64,7 @@ This command should produce an output similar to:
 ```
 error: no matching snaps installed
 ```
+
 <!-- SPREAD SKIP END -->
 
 <!-- SPREAD 

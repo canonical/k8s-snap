@@ -68,6 +68,7 @@ space for operations like image layer unpacking. Insufficient space can cause:
 To check the available space on the tmpfs:
 
 <!-- SPREAD SKIP -->
+
 ```
 df -h /run
 ```
@@ -78,6 +79,7 @@ increase the size of the tmpfs mount to see if it resolves the problem:
 ```
 sudo mount -o remount,size=10G /run
 ```
+
 <!-- SPREAD SKIP END -->
 
 ```{note}

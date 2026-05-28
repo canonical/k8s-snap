@@ -68,6 +68,7 @@ After the Prometheus deployment has been customized with the
 `values.yaml` file, run the following command:
 
 <!-- SPREAD SKIP -->
+
 ```
 sudo helm install prometheus prometheus-community/kube-prometheus-stack \
   --create-namespace --namespace observability -f values.yaml
@@ -116,6 +117,7 @@ Kubernetes service is not exposed externally, you can instead create a
 temporary local port-forward to the Prometheus dashboard:
 
 <!-- SPREAD SKIP -->
+
 ```
 export POD_NAME=$(sudo k8s kubectl get pods --namespace observability -l "app.kubernetes.io/name=prometheus" -o jsonpath="{.items[0].metadata.name}")
 sudo k8s kubectl --namespace observability port-forward $POD_NAME 9090
@@ -126,6 +128,7 @@ You can check the metrics that have been scraped so far by running:
 ```
 curl -s http://${CLUSTER_IP}:${CLUSTER_IP_PORT}/metrics
 ```
+
 <!-- SPREAD SKIP END -->
 
 ## Accessing Grafana
@@ -160,10 +163,12 @@ service is not exposed externally, you can instead create a temporary local
 port-forward to the Grafana dashboard:
 
 <!-- SPREAD SKIP -->
+
 ```
 export POD_NAME=$(sudo k8s kubectl get pods --namespace observability -l "app.kubernetes.io/name=grafana" -o jsonpath="{.items[0].metadata.name}")
 sudo k8s kubectl --namespace observability port-forward $POD_NAME 3000
 ```
+
 <!-- SPREAD SKIP END -->
 
 The default username/password for Grafana are: `admin`/`prom-operator`

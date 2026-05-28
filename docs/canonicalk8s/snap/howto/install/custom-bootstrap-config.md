@@ -31,6 +31,7 @@ CIDR and the Service CIDR.
 To bootstrap interactively, run:
 
 <!-- SPREAD SKIP -->
+
 ```
 sudo k8s bootstrap --timeout 10m --interactive
 ```
@@ -50,6 +51,7 @@ Bootstrapping the cluster. This may take a few seconds, please wait.
 Bootstrapped a new Kubernetes cluster with node address "192.122.3.111:6400".
 The node will be 'Ready' to host workloads after the CNI is deployed successfully.
 ```
+
 <!-- SPREAD SKIP END -->
 
 ## Bootstrap configuration file
@@ -77,9 +79,11 @@ EOF
 Then, apply the bootstrap configuration file:
 
 <!-- SPREAD SKIP -->
+
 ```
 sudo k8s bootstrap --file /path/to/bootstrap.yaml
 ```
+
 <!-- SPREAD SKIP END -->
 
 <!-- SPREAD

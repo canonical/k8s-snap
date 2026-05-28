@@ -159,9 +159,11 @@ sudo ufw allow 2379/tcp
 Now enable UFW:
 
 <!-- SPREAD SKIP -->
+
 ```
 sudo ufw enable
 ```
+
 <!-- SPREAD SKIP END -->
 <!-- SPREAD
 echo "y" | sudo ufw enable
@@ -193,6 +195,7 @@ sudo ufw logging on
 Monitor the firewall logs with:
 
 <!-- SPREAD SKIP -->
+
 ```
 tail -f /var/log/ufw.log
 ```

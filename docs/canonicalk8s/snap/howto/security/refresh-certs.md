@@ -43,6 +43,7 @@ extra [Subject Alternative Name][] (SAN) to the certificate. Check the
 current SANs on your node by running the following command:
 
 <!-- SPREAD SKIP -->
+
 ```
 openssl x509 -in /etc/kubernetes/pki/apiserver.crt -noout -text | grep -A 1 "Subject Alternative Name"
 ```
@@ -73,12 +74,15 @@ node and restart the necessary services. The new expiration date will be
 displayed in the command output:
 
 <!-- SPREAD SKIP -->
+
 ```
 Certificates have been successfully refreshed, and will expire at 2025-08-27 21:00:00 +0000 UTC.
 ```
+
 <!-- SPREAD SKIP END -->
 
 <!-- SPREAD SKIP -->
+
 ## Refresh Worker node certificates
 
 1. To refresh the certificates on worker nodes, perform the following steps on
@@ -132,6 +136,7 @@ refresh its certificates and restart the necessary services:
 ```
 Certificates have been successfully refreshed, and will expire at 2034-08-27 21:00:00 +0000 UTC.
 ```
+
 <!-- SPREAD SKIP END -->
 
 <!-- Links -->

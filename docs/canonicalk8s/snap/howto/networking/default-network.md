@@ -77,10 +77,12 @@ Once you have the name of the pod, run the following command to see Cilium's
 status:
 
 <!-- SPREAD SKIP -->
+
 ```
 sudo k8s kubectl exec -it cilium-97vcw -n kube-system -c cilium-agent \
   -- cilium status
 ```
+
 <!-- SPREAD SKIP END -->
 
 <!-- SPREAD
@@ -112,6 +114,7 @@ sudo k8s disable gateway
 ```
 sudo k8s disable network
 ```
+
 <!-- SPREAD 
 sudo k8s get network | grep "enabled: false"
 -->
