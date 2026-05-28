@@ -67,6 +67,10 @@ suites:
       # the k8s snap can create /run/containerd without conflict.
       sudo systemctl stop containerd || true
       sudo systemctl disable containerd || true
+      # Clean up lingering mounts from previous aborted tests
+      if mount | grep -q "/run/containerd"; then
+        grep /run/containerd /proc/mounts | awk '{print $2}' | xargs -r sudo umount -l || true
+      fi
       sudo rm -rf /run/containerd || true
     restore-each: |
       sudo snap remove k8s --purge || true
@@ -79,10 +83,17 @@ suites:
     prepare-each: |
       sudo systemctl stop containerd || true
       sudo systemctl disable containerd || true
+      # Clean up lingering mounts from previous aborted tests
+      if mount | grep -q "/run/containerd"; then
+        grep /run/containerd /proc/mounts | awk '{print $2}' | xargs -r sudo umount -l || true
+      fi
       sudo rm -rf /run/containerd || true
+      
       sudo snap install k8s --classic --channel=1.35-classic/stable
       sudo k8s bootstrap --timeout 10m
+      
       sudo k8s status --wait-ready --timeout 3m
+      sudo k8s kubectl wait --for=condition=Ready node --all --timeout=5m
     restore-each: |
       sudo snap remove k8s --purge || true
       sudo rm -rf /var/snap/k8s || true
