@@ -165,6 +165,8 @@ curl 10.0.1.0:80
 The output should display a welcome to Nginx message.
 
 <!-- SPREAD
+# Ensure my-gateway is ready
+sudo k8s kubectl wait --for=condition=Programmed gateway/my-gateway --timeout=5m
 repeat_checks "sudo k8s kubectl get service cilium-gateway-my-gateway" "10.0.1." 30
 LOADBALANCER_IP=$(sudo k8s kubectl get service cilium-gateway-my-gateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 repeat_checks "curl --connect-timeout 2 --max-time 4 $LOADBALANCER_IP:80" "Welcome to nginx"

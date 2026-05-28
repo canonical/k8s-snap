@@ -56,7 +56,9 @@ sha256:873ed75102791e5b0b8a7fcd41606c92fcec98d56d05ead4ac5131650004c136
 
 <!-- SPREAD 
 # Ensure all pods are up and images pulled before query
-sudo k8s kubectl wait --namespace kube-system --for=condition=Ready pods --all --timeout=300s
+sudo k8s kubectl rollout status daemonset/cilium -n kube-system --timeout=10m
+sudo k8s kubectl rollout status deployment/cilium-operator -n kube-system --timeout=10m
+sudo k8s kubectl wait --for=condition=Ready pods --all -n kube-system --timeout=10m
 sudo /snap/k8s/current/bin/ctr --address /run/containerd/containerd.sock --namespace k8s.io images list -q | grep "ghcr.io"
 -->
 

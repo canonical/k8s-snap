@@ -2,6 +2,12 @@
 
 <!-- SPREAD SUITE: snap_bootstrapped -->
 
+<!-- SPREAD 
+# Tear down kube bench settings on exit
+trap 'sudo rm -f /usr/local/bin/kube-bench; sudo snap remove kubectl --purge; rm -f ~/.kube/config; rm -rf ~/kube-bench ~/kube-bench-ck8s-cfg' EXIT
+# Start doc test
+-->
+
 CIS Hardening refers to the process of implementing security configurations that
 align with the benchmarks set by the [Center for Internet Security (CIS)].
 Out of the box {{product}} complies with the majority of the recommended

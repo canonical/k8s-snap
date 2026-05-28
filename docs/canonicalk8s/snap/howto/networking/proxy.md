@@ -2,6 +2,12 @@
 
 <!-- SPREAD SUITE: snap_bootstrapped -->
 
+<!-- SPREAD 
+# Tear down proxy settings on exit
+trap 'sudo rm -rf /etc/systemd/system/snap.k8s.containerd.service.d; sudo systemctl daemon-reload' EXIT
+# Start doc test
+-->
+
 {{product}} packages a number of utilities (for example curl, Helm) which need
 to fetch resources they expect to find on the internet. In a restricted
 network environment, such access is usually controlled through proxies.

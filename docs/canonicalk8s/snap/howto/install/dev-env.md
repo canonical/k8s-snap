@@ -5,6 +5,9 @@
 <!-- SPREAD
 sudo snap install docker
 sudo snap install k8s --classic --channel=1.35-classic/stable
+# Tear down docker on exit
+trap 'sudo snap remove docker --purge' EXIT
+# Start doc test
 -->
 
 We recommend testing {{product}} in an isolated environment such as a clean

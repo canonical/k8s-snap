@@ -88,7 +88,7 @@ jobs:
 
             rel="${file#docs/canonicalk8s/}"
             rel="${rel%.*}"
-            task_name="$(echo "$rel" | sed 's|/|-|g')"
+            task_name="$(echo "$rel" | sed 's|/|_|g')"
             out_dir="tests/spread_generated/${suite_marker}/${task_name}"
 
             # Generate the task.yaml for this file using the upstream script

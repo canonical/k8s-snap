@@ -2,6 +2,12 @@
 
 <!-- SPREAD SUITE: snap_clean -->
 
+<!-- SPREAD 
+# Tear down UFW settings on exit
+trap 'sudo ufw reset; sudo ufw disable; sudo sed -i '/net.ipv4.ip_forward/d' /etc/sysctl.conf; sudo sed -i 's/DEFAULT_FORWARD_POLICY="ACCEPT"/DEFAULT_FORWARD_POLICY="DROP"/' /etc/default/ufw; sudo sysctl -p' EXIT
+# Start doc test
+-->
+
 This how-to presents a set of firewall rules/guidelines that should be
 considered when setting up {{product}}. These rules may be incompatible
 with some network setups, so we recommend you review and tune them to
