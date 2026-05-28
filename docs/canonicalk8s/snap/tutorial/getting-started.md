@@ -34,10 +34,12 @@ an isolated working environment.
 Install the {{product}} `k8s` snap with:
 
 <!-- SPREAD SKIP -->
+
 ```{literalinclude} ../../_parts/install.md
 :start-after: <!-- snap start -->
 :end-before: <!-- snap end -->
 ```
+
 <!-- SPREAD SKIP END -->
 
 <!-- SPREAD
@@ -68,12 +70,12 @@ It may take a few minutes for the cluster to be ready. To confirm the
 installation was successful, use `k8s status` with the `wait-ready` flag
 to wait for {{product}} to bring up the cluster:
 
-
 ```
 sudo k8s status --wait-ready
 ```
 
 <!-- SPREAD SKIP -->
+
 ```{important}
 This command waits a few minutes before timing out.
 On a very slow network connection, or a system with very limited resources,
@@ -81,6 +83,7 @@ this default timeout might be insufficient resulting in a "Context canceled"
 error. Please first ensure that your machine meets the system requirements to run a Kubernetes cluster. Then, you can either increase the timeout using the  `--timeout`
 flag or re-run the command to continue waiting until the cluster is ready.
 ```
+
 <!-- SPREAD SKIP END -->
 
 Congratulations, you have just deployed a single node cluster with {{product}}! 
@@ -166,6 +169,7 @@ address of the pod by running the same command again but this time we will add
 the `-owide` argument so we get more information about the pod: 
 
 <!-- SPREAD SKIP -->
+
 ```
 sudo k8s kubectl get pods -owide
 ```
@@ -175,6 +179,7 @@ Then query the NGINX IP address using `curl`:
 ```
 curl <POD_IP>
 ```
+
 <!-- SPREAD SKIP END -->
 
 The output should confirm NGINX was successfully installed and working.
@@ -259,6 +264,7 @@ should see `myclaim` listed under Volumes showing that it has been assigned
 correctly.
 
 <!-- SPREAD SKIP -->
+
 ```
 Volumes:
   storage-volume:
@@ -299,9 +305,11 @@ If you would like to maintain a snapshot of the `k8s` snap for future
 restoration, simply run :
 
 <!-- SPREAD SKIP -->
+
 ```
 sudo snap remove k8s
 ```
+
 <!-- SPREAD SKIP END -->
 
 The snapshot is a copy of the user, system and configuration data stored by
