@@ -21,6 +21,8 @@ jobs:
         steps:
             - name: Check out code
               uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+              with:
+                  persist-credentials: false
 
             - name: Setup Python
               uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
@@ -28,10 +30,11 @@ jobs:
                   python-version: "3.12"
 
             - name: Restore triage state
-              uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
+              uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
               with:
                   path: /tmp/security-triage-state.json
-                  key: security-triage-state
+                  key: security-triage-state-${{ github.run_id }}-${{ github.run_attempt }}
+                  restore-keys: security-triage-state-
 
             - name: Run security triage
               env:

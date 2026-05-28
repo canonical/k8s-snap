@@ -42,15 +42,18 @@ STATE_FILE = Path(os.environ.get("STATE_FILE", "/tmp/security-triage-state.json"
 
 
 def gh_api(endpoint: str) -> list[dict[str, Any]]:
-    """Call gh api and return parsed JSON. Returns empty list on error."""
-    cmd = ["gh", "api", endpoint, "--paginate"]
+    """Call gh api and return parsed JSON. Exits on error."""
+    cmd = ["gh", "api", endpoint, "--paginate", "--slurp"]
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        data = json.loads(result.stdout)
-        return data if isinstance(data, list) else []
-    except (subprocess.CalledProcessError, json.JSONDecodeError) as e:
-        print(f"Warning: failed to fetch {endpoint}: {e}", file=sys.stderr)
-        return []
+        pages = json.loads(result.stdout)
+        return [item for page in pages for item in (page if isinstance(page, list) else [page])]
+    except subprocess.CalledProcessError as e:
+        print(f"Error: failed to fetch {endpoint}: {e.stderr}", file=sys.stderr)
+        raise SystemExit(1)
+    except json.JSONDecodeError as e:
+        print(f"Error: failed to parse response from {endpoint}: {e}", file=sys.stderr)
+        raise SystemExit(1)
 
 
 def days_ago(iso_date: str) -> int:
@@ -316,9 +319,6 @@ def main() -> int:
     new_ids = current_ids - previous_ids
     resolved_ids = previous_ids - current_ids
 
-    # Save state for next run
-    save_state(current_ids)
-
     has_delta = bool(new_ids or resolved_ids)
     if not has_delta and not args.full and not is_first_run:
         print("No changes since last run — skipping post.", file=sys.stderr)
@@ -337,6 +337,9 @@ def main() -> int:
         return 0
 
     post_webhook(webhook, payload)
+    # Save state only after a successful post so a delivery failure does not
+    # suppress the delta notification on the next run.
+    save_state(current_ids)
     return 0
 
 
