@@ -8,8 +8,9 @@ the [Terraform Juju Provider][juju-provider-tf].
 This guide requires the following:
 
 - A Juju controller
-<!-- TODO remove Juju prerequisites once ground up module is available -->
 - The Terraform CLI, which can be installed via the [snap store][Terraform]
+
+<!-- TODO remove Juju prerequisites once ground up module is available -->
 
 ## Authentication
 
@@ -24,6 +25,7 @@ Juju model to deploy the submodules to. The root module also references
 the k8s-bundle module which helps to build the Juju model.
 
 ### Root module
+
 <!-- TODO replace this section once we have a Juju ground up module -->
 
 The root module ensures that Terraform is aware of the `juju_model`

@@ -67,7 +67,6 @@ URL. Using the `run` option means that the docs will automatically be
 regenerated when you change any of the source files too (though remember to
 press `F5` in your browser to reload the page without caching)!
 
-
 ## Report an issue 
 
 If you would rather not work on the docs yourself or simply want to suggest 

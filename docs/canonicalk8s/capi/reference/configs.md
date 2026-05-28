@@ -245,7 +245,6 @@ spec:
     enableDefaultNetwork: true
 ```
 
-
 ### `snapstoreProxyScheme`
 
 **Type:** `string`

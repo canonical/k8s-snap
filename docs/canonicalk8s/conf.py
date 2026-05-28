@@ -134,7 +134,7 @@ html_context = {
     # TODO: To enable listing contributors on individual pages, set to True
     "display_contributors": False,
 
-    # Required for feedback button    
+    # Required for feedback button
     'github_issues': 'enabled',
 
     # Inherit the author value

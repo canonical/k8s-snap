@@ -12,7 +12,6 @@ This guide is for AWS and assumes the following:
 - You have root or sudo access to an Amazon EC2 instance
 - You can create roles and policies in AWS
 
-
 ## Set IAM policies
 
 Your instance will need a few IAM policies to be able to communicate with the
@@ -162,7 +161,6 @@ ip-172-31-11-86.us-east-2.compute.internal
 ```
 
 This host name format is called IP-based naming and is specific to AWS.
-
 
 ## Bootstrap {{product}}
 

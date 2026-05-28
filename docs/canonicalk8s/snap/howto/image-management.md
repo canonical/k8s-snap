@@ -48,7 +48,6 @@ sha256:27e1954b8e6cbf80ddccbb54f1b0cb78111c3cafe28d742044ecb6cbb22f9d1c
 sha256:873ed75102791e5b0b8a7fcd41606c92fcec98d56d05ead4ac5131650004c136
 ```
 
-
 ## Pulling images
 
 You can import images manually using the following command:

@@ -15,9 +15,7 @@ SR-IOV/DPDK.
 - An Ubuntu Pro subscription (required for real-time kernel)
 - Ubuntu instances **or** a MAAS environment to run {{product}} on
 
-
 ## Prepare the environment
-
 
 `````{tab-set}
 ````{tab-item} Ubuntu
@@ -368,7 +366,6 @@ sudo k8s kubectl get all -A
    ```
    sudo k8s join-cluster --file configuration.yaml <token-generated-on-the-control-plane-node>
    ```
-
 
 #### Verify the two node cluster is ready
 

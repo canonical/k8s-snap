@@ -209,7 +209,6 @@ If you find any issue while working with {{product}} it is highly likely that
 someone from the community has already faced the same problem. We have 
 documented some common issues users face and their workarounds.
 
-
 ### Adjust Kubernetes node labels
 
 Control-Plane or Worker nodes are automatically marked with a label that is
@@ -286,7 +285,9 @@ juju config k8s node-labels="node-role.kubernetes.io/worker=-"
 ````
 
 <!-- markdownlint-disable -->
+
 ### Cilium pod `fails to detect devices: unable to determine direct routing devices`
+
 <!-- markdownlint-restore -->
 
 When deploying {{product}} on MAAS, the Cilium pods fail to start and reports
@@ -431,7 +432,6 @@ sudo k8s kubectl get pods -n kube-system
 ````
 
 ### Bootstrap config change prevention
-
 
 When upgrading {{product}} or changing `bootstrap-*` configuration options,
 the charm could block and produce a message on each unit:

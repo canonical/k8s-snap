@@ -85,7 +85,6 @@ For {{product}}, it is also necessary to fetch the images used
 by its features (network, DNS, etc.) as well as any images that are
 needed to run specific workloads.
 
-
 #### List images
 
 If the `k8s` snap is already installed,

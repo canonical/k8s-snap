@@ -21,7 +21,6 @@ have security implications on {{product}}.
 - [How to use intermediate CAs with Vault]
 - [Cluster certificates and configuration reference]
 
-
 ## Compliance
 
 - [Assess for CIS compliance]
