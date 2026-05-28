@@ -47,11 +47,11 @@ jobs:
         run: |
           set -euo pipefail
 
-          rm -rf tests/spread-generated
-          mkdir -p tests/spread-generated
+          rm -rf tests/spread_generated
+          mkdir -p tests/spread_generated
           
           # Create all suite directories so spread doesn't fail reading spread.yaml
-          mkdir -p tests/spread-generated/{snap_clean,snap_bootstrapped}
+          mkdir -p tests/spread_generated/{snap_clean,snap_bootstrapped}
 
           changed_files_input="${CHANGED_FILES_INPUT:-}"
 
@@ -89,7 +89,7 @@ jobs:
             rel="${file#docs/canonicalk8s/}"
             rel="${rel%.*}"
             task_name="$(echo "$rel" | sed 's|/|-|g')"
-            out_dir="tests/spread-generated/${suite_marker}/${task_name}"
+            out_dir="tests/spread_generated/${suite_marker}/${task_name}"
 
             # Generate the task.yaml for this file using the upstream script
             mkdir -p "$out_dir"
@@ -109,10 +109,10 @@ jobs:
 
       - name: Upload generated spread tasks
         if: steps.generate.outputs.no_suites != 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: spread-generated
-          path: tests/spread-generated
+          name: spread_generated
+          path: tests/spread_generated
 
   docs-spread-tests:
     needs: prepare-docs-spread
@@ -135,8 +135,8 @@ jobs:
       - name: Download generated spread tasks
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: spread-generated
-          path: tests/spread-generated
+          name: spread_generated
+          path: tests/spread_generated
 
       - name: Set up Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
@@ -155,7 +155,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          suite_dir="tests/spread-generated/${{ matrix.suite }}"
+          suite_dir="tests/spread_generated/${{ matrix.suite }}"
           if [[ ! -d "$suite_dir" ]] || [[ -z "$(find "$suite_dir" -name task.yaml -print -quit)" ]]; then
             echo "Suite ${{ matrix.suite }} has no generated tasks; skipping."
             echo "skip=true" >> "$GITHUB_OUTPUT"
@@ -171,4 +171,4 @@ jobs:
           sudo adduser --gecos "" --disabled-password ubuntu || true
           echo "ubuntu:ubuntu" | sudo chpasswd || true
           cd docs
-          spread -vv "github-ci:ubuntu-24.04-64:tests/spread-generated/${{ matrix.suite }}/"
+          spread -vv "github-ci:ubuntu-24.04-64:tests/spread_generated/${{ matrix.suite }}/"
