@@ -57,9 +57,11 @@ jobs:
           # Persist downloaded artifacts
           clean: 'false'
       - name: Run Trivy vulnerability scanner
+        env:
+          SNAP_PATH: ${{ steps.download-snap.outputs.snap-path }}
         run: |
           cp $GITHUB_WORKSPACE/trivy-scan.sh ./tests/trivy-scan.sh
-          ./tests/trivy-scan.sh ${{ steps.download-snap.outputs.snap-path }}
+          ./tests/trivy-scan.sh "$SNAP_PATH"
       - name: Get checked out commit SHA
         id: scan-ref
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"

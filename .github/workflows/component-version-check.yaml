@@ -46,9 +46,11 @@ jobs:
 
       # Get the diff for this PR
       - name: Get PR diff
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
         run: |
-          git fetch origin ${{ github.event.pull_request.base.ref }}
-          git diff origin/${{ github.event.pull_request.base.ref }}...HEAD > pr.diff
+          git fetch origin "$BASE_REF"
+          git diff "origin/$BASE_REF"...HEAD > pr.diff
 
       - name: Setup Python
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
@@ -75,8 +77,11 @@ jobs:
       - name: Comment on PR if invalid
         if: steps.validate.outputs.invalid == 'true'
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          VALIDATION_STDERR: ${{ steps.validate.outputs.stderr }}
         with:
           script: |
+            const stderr = process.env.VALIDATION_STDERR || '';
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -84,7 +89,7 @@ jobs:
               body: (
                 "❌ Invalid change detected in PR diff. Please remove it.\n" +
                 "Label this PR with 'skip-component-version-check' to ignore\n\n" +
-                "${{ steps.validate.outputs.stderr }}\n\n" +
+                stderr + "\n\n"
               )
             })
 
