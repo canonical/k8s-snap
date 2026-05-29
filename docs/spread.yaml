@@ -94,6 +94,16 @@ suites:
       
       sudo k8s status --wait-ready --timeout 3m
       sudo k8s kubectl wait --for=condition=Ready node --all --timeout=5m
+
+      # Ensure Cilium exists
+      bash "$SPREAD_PATH/docs/tools/repeat_checks.sh" "sudo k8s kubectl get daemonset/cilium -n kube-system"
+      bash "$SPREAD_PATH/docs/tools/repeat_checks.sh" "sudo k8s kubectl get deployment/cilium-operator -n kube-system"
+
+      # Ensure Cilium and all pods in kube-system are ready 
+      sudo k8s kubectl rollout status daemonset/cilium -n kube-system --timeout=10m
+      sudo k8s kubectl rollout status deployment/cilium-operator -n kube-system --timeout=10m
+      sudo k8s kubectl wait --for=condition=Ready pods --all -n kube-system --timeout=10m
+
     restore-each: |
       sudo snap remove k8s --purge || true
       sudo rm -rf /var/snap/k8s || true

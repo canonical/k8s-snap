@@ -92,6 +92,12 @@ each worker node in your cluster:
 sudo k8s refresh-certs --expires-in 10y --timeout 10m
 ```
 
+<!-- SPREAD 
+# Ensure cluster comes back healthy
+sudo k8s status --wait-ready --timeout 3m
+sudo k8s kubectl wait --for=condition=Ready node --all --timeout=2m
+-->
+
 **`--expires-in`**
 
 This command refreshes the certificates for the worker node. The `--expires-in`
