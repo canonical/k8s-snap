@@ -101,8 +101,8 @@ suites:
 
       # Ensure Cilium exists
       source ${SPREAD_PATH}/docs/tools/repeat_checks.sh
-      repeat_checks "sudo k8s kubectl get daemonset/cilium -n kube-system" "cilium"
-      repeat_checks "sudo k8s kubectl get deployment/cilium-operator -n kube-system" "cilium-operator"
+      repeat_checks "sudo k8s kubectl get daemonset -n kube-system" "cilium"
+      repeat_checks "sudo k8s kubectl get deployment -n kube-system" "cilium-operator"
 
       # Ensure Cilium and all pods in kube-system are ready 
       sudo k8s kubectl rollout status daemonset/cilium -n kube-system --timeout=10m

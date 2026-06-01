@@ -171,4 +171,4 @@ jobs:
           sudo adduser --gecos "" --disabled-password ubuntu || true
           echo "ubuntu:ubuntu" | sudo chpasswd || true
           cd docs
-          spread -vv "github-ci:ubuntu-24.04-64:tests/spread_generated/${{ matrix.suite }}/"
+          spread -vv -repeat 0 "github-ci:ubuntu-24.04-64:tests/spread_generated/${{ matrix.suite }}/"
