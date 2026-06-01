@@ -36,7 +36,7 @@ Patch upgrades can also be triggered manually by following the steps below.
 <!-- SPREAD 
 sudo snap install k8s --classic --channel=1.34-classic/stable
 sudo k8s bootstrap
-sudo k8s status --wait-ready
+sudo k8s status --wait-ready --timeout 3m
 -->
 
 1. **List available revisions:**
@@ -63,7 +63,7 @@ confirming that the cluster is ready:
 
 ```
 snap info k8s
-sudo k8s status --wait-ready
+sudo k8s status --wait-ready --timeout 3m
 ```
 
 ## Minor version upgrade
@@ -102,7 +102,7 @@ and confirming that the cluster is ready:
 
 ```
 snap info k8s
-sudo k8s status --wait-ready
+sudo k8s status --wait-ready --timeout 3m
 ```
 
 <!-- SPREAD 
@@ -137,7 +137,7 @@ confirming that the cluster is ready:
 
 ```
 snap info k8s
-sudo k8s status --wait-ready
+sudo k8s status --wait-ready --timeout 3m
 ```
 
 <!-- SPREAD 

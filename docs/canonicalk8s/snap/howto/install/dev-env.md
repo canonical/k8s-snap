@@ -55,7 +55,7 @@ containerd-related files (e.g.: `/ck8s/etc/containerd`,
 `/ck8s/var/run/containerd/containerd.sock`, etc.).
 
 <!-- SPREAD
-sudo k8s status --wait-ready
+sudo k8s status --wait-ready --timeout 3m
 ps -ef | grep kubelet | grep container-runtime-endpoint=/ck8s/etc/containerd/k8s-containerd
 -->
 

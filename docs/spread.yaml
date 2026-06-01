@@ -73,7 +73,11 @@ suites:
       fi
       sudo rm -rf /run/containerd || true
     restore-each: |
-      sudo snap remove k8s --purge || true
+      if snap list k8s &>/dev/null; then
+        sudo pkill -9 -f snap.k8s || true
+        sudo snap remove k8s --purge
+      fi
+      
       sudo rm -rf /var/snap/k8s || true
     systems:
       - ubuntu-24.04-64
@@ -96,8 +100,9 @@ suites:
       sudo k8s kubectl wait --for=condition=Ready node --all --timeout=5m
 
       # Ensure Cilium exists
-      bash "$SPREAD_PATH/docs/tools/repeat_checks.sh" "sudo k8s kubectl get daemonset/cilium -n kube-system"
-      bash "$SPREAD_PATH/docs/tools/repeat_checks.sh" "sudo k8s kubectl get deployment/cilium-operator -n kube-system"
+      source ${SPREAD_PATH}/docs/tools/repeat_checks.sh
+      repeat_checks "sudo k8s kubectl get daemonset/cilium -n kube-system" "cilium"
+      repeat_checks "sudo k8s kubectl get deployment/cilium-operator -n kube-system" "cilium-operator"
 
       # Ensure Cilium and all pods in kube-system are ready 
       sudo k8s kubectl rollout status daemonset/cilium -n kube-system --timeout=10m
@@ -105,7 +110,11 @@ suites:
       sudo k8s kubectl wait --for=condition=Ready pods --all -n kube-system --timeout=10m
 
     restore-each: |
-      sudo snap remove k8s --purge || true
+      if snap list k8s &>/dev/null; then
+        sudo pkill -9 -f snap.k8s || true
+        sudo snap remove k8s --purge
+      fi
+      
       sudo rm -rf /var/snap/k8s || true
     systems:
       - ubuntu-24.04-64

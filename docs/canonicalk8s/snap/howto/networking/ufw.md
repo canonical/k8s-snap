@@ -1,10 +1,10 @@
 # How to configure Uncomplicated Firewall (UFW)
 
-<!-- SPREAD SUITE: snap_clean -->
+<!-- SPREAD SUITE: snap_bootstrapped -->
 
 <!-- SPREAD 
 # Tear down UFW settings on exit
-trap 'sudo ufw reset; sudo ufw disable; sudo sed -i '/net.ipv4.ip_forward/d' /etc/sysctl.conf; sudo sed -i 's/DEFAULT_FORWARD_POLICY="ACCEPT"/DEFAULT_FORWARD_POLICY="DROP"/' /etc/default/ufw; sudo sysctl -p' EXIT
+trap 'echo "y" | sudo ufw reset; sudo ufw disable; sudo sed -i '/net.ipv4.ip_forward/d' /etc/sysctl.conf; sudo sed -i 's/DEFAULT_FORWARD_POLICY="ACCEPT"/DEFAULT_FORWARD_POLICY="DROP"/' /etc/default/ufw; sudo sysctl -p' EXIT
 # Start doc test
 -->
 

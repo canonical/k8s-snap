@@ -82,7 +82,7 @@ It is recommended to ensure that the cluster initializes properly and is
 running with no issues. Run the command:
 
 ```
-sudo k8s status --wait-ready
+sudo k8s status --wait-ready --timeout 3m
 ```
 
 This command will wait until the cluster indicates it is ready and then display

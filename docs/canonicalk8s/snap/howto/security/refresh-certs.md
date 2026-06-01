@@ -1,7 +1,5 @@
 # How to refresh Kubernetes certificates
 
-<!-- SPREAD SUITE: snap_bootstrapped -->
-
 To keep your {{product}} cluster secure and functional, it is essential
 to regularly refresh its certificates. Certificates in Kubernetes ensure
 secure communication between the various components of the cluster. Expired
@@ -12,10 +10,10 @@ nodes in your {{product}} cluster.
 
 ```{warning}
 Only Kubernetes component certificates refreshes are supported with the
- `k8s refresh-certs` command. Microcluster and etcd certificates are set to
- expire after 20 years. They are not automatically renewed by this command and
- cannot currently be refreshed manually. CA rotation is not currently supported
- in Canonical Kubernetes.
+ `k8s refresh-certs` command. Microcluster and etcd certificates' expiration
+ is set to 20 years, so renewal is not typically necessary. They are not automatically
+ renewed by the command and currently cannot be refreshed manually.
+ Additionally, like upstream Kubernetes, rotating the Certificate Authority (CA) is not supported.
 ```
 
 ## Prerequisites
@@ -42,13 +40,9 @@ This command refreshes the certificates for the control plane node, adding an
 extra [Subject Alternative Name][] (SAN) to the certificate. Check the
 current SANs on your node by running the following command:
 
-<!-- SPREAD SKIP -->
-
 ```
 openssl x509 -in /etc/kubernetes/pki/apiserver.crt -noout -text | grep -A 1 "Subject Alternative Name"
 ```
-
-<!-- SPREAD SKIP END -->
 
 If your node setup includes additional SANs, be sure to provide the
 specific SANs for each node as needed using the `--extra-sans` flag. While this
@@ -73,15 +67,9 @@ see available options.
 node and restart the necessary services. The new expiration date will be
 displayed in the command output:
 
-<!-- SPREAD SKIP -->
-
 ```
 Certificates have been successfully refreshed, and will expire at 2025-08-27 21:00:00 +0000 UTC.
 ```
-
-<!-- SPREAD SKIP END -->
-
-<!-- SPREAD SKIP -->
 
 ## Refresh Worker node certificates
 
@@ -91,12 +79,6 @@ each worker node in your cluster:
 ```
 sudo k8s refresh-certs --expires-in 10y --timeout 10m
 ```
-
-<!-- SPREAD 
-# Ensure cluster comes back healthy
-sudo k8s status --wait-ready --timeout 3m
-sudo k8s kubectl wait --for=condition=Ready node --all --timeout=2m
--->
 
 **`--expires-in`**
 
@@ -142,8 +124,6 @@ refresh its certificates and restart the necessary services:
 ```
 Certificates have been successfully refreshed, and will expire at 2034-08-27 21:00:00 +0000 UTC.
 ```
-
-<!-- SPREAD SKIP END -->
 
 <!-- Links -->
 

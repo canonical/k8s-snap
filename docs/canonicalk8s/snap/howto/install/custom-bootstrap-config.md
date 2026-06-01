@@ -88,7 +88,7 @@ sudo k8s bootstrap --file /path/to/bootstrap.yaml
 
 <!-- SPREAD
 sudo k8s bootstrap --file bootstrap.yaml
-sudo k8s status --wait-ready
+sudo k8s status --wait-ready --timeout 3m
 sudo k8s get network | grep "enabled: true"
 -->
 
