@@ -1296,6 +1296,10 @@ def check_snap_services_ready(
         "kube-scheduler",
     }
 
+    if _is_kube_proxy_enabled(instance):
+        expected_worker_services.add("kube-proxy")
+        expected_control_plane_services.add("kube-proxy")
+
     if node_type:
         assert node_type in ("control-plane", "worker"), "Invalid node type provided"
         expected_active_services = (
