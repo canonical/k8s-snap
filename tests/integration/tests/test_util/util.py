@@ -1515,6 +1515,7 @@ def set_node_labels(
         check=True,
     )
 
+
 def _is_kube_proxy_enabled(
     instance: harness.Instance,
 ) -> bool:
