@@ -1289,6 +1289,11 @@ def check_snap_services_ready(
         "kube-controller-manager",
         "kube-scheduler",
     }
+
+    if _is_kube_proxy_enabled(instance):
+        expected_worker_services.add("kube-proxy")
+        expected_control_plane_services.add("kube-proxy")
+
     if node_type:
         assert node_type in ("control-plane", "worker"), "Invalid node type provided"
         expected_active_services = (
@@ -1509,6 +1514,38 @@ def set_node_labels(
         ],
         check=True,
     )
+
+def _is_kube_proxy_enabled(
+    instance: harness.Instance,
+) -> bool:
+    """Return True if kube-proxy is enabled, False otherwise.
+
+    Checks the k8sd-config ConfigMap in kube-system namespace.
+    If the kube-proxy-enabled field does not exist, returns True by default.
+
+    Args:
+        instance: instance on which to execute the command
+    """
+    result = instance.exec(
+        [
+            "k8s",
+            "kubectl",
+            "get",
+            "cm",
+            "k8sd-config",
+            "-n",
+            "kube-system",
+            "-o",
+            "jsonpath={.data.kube-proxy-enabled}",
+        ],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    value = result.stdout.strip()
+    if not value:
+        return True
+    return value.lower() == "true"
 
 
 def diverged_cluster_memberships(
