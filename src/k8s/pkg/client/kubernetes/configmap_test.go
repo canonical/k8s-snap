@@ -153,6 +153,83 @@ func TestWatchConfigMap_SeedErrorPropagates(t *testing.T) {
 	}
 }
 
+func TestWatchConfigMap_ResourceExpiredRestartsWatch(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	g := NewWithT(t)
+
+	existing := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{Name: "k8sd-config", Namespace: "kube-system", ResourceVersion: "1899"},
+		Data:       map[string]string{"cluster-dns": "10.152.183.10"},
+	}
+
+	clientset := fake.NewSimpleClientset(existing)
+
+	// Create a fake watcher that will first send a 410 Gone error, then be replaced
+	// by a second watcher that delivers a normal event.
+	firstWatcher := watch.NewFake()
+	secondWatcher := watch.NewFake()
+	// watchRestarted is signaled when the watch is re-established, letting the test
+	// wait deterministically for the restart instead of sleeping.
+	watchRestarted := make(chan struct{}, 1)
+	watchCount := 0
+	clientset.PrependWatchReactor("configmaps", func(action k8stesting.Action) (bool, watch.Interface, error) {
+		watchCount++
+		if watchCount == 1 {
+			return true, firstWatcher, nil
+		}
+		watchRestarted <- struct{}{}
+		return true, secondWatcher, nil
+	})
+
+	client := &Client{Interface: clientset}
+
+	reconcileCh := make(chan *corev1.ConfigMap, 5)
+	go func() {
+		_ = client.WatchConfigMap(ctx, "kube-system", "k8sd-config", func(cm *corev1.ConfigMap) error {
+			reconcileCh <- cm
+			return nil
+		})
+	}()
+
+	// Drain the seed reconcile from the initial Get.
+	select {
+	case <-reconcileCh:
+	case <-time.After(2 * time.Second):
+		t.Fatal("Timed out waiting for seed reconcile")
+	}
+
+	// Send a 410 Gone error event on the first watcher.
+	firstWatcher.Error(&metav1.Status{
+		Status:  metav1.StatusFailure,
+		Code:    410,
+		Reason:  metav1.StatusReasonExpired,
+		Message: "too old resource version: 1899 (6587)",
+	})
+
+	// Wait for the watch to be restarted before sending events on secondWatcher.
+	select {
+	case <-watchRestarted:
+	case <-time.After(2 * time.Second):
+		t.Fatal("Timed out waiting for watch restart")
+	}
+
+	// The second watcher should now be active. Send a normal event.
+	updated := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{Name: "k8sd-config", Namespace: "kube-system", ResourceVersion: "7000"},
+		Data:       map[string]string{"cluster-dns": "10.152.183.20"},
+	}
+	secondWatcher.Modify(updated)
+
+	select {
+	case recv := <-reconcileCh:
+		g.Expect(recv.Data).To(Equal(updated.Data))
+	case <-time.After(2 * time.Second):
+		t.Fatal("Timed out waiting for reconcile after watch restart")
+	}
+}
+
 func TestUpdateConfigMap(t *testing.T) {
 	ctx := context.Background()
 
