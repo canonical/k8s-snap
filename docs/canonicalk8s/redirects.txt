@@ -80,3 +80,7 @@
 # Combined charm upgrade pages in 1.36
 "charm/howto/upgrade-minor" "charm/howto/upgrade"
 "charm/howto/upgrade-patch" "charm/howto/upgrade"
+
+# Old files 
+"charm/howto/install-lxd" "charm/howto/install/install-lxd"
+"charm/howto/charm" "charm/howto/install/charm"
