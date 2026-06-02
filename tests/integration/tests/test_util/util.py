@@ -1259,6 +1259,8 @@ def check_snap_services_ready(
     node_type: Optional[str] = None,
     skip_services: Optional[List[str]] = None,
     datastore_type: Optional[str] = None,
+    retries: int = 1,
+    delay_s: int = 5,
 ):
     """Check that the snap services are active on the given harness instance.
 
@@ -1272,6 +1274,8 @@ def check_snap_services_ready(
             This is not always possible (e.g. if a node was already removed from the cluster).
             So, the user can provide the node type explicitly.
         skip_services: a list of services to ignore when checking for service readiness.
+        retries: number of attempts before raising an AssertionError (default: 1, no retry).
+        delay_s: seconds to wait between retries (default: 5).
     """
     skip_services = skip_services or []
 
@@ -1333,23 +1337,39 @@ def check_snap_services_ready(
             s for s in expected_active_services if s not in skip_services
         ]
 
-    service_status = get_snap_service_status(instance)
+    last_error = None
+    for attempt in range(1, retries + 1):
+        service_status = get_snap_service_status(instance)
+        try:
+            for service in expected_active_services:
+                assert (
+                    service in service_status
+                ), f"Service {service} is missing from 'snap services' output"
+                assert (
+                    service_status[service] == "active"
+                ), f"Service {service} should be active, but it is {service_status[service]}"
 
-    for service in expected_active_services:
-        assert (
-            service in service_status
-        ), f"Service {service} is missing from 'snap services' output"
-        assert (
-            service_status[service] == "active"
-        ), f"Service {service} should be active, but it is {service_status[service]}"
+            for service, status in service_status.items():
+                if service in skip_services:
+                    continue
+                if service not in expected_active_services:
+                    assert (
+                        status == "inactive"
+                    ), f"Unexpected service {service} is {status} but should be inactive"
+            return
+        except AssertionError as e:
+            last_error = e
+            if attempt < retries:
+                LOG.info(
+                    "Attempt %d/%d: %s. Retrying in %ds...",
+                    attempt,
+                    retries,
+                    e,
+                    delay_s,
+                )
+                time.sleep(delay_s)
 
-    for service, status in service_status.items():
-        if service in skip_services:
-            continue
-        if service not in expected_active_services:
-            assert (
-                status == "inactive"
-            ), f"Unexpected service {service} is {status} but should be inactive"
+    raise last_error
 
 
 def _get_enabled_services(instance: harness.Instance) -> List[str]:
