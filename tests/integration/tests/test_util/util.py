@@ -1523,26 +1523,35 @@ def _is_kube_proxy_enabled(
 
     Checks the k8sd-config ConfigMap in kube-system namespace.
     If the kube-proxy-enabled field does not exist, returns True by default.
+    If the command fails (e.g. the node has been removed from the cluster),
+    returns False by default to avoid expecting a service that may not be running.
 
     Args:
         instance: instance on which to execute the command
     """
-    result = instance.exec(
-        [
-            "k8s",
-            "kubectl",
-            "get",
-            "cm",
-            "k8sd-config",
-            "-n",
-            "kube-system",
-            "-o",
-            "jsonpath={.data.kube-proxy-enabled}",
-        ],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
+    try:
+        result = instance.exec(
+            [
+                "k8s",
+                "kubectl",
+                "get",
+                "cm",
+                "k8sd-config",
+                "-n",
+                "kube-system",
+                "-o",
+                "jsonpath={.data.kube-proxy-enabled}",
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except subprocess.CalledProcessError:
+        LOG.warning(
+            "Failed to query kube-proxy-enabled on %s, defaulting to False",
+            instance.id,
+        )
+        return False
     value = result.stdout.strip()
     if not value:
         return True
