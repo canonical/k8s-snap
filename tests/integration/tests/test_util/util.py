@@ -1556,12 +1556,25 @@ def _is_kube_proxy_enabled(
     Queries the k8sd datastore for the `network.kube-proxy-enabled` config value.
     If the field is present, returns its boolean value. If the field is not found,
     kube-proxy is disabled by default, so returns False.
+
+    If the file exists, checks the k8sd-config ConfigMap in kube-system namespace.
     If the command fails (e.g. the node has been removed from the cluster),
     returns False by default to avoid expecting a service that may not be running.
 
     Args:
         instance: instance on which to execute the command
     """
+    # Check if local-state.yaml exists (introduced with kube-proxy replacement support).
+    # If it does not exist, the node is on an older version where kube-proxy is expected.
+    try:
+        instance.exec(
+            ["test", "-f", "/var/snap/k8s/common/local-state.yaml"],
+            capture_output=True,
+            check=True,
+        )
+    except subprocess.CalledProcessError:
+        return True
+
     try:
         result = instance.exec(
             [
