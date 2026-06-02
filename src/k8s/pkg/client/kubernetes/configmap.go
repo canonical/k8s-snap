@@ -25,14 +25,16 @@ func (c *Client) WatchConfigMap(ctx context.Context, namespace string, name stri
 		return fmt.Errorf("initial reconcile failed: %w", err)
 	}
 
+	watchRV := cm.ResourceVersion
+
 	w, err := c.CoreV1().ConfigMaps(namespace).Watch(ctx, metav1.SingleObject(metav1.ObjectMeta{
 		Name:            name,
-		ResourceVersion: cm.ResourceVersion,
+		ResourceVersion: watchRV,
 	}))
 	if err != nil {
 		return fmt.Errorf("failed to watch configmap namespace=%s name=%s: %w", namespace, name, err)
 	}
-	defer w.Stop()
+	defer func() { w.Stop() }()
 	for {
 		select {
 		case <-ctx.Done():
@@ -42,7 +44,23 @@ func (c *Client) WatchConfigMap(ctx context.Context, namespace string, name stri
 				return fmt.Errorf("watch closed")
 			}
 			if evt.Type == watch.Error {
-				return fmt.Errorf("watch error event: %w", apierrors.FromObject(evt.Object))
+				status := apierrors.FromObject(evt.Object)
+				if apierrors.IsResourceExpired(status) {
+					log.Info("Resource version too old, restarting watch from latest", "expiredRV", watchRV)
+					w.Stop()
+					w, err = c.CoreV1().ConfigMaps(namespace).Watch(ctx, metav1.SingleObject(metav1.ObjectMeta{
+						Name:            name,
+						ResourceVersion: "",
+					}))
+					if err != nil {
+						if ctx.Err() != nil {
+							return nil
+						}
+						return fmt.Errorf("failed to restart watch namespace=%s name=%s: %w", namespace, name, err)
+					}
+					continue
+				}
+				return fmt.Errorf("watch error event: %w", status)
 			}
 			configMap, ok := evt.Object.(*v1.ConfigMap)
 			if !ok {
