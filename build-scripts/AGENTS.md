@@ -11,7 +11,7 @@ repository       upstream git URL to clone
 version          tag or commit to build
 build.sh         build script, called as: build.sh <output_dir> <version>
 pre-patch.sh     optional hook run before patches are applied
-patches/         version-tagged patch directories (see below)
+patches/         version-tagged patch directories; optional (see below)
 ```
 
 Entry point is `build-component.sh <name>`, which: clones the repo at `version`, runs
@@ -22,14 +22,15 @@ Entry point is `build-component.sh <name>`, which: clones the repo at `version`,
 Patches are organized into version-tagged subdirectories:
 
 ```
-patches/default/      applied when version is not semver or no version dir matches
+patches/default/      fallback when version is not semver and no version dir matches (optional)
 patches/v1.31.0/      applied for v1.31.x
 patches/v1.32.0/      applied for v1.32.x (supersedes v1.31.0 for v1.32+)
 ```
 
 Resolution algorithm: find the most recent directory whose version is `<=` the build version.
 Extra semver labels (e.g. `-beta.0`) are stripped before comparison, but exact-match entries
-take priority. A non-semver `version` value (e.g. a branch name) always falls through to `default/`.
+take priority. A non-semver `version` value (e.g. a branch name) falls back to `default/` if
+that directory exists; otherwise no patches are applied.
 
 To verify which patches would apply before building:
 

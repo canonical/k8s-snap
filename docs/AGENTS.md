@@ -1,6 +1,6 @@
 # docs
 
-MkDocs-based user documentation (`canonicalk8s/`) and design proposals (`proposals/`).
+Sphinx-based user documentation (`canonicalk8s/`) and design proposals (`proposals/`).
 
 ## Design Proposals
 

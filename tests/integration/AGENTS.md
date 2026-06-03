@@ -56,7 +56,7 @@ def test_something(...): ...
 | `tags.PROMOTE_CANDIDATE` | `beta_to_candidate` | channel promotion gate |
 | `tags.PROMOTE_STABLE` | `candidate_to_stable` | channel promotion gate |
 
-Convenience combine tags: `up_to_nightly` (PR + nightly), `up_to_weekly` (PR + nightly + weekly).
+Tag combinations: `up_to_nightly` (PR + nightly), `up_to_weekly` (PR + nightly + weekly).
 
 ## Test Structure
 
