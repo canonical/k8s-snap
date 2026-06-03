@@ -15,6 +15,11 @@ and locations on the disk.
 | `kubernetes-front-proxy-ca` | CA for front-end proxy     | `/etc/kubernetes/pki/front-proxy-ca.crt` | Signing certificates for the front-proxy    |
 | `client-ca`                 | CA for client certificates | `/etc/kubernetes/pki/client-ca.crt`      | Signing certificates for the client         |
 
+The `client-ca` certificate is generated with the common name
+`kubernetes-ca-client`. CertificateSigningRequests approved through
+`kubectl certificate approve` are signed with this client CA, so the resulting
+client certificates are trusted by the API server's `client-ca.crt` bundle.
+
 ## Certificates
 
 This table provides an overview of the certificates currently in use,
