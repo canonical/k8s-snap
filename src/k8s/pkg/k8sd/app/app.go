@@ -51,6 +51,8 @@ type Config struct {
 	DisableFeatureController bool
 	// DisableDNSRebalancerController is a bool flag to disable dns rebalancer controller
 	DisableDNSRebalancerController bool
+	// DisableExternalAPIServerController is a bool flag to disable the external apiserver controller.
+	DisableExternalAPIServerController bool
 	// DisableCSRSigningController is a bool flag to disable csrsigning controller.
 	DisableCSRSigningController bool
 	// DisableUpgradeController is a bool flag to disable upgrade controller.
@@ -235,6 +237,7 @@ func New(cfg Config) (*App, error) {
 		},
 		cfg.DisableCSRSigningController,
 		cfg.DisableDNSRebalancerController,
+		cfg.DisableExternalAPIServerController,
 	)
 
 	return app, nil

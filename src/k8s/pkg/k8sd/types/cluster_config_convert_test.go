@@ -292,3 +292,37 @@ func TestClusterConfigFromBootstrapConfig(t *testing.T) {
 		}
 	})
 }
+
+func TestClusterConfigFromBootstrapConfig_ControlPlaneEndpoint(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		endpoint *apiv1.ControlPlaneEndpoint
+		expect   types.ControlPlaneEndpoint
+	}{
+		{
+			name: "Nil",
+		},
+		{
+			name:     "HostOnly",
+			endpoint: &apiv1.ControlPlaneEndpoint{Host: "10.0.0.250"},
+			expect:   types.ControlPlaneEndpoint{Host: utils.Pointer("10.0.0.250")},
+		},
+		{
+			name:     "Full",
+			endpoint: &apiv1.ControlPlaneEndpoint{Host: "api.example.com", Port: 443, Backend: "service"},
+			expect: types.ControlPlaneEndpoint{
+				Host:    utils.Pointer("api.example.com"),
+				Port:    utils.Pointer(443),
+				Backend: utils.Pointer("service"),
+			},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			g := NewWithT(t)
+
+			config, err := types.ClusterConfigFromBootstrapConfig(apiv1.BootstrapConfig{ControlPlaneEndpoint: tc.endpoint})
+			g.Expect(err).To(Not(HaveOccurred()))
+			g.Expect(config.ControlPlaneEndpoint).To(Equal(tc.expect))
+		})
+	}
+}

@@ -97,15 +97,21 @@ func refreshCertsRunControlPlane(s state.State, r *http.Request, snap snap.Snap)
 
 	extraIPs, extraNames := utils.SplitIPAndDNSSANs(req.ExtraSANs)
 
+	// NOTE: The control-plane endpoint is durable across rotations: re-inject the persisted
+	// endpoint host into the kube-apiserver serving certificate SANs regardless of whether the
+	// refresh request carries it. req.ExtraSANs keeps its replace-semantics; only the endpoint
+	// is treated as durable.
+	endpointIPs, endpointNames := clusterConfig.ControlPlaneEndpoint.SANs()
+
 	// NOTE: Set the notBefore certificate time to the current time.
 	notBefore := time.Now()
 
 	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 		Hostname:                  s.Name(),
-		IPSANs:                    append(append([]net.IP{nodeIP}, serviceIPs...), extraIPs...),
+		IPSANs:                    append(append(append([]net.IP{nodeIP}, serviceIPs...), extraIPs...), endpointIPs...),
 		NotBefore:                 notBefore,
 		NotAfter:                  utils.SecondsToExpirationDate(notBefore, req.ExpirationSeconds),
-		DNSSANs:                   extraNames,
+		DNSSANs:                   append(extraNames, endpointNames...),
 		AllowSelfSignedCA:         true,
 		IncludeMachineAddressSANs: true,
 	})

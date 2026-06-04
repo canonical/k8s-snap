@@ -52,6 +52,9 @@ func MergeClusterConfig(existing ClusterConfig, new ClusterConfig) (ClusterConfi
 		{name: "service CIDR", val: &config.Network.ServiceCIDR, old: existing.Network.ServiceCIDR, new: new.Network.ServiceCIDR},
 		// apiserver
 		{name: "kube-apiserver authorization mode", val: &config.APIServer.AuthorizationMode, old: existing.APIServer.AuthorizationMode, new: new.APIServer.AuthorizationMode, allowChange: true},
+		// control-plane endpoint
+		{name: "control-plane endpoint host", val: &config.ControlPlaneEndpoint.Host, old: existing.ControlPlaneEndpoint.Host, new: new.ControlPlaneEndpoint.Host},
+		{name: "control-plane endpoint backend", val: &config.ControlPlaneEndpoint.Backend, old: existing.ControlPlaneEndpoint.Backend, new: new.ControlPlaneEndpoint.Backend},
 		// kubelet
 		{name: "kubelet cluster DNS", val: &config.Kubelet.ClusterDNS, old: existing.Kubelet.ClusterDNS, new: new.Kubelet.ClusterDNS, allowChange: !boolFieldRemainedEnabled(existing.DNS.Enabled, new.DNS.Enabled)},
 		{name: "kubelet cluster domain", val: &config.Kubelet.ClusterDomain, old: existing.Kubelet.ClusterDomain, new: new.Kubelet.ClusterDomain, allowChange: true},
@@ -103,6 +106,8 @@ func MergeClusterConfig(existing ClusterConfig, new ClusterConfig) (ClusterConfi
 	}{
 		// apiserver
 		{name: "kube-apiserver secure port", val: &config.APIServer.SecurePort, old: existing.APIServer.SecurePort, new: new.APIServer.SecurePort},
+		// control-plane endpoint
+		{name: "control-plane endpoint port", val: &config.ControlPlaneEndpoint.Port, old: existing.ControlPlaneEndpoint.Port, new: new.ControlPlaneEndpoint.Port},
 		// datastore
 		{name: "k8s-dqlite port", val: &config.Datastore.K8sDqlitePort, old: existing.Datastore.K8sDqlitePort, new: new.Datastore.K8sDqlitePort},
 		{name: "etcd client port", val: &config.Datastore.EtcdPort, old: existing.Datastore.EtcdPort, new: new.Datastore.EtcdPort},

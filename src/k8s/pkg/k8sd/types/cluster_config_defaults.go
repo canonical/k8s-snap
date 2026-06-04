@@ -22,6 +22,15 @@ func (c *ClusterConfig) SetDefaults() {
 	if c.APIServer.GetAuthorizationMode() == "" {
 		c.APIServer.AuthorizationMode = utils.Pointer("Node,RBAC")
 	}
+	// control-plane endpoint (only when in use)
+	if c.ControlPlaneEndpoint.GetHost() != "" {
+		if c.ControlPlaneEndpoint.GetBackend() == "" {
+			c.ControlPlaneEndpoint.Backend = utils.Pointer(ControlPlaneEndpointBackendExternal)
+		}
+		if c.ControlPlaneEndpoint.GetPort() == 0 {
+			c.ControlPlaneEndpoint.Port = utils.Pointer(c.APIServer.GetSecurePort())
+		}
+	}
 	// datastore
 	if c.Datastore.GetType() == "" {
 		c.Datastore.Type = utils.Pointer("etcd")

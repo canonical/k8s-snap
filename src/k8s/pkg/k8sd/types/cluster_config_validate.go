@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/canonical/k8s/pkg/utils"
+	"k8s.io/apimachinery/pkg/util/validation"
 )
 
 func validateCIDRs(cidrString string) error {
@@ -175,6 +176,23 @@ func (c *ClusterConfig) Validate() error {
 	for _, server := range c.Datastore.GetExternalServers() {
 		if _, err := url.Parse(server); err != nil {
 			return fmt.Errorf("datastore.external-servers contains invalid address: %s", server)
+		}
+	}
+
+	// check: control-plane endpoint (only when a host is configured)
+	if host := c.ControlPlaneEndpoint.GetHost(); host != "" {
+		if net.ParseIP(host) == nil {
+			if errs := validation.IsDNS1123Subdomain(host); len(errs) > 0 {
+				return fmt.Errorf("control-plane-endpoint.host %q is not a valid IP address or DNS name: %s", host, strings.Join(errs, "; "))
+			}
+		}
+		if port := c.ControlPlaneEndpoint.GetPort(); port < 1 || port > 65535 {
+			return fmt.Errorf("control-plane-endpoint.port must be between 1 and 65535, got %d", port)
+		}
+		switch backend := c.ControlPlaneEndpoint.GetBackend(); backend {
+		case ControlPlaneEndpointBackendExternal, ControlPlaneEndpointBackendService:
+		default:
+			return fmt.Errorf("unsupported control-plane-endpoint backend %q, must be one of [%s %s]", backend, ControlPlaneEndpointBackendExternal, ControlPlaneEndpointBackendService)
 		}
 	}
 

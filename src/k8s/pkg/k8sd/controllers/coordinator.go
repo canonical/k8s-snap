@@ -9,6 +9,7 @@ import (
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	"github.com/canonical/k8s/pkg/k8sd/controllers/csrsigning"
 	"github.com/canonical/k8s/pkg/k8sd/controllers/dnsrebalancer"
+	"github.com/canonical/k8s/pkg/k8sd/controllers/external_apiserver"
 	"github.com/canonical/k8s/pkg/k8sd/controllers/upgrade"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
@@ -35,6 +36,9 @@ type Coordinator struct {
 
 	// DNS rebalancer controller
 	disableDNSRebalancerController bool
+
+	// External apiserver controller
+	disableExternalAPIServerController bool
 }
 
 // NewCoordinator creates a new Coordinator instance.
@@ -45,14 +49,16 @@ func NewCoordinator(
 	upgradeControllerOpts upgrade.ControllerOptions,
 	disableCSRSiningController bool,
 	disableDNSRebalancerController bool,
+	disableExternalAPIServerController bool,
 ) *Coordinator {
 	return &Coordinator{
-		snap:                           snap,
-		waitReady:                      waitReady,
-		disableUpgradeController:       disableUpgradeController,
-		upgradeControllerOpts:          upgradeControllerOpts,
-		disableCSRSigningController:    disableCSRSiningController,
-		disableDNSRebalancerController: disableDNSRebalancerController,
+		snap:                               snap,
+		waitReady:                          waitReady,
+		disableUpgradeController:           disableUpgradeController,
+		upgradeControllerOpts:              upgradeControllerOpts,
+		disableCSRSigningController:        disableCSRSiningController,
+		disableDNSRebalancerController:     disableDNSRebalancerController,
+		disableExternalAPIServerController: disableExternalAPIServerController,
 	}
 }
 
@@ -130,6 +136,10 @@ func (c *Coordinator) setupControllers(
 
 	if err := c.setupDNSRebalancerController(getClusterConfig, mgr); err != nil {
 		return fmt.Errorf("failed to setup DNS rebalancer controller: %w", err)
+	}
+
+	if err := c.setupExternalAPIServerController(ctx, getClusterConfig, mgr); err != nil {
+		return fmt.Errorf("failed to setup external apiserver controller: %w", err)
 	}
 
 	return nil
@@ -214,6 +224,43 @@ func (c *Coordinator) setupDNSRebalancerController(
 
 	if err := dnsrebalancerController.SetupWithManager(mgr); err != nil {
 		return fmt.Errorf("failed to setup DNS rebalancer controller with manager: %w", err)
+	}
+
+	return nil
+}
+
+func (c *Coordinator) setupExternalAPIServerController(
+	ctx context.Context,
+	getClusterConfig func(context.Context) (types.ClusterConfig, error),
+	mgr manager.Manager,
+) error {
+	logger := mgr.GetLogger()
+
+	if c.disableExternalAPIServerController {
+		logger.Info("External apiserver controller is disabled. Skipping setup.")
+		return nil
+	}
+
+	clusterConfig, err := getClusterConfig(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve cluster configuration: %w", err)
+	}
+
+	// Only the "service" backend needs the controller. For the default "external" backend (or no
+	// endpoint at all) there are no cluster resources to manage.
+	if clusterConfig.ControlPlaneEndpoint.GetBackend() != types.ControlPlaneEndpointBackendService {
+		logger.Info("Control-plane endpoint backend is not \"service\". Skipping external apiserver controller.")
+		return nil
+	}
+
+	externalAPIServerController := external_apiserver.NewController(
+		logger,
+		mgr.GetClient(),
+		getClusterConfig,
+	)
+
+	if err := externalAPIServerController.SetupWithManager(mgr); err != nil {
+		return fmt.Errorf("failed to setup external apiserver controller with manager: %w", err)
 	}
 
 	return nil

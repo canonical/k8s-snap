@@ -410,6 +410,59 @@ func TestMergeClusterConfig_Scenarios(t *testing.T) {
 			},
 			expectErr: true,
 		},
+		{
+			name: "ControlPlaneEndpoint/PreservedAcrossUnrelatedUpdate",
+			old: types.ClusterConfig{
+				ControlPlaneEndpoint: types.ControlPlaneEndpoint{
+					Host:    utils.Pointer("10.0.0.250"),
+					Port:    utils.Pointer(6443),
+					Backend: utils.Pointer("service"),
+				},
+			},
+			new: types.ClusterConfig{
+				MetricsServer: types.MetricsServer{Enabled: utils.Pointer(false)},
+			},
+			expectMerged: types.ClusterConfig{
+				ControlPlaneEndpoint: types.ControlPlaneEndpoint{
+					Host:    utils.Pointer("10.0.0.250"),
+					Port:    utils.Pointer(6443),
+					Backend: utils.Pointer("service"),
+				},
+				MetricsServer: types.MetricsServer{Enabled: utils.Pointer(false)},
+			},
+		},
+		{
+			name: "ControlPlaneEndpoint/PreventHostChange",
+			old: types.ClusterConfig{
+				ControlPlaneEndpoint: types.ControlPlaneEndpoint{
+					Host:    utils.Pointer("10.0.0.250"),
+					Port:    utils.Pointer(6443),
+					Backend: utils.Pointer("external"),
+				},
+			},
+			new: types.ClusterConfig{
+				ControlPlaneEndpoint: types.ControlPlaneEndpoint{
+					Host: utils.Pointer("10.0.0.251"),
+				},
+			},
+			expectErr: true,
+		},
+		{
+			name: "ControlPlaneEndpoint/PreventBackendChange",
+			old: types.ClusterConfig{
+				ControlPlaneEndpoint: types.ControlPlaneEndpoint{
+					Host:    utils.Pointer("10.0.0.250"),
+					Port:    utils.Pointer(6443),
+					Backend: utils.Pointer("external"),
+				},
+			},
+			new: types.ClusterConfig{
+				ControlPlaneEndpoint: types.ControlPlaneEndpoint{
+					Backend: utils.Pointer("service"),
+				},
+			},
+			expectErr: true,
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			g := NewWithT(t)

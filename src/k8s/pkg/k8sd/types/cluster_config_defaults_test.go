@@ -69,3 +69,58 @@ func TestSetDefaults(t *testing.T) {
 	clusterConfig.SetDefaults()
 	g.Expect(clusterConfig).To(Equal(expectedConfig))
 }
+
+func TestControlPlaneEndpointDefaults(t *testing.T) {
+	for _, tc := range []struct {
+		name          string
+		config        types.ClusterConfig
+		expectHost    string
+		expectPort    int
+		expectBackend string
+	}{
+		{
+			name:   "NoHost/NotDefaulted",
+			config: types.ClusterConfig{},
+		},
+		{
+			name: "HostSet/DefaultsPortAndBackend",
+			config: types.ClusterConfig{
+				ControlPlaneEndpoint: types.ControlPlaneEndpoint{Host: utils.Pointer("10.0.0.250")},
+			},
+			expectHost:    "10.0.0.250",
+			expectPort:    6443,
+			expectBackend: "external",
+		},
+		{
+			name: "HostSet/RespectsExplicitPortAndBackend",
+			config: types.ClusterConfig{
+				ControlPlaneEndpoint: types.ControlPlaneEndpoint{
+					Host:    utils.Pointer("api.example.com"),
+					Port:    utils.Pointer(443),
+					Backend: utils.Pointer("service"),
+				},
+			},
+			expectHost:    "api.example.com",
+			expectPort:    443,
+			expectBackend: "service",
+		},
+		{
+			name: "HostSet/PortDefaultsToCustomSecurePort",
+			config: types.ClusterConfig{
+				APIServer:            types.APIServer{SecurePort: utils.Pointer(7443)},
+				ControlPlaneEndpoint: types.ControlPlaneEndpoint{Host: utils.Pointer("10.0.0.250")},
+			},
+			expectHost:    "10.0.0.250",
+			expectPort:    7443,
+			expectBackend: "external",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			g := NewWithT(t)
+			tc.config.SetDefaults()
+			g.Expect(tc.config.ControlPlaneEndpoint.GetHost()).To(Equal(tc.expectHost))
+			g.Expect(tc.config.ControlPlaneEndpoint.GetPort()).To(Equal(tc.expectPort))
+			g.Expect(tc.config.ControlPlaneEndpoint.GetBackend()).To(Equal(tc.expectBackend))
+		})
+	}
+}

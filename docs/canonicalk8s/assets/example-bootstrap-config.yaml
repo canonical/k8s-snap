@@ -32,6 +32,10 @@ etcd-peer-port: 2391
 datastore-type: etcd
 extra-sans:
 - custom.kubernetes
+control-plane-endpoint:
+  host: 10.0.0.250
+  port: 6443
+  backend: service
 extra-node-config-files:
   bootstrap-extra-file.yaml: extra-args-test-file-content
 extra-node-kube-apiserver-args:

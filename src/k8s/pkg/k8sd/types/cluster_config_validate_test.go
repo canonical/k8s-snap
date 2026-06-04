@@ -131,3 +131,93 @@ func TestValidateExternalServers(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateControlPlaneEndpoint(t *testing.T) {
+	for _, tc := range []struct {
+		name      string
+		endpoint  types.ControlPlaneEndpoint
+		expectErr bool
+	}{
+		{name: "NoEndpoint"},
+		{
+			name:     "External/IPv4",
+			endpoint: types.ControlPlaneEndpoint{Host: utils.Pointer("10.0.0.250"), Backend: utils.Pointer("external")},
+		},
+		{
+			name:     "External/IPv6",
+			endpoint: types.ControlPlaneEndpoint{Host: utils.Pointer("2001:db8::1"), Backend: utils.Pointer("external")},
+		},
+		{
+			name:     "Service/DNS",
+			endpoint: types.ControlPlaneEndpoint{Host: utils.Pointer("api.example.com"), Backend: utils.Pointer("service")},
+		},
+		{
+			name:      "InvalidHost",
+			endpoint:  types.ControlPlaneEndpoint{Host: utils.Pointer("not a valid host!")},
+			expectErr: true,
+		},
+		{
+			name:      "InvalidBackend",
+			endpoint:  types.ControlPlaneEndpoint{Host: utils.Pointer("10.0.0.250"), Backend: utils.Pointer("kube-vip")},
+			expectErr: true,
+		},
+		{
+			name:      "PortOutOfRange",
+			endpoint:  types.ControlPlaneEndpoint{Host: utils.Pointer("10.0.0.250"), Port: utils.Pointer(70000), Backend: utils.Pointer("external")},
+			expectErr: true,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			g := NewWithT(t)
+
+			config := types.ClusterConfig{ControlPlaneEndpoint: tc.endpoint}
+			config.SetDefaults()
+
+			err := config.Validate()
+			if tc.expectErr {
+				g.Expect(err).To(HaveOccurred())
+			} else {
+				g.Expect(err).To(Not(HaveOccurred()))
+			}
+		})
+	}
+}
+
+func TestControlPlaneEndpointSANs(t *testing.T) {
+	for _, tc := range []struct {
+		name      string
+		host      string
+		expectIPs []string
+		expectDNS []string
+	}{
+		{name: "Empty"},
+		{name: "IPv4", host: "10.0.0.250", expectIPs: []string{"10.0.0.250"}},
+		{name: "IPv6", host: "2001:db8::1", expectIPs: []string{"2001:db8::1"}},
+		{name: "DNS", host: "api.example.com", expectDNS: []string{"api.example.com"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			g := NewWithT(t)
+
+			ep := types.ControlPlaneEndpoint{}
+			if tc.host != "" {
+				ep.Host = utils.Pointer(tc.host)
+			}
+			ips, dnsNames := ep.SANs()
+
+			gotIPs := make([]string, 0, len(ips))
+			for _, ip := range ips {
+				gotIPs = append(gotIPs, ip.String())
+			}
+			if len(tc.expectIPs) == 0 {
+				g.Expect(gotIPs).To(BeEmpty())
+			} else {
+				g.Expect(gotIPs).To(Equal(tc.expectIPs))
+			}
+			if len(tc.expectDNS) == 0 {
+				g.Expect(dnsNames).To(BeEmpty())
+			} else {
+				g.Expect(dnsNames).To(Equal(tc.expectDNS))
+			}
+		})
+	}
+}

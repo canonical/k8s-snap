@@ -392,10 +392,13 @@ func (a *App) onBootstrapControlPlane(ctx context.Context, s state.State, bootst
 
 	// Certificates
 	// NOTE: Default certificate expiration is set to 20 years.
+	// NOTE: The control-plane endpoint host (if configured) is injected into the kube-apiserver
+	// serving certificate SANs only, never into the shared etcd/datastore certificates.
+	endpointIPs, endpointNames := cfg.ControlPlaneEndpoint.SANs()
 	certificates := pki.NewControlPlanePKI(pki.ControlPlanePKIOpts{
 		Hostname:                  s.Name(),
-		IPSANs:                    append(append([]net.IP{nodeIP}, serviceIPs...), extraIPs...),
-		DNSSANs:                   extraNames,
+		IPSANs:                    append(append(append([]net.IP{nodeIP}, serviceIPs...), extraIPs...), endpointIPs...),
+		DNSSANs:                   append(extraNames, endpointNames...),
 		NotBefore:                 notBefore,
 		NotAfter:                  notBefore.AddDate(20, 0, 0),
 		AllowSelfSignedCA:         true,

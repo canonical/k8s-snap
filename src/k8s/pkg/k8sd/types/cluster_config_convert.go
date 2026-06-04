@@ -104,6 +104,17 @@ func ClusterConfigFromBootstrapConfig(b apiv1.BootstrapConfig) (ClusterConfig, e
 		config.Kubelet.ControlPlaneTaints = utils.Pointer(b.ControlPlaneTaints)
 	}
 
+	// ControlPlaneEndpoint
+	if ep := b.ControlPlaneEndpoint; ep != nil {
+		config.ControlPlaneEndpoint.Host = utils.Pointer(ep.Host)
+		if ep.Port != 0 {
+			config.ControlPlaneEndpoint.Port = utils.Pointer(ep.Port)
+		}
+		if ep.Backend != "" {
+			config.ControlPlaneEndpoint.Backend = utils.Pointer(ep.Backend)
+		}
+	}
+
 	return config, nil
 }
 

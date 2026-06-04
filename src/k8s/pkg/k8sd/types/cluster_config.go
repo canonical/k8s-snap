@@ -6,6 +6,8 @@ type ClusterConfig struct {
 	APIServer    APIServer    `json:"apiserver,omitempty"`
 	Kubelet      Kubelet      `json:"kubelet,omitempty"`
 
+	ControlPlaneEndpoint ControlPlaneEndpoint `json:"control-plane-endpoint,omitempty"`
+
 	Network       Network       `json:"network,omitempty"`
 	DNS           DNS           `json:"dns,omitempty"`
 	Ingress       Ingress       `json:"ingress,omitempty"`
