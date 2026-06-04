@@ -331,6 +331,14 @@ The client key to be used by the kube-apiserver to communicate with etcd.
 
 List of extra SANs to be added to certificates.
 
+### control-plane-endpoint
+**Type:** `apiv1.ControlPlaneEndpoint`<br>
+
+ControlPlaneEndpoint, when set, provides a single durable endpoint that external clients
+use to reach the kube-apiserver, load-balanced across all healthy control-plane nodes.
+Its host is always added to the kube-apiserver serving-certificate SANs, and for backend
+"service" it is fronted by an in-cluster LoadBalancer Service.
+
 ### ca-crt
 **Type:** `string`<br>
 
