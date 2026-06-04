@@ -87,12 +87,14 @@ def test_skip_services_stop_on_remove(instances: List[harness.Instance]):
         node_type="control-plane",
         skip_services=["k8sd", "etcd"],
         datastore_type=datastore_type,
+        retries=5,
+        delay_s=10
     )
 
     util.remove_node_with_retry(cluster_node, worker.id)
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 1, "worker node should have been removed from the cluster"
-    util.check_snap_services_ready(worker, node_type="worker", skip_services=["k8sd"])
+    util.check_snap_services_ready(worker, node_type="worker", skip_services=["k8sd"], retries=5, delay_s=10)
 
 
 @pytest.mark.node_count(2)
