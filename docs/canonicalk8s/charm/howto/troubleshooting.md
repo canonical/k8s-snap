@@ -137,7 +137,6 @@ Services running on both the control plane and worker nodes:
 * `k8sd`
 * `kubelet`
 * `containerd`
-* `kube-proxy`
 
 Services running only on the control-plane nodes:
 
