@@ -89,18 +89,41 @@ def save_state(alert_ids: set[str]) -> None:
     )
 
 
+def _normalize_severity(rule: dict[str, Any]) -> str:
+    """Map code scanning alert severity to a uniform level string."""
+    sev = rule.get("security_severity_level", "") or ""
+    if sev:
+        return sev.lower()
+    raw = rule.get("severity", "none").lower()
+    return {"error": "high", "warning": "medium", "note": "low"}.get(raw, "none")
+
+
+def _description_from_rule(rule: dict[str, Any]) -> str:
+    """Extract a short description from a code scanning rule."""
+    desc = rule.get("description") or rule.get("full_description") or ""
+    if desc:
+        return desc
+    help_text = rule.get("help", "")
+    if not help_text:
+        return ""
+    first_line = help_text.split("\n", 1)[0].strip()
+    if first_line.startswith("`"):
+        first_line = first_line.split("`:", 1)[-1].strip().lstrip("`")
+    return first_line
+
+
 def fetch_code_scanning_alerts(repo: str) -> list[dict[str, Any]]:
     """Fetch ALL open code scanning alerts for a repo. No filtering."""
     raw = gh_api(f"/repos/{repo}/code-scanning/alerts?state=open&per_page=100")
     alerts = []
     for a in raw:
         rule = a.get("rule", {})
-        severity = rule.get("security_severity_level", "") or ""
+        severity = _normalize_severity(rule)
         rule_id = rule.get("id", "unknown")
         tool = a.get("tool", {}).get("name", "unknown")
         created = a.get("created_at", "")
         age = days_ago(created) if created else 0
-        description = rule.get("description", "")
+        description = _description_from_rule(rule)
         alert_number = a.get("number", "")
         alert_link = f"https://github.com/{repo}/security/code-scanning/{alert_number}"
 
