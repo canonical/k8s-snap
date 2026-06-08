@@ -47,7 +47,11 @@ def gh_api(endpoint: str) -> list[dict[str, Any]]:
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         pages = json.loads(result.stdout)
-        return [item for page in pages for item in (page if isinstance(page, list) else [page])]
+        return [
+            item
+            for page in pages
+            for item in (page if isinstance(page, list) else [page])
+        ]
     except subprocess.CalledProcessError as e:
         print(f"Error: failed to fetch {endpoint}: {e.stderr}", file=sys.stderr)
         raise SystemExit(1)
@@ -77,7 +81,10 @@ def save_state(alert_ids: set[str]) -> None:
     STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
     STATE_FILE.write_text(
         json.dumps(
-            {"alert_ids": sorted(alert_ids), "updated": datetime.now(timezone.utc).isoformat()},
+            {
+                "alert_ids": sorted(alert_ids),
+                "updated": datetime.now(timezone.utc).isoformat(),
+            },
         )
     )
 
@@ -137,7 +144,12 @@ def format_alert_row(a: dict[str, Any]) -> str:
     if len(summary) > 55:
         summary = summary[:52] + "..."
     link_display = f"[{a['rule_id']}]({a['link']})"
-    overdue = " ⏰" if a["age_days"] > OVERDUE_DAYS and a["severity"].lower() in ("critical", "high") else ""
+    overdue = (
+        " ⏰"
+        if a["age_days"] > OVERDUE_DAYS
+        and a["severity"].lower() in ("critical", "high")
+        else ""
+    )
     return f"| {link_display} | {a['tool']} | {sev_display} | {summary} | {a['age_days']}d{overdue} |"
 
 
@@ -214,7 +226,10 @@ def build_message(
 
     # Footer
     repos_str = ", ".join(f"`{r}`" for r in REPOS)
-    lines.append(f"---\n_Repos: {repos_str} · [Workflow run](https://github.com/canonical/k8s-snap/actions/workflows/security-triage.yaml)_")
+    workflow_url = (
+        "https://github.com/canonical/k8s-snap/actions/workflows/security-triage.yaml"
+    )
+    lines.append(f"---\n_Repos: {repos_str} · [Workflow run]({workflow_url})_")
 
     text = "\n".join(lines)
 
@@ -252,7 +267,9 @@ def _severity_summary(alerts: list[dict[str, Any]]) -> str:
     parts = []
     for sev in ("critical", "high", "medium", "low", "unrated"):
         if sev in counts:
-            parts.append(f"{sev_emoji(sev) if sev != 'unrated' else '⚪'} {counts[sev]} {sev}")
+            parts.append(
+                f"{sev_emoji(sev) if sev != 'unrated' else '⚪'} {counts[sev]} {sev}"
+            )
     return ", ".join(parts) if parts else "—"
 
 
@@ -278,19 +295,24 @@ def main() -> int:
         description="Fetch security alerts and post triage summary to Mattermost"
     )
     parser.add_argument(
-        "--webhook", "-w", default=None,
+        "--webhook",
+        "-w",
+        default=None,
         help="Mattermost incoming webhook URL (or set MATTERMOST_BOT_WEBHOOK_URL)",
     )
     parser.add_argument(
-        "--channel-id", default=None,
+        "--channel-id",
+        default=None,
         help="Channel ID to post to (or set MATTERMOST_CHANNEL_ID)",
     )
     parser.add_argument(
-        "--dry-run", action="store_true",
+        "--dry-run",
+        action="store_true",
         help="Print the payload without posting",
     )
     parser.add_argument(
-        "--full", action="store_true",
+        "--full",
+        action="store_true",
         help="Always post (even if no delta)",
     )
     args = parser.parse_args()
@@ -299,7 +321,9 @@ def main() -> int:
     channel_id = args.channel_id or os.environ.get("MATTERMOST_CHANNEL_ID")
 
     if not webhook and not args.dry_run:
-        print("Error: --webhook or MATTERMOST_BOT_WEBHOOK_URL required", file=sys.stderr)
+        print(
+            "Error: --webhook or MATTERMOST_BOT_WEBHOOK_URL required", file=sys.stderr
+        )
         return 1
 
     # Fetch all alerts from all repos
@@ -323,7 +347,15 @@ def main() -> int:
     if not has_delta and not args.full and not is_first_run:
         print("No changes since last run — skipping post.", file=sys.stderr)
         if args.dry_run:
-            print(json.dumps({"skipped": True, "reason": "no delta", "total_open": len(all_alerts)}))
+            print(
+                json.dumps(
+                    {
+                        "skipped": True,
+                        "reason": "no delta",
+                        "total_open": len(all_alerts),
+                    }
+                )
+            )
         return 0
 
     # Build message
