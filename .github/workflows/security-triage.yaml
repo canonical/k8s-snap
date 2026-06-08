@@ -3,7 +3,13 @@ name: Security Triage
 on:
     schedule:
         - cron: "0 8 * * 1-5" # Weekdays at 08:00 UTC
-    workflow_dispatch: {} # Allow manual trigger
+    workflow_dispatch:
+        inputs:
+            full:
+                description: Force posting even if no delta
+                type: boolean
+                required: false
+                default: false
     pull_request:
         paths:
             - .github/workflows/security-triage.yaml
@@ -46,6 +52,8 @@ jobs:
               run: |
                   if [[ "${{ github.event_name }}" == "pull_request" ]]; then
                     python3 ci/security_triage.py --dry-run --full
+                  elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.full }}" == "true" ]]; then
+                    python3 ci/security_triage.py --full
                   else
                     python3 ci/security_triage.py
                   fi
