@@ -232,13 +232,13 @@ def build_message(
             tool_alerts.sort(key=severity_sort_key)
             sev_summary = _severity_summary(tool_alerts)
             lines.append(
-                f"<details><summary><b>{tool_name}</b> ({len(tool_alerts)} alerts) — {sev_summary}</summary>\n"
+                f"#### {tool_name} ({len(tool_alerts)} alerts) — {sev_summary}"
             )
             lines.append("| Rule | Tool | Severity | Description | Age |")
             lines.append("|------|------|----------|-------------|-----|")
             for a in tool_alerts:
                 lines.append(format_alert_row(a))
-            lines.append("\n</details>\n")
+            lines.append("")
 
     # RESOLVED section
     if resolved_ids:
