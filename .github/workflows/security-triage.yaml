@@ -49,10 +49,12 @@ jobs:
                   # Kubernetes CI Night's watch channel
                   MATTERMOST_CHANNEL_ID: "4axiydhyxfr8px4phe9d5wgx7w"
                   STATE_FILE: /tmp/security-triage-state.json
+                  GITHUB_EVENT_NAME: ${{ github.event_name }}
+                  FULL_MODE: ${{ inputs.full || 'false' }}
               run: |
-                  if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+                  if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
                     python3 ci/security_triage.py --dry-run --full
-                  elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.full }}" == "true" ]]; then
+                  elif [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" && "$FULL_MODE" == "true" ]]; then
                     python3 ci/security_triage.py --full
                   else
                     python3 ci/security_triage.py
