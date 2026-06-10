@@ -167,9 +167,9 @@ configuration files.
 
 ## Apply Kubernetes STIG  
 
-### Initialize the cluster
+(initialize-the-cluster)=
 
-Bootstrap the first control plane node using the
+### Initialize the cluster using the
 example bootstrap configuration file which will apply the relevant Kubernetes 
 STIG recommendations:
 
@@ -192,6 +192,8 @@ example control plane node join configuration file:
 ```
 sudo k8s join-cluster --file=/var/snap/k8s/common/etc/configurations/disa-stig/control-plane.yaml <join-token>
 ```
+
+(join-worker-nodes)=
 
 ### Join worker nodes
 

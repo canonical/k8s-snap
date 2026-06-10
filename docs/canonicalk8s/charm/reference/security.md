@@ -44,8 +44,8 @@ and much more.
 [Ports and services]:/charm/reference/ports-and-services.md
 [Release notes]:/releases/charm/index.md
 [Security explanation]: /charm/explanation/security.md
-[How to upgrade minor version]: /charm/howto/upgrade-minor.md
-[How to upgrade patch version]:/charm/howto/upgrade-patch.md
+[How to upgrade minor version]: /charm/howto/upgrade.md#minor-upgrades
+[How to upgrade patch version]: /charm/howto/upgrade.md#patch-upgrades
 [Charm configurations]: /charm/reference/charm-configurations.md
 [Cryptography in Canonical Kubernetes explanation]: /charm/explanation/security.md#cryptography
 [Certificates explanation]: /charm/explanation/security.md#certificates

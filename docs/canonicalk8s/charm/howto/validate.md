@@ -83,6 +83,8 @@ Note that the brackets for the regex need to be escaped as shown.
 Running this command will return a uuid for that specific test run, as with the
 default case.
 
+(test-output)=
+
 ## Test output
 
 You can check on the current status of the test by running:

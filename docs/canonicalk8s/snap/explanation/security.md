@@ -144,6 +144,8 @@ your cluster, see:
 - [Managing RBAC roles]
 - [Pod security admission]
 
+(certificates)=
+
 ## Certificates
 
 Certificates are a crucial part of Kubernetes' security infrastructure, serving
@@ -193,6 +195,8 @@ standards and compliance requirements.
 
 If you would like to refresh the certificates of your {{product}} cluster see
 our [refreshing certificates how-to guide].
+
+(cryptography)=
 
 ## Cryptography
 

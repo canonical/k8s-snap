@@ -46,6 +46,8 @@ Key capabilities provided by the network feature:
   pods for security purposes. Learn more about [network policies][network
   policies].
 
+(dns-exp)=
+
 ## DNS
 
 {{product}} includes a default DNS (Domain Name System) service which is

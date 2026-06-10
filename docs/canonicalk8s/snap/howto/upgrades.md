@@ -147,4 +147,4 @@ snap refresh k8s --hold=24h
 [Version Skew Policy]: https://kubernetes.io/docs/setup/release/version-skew-policy/
 [backup guide]: ./backup-restore.md
 [snap documentation]: https://snapcraft.io/docs/managing-updates
-[Upgrade notes]: ../reference/upgrading
+[Upgrade notes]: /releases/snap/upgrading.md
