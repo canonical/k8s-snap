@@ -65,7 +65,7 @@ html_context = {
     "discourse": "https://discourse.ubuntu.com/c/kubernetes/180",
     # Your Mattermost channel URL
     # TODO: Change to your Mattermost channel URL or leave empty.
-    "mattermost": "https://chat.canonical.com/canonical/channels/documentation",
+    # "mattermost": "https://chat.canonical.com/canonical/channels/documentation",
     # Your Matrix channel URL
     # TODO: Change to your Matrix channel URL or leave empty.
     # "matrix": "https://matrix.to/#/#documentation:ubuntu.com",
@@ -241,9 +241,6 @@ linkcheck_retries = 3
 #   - linkify
 # myst_enable_extensions = set()
 
-# Generate heading anchors for H1-H4 so that #fragment links resolve correctly
-myst_heading_anchors = 4
-
 # Custom Sphinx extensions; see
 # https://www.sphinx-doc.org/en/master/usage/extensions/index.html
 extensions = [
@@ -290,8 +287,9 @@ html_js_files = [
 ]
 
 # Appends extra markup to the end of every document written in reST
-# rst_epilog = """
-# """
+rst_epilog = """
+.. include:: /reuse/substitutions.txt
+"""
 
 # Feedback button at the top; enabled by default
 # TODO: Disable the button if your project is unsuitable for public feedback.
@@ -326,10 +324,6 @@ rst_prolog = """
 intersphinx_mapping = {
     "snap": ("https://snapcraft.io/docs/", None),
 }
-
-rst_epilog = """
-.. include:: /reuse/substitutions.txt
-"""
 
 if os.path.exists('./reuse/substitutions.yaml'):
     with open('./reuse/substitutions.yaml', 'r') as fd:
