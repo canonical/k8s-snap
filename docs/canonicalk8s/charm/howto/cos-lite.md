@@ -136,8 +136,8 @@ The username for this credential is `admin`.
 You’ve successfully gained access to a comprehensive observability stack. Visit
 the URL and use the credentials to log in. This Grafana endpoint is only 
 accessible from within the cluster. To get external access, you will need
- to deploy a [load balancer][load-balancer] so that the network connection 
- can be forwarded to the ingress controller.
+ to deploy a {ref}`load balancer <load-balancer>` so that the network connection
+can be forwarded to the ingress controller.
 
 Once you feel ready to dive deeper into your shiny new observability platform,
 you can head over to the [COS Lite documentation][cos-lite-docs].
@@ -151,4 +151,4 @@ you can head over to the [COS Lite documentation][cos-lite-docs].
 [juju-debug-log]: https://juju.is/docs/juju/juju-debug-log
 [cross-model-integration]: https://juju.is/docs/juju/relation#heading--cross-model
 [k8s-config]: https://charmhub.io/k8s/configurations
-[load-balancer]: /snap/explanation/networking.md#load-balancer
+

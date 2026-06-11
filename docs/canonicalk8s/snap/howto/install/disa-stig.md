@@ -117,7 +117,7 @@ overridden by another configuration file with higher precedence.
 DISA STIG specific settings on cluster formation and node join. Once a node is 
 configured, changing certain settings is more difficult and may require 
 re-deploying the node or cluster. If you are happy to apply the default 
-settings, jump to [initializing the cluster](#initialize-the-cluster). 
+settings, jump to {ref}`initializing the cluster <initialize-the-cluster>`. 
 Otherwise, choose the configuration options that are best suited for your 
 cluster. 
 
@@ -169,7 +169,9 @@ configuration files.
 
 (initialize-the-cluster)=
 
-### Initialize the cluster using the
+### Initialize the cluster 
+
+Bootstrap the first control plane node using the
 example bootstrap configuration file which will apply the relevant Kubernetes 
 STIG recommendations:
 
@@ -242,7 +244,7 @@ registered. This step needs to be followed after the initial deployment and
 anytime the list of ports, protocols, and services used by your cluster changes
 (for instance each time a new service is exposed externally).
 - {ref}`242393` and {ref}`242394`: SSH service must not be running or enabled on
-   worker nodes (see [Join worker nodes](#join-worker-nodes))
+   worker nodes (see {ref}`Join worker nodes <join-worker-nodes>`)
 - {ref}`242414`: User pods must only use non-privileged host ports
 - {ref}`242415`: Secrets must not be stored as environment variables
 - {ref}`242417`: User functionality must be separate from management functions

@@ -70,7 +70,7 @@ Now the new control plane nodes that are created using this manifest will have
 the `1.35-classic/candidate` {{product}} snap installed on them!
 
 ```{note}
-[Use the configuration specification](#use-the-configuration-specification),
+{ref}`Use the configuration specification <using-config-spec>`,
 if you're only interested in installing a specific channel, revision, or
 form the local path.
 ```

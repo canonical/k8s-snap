@@ -12,12 +12,12 @@ have security implications on {{product}}.
 ## Security pages
 
 - [Security explanation]
-- [Cryptography in Canonical Kubernetes explanation]
+- {ref}`Cryptography in Canonical Kubernetes explanation <cryptography>`
 - [How to report a security issue]
 
 ## Authentication
 
-- [Certificates explanation]
+- {ref}`Certificates explanation <certificates>`
 
 ## Updates
 
@@ -26,8 +26,8 @@ security maintenance. Read the latest release notes and learn how to upgrade
 your cluster.
 
 - [Release notes]
-- [How to upgrade minor version]
-- [How to upgrade patch version]
+- {ref}`How to upgrade minor version <minor-upgrades>`
+- {ref}`How to upgrade patch version <patch-upgrades>`
 
 ## Reference material
 
@@ -44,9 +44,5 @@ and much more.
 [Ports and services]:/charm/reference/ports-and-services.md
 [Release notes]:/releases/charm/index.md
 [Security explanation]: /charm/explanation/security.md
-[How to upgrade minor version]: /charm/howto/upgrade.md#minor-upgrades
-[How to upgrade patch version]: /charm/howto/upgrade.md#patch-upgrades
 [Charm configurations]: /charm/reference/charm-configurations.md
-[Cryptography in Canonical Kubernetes explanation]: /charm/explanation/security.md#cryptography
-[Certificates explanation]: /charm/explanation/security.md#certificates
 [How to report a security issue]: /charm/howto/report-security-issue.md

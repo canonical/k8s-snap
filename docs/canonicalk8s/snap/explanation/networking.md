@@ -82,6 +82,7 @@ When performing maintenance operations on the cluster, be aware that
 the pod disruption budget ([PDB]) will only allow one DNS pod to be taken
 down at a time.
 
+(load-balancer)=
 ## Load balancer
 
 The load balancer feature allows you to expose your workloads externally
@@ -137,6 +138,7 @@ Create a service of type `LoadBalancer` to expose your workloads externally
 by following the [upstream guide] or consult the
 [load balancer how-to guide][load balancer].
 
+(ingress)=
 ## Ingress
 
 [Ingress][Ingress K8s] is a Kubernetes resource that manages external HTTP

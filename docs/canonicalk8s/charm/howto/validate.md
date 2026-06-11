@@ -62,7 +62,7 @@ Check operation status with 'juju show-operation 25'
 Check task status with 'juju show-task 26'
 ```
 
-See the section on [Test output](#test-output) below for details.
+See the section on {ref}`Test output <test-output>` below for details.
 
 ## Run specific tests
 
