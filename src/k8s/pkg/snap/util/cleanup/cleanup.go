@@ -18,6 +18,7 @@ func TryCleanupContainers(ctx context.Context, s snap.Snap) {
 	internal.RemoveContainers(ctx)
 	internal.RemoveNetworkNamespaces(ctx, netnsHelper)
 	internal.RemoveVolumeMountsGracefully(ctx, s, mountHelper)
+	internal.LogoutISCSISessions(ctx)
 	internal.RemoveVolumeMountsForce(ctx, s, mountHelper)
 	internal.RemovePluginSockets(ctx)
 	internal.RemoveLoopDevices(ctx, mountHelper)
