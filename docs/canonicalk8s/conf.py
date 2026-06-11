@@ -277,18 +277,16 @@ exclude_patterns = [
 
 # Adds custom CSS files, located remotely or in 'html_static_path'.
 html_css_files = [
-    "github_issue_links.css",
-    "cookie-banner.css"
+    "https://assets.ubuntu.com/v1/d86746ef-cookie_banner.css",
 ]
 
 # Adds custom JavaScript files, located remotely or in 'html_static_path'.
 html_js_files = [
-    "bundle.js"
+    "https://assets.ubuntu.com/v1/287a5e8f-bundle.js",
 ]
 
 # Appends extra markup to the end of every document written in reST
 rst_epilog = """
-.. include:: /reuse/substitutions.txt
 """
 
 # Feedback button at the top; enabled by default
