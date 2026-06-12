@@ -33,7 +33,8 @@ jobs:
           channel: '5.21/stable'
       - name: Install snapcraft
         run: |
-          sudo snap install snapcraft --classic
+          # Pin to 8.x: snapcraft 9 dropped core20 support, which this snap uses.
+          sudo snap install snapcraft --classic --channel=8.x
       - name: Build k8s snap
         id: build
         env:
