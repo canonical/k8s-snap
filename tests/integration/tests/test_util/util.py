@@ -1279,14 +1279,18 @@ def check_snap_services_ready(
         "containerd",
         "k8sd",
         "kubelet",
-        "kube-proxy",
+        # kube-proxy being enabled or not depends on
+        # Cilium kubeProxyReplacement being used.
+        # "kube-proxy",
         "k8s-apiserver-proxy",
     }
     expected_control_plane_services = {
         "containerd",
         "k8sd",
         "kubelet",
-        "kube-proxy",
+        # kube-proxy being enabled or not depends on
+        # Cilium kubeProxyReplacement being used.
+        # "kube-proxy",
         "kube-apiserver",
         "kube-controller-manager",
         "kube-scheduler",
