@@ -136,7 +136,7 @@ The username for this credential is `admin`.
 You’ve successfully gained access to a comprehensive observability stack. Visit
 the URL and use the credentials to log in. This Grafana endpoint is only 
 accessible from within the cluster. To get external access, you will need
- to deploy a {ref}`load balancer <load-balancer>` so that the network connection
+to deploy a [load balancer](/charm/explanation/networking.md#load-balancer) so that the network connection
 can be forwarded to the ingress controller.
 
 Once you feel ready to dive deeper into your shiny new observability platform,

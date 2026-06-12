@@ -12,12 +12,7 @@ have security implications on {{product}}.
 ## Security pages
 
 - [Security explanation]
-- {ref}`Cryptography in Canonical Kubernetes explanation <cryptography>`
 - [How to report a security issue]
-
-## Authentication
-
-- {ref}`Certificates explanation <certificates>`
 
 ## Updates
 

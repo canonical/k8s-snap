@@ -247,6 +247,7 @@ Repeat the above for all nodes of the cluster.
 (configure-container-runtime)=
 
 ### Configure container runtime
+
 Based on the image access type you chose in the step
 {ref}`choose how to access images <choose-how-to-access-images>`, configure the
 container runtime to fetch images properly:

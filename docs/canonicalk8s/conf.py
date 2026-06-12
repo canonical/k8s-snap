@@ -145,7 +145,7 @@ sitemap_excludes = [
 # Template and asset locations #
 ################################
 
-html_static_path = ["_static"]
+# html_static_path = ["_static"]
 templates_path = ["_templates"]
 
 #############
@@ -284,6 +284,8 @@ html_css_files = [
 html_js_files = [
     "https://assets.ubuntu.com/v1/287a5e8f-bundle.js",
 ]
+
+myst_heading_anchors = 3
 
 # Appends extra markup to the end of every document written in reST
 rst_epilog = """
