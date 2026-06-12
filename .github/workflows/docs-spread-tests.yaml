@@ -58,13 +58,21 @@ jobs:
           if [[ -z "$changed_files_input" ]]; then
             echo "no_suites=true" >> "$GITHUB_OUTPUT"
             exit 0
-          fi
+          fi 
 
+          # Append the docs/canonicalk8s/ prefix to each changed file and store in an array
           mapfile -t changed_files < <(
             printf '%s\n' "$changed_files_input" \
             | tr ' ' '\n' \
+            | grep -v '^$' \
             | sed 's|^|docs/canonicalk8s/|'
           )
+
+          if [[ ${#changed_files[@]} -eq 0 ]]; then
+            echo "No docs files needing spread tests changed in this PR."
+            echo "no_suites=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
 
           generated_any=false
 
