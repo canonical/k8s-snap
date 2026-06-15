@@ -6,16 +6,16 @@ virtual machine.
 You **can** install {{product}} directly on your development machine. But if
 you choose to do so, please take note of the following considerations.
 
-## Containerd 
+## Containerd
 
 ### Conflicts
 
 {{product}} runs its own containerd service, which will use the standard
 containerd-related paths by default (`/run/containerd`, `/var/lib/containerd`,
-`/etc/containerd`). If containerd is already installed at these paths by 
-another application (e.g. Docker), the bootstrap will fail. To resolve this, provide
-a base directory for the files to be installed at using the `--containerd-base-dir`
-flag or by providing it in the bootstrap config yaml like below:
+`/etc/containerd`). If containerd is already installed at these paths by
+another application (e.g. Docker), the bootstrap will fail. To resolve this,
+provide a base directory for the files to be installed at by setting
+`containerd-base-dir` in the bootstrap config YAML:
 
 ```bash
 cat <<EOF | sudo k8s bootstrap --file -
@@ -29,21 +29,24 @@ cluster-config:
     enabled: true
 EOF
 ```
+
 By doing this, all containerd files will be stored under the parent
-directory specified by the flag (e.g. if `--containerd-base-dir=/ck8s`,
-containerd files will be `/ck8s/etc/containerd`,
-`/ck8s/var/run/containerd/containerd.sock`, etc.)
+directory specified by `containerd-base-dir`. For example, if
+`containerd-base-dir` is set to `/ck8s`, containerd files will be stored at
+paths such as `/ck8s/k8s-containerd/etc/containerd` and
+`/ck8s/k8s-containerd/run/containerd/containerd.sock`.
 
 ```{note}
-It is strongly recommeneded that a non-temporary directory is chosen for 
+It is strongly recommended that a non-temporary directory is chosen for
 `containerd-base-dir`, or the cluster will break on reboot when these
-files are cleared.
+files are cleared. The path provided should be an absolute path
+to a directory dedicated to just these files.
 ```
 
-### State Directory on tmpfs — Disk Pressure & ErrImagePull
+### State directory on tmpfs
 
 If you choose to use a tmpfs base directory for containerd,
-make sure that it has sufficient space for operations like 
+make sure that it has sufficient space for operations like
 image layer unpacking. Insufficient space can cause:
 
 - Pod failures with `ErrImagePull`
@@ -55,11 +58,27 @@ To check the available space on the tmpfs:
 df -h /run
 ```
 
-If the space is low and you're experiencing these issues, you can temporarily 
+If the space is low and you're experiencing these issues, you can temporarily
 increase the size of the tmpfs mount to see if it resolves the problem:
 
 ```bash
 sudo mount -o remount,size=10G /run
+```
+
+### External consumption
+
+When changing the containerd install path, make sure that the configurations of
+external consumers of {{product}} such as operators are also updated. For example,
+in the GPU operator, you will have to update the Helm chart to include the new
+containerd paths.
+
+```bash
+helm install gpu-operator nvidia/gpu-operator -n gpu-operator \
+ --set operator.defaultRuntime=containerd \
+ --set toolkit.env[0].name=CONTAINERD_CONFIG \
+ --set toolkit.env[0].value={custom_containerd_dir}/etc/containerd/config.toml \
+ --set toolkit.env[1].name=CONTAINERD_SOCKET \
+ --set toolkit.env[1].value={custom_containerd_dir}/run/containerd/containerd.sock
 ```
 
 ## Changing IP addresses
