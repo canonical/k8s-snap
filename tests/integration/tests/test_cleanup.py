@@ -53,7 +53,7 @@ def test_node_cleanup(instances: List[harness.Instance], tmp_path):
 
 @pytest.mark.node_count(2)
 @pytest.mark.disable_k8s_bootstrapping()
-@pytest.mark.containerd_cfgdir("/home/ubuntu/k8s-containerd/etc/containerd")
+@pytest.mark.containerd_cfgdir("/home/ubuntu/etc/containerd")
 @pytest.mark.tags(tags.NIGHTLY)
 def test_node_cleanup_new_containerd_path(instances: List[harness.Instance]):
     main = instances[0]
@@ -79,9 +79,7 @@ containerd-base-dir: /home/ubuntu
 
     boostrap_config = yaml.safe_load(containerd_path_bootstrap_config)
     new_containerd_paths = [
-        os.path.join(
-            boostrap_config["containerd-base-dir"], "k8s-containerd", p.lstrip("/")
-        )
+        os.path.join(boostrap_config["containerd-base-dir"], p.lstrip("/"))
         for p in CONTAINERD_PATHS
     ]
 

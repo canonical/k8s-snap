@@ -33,8 +33,8 @@ EOF
 By doing this, all containerd files will be stored under the parent
 directory specified by `containerd-base-dir`. For example, if
 `containerd-base-dir` is set to `/ck8s`, containerd files will be stored at
-paths such as `/ck8s/k8s-containerd/etc/containerd` and
-`/ck8s/k8s-containerd/run/containerd/containerd.sock`.
+paths such as `/ck8s/etc/containerd` and
+`/ck8s/run/containerd/containerd.sock`.
 
 ```{note}
 It is strongly recommended that a non-temporary directory is chosen for
@@ -64,6 +64,8 @@ increase the size of the tmpfs mount to see if it resolves the problem:
 ```bash
 sudo mount -o remount,size=10G /run
 ```
+
+However, these changes will be cleared on reboot.
 
 ### External consumption
 
