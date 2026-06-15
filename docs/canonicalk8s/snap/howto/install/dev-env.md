@@ -12,15 +12,10 @@ you choose to do so, please take note of the following considerations.
 
 {{product}} runs its own containerd service, which will use the standard
 containerd-related paths by default (`/run/containerd`, `/var/lib/containerd`,
-`/etc/containerd`). Note that these default paths are important for various
-upstream projects and operators (e.g.: GPU Operator).
-
-If you already have Docker installed, or another Kubernetes instance that uses
-containerd directly installed on the host, this can cause various conflicts
-with {{product}}.
-
-But, if necessary, {{product}} can be configured to use a custom containerd
-path, like so:
+`/etc/containerd`). If containerd is already installed at these paths by 
+another application (e.g. Docker), the bootstrap will fail. To resolve this, provide
+a base directory for the files to be installed at using the `--containerd-base-dir`
+flag or by providing it in the bootstrap config yaml like below:
 
 ```bash
 cat <<EOF | sudo k8s bootstrap --file -
@@ -34,17 +29,22 @@ cluster-config:
     enabled: true
 EOF
 ```
+By doing this, all containerd files will be stored under the parent
+directory specified by the flag (e.g. if `--containerd-base-dir=/ck8s`,
+containerd files will be `/ck8s/etc/containerd`,
+`/ck8s/var/run/containerd/containerd.sock`, etc.)
 
-Any non-temporary directory can be chosen for `containerd-base-dir`
-(e.g.: `/ck8s`). {{product}} will then use this base directory for the
-containerd-related files (e.g.: `/ck8s/etc/containerd`,
-`/ck8s/var/run/containerd/containerd.sock`, etc.).
+```{note}
+It is strongly recommeneded that a non-temporary directory is chosen for 
+`containerd-base-dir`, or the cluster will break on reboot when these
+files are cleared.
+```
 
 ### State Directory on tmpfs — Disk Pressure & ErrImagePull
 
-When using a custom containerd, if it is configured to use a state directory on
-`tmpfs` (e.g., `/run/containerd`), ensure that the `tmpfs` mount has sufficient 
-space for operations like image layer unpacking. Insufficient space can cause:
+If you choose to use a tmpfs base directory for containerd,
+make sure that it has sufficient space for operations like 
+image layer unpacking. Insufficient space can cause:
 
 - Pod failures with `ErrImagePull`
 - Node taints such as `node.kubernetes.io/disk-pressure`
@@ -60,10 +60,6 @@ increase the size of the tmpfs mount to see if it resolves the problem:
 
 ```bash
 sudo mount -o remount,size=10G /run
-```
-
-```{note}
-This change is not persistent and will reset on reboot.
 ```
 
 ## Changing IP addresses
