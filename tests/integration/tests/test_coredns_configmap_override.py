@@ -14,6 +14,7 @@ Test flow:
 4. Update the ConfigMap and verify the new values are applied.
 5. Delete the ConfigMap and verify Helm values revert to defaults.
 """
+
 import logging
 from typing import List
 
@@ -139,9 +140,7 @@ def _wait_for_default_hpa_values(instance: harness.Instance):
         LOG.info("HPA still in Helm values: %s", hpa)
         return False
 
-    util.stubbornly(retries=30, delay_s=5).on(instance).until(
-        _defaults_restored
-    ).exec(
+    util.stubbornly(retries=30, delay_s=5).on(instance).until(_defaults_restored).exec(
         _helm_values_cmd(),
         env={"KUBECONFIG": "/etc/kubernetes/admin.conf"},
     )
@@ -181,9 +180,7 @@ def test_coredns_configmap_override(instances: List[harness.Instance]):
         _wait_for_hpa_values(instance, expected_min=4, expected_max=60)
 
         # --- Step 2: Update the ConfigMap override ---
-        LOG.info(
-            "Updating CoreDNS override ConfigMap to minReplicas=6, maxReplicas=30"
-        )
+        LOG.info("Updating CoreDNS override ConfigMap to minReplicas=6, maxReplicas=30")
         _apply_coredns_override_configmap(
             instance,
             "hpa:\n  minReplicas: 6\n  maxReplicas: 30\n",
