@@ -13,6 +13,14 @@ on:
       flavor:
         description: k8s-snap flavor (e.g. strict)
         type: string
+      go-snap-risk:
+        description: |
+          Optional Go snap risk level (e.g. candidate) to build with. When set,
+          overrides the risk of the go/<track>/<risk> build-snap in
+          snap/snapcraft.yaml. Leave empty to use the channel pinned in
+          snap/snapcraft.yaml.
+        type: string
+        default: ""
     outputs:
       snap-artifact:
         description: Name of the uploaded snap artifact
@@ -33,6 +41,14 @@ jobs:
           INPUT_FLAVOR: ${{ inputs.flavor }}
         run: |
           ./build-scripts/patches/"$INPUT_FLAVOR"/apply
+      - name: Override Go snap risk
+        if: inputs.go-snap-risk != ''
+        env:
+          GO_SNAP_RISK: ${{ inputs.go-snap-risk }}
+        run: |
+          # Swap only the risk so the Go track stays intact across bumps.
+          sed -i -E "s|(- go/[^/[:space:]]+/)[^[:space:]]+|\1${GO_SNAP_RISK}|" snap/snapcraft.yaml
+          grep -nE '^\s*- go/' snap/snapcraft.yaml
       - name: Setup LXD
         uses: canonical/setup-lxd@a3c85fc6fb7fff43fcfeae87659e41a8f635b7dd # v0.1.3
       - name: Install snapcraft
