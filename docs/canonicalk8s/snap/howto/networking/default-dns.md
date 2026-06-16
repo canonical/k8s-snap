@@ -73,6 +73,12 @@ sudo k8s set dns.service-ip=<new-cluster-ip>
 Replace `<new-ip>`, `<new-domain-name>`, and `<new-cluster-ip>` with the
 desired values for your DNS configuration.
 
+## Advanced: override Helm values
+
+For fine-grained tuning not exposed by `k8s set` (e.g. HPA replica counts,
+resource limits), you can pass Helm values directly to the CoreDNS chart via
+a ConfigMap. See [Override feature Helm values][helm-overrides] for details.
+
 ## Disable DNS
 
 {{product}} also allows you to disable the built-in DNS,
@@ -97,3 +103,4 @@ sudo k8s help disable
 
 [getting-started-guide]: /snap/tutorial/getting-started
 [networking explanation]: /snap/explanation/networking.md#dns
+[helm-overrides]: /snap/howto/helm-overrides

@@ -98,6 +98,13 @@ exposes technologies such as HugePages, CPU pinning, SR-IOV and more.
 Set up Enhanced Platform Awareness <epa>
 ```
 
+## Advanced configuration
+
+```{toctree}
+:titlesonly:
+Override feature Helm values <helm-overrides>
+```
+
 ## Contribute
 
 Contribute to the {{product}} project! 
