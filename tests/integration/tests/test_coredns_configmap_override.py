@@ -9,10 +9,14 @@ the CoreDNS Helm release (ck-dns).
 
 Test flow:
 1. Bootstrap a cluster and wait for DNS to be ready.
-2. Apply the override ConfigMap with custom HPA replica counts.
-3. Poll Helm values until the override is reflected.
-4. Update the ConfigMap and verify the new values are applied.
-5. Delete the ConfigMap and verify Helm values revert to defaults.
+2. Apply an override ConfigMap with custom HPA replica counts.
+3. Poll Helm values until the HPA override is reflected.
+4. Update the ConfigMap (new HPA counts) and verify the new values are applied.
+5. Update the ConfigMap with resource limits (a value k8sd does not set itself)
+   and verify the limits appear in the Helm release values.
+6. Delete the ConfigMap and verify:
+   a. HPA values revert to the k8sd defaults (minReplicas=2, maxReplicas=100).
+   b. The resource limits are absent from the Helm release values (never set by k8sd).
 """
 
 import logging
@@ -122,23 +126,65 @@ def _wait_for_hpa_values(
     )
 
 
-def _wait_for_default_hpa_values(instance: harness.Instance):
-    """Poll until Helm values no longer contain user-supplied HPA overrides.
+def _wait_for_resource_limits(
+    instance: harness.Instance,
+    expected_cpu: str,
+    expected_memory: str,
+    retries: int = 30,
+    delay_s: int = 5,
+):
+    """Poll Helm values until resource limits match the expected values.
 
-    When the ConfigMap is deleted, the controller re-runs ApplyDNS with no
-    overrides, so the Helm release reverts to chart defaults.  The resulting
-    `helm get values` output will either be null/empty or will no longer
-    contain the HPA block we injected.
+    This exercises an override for a value that k8sd does NOT set itself,
+    ensuring the ConfigMap override can inject arbitrary chart values.
+    """
+
+    def _resources_match(p) -> bool:
+        values = _parse_helm_stdout(p)
+        limits = values.get("resources", {}).get("limits", {})
+        actual_cpu = limits.get("cpu")
+        actual_memory = limits.get("memory")
+        LOG.info(
+            "Helm resource limits — cpu: %s (want %s), memory: %s (want %s)",
+            actual_cpu,
+            expected_cpu,
+            actual_memory,
+            expected_memory,
+        )
+        return actual_cpu == expected_cpu and actual_memory == expected_memory
+
+    util.stubbornly(retries=retries, delay_s=delay_s).on(instance).until(
+        _resources_match
+    ).exec(
+        _helm_values_cmd(),
+        env={"KUBECONFIG": "/etc/kubernetes/admin.conf"},
+    )
+
+
+def _wait_for_defaults_restored(instance: harness.Instance):
+    """Poll until Helm values reflect k8sd defaults after ConfigMap deletion.
+
+    After the ConfigMap is deleted the controller re-runs ApplyDNS with no
+    overrides.  k8sd always passes an explicit `hpa` block so it will revert
+    to the k8sd-defined defaults (minReplicas=2, maxReplicas=100).  The
+    `resources` block was never set by k8sd, so it should be absent entirely.
     """
 
     def _defaults_restored(p) -> bool:
         values = _parse_helm_stdout(p)
         hpa = values.get("hpa", {})
-        if not hpa:
-            LOG.info("HPA overrides removed from Helm values — defaults restored")
-            return True
-        LOG.info("HPA still in Helm values: %s", hpa)
-        return False
+        actual_min = hpa.get("minReplicas")
+        actual_max = hpa.get("maxReplicas")
+        resources_absent = "resources" not in values
+
+        LOG.info(
+            "Checking defaults — hpa.minReplicas: %s (want 2), "
+            "hpa.maxReplicas: %s (want 100), resources absent: %s (want True)",
+            actual_min,
+            actual_max,
+            resources_absent,
+        )
+        return actual_min == 2 and actual_max == 100 and resources_absent
 
     util.stubbornly(retries=30, delay_s=5).on(instance).until(_defaults_restored).exec(
         _helm_values_cmd(),
@@ -157,8 +203,12 @@ def test_coredns_configmap_override(instances: List[harness.Instance]):
     3. Confirm the Helm release reflects the new values.
     4. Update the ConfigMap (minReplicas=6, maxReplicas=30).
     5. Confirm the Helm release reflects the updated values.
-    6. Delete the ConfigMap.
-    7. Confirm the HPA overrides are gone from the Helm release.
+    6. Update the ConfigMap to also set resource limits — a value k8sd never
+       passes itself — to verify arbitrary chart values can be injected.
+    7. Confirm the resource limits appear in the Helm release values.
+    8. Delete the ConfigMap.
+    9. Confirm HPA reverts to k8sd defaults (minReplicas=2, maxReplicas=100)
+       and the resource limits are absent from the Helm release values.
     """
     instance = instances[0]
 
@@ -189,12 +239,33 @@ def test_coredns_configmap_override(instances: List[harness.Instance]):
         LOG.info("Waiting for Helm to reflect minReplicas=6, maxReplicas=30")
         _wait_for_hpa_values(instance, expected_min=6, expected_max=30)
 
-        # --- Step 3: Delete the ConfigMap and verify revert to defaults ---
+        # --- Step 3: Override a value k8sd does not set (resource limits) ---
+        # k8sd never passes `resources` to the CoreDNS chart, so this tests
+        # that the ConfigMap can inject completely new chart values.
+        LOG.info(
+            "Updating ConfigMap to also set resource limits "
+            "(cpu=200m, memory=170Mi) — a value k8sd does not pass itself"
+        )
+        _apply_coredns_override_configmap(
+            instance,
+            "hpa:\n  minReplicas: 6\n  maxReplicas: 30\n"
+            "resources:\n  limits:\n    cpu: 200m\n    memory: 170Mi\n",
+        )
+
+        LOG.info("Waiting for Helm to reflect resource limits cpu=200m, memory=170Mi")
+        _wait_for_resource_limits(
+            instance, expected_cpu="200m", expected_memory="170Mi"
+        )
+
+        # --- Step 4: Delete the ConfigMap and verify revert to defaults ---
         LOG.info("Deleting CoreDNS override ConfigMap")
         _delete_coredns_override_configmap(instance)
 
-        LOG.info("Waiting for HPA overrides to be removed from Helm values")
-        _wait_for_default_hpa_values(instance)
+        LOG.info(
+            "Waiting for HPA to revert to k8sd defaults (min=2, max=100) "
+            "and resource limits to be absent from Helm values"
+        )
+        _wait_for_defaults_restored(instance)
 
     finally:
         # Best-effort cleanup so the override doesn't affect subsequent tests.
