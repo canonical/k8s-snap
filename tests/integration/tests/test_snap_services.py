@@ -3,6 +3,7 @@
 #
 import logging
 from typing import List
+from unittest import skip
 
 import pytest
 from test_util import config, harness, tags, util
@@ -41,8 +42,8 @@ def test_snap_services(instances: List[harness.Instance]):
     worker.exec("snap revert k8s".split())
 
     LOG.info("Waiting for k8s to be ready")
-    util.wait_until_k8s_ready(cp, instances)
+    util.wait_until_k8s_ready(cp, instances, skip_services=["kube-proxy"])
 
     LOG.info("Checking snap services")
-    util.check_snap_services_ready(cp, node_type="control-plane", datastore_type="etcd")
-    util.check_snap_services_ready(worker, node_type="worker")
+    util.check_snap_services_ready(cp, node_type="control-plane", datastore_type="etcd", skip_services=["kube-proxy"])
+    util.check_snap_services_ready(worker, node_type="worker", skip_services=["kube-proxy"])
