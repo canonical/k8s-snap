@@ -1,3 +1,8 @@
+---
+myst:
+  html_meta:
+    description: Troubleshoot and resolve common issues that come from running the Canonical Kubernetes snap in a dev environment.
+---
 # Install {{product}} in development environments
 
 We recommend testing {{product}} in an isolated environment such as a clean
