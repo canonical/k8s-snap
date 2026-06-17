@@ -81,6 +81,6 @@
 "charm/howto/upgrade-minor" "charm/howto/upgrade"
 "charm/howto/upgrade-patch" "charm/howto/upgrade"
 
-# Old files 
+# Old files
 "charm/howto/install-lxd" "charm/howto/install/install-lxd"
 "charm/howto/charm" "charm/howto/install/charm"
