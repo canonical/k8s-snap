@@ -131,7 +131,7 @@ def test_disable_separate_feature_upgrades(
 
     # Refresh first node, no upgrade CRD should be created.
     util.setup_k8s_snap(cluster_node, config.SNAP)
-    util.wait_until_k8s_ready(cluster_node, instances)
+    util.wait_until_k8s_ready(cluster_node, instances, skip_services=["kube-proxy"])
 
     upgrades = json.loads(
         cluster_node.exec(
