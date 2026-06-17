@@ -76,7 +76,8 @@ def _delete_override_configmap(instance: harness.Instance):
 
 def _helm_values_cmd() -> List[str]:
     return [
-        "/snap/k8s/current/bin/helm",
+        "k8s",
+        "helm",
         "get",
         "values",
         HELM_RELEASE,
@@ -136,7 +137,6 @@ def _wait_for_devices(
         _devices_match
     ).exec(
         _helm_values_cmd(),
-        env={"KUBECONFIG": "/etc/kubernetes/admin.conf"},
     )
 
 
@@ -157,7 +157,6 @@ def _wait_for_devices_absent(
         _devices_absent
     ).exec(
         _helm_values_cmd(),
-        env={"KUBECONFIG": "/etc/kubernetes/admin.conf"},
     )
 
 
@@ -203,7 +202,7 @@ def test_cilium_devices_configmap_override(instances: List[harness.Instance]):
 
         # --- Step 2: Update to wildcard pattern ---
         # Simulate updating configuration on an already-running cluster
-        # (day-2 reconfiguration — key requirement from product feedback).
+        # (day-2 reconfiguration \u2014 key requirement from product feedback).
         LOG.info("Updating Cilium override ConfigMap: devices=eth+")
         _apply_override_configmap(instance, "devices: eth+\n")
 

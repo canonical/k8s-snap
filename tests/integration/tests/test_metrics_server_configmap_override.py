@@ -65,7 +65,8 @@ def _delete_override_configmap(instance: harness.Instance):
 
 def _helm_values_cmd() -> List[str]:
     return [
-        "/snap/k8s/current/bin/helm",
+        "k8s",
+        "helm",
         "get",
         "values",
         HELM_RELEASE,
@@ -101,7 +102,6 @@ def _wait_for_replicas(
         _replicas_match
     ).exec(
         _helm_values_cmd(),
-        env={"KUBECONFIG": "/etc/kubernetes/admin.conf"},
     )
 
 
@@ -122,7 +122,6 @@ def _wait_for_replicas_absent(
         _replicas_absent
     ).exec(
         _helm_values_cmd(),
-        env={"KUBECONFIG": "/etc/kubernetes/admin.conf"},
     )
 
 
