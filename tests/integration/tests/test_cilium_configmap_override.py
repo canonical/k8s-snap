@@ -97,7 +97,9 @@ def _wait_for_override(
         node = values
         for key in expected_key_path:
             if not isinstance(node, dict) or key not in node:
-                LOG.info("Key path %s not yet present in Helm values", expected_key_path)
+                LOG.info(
+                    "Key path %s not yet present in Helm values", expected_key_path
+                )
                 return False
             node = node[key]
         match = node == expected_value
@@ -128,9 +130,7 @@ def _wait_for_key_absent(
     def _key_absent(p) -> bool:
         values = _parse_helm_stdout(p)
         absent = top_level_key not in values
-        LOG.info(
-            "Helm values key '%s' absent: %s (want True)", top_level_key, absent
-        )
+        LOG.info("Helm values key '%s' absent: %s (want True)", top_level_key, absent)
         return absent
 
     util.stubbornly(retries=retries, delay_s=delay_s).on(instance).until(
@@ -153,7 +153,9 @@ def test_cilium_configmap_override(instances: List[harness.Instance]):
         # --- Step 1: Apply initial ConfigMap override ---
         # Override bandwidthManager.enabled (k8sd does not set this, so it will
         # appear in helm get values only when we set it and disappear on delete).
-        LOG.info("Applying Cilium override ConfigMap with bandwidthManager.enabled=true")
+        LOG.info(
+            "Applying Cilium override ConfigMap with bandwidthManager.enabled=true"
+        )
         _apply_override_configmap(
             instance,
             "bandwidthManager:\n  enabled: true\n",
@@ -163,7 +165,9 @@ def test_cilium_configmap_override(instances: List[harness.Instance]):
         _wait_for_override(instance, ["bandwidthManager", "enabled"], True)
 
         # --- Step 2: Update the ConfigMap override ---
-        LOG.info("Updating Cilium override ConfigMap with bandwidthManager.enabled=false")
+        LOG.info(
+            "Updating Cilium override ConfigMap with bandwidthManager.enabled=false"
+        )
         _apply_override_configmap(
             instance,
             "bandwidthManager:\n  enabled: false\n",

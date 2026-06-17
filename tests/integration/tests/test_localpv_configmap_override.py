@@ -99,9 +99,7 @@ def _wait_for_reclaim_policy(
     def _policy_matches(p) -> bool:
         values = _parse_helm_stdout(p)
         actual = values.get("storageClass", {}).get("reclaimPolicy")
-        LOG.info(
-            "Helm storageClass.reclaimPolicy: %s (want %s)", actual, expected
-        )
+        LOG.info("Helm storageClass.reclaimPolicy: %s (want %s)", actual, expected)
         return actual == expected
 
     util.stubbornly(retries=retries, delay_s=delay_s).on(instance).until(
@@ -123,7 +121,9 @@ def test_localpv_configmap_override(instances: List[harness.Instance]):
 
         # --- Step 1: Apply initial ConfigMap override ---
         # Override storageClass.reclaimPolicy from the k8sd default (Retain) to Delete.
-        LOG.info("Applying LocalPV override ConfigMap with storageClass.reclaimPolicy=Delete")
+        LOG.info(
+            "Applying LocalPV override ConfigMap with storageClass.reclaimPolicy=Delete"
+        )
         _apply_override_configmap(
             instance,
             "storageClass:\n  reclaimPolicy: Delete\n",
@@ -133,7 +133,9 @@ def test_localpv_configmap_override(instances: List[harness.Instance]):
         _wait_for_reclaim_policy(instance, expected="Delete")
 
         # --- Step 2: Update the ConfigMap override ---
-        LOG.info("Updating LocalPV override ConfigMap with storageClass.reclaimPolicy=Recycle")
+        LOG.info(
+            "Updating LocalPV override ConfigMap with storageClass.reclaimPolicy=Recycle"
+        )
         _apply_override_configmap(
             instance,
             "storageClass:\n  reclaimPolicy: Recycle\n",

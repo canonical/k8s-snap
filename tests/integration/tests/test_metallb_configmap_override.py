@@ -97,7 +97,9 @@ def _wait_for_override(
         node = values
         for key in expected_key_path:
             if not isinstance(node, dict) or key not in node:
-                LOG.info("Key path %s not yet present in Helm values", expected_key_path)
+                LOG.info(
+                    "Key path %s not yet present in Helm values", expected_key_path
+                )
                 return False
             node = node[key]
         match = node == expected_value
@@ -128,9 +130,7 @@ def _wait_for_key_absent(
     def _key_absent(p) -> bool:
         values = _parse_helm_stdout(p)
         absent = top_level_key not in values
-        LOG.info(
-            "Helm values key '%s' absent: %s (want True)", top_level_key, absent
-        )
+        LOG.info("Helm values key '%s' absent: %s (want True)", top_level_key, absent)
         return absent
 
     util.stubbornly(retries=retries, delay_s=delay_s).on(instance).until(
