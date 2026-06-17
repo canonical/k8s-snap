@@ -17,8 +17,12 @@ Each feature has a dedicated ConfigMap name:
 | Feature | ConfigMap name |
 |---------|----------------|
 | DNS (CoreDNS) | `k8sd-coredns-values` |
+| Network (Cilium) | `k8sd-cilium-values` |
+| Load Balancer (MetalLB) | `k8sd-metallb-values` |
+| Local Storage (LocalPV) | `k8sd-localpv-values` |
+| Metrics Server | `k8sd-metrics-server-values` |
 
-Additional features will be listed here as support is added.
+All ConfigMaps live in the `kube-system` namespace.
 
 ## ConfigMap format
 

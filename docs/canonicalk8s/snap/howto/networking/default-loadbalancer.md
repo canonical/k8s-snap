@@ -76,6 +76,13 @@ If you run `k8s status` soon after enabling the load balancer in BGP mode,
 `k8s status` might report errors. Please wait a few moments for the load balancer to finish deploying and try again.
 ```
 
+## Advanced: override Helm values
+
+For fine-grained tuning not exposed by `k8s set` (e.g. resource limits,
+tolerations, pod annotations), you can pass Helm values directly to the
+MetalLB chart via a ConfigMap. See [Override feature Helm values][helm-overrides]
+for details.
+
 ## Disable the load balancer
 
 The default load balancer can be disabled again with:
@@ -92,3 +99,4 @@ sudo k8s disable load-balancer
 [CIDR]: https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing
 [getting-started-guide]: /snap/tutorial/getting-started
 [Load-Balancer]: /snap/explanation/networking.md#load-balancer
+[helm-overrides]: /snap/howto/helm-overrides
