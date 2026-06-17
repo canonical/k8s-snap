@@ -375,6 +375,7 @@ def wait_until_k8s_ready(
     retries: int = config.DEFAULT_WAIT_RETRIES,
     delay_s: int = config.DEFAULT_WAIT_DELAY_S,
     node_names: Mapping[str, str] = {},
+    skip_services: List[str] = [],
 ):
     """
     Validates that the K8s node is in Ready state.
@@ -393,7 +394,7 @@ def wait_until_k8s_ready(
         ):
             with attempt:
                 assert is_node_ready(control_node, node_name)
-                check_snap_services_ready(instance)
+                check_snap_services_ready(instance, skip_services=skip_services)
 
     LOG.info("Successfully checked Kubelet registered on all harness instances.")
     result = control_node.exec(["k8s", "kubectl", "get", "node"], capture_output=True)
