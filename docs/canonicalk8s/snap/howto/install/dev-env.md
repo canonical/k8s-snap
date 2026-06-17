@@ -67,6 +67,15 @@ sudo mount -o remount,size=10G /run
 
 However, these changes will be cleared on reboot.
 
+### Home directory usage
+
+It is strongly recommended that you use a system-level directory like `\opt\{path}` 
+or `\sys\{path}` instead of a user-home directory like `\home\{path}`. Although the
+cluster will likely continue to work, using a user-home directory will cause lots of
+temporary bind mount files to populate the folder that are ordinarily hidden. There
+may also be issues with user-level disk encryption or restricted file permissions 
+that can also cause a failed bootstrap.
+
 ### External consumption
 
 When changing the containerd install path, make sure that the configurations of
