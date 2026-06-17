@@ -540,7 +540,9 @@ def test_feature_upgrades_rollout_upgrade(
         token = util.get_join_token(cluster_node, new_instance)
         new_instance.exec(["k8s", "join-cluster", token])
         nodes_in_cluster = instances[idx : idx + 3]  # noqa
-        util.wait_until_k8s_ready(new_instance, nodes_in_cluster, skip_services=["kube-proxy"])
+        util.wait_until_k8s_ready(
+            new_instance, nodes_in_cluster, skip_services=["kube-proxy"]
+        )
 
         # An upgrade CRD should exist and be in NodeUpgrade phase.
         crs = _get_upgrade_crs(new_instance)

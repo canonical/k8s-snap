@@ -120,7 +120,9 @@ def test_disable_separate_feature_upgrades(
         ),
     )
 
-    util.wait_until_k8s_ready(cluster_node, [cluster_node], skip_services=["kube-proxy"])
+    util.wait_until_k8s_ready(
+        cluster_node, [cluster_node], skip_services=["kube-proxy"]
+    )
 
     join_token = util.get_join_token(cluster_node, joining_cp)
     util.join_cluster(joining_cp, join_token)
