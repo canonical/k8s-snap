@@ -17,7 +17,7 @@ another application (e.g. Docker), the bootstrap will fail. To resolve this,
 provide a base directory for the files to be installed at by setting
 `containerd-base-dir` in the bootstrap config YAML:
 
-```bash
+```
 cat <<EOF | sudo k8s bootstrap --file -
 containerd-base-dir: $containerdBaseDir
 cluster-config:
@@ -83,7 +83,7 @@ external consumers of {{product}} such as operators are also updated. For exampl
 in the GPU operator, you will have to update the Helm chart to include the new
 containerd paths.
 
-```bash
+```
 helm install gpu-operator nvidia/gpu-operator -n gpu-operator \
  --set operator.defaultRuntime=containerd \
  --set toolkit.env[0].name=CONTAINERD_CONFIG \
