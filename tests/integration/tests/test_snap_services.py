@@ -45,5 +45,12 @@ def test_snap_services(instances: List[harness.Instance]):
     util.wait_until_k8s_ready(cp, instances, skip_services=["kube-proxy"])
 
     LOG.info("Checking snap services")
-    util.check_snap_services_ready(cp, node_type="control-plane", datastore_type="etcd", skip_services=["kube-proxy"])
-    util.check_snap_services_ready(worker, node_type="worker", skip_services=["kube-proxy"])
+    util.check_snap_services_ready(
+        cp,
+        node_type="control-plane",
+        datastore_type="etcd",
+        skip_services=["kube-proxy"],
+    )
+    util.check_snap_services_ready(
+        worker, node_type="worker", skip_services=["kube-proxy"]
+    )
