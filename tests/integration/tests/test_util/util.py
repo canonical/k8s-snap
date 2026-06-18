@@ -1294,10 +1294,6 @@ def check_snap_services_ready(
         "kube-scheduler",
     }
 
-    if _is_kube_proxy_enabled(instance):
-        expected_worker_services.add("kube-proxy")
-        expected_control_plane_services.add("kube-proxy")
-
     if node_type:
         assert node_type in ("control-plane", "worker"), "Invalid node type provided"
         expected_active_services = (
@@ -1339,6 +1335,16 @@ def check_snap_services_ready(
 
     last_error = None
     for attempt in range(1, retries + 1):
+        if _is_kube_proxy_enabled(instance):
+            expected_worker_services.add("kube-proxy")
+            expected_control_plane_services.add("kube-proxy")
+        else:
+            if "kube-proxy" in expected_worker_services:
+                expected_worker_services.remove("kube-proxy")
+            if "kube-proxy" in expected_control_plane_services:
+                expected_control_plane_services.remove("kube-proxy")
+
+
         service_status = get_snap_service_status(instance)
         try:
             for service in expected_active_services:
@@ -1570,12 +1576,15 @@ def _is_kube_proxy_enabled(
         )
         return False
 
-    rows = json.loads(result.stdout)
-    for row in rows:
-        for value in row:
-            network = value.get("network", {})
-            if "kube-proxy-enabled" in network:
-                return network["kube-proxy-enabled"]
+    try:
+        rows = json.loads(result.stdout)
+        for row in rows:
+            for value in row:
+                network = value.get("network", {})
+                if "kube-proxy-enabled" in network:
+                    return network["kube-proxy-enabled"]
+    except json.decoder.JSONDecodeError as e:
+        LOG.error(f"failed to load cluster config json: {e}")
 
     return True
 
