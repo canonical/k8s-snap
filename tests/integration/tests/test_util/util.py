@@ -1581,7 +1581,10 @@ def _is_kube_proxy_enabled(
             for value in row:
                 network = value.get("network", {})
                 if "kube-proxy-enabled" in network:
-                    return network["kube-proxy-enabled"]
+                    LOG.info(f"{network["kube-proxy-enabled"]}")
+                    return str(network["kube-proxy-enabled"]).lower() == "true"
+                else:
+                    LOG.info("kube-proxy-enabled was not found in cluster_config")
     except json.decoder.JSONDecodeError as e:
         LOG.error(f"failed to load cluster config json: {e}")
 
