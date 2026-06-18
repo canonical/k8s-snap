@@ -1541,41 +1541,23 @@ def _is_kube_proxy_enabled(
 ) -> bool:
     """Return True if kube-proxy is enabled, False otherwise.
 
-    First checks if /var/snap/k8s/common/local-state.yaml exists on the node.
-    If it does not exist, the node is running an older version that does not
-    support kube-proxy replacement, so kube-proxy is expected to be running.
-
-    If the file exists, checks the k8sd-config ConfigMap in kube-system namespace.
-    If the kube-proxy-enabled field does not exist, returns True by default.
+    Queries the k8sd datastore for the `network.kube-proxy-enabled` config value.
+    If the field is present, returns its boolean value. If the field is not found,
+    kube-proxy is enabled by default, so returns True.
     If the command fails (e.g. the node has been removed from the cluster),
     returns False by default to avoid expecting a service that may not be running.
 
     Args:
         instance: instance on which to execute the command
     """
-    # Check if local-state.yaml exists (introduced with kube-proxy replacement support).
-    # If it does not exist, the node is on an older version where kube-proxy is expected.
-    try:
-        instance.exec(
-            ["test", "-f", "/var/snap/k8s/common/local-state.yaml"],
-            capture_output=True,
-            check=True,
-        )
-    except subprocess.CalledProcessError:
-        return True
-
     try:
         result = instance.exec(
             [
-                "k8s",
-                "kubectl",
-                "get",
-                "cm",
-                "k8sd-config",
-                "-n",
-                "kube-system",
-                "-o",
-                "jsonpath={.data.kube-proxy-enabled}",
+                "/snap/k8s/current/bin/k8sd",
+                "sql",
+                "--state-dir",
+                "/var/snap/k8s/common/var/lib/k8sd/state",
+                "select value from cluster_configs",
             ],
             capture_output=True,
             text=True,
@@ -1587,10 +1569,15 @@ def _is_kube_proxy_enabled(
             instance.id,
         )
         return False
-    value = result.stdout.strip()
-    if not value:
-        return True
-    return value.lower() == "true"
+
+    rows = json.loads(result.stdout)
+    for row in rows:
+        for value in row:
+            network = value.get("network", {})
+            if "kube-proxy-enabled" in network:
+                return network["kube-proxy-enabled"]
+
+    return True
 
 
 def diverged_cluster_memberships(
