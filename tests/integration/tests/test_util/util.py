@@ -1296,10 +1296,6 @@ def check_snap_services_ready(
         "kube-scheduler",
     }
 
-    if _is_kube_proxy_enabled(instance):
-        expected_worker_services.add("kube-proxy")
-        expected_control_plane_services.add("kube-proxy")
-
     if node_type:
         assert node_type in ("control-plane", "worker"), "Invalid node type provided"
         expected_active_services = (
@@ -1350,6 +1346,7 @@ def check_snap_services_ready(
                     expected_worker_services.remove("kube-proxy")
                 if "kube-proxy" in expected_control_plane_services:
                     expected_control_plane_services.remove("kube-proxy")
+
         service_status = get_snap_service_status(instance)
         try:
             for service in expected_active_services:
