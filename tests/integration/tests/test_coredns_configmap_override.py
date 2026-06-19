@@ -145,7 +145,7 @@ def _wait_for_resource_limits(
         actual_cpu = limits.get("cpu")
         actual_memory = limits.get("memory")
         LOG.info(
-            "Helm resource limits \u2014 cpu: %s (want %s), memory: %s (want %s)",
+            "Helm resource limits - cpu: %s (want %s), memory: %s (want %s)",
             actual_cpu,
             expected_cpu,
             actual_memory,
@@ -177,7 +177,7 @@ def _wait_for_defaults_restored(instance: harness.Instance):
         resources_absent = "resources" not in values
 
         LOG.info(
-            "Checking defaults \u2014 hpa.minReplicas: %s (want 2), "
+            "Checking defaults - hpa.minReplicas: %s (want 2), "
             "hpa.maxReplicas: %s (want 100), resources absent: %s (want True)",
             actual_min,
             actual_max,
@@ -201,8 +201,8 @@ def test_coredns_configmap_override(instances: List[harness.Instance]):
     3. Confirm the Helm release reflects the new values.
     4. Update the ConfigMap (minReplicas=6, maxReplicas=30).
     5. Confirm the Helm release reflects the updated values.
-    6. Update the ConfigMap to also set resource limits \u2014 a value k8sd never
-       passes itself \u2014 to verify arbitrary chart values can be injected.
+    6. Update the ConfigMap to also set resource limits - a value k8sd never
+       passes itself - to verify arbitrary chart values can be injected.
     7. Confirm the resource limits appear in the Helm release values.
     8. Delete the ConfigMap.
     9. Confirm HPA reverts to k8sd defaults (minReplicas=2, maxReplicas=100)
