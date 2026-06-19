@@ -66,15 +66,15 @@ More configuration options are available when a configuration file is specified.
 Please consult the {ref}`worker-node-join-config` reference page for all of the
 available configuration options and their defaults.
 
-In this example, the configuration file provided at cluster join will set the
-proxy mode of the worker machine to `ipvs`.
+In this example, the configuration file provided at cluster join will set
+custom kubelet arguments on the worker machine.
 
 Create a `custom_config.yaml` file that sets the intended custom configurations.
 
 ```
 cat <<EOF > custom_config.yaml
-extra-node-kube-proxy-args:
-    "--proxy-mode" : "ipvs"
+extra-node-kubelet-args:
+    "--max-pods" : "200"
 EOF
 ```
 
