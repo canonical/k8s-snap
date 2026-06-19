@@ -87,6 +87,8 @@ Machine  State    Address         Inst id              Base          AZ         
 
 <!-- markdownlint-restore -->
 
+(patch-upgrades)=
+
 ## Patch upgrades 
 
 Kubernetes releases patch versions approximately every month. These updates
@@ -191,6 +193,8 @@ version of **Kubernetes** is listed in the application's **Version**.
 
 It is recommended that you run a [cluster validation][cluster-validation]
 to ensure that the cluster is fully functional.
+
+(minor-upgrades)=
 
 ## Minor upgrades
 
