@@ -1562,7 +1562,7 @@ def _is_kube_proxy_enabled(
                 "sql",
                 "--state-dir",
                 "/var/snap/k8s/common/var/lib/k8sd/state",
-                "select value from cluster_configs",
+                "select value from cluster_configs where key = 'v1alpha2'",
             ],
             capture_output=True,
             text=True,
@@ -1573,7 +1573,7 @@ def _is_kube_proxy_enabled(
             "Failed to query kube-proxy-enabled on %s, defaulting to False",
             instance.id,
         )
-        return False
+        return True
 
     try:
         rows = json.loads(result.stdout)
@@ -1581,7 +1581,7 @@ def _is_kube_proxy_enabled(
             for value in row:
                 network = value.get("network", {})
                 if "kube-proxy-enabled" in network:
-                    LOG.info(f"{network["kube-proxy-enabled"]}")
+                    LOG.info(f"kube-proxy-enabled in cluster config: {network['kube-proxy-enabled']}")
                     return str(network["kube-proxy-enabled"]).lower() == "true"
                 else:
                     LOG.info("kube-proxy-enabled was not found in cluster_config")
