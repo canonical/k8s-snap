@@ -19,7 +19,7 @@ import logging
 from typing import List
 
 import pytest
-from test_util import config, harness, tags, util, configmap_override
+from test_util import config, configmap_override, harness, tags, util
 
 LOG = logging.getLogger(__name__)
 
@@ -53,7 +53,11 @@ def test_cilium_configmap_override(instances: List[harness.Instance]):
 
         LOG.info("Waiting for Helm to reflect bandwidthManager.enabled=true")
         configmap_override.wait_for_override(
-            instance, HELM_RELEASE, HELM_NAMESPACE, ["bandwidthManager", "enabled"], True
+            instance,
+            HELM_RELEASE,
+            HELM_NAMESPACE,
+            ["bandwidthManager", "enabled"],
+            True,
         )
 
         # -- Step 2: Update the ConfigMap override --
@@ -69,7 +73,11 @@ def test_cilium_configmap_override(instances: List[harness.Instance]):
 
         LOG.info("Waiting for Helm to reflect bandwidthManager.enabled=false")
         configmap_override.wait_for_override(
-            instance, HELM_RELEASE, HELM_NAMESPACE, ["bandwidthManager", "enabled"], False
+            instance,
+            HELM_RELEASE,
+            HELM_NAMESPACE,
+            ["bandwidthManager", "enabled"],
+            False,
         )
 
         # -- Step 3: Delete the ConfigMap and verify revert --

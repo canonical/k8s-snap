@@ -4,9 +4,9 @@
 """Shared utilities for ConfigMap override integration tests."""
 
 import logging
-import yaml
 from typing import List
 
+import yaml
 from test_util import harness, util
 
 LOG = logging.getLogger(__name__)

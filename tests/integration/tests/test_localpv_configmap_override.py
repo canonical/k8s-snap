@@ -21,7 +21,7 @@ import logging
 from typing import List
 
 import pytest
-from test_util import config, harness, tags, util, configmap_override
+from test_util import config, configmap_override, harness, tags, util
 
 LOG = logging.getLogger(__name__)
 
