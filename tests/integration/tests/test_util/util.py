@@ -1278,6 +1278,7 @@ def check_snap_services_ready(
         delay_s: seconds to wait between retries (default: 5).
     """
     skip_services = skip_services or []
+    assert retries >= 1, "retries must be >= 1"
 
     expected_worker_services = {
         "containerd",
@@ -1548,7 +1549,7 @@ def _is_kube_proxy_enabled(
 
     Queries the k8sd datastore for the `network.kube-proxy-enabled` config value.
     If the field is present, returns its boolean value. If the field is not found,
-    kube-proxy is enabled by default, so returns True.
+    kube-proxy is disabled by default, so returns False.
     If the command fails (e.g. the node has been removed from the cluster),
     returns False by default to avoid expecting a service that may not be running.
 
@@ -1590,6 +1591,8 @@ def _is_kube_proxy_enabled(
     except json.decoder.JSONDecodeError as e:
         LOG.error(f"failed to load cluster config json: {e}")
 
+    # If the field is not found in k8sd db, return True because that's probably an older
+    # version of k8s-snap without the kube-proxy-enabled field in the cluster_config
     return True
 
 
