@@ -1581,7 +1581,9 @@ def _is_kube_proxy_enabled(
             for value in row:
                 network = value.get("network", {})
                 if "kube-proxy-enabled" in network:
-                    LOG.info(f"kube-proxy-enabled in cluster config: {network['kube-proxy-enabled']}")
+                    LOG.info(
+                        f"kube-proxy-enabled in cluster config: {network['kube-proxy-enabled']}"
+                    )
                     return str(network["kube-proxy-enabled"]).lower() == "true"
                 else:
                     LOG.info("kube-proxy-enabled was not found in cluster_config")
