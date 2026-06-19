@@ -220,6 +220,7 @@ GPLv
 Graber
 Graber's
 grafana
+gRPC
 haircommander
 Harbor
 hasdoc
@@ -457,6 +458,8 @@ rc
 RCU
 README
 readOnlyPort
+ReadtheDocs
+rebalancing
 regctl
 regsync
 remediations
@@ -496,6 +499,7 @@ SecurityContext
 SecurityContexts
 SELinux
 ServiceAccount
+ServiceArgsController
 sha
 sideloading
 Snapcraft
@@ -604,6 +608,7 @@ wordlist
 www
 xdelta
 xfs
+xz
 XXXX
 yaml
 YAMLs
