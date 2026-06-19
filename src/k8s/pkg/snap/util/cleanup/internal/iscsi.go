@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"os/exec"
+	"strings"
 
 	"github.com/canonical/k8s/pkg/log"
+	"golang.org/x/sys/unix"
 )
 
 // iscsiadmNoObjectsFound is the exit code returned by iscsiadm when no iSCSI sessions exist.
@@ -32,5 +34,43 @@ func LogoutISCSISessions(ctx context.Context) {
 			return
 		}
 		log.Error(err, "failed to logout iSCSI sessions", "output", string(out))
+	}
+}
+
+// SyncISCSIDevices flushes all pending I/O to iSCSI-backed block devices.
+// This must be called before unmounting volumes or logging out iSCSI sessions
+// to prevent data corruption caused by in-flight writes being lost.
+func SyncISCSIDevices(ctx context.Context) {
+	log := log.FromContext(ctx)
+
+	// Flush all dirty filesystem pages to their backing block devices.
+	unix.Sync()
+
+	if _, err := exec.LookPath("iscsiadm"); err != nil {
+		return
+	}
+
+	out, err := exec.CommandContext(ctx, "iscsiadm", "-m", "session", "-P", "3").CombinedOutput()
+	if err != nil {
+		return
+	}
+
+	for _, line := range strings.Split(string(out), "\n") {
+		line = strings.TrimSpace(line)
+		if !strings.HasPrefix(line, "Attached scsi disk") {
+			continue
+		}
+
+		fields := strings.Fields(line)
+		if len(fields) < 4 {
+			continue
+		}
+		dev := "/dev/" + fields[3]
+
+		log.Info("Flushing iSCSI block device buffer", "device", dev)
+		flushOut, err := exec.CommandContext(ctx, "blockdev", "--flushbufs", dev).CombinedOutput()
+		if err != nil {
+			log.Error(err, "Failed to flush iSCSI block device buffers", "device", dev, "output", string(flushOut))
+		}
 	}
 }

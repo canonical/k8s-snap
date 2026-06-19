@@ -13,3 +13,9 @@ func TestLogoutISCSISessions_NoIscsiadm(t *testing.T) {
 	t.Setenv("PATH", t.TempDir())
 	internal.LogoutISCSISessions(context.Background())
 }
+
+func TestSyncISCSIDevices_NoIscsiadm(t *testing.T) {
+	// When iscsiadm is not available the function must return without panicking.
+	t.Setenv("PATH", t.TempDir())
+	internal.SyncISCSIDevices(context.Background())
+}
