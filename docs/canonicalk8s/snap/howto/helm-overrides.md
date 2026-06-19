@@ -62,18 +62,10 @@ data:
 EOF
 ```
 
-The controller reconciles within seconds. Verify the change using your external
-`helm` installation:
+The controller reconciles within seconds. Verify the change:
 
 ```
 helm get values ck-dns --namespace kube-system --output yaml
-```
-
-```{note}
-Use an external `helm` client (not the bundled `k8s helm` wrapper) with
-your cluster's kubeconfig. Export the kubeconfig first if needed:
-
-    sudo k8s config > ~/.kube/config
 ```
 
 ## Update an override
