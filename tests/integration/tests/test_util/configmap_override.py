@@ -120,16 +120,36 @@ def wait_for_key_absent(
     instance: harness.Instance,
     helm_release: str,
     helm_namespace: str,
-    top_level_key: str,
+    key_path: List[str],
     retries: int = 30,
     delay_s: int = 5,
 ):
-    """Poll Helm values until the top-level key is absent (override reverted)."""
+    """Poll Helm values until the nested key path is absent (override reverted).
+
+    key_path is a list of keys to traverse, e.g. ["controller", "logLevel"] to
+    check that values["controller"]["logLevel"] is absent, or ["bandwidthManager"]
+    to check that the top-level "bandwidthManager" key is absent.
+    """
 
     def _key_absent(p) -> bool:
         values = parse_helm_stdout(p)
-        absent = top_level_key not in values
-        LOG.info("Helm values key '%s' absent: %s (want True)", top_level_key, absent)
+        node = values
+        for key in key_path[:-1]:
+            if not isinstance(node, dict) or key not in node:
+                # Parent key is already absent → target is implicitly absent
+                LOG.info(
+                    "Parent key '%s' in path %s absent: True (want True)",
+                    key,
+                    ".".join(key_path),
+                )
+                return True
+            node = node[key]
+        absent = not isinstance(node, dict) or key_path[-1] not in node
+        LOG.info(
+            "Helm values key '%s' absent: %s (want True)",
+            ".".join(key_path),
+            absent,
+        )
         return absent
 
     util.stubbornly(retries=retries, delay_s=delay_s).on(instance).until(

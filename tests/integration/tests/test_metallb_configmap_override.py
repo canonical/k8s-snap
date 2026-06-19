@@ -74,9 +74,9 @@ def test_metallb_configmap_override(instances: List[harness.Instance]):
             instance, OVERRIDE_CM_NAME, OVERRIDE_CM_NAMESPACE
         )
 
-        LOG.info("Waiting for controller key to be absent from Helm values")
+        LOG.info("Waiting for controller.logLevel key to be absent from Helm values")
         configmap_override.wait_for_key_absent(
-            instance, HELM_RELEASE, HELM_NAMESPACE, "controller"
+            instance, HELM_RELEASE, HELM_NAMESPACE, ["controller", "logLevel"]
         )
 
     finally:

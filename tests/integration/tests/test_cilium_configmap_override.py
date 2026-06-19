@@ -80,7 +80,7 @@ def test_cilium_configmap_override(instances: List[harness.Instance]):
 
         LOG.info("Waiting for bandwidthManager key to be absent from Helm values")
         configmap_override.wait_for_key_absent(
-            instance, HELM_RELEASE, HELM_NAMESPACE, "bandwidthManager"
+            instance, HELM_RELEASE, HELM_NAMESPACE, ["bandwidthManager"]
         )
 
     finally:
