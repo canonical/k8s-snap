@@ -79,9 +79,7 @@ containerd-base-dir: /home/ubuntu
 
     boostrap_config = yaml.safe_load(containerd_path_bootstrap_config)
     new_containerd_paths = [
-        os.path.join(
-            boostrap_config["containerd-base-dir"], p.lstrip("/")
-        )
+        os.path.join(boostrap_config["containerd-base-dir"], p.lstrip("/"))
         for p in CONTAINERD_PATHS
     ]
 
