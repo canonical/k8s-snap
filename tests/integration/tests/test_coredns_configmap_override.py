@@ -111,7 +111,7 @@ def _wait_for_hpa_values(
         actual_min = hpa.get("minReplicas")
         actual_max = hpa.get("maxReplicas")
         LOG.info(
-            "Helm HPA values \u2014 minReplicas: %s (want %s), maxReplicas: %s (want %s)",
+            "Helm HPA values - minReplicas: %s (want %s), maxReplicas: %s (want %s)",
             actual_min,
             expected_min,
             actual_max,
