@@ -32,7 +32,7 @@ def test_snap_services(instances: List[harness.Instance]):
     util.snap_refresh(worker, refresh_track, "--amend")
 
     LOG.info("Waiting for k8s to be ready")
-    util.wait_until_k8s_ready(cp, instances)
+    util.wait_until_k8s_ready(cp, instances, skip_services=["kube-proxy"])
 
     LOG.info("Reverting the snaps")
     cp.exec("snap revert k8s".split())

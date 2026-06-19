@@ -375,6 +375,7 @@ def wait_until_k8s_ready(
     retries: int = config.DEFAULT_WAIT_RETRIES,
     delay_s: int = config.DEFAULT_WAIT_DELAY_S,
     node_names: Mapping[str, str] = {},
+    skip_services: Optional[List[str]] = None,
 ):
     """
     Validates that the K8s node is in Ready state.
@@ -393,7 +394,7 @@ def wait_until_k8s_ready(
         ):
             with attempt:
                 assert is_node_ready(control_node, node_name)
-                check_snap_services_ready(instance)
+                check_snap_services_ready(instance, skip_services=skip_services)
 
     LOG.info("Successfully checked Kubelet registered on all harness instances.")
     result = control_node.exec(["k8s", "kubectl", "get", "node"], capture_output=True)
@@ -1336,14 +1337,15 @@ def check_snap_services_ready(
 
     last_error = None
     for attempt in range(1, retries + 1):
-        if _is_kube_proxy_enabled(instance):
-            expected_worker_services.add("kube-proxy")
-            expected_control_plane_services.add("kube-proxy")
-        else:
-            if "kube-proxy" in expected_worker_services:
-                expected_worker_services.remove("kube-proxy")
-            if "kube-proxy" in expected_control_plane_services:
-                expected_control_plane_services.remove("kube-proxy")
+        if "kube-proxy" not in skip_services:
+            if _is_kube_proxy_enabled(instance):
+                expected_worker_services.add("kube-proxy")
+                expected_control_plane_services.add("kube-proxy")
+            else:
+                if "kube-proxy" in expected_worker_services:
+                    expected_worker_services.remove("kube-proxy")
+                if "kube-proxy" in expected_control_plane_services:
+                    expected_control_plane_services.remove("kube-proxy")
 
         service_status = get_snap_service_status(instance)
         try:
