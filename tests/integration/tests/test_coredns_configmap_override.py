@@ -215,7 +215,7 @@ def test_coredns_configmap_override(instances: List[harness.Instance]):
         util.wait_until_k8s_ready(instance, [instance])
         util.wait_for_dns(instance)
 
-        # --- Step 1: Apply initial ConfigMap override ---
+        # -- Step 1: Apply initial ConfigMap override --
         LOG.info(
             "Applying CoreDNS override ConfigMap with minReplicas=4, maxReplicas=60"
         )
@@ -227,7 +227,7 @@ def test_coredns_configmap_override(instances: List[harness.Instance]):
         LOG.info("Waiting for Helm to reflect minReplicas=4, maxReplicas=60")
         _wait_for_hpa_values(instance, expected_min=4, expected_max=60)
 
-        # --- Step 2: Update the ConfigMap override ---
+        # -- Step 2: Update the ConfigMap override --
         LOG.info("Updating CoreDNS override ConfigMap to minReplicas=6, maxReplicas=30")
         _apply_coredns_override_configmap(
             instance,
@@ -237,12 +237,12 @@ def test_coredns_configmap_override(instances: List[harness.Instance]):
         LOG.info("Waiting for Helm to reflect minReplicas=6, maxReplicas=30")
         _wait_for_hpa_values(instance, expected_min=6, expected_max=30)
 
-        # --- Step 3: Override a value k8sd does not set (resource limits) ---
+        # -- Step 3: Override a value k8sd does not set (resource limits) --
         # k8sd never passes `resources` to the CoreDNS chart, so this tests
         # that the ConfigMap can inject completely new chart values.
         LOG.info(
             "Updating ConfigMap to also set resource limits "
-            "(cpu=200m, memory=170Mi) \u2014 a value k8sd does not pass itself"
+            "(cpu=200m, memory=170Mi) - a value k8sd does not pass itself"
         )
         _apply_coredns_override_configmap(
             instance,
@@ -255,7 +255,7 @@ def test_coredns_configmap_override(instances: List[harness.Instance]):
             instance, expected_cpu="200m", expected_memory="170Mi"
         )
 
-        # --- Step 4: Delete the ConfigMap and verify revert to defaults ---
+        # -- Step 4: Delete the ConfigMap and verify revert to defaults --
         LOG.info("Deleting CoreDNS override ConfigMap")
         _delete_coredns_override_configmap(instance)
 
