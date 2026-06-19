@@ -65,8 +65,7 @@ EOF
 The controller reconciles within seconds. Verify the change:
 
 ```
-sudo /snap/k8s/current/bin/helm get values ck-dns \
-  --namespace kube-system --output yaml
+sudo k8s helm get values ck-dns --namespace kube-system --output yaml
 ```
 
 ## Update an override
