@@ -25,7 +25,7 @@ If omitted defaults to an auto generated key.
 ### kube-proxy-client-crt
 **Type:** `string`<br>
 
-```{deprecated} kube-proxy replacement
+```{deprecated} 1.36
 This field is no longer used. {{product}} uses Cilium's kube-proxy replacement
 and does not run kube-proxy. This field is accepted for backward compatibility
 and used when the default CNI (Cilium) is not in use.
@@ -37,7 +37,7 @@ If omitted defaults to an auto generated certificate.
 ### kube-proxy-client-key
 **Type:** `string`<br>
 
-```{deprecated} kube-proxy replacement
+```{deprecated} 1.36
 This field is no longer used. {{product}} uses Cilium's kube-proxy replacement
 and does not run kube-proxy. This field is accepted for backward compatibility
 and used when the default CNI (Cilium) is not in use.
@@ -64,7 +64,7 @@ The format is `map[<filename>]<filecontent>`.
 ### extra-node-kube-proxy-args
 **Type:** `map[string]string`<br>
 
-```{deprecated} kube-proxy replacement
+```{deprecated} 1.36
 This field is no longer used. {{product}} uses Cilium's kube-proxy replacement
 and does not run kube-proxy. This field is accepted for backward compatibility
 and used when the default CNI (Cilium) is not in use.
