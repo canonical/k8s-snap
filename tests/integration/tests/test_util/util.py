@@ -1576,13 +1576,7 @@ def _is_kube_proxy_enabled(
             "Failed to query kube-proxy-enabled on %s, defaulting to False",
             instance.id,
         )
-    for row in rows:
-        for value in row:
-            network = value.get("network", {})
-            if "kube-proxy-enabled" in network:
-                return network["kube-proxy-enabled"]
-
-    return True
+        return True
 
     try:
         rows = json.loads(result.stdout)
