@@ -97,8 +97,8 @@ k8s list-images
 The output will look similar to the following:
 
 ```
-ghcr.io/canonical/cilium-operator-generic:1.19.4-ck0
-ghcr.io/canonical/cilium:1.19.4-ck0
+ghcr.io/canonical/cilium-operator-generic:1.15.2-ck2
+ghcr.io/canonical/cilium:1.15.2-ck2
 ghcr.io/canonical/coredns:1.11.1-ck4
 ghcr.io/canonical/k8s-snap/pause:3.10
 ghcr.io/canonical/k8s-snap/sig-storage/csi-node-driver-registrar:v2.10.1
