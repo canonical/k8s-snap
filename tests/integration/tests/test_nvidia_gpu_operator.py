@@ -62,7 +62,7 @@ def _check_nvidia_drivers_loaded(instance: harness.Instance) -> Mapping[str, boo
 @pytest.mark.parametrize(
     "gpu_operator_version", NVIDIA_GPU_OPERATOR_SUPPORTED_UBUNTU_VERSIONS.keys()
 )
-def test_deploy_nvdia_gpu_operator(
+def test_deploy_nvidia_gpu_operator(
     instances: List[harness.Instance], gpu_operator_version: str
 ):
     """Tests that the Nvidia `gpu-operator` can be deployed successfully
