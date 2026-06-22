@@ -161,9 +161,9 @@ jobs:
         with:
           name: k8s-${{ matrix.arch }}.snap
           path: ${{ github.workspace }}
-      - name: Zip test suite
+      - name: Archive test suite
         run: |
-          zip -r k8s-test-suite.zip tests/integration/
+          tar czf k8s-test-suite.tar.gz tests/integration/
       - name: Submit Testflinger Job
         uses: canonical/testflinger/.github/actions/submit@main
         timeout-minutes: 45
