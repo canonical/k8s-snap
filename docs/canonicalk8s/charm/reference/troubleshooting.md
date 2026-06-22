@@ -244,7 +244,7 @@ k8s/0*  blocked  idle  0  10.246.154.22  6443/tcp  bootstrap-pod-cidr is immutab
 
 Juju allows for configuration to be fully mutable; however, some k8s options --
 specifically those starting with `bootstrap-` are
-[immutable](charm_configurations). Juju allows for these options to change over
+[immutable](/charm/reference/charm-configurations.md). Juju allows for these options to change over
 time, but it will cause the charm to block if adjusted during day-2 operation
 of the application.
 
@@ -271,4 +271,3 @@ juju config k8s bootstrap-datastore='managed-etcd'
 
 <!-- LINKS -->
 [reported here]: https://github.com/cilium/cilium/issues/30889
-[charm_configuration]: ./charm-configuration
