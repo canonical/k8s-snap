@@ -334,5 +334,5 @@ Ceph documentation: [Intro to Ceph].
 [block-devices-and-kubernetes]: https://docs.ceph.com/en/latest/rbd/rbd-kubernetes/
 [placement groups]: https://docs.ceph.com/en/mimic/rados/operations/placement-groups/
 [Intro to Ceph]: https://docs.ceph.com/en/reef/start/
-[authorization capabilities page]:https://docs.ceph.com/en/latest/rados/operations/user-management/#authorization-capabilities]
+[authorization capabilities page]:https://docs.ceph.com/en/latest/rados/operations/user-management/#authorization-capabilities
 [example ConfigMap]:https://github.com/ceph/ceph-csi/blob/devel/examples/kms/vault/kms-config.yaml
