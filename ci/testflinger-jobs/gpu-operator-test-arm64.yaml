@@ -1,0 +1,56 @@
+job_queue: jetson-agx-orin
+
+provision_data:
+  distro: jammy
+  kernel: generic
+
+attachments:
+  - k8s-arm64.snap
+  - k8s-test-suite.zip
+
+test_data:
+  # The GPU operator takes up to 10-15 mins to compile/install drivers inside k8s.
+  timeout: 2700  # 45 minutes total execution boundary
+
+  test_cmds: |
+    #!/bin/bash
+    set -eux
+
+    # 1. Verify GPU hardware is present
+    if ! lspci -k | grep -q "NVIDIA Corporation"; then
+        echo "ERROR: No NVIDIA GPU detected on this machine."
+        exit 1
+    fi
+
+    # 2. Ensure no pre-loaded NVIDIA drivers (gpu-operator must manage them)
+    if lsmod | grep -q "^nvidia"; then
+        echo "NVIDIA drivers detected on host. Purging to allow GPU-operator to manage them..."
+        sudo apt-get purge -y '^nvidia-.*' || true
+        sudo apt-get autoremove -y || true
+        sudo rmmod nvidia_uvm || true
+        sudo rmmod nvidia_modeset || true
+        sudo rmmod nvidia || true
+    fi
+
+    # 3. Set up LXD (required substrate for the test framework)
+    sudo snap install lxd --channel=latest/stable
+    sudo lxd init --auto
+
+    # 4. Unpack test suite
+    unzip -q k8s-test-suite.zip
+    cd tests/integration
+
+    # 5. Install test dependencies
+    sudo apt-get update
+    sudo apt-get install -y python3-pip python3-venv tox
+
+    # 6. Run the NVIDIA GPU operator test via tox
+    # Use the GPU LXD profile (base profile + gpu device passthrough)
+    export TEST_LXD_PROFILE="$(cat lxd-gpu-profile.yaml)"
+    export TEST_SNAP="$(realpath ../../k8s-arm64.snap)"
+    export TEST_SUBSTRATE=lxd
+    export TEST_LXD_IMAGE="ubuntu:22.04"
+
+    tox -e integration -- \
+        -k "test_deploy_nvdia_gpu_operator" \
+        --tags gpu
