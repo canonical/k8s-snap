@@ -326,8 +326,9 @@ After a while, confirm that all the node show up in the output of the
 `sudo k8s kubectl get node` command.
 
 Adding nodes requires the same steps to be repeated but instead of
-bootstrapping, you would need to {ref}`generate a join token <k8s-get-join-token>` and {ref}`join the node <k8s-join-cluster>`
-to the cluster.
+bootstrapping, you would need to 
+{ref}`generate a join token <k8s-get-join-token>` and 
+{ref}`join the node <k8s-join-cluster>` to the cluster.
 
 <!-- LINKS -->
 
