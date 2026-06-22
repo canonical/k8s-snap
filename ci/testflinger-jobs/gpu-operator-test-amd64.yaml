@@ -8,8 +8,8 @@ provision_data:
 timeout: 2700  # 45 minutes total execution boundary
 test_data:
   attachments:
-  - k8s-amd64.snap
-  - k8s-test-suite.tar.gz
+  - local: k8s-amd64.snap
+  - local: k8s-test-suite.tar.gz
   test_cmds: |
     #!/bin/bash
     set -eux
