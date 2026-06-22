@@ -93,7 +93,7 @@ sudo k8s disable load-balancer
 
 ## Next Step
 
-- Learn more in the [Load-Balancer] explanation page.
+- Learn more in the [Load-balancer explanation](/snap/explanation/networking.md#load-balancer) page.
 
 <!-- LINKS -->
 [CIDR]: https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing

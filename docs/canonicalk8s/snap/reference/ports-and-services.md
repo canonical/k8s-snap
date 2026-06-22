@@ -9,8 +9,8 @@
 | localhost:9879   | TCP      | cilium-agent   | TCP port for the Cilium agent health status API.                                                         |
 | localhost:9890   | TCP      | cilium-agent   | Cilium agent [gops](https://github.com/google/gops) server endpoint.                                     |
 | localhost:10248  | TCP      | kubelet        | Localhost health check endpoint.                                                                         |
-| localhost:10249  | TCP      | kube-proxy     | Port for the metrics server.                                                                             |
-| localhost:10256  | TCP      | kube-proxy     | Port for binding the health check server.                                                                |
+| localhost:10249  | TCP      | kube-proxy     | Port for the metrics server. (when kube-proxy replacement is not enabled)                                                                             |
+| localhost:10256  | TCP      | kube-proxy     | Port for binding the health check server. (when kube-proxy replacement is not enabled)                                                               |
 | default:4240     | TCP      | cilium-agent   | TCP port for cluster-wide network connectivity and Cilium agent health API.                              |
 | default:6400     | TCP      | k8sd           | Default REST API port for Canonical Kubernetes daemon.                                                   |
 | *:4244           | TCP      | cilium-agent   | Listening address for Hubble.                                                                            |

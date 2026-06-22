@@ -112,7 +112,7 @@ sudo k8s help disable
 
 ## Next Step
 
-- Learn more in the [networking explanation] page.
+- Learn more in the [networking explanation](/snap/explanation/networking.md#ingress) page.
 
 <!-- LINKS -->
 
@@ -120,4 +120,3 @@ sudo k8s help disable
 [proxy-protocol]: https://kubernetes.io/docs/reference/networking/service-protocols/#protocol-proxy-special
 [getting-started-guide]: /snap/tutorial/getting-started
 [kubectl-guide]: /snap/tutorial/kubectl
-[networking explanation]: /snap/explanation/networking.md#ingress

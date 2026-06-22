@@ -18,6 +18,8 @@ details on the required setup.
 
 This guide will call the generated cluster spec manifest `cluster.yaml`.
 
+(using-config-spec)=
+
 ## Use the configuration specification
 
 {{product}} can be installed on machines using a specific `channel`,
@@ -68,7 +70,7 @@ Now the new control plane nodes that are created using this manifest will have
 the `1.35-classic/candidate` {{product}} snap installed on them!
 
 ```{note}
-[Use the configuration specification](#using-config-spec),
+{ref}`Use the configuration specification <using-config-spec>`,
 if you're only interested in installing a specific channel, revision, or
 form the local path.
 ```

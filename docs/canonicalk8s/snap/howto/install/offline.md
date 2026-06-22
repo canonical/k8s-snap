@@ -114,6 +114,8 @@ downloaded `k8s` snap is unsquashed.
 
 Please ensure that the images used by workloads are tracked as well.
 
+(choose-how-to-access-images)=
+
 #### Choose how to access images
 
 You must select how the container runtime accesses OCI images in your air-gapped
@@ -157,8 +159,7 @@ This requires three steps:
    push to your registry mirror.
 3. Configure the {{product}} container runtime (`containerd`) to load
    images from the private registry mirror instead of the upstream source. This
-   will be described in the [container runtime](
-   #configure-container-runtime) section under configure registry mirrors.
+   will be described in the {ref}`container runtime <configure-container-runtime>` section under configure registry mirrors.
 
  To load images into the private registry, a machine is needed with access to
 any upstream registries (e.g. `docker.io`) and the private mirror.
@@ -243,10 +244,12 @@ sudo snap ack k8s.assert && sudo snap install ./k8s.snap --classic
 
 Repeat the above for all nodes of the cluster.
 
+(configure-container-runtime)=
+
 ### Configure container runtime
 
 Based on the image access type you chose in the step
-[choose how to access images](#choose-how-to-access-images), configure the
+{ref}`choose how to access images <choose-how-to-access-images>`, configure the
 container runtime to fetch images properly:
 
 
@@ -333,7 +336,7 @@ After a while, confirm that all the node show up in the output of the
 `sudo k8s kubectl get node` command.
 
 Adding nodes requires the same steps to be repeated but instead of
-bootstrapping, you would need to [generate a join token] and [join the node]
+bootstrapping, you would need to {ref}`generate a join token <k8s-get-join-token>` and {ref}`join the node <k8s-join-cluster>`
 to the cluster.
 
 <!-- LINKS -->
@@ -343,5 +346,3 @@ to the cluster.
 [regctl]: https://github.com/regclient/regclient/blob/main/docs/regctl.md
 [nodes]: /snap/tutorial/add-remove-nodes.md
 [squid]: https://www.squid-cache.org/
-[generate a join token]: /snap/reference/commands/#k8s-get-join-token
-[join the node]:/snap/reference/commands/#k8s-join-cluster

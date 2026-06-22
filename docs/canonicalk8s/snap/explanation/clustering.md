@@ -64,7 +64,6 @@ entire life-cycle. Their components include:
 - **Kubelet**: Communicates with the control plane node and manages the
     containers running on the machine according to the configurations provided
     by the user.
-- **Kube-Proxy (kube-proxy)**: Manages network communication within the cluster.
 - **Container Runtime**: The software responsible for running containers. In
     {{product}} the runtime is `containerd`.
 
