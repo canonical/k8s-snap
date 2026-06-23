@@ -87,20 +87,19 @@ data:
 EOF
 ```
 
-## Remove all overrides
+## Remove overrides
 
-Delete the ConfigMap to revert to the feature's defaults:
-
-```
-sudo k8s kubectl delete configmap k8sd-coredns-values -n kube-system
-```
+To remove a specific override, delete the key from the ConfigMap's `values`
+field and re-apply it. Deleting the ConfigMap itself does **not** revert the
+Helm release — the last-applied values persist until you explicitly overwrite
+them.
 
 ## Notes
 
 - Overrides are merged on top of defaults. Keys you do not specify keep their
   default values.
 - If the `values` key is missing from the ConfigMap, or if the YAML is
-  invalid, the feature falls back to defaults and surfaces a warning in
+  invalid, the override is ignored and a warning is surfaced in
   `sudo k8s status`.
 - Overrides survive feature disable/enable cycles and cluster restarts.
 
