@@ -157,7 +157,6 @@ def test_disable_separate_feature_upgrades(
         capture_output=True,
     )
 
-
     # Refresh first node, no upgrade CRD should be created.
     util.setup_k8s_snap(cluster_node, tmp_path, config.SNAP)
     cluster_node.exec("k8s set gateway.enabled=false".split())
