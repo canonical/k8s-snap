@@ -72,6 +72,7 @@ Manage images <image-management.md>
 ```{toctree}
 :titlesonly:
 Back up and restore <backup-restore>
+Override feature values with Helm <helm-overrides>
 ```
 
 ## Monitoring and troubleshooting
@@ -88,21 +89,11 @@ Troubleshoot <troubleshooting>
 Get support <support>
 ```
 
-## Enhanced Platform Awareness
-
-EPA utilizes server hardware capabilities in the {{product}} cluster. It
-exposes technologies such as HugePages, CPU pinning, SR-IOV and more.
-
-```{toctree}
-:titlesonly:
-Set up Enhanced Platform Awareness <epa>
-```
-
 ## Advanced configuration
 
 ```{toctree}
 :titlesonly:
-Override feature Helm values <helm-overrides>
+Set up Enhanced Platform Awareness <epa>
 ```
 
 ## Contribute

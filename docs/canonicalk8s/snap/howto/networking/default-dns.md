@@ -73,11 +73,11 @@ sudo k8s set dns.service-ip=<new-cluster-ip>
 Replace `<new-ip>`, `<new-domain-name>`, and `<new-cluster-ip>` with the
 desired values for your DNS configuration.
 
-## Advanced: override Helm values
+### Advanced: override Helm values
 
 For fine-grained tuning not exposed by `k8s set` (e.g. HPA replica counts,
 resource limits), you can pass Helm values directly to the CoreDNS chart via
-a ConfigMap. See [Override feature Helm values][helm-overrides] for details.
+a ConfigMap. See [Override feature values with Helm][helm-overrides] for details.
 
 ## Disable DNS
 

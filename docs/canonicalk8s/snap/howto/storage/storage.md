@@ -53,12 +53,12 @@ The local-storage feature provides the following configuration options:
   is not changed. If this flag is not set and the cluster does not have a
   default class set then the class from the local-storage becomes the default.
 
-## Advanced: override Helm values
+### Advanced: override Helm values
 
 For fine-grained tuning not exposed by `k8s set` (e.g. resource limits,
 tolerations, custom storage class annotations), you can pass Helm values
 directly to the LocalPV chart via a ConfigMap. See
-[Override feature Helm values][helm-overrides] for details.
+[Override feature values with Helm][helm-overrides] for details.
 
 ## Disable local storage
 

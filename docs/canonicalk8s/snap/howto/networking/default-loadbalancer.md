@@ -80,7 +80,7 @@ If you run `k8s status` soon after enabling the load balancer in BGP mode,
 
 For fine-grained tuning not exposed by `k8s set` (e.g. resource limits,
 tolerations, pod annotations), you can pass Helm values directly to the
-MetalLB chart via a ConfigMap. See [Override feature Helm values][helm-overrides]
+MetalLB chart via a ConfigMap. See [Override feature values with Helm][helm-overrides]
 for details.
 
 ## Disable the load balancer
