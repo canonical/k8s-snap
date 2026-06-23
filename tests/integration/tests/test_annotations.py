@@ -114,7 +114,7 @@ def test_disable_separate_feature_upgrades(
     # install previous track on the cluster node
     cluster_node.exec(f"snap install k8s --classic --channel={start_branch}".split())
     # install the current snap on the joining cp
-    util.setup_k8s_snap(joining_cp, tmp_path, config.SNAP)
+    util.setup_k8s_snap(joining_cp)
 
     cluster_node.exec(
         "k8s bootstrap --file -".split(),
@@ -176,10 +176,6 @@ def test_disable_separate_feature_upgrades(
     # The feature controller should not be blocked.
     # Disable gateway feature
     cluster_node.exec("k8s set gateway.enabled=false".split())
-
-    def is_gateway_disabled(process):
-        gateway_status = json.loads(process.stdout)
-        return gateway_status.get("enabled") is False
 
     # Wait until gateway is disabled
     util.stubbornly(retries=3, delay_s=5).on(cluster_node).until(
