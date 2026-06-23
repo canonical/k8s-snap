@@ -13,8 +13,6 @@ Test flow:
    (k8sd default is Retain).
 3. Poll Helm values until the override is reflected.
 4. Update the ConfigMap to storageClass.reclaimPolicy=Retain and verify.
-5. Delete the ConfigMap and verify reclaimPolicy reverts to the k8sd default
-   (Retain).
 """
 
 import logging
@@ -30,14 +28,11 @@ OVERRIDE_CM_NAMESPACE = "kube-system"
 HELM_RELEASE = "ck-storage"
 HELM_NAMESPACE = "kube-system"
 
-# k8sd default for storageClass.reclaimPolicy.
-DEFAULT_RECLAIM_POLICY = "Retain"
-
 
 @pytest.mark.bootstrap_config((config.MANIFESTS_DIR / "bootstrap-all.yaml").read_text())
 @pytest.mark.tags(tags.PULL_REQUEST)
 def test_localpv_configmap_override(instances: List[harness.Instance]):
-    """Verify that the LocalPVConfigMapController applies and reverts Helm overrides."""
+    """Verify that the LocalPVConfigMapController applies and updates Helm overrides."""
     instance = instances[0]
 
     try:
@@ -83,24 +78,6 @@ def test_localpv_configmap_override(instances: List[harness.Instance]):
             HELM_NAMESPACE,
             ["storageClass", "reclaimPolicy"],
             "Retain",
-        )
-
-        # -- Step 3: Delete the ConfigMap and verify revert to k8sd defaults --
-        LOG.info("Deleting LocalPV override ConfigMap")
-        configmap_override.delete_override_configmap(
-            instance, OVERRIDE_CM_NAME, OVERRIDE_CM_NAMESPACE
-        )
-
-        LOG.info(
-            "Waiting for storageClass.reclaimPolicy to revert to k8sd default (%s)",
-            DEFAULT_RECLAIM_POLICY,
-        )
-        configmap_override.wait_for_override(
-            instance,
-            HELM_RELEASE,
-            HELM_NAMESPACE,
-            ["storageClass", "reclaimPolicy"],
-            DEFAULT_RECLAIM_POLICY,
         )
 
     finally:

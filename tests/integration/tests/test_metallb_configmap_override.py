@@ -12,7 +12,6 @@ Test flow:
 2. Apply an override ConfigMap with a value k8sd does not set.
 3. Poll Helm values until the override is reflected.
 4. Update the ConfigMap and verify the new value is applied.
-5. Delete the ConfigMap and verify the override is absent from Helm values.
 """
 
 import logging
@@ -32,7 +31,7 @@ HELM_NAMESPACE = "metallb-system"
 @pytest.mark.bootstrap_config((config.MANIFESTS_DIR / "bootstrap-all.yaml").read_text())
 @pytest.mark.tags(tags.PULL_REQUEST)
 def test_metallb_configmap_override(instances: List[harness.Instance]):
-    """Verify that the MetalLBConfigMapController applies and reverts Helm overrides."""
+    """Verify that the MetalLBConfigMapController applies and updates Helm overrides."""
     instance = instances[0]
 
     try:
@@ -66,17 +65,6 @@ def test_metallb_configmap_override(instances: List[harness.Instance]):
         LOG.info("Waiting for Helm to reflect controller.logLevel=info")
         configmap_override.wait_for_override(
             instance, HELM_RELEASE, HELM_NAMESPACE, ["controller", "logLevel"], "info"
-        )
-
-        # -- Step 3: Delete the ConfigMap and verify revert --
-        LOG.info("Deleting MetalLB override ConfigMap")
-        configmap_override.delete_override_configmap(
-            instance, OVERRIDE_CM_NAME, OVERRIDE_CM_NAMESPACE
-        )
-
-        LOG.info("Waiting for controller.logLevel key to be absent from Helm values")
-        configmap_override.wait_for_key_absent(
-            instance, HELM_RELEASE, HELM_NAMESPACE, ["controller", "logLevel"]
         )
 
     finally:

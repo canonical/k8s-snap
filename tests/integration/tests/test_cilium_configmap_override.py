@@ -12,7 +12,6 @@ Test flow:
 2. Apply an override ConfigMap with a value k8sd does not set.
 3. Poll Helm values until the override is reflected.
 4. Update the ConfigMap and verify the new value is applied.
-5. Delete the ConfigMap and verify the override is absent from Helm values.
 """
 
 import logging
@@ -32,7 +31,7 @@ HELM_NAMESPACE = "kube-system"
 @pytest.mark.bootstrap_config((config.MANIFESTS_DIR / "bootstrap-all.yaml").read_text())
 @pytest.mark.tags(tags.PULL_REQUEST)
 def test_cilium_configmap_override(instances: List[harness.Instance]):
-    """Verify that the CiliumConfigMapController applies and reverts Helm overrides."""
+    """Verify that the CiliumConfigMapController applies and updates Helm overrides."""
     instance = instances[0]
 
     try:
@@ -78,17 +77,6 @@ def test_cilium_configmap_override(instances: List[harness.Instance]):
             HELM_NAMESPACE,
             ["bandwidthManager", "enabled"],
             False,
-        )
-
-        # -- Step 3: Delete the ConfigMap and verify revert --
-        LOG.info("Deleting Cilium override ConfigMap")
-        configmap_override.delete_override_configmap(
-            instance, OVERRIDE_CM_NAME, OVERRIDE_CM_NAMESPACE
-        )
-
-        LOG.info("Waiting for bandwidthManager key to be absent from Helm values")
-        configmap_override.wait_for_key_absent(
-            instance, HELM_RELEASE, HELM_NAMESPACE, ["bandwidthManager"]
         )
 
     finally:

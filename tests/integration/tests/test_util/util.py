@@ -560,12 +560,14 @@ def wait_for_pods_ready(
 
 def wait_for_dns(instance: harness.Instance):
     LOG.info("Waiting for DNS to be ready")
-    instance.exec(["k8s", "x-wait-for", "dns", "--timeout", "20m"])
+    instance.exec(["k8s", "x-wait-for", "dns", "--timeout", "20m"], capture_output=True)
 
 
 def wait_for_network(instance: harness.Instance):
     LOG.info("Waiting for network to be ready")
-    instance.exec(["k8s", "x-wait-for", "network", "--timeout", "20m"])
+    instance.exec(
+        ["k8s", "x-wait-for", "network", "--timeout", "20m"], capture_output=True
+    )
 
 
 def wait_for_load_balancer(instance: harness.Instance):
