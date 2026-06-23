@@ -3,21 +3,21 @@ repos:
     hooks:
       - id: make-spelling
         name: Run make spelling
-        entry: make -C docs spelling
+        entry: make -C docs/canonicalk8s spelling
         language: system
         pass_filenames: false
         files: ^docs/.*\.(rst|md|txt)$
 
       - id: make-linkcheck
         name: Run make linkcheck
-        entry: make -C docs linkcheck
+        entry: make -C docs/canonicalk8s linkcheck
         language: system
         pass_filenames: false
         files: ^docs/.*\.(rst|md|txt)$
 
       - id: make-woke
         name: Run make woke
-        entry: make -C docs woke
+        entry: make -C docs/canonicalk8s woke
         language: system
         pass_filenames: false
         files: ^docs/.*\.(rst|md|txt)$

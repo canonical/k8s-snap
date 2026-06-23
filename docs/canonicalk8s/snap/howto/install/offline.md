@@ -115,6 +115,8 @@ downloaded `k8s` snap is unsquashed.
 
 Please ensure that the images used by workloads are tracked as well.
 
+(choose-how-to-access-images)=
+
 #### Choose how to access images
 
 You must select how the container runtime accesses OCI images in your air-gapped
@@ -237,7 +239,7 @@ Repeat the above for all nodes of the cluster.
 ### Configure container runtime
 
 Based on the image access type you chose in the step
-[choose how to access images](#choose-how-to-access-images), configure the
+{ref}`choose how to access images <choose-how-to-access-images>`, configure the
 container runtime to fetch images properly:
 
 
@@ -335,6 +337,6 @@ to the cluster.
 [regctl.sh]: https://github.com/canonical/k8s-snap/blob/release-1.32/src/k8s/tools/regctl.sh
 [nodes]: /snap/tutorial/add-remove-nodes.md
 [squid]: https://www.squid-cache.org/
-[generate a join token]: /snap/reference/commands/#k8s-get-join-token
-[join the node]:/snap/reference/commands/#k8s-join-cluster
+[generate a join token]: /snap/reference/commands.md#k8s-get-join-token
+[join the node]: /snap/reference/commands.md#k8s-join-cluster
 

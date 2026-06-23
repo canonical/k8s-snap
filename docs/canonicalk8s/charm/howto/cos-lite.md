@@ -136,7 +136,7 @@ you can head over to the [COS Lite documentation][cos-lite-docs].
 
 <!-- LINKS -->
 
-[how-to-install]: ../howto/charm/install
+[how-to-install]: /charm/howto/install/index.md
 [add-k8s]: https://juju.is/docs/juju/juju-add-k8s
 [cos-lite-docs]: https://charmhub.io/topics/canonical-observability-stack
 [juju-models]: https://juju.is/docs/juju/model

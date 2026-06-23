@@ -34,6 +34,7 @@ Anbox
 Anbox Cloud
 api
 APIs
+API's
 apiserver
 apparmor
 args
@@ -54,6 +55,7 @@ backported
 balancer
 balancer's
 balancers
+baycarbone
 benoitblanchon
 berkayoz
 bgp
@@ -82,6 +84,7 @@ Charmcraft
 Charmed
 Charmed Kubeflow
 Charmhub
+charmlib
 cidr
 cidrs
 CIDRs
@@ -103,16 +106,17 @@ ClusterRoleBindings
 ClusterRoles
 CMK
 CNCF
+cni
 CNI
 CNI's
 CNIs
 codebase
-compersonmand
 Commenter
 CommonName
 conf
 config
 configMap
+ConfigMap
 ConfigMaps
 ConnectError
 containerd
@@ -157,6 +161,7 @@ deprecations
 deprovisioned
 dir
 DISA
+disa
 discoverable
 Diátaxis
 DMA
@@ -167,6 +172,7 @@ dodi
 DPDK
 dqlite
 DRBD
+dualstack
 drv
 DTMs
 dulmandakh
@@ -180,6 +186,7 @@ ec
 ECDSA
 endfor
 endif
+EndpointSlice
 endtrans
 enp
 enum
@@ -269,6 +276,8 @@ Istio
 Jinja
 jitter
 jka
+journalctl
+journald
 JSON
 juju
 Juju's
@@ -349,7 +358,6 @@ Mir
 misconfiguration
 mitigations
 modprobe
-Moonray
 mq
 mTLS
 mtu
@@ -433,10 +441,13 @@ proxied
 provisioner
 PRs
 PSP
+PSS
 Pushgateway
 PV
 PVCs
 py
+pypi
+PyPI
 Pydantic
 Python
 qdisc
@@ -455,13 +466,16 @@ ReadtheDocs
 rebalancing
 regctl
 regsync
+remediations
 reources
 RequestResponse
 Requirer
+resizer
 roadmap
 Rockcraft
 RoleBindings
 rollout
+RPATH
 RPC
 rsa
 ru
@@ -472,12 +486,15 @@ runtimes
 rw
 S3
 sandboxed
+sanitization
 SANs
 SARIF
+structs
 SBOM
 scalable
 scalability
 SCHED
+schedulable
 sControlPlane
 SCTP
 sd
@@ -492,6 +509,7 @@ sha
 sideloading
 Snapcraft
 snapd
+snapshotter
 sourcename
 Spark
 Spark History Server
@@ -507,19 +525,23 @@ sshd
 SSL
 SSLv
 stackexchange
+stateful
 staticPodPath
 stderr
 stdout
 stgraber
-structs
+stig
 STIG
 STIGs
 STONITH
 StorageClass
 streamingConnectionIdleTimeout
 submodules
+subnet
+subnets
 sudo
 sys
+syslog
 systemd
 taskset
 TCP
@@ -552,14 +574,16 @@ ubuntu
 Ubuntu Core
 Ubuntu Pro
 Ubuntu Server
+UFW
+UDP
 uid
 UIDs
-UDP
 unix
 unoptimized
 unschedulable
 unsquashed
 upgrader
+USG
 url
 uuid
 UV
@@ -599,3 +623,4 @@ ZooKeeper
 zsh
 tmpfs
 ErrImagePull
+rapour
