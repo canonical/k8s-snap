@@ -110,7 +110,7 @@ def test_disable_separate_feature_upgrades(
 
     start_branch = util.previous_track(config.SNAP)
     # install previous track on the cluster node
-    util.setup_k8s_snap(instance=joining_cp, tmp_path=tmp_path, snap=start_branch)
+    util.setup_k8s_snap(cluster_node, tmp_path, start_branch)
     # install the current snap on the joining cp
     util.setup_k8s_snap(joining_cp, tmp_path, config.SNAP)
 
