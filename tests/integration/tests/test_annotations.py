@@ -175,10 +175,6 @@ def test_disable_separate_feature_upgrades(
     # Disable gateway feature
     cluster_node.exec("k8s set gateway.enabled=false".split())
 
-    def is_gateway_disabled(process):
-        gateway_status = json.loads(process.stdout)
-        return gateway_status.get("enabled") is False
-
     # Wait until gateway is disabled
     util.stubbornly(retries=3, delay_s=5).on(cluster_node).until(
         is_gateway_disabled
