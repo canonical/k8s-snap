@@ -1,5 +1,5 @@
 #
-# Copyright 2025 Canonical, Ltd.
+# Copyright 2026 Canonical, Ltd.
 #
 import json
 import logging
@@ -158,7 +158,6 @@ def test_disable_separate_feature_upgrades(
         text=True,
         capture_output=True,
     )
-
 
     # Refresh first node, no upgrade CRD should be created.
     util.setup_k8s_snap(cluster_node, tmp_path, config.SNAP)
