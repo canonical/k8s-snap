@@ -112,7 +112,9 @@ def test_disable_separate_feature_upgrades(
 
     start_branch = util.previous_track(config.SNAP)
     # install previous track on the cluster node
-    cluster_node.exec(f"snap install k8s --classic --channel={start_branch}".split())
+    util.stubbornly(retries=3, delay_s=30).on(cluster_node).exec(
+        ["snap", "install", "k8s", "--classic", f"--channel={start_branch}"]
+    )
     # install the current snap on the joining cp
     util.setup_k8s_snap(joining_cp, tmp_path, config.SNAP)
 
@@ -161,7 +163,8 @@ def test_disable_separate_feature_upgrades(
 
     # Refresh first node, no upgrade CRD should be created.
     util.setup_k8s_snap(cluster_node, tmp_path, config.SNAP)
-    cluster_node.exec("k8s set gateway.enabled=false".split())
+    util.wait_until_k8s_ready(cluster_node, instances)
+    cluster_node.exec("k8s set gateway.enabled=true".split())
     util.wait_until_k8s_ready(cluster_node, instances)
 
     upgrades = json.loads(
