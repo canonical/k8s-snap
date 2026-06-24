@@ -1,5 +1,8 @@
 # How to override feature values with Helm
 
+```{versionadded} release-1.36
+```
+
 {{product}} manages built-in features (DNS, network, ingress, etc.) by
 deploying and reconciling Helm charts. You can pass extra Helm values to any
 feature by creating a ConfigMap in the `kube-system` namespace. The cluster
