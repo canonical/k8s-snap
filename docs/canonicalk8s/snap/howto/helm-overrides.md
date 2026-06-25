@@ -4,7 +4,7 @@
 ```
 
 {{product}} manages built-in features (DNS, network, ingress, etc.) by
-deploying and reconciling Helm charts. You can pass extra Helm values to any
+deploying and reconciling [Helm](https://helm.sh) charts. You can pass extra Helm values to any
 feature by creating a ConfigMap in the `kube-system` namespace. The cluster
 controller picks up changes automatically — no restart is required.
 
