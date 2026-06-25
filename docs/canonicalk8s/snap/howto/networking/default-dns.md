@@ -4,7 +4,7 @@
 essential for internal cluster communication. When enabled, the DNS facilitates
 service discovery by assigning each service a DNS name. When disabled, you can
 integrate a custom DNS solution into your cluster. Learn more about the
-default DNS in the [reference documentation].
+default DNS in the [DNS explanation](/snap/explanation/networking.md#dns).
 
 ## Prerequisites
 
@@ -95,5 +95,4 @@ sudo k8s help disable
 
 <!-- LINKS -->
 
-[getting-started-guide]: ../../tutorial/getting-started
-[reference documentation]: ../../explanation/default-dns.md
+[getting-started-guide]: /snap/tutorial/getting-started
