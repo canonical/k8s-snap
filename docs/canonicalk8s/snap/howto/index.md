@@ -72,6 +72,12 @@ Manage images <image-management.md>
 ```{toctree}
 :titlesonly:
 Back up and restore <backup-restore>
+```
+
+## Advanced configuration
+
+```{toctree}
+:titlesonly:
 Override feature values with Helm <helm-overrides>
 ```
 
