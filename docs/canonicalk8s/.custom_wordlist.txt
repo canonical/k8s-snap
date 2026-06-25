@@ -276,6 +276,8 @@ Istio
 Jinja
 jitter
 jka
+journalctl
+journald
 JSON
 juju
 Juju's
@@ -539,6 +541,7 @@ subnet
 subnets
 sudo
 sys
+syslog
 systemd
 taskset
 TCP

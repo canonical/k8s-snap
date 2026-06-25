@@ -6,12 +6,7 @@ have security implications on {{product}}.
 ## Security pages
 
 - [Security overview explanation]
-- [Cryptography in Canonical Kubernetes explanation]
 - [How to report a security issue]
-
-## Authentication
-
-- [Certificates explanation]
 
 ## Updates
 
@@ -43,6 +38,5 @@ and much more.
 [How to upgrade minor version]: /charm/howto/upgrade-minor.md
 [How to upgrade patch version]:/charm/howto/upgrade-patch.md
 [Charm configurations]: /charm/reference/charm-configurations.md
-[Cryptography in Canonical Kubernetes explanation]: /snap/explanation/security/crypto.md
 [Certificates explanation]: /snap/explanation/security/certificates
 [How to report a security issue]: /charm/howto/report-security-issue.md
