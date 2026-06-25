@@ -162,6 +162,8 @@ After the `k8s` charm is upgraded, the application `Version` from `juju status`
 will reflect the updated version of the control-plane nodes making up the
 cluster.
 
+(worker-units-k8s-worker-minor)=
+
 #### Worker units (k8s-worker)
 
 After updating the control-plane applications, worker nodes may be upgraded
@@ -184,7 +186,8 @@ After the `k8s-worker` charm is upgraded, the application `Version`
 from `juju status`
 will reflect the updated version of the worker nodes making up the cluster.
 
-```{note} Repeat [this section](#worker-units-k8s-worker) for every
+```{note}
+Repeat {ref}`this section <worker-units-k8s-worker-minor>` for every
 application using the k8s-worker charm, if multiple k8s-worker
 applications appear in the same model.
 ```
