@@ -64,7 +64,8 @@ Change the cluster domain name:
 sudo k8s set dns.cluster-domain=<new-domain-name>
 ```
 
-Assign a new cluster IP to the DNS service:
+Assign a new cluster IP to the DNS service (DNS must be disabled in order to 
+do this):
 
 ```
 sudo k8s set dns.service-ip=<new-cluster-ip>
