@@ -1,5 +1,15 @@
 # Install {{product}} in development environments
 
+<!-- SPREAD SUITE: snap_clean -->
+
+<!-- SPREAD
+sudo snap install docker
+sudo snap install k8s --classic --channel=1.35-classic/stable
+# Tear down docker on exit
+trap 'sudo snap remove docker --purge' EXIT
+# Start doc test
+-->
+
 We recommend testing {{product}} in an isolated environment such as a clean
 virtual machine.
 
@@ -22,7 +32,11 @@ with {{product}}.
 But, if necessary, {{product}} can be configured to use a custom containerd
 path, like so:
 
-```bash
+<!-- SPREAD
+export containerdBaseDir=/ck8s/etc/containerd
+-->
+
+```
 cat <<EOF | sudo k8s bootstrap --file -
 containerd-base-dir: $containerdBaseDir
 cluster-config:
@@ -40,6 +54,11 @@ Any non-temporary directory can be chosen for `containerd-base-dir`
 containerd-related files (e.g.: `/ck8s/etc/containerd`,
 `/ck8s/var/run/containerd/containerd.sock`, etc.).
 
+<!-- SPREAD
+sudo k8s status --wait-ready --timeout 3m
+ps -ef | grep kubelet | grep container-runtime-endpoint=/ck8s/etc/containerd/k8s-containerd
+-->
+
 ### State Directory on tmpfs — Disk Pressure & ErrImagePull
 
 When using a custom containerd, if it is configured to use a state directory on
@@ -51,16 +70,20 @@ space for operations like image layer unpacking. Insufficient space can cause:
 
 To check the available space on the tmpfs:
 
-```bash
+<!-- SPREAD SKIP -->
+
+```
 df -h /run
 ```
 
 If the space is low and you're experiencing these issues, you can temporarily 
 increase the size of the tmpfs mount to see if it resolves the problem:
 
-```bash
+```
 sudo mount -o remount,size=10G /run
 ```
+
+<!-- SPREAD SKIP END -->
 
 ```{note}
 This change is not persistent and will reset on reboot.
@@ -73,9 +96,13 @@ for example after joining a different Wi-Fi network.
 
 In this case, you may configure {{product}} to use the ``localhost`` address:
 
+<!-- SPREAD SKIP -->
+
 ```bash
 sudo k8s bootstrap --address=127.0.0.1
 ```
+
+<!-- SPREAD SKIP END -->
 
 ## Conflicting Docker iptables rules
 

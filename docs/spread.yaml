@@ -23,32 +23,98 @@ backends:
           password: ubuntu
           workers: 1
 
+  multipass:
+    type: adhoc
+    allocate: |
+      multipass_image=24.04
+      instance_name="spread-$(date +%s)-$$"
+
+      # Launch Multipass VM
+      multipass launch --cpus 4 --disk 20G --memory 8G --name "${instance_name}" "${multipass_image}"
+
+      # Enable PasswordAuthentication for root over SSH.
+      multipass exec "$instance_name" -- \
+        sudo sh -c "echo root:root | sudo chpasswd"
+      multipass exec "$instance_name" -- \
+        sudo sh -c \
+        "if [ -d /etc/ssh/sshd_config.d/ ]
+        then
+          echo 'PasswordAuthentication yes' > /etc/ssh/sshd_config.d/10-spread.conf
+          echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config.d/10-spread.conf
+        else
+          sed -i /etc/ssh/sshd_config -E -e 's/^#?PasswordAuthentication.*/PasswordAuthentication yes/' -e 's/^#?PermitRootLogin.*/PermitRootLogin yes/'
+        fi"
+      multipass exec "$instance_name" -- \
+        sudo systemctl restart ssh
+
+      # Get the IP from the instance
+      ip=$(multipass info --format csv "$instance_name" | tail -1 | cut -d\, -f3)
+      ADDRESS "$ip"
+    discard: |
+      instance_name=$(multipass list --format csv | awk -F',' -v ip="$SPREAD_SYSTEM_ADDRESS" '$3==ip {print $1}' || true)
+      [ -n "$instance_name" ] && multipass delete --purge "${instance_name}" || true
+    systems:
+      - ubuntu-24.04-64:
+          username: root
+          password: "root"
+          workers: 1
+
 suites:
-  tests/spread-generated/snap_clean/:
+  tests/spread_generated/snap_clean/:
     summary: docs tests that run from a clean VM and perform install/bootstrap in-task
     prepare-each: |
       # GitHub runners ship with containerd; stop it and remove the socket so
       # the k8s snap can create /run/containerd without conflict.
       sudo systemctl stop containerd || true
       sudo systemctl disable containerd || true
+      # Clean up lingering mounts from previous aborted tests
+      if mount | grep -q "/run/containerd"; then
+        grep /run/containerd /proc/mounts | awk '{print $2}' | xargs -r sudo umount -l || true
+      fi
       sudo rm -rf /run/containerd || true
     restore-each: |
-      sudo snap remove k8s --purge || true
+      if snap list k8s &>/dev/null; then
+        sudo pkill -9 -f snap.k8s || true
+        sudo snap remove k8s --purge
+      fi
+      
       sudo rm -rf /var/snap/k8s || true
     systems:
       - ubuntu-24.04-64
 
-  tests/spread-generated/snap_bootstrapped/:
+  tests/spread_generated/snap_bootstrapped/:
     summary: docs tests that assume a bootstrapped snap cluster
     prepare-each: |
       sudo systemctl stop containerd || true
       sudo systemctl disable containerd || true
+      # Clean up lingering mounts from previous aborted tests
+      if mount | grep -q "/run/containerd"; then
+        grep /run/containerd /proc/mounts | awk '{print $2}' | xargs -r sudo umount -l || true
+      fi
       sudo rm -rf /run/containerd || true
+      
       sudo snap install k8s --classic --channel=1.35-classic/stable
       sudo k8s bootstrap --timeout 10m
+      
       sudo k8s status --wait-ready --timeout 3m
+      sudo k8s kubectl wait --for=condition=Ready node --all --timeout=5m
+
+      # Ensure Cilium exists
+      source ${SPREAD_PATH}/docs/tools/repeat_checks.sh
+      repeat_checks "sudo k8s kubectl get daemonset -n kube-system" "cilium"
+      repeat_checks "sudo k8s kubectl get deployment -n kube-system" "cilium-operator"
+
+      # Ensure Cilium and all pods in kube-system are ready 
+      sudo k8s kubectl rollout status daemonset/cilium -n kube-system --timeout=10m
+      sudo k8s kubectl rollout status deployment/cilium-operator -n kube-system --timeout=10m
+      sudo k8s kubectl wait --for=condition=Ready pods --all -n kube-system --timeout=10m
+
     restore-each: |
-      sudo snap remove k8s --purge || true
+      if snap list k8s &>/dev/null; then
+        sudo pkill -9 -f snap.k8s || true
+        sudo snap remove k8s --purge
+      fi
+      
       sudo rm -rf /var/snap/k8s || true
     systems:
       - ubuntu-24.04-64

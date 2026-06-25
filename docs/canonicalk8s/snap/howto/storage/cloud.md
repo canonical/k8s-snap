@@ -179,7 +179,7 @@ Then, bootstrap the cluster:
 
 ```bash
 sudo k8s bootstrap --file ./bootstrap-config.yaml
-sudo k8s status --wait-ready
+sudo k8s status --wait-ready --timeout 3m
 ```
 
 ## Deploy the cloud controller manager

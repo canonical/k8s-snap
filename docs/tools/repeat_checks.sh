@@ -8,7 +8,7 @@ function repeat_checks {
 
   for i in $(seq 1 "$max_retries"); do
     echo "Attempt ${i}/${max_retries}: ${cmd}"
-    bash -lc "$cmd" > output.txt 2>&1
+    bash -lc "$cmd" > output.txt 2>&1 || true
     cat output.txt
 
     if grep -Fq -- "$expected" output.txt; then

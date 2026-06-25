@@ -6,6 +6,8 @@ myst:
 
 # How to upgrade the snap
 
+<!-- SPREAD SUITE: snap_clean -->
+
 Upgrading the Kubernetes version of a node is a critical operation that
 requires careful planning and execution. {{product}} is shipped as a snap,
 which simplifies the upgrade process.
@@ -31,11 +33,30 @@ Snaps automatically check for updates of their specific track
 These updates ensure that the latest changes in the installed track are applied.
 Patch upgrades can also be triggered manually by following the steps below.
 
+<!-- SPREAD 
+sudo snap install k8s --classic --channel=1.34-classic/stable
+sudo k8s bootstrap
+sudo k8s status --wait-ready --timeout 3m
+# Ensure Cilium exists
+source ${SPREAD_PATH}/docs/tools/repeat_checks.sh
+repeat_checks "sudo k8s kubectl get daemonset -n kube-system" "cilium"
+repeat_checks "sudo k8s kubectl get deployment -n kube-system" "cilium-operator"
+# Ensure Cilium and all pods in kube-system are ready 
+sudo k8s kubectl rollout status daemonset/cilium -n kube-system --timeout=10m
+sudo k8s kubectl rollout status deployment/cilium-operator -n kube-system --timeout=10m
+sudo k8s kubectl wait --for=condition=Ready pods --all -n kube-system --timeout=10m
+-->
+
 1. **List available revisions:**
 
 ```
 snap info k8s
 ```
+
+<!-- SPREAD 
+snap info k8s | grep "tracking:     1.34-classic/stable"
+-->
+
 
 2. **Refresh the snap:**
 
@@ -50,7 +71,7 @@ confirming that the cluster is ready:
 
 ```
 snap info k8s
-sudo k8s status --wait-ready
+sudo k8s status --wait-ready --timeout 3m
 ```
 
 ## Minor version upgrade
@@ -77,6 +98,7 @@ steps before upgrading.
 The {{product}} snap channel can be changed by using the `snap refresh`
 command.
 
+
 ```
 snap refresh --channel=1.35-classic/stable k8s
 ```
@@ -88,8 +110,12 @@ and confirming that the cluster is ready:
 
 ```
 snap info k8s
-sudo k8s status --wait-ready
+sudo k8s status --wait-ready --timeout 3m
 ```
+
+<!-- SPREAD 
+snap info k8s | grep "installed:                v1.35"
+-->
 
 ```{note}
 In a multi-node cluster, the upgrade should be performed on all nodes.
@@ -117,10 +143,16 @@ sudo snap revert k8s
 Ensure that the revert was successful by checking the version of the snap and
 confirming that the cluster is ready:
 
+
+
 ```
 snap info k8s
-sudo k8s status --wait-ready
+sudo k8s status --wait-ready --timeout 3m
 ```
+
+<!-- SPREAD 
+snap info k8s | grep "installed:                v1.34"
+-->
 
 ```{note}
 In a multi-node cluster, the revert should be performed on all nodes.
