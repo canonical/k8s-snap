@@ -106,6 +106,7 @@ ClusterRoleBindings
 ClusterRoles
 CMK
 CNCF
+cni
 CNI
 CNI's
 CNIs
@@ -185,6 +186,7 @@ ec
 ECDSA
 endfor
 endif
+EndpointSlice
 endtrans
 enp
 enum
@@ -274,6 +276,8 @@ Istio
 Jinja
 jitter
 jka
+journalctl
+journald
 JSON
 juju
 Juju's
@@ -466,6 +470,7 @@ remediations
 reources
 RequestResponse
 Requirer
+resizer
 roadmap
 Rockcraft
 RoleBindings
@@ -504,6 +509,7 @@ sha
 sideloading
 Snapcraft
 snapd
+snapshotter
 sourcename
 Spark
 Spark History Server
@@ -530,12 +536,12 @@ STIGs
 STONITH
 StorageClass
 streamingConnectionIdleTimeout
-structs
 submodules
 subnet
 subnets
 sudo
 sys
+syslog
 systemd
 taskset
 TCP

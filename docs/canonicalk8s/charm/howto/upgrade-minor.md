@@ -120,7 +120,7 @@ If the current `charm-channel` is `1.31/stable`, it's critical
 to refresh to the `1.32/stable`. Skipping channels (e.g. 1.31 -> 1.33)
 will result in the units blocking and indicating they cannot upgrade.
 
-See Kubernetes' [Version Skew Policy](version-skew-policy)
+See Kubernetes' [version skew policy]
 ```
 
 ### The pre-upgrade-check
@@ -162,6 +162,8 @@ After the `k8s` charm is upgraded, the application `Version` from `juju status`
 will reflect the updated version of the control-plane nodes making up the
 cluster.
 
+(worker-units-k8s-worker-minor)=
+
 #### Worker units (k8s-worker)
 
 After updating the control-plane applications, worker nodes may be upgraded
@@ -184,7 +186,8 @@ After the `k8s-worker` charm is upgraded, the application `Version`
 from `juju status`
 will reflect the updated version of the worker nodes making up the cluster.
 
-```{note} Repeat [this section](#worker-units-k8s-worker) for every
+```{note}
+Repeat {ref}`this section <worker-units-k8s-worker-minor>` for every
 application using the k8s-worker charm, if multiple k8s-worker
 applications appear in the same model.
 ```
@@ -213,4 +216,4 @@ to ensure that the cluster is fully functional.
 [cluster-validation]:  ./validate
 [juju-docs]:           https://documentation.ubuntu.com/juju/3.6/howto/manage-models/
 [upstream-notes]:      https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.34.md#deprecation
-[version-skew-policy]: https://kubernetes.io/releases/version-skew-policy/
+[version skew policy]: https://kubernetes.io/releases/version-skew-policy/
