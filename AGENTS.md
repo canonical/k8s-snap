@@ -38,7 +38,7 @@ API changes require PRs in all three. During development, add a `replace` direct
 
 ## Snap Build
 
-Built with `snapcraft --use-lxd`. Base: `core22`. Architectures: `amd64`, `arm64`, `ppc64el`, `s390x`.
+Built with `snapcraft --use-lxd`. Architectures: `amd64`, `arm64`, `ppc64el`, `s390x` (see `snap/snapcraft.yaml` for snap base and other build metadata).
 Uses `go/<version>-fips/stable` for all Go component builds. FIPS mode is a first-class concern.
 
 ## Snap Channels
