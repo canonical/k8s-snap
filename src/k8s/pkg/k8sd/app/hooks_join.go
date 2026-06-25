@@ -444,7 +444,7 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		return fmt.Errorf("failed to get cluster config: %w", err)
 	}
 
-	if _, ok := config.Annotations.Get(apiv1_annotations.AnnotationDisableSeparateFeatureUpgrades); !ok {
+	if _, ok := config.Annotations.Get(apiv1_annotations.AnnotationDisableSeparateFeatureUpgrades); ok {
 		log.Info("Post-join steps skipped due to user annotation override.")
 	} else {
 		if err := handleRollOutUpgrade(ctx, a.snap, s, k8sClient); err != nil {
