@@ -65,13 +65,6 @@ sudo k8s kubectl exec -it cilium-97vcw -n kube-system -c cilium-agent \
 You should see a wide range of metrics and configuration values for your
 cluster.
 
-### Advanced: override Helm values
-
-For fine-grained tuning not exposed by `k8s set` (e.g. resource limits,
-tolerations, pod annotations), you can pass Helm values directly to the Cilium
-chart via a ConfigMap. See [Override feature values with Helm][helm-overrides]
-for details.
-
 ## Disable Network
 
 You can `disable` the built-in network:
@@ -98,4 +91,3 @@ sudo k8s disable --help
 
 <!-- LINKS -->
 [getting-started-guide]: ../../tutorial/getting-started
-[helm-overrides]: /snap/howto/helm-overrides

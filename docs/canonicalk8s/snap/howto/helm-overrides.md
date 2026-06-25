@@ -48,6 +48,31 @@ data:
       nestedKey: value
 ```
 
+## Discovering available values
+
+Each feature's available Helm values are documented in the upstream chart.
+To inspect what values a deployed release currently uses:
+
+```
+helm get values <release-name> --namespace <namespace> --all
+```
+
+To see the full set of values the chart supports, including defaults:
+
+```
+helm show values <chart-repo>/<chart-name>
+```
+
+The release names and namespaces for each feature are:
+
+| Feature | Release name | Namespace |
+|---------|-------------|----------|
+| DNS (CoreDNS) | `ck-dns` | `kube-system` |
+| Network/Ingress/Gateway (Cilium) | `ck-network` | `kube-system` |
+| Load Balancer (MetalLB) | `metallb` | `metallb-system` |
+| Local Storage (LocalPV) | `ck-storage` | `kube-system` |
+| Metrics Server | `metrics-server` | `kube-system` |
+
 ## Example: scale CoreDNS replicas
 
 By default CoreDNS uses a Horizontal Pod Autoscaler (HPA) with `minReplicas: 2`. To raise the minimum to
@@ -74,7 +99,7 @@ The controller reconciles within seconds. Verify the change:
 helm get values ck-dns --namespace kube-system --output yaml
 ```
 
-> **Note:** `ck-dns` is the internal Helm release name for CoreDNS. Use `k8s helm list -n kube-system` to list all managed releases.
+> **Note:** `ck-dns` is the Helm release name for CoreDNS in the `kube-system` namespace.
 
 ## Update an override
 
@@ -105,8 +130,10 @@ also does **not** revert the release — the previously deployed values remain.
 
 ## Notes
 
-- Overrides are merged on top of defaults. Keys you do not specify keep their
-  default values.
+- Values set via ConfigMap override take **higher priority** than anything
+  configured through `k8s set`. If you have set a value with `k8s set` and
+  also set it in the ConfigMap, the ConfigMap value wins. Keys absent from the
+  ConfigMap keep the value from `k8s set` or the chart default.
 - If the `values` key is missing from the ConfigMap, or if the YAML is
   invalid, the override is ignored and a warning is surfaced in
   `sudo k8s status`. Errors in the values themselves (e.g. an unknown chart

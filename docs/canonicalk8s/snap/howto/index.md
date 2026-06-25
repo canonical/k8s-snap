@@ -89,7 +89,10 @@ Troubleshoot <troubleshooting>
 Get support <support>
 ```
 
-## Advanced configuration
+## Enhanced Platform Awareness
+
+EPA utilizes server hardware capabilities in the {{product}} cluster. It
+exposes technologies such as HugePages, CPU pinning, SR-IOV and more.
 
 ```{toctree}
 :titlesonly:
