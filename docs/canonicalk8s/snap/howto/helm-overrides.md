@@ -4,7 +4,7 @@
 ```
 
 {{product}} manages built-in features (DNS, network, ingress, etc.) by
-deploying and reconciling [Helm] charts. You can pass extra Helm values to any
+deploying and reconciling helm charts. You can pass extra Helm values to any
 feature by creating a ConfigMap in the `kube-system` namespace. The cluster
 controller picks up changes automatically — no restart is required.
 
@@ -12,7 +12,7 @@ controller picks up changes automatically — no restart is required.
 
 - Root or sudo access to the machine.
 - A bootstrapped {{product}} cluster (see the [Getting Started][getting-started-guide] guide).
-- [Helm] installed on your machine to inspect release values.
+- [Helm][Helm install] installed on your machine to inspect release values.
 
 ## Naming convention
 
@@ -142,4 +142,4 @@ also does **not** revert the release — the previously deployed values remain.
 
 <!-- LINKS -->
 [getting-started-guide]: /snap/tutorial/getting-started
-[Helm]: https://helm.sh/docs/intro/install/
+[Helm install]: https://helm.sh/docs/intro/install/
