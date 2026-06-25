@@ -53,7 +53,8 @@ The local-storage feature provides the following configuration options:
   is not changed. If this flag is not set and the cluster does not have a
   default class set then the class from the local-storage becomes the default.
 
-To alter the `local-path` or `reclaim-policy`, you must disable local-storage first.
+To alter the `local-path` or `reclaim-policy`, you must disable local-storage 
+first.
 
 ## Disable local storage
 
