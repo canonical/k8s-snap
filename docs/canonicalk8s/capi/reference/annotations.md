@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Reference documentation for Canonical Kubernetes CAPI Machine annotations."
+---
+
 # Annotations
 
 Like annotations for other Kubernetes objects, CAPI annotations are key-value

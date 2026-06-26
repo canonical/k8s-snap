@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to configure the k8s charm to pull container images from a custom or private container registry."
+---
+
 # How to configure a custom registry
 
 The `k8s` charm can be configured to use a custom container registry for its

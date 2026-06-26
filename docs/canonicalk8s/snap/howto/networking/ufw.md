@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to configure UFW (Uncomplicated Firewall) rules for Canonical Kubernetes."
+---
+
 # How to configure Uncomplicated Firewall (UFW)
 
 <!-- SPREAD SUITE: snap_bootstrapped -->

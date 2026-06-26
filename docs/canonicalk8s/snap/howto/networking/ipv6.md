@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to set up an IPv6-only Kubernetes cluster with Canonical Kubernetes by specifying IPv6 CIDRs during the bootstrap process."
+---
+
 # How to set up an IPv6-only cluster
 
 An IPv6-only Kubernetes cluster operates exclusively using IPv6 addresses,

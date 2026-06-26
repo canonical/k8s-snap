@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to configure Canonical Kubernetes to use an intermediate Certificate Authority (CA) via the bootstrap configuration file."
+---
+
 # How to use intermediate CAs with Vault
 
 By default, {{product}} will generate self-signed CA certificates for the

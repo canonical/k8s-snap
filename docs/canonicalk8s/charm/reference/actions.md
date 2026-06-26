@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Reference documentation for Canonical Kubernetes charm actions, with links to the k8s and k8s-worker action pages on Charmhub."
+---
+
 # Charm actions reference
 
 The up-to-date list of actions are available on Charmhub:

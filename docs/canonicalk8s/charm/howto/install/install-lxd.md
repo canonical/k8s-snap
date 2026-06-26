@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to install Canonical Kubernetes in LXD virtual machines using Juju."
+---
+
 # How to install {{product}} using localhost/LXD
 
 The main [install instructions][install] cover most situations for installing

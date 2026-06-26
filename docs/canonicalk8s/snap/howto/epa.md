@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to set up Enhanced Platform Awareness (EPA) features in Canonical Kubernetes, including HugePages, real-time kernel, CPU pinning, and SR-IOV."
+---
+
 # How to set up Enhanced Platform Awareness
 
 This section explains how to set up the Enhanced Platform Awareness (EPA)

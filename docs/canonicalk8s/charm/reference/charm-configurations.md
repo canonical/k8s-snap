@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Reference documentation for Canonical Kubernetes k8s and k8s-worker charm configuration options."
+---
+
 # Charm configuration options reference
 
 This reference section provides the sites where you can find the configuration

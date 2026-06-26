@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Reference documentation for the etcd datastore in Canonical Kubernetes."
+---
+
 # Etcd database
 
 {{product}} uses **etcd** as the default Kubernetes datastore.

@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to harden a Canonical Kubernetes cluster with post-deployment security steps aligned with CIS and DISA STIG benchmarks."
+---
+
 # How to harden your {{product}} cluster
 
 <!-- SPREAD SUITE: snap_bootstrapped -->

@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to install Canonical Kubernetes with DISA STIG hardening, meeting U.S. DoD security guidelines for Kubernetes and the host operating system."
+---
+
 # How to install {{ product }} with DISA STIG hardening
 
 ```{versionadded} release-1.34

@@ -1,7 +1,7 @@
 ---
 myst:
   html_meta:
-    description: "Explore the official Canonical Kubernetes charm documentation. Includes step-by-step tutorials, practical how-to guides, in-depth explanations, and technical reference."
+    description: "Canonical Kubernetes charm documentation: the k8s Juju operator for deploying, scaling, and managing Kubernetes on Juju clouds."
 ---
 
 # {{product}} charm documentation

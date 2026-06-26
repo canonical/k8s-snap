@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Install Canonical Kubernetes how-to guide index, covering charm, LXD, Terraform and custom configuration and deployment options."
+---
+
 # Install {{product}}
 
 There's more than one way to install {{product}}. You'll find links to

@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to install Canonical Kubernetes from the k8s charm."
+---
+
 # How to install {{product}} from a charm
 
 {{product}} is packaged as a [charm], available from Charmhub for all

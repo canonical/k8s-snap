@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Reference index for Canonical Kubernetes configuration files, including bootstrap, node join, DISA STIG, and external certificate refresh formats."
+---
+
 # Configuration files
 
 {{product}} uses several configuration files to control its behavior and

@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Upgrade notes for Canonical Kubernetes snap, including version-specific migration steps and compatibility changes between releases."
+---
+
 # Upgrade notes
 
 ## Upgrade 1.34 to 1.35

@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Reference for Canonical Kubernetes DISA STIG configuration files for bootstrap, control plane join, and worker node join operations."
+---
+
 # DISA STIG example configuration files
 
 During the [installation of a DISA STIG hardened cluster], {{product}} provides
