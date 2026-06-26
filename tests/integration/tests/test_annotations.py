@@ -113,10 +113,10 @@ def test_disable_separate_feature_upgrades(
     joining_cp = instances[1]
 
     start_branch = util.previous_track(config.SNAP)
-    for instance in instances:
-        util.stubbornly(retries=3, delay_s=30).on(instance).exec(
-            ["snap", "install", "k8s", "--classic", f"--channel={start_branch}"]
-        )
+    # install previous track on the cluster node
+    util.setup_k8s_snap(cluster_node, start_branch)
+    # install the current snap on the joining cp
+    util.setup_k8s_snap(joining_cp)
 
     cluster_node.exec(
         "k8s bootstrap --file -".split(),
@@ -135,10 +135,6 @@ def test_disable_separate_feature_upgrades(
 
     util.wait_until_k8s_ready(joining_cp, instances)
 
-    # Refresh first node, no upgrade CRD should be created.
-    util.setup_k8s_snap(cluster_node, config.SNAP)
-    util.wait_until_k8s_ready(cluster_node, instances)
-
     upgrades = json.loads(
         cluster_node.exec(
             "k8s kubectl get upgrade -o=jsonpath={.items}".split(),
@@ -155,6 +151,34 @@ def test_disable_separate_feature_upgrades(
     def is_gateway_disabled(process):
         gateway_status = json.loads(process.stdout)
         return gateway_status.get("enabled") is False
+
+    # Wait until gateway is disabled
+    util.stubbornly(retries=3, delay_s=5).on(cluster_node).until(
+        is_gateway_disabled
+    ).exec(
+        ["k8s", "get", "gateway", "--output-format=json"],
+        text=True,
+        capture_output=True,
+    )
+
+    # Refresh first node, no upgrade CRD should be created.
+    util.setup_k8s_snap(cluster_node, config.SNAP)
+    util.wait_until_k8s_ready(cluster_node, instances)
+    cluster_node.exec("k8s set gateway.enabled=true".split())
+    util.wait_until_k8s_ready(cluster_node, instances)
+
+    upgrades = json.loads(
+        cluster_node.exec(
+            "k8s kubectl get upgrade -o=jsonpath={.items}".split(),
+            capture_output=True,
+            text=True,
+        ).stdout
+    )
+    assert len(upgrades) == 0, "upgrade CRD should not be created"
+
+    # The feature controller should not be blocked.
+    # Disable gateway feature
+    cluster_node.exec("k8s set gateway.enabled=false".split())
 
     # Wait until gateway is disabled
     util.stubbornly(retries=3, delay_s=5).on(cluster_node).until(
