@@ -272,7 +272,7 @@ def setup_k8s_snap(
         LOG.info("Install k8s snap by least risky channel: %s", channel)
         cmd += [config.SNAP_NAME, "--channel", channel]
 
-    instance.exec(cmd)
+    stubbornly(retries=3, delay_s=30).on(instance).exec(cmd)
     if connect_interfaces:
         LOG.info("Ensure k8s interfaces and network requirements")
         instance.exec(["/snap/k8s/current/k8s/hack/init.sh"], stdout=subprocess.DEVNULL)
