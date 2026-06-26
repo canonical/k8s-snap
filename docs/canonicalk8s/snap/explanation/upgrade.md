@@ -1,7 +1,7 @@
 ---
 myst:
   html_meta:
-    description: "Explanation of Kubernetes upgrade strategies in Canonical Kubernetes, covering patch and minor upgrades, sequential upgrades, and upgrade best practices." 
+    description: "Explanation of Kubernetes upgrade strategies in Canonical Kubernetes, covering patch and minor upgrades, sequential upgrades, and upgrade best practices."
 ---
 
 # Upgrading {{product}}
