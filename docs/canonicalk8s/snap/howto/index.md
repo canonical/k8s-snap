@@ -74,6 +74,13 @@ Manage images <image-management.md>
 Back up and restore <backup-restore>
 ```
 
+## Advanced configuration
+
+```{toctree}
+:titlesonly:
+Override feature values with Helm <helm-overrides>
+```
+
 ## Monitoring and troubleshooting
 
 Sometimes things go wrong and you need to troubleshoot. Having observability
