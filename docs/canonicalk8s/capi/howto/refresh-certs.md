@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to refresh Kubernetes certificates for control plane and worker nodes in a Canonical Kubernetes Cluster API managed cluster."
+---
+
 # How to refresh workload cluster certificates
 
 This how-to will walk you through the steps to refresh the certificates for

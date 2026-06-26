@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Explanation of Canonical Kubernetes: a full Kubernetes distribution in a snap with built-in DNS, CNI, ingress, storage, gateway, metrics server and load balancer."
+---
+
 # What is {{product}}?
 
 At its core, {{product}} is a full implementation of upstream

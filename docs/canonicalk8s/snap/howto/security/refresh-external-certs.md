@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to refresh externally managed Kubernetes certificates for control plane and worker nodes in a Canonical Kubernetes cluster."
+---
+
 # How to refresh externally managed Kubernetes certificates
 
 This guide walks you through refreshing external certificates for both control

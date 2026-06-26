@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Explanation of Kubernetes node roles in Canonical Kubernetes, including how control plane nodes are configured to allow workload scheduling by default."
+---
+
 # Node roles
 
 This document explains how {{product}} assigns Kubernetes node roles, how this

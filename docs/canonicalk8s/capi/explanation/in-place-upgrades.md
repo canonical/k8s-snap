@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Explanation of in-place Kubernetes upgrades in Canonical Kubernetes CAPI, covering upgrade controllers and annotations that drive the upgrade process."
+---
+
 # In-place upgrades
 
 Regularly upgrading the Kubernetes version of the machines in a cluster 

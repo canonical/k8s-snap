@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to deploy Canonical Kubernetes using Juju with a custom configuration file specifying datastore, pod CIDR, DNS, and other bootstrap options."
+---
+
 # How to install with custom configuration
 
 This guide will walk you through deploying {{product}} using Juju with custom

@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Learn how to deploy Canonical Kubernetes using the k8s Juju charm, create a multi-node cluster, and add worker nodes in this tutorial."
+---
+
 # Getting started
 
 The {{product}} `k8s` charm takes care of installing and configuring

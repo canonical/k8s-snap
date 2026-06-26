@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Explanation of package management in Canonical Kubernetes using Helm, including charts, chart repositories, and Helm installation and upgrade workflows."
+---
+
 # Package management with Helm
 
 There are multiple ways of installing and managing packages in Kubernetes.

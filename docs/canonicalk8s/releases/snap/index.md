@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Release notes index for the Canonical Kubernetes snap, listing changes, new features, and bug fixes for each k8s snap version."
+---
+
 # Release notes
 
 This is an index page for all the available releases of {{product}}. Each entry

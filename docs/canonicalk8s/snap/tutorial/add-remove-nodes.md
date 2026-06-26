@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Learn how to add and remove nodes in a Canonical Kubernetes cluster using two Multipass VMs."
+---
+
 # Add and remove nodes
 
 Typical production clusters are hosted across multiple data centers and cloud

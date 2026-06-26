@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to configure proxy settings for the Canonical Kubernetes snap using systemd configuration files."
+---
+
 # How to configure proxy settings for {{product}}
 
 {{product}} packages a number of utilities (for example curl, Helm) which need

@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to enable dual-stack networking in Canonical Kubernetes, assigning both IPv4 and IPv6 addresses to pods and services."
+---
+
 # How to enable dual-stack networking
 
 Dual-stack networking allows Kubernetes to support both IPv4 and IPv6 addresses

@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Reference documentation for the Dqlite databases in Canonical Kubernetes."
+---
+
 # Dqlite database
 
 {{product}} uses Dqlite for k8sd, which manages Kubernetes cluster management

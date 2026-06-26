@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to configure Canonical Kubernetes to use an external etcd cluster as the cluster datastore during the bootstrap process."
+---
+
 # How to use an external datastore
 
 {{product}} supports using an external datastore such as etcd

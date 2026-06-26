@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to manage container images in Canonical Kubernetes using the containerd CLI, including listing and importing images."
+---
+
 # How to manage images
 
 {{product}} uses the containerd runtime to manage images, which in turn uses

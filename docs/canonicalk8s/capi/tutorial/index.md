@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Tutorial for Canonical Kubernetes with Cluster API, starting with setting up a management cluster and provisioning workload clusters."
+---
+
 # Tutorials
 
 This section contains a step-by-step guide to help you start exploring how to

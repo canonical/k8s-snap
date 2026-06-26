@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to set up ovbservability on a Canonical Kubernetes cluster by installing Prometheus for metrics collection and alerting."
+---
+
 # How to use Prometheus with {{product}}
 
 Observability is an essential component in any system for understanding,

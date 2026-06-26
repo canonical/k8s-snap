@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Reference documentation for the Canonical Kubernetes k8s and k8s-worker charms available on Charmhub and their source code repository."
+---
+
 # {{product}} charms
 
 {{product}} can be deployed via [Juju][] with the following charms:

@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to integrate Canonical Kubernetes with COS Lite (Canonical Observability Stack) for cluster monitoring using Juju."
+---
+
 # How to integrate with COS Lite
 
 It is often advisable to have a monitoring solution which will run whether the

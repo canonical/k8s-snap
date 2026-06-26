@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Reference documentation for Canonical Kubernetes cluster annotations."
+---
+
 # Annotations
 
 This page outlines the annotations that can be configured during cluster

@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to configure UFW (Uncomplicated Firewall) rules for Canonical Kubernetes."
+---
+
 # How to configure Uncomplicated Firewall (UFW)
 
 This how-to presents a set of firewall rules/guidelines that should be

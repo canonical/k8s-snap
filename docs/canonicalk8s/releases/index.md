@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Release notes index for Canonical Kubernetes snap and charm releases, with new features, bug fixes, and compatibility changes."
+---
+
 # Release notes
 
 This is an index page for all the available releases of {{product}}. Each entry

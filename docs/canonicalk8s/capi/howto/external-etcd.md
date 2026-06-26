@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to use an external etcd cluster as the datastore for a Canonical Kubernetes CAPI workload cluster."
+---
+
 # How to use external etcd with Cluster API
 
 To replace the built-in datastore with an external etcd to

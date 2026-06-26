@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to add k8s-worker applications with custom configurations."
+---
+
 # How to add worker nodes with custom configurations
 
 This guide will walk you through how to deploy multiple `k8s-worker`

@@ -1,7 +1,7 @@
 ---
 myst:
   html_meta:
-    description: How to upgrade Canonical Kubernetes to new minor and patch versions. Learn to use Juju to update control-plane and worker units to the latest releases.
+    description: How to upgrade Canonical Kubernetes to new minor and patch versions.
 ---
 
 # How to upgrade {{product}} 

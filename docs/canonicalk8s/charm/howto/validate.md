@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to validate a Canonical Kubernetes charm deployment by running end-to-end (e2e) tests with the kubernetes-e2e charm."
+---
+
 # How to validate {{product}}
 
 End-to-end (e2e) tests for **Kubernetes** provide a mechanism

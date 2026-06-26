@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to enable and configure the default local-storage option in Canonical Kubernetes."
+---
+
 # How to use default storage
 
 {{product}} offers a local-storage option to quickly set up and run a

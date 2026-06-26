@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to install Canonical Kubernetes in a development environment, covering containerd considerations and isolation recommendations."
+---
+
 # Install {{product}} in development environments
 
 We recommend testing {{product}} in an isolated environment such as a clean

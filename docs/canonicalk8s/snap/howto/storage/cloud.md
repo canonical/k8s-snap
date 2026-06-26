@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to use AWS EBS cloud storage with Canonical Kubernetes on EC2 instances, including IAM policies and cloud controller manager setup."
+---
+
 # How to use cloud storage
 
 {{product}} simplifies the process of integrating and managing cloud storage

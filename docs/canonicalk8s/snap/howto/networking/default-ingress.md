@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to enable, disable and configure the default Ingress controller in Canonical Kubernetes to route external traffic to cluster services."
+---
+
 # How to use default Ingress
 
 {{product}} enables you to configure Ingress for your cluster. When enabled, it

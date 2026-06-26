@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to uninstall Canonical Kubernetes by safely removing the node from the cluster before deleting the k8s snap."
+---
+
 # How to uninstall the {{product}} snap
 
 This guide provides step-by-step instructions for removing the {{ product }}

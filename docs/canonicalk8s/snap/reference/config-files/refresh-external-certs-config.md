@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Reference for the Canonical Kubernetes refresh external certificates configuration file."
+---
+
 # Refresh certificates configuration file
 
 A YAML file can be supplied to the `k8s refresh-certs --external-certificates`

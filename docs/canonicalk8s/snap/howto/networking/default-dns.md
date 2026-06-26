@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to enable, disable, and configure the default DNS service in Canonical Kubernetes for cluster-internal service discovery."
+---
+
 # How to use default DNS
 
 {{product}} includes a default DNS (Domain Name System) which is

@@ -1,4 +1,7 @@
 ---
+myst:
+  html_meta:
+    description: "Reference for the Canonical Kubernetes node join configuration file, covering all options for control plane and worker node joins."
 tocdepth: 2
 ---
 

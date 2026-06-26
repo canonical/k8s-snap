@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Tutorials for the Canonical Kubernetes snap, covering initial cluster setup and everyday cluster operations."
+---
+
 # Tutorials
 
 This section contains a step-by-step guide to help you start exploring how to
