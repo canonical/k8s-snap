@@ -255,10 +255,14 @@ func removeNodeFromMicrocluster(ctx context.Context, s state.State, nodeName str
 		var notPending bool
 		log.Info("Waiting for node to finish microcluster join before removing")
 		if err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
-			member, err := cluster.GetCoreClusterMember(ctx, tx, s.Name())
-			if err != nil {
-				log.Error(err, "Failed to get member")
+			member, err := cluster.GetCoreClusterMember(ctx, tx, nodeName)
+			if response.IsNotFoundError(err) {
+				// Node not found, no PENDING state to wait for.
+				notPending = true
 				return nil
+			}
+			if err != nil {
+				return err
 			}
 			notPending = member.Role != cluster.Pending
 			return nil
@@ -292,6 +296,10 @@ func removeNodeFromMicrocluster(ctx context.Context, s state.State, nodeName str
 	defer deleteCancel()
 	log.Info("Deleting node from Microcluster cluster, for real")
 	if err := c.DeleteClusterMember(deleteCtx, nodeName, force); err != nil {
+		if response.IsNotFoundError(err) {
+			log.Info("Node not found in microcluster, nothing to remove")
+			return nil
+		}
 		return fmt.Errorf("failed to delete cluster member %s: %w", nodeName, err)
 	}
 
