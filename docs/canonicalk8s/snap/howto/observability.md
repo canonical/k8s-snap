@@ -1,7 +1,7 @@
 ---
 myst:
   html_meta:
-    description: "How to set up ovbservability on a Canonical Kubernetes cluster by installing Prometheus for metrics collection and alerting."
+    description: "How to set up observability on a Canonical Kubernetes cluster by installing Prometheus for metrics collection and alerting."
 ---
 
 # How to use Prometheus with {{product}}
