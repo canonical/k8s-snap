@@ -38,9 +38,8 @@ Create the `EncryptionConfiguration` file under
 `/var/snap/k8s/common/etc/encryption/`.
 
 ```
-sudo sh -c '
-mkdir -p /var/snap/k8s/common/etc/encryption/
-cat >/var/snap/k8s/common/etc/encryption/enc.yaml << EOL
+sudo mkdir -p /var/snap/k8s/common/etc/encryption/
+cat << EOL | sudo tee /var/snap/k8s/common/etc/encryption/enc.yaml > /dev/null
 kind: "EncryptionConfiguration"
 apiVersion: apiserver.config.k8s.io/v1
 resources:
@@ -52,7 +51,7 @@ resources:
         secret: ${BASE 64 ENCODED SECRET}
   - identity: {}
 EOL
-chmod 600 /var/snap/k8s/common/etc/encryption/enc.yaml
+sudo chmod 600 /var/snap/k8s/common/etc/encryption/enc.yaml
 ```
 
 Set the `--encryption-provider-config` file as an argument to the kubernetes

@@ -21,7 +21,7 @@ Find out whether Network is enabled or disabled with the following command:
 sudo k8s status
 ```
 
-The default state for the cluster is `network disabled`.
+The default state for the cluster is `network enabled`.
 
 ## Enable Network
 
