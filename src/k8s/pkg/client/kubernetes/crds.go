@@ -62,7 +62,7 @@ func (c *Client) ApplyCRDs(ctx context.Context) error {
 		log.V(1).Info("Applied CRD", "name", crd.Name, "version", crd.APIVersion, "kind", crd.Kind)
 
 		if waitErr := control.WaitUntilReady(ctx, func() (bool, error) {
-			return c.CRDExists(ctx, crd.Name)
+			return c.CRDEstablished(ctx, crd.Name)
 		}); waitErr != nil {
 			return fmt.Errorf("failed to wait for CRD to be ready: %w", waitErr)
 		}
@@ -73,23 +73,28 @@ func (c *Client) ApplyCRDs(ctx context.Context) error {
 	return nil
 }
 
-// CRDExists checks if a given CRD exists in the cluster.
-func (c *Client) CRDExists(ctx context.Context, crdName string) (bool, error) {
+// CRDEstablished checks if a given CRD is established in the cluster,
+// meaning the API server is serving its resources.
+func (c *Client) CRDEstablished(ctx context.Context, crdName string) (bool, error) {
 	apiExtClient, err := apiextensionsclient.NewForConfig(c.RESTConfig())
 	if err != nil {
 		return false, fmt.Errorf("failed to create API extensions client: %w", err)
 	}
 
-	_, err = apiExtClient.ApiextensionsV1().CustomResourceDefinitions().Get(ctx, crdName, v1.GetOptions{})
-	if err == nil {
-		return true, nil // CRD exists
+	crd, err := apiExtClient.ApiextensionsV1().CustomResourceDefinitions().Get(ctx, crdName, v1.GetOptions{})
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to get CRD: %w", err)
 	}
 
-	if apierrors.IsNotFound(err) {
-		return false, nil // CRD does not exist
+	for _, cond := range crd.Status.Conditions {
+		if cond.Type == apiextensionsv1.Established {
+			return cond.Status == apiextensionsv1.ConditionTrue, nil
+		}
 	}
-
-	return false, fmt.Errorf("failed to check CRD existence: %w", err)
+	return false, nil
 }
 
 // convertUnstructuredToCRD converts an unstructured object to a CRD object.
