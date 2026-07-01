@@ -5,11 +5,12 @@ provision_data:
   kernel: generic
 
 # The GPU operator takes up to 10-15 mins to compile/install drivers inside k8s.
-timeout: 2700  # 45 minutes total execution boundary
+global_timeout: 2700  # 45 minutes total execution boundary
+
 test_data:
   attachments:
-  - local: k8s-amd64.snap
-  - local: k8s-test-suite.tar.gz
+    - local: k8s-amd64.snap
+    - local: k8s-test-suite.tar.gz
   test_cmds: |
     #!/bin/bash
     set -eux
@@ -34,8 +35,8 @@ test_data:
     sudo snap install lxd --channel=latest/stable
     sudo lxd init --auto
 
-    # 4. Unpack test suite
-    tar xzf k8s-test-suite.tar.gz
+    # 4. Unpack test suite from attachments directory
+    tar xzf attachments/test/k8s-test-suite.tar.gz
     cd tests/integration
 
     # 5. Install test dependencies
@@ -45,7 +46,7 @@ test_data:
     # 6. Run the NVIDIA GPU operator test via tox
     # Use the GPU LXD profile (base profile + gpu device passthrough)
     export TEST_LXD_PROFILE="$(cat lxd-gpu-profile.yaml)"
-    export TEST_SNAP="$(realpath ../../k8s-amd64.snap)"
+    export TEST_SNAP="$(realpath ../../attachments/test/k8s-amd64.snap)"
     export TEST_SUBSTRATE=lxd
     export TEST_LXD_IMAGE="ubuntu:22.04"
 
