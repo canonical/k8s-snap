@@ -10,7 +10,7 @@ before refreshing.
 
 Simply run:
 
-```bash
+```
 sudo snap refresh k8s --channel=1.35-classic/stable
 ```
 

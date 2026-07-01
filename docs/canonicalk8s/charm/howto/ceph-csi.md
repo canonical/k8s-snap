@@ -265,7 +265,7 @@ juju config ceph-csi-alt ceph-rbac-name-formatter="{name}-{app}"
 
 <!-- LINKS -->
 
-[charm installation]: ./charm
+[charm installation]: /charm/howto/install/charm.md
 [Ceph]: https://docs.ceph.com/
 [ceph-rbac-name-formatter]: https://charmhub.io/ceph-csi/configurations?channel=latest/edge#ceph-rbac-name-formatter
 [ceph-ext4-storage-class-name-formatter]: https://charmhub.io/ceph-csi/configurations?channel=latest/edge#ceph-ext4-storage-class-name-formatter

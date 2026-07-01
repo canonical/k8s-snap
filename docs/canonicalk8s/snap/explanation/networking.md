@@ -46,6 +46,19 @@ Key capabilities provided by the network feature:
   pods for security purposes. Learn more about [network policies][network
   policies].
 
+## Service routing (kube-proxy replacement)
+
+In a typical Kubernetes cluster, [kube-proxy] runs on every node and manages
+the routing of traffic to Services using iptables or IPVS rules. {{product}}
+uses Cilium's eBPF-based kube-proxy replacement to
+handle all service routing directly in the Linux kernel.
+
+```{note}
+Since {{product}} does not run kube-proxy, configuration options such as
+`extra-node-kube-proxy-args` in the bootstrap and join configuration are
+deprecated and have no effect.
+```
+
 ## DNS
 
 {{product}} includes a default DNS (Domain Name System) service which is
@@ -129,7 +142,8 @@ When you expose a service with a load balancer, the following steps occur:
    balancer.
 2. The load balancer directs the request to a Kubernetes node based on the
    selected mode (BGP or Layer 2).
-3. [kube-proxy] routes the request to a pod backing the service.
+3. Cilium's eBPF service routing forwards the request to a pod backing the
+   service.
 
 Create a service of type `LoadBalancer` to expose your workloads externally
 by following the [upstream guide] or consult the

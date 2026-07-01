@@ -395,11 +395,23 @@ If omitted defaults to an auto generated key.
 ### kube-proxy-client-crt
 **Type:** `string`<br>
 
+```{deprecated} 1.36
+This field is no longer used. {{product}} uses Cilium's kube-proxy replacement
+and does not run kube-proxy. This field is accepted for backward compatibility
+and used when the default CNI (Cilium) is not used.
+```
+
 The client certificate to be used for the kube-proxy.
 If omitted defaults to an auto generated certificate.
 
 ### kube-proxy-client-key
 **Type:** `string`<br>
+
+```{deprecated} 1.36
+This field is no longer used. {{product}} uses Cilium's kube-proxy replacement
+and does not run kube-proxy. This field is accepted for backward compatibility
+and used when the default CNI (Cilium) is not used.
+```
 
 The client key to be used for the kube-proxy.
 If omitted defaults to an auto generated key.
@@ -502,6 +514,12 @@ The format is `map[<--flag-name>]<value>`.
 
 ### extra-node-kube-proxy-args
 **Type:** `map[string]string`<br>
+
+```{deprecated} 1.36
+This field is no longer used. {{product}} uses Cilium's kube-proxy replacement
+and does not run kube-proxy. This field is accepted for backward compatibility
+and used when the default CNI (Cilium) is not in use.
+```
 
 Additional arguments that are passed to the `kube-proxy` only for that specific node.
 A parameter that is explicitly set to `null` is deleted.

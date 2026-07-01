@@ -74,7 +74,7 @@ will be used after the charm is upgraded. The upgrade stack is
 used to orchestrate the upgrade process across the k8s or k8s-worker units.
 
 If you would like to upgrade your cluster using Juju please see the how-to guide
-on [upgrading your cluster by a minor version].
+on {ref}`upgrading your cluster by a minor version <minor-upgrades>`.
 
 <!-- TODO CAPI Upgrades-->
 
@@ -110,12 +110,11 @@ to completion before upgrading the next node.
 <!-- LINKS -->
 [release cadence]: https://ubuntu.com/about/release-cycle#canonical-kubernetes-release-cycle
 [release cycle]: https://kubernetes.io/releases/release/
-[managing cluster upgrades]: ../howto/upgrades
-[upgrading your cluster by a minor version]: ../../charm/howto/upgrade-minor/
+[managing cluster upgrades]: /snap/howto/upgrades.md
 [snap refresh functionality]:https://snapcraft.io/docs/refresh-awareness
 [version skew policy]: https://kubernetes.io/releases/version-skew-policy/
 [explanation page]: channels.md
-[high availability explanation page]: high-availability.md
+[high availability explanation page]: /snap/explanation/high-availability.md
 [targeted snap refresh]:https://snapcraft.io/docs/managing-updates#p-32248-if-snaps-are-specified
-[release notes]: releases
+[release notes]: /releases/index.md
 [backing up cluster data]: /snap/howto/backup-restore.md

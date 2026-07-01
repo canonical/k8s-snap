@@ -74,6 +74,10 @@ to wait for {{product}} to bring up the cluster:
 sudo k8s status --wait-ready
 ```
 
+<!-- SPREAD 
+sudo k8s kubectl wait --for=condition=Ready node --all --timeout=5m
+-->
+
 <!-- SPREAD SKIP -->
 
 ```{important}
@@ -306,9 +310,11 @@ restoration, simply run :
 
 <!-- SPREAD SKIP -->
 
+
 ```
 sudo snap remove k8s
 ```
+
 
 <!-- SPREAD SKIP END -->
 

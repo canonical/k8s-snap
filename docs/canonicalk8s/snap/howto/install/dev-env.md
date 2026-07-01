@@ -5,6 +5,16 @@ myst:
 ---
 # Install {{product}} in development environments
 
+<!-- SPREAD SUITE: snap_clean -->
+
+<!-- SPREAD
+sudo snap install docker
+sudo snap install k8s --classic --channel=1.35-classic/stable
+# Tear down docker on exit
+trap 'sudo snap remove docker --purge' EXIT
+# Start doc test
+-->
+
 We recommend testing {{product}} in an isolated environment such as a clean
 virtual machine.
 
@@ -59,14 +69,16 @@ image layer unpacking. Insufficient space can cause:
 
 To check the available space on the tmpfs:
 
-```bash
+<!-- SPREAD SKIP -->
+
+```
 df -h /run
 ```
 
 If the space is low and you're experiencing these issues, you can temporarily
 increase the size of the tmpfs mount to see if it resolves the problem:
 
-```bash
+```
 sudo mount -o remount,size=10G /run
 ```
 
@@ -104,9 +116,13 @@ for example after joining a different Wi-Fi network.
 
 In this case, you may configure {{product}} to use the ``localhost`` address:
 
+<!-- SPREAD SKIP -->
+
 ```bash
 sudo k8s bootstrap --address=127.0.0.1
 ```
+
+<!-- SPREAD SKIP END -->
 
 ## Conflicting Docker iptables rules
 

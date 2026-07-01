@@ -375,6 +375,7 @@ def wait_until_k8s_ready(
     retries: int = config.DEFAULT_WAIT_RETRIES,
     delay_s: int = config.DEFAULT_WAIT_DELAY_S,
     node_names: Mapping[str, str] = {},
+    skip_services: Optional[List[str]] = None,
 ):
     """
     Validates that the K8s node is in Ready state.
@@ -393,7 +394,7 @@ def wait_until_k8s_ready(
         ):
             with attempt:
                 assert is_node_ready(control_node, node_name)
-                check_snap_services_ready(instance)
+                check_snap_services_ready(instance, skip_services=skip_services)
 
     LOG.info("Successfully checked Kubelet registered on all harness instances.")
     result = control_node.exec(["k8s", "kubectl", "get", "node"], capture_output=True)
@@ -559,12 +560,14 @@ def wait_for_pods_ready(
 
 def wait_for_dns(instance: harness.Instance):
     LOG.info("Waiting for DNS to be ready")
-    instance.exec(["k8s", "x-wait-for", "dns", "--timeout", "20m"])
+    instance.exec(["k8s", "x-wait-for", "dns", "--timeout", "20m"], capture_output=True)
 
 
 def wait_for_network(instance: harness.Instance):
     LOG.info("Waiting for network to be ready")
-    instance.exec(["k8s", "x-wait-for", "network", "--timeout", "20m"])
+    instance.exec(
+        ["k8s", "x-wait-for", "network", "--timeout", "20m"], capture_output=True
+    )
 
 
 def wait_for_load_balancer(instance: harness.Instance):
@@ -1259,6 +1262,8 @@ def check_snap_services_ready(
     node_type: Optional[str] = None,
     skip_services: Optional[List[str]] = None,
     datastore_type: Optional[str] = None,
+    retries: int = 1,
+    delay_s: int = 5,
 ):
     """Check that the snap services are active on the given harness instance.
 
@@ -1272,25 +1277,27 @@ def check_snap_services_ready(
             This is not always possible (e.g. if a node was already removed from the cluster).
             So, the user can provide the node type explicitly.
         skip_services: a list of services to ignore when checking for service readiness.
+        retries: number of attempts before raising an AssertionError (default: 1, no retry).
+        delay_s: seconds to wait between retries (default: 5).
     """
     skip_services = skip_services or []
+    assert retries >= 1, "retries must be >= 1"
 
     expected_worker_services = {
         "containerd",
         "k8sd",
         "kubelet",
-        "kube-proxy",
         "k8s-apiserver-proxy",
     }
     expected_control_plane_services = {
         "containerd",
         "k8sd",
         "kubelet",
-        "kube-proxy",
         "kube-apiserver",
         "kube-controller-manager",
         "kube-scheduler",
     }
+
     if node_type:
         assert node_type in ("control-plane", "worker"), "Invalid node type provided"
         expected_active_services = (
@@ -1330,23 +1337,49 @@ def check_snap_services_ready(
             s for s in expected_active_services if s not in skip_services
         ]
 
-    service_status = get_snap_service_status(instance)
+    last_error = None
+    for attempt in range(1, retries + 1):
+        if "kube-proxy" not in skip_services:
+            if _is_kube_proxy_enabled(instance):
+                expected_worker_services.add("kube-proxy")
+                expected_control_plane_services.add("kube-proxy")
+            else:
+                if "kube-proxy" in expected_worker_services:
+                    expected_worker_services.remove("kube-proxy")
+                if "kube-proxy" in expected_control_plane_services:
+                    expected_control_plane_services.remove("kube-proxy")
 
-    for service in expected_active_services:
-        assert (
-            service in service_status
-        ), f"Service {service} is missing from 'snap services' output"
-        assert (
-            service_status[service] == "active"
-        ), f"Service {service} should be active, but it is {service_status[service]}"
+        service_status = get_snap_service_status(instance)
+        try:
+            for service in expected_active_services:
+                assert (
+                    service in service_status
+                ), f"Service {service} is missing from 'snap services' output"
+                assert (
+                    service_status[service] == "active"
+                ), f"Service {service} should be active, but it is {service_status[service]}"
 
-    for service, status in service_status.items():
-        if service in skip_services:
-            continue
-        if service not in expected_active_services:
-            assert (
-                status == "inactive"
-            ), f"Unexpected service {service} is {status} but should be inactive"
+            for service, status in service_status.items():
+                if service in skip_services:
+                    continue
+                if service not in expected_active_services:
+                    assert (
+                        status == "inactive"
+                    ), f"Unexpected service {service} is {status} but should be inactive"
+            return
+        except AssertionError as e:
+            last_error = e
+            if attempt < retries:
+                LOG.info(
+                    "Attempt %d/%d: %s. Retrying in %ds...",
+                    attempt,
+                    retries,
+                    e,
+                    delay_s,
+                )
+                time.sleep(delay_s)
+
+    raise last_error
 
 
 def _get_enabled_services(instance: harness.Instance) -> List[str]:
@@ -1511,6 +1544,60 @@ def set_node_labels(
         ],
         check=True,
     )
+
+
+def _is_kube_proxy_enabled(
+    instance: harness.Instance,
+) -> bool:
+    """Return True if kube-proxy is enabled, False otherwise.
+
+    Queries the k8sd datastore for the `network.kube-proxy-enabled` config value.
+    If the field is present, returns its boolean value. If the field is not found,
+    kube-proxy is disabled by default, so returns False.
+    If the command fails (e.g. the node has been removed from the cluster),
+    returns False by default to avoid expecting a service that may not be running.
+
+    Args:
+        instance: instance on which to execute the command
+    """
+    try:
+        result = instance.exec(
+            [
+                "/snap/k8s/current/bin/k8sd",
+                "sql",
+                "--state-dir",
+                "/var/snap/k8s/common/var/lib/k8sd/state",
+                "select value from cluster_configs where key = 'v1alpha2'",
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except subprocess.CalledProcessError:
+        LOG.warning(
+            "Failed to query kube-proxy-enabled on %s, defaulting to False",
+            instance.id,
+        )
+        return True
+
+    try:
+        rows = json.loads(result.stdout)
+        for row in rows:
+            for value in row:
+                network = value.get("network", {})
+                if "kube-proxy-enabled" in network:
+                    LOG.info(
+                        f"kube-proxy-enabled in cluster config: {network['kube-proxy-enabled']}"
+                    )
+                    return str(network["kube-proxy-enabled"]).lower() == "true"
+                else:
+                    LOG.info("kube-proxy-enabled was not found in cluster_config")
+    except json.decoder.JSONDecodeError as e:
+        LOG.error(f"failed to load cluster config json: {e}")
+
+    # If the field is not found in k8sd db, return True because that's probably an older
+    # version of k8s-snap without the kube-proxy-enabled field in the cluster_config
+    return True
 
 
 def diverged_cluster_memberships(

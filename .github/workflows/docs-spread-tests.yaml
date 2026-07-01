@@ -12,8 +12,10 @@ permissions:
   contents: read
 
 jobs:
-  docs-spread-tests:
+  prepare-docs-spread:
     runs-on: ubuntu-latest
+    outputs:
+      no_suites: ${{ steps.generate.outputs.no_suites }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -37,74 +39,65 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Set up Go
-        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
-        with:
-          go-version: "1.23"
-
-      - name: Generate tasks.yaml for changed docs
+      - id: generate
+        name: Generate tasks.yaml for changed docs
         shell: bash
         env:
           CHANGED_FILES_INPUT: ${{ inputs.changed_files }}
         run: |
           set -euo pipefail
 
-          rm -rf tests/spread-generated
-          mkdir -p tests/spread-generated
+          rm -rf tests/spread_generated
+          mkdir -p tests/spread_generated
           
           # Create all suite directories so spread doesn't fail reading spread.yaml
-          mkdir -p tests/spread-generated/{snap_clean,snap_bootstrapped}
+          mkdir -p tests/spread_generated/{snap_clean,snap_bootstrapped}
 
           changed_files_input="${CHANGED_FILES_INPUT:-}"
 
-          # Append the docs/canonicalk8s/ prefix to each changed file and store in an array
-          if [[ -n "$changed_files_input" ]]; then
-            mapfile -t changed_files < <(
-              printf '%s\n' "$changed_files_input" \
-              | tr ' ' '\n' \
-              | sed 's|^|docs/canonicalk8s/|' \
-              || true
-            )
-          else
-            echo "No changed_files input provided; skipping docs spread generation."
-            echo "NO_SUITES=true" >> "$GITHUB_ENV"
+          if [[ -z "$changed_files_input" ]]; then
+            echo "no_suites=true" >> "$GITHUB_OUTPUT"
             exit 0
-          fi
+          fi 
+
+          # Append the docs/canonicalk8s/ prefix to each changed file and store in an array
+          mapfile -t changed_files < <(
+            printf '%s\n' "$changed_files_input" \
+            | tr ' ' '\n' \
+            | grep -v '^$' \
+            | sed 's|^|docs/canonicalk8s/|'
+          )
 
           if [[ ${#changed_files[@]} -eq 0 ]]; then
             echo "No docs files needing spread tests changed in this PR."
-            echo "NO_SUITES=true" >> "$GITHUB_ENV"
+            echo "no_suites=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          declare -A suites_seen=()
           generated_any=false
 
           for file in "${changed_files[@]}"; do
             # Look for suite marker in the file like "SPREAD SUITE: snap_clean" to determine which suite to place it in
-            marker_suite="$(grep -Eo 'SPREAD SUITE:\s*[a-z_]+' "$file" | head -n1 | sed -E 's/.*:\s*//' || true)"
+            suite_marker="$(grep -Eo 'SPREAD SUITE:\s*[a-z_]+' "$file" | head -n1 | sed -E 's/.*:\s*//' || true)"
 
-            if [[ -z "$marker_suite" ]]; then
+            if [[ -z "$suite_marker" ]]; then
               echo "Skipping $file (no SPREAD SUITE marker)"
               continue
             fi
 
-            suite="$marker_suite"
-
             # Validate suite value against allowed list
-            case "$suite" in
+            case "$suite_marker" in
               snap_clean|snap_bootstrapped) ;;
               *)
-                echo "Unsupported SPREAD SUITE marker '$suite' in $file"
+                echo "Unsupported SPREAD SUITE marker '$suite_marker' in $file"
                 exit 1
                 ;;
             esac
 
             rel="${file#docs/canonicalk8s/}"
             rel="${rel%.*}"
-            # Flatten: use sanitized path with slashes replaced to avoid intermediate dirs
-            task_name=$(echo "$rel" | sed 's|/|-|g')
-            out_dir="tests/spread-generated/${suite}/${task_name}"
+            task_name="$(echo "$rel" | sed 's|/|_|g')"
+            out_dir="tests/spread_generated/${suite_marker}/${task_name}"
 
             # Generate the task.yaml for this file using the upstream script
             mkdir -p "$out_dir"
@@ -112,45 +105,78 @@ jobs:
               "$file" \
               "$out_dir/task.yaml"
 
-            suites_seen["$suite"]=1
             generated_any=true
           done
 
           if [[ "$generated_any" != true ]]; then
-            echo "No docs files with SPREAD SUITE markers changed in this PR."
-            echo "NO_SUITES=true" >> "$GITHUB_ENV"
+            echo "no_suites=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          printf "%s\n" "${!suites_seen[@]}" | sort > /tmp/spread_suites.txt
+          echo "no_suites=false" >> "$GITHUB_OUTPUT"
 
-          {
-            echo "SPREAD_SUITES<<EOF"
-            cat /tmp/spread_suites.txt
-            echo "EOF"
-          } >> "$GITHUB_ENV"
+      - name: Upload generated spread tasks
+        if: steps.generate.outputs.no_suites != 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: spread_generated
+          path: tests/spread_generated
+
+  docs-spread-tests:
+    needs: prepare-docs-spread
+    if: needs.prepare-docs-spread.outputs.no_suites != 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        suite:
+          - snap_bootstrapped
+          - snap_clean
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Download generated spread tasks
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: spread_generated
+          path: tests/spread_generated
+
+      - name: Set up Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version: "1.23"
 
       - name: Install spread
-        if: env.NO_SUITES != 'true'
         shell: bash
         run: |
           set -euo pipefail
           go install github.com/canonical/spread/cmd/spread@latest
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
 
-      - name: Run spread suites
-        if: env.NO_SUITES != 'true'
+      - name: Skip empty suite
+        id: suite-check
+        shell: bash
+        run: |
+          set -euo pipefail
+          suite_dir="tests/spread_generated/${{ matrix.suite }}"
+          if [[ ! -d "$suite_dir" ]] || [[ -z "$(find "$suite_dir" -name task.yaml -print -quit)" ]]; then
+            echo "Suite ${{ matrix.suite }} has no generated tasks; skipping."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run spread suite
+        if: steps.suite-check.outputs.skip != 'true'
         shell: bash
         run: |
           set -euo pipefail
           sudo adduser --gecos "" --disabled-password ubuntu || true
           echo "ubuntu:ubuntu" | sudo chpasswd || true
-
-          while IFS= read -r suite; do
-            [[ -z "$suite" ]] && continue
-            echo "Running docs suite: $suite"
-            (
-              cd docs
-              spread -vv "github-ci:ubuntu-24.04-64:tests/spread-generated/${suite}/"
-            )
-          done <<< "$SPREAD_SUITES"
+          cd docs
+          spread -vv -repeat 0 "github-ci:ubuntu-24.04-64:tests/spread_generated/${{ matrix.suite }}/"

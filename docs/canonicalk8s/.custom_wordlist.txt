@@ -214,6 +214,7 @@ gpu
 Graber
 Graber's
 grafana
+gRPC
 haircommander
 Harbor
 hasdoc
@@ -459,6 +460,7 @@ _Read
 README
 readOnlyPort
 ReadtheDocs
+rebalancing
 regctl
 regsync
 remediations
@@ -500,6 +502,7 @@ SecurityContext
 SecurityContexts
 SELinux
 ServiceAccount
+ServiceArgsController
 sha
 sideloading
 Snapcraft
@@ -560,6 +563,7 @@ TLB
 tls
 tlsCertFile
 tlsPrivateKeyFile
+tolerations
 tmpfs
 TokenReviews
 toml
@@ -617,6 +621,7 @@ wordlist
 www
 xdelta
 xfs
+xz
 XXXX
 yaml
 YAMLs

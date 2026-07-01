@@ -115,6 +115,6 @@ multipass delete k8s-node --purge
 [Multipass-options]: https://documentation.ubuntu.com/multipass/latest/tutorial/#create-a-customised-instance
 [install instructions]: ./snap
 [Getting started]: ../../tutorial/getting-started
-[Multipass website]: https://multipass.run/docs
+[Multipass website]: https://documentation.ubuntu.com/multipass/stable/
 [latest Windows version]:https://canonical.com/multipass/download/windows
 [latest macOS version]:https://canonical.com/multipass/download/macos

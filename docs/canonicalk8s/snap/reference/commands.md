@@ -26,6 +26,8 @@ These are the commands provided by the k8s snap:
    :end-before: '### SEE ALSO'
 ```
 
+(k8s-get-join-token)=
+
 ```{include} /_parts/commands/k8s_get-join-token.md
    :end-before: '### SEE ALSO'
 ```
@@ -33,6 +35,8 @@ These are the commands provided by the k8s snap:
 ```{include} /_parts/commands/k8s_get.md
    :end-before: '### SEE ALSO'
 ```
+
+(k8s-join-cluster)=
 
 ```{include} /_parts/commands/k8s_join-cluster.md
    :end-before: '### SEE ALSO'
