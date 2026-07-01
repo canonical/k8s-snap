@@ -171,6 +171,8 @@ jobs:
           poll: true
           job-path: ${{ matrix.job-file }}
           attachments-relative-to: .
+          client-id: ${{ secrets.TESTFLINGER_USERNAME }}
+          secret-key: ${{ secrets.TESTFLINGER_PASSWORD }}
   security-scan:
     name: Security scan
     needs: build-snap
