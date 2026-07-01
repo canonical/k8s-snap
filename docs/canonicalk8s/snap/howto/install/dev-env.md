@@ -1,3 +1,8 @@
+---
+myst:
+  html_meta:
+    description: Troubleshoot and resolve common issues that come from running the Canonical Kubernetes snap in a dev environment.
+---
 # Install {{product}} in development environments
 
 <!-- SPREAD SUITE: snap_clean -->
@@ -16,25 +21,16 @@ virtual machine.
 You **can** install {{product}} directly on your development machine. But if
 you choose to do so, please take note of the following considerations.
 
-## Containerd 
+## Containerd
 
 ### Conflicts
 
 {{product}} runs its own containerd service, which will use the standard
 containerd-related paths by default (`/run/containerd`, `/var/lib/containerd`,
-`/etc/containerd`). Note that these default paths are important for various
-upstream projects and operators (e.g.: GPU Operator).
-
-If you already have Docker installed, or another Kubernetes instance that uses
-containerd directly installed on the host, this can cause various conflicts
-with {{product}}.
-
-But, if necessary, {{product}} can be configured to use a custom containerd
-path, like so:
-
-<!-- SPREAD
-export containerdBaseDir=/ck8s/etc/containerd
--->
+`/etc/containerd`). If containerd is already installed at these paths by
+another application (e.g. Docker), the bootstrap will fail. To resolve this,
+provide a base directory for the files to be installed at by setting
+`containerd-base-dir` in the bootstrap config YAML:
 
 ```
 cat <<EOF | sudo k8s bootstrap --file -
@@ -49,21 +45,24 @@ cluster-config:
 EOF
 ```
 
-Any non-temporary directory can be chosen for `containerd-base-dir`
-(e.g.: `/ck8s`). {{product}} will then use this base directory for the
-containerd-related files (e.g.: `/ck8s/etc/containerd`,
-`/ck8s/var/run/containerd/containerd.sock`, etc.).
+By doing this, all containerd files will be stored under the parent
+directory specified by `containerd-base-dir`. For example, if
+`containerd-base-dir` is set to `/ck8s`, containerd files will be stored at
+paths such as `/ck8s/etc/containerd` and
+`/ck8s/run/containerd/containerd.sock`.
 
-<!-- SPREAD
-sudo k8s status --wait-ready --timeout 3m
-ps -ef | grep kubelet | grep container-runtime-endpoint=/ck8s/etc/containerd/k8s-containerd
--->
+```{note}
+It is strongly recommended that a non-temporary directory is chosen for
+`containerd-base-dir`, or the cluster will break on reboot when these
+files are cleared. The path provided should be an absolute path
+to a directory dedicated to just these files.
+```
 
-### State Directory on tmpfs — Disk Pressure & ErrImagePull
+### State directory on tmpfs
 
-When using a custom containerd, if it is configured to use a state directory on
-`tmpfs` (e.g., `/run/containerd`), ensure that the `tmpfs` mount has sufficient 
-space for operations like image layer unpacking. Insufficient space can cause:
+If you choose to use a tmpfs base directory for containerd,
+make sure that it has sufficient space for operations like
+image layer unpacking. Insufficient space can cause:
 
 - Pod failures with `ErrImagePull`
 - Node taints such as `node.kubernetes.io/disk-pressure`
@@ -76,17 +75,38 @@ To check the available space on the tmpfs:
 df -h /run
 ```
 
-If the space is low and you're experiencing these issues, you can temporarily 
+If the space is low and you're experiencing these issues, you can temporarily
 increase the size of the tmpfs mount to see if it resolves the problem:
 
 ```
 sudo mount -o remount,size=10G /run
 ```
 
-<!-- SPREAD SKIP END -->
+However, these changes will be cleared on reboot.
 
-```{note}
-This change is not persistent and will reset on reboot.
+### Home directory usage
+
+It is strongly recommended that you use a system-level directory like `\opt\{path}` 
+or `\sys\{path}` instead of a user-home directory like `\home\{path}`. Although the
+cluster will likely continue to work, using a user-home directory will cause lots of
+temporary bind mount files to populate the folder that are ordinarily hidden. There
+may also be issues with user-level disk encryption or restricted file permissions 
+that can also cause a failed bootstrap.
+
+### External consumption
+
+When changing the containerd install path, make sure that the configurations of
+external consumers of {{product}} such as operators are also updated. For example,
+in the GPU operator, you will have to update the Helm chart to include the new
+containerd paths.
+
+```
+helm install gpu-operator nvidia/gpu-operator -n gpu-operator \
+ --set operator.defaultRuntime=containerd \
+ --set toolkit.env[0].name=CONTAINERD_CONFIG \
+ --set toolkit.env[0].value={custom_containerd_dir}/etc/containerd/config.toml \
+ --set toolkit.env[1].name=CONTAINERD_SOCKET \
+ --set toolkit.env[1].value={custom_containerd_dir}/run/containerd/containerd.sock
 ```
 
 ## Changing IP addresses
