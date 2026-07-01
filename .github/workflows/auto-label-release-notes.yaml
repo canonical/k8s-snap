@@ -15,7 +15,9 @@ jobs:
       - name: Add release-notes label
         env:
           GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
         run: |
-          gh pr edit "${{ github.event.pull_request.number }}" \
-            --repo "${{ github.repository }}" \
+          gh pr edit "$PR_NUMBER" \
+            --repo "$REPO" \
             --add-label "release-notes"

@@ -46,8 +46,10 @@ jobs:
         run: sudo apt-get install -y tox
       - name: Extract Kubernetes versions
         id: versions
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          OLD_VERSION=$(git show ${{ github.event.pull_request.base.sha }}:build-scripts/components/kubernetes/version)
+          OLD_VERSION=$(git show "$BASE_SHA":build-scripts/components/kubernetes/version)
           NEW_VERSION=$(cat build-scripts/components/kubernetes/version)
 
           echo "Old Kubernetes version (base): $OLD_VERSION"

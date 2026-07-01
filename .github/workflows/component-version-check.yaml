@@ -76,22 +76,19 @@ jobs:
       # Comment on the PR if invalid
       - name: Comment on PR if invalid
         if: steps.validate.outputs.invalid == 'true'
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
           VALIDATION_STDERR: ${{ steps.validate.outputs.stderr }}
-        with:
-          script: |
-            const stderr = process.env.VALIDATION_STDERR || '';
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: (
-                "❌ Invalid change detected in PR diff. Please remove it.\n" +
-                "Label this PR with 'skip-component-version-check' to ignore\n\n" +
-                stderr + "\n\n"
-              )
-            })
+        run: |
+          gh pr comment "$PR_NUMBER" \
+            --repo "$REPO" \
+            --body "❌ Invalid change detected in PR diff. Please remove it.
+Label this PR with 'skip-component-version-check' to ignore
+
+$VALIDATION_STDERR
+"
 
       # Fail the job if invalid
       - name: Fail job if invalid
