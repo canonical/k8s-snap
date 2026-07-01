@@ -26,6 +26,14 @@ architectures:
   - build-on: [ppc64el]
   - build-on: [s390x]
 
+lint:
+  ignore:
+    - classic:
+        # containerd-shim-runc-v2 may be statically linked (e.g. when built with
+        # Go FIPS that provides static OpenSSL). Static binaries have no .dynamic
+        # section, so the classic linter's patchelf rpath check is not applicable.
+        - bin/containerd-shim-runc-v2
+
 parts:
   build-deps:
     plugin: nil
