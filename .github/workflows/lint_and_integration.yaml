@@ -46,8 +46,10 @@ jobs:
         run: sudo apt-get install -y tox
       - name: Extract Kubernetes versions
         id: versions
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          OLD_VERSION=$(git show ${{ github.event.pull_request.base.sha }}:build-scripts/components/kubernetes/version)
+          OLD_VERSION=$(git show "$BASE_SHA":build-scripts/components/kubernetes/version)
           NEW_VERSION=$(cat build-scripts/components/kubernetes/version)
 
           echo "Old Kubernetes version (base): $OLD_VERSION"
@@ -107,9 +109,12 @@ jobs:
           fetch-depth: 2
       - name: Get e2e test tags
         id: get-e2e-tags
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
         run: |
           tags="pull_request"
-          if ${{ github.event_name == 'pull_request' }}; then
+          if [ "$EVENT_NAME" = "pull_request" ]; then
             # Run all tests if there are test changes. In case of a PR, we'll
             # get a merge commit that includes all changes.
             if git diff HEAD HEAD~1 --name-only | grep "tests/"; then
@@ -120,7 +125,7 @@ jobs:
               tags="up_to_weekly"
             fi
             # Run all tests on backports.
-            if echo ${{ github.base_ref }} | grep "release-"; then
+            if echo "$BASE_REF" | grep "release-"; then
               tags="up_to_weekly"
             fi
           fi
