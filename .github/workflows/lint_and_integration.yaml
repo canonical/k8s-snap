@@ -146,7 +146,38 @@ jobs:
       test-collection-repo: ${{github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name || github.repository }}
       test-collection-branch: ${{ github.head_ref }}
       parallel: true
-
+  run-testflinger-tests:
+    name: GPU Operator (Testflinger) - ${{ matrix.arch }}
+    runs-on: self-hosted-linux-amd64-noble-private-endpoint-small
+    needs: build-snap
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            job-file: ci/testflinger-jobs/gpu-operator-test-amd64.yaml
+          - arch: arm64
+            job-file: ci/testflinger-jobs/gpu-operator-test-arm64.yaml
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - name: Download k8s snap
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: k8s-${{ matrix.arch }}.snap
+          path: ${{ github.workspace }}
+      - name: Archive test suite
+        run: |
+          tar czf k8s-test-suite.tar.gz tests/integration/
+      - name: Submit Testflinger Job
+        uses: canonical/testflinger/.github/actions/submit@main
+        timeout-minutes: 45
+        with:
+          poll: true
+          job-path: ${{ matrix.job-file }}
+          attachments-relative-to: .
+          client-id: ${{ secrets.TESTFLINGER_USERNAME }}
+          secret-key: ${{ secrets.TESTFLINGER_PASSWORD }}
   security-scan:
     name: Security scan
     needs: build-snap
