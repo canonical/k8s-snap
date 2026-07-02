@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Reference documentation for Canonical Kubernetes k8s snap CLI commands."
+---
+
 # Commands
 
 These are the commands provided by the k8s snap:

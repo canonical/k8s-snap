@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Reference index for Canonical Kubernetes with Cluster API, including annotations, networking configurations, and provider configuration options."
+---
+
 # Reference
 
 Our Reference section is for when you need to check specific details or

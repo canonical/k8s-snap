@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Release notes index for Canonical Kubernetes charms, listing changes, new features, and bug fixes for each Juju operator version."
+---
+
 # Release notes
 
 This is an index page for all the available releases of the {{product}}

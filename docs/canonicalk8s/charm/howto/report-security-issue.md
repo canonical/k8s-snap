@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to report a security vulnerability in Canonical Kubernetes by filing a private security report on the k8s-operator GitHub repository."
+---
+
 # How to report a security issue in {{product}}
 
 While we do our best to keep up to date with the latest security issues, we

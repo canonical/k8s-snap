@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to migrate a Canonical Kubernetes CAPI management cluster to a different substrate using clusterctl move without disrupting workloads."
+---
+
 # How to migrate the management cluster
 
 Management cluster migration allows admins to move the management cluster

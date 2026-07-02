@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Reference documentation for availability zone support in Canonical Kubernetes charms."
+---
+
 # Availability Zones
 
 An availability zone determines the specific location where Juju

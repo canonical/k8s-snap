@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to install a specific Canonical Kubernetes version on CAPI-managed machines using the channel, revision, or localPath spec fields."
+---
+
 # How to install custom {{product}} on machines
 
 By default, the `version` field in the machine specifications will determine

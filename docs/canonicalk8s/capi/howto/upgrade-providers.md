@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to upgrade the providers of a Canonical Kubernetes CAPI management cluster using clusterctl."
+---
+
 # How to upgrade the providers of a management cluster
 
 This guide will walk you through the process of upgrading the

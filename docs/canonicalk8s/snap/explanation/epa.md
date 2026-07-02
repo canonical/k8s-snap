@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Explanation of Enhanced Platform Awareness (EPA) in Canonical Kubernetes, covering HugePages, real-time kernel, CPU pinning, NUMA, SR-IOV, and DPDK."
+---
+
 # Enhanced Platform Awareness
 
 Enhanced Platform Awareness (EPA) is a methodology and a set of enhancements

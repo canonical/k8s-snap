@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to enable, disable and configure the Gateway API controller in Canonical Kubernetes for advanced Kubernetes network traffic management."
+---
+
 # How to use the default Gateway
 
 <!-- SPREAD SUITE: snap_bootstrapped -->

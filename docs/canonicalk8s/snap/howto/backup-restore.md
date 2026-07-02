@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to back up and restore a Canonical Kubernetes cluster."
+---
+
 # How to backup and restore a {{product}} cluster
 
 [Velero][] is a popular open source backup solution for Kubernetes. Its core

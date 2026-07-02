@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Reference for network services, sockets, ports and protocols used by Canonical Kubernetes nodes."
+---
+
 # Services and ports
 
 ## Network services

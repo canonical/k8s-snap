@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to install Canonical Kubernetes from the k8s snap."
+---
+
 # How to install {{product}} from a snap
 
 <!-- SPREAD SUITE: snap_clean -->

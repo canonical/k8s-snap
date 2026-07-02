@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Get involved with the Canonical Kubernetes community: ask questions, report bugs, and contribute the code or documentation."
+---
+
 # Welcome to the {{product}} community
 
 This rapidly growing community is a diverse bunch of people - developers,

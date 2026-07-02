@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Explanation of Canonical Kubernetes charm architecture, covering the k8s and k8s-worker charms and their relationship to the underlying snap."
+---
+
 # Architecture
 
 ```{include} /snap/explanation/architecture.md

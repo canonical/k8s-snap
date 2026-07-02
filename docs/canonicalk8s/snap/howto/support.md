@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to get support for Canonical Kubernetes through community channels, troubleshooting guides, and professional Ubuntu support services."
+---
+
 # How to get support
 
 Support for {{product}} is available in a variety of ways:

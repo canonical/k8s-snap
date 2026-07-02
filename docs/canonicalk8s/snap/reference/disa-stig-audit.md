@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Reference for DISA STIG guidelines for Canonical Kubernetes, with per-control guidance for manual DISA STIG compliance auditing."
+---
+
 # DISA STIG for {{product}}
 
 Security Technical Implementation Guides (STIGs) are developed by the Defense

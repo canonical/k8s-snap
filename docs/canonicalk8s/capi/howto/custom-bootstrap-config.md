@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to pass a custom bootstrap configuration to Canonical Kubernetes CAPI."
+---
+
 # How to use custom bootstrap configuration
 
 The {{product}} bootstrap configuration gets automatically generated based on

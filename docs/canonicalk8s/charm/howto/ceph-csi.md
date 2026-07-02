@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to integrate Canonical Kubernetes with ceph-csi for Ceph-backed Kubernetes persistent volumes using Juju."
+---
+
 # How to integrate {{product}} with ceph-csi
 
 [Ceph] can be used to hold Kubernetes persistent volumes and is the recommended

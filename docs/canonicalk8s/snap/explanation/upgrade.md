@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Explanation of Kubernetes upgrade strategies in Canonical Kubernetes, covering patch and minor upgrades, sequential upgrades, and upgrade best practices."
+---
+
 # Upgrading {{product}}
 
 Upgrading your cluster to the latest Kubernetes version is a critical part of

@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Reference for the Canonical Kubernetes bootstrap configuration file."
+---
+
 # Bootstrap configuration file
 
 A YAML file can be supplied to the `k8s bootstrap` command to configure and

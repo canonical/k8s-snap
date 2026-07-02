@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to configure proxy settings for the Canonical Kubernetes snap using systemd configuration files."
+---
+
 # How to configure proxy settings for {{product}}
 
 <!-- SPREAD SUITE: snap_bootstrapped -->

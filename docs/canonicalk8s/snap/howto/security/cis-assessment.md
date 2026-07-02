@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to assess CIS compliance for Canonical Kubernetes using kube-bench."
+---
+
 # How to assess CIS compliance
 
 <!-- SPREAD SUITE: snap_bootstrapped -->

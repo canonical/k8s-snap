@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Explanation of high availability in Canonical Kubernetes, with automatic HA for clusters of three or more nodes and Raft-based failover."
+---
+
 # High availability
 
 High availability (HA) is a core feature of {{ product }}, ensuring that
