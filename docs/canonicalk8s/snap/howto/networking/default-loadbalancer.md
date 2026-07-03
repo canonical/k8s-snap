@@ -21,8 +21,7 @@ command:
 sudo k8s status
 ```
 
-The load balancer is not enabled by default, it won't be listed on the status
-output unless it has been subsequently enabled.
+The load balancer is not enabled by default.
 
 To check the current configuration of the `load-balancer`, run the following:
 
