@@ -179,9 +179,7 @@ write all our documentation in Markdown to make it easier for humans to work
 with. There are a few extra things that come with this - certain features need
 to be specially marked up (e.g. admonitions) to be processed properly. There is
 a guide to using `Myst` (which is a Markdown extension for Sphinx) directives
-and formatting available at
-[Canonical Sphinx Stack documentation](https://documentation.ubuntu.com/sphinx-stack/latest/reference/myst-syntax/)
-.
+and formatting available at [Canonical Sphinx Stack documentation].
 
 ### Local testing
 
@@ -211,3 +209,4 @@ press `F5` in your browser to reload the page without caching)!
 [Explanation template]: https://raw.githubusercontent.com/canonical/k8s-snap/refs/heads/release-1.35/docs/canonicalk8s/_templates/template-explanation
 [Reference template]: https://raw.githubusercontent.com/canonical/k8s-snap/refs/heads/release-1.35/docs/canonicalk8s/_templates/template-reference
 [development env guide]: install/dev-env.md
+[Canonical Sphinx Stack documentation]: https://documentation.ubuntu.com/sphinx-stack/latest/reference/myst-syntax/
