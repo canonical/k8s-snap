@@ -211,3 +211,4 @@ press `F5` in your browser to reload the page without caching)!
 [Explanation template]: https://raw.githubusercontent.com/canonical/k8s-snap/refs/heads/release-1.34/docs/canonicalk8s/_templates/template-explanation
 [Reference template]: https://raw.githubusercontent.com/canonical/k8s-snap/refs/heads/release-1.34/docs/canonicalk8s/_templates/template-reference
 [development env guide]: install/dev-env.md
+[Canonical Sphinx Stack documentation]: https://documentation.ubuntu.com/sphinx-stack/latest/reference/myst-syntax/
