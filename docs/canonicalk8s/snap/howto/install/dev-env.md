@@ -58,7 +58,7 @@ paths such as `/ck8s/etc/containerd` and
 
 <!-- SPREAD
 sudo k8s status --wait-ready --timeout 3m
-ps -ef | grep kubelet | grep container-runtime-endpoint=/ck8s/etc/containerd/k8s-containerd
+ps -ef | grep kubelet | grep container-runtime-endpoint=/ck8s/run/containerd/containerd.sock
 -->
 
 ```{note}
