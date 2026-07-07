@@ -9,7 +9,7 @@ myst:
 
 <!-- SPREAD
 sudo snap install docker
-sudo snap install k8s --classic --channel=latest/stable
+sudo snap install k8s --classic --channel=latest/edge
 # Tear down docker on exit
 trap 'sudo snap remove docker --purge' EXIT
 # Start doc test
