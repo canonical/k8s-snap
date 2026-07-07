@@ -32,6 +32,10 @@ another application (e.g. Docker), the bootstrap will fail. To resolve this,
 provide a base directory for the files to be installed at by setting
 `containerd-base-dir` in the bootstrap config YAML:
 
+<!-- SPREAD
+export containerdBaseDir=/ck8s
+-->
+
 ```
 cat <<EOF | sudo k8s bootstrap --file -
 containerd-base-dir: $containerdBaseDir
