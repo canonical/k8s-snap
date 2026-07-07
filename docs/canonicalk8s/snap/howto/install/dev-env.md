@@ -51,6 +51,12 @@ directory specified by `containerd-base-dir`. For example, if
 paths such as `/ck8s/etc/containerd` and
 `/ck8s/run/containerd/containerd.sock`.
 
+
+<!-- SPREAD
+sudo k8s status --wait-ready --timeout 3m
+ps -ef | grep kubelet | grep container-runtime-endpoint=/ck8s/etc/containerd/k8s-containerd
+-->
+
 ```{note}
 It is strongly recommended that a non-temporary directory is chosen for
 `containerd-base-dir`, or the cluster will break on reboot when these
@@ -82,6 +88,8 @@ increase the size of the tmpfs mount to see if it resolves the problem:
 sudo mount -o remount,size=10G /run
 ```
 
+<!-- SPREAD SKIP END -->
+
 However, these changes will be cleared on reboot.
 
 ### Home directory usage
@@ -100,14 +108,18 @@ external consumers of {{product}} such as operators are also updated. For exampl
 in the GPU operator, you will have to update the Helm chart to include the new
 containerd paths.
 
+<!-- SPREAD SKIP -->
+
 ```
 helm install gpu-operator nvidia/gpu-operator -n gpu-operator \
  --set operator.defaultRuntime=containerd \
  --set toolkit.env[0].name=CONTAINERD_CONFIG \
- --set toolkit.env[0].value={custom_containerd_dir}/etc/containerd/config.toml \
+ --set toolkit.env[0].value={containerdBaseDir}/etc/containerd/config.toml \
  --set toolkit.env[1].name=CONTAINERD_SOCKET \
- --set toolkit.env[1].value={custom_containerd_dir}/run/containerd/containerd.sock
+ --set toolkit.env[1].value={containerdBaseDir}/run/containerd/containerd.sock
 ```
+
+<!-- SPREAD SKIP END -->
 
 ## Changing IP addresses
 
