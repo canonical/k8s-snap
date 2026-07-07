@@ -61,6 +61,5 @@ test_data:
     export TEST_LXD_IMAGE="ubuntu:22.04"
 
     tox -e integration -- \
-        -k "test_deploy_nvdia_gpu_operator" \
         --tags gpu
     REMOTE
