@@ -1,20 +1,27 @@
+// Run these tests with:
+//   cd k8s/manifests/charts/ck-loadbalancer/tests && go test ./...
+// or from repo root:
+//   cd k8s/manifests/charts/ck-loadbalancer/tests && go test -v ./...
 package tests
 
 import (
-	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
 )
 
-var helmPath = "/opt/homebrew/bin/helm"
+func getHelmPath(t *testing.T) string {
+	t.Helper()
+	p, err := exec.LookPath("helm")
+	if err != nil {
+		t.Skip("helm not found in PATH, skipping chart render tests")
+	}
+	return p
+}
 
 func TestChartRender(t *testing.T) {
-	// Check helm is available
-	if _, err := os.Stat(helmPath); os.IsNotExist(err) {
-		t.Skipf("helm not found at %s", helmPath)
-	}
+	helmPath := getHelmPath(t)
 
 	chartPath, err := filepath.Abs("..")
 	if err != nil {
@@ -250,9 +257,7 @@ func TestChartRender(t *testing.T) {
 }
 
 func TestHelmLint(t *testing.T) {
-	if _, err := os.Stat(helmPath); os.IsNotExist(err) {
-		t.Skipf("helm not found at %s", helmPath)
-	}
+	helmPath := getHelmPath(t)
 
 	chartPath, err := filepath.Abs("..")
 	if err != nil {
