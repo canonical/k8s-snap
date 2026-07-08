@@ -4,7 +4,7 @@
 
 <!-- SPREAD 
 # Tear down kube bench settings on exit
-trap 'sudo rm -f /usr/local/bin/kube-bench; sudo snap remove kubectl --purge; rm -f ~/.kube/config; rm -rf ~/kube-bench ~/kube-bench-ck8s-cfg' EXIT
+trap 'sudo rm -f /usr/local/bin/kube-bench; sudo snap remove kubectl --purge; rm -f ~/.kube/config; rm -rf "${SPREAD_PATH:-.}/kube-bench" "${SPREAD_PATH:-.}/kube-bench-ck8s-cfg"' EXIT
 # Start doc test
 -->
 
