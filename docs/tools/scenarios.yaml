@@ -1,0 +1,6 @@
+scenarios:
+  - name: cis
+    suite: snap_bootstrapped
+    pages:
+      - snap/howto/security/hardening.md
+      - snap/howto/security/cis-assessment.md
