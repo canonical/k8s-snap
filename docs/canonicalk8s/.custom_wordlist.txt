@@ -563,7 +563,6 @@ TLB
 tls
 tlsCertFile
 tlsPrivateKeyFile
-tolerations
 tmpfs
 TokenReviews
 toml
