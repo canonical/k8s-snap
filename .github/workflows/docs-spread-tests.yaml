@@ -140,5 +140,8 @@ jobs:
           set -euo pipefail
           sudo adduser --gecos "" --disabled-password ubuntu || true
           echo "ubuntu:ubuntu" | sudo chpasswd || true
+          # Ensure all suite directories defined in spread.yaml exist so spread
+          # does not fail its directory scan even when only one suite has tasks.
+          mkdir -p tests/spread_generated/snap_clean tests/spread_generated/snap_bootstrapped
           cd docs
           spread -vv -repeat 0 "github-ci:ubuntu-24.04-64:tests/spread_generated/${{ matrix.suite }}/"
