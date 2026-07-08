@@ -84,3 +84,5 @@
 # Old files
 "charm/howto/install-lxd" "charm/howto/install/install-lxd"
 "charm/howto/charm" "charm/howto/install/charm"
+# Reverted feature
+"snap/howto/helm-overrides" "snap/index"
