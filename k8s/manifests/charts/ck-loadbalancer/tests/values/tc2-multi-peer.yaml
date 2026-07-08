@@ -1,0 +1,24 @@
+driver: metallb
+l2:
+  enabled: false
+  interfaces: []
+ipPool:
+  cidrs:
+    - cidr: "10.42.254.0/24"
+bgp:
+  enabled: true
+  localASN: 64512
+  advertiseAllPools: false
+  neighbors:
+    - peerAddress: "10.0.0.1"
+      peerASN: 65001
+      nodeSelector:
+        topology.kubernetes.io/zone: i1
+    - peerAddress: "10.0.0.2"
+      peerASN: 65002
+      nodeSelector:
+        topology.kubernetes.io/zone: i2
+    - peerAddress: "10.0.0.3"
+      peerASN: 65003
+      nodeSelector:
+        topology.kubernetes.io/zone: i3
