@@ -275,9 +275,9 @@ def test_loadbalancer_bgp_multi_peer_annotation(instances: List[harness.Instance
         ns = spec.get("nodeSelectors", [])
         assert ns, f"{addr}: missing nodeSelectors"
         labels = ns[0].get("matchLabels", {})
-        assert labels.get("topology.kubernetes.io/zone") == zone, (
-            f"{addr}: nodeSelector zone mismatch (got {labels})"
-        )
+        assert (
+            labels.get("topology.kubernetes.io/zone") == zone
+        ), f"{addr}: nodeSelector zone mismatch (got {labels})"
 
     LOG.info("All three BGPPeer CRs have the expected fields.")
 
@@ -331,9 +331,9 @@ def test_loadbalancer_bgp_advertise_all_pools_annotation(
     items = json.loads(p.stdout.decode()).get("items", [])
     assert items, "expected at least one BGPAdvertisement before annotation"
     default_spec = items[0].get("spec") or {}
-    assert "ipAddressPools" in default_spec, (
-        "default BGPAdvertisement should restrict to a named pool"
-    )
+    assert (
+        "ipAddressPools" in default_spec
+    ), "default BGPAdvertisement should restrict to a named pool"
 
     # Enable advertise-all-pools.
     instance.exec(
