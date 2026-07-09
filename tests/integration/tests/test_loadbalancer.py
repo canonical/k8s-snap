@@ -267,7 +267,7 @@ def test_loadbalancer_bgp_multi_peer_annotation(instances: List[harness.Instance
         ("192.0.2.3", 65003, "i3"),
     ]
     for addr, asn, zone in expected:
-        assert addr in by_addr, f"BGPPeer for {addr} not found; got {list(by_addr)}"
+        assert addr in by_addr, f"BGPPeer for {addr} not found, got {list(by_addr)}"
         spec = by_addr[addr]
         assert spec["peerASN"] == asn, f"{addr}: peerASN mismatch"
         assert spec["myASN"] == 65000, f"{addr}: myASN mismatch"
