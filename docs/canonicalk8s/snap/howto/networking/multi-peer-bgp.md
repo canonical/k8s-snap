@@ -1,7 +1,5 @@
 # How to configure multi-peer BGP (alpha)
 
-<!-- SPREAD SUITE: snap_bootstrapped -->
-
 ```{note}
 Multi-peer BGP configuration via annotations is an **alpha** feature
 (`k8sd/v1alpha1`). The interface may change in future releases without a

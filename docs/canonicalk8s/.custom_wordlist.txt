@@ -43,6 +43,9 @@ baycarbone
 benoitblanchon
 berkayoz
 bgp
+BGPAdvertisement
+BGPPeer
+bgppeers
 bootloader
 BPF
 bschimke
