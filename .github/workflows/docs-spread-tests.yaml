@@ -146,6 +146,12 @@ jobs:
           name: spread_generated
           path: tests/spread_generated
 
+      - name: Recreate suite directories
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p tests/spread_generated/{snap_clean,snap_bootstrapped}
+
       - name: Set up Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
