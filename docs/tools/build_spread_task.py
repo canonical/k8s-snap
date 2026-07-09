@@ -10,8 +10,8 @@ Scenario mode  (--target matches a name in scenarios.yaml):
 
 Standalone mode  (--target is a path to a .md file):
     Generates a task.yaml for a single page.
-    Injects ``set -e`` but does NOT set SCENARIO_MODE, so conditional
-    blocks such as ``sudo k8s bootstrap`` execute normally.
+    Injects ``set -e`` and ``export SCENARIO_MODE=false`` so pages can
+    explicitly gate scenario-only checks behind ``SCENARIO_MODE=true``.
 
 Both modes prepend ``cd "${SPREAD_PATH:-.}"`` before each section so that
 path-sensitive commands always start from a known root.
@@ -244,15 +244,15 @@ def build_scenario(
             f"Scenario '{scenario_name}' cannot use suite '{SCENARIO_ONLY_SUITE}'."
         )
     pages = scenario["pages"]
-    docs_root = repo_root / "docs" / "canonicalk8s"
+    docs_root = (repo_root / "docs" / "canonicalk8s").resolve()
     sections: list[tuple[str, list[str]]] = []
 
     with tempfile.TemporaryDirectory() as tmpdir:
         for page in pages:
             doc_file = (docs_root / page).resolve()
-            if not doc_file.is_relative_to(repo_root.resolve()):
+            if not doc_file.is_relative_to(docs_root):
                 raise ValueError(
-                    f"Refusing to process {doc_file}: path is outside the repository root"
+                    f"Refusing to process {doc_file}: path is outside the {docs_root}"
                 )
             if not doc_file.is_file():
                 raise FileNotFoundError(f"Page not found: {doc_file}")
