@@ -202,6 +202,8 @@ def write_task(
         f.write("  set -e\n")
         if scenario_mode:
             f.write("  export SCENARIO_MODE=true\n")
+        else:
+            f.write("  export SCENARIO_MODE=false\n")
         if trap_bodies:
             combined = "; ".join(trap_bodies).replace("'", "'\\''")
             f.write(f"  trap '{combined}' EXIT\n")
