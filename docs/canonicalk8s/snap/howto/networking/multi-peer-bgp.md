@@ -21,9 +21,16 @@ where each zone peers with a different top-of-rack router.
 
 ### Step 1 — Enable BGP mode
 
+First enable the load balancer:
+
+```bash
+sudo k8s enable load-balancer
+```
+
+Then configure BGP:
+
 ```bash
 sudo k8s set \
-  load-balancer.enabled=true \
   load-balancer.bgp-mode=true \
   load-balancer.bgp-local-asn=65000 \
   load-balancer.cidrs=10.0.0.0/24
