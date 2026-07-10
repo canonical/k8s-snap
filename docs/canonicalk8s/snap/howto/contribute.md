@@ -179,7 +179,7 @@ write all our documentation in Markdown to make it easier for humans to work
 with. There are a few extra things that come with this - certain features need
 to be specially marked up (e.g. admonitions) to be processed properly. There is
 a guide to using `Myst` (which is a Markdown extension for Sphinx) directives
-and formatting contained in the [_parts][] directory of the docs.
+and formatting available at [Canonical Sphinx Stack documentation].
 
 ### Local testing
 
@@ -205,8 +205,9 @@ press `F5` in your browser to reload the page without caching)!
 [Diátaxis website]: https://diataxis.fr/
 [_parts]: https://github.com/canonical/k8s-snap/blob/main/docs/canonicalk8s/_parts/doc-cheat-sheet-myst.md
 [community page]: ../reference/community
-[Tutorial template]: https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/canonicalk8s/_parts/template-tutorial
-[How to template]: https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/canonicalk8s/_parts/template-howto
-[Explanation template]: https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/canonicalk8s/_parts/template-explanation
-[Reference template]: https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/canonicalk8s/_parts/template-reference
+[Tutorial template]: https://raw.githubusercontent.com/canonical/k8s-snap/refs/heads/release-1.32/docs/canonicalk8s/_templates/template-tutorial
+[How to template]: https://raw.githubusercontent.com/canonical/k8s-snap/refs/heads/release-1.32/docs/canonicalk8s/_templates/template-howto
+[Explanation template]: https://raw.githubusercontent.com/canonical/k8s-snap/refs/heads/release-1.32/docs/canonicalk8s/_templates/template-explanation
+[Reference template]: https://raw.githubusercontent.com/canonical/k8s-snap/refs/heads/release-1.33/docs/canonicalk8s/_templates/template-reference
 [development env guide]: install/dev-env.md
+[Canonical Sphinx Stack documentation]: https://documentation.ubuntu.com/sphinx-stack/latest/reference/myst-syntax/
