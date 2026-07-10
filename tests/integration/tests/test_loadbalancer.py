@@ -160,8 +160,84 @@ def _test_loadbalancer(instances: List[harness.Instance], k8s_net_type: K8sNetTy
 
 
 # ---------------------------------------------------------------------------
-# BGP annotation tests (CR-level; no real BGP router required)
+# BGP integration tests (CR-level; no real BGP router required)
 # ---------------------------------------------------------------------------
+
+# These tests only assert that k8sd creates the correct MetalLB CRs —
+# actual BGP connectivity requires real router infra and is out of scope.
+
+
+@pytest.mark.node_count(1)
+@pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.disable_k8s_bootstrapping()
+def test_loadbalancer_bgp_single_peer(instances: List[harness.Instance]):
+    """Single-peer BGP typed keys create one BGPPeer CR with correct fields.
+
+    Uses the original single-peer typed-key path (bgp-peer-address,
+    bgp-peer-asn, bgp-peer-port) and verifies that k8sd creates exactly one
+    BGPPeer CR with the expected spec.  This is a regression test for the
+    pre-existing single-peer BGP feature.
+    """
+    instance = instances[0]
+    instance.exec(["k8s", "bootstrap"])
+    util.wait_for_network(instance)
+
+    instance.exec(["k8s", "enable", "load-balancer"])
+    util.wait_for_load_balancer(instance)
+
+    instance.exec(
+        [
+            "k8s",
+            "set",
+            "load-balancer.bgp-mode=true",
+            "load-balancer.bgp-local-asn=65000",
+            "load-balancer.bgp-peer-address=192.0.2.1",
+            "load-balancer.bgp-peer-asn=65001",
+            "load-balancer.bgp-peer-port=179",
+            "load-balancer.cidrs=192.0.2.0/24",
+        ]
+    )
+
+    LOG.info("Waiting for one BGPPeer CR to appear ...")
+    util.stubbornly(retries=20, delay_s=5).on(instance).until(
+        lambda p: len(json.loads(p.stdout.decode()).get("items", [])) == 1
+    ).exec(
+        [
+            "k8s",
+            "kubectl",
+            "get",
+            "bgppeers",
+            "-n",
+            "metallb-system",
+            "-o",
+            "json",
+        ]
+    )
+
+    p = instance.exec(
+        [
+            "k8s",
+            "kubectl",
+            "get",
+            "bgppeers",
+            "-n",
+            "metallb-system",
+            "-o",
+            "json",
+        ],
+        capture_output=True,
+    )
+    peers = json.loads(p.stdout.decode())["items"]
+    assert len(peers) == 1, f"expected 1 BGPPeer CR, got {len(peers)}"
+
+    spec = peers[0]["spec"]
+    assert spec["peerAddress"] == "192.0.2.1", f"peerAddress mismatch: {spec}"
+    assert spec["peerASN"] == 65001, f"peerASN mismatch: {spec}"
+    assert spec["myASN"] == 65000, f"myASN mismatch: {spec}"
+    assert spec.get("peerPort", 179) == 179, f"peerPort mismatch: {spec}"
+
+    LOG.info("Single BGPPeer CR has the expected fields.")
+
 
 # The bgp-peers and advertise-all-pools annotations are alpha. These tests
 # only assert that k8sd creates the correct BGPPeer / BGPAdvertisement CRs —
