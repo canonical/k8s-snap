@@ -207,6 +207,8 @@ def test_loadbalancer_bgp_multi_peer_annotation(instances: List[harness.Instance
     instance.exec(["k8s", "enable", "load-balancer"])
     util.wait_for_load_balancer(instance)
 
+    # k8sd only requires bgp-local-asn when bgp-mode=true; bgp-peer-* fields
+    # are optional here because peers will be supplied via the bgp-peers annotation.
     instance.exec(
         [
             "k8s",
@@ -314,8 +316,21 @@ def test_loadbalancer_bgp_advertise_all_pools_annotation(
         ]
     )
 
-    # Without the annotation, ipAddressPools should be set (default behaviour).
-    p = instance.exec(
+    # Reconciliation is asynchronous — wait for the BGPAdvertisement to appear
+    # with an ipAddressPools restriction before asserting the default behaviour.
+    LOG.info("Waiting for BGPAdvertisement with ipAddressPools to appear ...")
+
+    def _has_pool_restriction(p):
+        data = json.loads(p.stdout.decode())
+        items = data.get("items", [])
+        if not items:
+            return False
+        spec = items[0].get("spec") or {}
+        return "ipAddressPools" in spec
+
+    util.stubbornly(retries=20, delay_s=5).on(instance).until(
+        _has_pool_restriction
+    ).exec(
         [
             "k8s",
             "kubectl",
@@ -325,15 +340,10 @@ def test_loadbalancer_bgp_advertise_all_pools_annotation(
             "metallb-system",
             "-o",
             "json",
-        ],
-        capture_output=True,
+        ]
     )
-    items = json.loads(p.stdout.decode()).get("items", [])
-    assert items, "expected at least one BGPAdvertisement before annotation"
-    default_spec = items[0].get("spec") or {}
-    assert (
-        "ipAddressPools" in default_spec
-    ), "default BGPAdvertisement should restrict to a named pool"
+
+    LOG.info("Default BGPAdvertisement correctly restricts to a named pool.")
 
     # Enable advertise-all-pools.
     instance.exec(
@@ -370,3 +380,79 @@ def test_loadbalancer_bgp_advertise_all_pools_annotation(
     )
 
     LOG.info("BGPAdvertisement correctly has no ipAddressPools restriction.")
+
+
+@pytest.mark.node_count(1)
+@pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.disable_k8s_bootstrapping()
+def test_loadbalancer_bgp_annotation_peers_with_advertise_all_pools(
+    instances: List[harness.Instance],
+):
+    """Annotation BGP peers combined with advertise-all-pools=true.
+
+    Verifies that when both bgp-peers and advertise-all-pools annotations are
+    set, k8sd creates the correct BGPPeer CRs from the annotation AND renders
+    a BGPAdvertisement with no ipAddressPools restriction.
+    """
+    instance = instances[0]
+    instance.exec(["k8s", "bootstrap"])
+    util.wait_for_network(instance)
+
+    instance.exec(["k8s", "enable", "load-balancer"])
+    util.wait_for_load_balancer(instance)
+
+    instance.exec(
+        [
+            "k8s",
+            "set",
+            "load-balancer.bgp-mode=true",
+            "load-balancer.bgp-local-asn=65000",
+            "load-balancer.cidrs=192.0.2.0/24",
+        ]
+    )
+
+    # Set both annotations together.
+    instance.exec(
+        [
+            "k8s",
+            "set",
+            f"annotations.{_BGP_PEERS_ANNOTATION}={_MULTI_PEER_ANNOTATION_VALUE}",
+            f"annotations.{_ADVERTISE_ALL_POOLS_ANNOTATION}=true",
+        ]
+    )
+
+    LOG.info("Waiting for 3 BGPPeer CRs with no ipAddressPools restriction ...")
+
+    def _annotation_peers_with_advertise_all(p):
+        data = json.loads(p.stdout.decode())
+        items = data.get("items", [])
+        return len(items) == 3
+
+    util.stubbornly(retries=20, delay_s=5).on(instance).until(
+        _annotation_peers_with_advertise_all
+    ).exec(["k8s", "kubectl", "get", "bgppeers", "-n", "metallb-system", "-o", "json"])
+
+    def _no_pool_restriction(p):
+        data = json.loads(p.stdout.decode())
+        items = data.get("items", [])
+        if not items:
+            return False
+        spec = items[0].get("spec") or {}
+        return "ipAddressPools" not in spec
+
+    util.stubbornly(retries=20, delay_s=5).on(instance).until(
+        _no_pool_restriction
+    ).exec(
+        [
+            "k8s",
+            "kubectl",
+            "get",
+            "bgpadvertisements",
+            "-n",
+            "metallb-system",
+            "-o",
+            "json",
+        ]
+    )
+
+    LOG.info("BGPPeer CRs from annotation and no ipAddressPools restriction confirmed.")
