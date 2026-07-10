@@ -37,10 +37,10 @@ sudo k8s get local-storage
 ```
 
 You can modify the configuration using the `set` command. For example, to
-change the local storage path:
+change the default setting:
 
 ```
-sudo k8s set local-storage.local-path=/path/to/new/folder
+sudo k8s set local-storage.default=true
 ```
 
 The local-storage feature provides the following configuration options:
@@ -52,6 +52,9 @@ The local-storage feature provides the following configuration options:
   this flag is not set and the cluster already has a default storage class it
   is not changed. If this flag is not set and the cluster does not have a
   default class set then the class from the local-storage becomes the default.
+
+To alter the `local-path` or `reclaim-policy`, you must disable local-storage 
+first.
 
 ## Disable local storage
 
