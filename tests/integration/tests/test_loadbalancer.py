@@ -166,27 +166,6 @@ def _test_loadbalancer(instances: List[harness.Instance], k8s_net_type: K8sNetTy
 # These tests only assert that k8sd creates the correct MetalLB CRs —
 # actual BGP connectivity requires real router infra and is out of scope.
 
-_GET_BGPPEERS = [
-    "k8s",
-    "kubectl",
-    "get",
-    "bgppeers",
-    "-n",
-    "metallb-system",
-    "-o",
-    "json",
-]
-_GET_BGPADVERTISEMENTS = [
-    "k8s",
-    "kubectl",
-    "get",
-    "bgpadvertisements",
-    "-n",
-    "metallb-system",
-    "-o",
-    "json",
-]
-
 
 @pytest.mark.node_count(1)
 @pytest.mark.tags(tags.NIGHTLY)
@@ -224,7 +203,9 @@ def test_loadbalancer_bgp_single_peer(instances: List[harness.Instance]):
         util.stubbornly(retries=20, delay_s=5)
         .on(instance)
         .until(lambda p: len(json.loads(p.stdout.decode()).get("items", [])) == 1)
-        .exec(_GET_BGPPEERS)
+        .exec(
+            ["k8s", "kubectl", "get", "bgppeers", "-n", "metallb-system", "-o", "json"]
+        )
     )
 
     peers = json.loads(p.stdout.decode())["items"]
@@ -309,7 +290,9 @@ def test_loadbalancer_bgp_multi_peer_annotation(instances: List[harness.Instance
         util.stubbornly(retries=20, delay_s=5)
         .on(instance)
         .until(lambda p: len(json.loads(p.stdout.decode()).get("items", [])) == 3)
-        .exec(_GET_BGPPEERS)
+        .exec(
+            ["k8s", "kubectl", "get", "bgppeers", "-n", "metallb-system", "-o", "json"]
+        )
     )
 
     peers = json.loads(p.stdout.decode())["items"]
@@ -385,7 +368,18 @@ def test_loadbalancer_bgp_advertise_all_pools_annotation(
 
     util.stubbornly(retries=20, delay_s=5).on(instance).until(
         _has_pool_restriction
-    ).exec(_GET_BGPADVERTISEMENTS)
+    ).exec(
+        [
+            "k8s",
+            "kubectl",
+            "get",
+            "bgpadvertisements",
+            "-n",
+            "metallb-system",
+            "-o",
+            "json",
+        ]
+    )
 
     LOG.info("Default BGPAdvertisement correctly restricts to a named pool.")
 
@@ -410,7 +404,18 @@ def test_loadbalancer_bgp_advertise_all_pools_annotation(
 
     util.stubbornly(retries=20, delay_s=5).on(instance).until(
         _no_pool_restriction
-    ).exec(_GET_BGPADVERTISEMENTS)
+    ).exec(
+        [
+            "k8s",
+            "kubectl",
+            "get",
+            "bgpadvertisements",
+            "-n",
+            "metallb-system",
+            "-o",
+            "json",
+        ]
+    )
 
     LOG.info("BGPAdvertisement correctly has no ipAddressPools restriction.")
 
@@ -463,7 +468,7 @@ def test_loadbalancer_bgp_annotation_peers_with_advertise_all_pools(
 
     util.stubbornly(retries=20, delay_s=5).on(instance).until(
         _annotation_peers_with_advertise_all
-    ).exec(_GET_BGPPEERS)
+    ).exec(["k8s", "kubectl", "get", "bgppeers", "-n", "metallb-system", "-o", "json"])
 
     def _no_pool_restriction(p):
         data = json.loads(p.stdout.decode())
@@ -475,6 +480,17 @@ def test_loadbalancer_bgp_annotation_peers_with_advertise_all_pools(
 
     util.stubbornly(retries=20, delay_s=5).on(instance).until(
         _no_pool_restriction
-    ).exec(_GET_BGPADVERTISEMENTS)
+    ).exec(
+        [
+            "k8s",
+            "kubectl",
+            "get",
+            "bgpadvertisements",
+            "-n",
+            "metallb-system",
+            "-o",
+            "json",
+        ]
+    )
 
     LOG.info("BGPPeer CRs from annotation and no ipAddressPools restriction confirmed.")
