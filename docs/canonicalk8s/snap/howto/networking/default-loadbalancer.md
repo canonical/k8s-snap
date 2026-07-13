@@ -118,9 +118,11 @@ If you run `k8s status` soon after enabling the load balancer in BGP mode,
 The default load balancer can be disabled again with:
 
 <!-- SPREAD SKIP -->
+
 ```
 sudo k8s disable load-balancer
 ```
+
 <!-- SPREAD SKIP END -->
 
 <!-- SPREAD

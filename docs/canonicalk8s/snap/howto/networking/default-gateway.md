@@ -185,6 +185,7 @@ If you have an active cluster, disabling Gateway may impact external access to s
 ```
 sudo k8s disable gateway
 ```
+
 <!-- SPREAD SKIP END -->
 
 <!-- SPREAD

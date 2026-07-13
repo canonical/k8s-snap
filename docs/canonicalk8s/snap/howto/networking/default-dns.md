@@ -134,9 +134,11 @@ DNS at any point, and your cluster will return to normal functionality.
 ```
 
 <!-- SPREAD SKIP -->
+
 ```
 sudo k8s disable dns
 ```
+
 <!-- SPREAD SKIP END -->
 
 <!-- SPREAD
