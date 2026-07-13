@@ -15,11 +15,10 @@ where each zone peers with a different top-of-rack router.
 ## Prerequisites
 
 - A bootstrapped {{product}} cluster (see [Getting Started][getting-started-guide]).
-- BGP mode enabled on the load balancer.
 
 ## Configure multi-peer BGP
 
-### Step 1 — Enable BGP mode
+### Enable BGP mode
 
 First enable the load balancer:
 
@@ -36,7 +35,7 @@ sudo k8s set \
   load-balancer.cidrs=10.0.0.0/24
 ```
 
-### Step 2 — Set the multi-peer annotation
+### Set the multi-peer annotation
 
 Define peers as a YAML list and pass them via the `annotations` key:
 
@@ -73,7 +72,7 @@ Supported fields per peer entry:
 | `peerPort` | no | TCP port (default: 179) |
 | `nodeSelector` | no | `matchLabels` selector; omit to select all nodes |
 
-### Step 3 — Optionally advertise all pools
+### Optionally advertise all pools
 
 To advertise all IP address pools instead of only the named pool:
 
@@ -81,7 +80,7 @@ To advertise all IP address pools instead of only the named pool:
 sudo k8s set 'annotations.k8sd/v1alpha1/metallb/advertise-all-pools=true'
 ```
 
-### Step 4 — Verify
+### Verify
 
 ```bash
 sudo k8s status
