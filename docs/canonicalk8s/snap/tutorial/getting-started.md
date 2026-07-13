@@ -2,6 +2,7 @@
 myst:
   html_meta:
     description: Learn how to deploy your first Canonical Kubernetes cluster using the k8s snap and execute typical cluster operations in this tutorial.
+relatedlinks: "[Snap&#32;documentation](https://snapcraft.io/docs/), [kubectl&#32;documentation](https://kubernetes.io/docs/reference/kubectl/)"
 ---
 
 # Getting started

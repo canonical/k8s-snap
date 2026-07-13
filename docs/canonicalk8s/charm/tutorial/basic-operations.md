@@ -1,3 +1,10 @@
+---
+myst:
+  html_meta:
+    description: "Learn how to scale a Canonical Kubernetes charm cluster, manage worker nodes, and interact with the cluster using kubectl."
+relatedlinks: "[Juju&#32;documentation](https://canonical.com/juju/docs/juju-cli/), [kubectl&#32;documentation](https://kubernetes.io/docs/reference/kubectl/)"
+---
+
 # Basic {{ product }} charm operations
 
 This tutorial walks you through common management tasks for your {{ product }}
