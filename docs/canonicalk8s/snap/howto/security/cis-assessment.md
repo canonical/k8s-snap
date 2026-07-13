@@ -1,6 +1,6 @@
 # How to assess CIS compliance
 
-<!-- SPREAD SUITE: snap_bootstrapped -->
+<!-- SPREAD SUITE: scenario_only -->
 
 <!-- SPREAD 
 # Tear down kube bench settings on exit
@@ -140,9 +140,7 @@ Review the warnings detected and address any failing checks you see fit.
 <!-- SPREAD SKIP END -->
 
 <!-- SPREAD 
-if [ "${SCENARIO_MODE}" = "true" ]; then
-  sudo -E kube-bench --version ck8s-cis-1.24 --config-dir ./kube-bench-ck8s-cfg/cfg/ --config ./kube-bench-ck8s-cfg/cfg/config.yaml | grep -A4 "== Summary total ==" | grep "0 checks FAIL"
-fi
+sudo -E kube-bench --version ck8s-cis-1.24 --config-dir ./kube-bench-ck8s-cfg/cfg/ --config ./kube-bench-ck8s-cfg/cfg/config.yaml | grep -A4 "== Summary total ==" | grep "0 checks FAIL"
 -->
 
 <!-- LINKS -->
