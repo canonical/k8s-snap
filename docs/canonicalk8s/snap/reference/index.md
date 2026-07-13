@@ -1,7 +1,7 @@
 ---
 myst:
   html_meta:
-    description: "Reference index for the Canonical Kubernetes snap, including architecture, etcd, Dqlite, commands, configuration files, ports, and release notes."
+    description: "Reference index for the Canonical Kubernetes snap, including architecture, etcd, Dqlite, CLI commands, configuration files, ports, and release notes."
 ---
 
 # Reference

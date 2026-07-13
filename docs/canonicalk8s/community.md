@@ -1,7 +1,7 @@
 ---
 myst:
   html_meta:
-    description: "Get involved with the Canonical Kubernetes community: ask questions, report bugs, and contribute the code or documentation."
+    description: "Get involved with the Canonical Kubernetes community: ask questions, report bugs, and contribute to the code or documentation."
 ---
 
 # Welcome to the {{product}} community
