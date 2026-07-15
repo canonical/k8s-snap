@@ -37,27 +37,32 @@ sudo k8s set \
 
 ### Set the multi-peer annotation
 
-Define peers as a YAML list and pass them via the `annotations` key:
+Define peers in a YAML file and pass the whole file via the `annotations` key:
 
 ```bash
-sudo k8s set 'annotations.k8sd/v1alpha1/metallb/bgp-peers=
-- peerAddress: 10.116.3.164
-  peerASN: 65001
-  myASN: 65000
-  nodeSelector:
-    topology.kubernetes.io/zone: i1
-- peerAddress: 10.116.3.165
-  peerASN: 65002
-  myASN: 65000
-  nodeSelector:
-    topology.kubernetes.io/zone: i2
-- peerAddress: 10.116.3.166
-  peerASN: 65003
-  myASN: 65000
-  nodeSelector:
-    topology.kubernetes.io/zone: i3
-'
+cat > bgp-peers.yaml << 'EOF'
+k8sd/v1alpha1/metallb/bgp-peers: |
+  - peerAddress: 10.116.3.164
+    peerASN: 65001
+    myASN: 65000
+    nodeSelector:
+      topology.kubernetes.io/zone: i1
+  - peerAddress: 10.116.3.165
+    peerASN: 65002
+    myASN: 65000
+    nodeSelector:
+      topology.kubernetes.io/zone: i2
+  - peerAddress: 10.116.3.166
+    peerASN: 65003
+    myASN: 65000
+    nodeSelector:
+      topology.kubernetes.io/zone: i3
+EOF
+sudo k8s set annotations="$(cat bgp-peers.yaml)"
 ```
+
+The YAML block literal (`|`) preserves the peer list as a string value, which
+the load-balancer handler parses on the server side.
 
 Setting this annotation **replaces** the single-peer typed keys. If both are
 present, the annotation takes precedence and a warning appears in `k8s status`.
@@ -74,10 +79,25 @@ Supported fields per peer entry:
 
 ### Optionally advertise all pools
 
-To advertise all IP address pools instead of only the named pool:
+To advertise all IP address pools instead of only the named pool, add
+`k8sd/v1alpha1/metallb/advertise-all-pools: "true"` to the annotations file
+and re-apply:
 
 ```bash
-sudo k8s set 'annotations.k8sd/v1alpha1/metallb/advertise-all-pools=true'
+cat > bgp-peers.yaml << 'EOF'
+k8sd/v1alpha1/metallb/bgp-peers: |
+  - peerAddress: 10.116.3.164
+    peerASN: 65001
+    myASN: 65000
+k8sd/v1alpha1/metallb/advertise-all-pools: "true"
+EOF
+sudo k8s set annotations="$(cat bgp-peers.yaml)"
+```
+
+Or to set only the advertise flag without changing peers:
+
+```bash
+sudo k8s set annotations="k8sd/v1alpha1/metallb/advertise-all-pools: \"true\""
 ```
 
 ### Verify
