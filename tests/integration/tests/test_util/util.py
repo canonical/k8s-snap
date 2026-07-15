@@ -1088,7 +1088,7 @@ def get_os_version_id_for_instance(instance: harness.Instance) -> str:
     for line in proc.stdout.split(b"\n"):
         line = line.decode()
         if line.startswith(var):
-            release = line.lstrip(f"{var}=")
+            release = line.lstrip(f"{var}=").strip('"')
             break
 
     if not release:
