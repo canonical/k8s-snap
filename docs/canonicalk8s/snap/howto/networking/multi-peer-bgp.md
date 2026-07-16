@@ -61,9 +61,6 @@ EOF
 sudo k8s set annotations="$(cat bgp-peers.yaml)"
 ```
 
-The YAML block literal (`|`) preserves the peer list as a string value, which
-the load-balancer handler parses on the server side.
-
 Setting this annotation **replaces** the single-peer typed keys. If both are
 present, the annotation takes precedence and a warning appears in `k8s status`.
 
@@ -141,4 +138,3 @@ Correct the annotation and the reconciler retries automatically.
 
 <!-- LINKS -->
 [getting-started-guide]: /snap/tutorial/getting-started
-
