@@ -264,8 +264,8 @@ def test_loadbalancer_bgp_multi_peer_annotation(instances: List[harness.Instance
     instance.exec(["k8s", "enable", "load-balancer"])
     util.wait_for_load_balancer(instance)
 
-    # k8sd only requires bgp-local-asn when bgp-mode=true; bgp-peer-* fields
-    # are optional here because peers will be supplied via the bgp-peers annotation.
+    # Set bgp-mode and peers annotation together so validation sees the
+    # annotation in the same update.
     instance.exec(
         [
             "k8s",
@@ -273,14 +273,6 @@ def test_loadbalancer_bgp_multi_peer_annotation(instances: List[harness.Instance
             "load-balancer.bgp-mode=true",
             "load-balancer.bgp-local-asn=65000",
             "load-balancer.cidrs=192.0.2.0/24",
-        ]
-    )
-
-    # Set the multi-peer annotation using YAML block literal syntax.
-    instance.exec(
-        [
-            "k8s",
-            "set",
             f"annotations={_BGP_PEERS_ANNOTATION}: |\n"
             + "\n".join(
                 f"  {line}" for line in _MULTI_PEER_ANNOTATION_VALUE.splitlines()
@@ -450,14 +442,6 @@ def test_loadbalancer_bgp_annotation_peers_with_advertise_all_pools(
             "load-balancer.bgp-mode=true",
             "load-balancer.bgp-local-asn=65000",
             "load-balancer.cidrs=192.0.2.0/24",
-        ]
-    )
-
-    # Set both annotations together using YAML block literal syntax.
-    instance.exec(
-        [
-            "k8s",
-            "set",
             f"annotations={_BGP_PEERS_ANNOTATION}: |\n"
             + "\n".join(
                 f"  {line}" for line in _MULTI_PEER_ANNOTATION_VALUE.splitlines()
@@ -526,7 +510,7 @@ def test_loadbalancer_bgp_annotation_survives_non_annotation_reconcile(
     instance.exec(["k8s", "enable", "load-balancer"])
     util.wait_for_load_balancer(instance)
 
-    # Enable BGP mode and set the multi-peer annotation.
+    # Enable BGP mode and set the multi-peer annotation in one update.
     instance.exec(
         [
             "k8s",
@@ -534,12 +518,6 @@ def test_loadbalancer_bgp_annotation_survives_non_annotation_reconcile(
             "load-balancer.bgp-mode=true",
             "load-balancer.bgp-local-asn=65000",
             "load-balancer.cidrs=192.0.2.0/24",
-        ]
-    )
-    instance.exec(
-        [
-            "k8s",
-            "set",
             f"annotations={_BGP_PEERS_ANNOTATION}: |\n"
             + "\n".join(
                 f"  {line}" for line in _MULTI_PEER_ANNOTATION_VALUE.splitlines()
