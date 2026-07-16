@@ -276,12 +276,16 @@ def test_loadbalancer_bgp_multi_peer_annotation(instances: List[harness.Instance
         ]
     )
 
-    # Set the multi-peer annotation.
+    # Set the multi-peer annotation using YAML block literal syntax.
     instance.exec(
         [
             "k8s",
             "set",
-            f"annotations.{_BGP_PEERS_ANNOTATION}={_MULTI_PEER_ANNOTATION_VALUE}",
+            f"annotations={_BGP_PEERS_ANNOTATION}: |\n"
+            + "\n".join(
+                f"  {line}" for line in _MULTI_PEER_ANNOTATION_VALUE.splitlines()
+            )
+            + "\n",
         ]
     )
 
@@ -388,7 +392,7 @@ def test_loadbalancer_bgp_advertise_all_pools_annotation(
         [
             "k8s",
             "set",
-            f"annotations.{_ADVERTISE_ALL_POOLS_ANNOTATION}=true",
+            f'annotations={_ADVERTISE_ALL_POOLS_ANNOTATION}: "true"',
         ]
     )
 
@@ -449,13 +453,16 @@ def test_loadbalancer_bgp_annotation_peers_with_advertise_all_pools(
         ]
     )
 
-    # Set both annotations together.
+    # Set both annotations together using YAML block literal syntax.
     instance.exec(
         [
             "k8s",
             "set",
-            f"annotations.{_BGP_PEERS_ANNOTATION}={_MULTI_PEER_ANNOTATION_VALUE}",
-            f"annotations.{_ADVERTISE_ALL_POOLS_ANNOTATION}=true",
+            f"annotations={_BGP_PEERS_ANNOTATION}: |\n"
+            + "\n".join(
+                f"  {line}" for line in _MULTI_PEER_ANNOTATION_VALUE.splitlines()
+            )
+            + f'\n{_ADVERTISE_ALL_POOLS_ANNOTATION}: "true"\n',
         ]
     )
 
@@ -533,7 +540,11 @@ def test_loadbalancer_bgp_annotation_survives_non_annotation_reconcile(
         [
             "k8s",
             "set",
-            f"annotations.{_BGP_PEERS_ANNOTATION}={_MULTI_PEER_ANNOTATION_VALUE}",
+            f"annotations={_BGP_PEERS_ANNOTATION}: |\n"
+            + "\n".join(
+                f"  {line}" for line in _MULTI_PEER_ANNOTATION_VALUE.splitlines()
+            )
+            + "\n",
         ]
     )
 
