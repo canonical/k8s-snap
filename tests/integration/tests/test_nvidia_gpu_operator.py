@@ -121,8 +121,6 @@ def test_deploy_nvidia_gpu_operator(
             "helm",
             "install",
             "--generate-name",
-            "--wait",
-            "--timeout=20m",
             "-n",
             test_namespace,
             "--create-namespace",
