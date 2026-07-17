@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to enable, disable and configure the default network plugin in Canonical Kubernetes."
+---
+
 # How to use the default Network
 
 <!-- SPREAD SUITE: snap_bootstrapped -->

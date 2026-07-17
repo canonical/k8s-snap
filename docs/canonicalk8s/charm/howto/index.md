@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How-to guides for Canonical Kubernetes charms, covering installation, configuration, integrations, upgrades, and troubleshooting."
+---
+
 # How-to guides
 
 If you have a specific goal, and are already familiar with Kubernetes, our

@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Reference for Canonical Kubernetes certificate authorities, certificates, and configuration directory paths used in TLS-secured cluster communication."
+---
+
 # Cluster certificates and configuration directories
 
 This reference page provides an overview of certificate authorities (CAs),

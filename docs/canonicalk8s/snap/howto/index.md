@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How-to guides for the Canonical Kubernetes snap, covering installation, networking, storage, security, observability, and upgrades."
+---
+
 # How-to guides
 
 If you have a specific goal, but are already familiar with Kubernetes, our

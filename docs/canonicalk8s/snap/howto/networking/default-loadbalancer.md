@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to enable, disable and configure the Canonical Kubernetes load balancer to expose services with external IPs from a configured IP address pool."
+---
+
 # How to use the default load balancer
 
 <!-- SPREAD SUITE: snap_bootstrapped -->

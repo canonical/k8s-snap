@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Explanation of Kubernetes clustering in Canonical Kubernetes, including k8sd's role in cluster coordination."
+---
+
 # Clustering
 
 Kubernetes clustering allows you to manage a group of hosts as a single entity.

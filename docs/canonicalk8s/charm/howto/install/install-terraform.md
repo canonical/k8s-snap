@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to install Canonical Kubernetes using the Terraform Juju provider and the k8s-bundle Terraform module."
+---
+
 # How to install with Terraform
 
 This guide walks you through the process of installing {{ product }} using

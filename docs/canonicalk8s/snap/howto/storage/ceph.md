@@ -1,10 +1,16 @@
+---
+myst:
+  html_meta:
+    description: "How to integrate Canonical Kubernetes with Ceph storage using the ceph-csi driver for RBD-backed persistent volumes."
+---
+
 # How to use Ceph storage with {{product}}
 
 Distributed, redundant storage is a must-have when you want to develop reliable
 applications. [Ceph] is a storage solution which provides exactly that, and is
 built with distributed clusters in mind. In this tutorial, we'll be looking at
 how to integrate {{product}} with a Ceph cluster. Specifically, by the
-end of this tutorial you'll have a Kubernetes pod with a mounted RBD-backed
+end of this how-to guide you'll have a Kubernetes pod with a mounted RBD-backed
 volume. RBD stands for RADOS Block Device and it is the abstraction used by Ceph
 to provide reliable and distributed storage. This how-to guide is adapted from
 [block-devices-and-kubernetes].

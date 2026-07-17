@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Networking how-to guide index for Canonical Kubernetes, covering DNS, CNI, Ingress, load balancer, Gateway API, dual-stack, IPv6, UFW, and proxy."
+---
+
 # Networking
 
 Networking is a core part of a working Kubernetes cluster. These topics cover

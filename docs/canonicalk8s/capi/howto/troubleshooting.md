@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to troubleshoot Canonical Kubernetes CAPI clusters, including checking provider logs, cluster status, and common provisioning failures."
+---
+
 # How to troubleshoot {{product}}
 
 Identifying issues in a Kubernetes cluster can be difficult, especially to new

@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to install Canonical Kubernetes with a custom bootstrap configuration, using interactive mode or a YAML file to set cluster features."
+---
+
 # How to install with a custom bootstrap configuration
 
 <!-- SPREAD SUITE: snap_clean -->

@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Explanation index for Canonical Kubernetes with Cluster API, covering fundamentals, networking, security, and upgrade concepts."
+---
+
 # Explanation
 
 For a better understanding of how {{product}} CAPI works and related

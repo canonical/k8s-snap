@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Explanation index for the Canonical Kubernetes snap, covering fundamentals, architecture, channels, networking, security, and upgrade concepts."
+---
+
 # Explanation
 
 For a better understanding of how {{product}} works and related

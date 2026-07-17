@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to install Canonical Kubernetes with Multipass on Ubuntu, macOS, or Windows, enabling multi-node cluster deployment on any platform."
+---
+
 # How to install {{product}} with Multipass (Ubuntu/macOS/Windows)
 
 [Multipass] provides an easy way to run Ubuntu in a virtual machine, regardless

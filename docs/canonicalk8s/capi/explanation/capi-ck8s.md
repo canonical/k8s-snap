@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Explanation of Cluster API (CAPI) and how Canonical Kubernetes integrates with it for declarative cluster provisioning across infrastructure providers."
+---
+
 # Cluster API and {{product}}
 
 ## Cluster API

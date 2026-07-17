@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to join a worker node to a Canonical Kubernetes cluster with a custom configuration using a YAML file passed to k8s join-cluster."
+---
+
 # How to join worker nodes with a custom configuration
 
 When creating a {{ product }} cluster you may need to join a worker node with

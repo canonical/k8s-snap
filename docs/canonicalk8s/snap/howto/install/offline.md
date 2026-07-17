@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to install Canonical Kubernetes in air-gapped environments, including snap download, network requirements, and offline image management."
+---
+
 # How to install {{product}} in air-gapped environments
 
 There are situations where it is necessary or desirable to run {{product}}

@@ -1,7 +1,7 @@
 ---
 myst:
   html_meta:
-    description: "Explore how to deploy and manage Canonical Kubernetes with Cluster API through step-by-step tutorials, practical how-to guides, in-depth explanations, and technical reference."
+    description: "Canonical Kubernetes with Cluster API: declarative cluster provisioning and lifecycle management across cloud and on-premises infrastructure."
 ---
 
 # Installing {{product}} with Cluster API

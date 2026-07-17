@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Reference documentation for Canonical Kubernetes CAPI provider configuration options, covering the bootstrap and the control plane providers."
+---
+
 # Providers configurations
 
 {{product}} bootstrap and control plane providers (CABPCK and CACPCK)

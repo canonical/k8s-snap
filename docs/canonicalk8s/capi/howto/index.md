@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How-to guides for Canonical Kubernetes with Cluster API, covering provisioning, upgrades, certificates, networking, and troubleshooting."
+---
+
 # How-to guides
 
 If you have a specific goal, but are already familiar with Kubernetes, our
