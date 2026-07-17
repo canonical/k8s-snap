@@ -71,12 +71,16 @@ sudo k8s set load-balancer.l2-mode=true
 sudo k8s get load-balancer | grep "l2-mode: true"
 -->
 
-Note that for the BGP mode, it is necessary to set ***all*** the values
-simultaneously. E.g.
+For single-peer BGP using typed keys, set these values in one command:
+`bgp-mode`, `bgp-local-asn`, `bgp-peer-address`, and `bgp-peer-asn`.
+`bgp-peer-port` is optional (default: `179`). E.g.
 
 ```
 sudo k8s set load-balancer.bgp-mode=true load-balancer.bgp-local-asn=64512 load-balancer.bgp-peer-address=10.0.10.63 load-balancer.bgp-peer-asn=64512 load-balancer.bgp-peer-port=7012
 ```
+
+For multi-peer BGP and `advertise-all-pools`, see [How to configure
+multi-peer BGP](multi-peer-bgp.md).
 
 <!-- SPREAD
 sudo k8s get load-balancer | grep "bgp-mode: true"
@@ -128,8 +132,8 @@ sudo k8s get load-balancer | grep "enabled: false"
 ## Next Step
 
 - Learn more in the [Load-balancer explanation](/snap/explanation/networking.md#load-balancer) page.
+- For annotation-based multi-peer BGP, see [How to configure multi-peer BGP](multi-peer-bgp.md).
 
 <!-- LINKS -->
 [CIDR]: https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing
 [getting-started-guide]: /snap/tutorial/getting-started
-

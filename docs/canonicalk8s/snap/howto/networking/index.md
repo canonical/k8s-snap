@@ -10,6 +10,7 @@ Use default DNS <default-dns.md>
 Use default network <default-network.md>
 Use default Ingress <default-ingress.md>
 Use default load balancer <default-loadbalancer.md>
+Configure multi-peer BGP <multi-peer-bgp.md>
 Use default gateway <default-gateway.md>
 Use an alternative CNI <alternative-cni.md>
 Enable Dual-Stack networking <dualstack.md>

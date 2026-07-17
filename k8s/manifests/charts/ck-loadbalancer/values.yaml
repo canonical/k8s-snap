@@ -14,8 +14,14 @@ ipPool:
 bgp:
   enabled: false
   localASN: 64512
-  # neighbors:
-  # - peerAddress: '10.0.0.60/24'
-  #   peerASN: 65100
-  #   peerPort: 179
+  # advertiseAllPools: when true, BGPAdvertisement will advertise all pools (empty spec).
+  # when false (default), only the ck-loadbalancer pool is advertised.
+  advertiseAllPools: false
+  # neighbors: list of BGP peers
+  # - peerAddress: '10.0.0.60'     # required
+  #   peerASN: 65100                # required
+  #   peerPort: 179                 # optional, defaults to 179
+  #   myASN: 64512                  # optional, defaults to .Values.bgp.localASN
+  #   nodeSelector:                 # optional, omit for no node filtering
+  #     topology.kubernetes.io/zone: i1
   neighbors: []
