@@ -37,9 +37,21 @@ except ImportError:
     )
     sys.exit(1)
 
+
+def _get_operator_workflows_ref() -> str:
+    try:
+        wf = Path(__file__).resolve().parents[2] / ".github/workflows/docs-spread-tests.yaml"
+        m = re.search(r"OPERATOR_WORKFLOWS_REF:\s*([a-f0-9]+)", wf.read_text(encoding="utf-8"))
+        if m:
+            return m.group(1)
+    except Exception:
+        pass
+    return "main"
+
+
 UPSTREAM_SCRIPT_URL = (
     "https://raw.githubusercontent.com/canonical/operator-workflows"
-    "/df449f1e3d1b8babbe9df48bbebcff1e58c9fda9/spread/create_spread_task_file.py"
+    f"/{_get_operator_workflows_ref()}/spread/create_spread_task_file.py"
 )
 
 # Compiled pattern for the SPREAD SUITE marker used in documentation pages.
