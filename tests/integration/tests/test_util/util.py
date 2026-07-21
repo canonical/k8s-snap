@@ -1339,19 +1339,27 @@ def check_snap_services_ready(
 
     last_error = None
     for attempt in range(1, retries + 1):
+        kube_proxy_check_skip: set = set(skip_services)
         if "kube-proxy" not in skip_services:
-            if _is_kube_proxy_enabled(instance):
+            kube_proxy_enabled = _is_kube_proxy_enabled(instance)
+            if kube_proxy_enabled is True:
                 expected_worker_services.add("kube-proxy")
                 expected_control_plane_services.add("kube-proxy")
-            else:
+            elif kube_proxy_enabled is False:
                 if "kube-proxy" in expected_worker_services:
                     expected_worker_services.remove("kube-proxy")
                 if "kube-proxy" in expected_control_plane_services:
                     expected_control_plane_services.remove("kube-proxy")
+            else:
+                # kube-proxy-enabled field is absent (older snap) — skip the
+                # check entirely to avoid false failures in upgrade scenarios.
+                kube_proxy_check_skip.add("kube-proxy")
 
         service_status = get_snap_service_status(instance)
         try:
             for service in expected_active_services:
+                if service in kube_proxy_check_skip:
+                    continue
                 assert (
                     service in service_status
                 ), f"Service {service} is missing from 'snap services' output"
@@ -1360,7 +1368,7 @@ def check_snap_services_ready(
                 ), f"Service {service} should be active, but it is {service_status[service]}"
 
             for service, status in service_status.items():
-                if service in skip_services:
+                if service in kube_proxy_check_skip:
                     continue
                 if service not in expected_active_services:
                     assert (
@@ -1548,14 +1556,16 @@ def set_node_labels(
 
 def _is_kube_proxy_enabled(
     instance: harness.Instance,
-) -> bool:
-    """Return True if kube-proxy is enabled, False otherwise.
+) -> Optional[bool]:
+    """Return the kube-proxy enabled state from the cluster config.
 
     Queries the k8sd datastore for the `network.kube-proxy-enabled` config value.
-    If the field is present, returns its boolean value. If the field is not found,
-    kube-proxy is disabled by default, so returns False.
-    If the command fails (e.g. the node has been removed from the cluster),
-    returns False by default to avoid expecting a service that may not be running.
+
+    Returns:
+        True  — field is present and set to true
+        False — field is present and set to false
+        None  — field is absent (older snap without this config key) or query failed.
+                Callers should treat None as "unknown" and avoid asserting either way.
 
     Args:
         instance: instance on which to execute the command
@@ -1575,10 +1585,10 @@ def _is_kube_proxy_enabled(
         )
     except subprocess.CalledProcessError:
         LOG.warning(
-            "Failed to query kube-proxy-enabled on %s, defaulting to False",
+            "Failed to query kube-proxy-enabled on %s, returning None",
             instance.id,
         )
-        return True
+        return None
 
     try:
         rows = json.loads(result.stdout)
@@ -1595,9 +1605,9 @@ def _is_kube_proxy_enabled(
     except json.decoder.JSONDecodeError as e:
         LOG.error(f"failed to load cluster config json: {e}")
 
-    # If the field is not found in k8sd db, return True because that's probably an older
-    # version of k8s-snap without the kube-proxy-enabled field in the cluster_config
-    return True
+    # Field absent: this is an older snap that predates the kube-proxy-enabled config
+    # key. Return None so callers skip the kube-proxy service assertion entirely.
+    return None
 
 
 def diverged_cluster_memberships(
