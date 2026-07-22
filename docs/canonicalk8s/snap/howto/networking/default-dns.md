@@ -139,12 +139,19 @@ a suitable custom DNS solution is in place before disabling. You can re-enable
 DNS at any point, and your cluster will return to normal functionality.
 ```
 
+<!-- SPREAD SKIP -->
+
 ```
 sudo k8s disable dns
 ```
 
+<!-- SPREAD SKIP END -->
+
 <!-- SPREAD
-sudo k8s get dns | grep "enabled: false"
+if [ "${SCENARIO_MODE}" != "true" ]; then
+  sudo k8s disable dns
+  sudo k8s get dns | grep "enabled: false"
+fi
 -->
 
 For more information on this command, execute:

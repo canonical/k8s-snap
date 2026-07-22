@@ -6,11 +6,11 @@ myst:
 
 # How to assess CIS compliance
 
-<!-- SPREAD SUITE: snap_bootstrapped -->
+<!-- SPREAD SUITE: scenario_only -->
 
 <!-- SPREAD 
 # Tear down kube bench settings on exit
-trap 'sudo rm -f /usr/local/bin/kube-bench; sudo snap remove kubectl --purge; rm -f ~/.kube/config; rm -rf ~/kube-bench ~/kube-bench-ck8s-cfg' EXIT
+trap 'sudo rm -f /usr/local/bin/kube-bench; sudo snap remove kubectl --purge; rm -f ~/.kube/config; rm -rf "${SPREAD_PATH:-.}/kube-bench" "${SPREAD_PATH:-.}/kube-bench-ck8s-cfg"' EXIT
 # Start doc test
 -->
 
@@ -143,9 +143,11 @@ Review the warnings detected and address any failing checks you see fit.
 
 ```
 
-<!-- TODO: This test will fail without hardening applied. When pages are testing with each other, test 0 checks FAIL -->
-
 <!-- SPREAD SKIP END -->
+
+<!-- SPREAD 
+sudo -E kube-bench --version ck8s-cis-1.24 --config-dir ./kube-bench-ck8s-cfg/cfg/ --config ./kube-bench-ck8s-cfg/cfg/config.yaml | grep -A4 "== Summary total ==" | grep "0 checks FAIL"
+-->
 
 <!-- LINKS -->
 [Center for Internet Security (CIS)]:https://www.cisecurity.org/

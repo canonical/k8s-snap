@@ -11,6 +11,9 @@ on:
 permissions:
   contents: read
 
+env:
+  OPERATOR_WORKFLOWS_REF: df449f1e3d1b8babbe9df48bbebcff1e58c9fda9  # main as of 2026-05-07
+
 jobs:
   prepare-docs-spread:
     runs-on: ubuntu-latest
@@ -27,7 +30,7 @@ jobs:
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: canonical/operator-workflows
-          ref: df449f1e3d1b8babbe9df48bbebcff1e58c9fda9 # main as of 2026-05-07
+          ref: ${{ env.OPERATOR_WORKFLOWS_REF }}
           sparse-checkout: |
             spread/create_spread_task_file.py
           sparse-checkout-cone-mode: false
@@ -39,6 +42,9 @@ jobs:
         with:
           python-version: "3.x"
 
+      - name: Install Python dependencies
+        run: pip install pyyaml==6.0.2
+
       - id: generate
         name: Generate tasks.yaml for changed docs
         shell: bash
@@ -48,10 +54,6 @@ jobs:
           set -euo pipefail
 
           rm -rf tests/spread_generated
-          mkdir -p tests/spread_generated
-          
-          # Create all suite directories so spread doesn't fail reading spread.yaml
-          mkdir -p tests/spread_generated/{snap_clean,snap_bootstrapped}
 
           changed_files_input="${CHANGED_FILES_INPUT:-}"
 
@@ -59,61 +61,24 @@ jobs:
             echo "no_suites=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi 
+        
+          # Pass 1: generate standalone task for each changed file.
+          # build_spread_task.py handles skipping files with no marker or scenario_only.
+          while IFS= read -r rel; do
+            [[ -z "$rel" ]] && continue
+            python3 docs/tools/build_spread_task.py --target "$rel"
+          done < <(printf '%s\n' "$changed_files_input" | tr ' ' '\n' | grep -v '^$')
 
-          # Append the docs/canonicalk8s/ prefix to each changed file and store in an array
-          mapfile -t changed_files < <(
-            printf '%s\n' "$changed_files_input" \
-            | tr ' ' '\n' \
-            | grep -v '^$' \
-            | sed 's|^|docs/canonicalk8s/|'
-          )
+          # Pass 2: generate scenario chains for any triggered scenarios.
+          python3 docs/tools/build_spread_task.py --detect-scenarios "$changed_files_input"
 
-          if [[ ${#changed_files[@]} -eq 0 ]]; then
-            echo "No docs files needing spread tests changed in this PR."
+          # Determine if any tasks were generated.
+          if find tests/spread_generated -name task.yaml -print -quit 2>/dev/null | grep -q .; then
+            echo "no_suites=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "No spread tasks generated."
             echo "no_suites=true" >> "$GITHUB_OUTPUT"
-            exit 0
           fi
-
-          generated_any=false
-
-          for file in "${changed_files[@]}"; do
-            # Look for suite marker in the file like "SPREAD SUITE: snap_clean" to determine which suite to place it in
-            suite_marker="$(grep -Eo 'SPREAD SUITE:\s*[a-z_]+' "$file" | head -n1 | sed -E 's/.*:\s*//' || true)"
-
-            if [[ -z "$suite_marker" ]]; then
-              echo "Skipping $file (no SPREAD SUITE marker)"
-              continue
-            fi
-
-            # Validate suite value against allowed list
-            case "$suite_marker" in
-              snap_clean|snap_bootstrapped) ;;
-              *)
-                echo "Unsupported SPREAD SUITE marker '$suite_marker' in $file"
-                exit 1
-                ;;
-            esac
-
-            rel="${file#docs/canonicalk8s/}"
-            rel="${rel%.*}"
-            task_name="$(echo "$rel" | sed 's|/|_|g')"
-            out_dir="tests/spread_generated/${suite_marker}/${task_name}"
-
-            # Generate the task.yaml for this file using the upstream script
-            mkdir -p "$out_dir"
-            python3 workflow-scripts/spread/create_spread_task_file.py \
-              "$file" \
-              "$out_dir/task.yaml"
-
-            generated_any=true
-          done
-
-          if [[ "$generated_any" != true ]]; then
-            echo "no_suites=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          echo "no_suites=false" >> "$GITHUB_OUTPUT"
 
       - name: Upload generated spread tasks
         if: steps.generate.outputs.no_suites != 'true'
@@ -184,5 +149,8 @@ jobs:
           set -euo pipefail
           sudo adduser --gecos "" --disabled-password ubuntu || true
           echo "ubuntu:ubuntu" | sudo chpasswd || true
+          # Ensure all suite directories defined in spread.yaml exist so spread
+          # does not fail its directory scan even when only one suite has tasks.
+          mkdir -p tests/spread_generated/snap_clean tests/spread_generated/snap_bootstrapped
           cd docs
           spread -vv -repeat 0 "github-ci:ubuntu-24.04-64:tests/spread_generated/${{ matrix.suite }}/"

@@ -432,6 +432,11 @@ repeat_checks "sudo k8s kubectl get nodes" "Ready"
 
 <!-- Charm end here -->
 
+<!-- SPREAD
+# Normalize anonymous authentication flag for testing
+sudo sed -i 's/--anonymous-auth="false"/--anonymous-auth=false/' /var/snap/k8s/common/args/kubelet
+-->
+
 ## CIS hardening
 
 To assess compliance to the CIS hardening guidelines, please see the [CIS

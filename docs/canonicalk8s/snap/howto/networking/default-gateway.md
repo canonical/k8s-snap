@@ -186,10 +186,17 @@ You can `disable` the built-in Gateway:
 If you have an active cluster, disabling Gateway may impact external access to services within your cluster. Ensure that you have alternative configurations in place before disabling Gateway.
 ```
 
+<!-- SPREAD SKIP -->
+
 ```
 sudo k8s disable gateway
 ```
 
+<!-- SPREAD SKIP END -->
+
 <!-- SPREAD
-sudo k8s get gateway | grep "enabled: false"
---> 
+if [ "${SCENARIO_MODE}" != "true" ]; then
+  sudo k8s disable gateway
+  sudo k8s get gateway | grep "enabled: false"
+fi
+-->

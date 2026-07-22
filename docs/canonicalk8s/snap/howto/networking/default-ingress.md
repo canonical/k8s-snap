@@ -139,12 +139,19 @@ Disabling Ingress may impact external access to services within your cluster.
 Ensure that you have alternative configurations in place before disabling Ingress.
 ```
 
+<!-- SPREAD SKIP -->
+
 ```
 sudo k8s disable ingress
 ```
 
+<!-- SPREAD SKIP END -->
+
 <!-- SPREAD
-sudo k8s get ingress | grep "enabled: false"
+if [ "${SCENARIO_MODE}" != "true" ]; then
+  sudo k8s disable ingress
+  sudo k8s get ingress | grep "enabled: false"
+fi
 -->
 
 For more information on this command, run:

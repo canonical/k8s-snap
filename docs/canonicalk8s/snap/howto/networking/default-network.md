@@ -114,16 +114,20 @@ If your underlying network is Cilium you will have to run
 `sudo k8s disable gateway` before disabling network.
 
 <!-- SPREAD 
-sudo k8s disable gateway
+if [ "${SCENARIO_MODE}" != "true" ]; then
+  sudo k8s disable gateway
+  sudo k8s disable network
+  sudo k8s get network | grep "enabled: false"
+fi
 -->
+
+<!-- SPREAD SKIP -->
 
 ```
 sudo k8s disable network
 ```
 
-<!-- SPREAD 
-sudo k8s get network | grep "enabled: false"
--->
+<!-- SPREAD SKIP END -->
 
 For more information on this command, run:
 
