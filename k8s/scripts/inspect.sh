@@ -205,14 +205,53 @@ function collect_network_diagnostics {
   log_info "Copy network diagnostics to the final report tarball"
   ip a &>"$INSPECT_DUMP/ip-a.log" || true
   ip r &>"$INSPECT_DUMP/ip-r.log" || true
-  iptables-save &>"$INSPECT_DUMP/iptables.log" || true
-  iptables-legacy-save &>"$INSPECT_DUMP/iptables-legacy.log" || true
+  iptables-save -c &>"$INSPECT_DUMP/iptables.log" || true
+  iptables-legacy-save -c &>"$INSPECT_DUMP/iptables-legacy.log" || true
   ss -plnt &>"$INSPECT_DUMP/ss-plnt.log" || true
 
-  ip6tables-save &>"$INSPECT_DUMP/iptables6.log" || true
-  ip6tables-legacy-save &>"$INSPECT_DUMP/iptables6-legacy.log" || true
+  ip6tables-save -c &>"$INSPECT_DUMP/iptables6.log" || true
+  ip6tables-legacy-save -c &>"$INSPECT_DUMP/iptables6-legacy.log" || true
   ss -plntu &>"$INSPECT_DUMP/ss-plntu.log" || true
   grep -Ei "^(HTTP_PROXY|HTTPS_PROXY|NO_PROXY)=" /etc/environment > "$INSPECT_DUMP/proxy_in_etc_environment"
+
+  # iptables-save/iptables-legacy-save only ever show the rules for the
+  # backend they were built against, and both `iptables.log` and
+  # `iptables-legacy.log` above can end up byte-identical if the "iptables"
+  # alternative on this host resolves to the legacy backend. `nft list
+  # ruleset` is the only view that reflects the actual netfilter state
+  # regardless of which backend (legacy or nf_tables) owns it, which matters
+  # a lot when diagnosing conflicts with other software (e.g. Docker) that
+  # manages its own nftables/iptables rules.
+  if command -v nft &>/dev/null; then
+    nft list ruleset &>"$INSPECT_DUMP/nft-ruleset.log" || true
+  fi
+
+  if command -v conntrack &>/dev/null; then
+    conntrack -L &>"$INSPECT_DUMP/conntrack-table.log" || true
+    conntrack -S &>"$INSPECT_DUMP/conntrack-stats.log" || true
+  fi
+
+  if command -v nstat &>/dev/null; then
+    nstat -az &>"$INSPECT_DUMP/nstat.log" || true
+  fi
+}
+
+function collect_cilium_diagnostics {
+  local cilium_pod
+  cilium_pod=$(k8s kubectl get pod -n kube-system -l k8s-app=cilium \
+    --field-selector "spec.nodeName=$(hostname)" \
+    -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+
+  if [ -z "$cilium_pod" ]; then
+    log_info "No local Cilium pod found, skipping Cilium diagnostics"
+    return
+  fi
+
+  log_info "Copy Cilium drop/trace monitor sample to the final report tarball"
+  # `cilium monitor` streams forever, so this is bounded to a short sample
+  # window rather than the usual command timeout.
+  timeout 10s k8s kubectl exec "$cilium_pod" -n kube-system -c cilium-agent -- \
+    cilium-dbg monitor --type drop --type trace &>"$INSPECT_DUMP/cilium-monitor.log" || true
 }
 
 function check_expected_services {
@@ -331,6 +370,9 @@ collect_k8s_diagnostics
 
 printf -- 'Collecting networking information\n'
 collect_network_diagnostics
+
+printf -- 'Collecting Cilium diagnostics\n'
+collect_cilium_diagnostics
 
 if [ -f "$TIMEOUT_LOG" ]; then
   timeout_count=$(wc -l <"$TIMEOUT_LOG")
