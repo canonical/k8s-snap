@@ -2,6 +2,7 @@
 myst:
   html_meta:
     description: "Reference for Canonical Kubernetes DISA STIG configuration files for bootstrap, control plane join, and worker node join operations."
+relatedlinks: "[DISA&#32;STIG&#32;for&#32;Kubernetes](https://stigviewer.com/stigs/kubernetes/)"
 ---
 
 # DISA STIG example configuration files

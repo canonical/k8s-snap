@@ -2,6 +2,7 @@
 myst:
   html_meta:
     description: "Reference documentation for the Dqlite database in Canonical Kubernetes."
+relatedlinks: "[Dqlite&#32;documentation](https://canonical.com/dqlite/docs)"
 ---
 
 # Dqlite database
