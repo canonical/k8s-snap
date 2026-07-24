@@ -1,5 +1,8 @@
 #!/bin/bash -x
 
+# Kubernetes 1.36 requires Go >= 1.26.
+snap refresh go --channel=1.26-fips/stable
+
 INSTALL="${1}/bin"
 mkdir -p "${INSTALL}"
 
