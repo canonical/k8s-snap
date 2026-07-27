@@ -278,6 +278,108 @@ version of **Kubernetes** is listed in the application's **Version**.
 It is recommended that you run a [cluster validation][cluster-validation]
 to ensure that the cluster is fully functional.
 
+## Kubernetes workers' phased upgrade with node draining
+
+By default, the charm upgrades the `k8s` snap on each node without draining
+workloads first. The snap refresh stops and restarts all Kubernetes services
+immediately, making the node temporarily unavailable to the scheduler with no
+warning to running pods.
+
+For clusters running sensitive workloads, a phased approach allows you to
+cordon and drain each node before the snap is refreshed, giving pods time to
+reschedule gracefully.
+
+```{caution}
+You must run `pre-upgrade-check` **before** issuing `juju refresh`. Without it,
+the charm will set every unit to failed with `"Unit was upgraded without a
+pre-upgrade-check"`.
+```
+
+```{note}
+The phased process below can also be applied to Kubernetes control plane nodes,
+except that they don't need to be drained. If your control plane nodes
+also run as worker nodes, they will need to be drained.
+```
+
+### 1. Set the target channel
+
+The `k8s` snap channel versioning *is not* the same as the charm channel
+versions. Instead, it follows the following versioning scheme:
+
+| Kubernetes Version | Charm Channel | Snap Channel |
+|---|---|---|
+| v1.34.4 | 1.34/stable | 1.34-classic/stable |
+
+### 2. Run pre-upgrade-check
+
+```sh
+export CHARM_NEXT_CHANNEL=1.35/stable   # adjust to your target
+export SNAP_NEXT_CHANNEL=1.35-classic/stable   # adjust to your target
+
+juju run k8s-worker/leader pre-upgrade-check
+```
+
+### 3. Drain and upgrade worker nodes one at a time
+
+Repeat the following block for **each worker node**, substituting
+`NODE` and `UNIT`:
+
+```sh
+NODE="<kubectl-node-name>"       # from: kubectl get nodes
+UNIT="k8s-worker/<N>"            # from: juju status
+
+# Cordon – stop new pods scheduling on this node
+kubectl cordon "$NODE"
+
+# Drain – evict all workloads gracefully
+kubectl drain "$NODE" \
+  --ignore-daemonsets \
+  --delete-emptydir-data \
+  --grace-period=60 \
+  --timeout=300s
+
+# Confirm only DaemonSet pods remain
+kubectl get pods -A --field-selector spec.nodeName="$NODE"
+
+# Refresh the snap on this node only
+juju exec --unit "$UNIT" \
+  "sudo snap refresh k8s --channel=$SNAP_NEXT_CHANNEL \
+  && sudo snap set k8s refresh.hold=forever"
+
+# Wait for the node to re-join as Ready
+kubectl wait node "$NODE" --for=condition=Ready --timeout=300s
+
+# Uncordon – allow workloads back onto the node
+kubectl uncordon "$NODE"
+
+# Confirm pods are rescheduling before moving to the next node
+kubectl get pods -A | grep -vE 'Running|Completed|Terminating'
+```
+
+### 4. Run juju refresh to update the charm code
+
+All snaps are already at the target revision. The `juju refresh` below updates
+only the charm code; the snap step is skipped on every unit.
+
+```sh
+juju refresh k8s-worker --channel ${CHARM_NEXT_CHANNEL}
+juju status k8s-worker --watch 5s
+```
+
+### 5. Verify
+
+```
+juju status
+```
+
+All units should be `active/idle` and the correct version of **Kubernetes**
+should be listed in the application's **Version** column.
+
+It is recommended that you run a [cluster validation][cluster-validation]
+to ensure the cluster is fully functional.
+
+---
+
 ## Recover from a failed upgrade 
 
 If anything goes wrong during the upgrade, the Juju application will surface 
