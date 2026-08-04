@@ -5,7 +5,6 @@ import subprocess
 import json
 
 LABEL = "automerge"
-APPROVE_MSG = "All status checks passed for PR #{}."
 
 
 def sh(cmd: str) -> str:
@@ -31,10 +30,9 @@ def check_pr_passed(pr_number) -> bool:
     return all(check["bucket"] in ["pass", "skipping"] for check in checks)
 
 
-def approve_and_merge_pr(pr_number) -> None:
-    """Approve and merge the PR."""
-    print(APPROVE_MSG.format(pr_number) + " Proceeding with merge...")
-    sh(f'gh pr review {pr_number} --approve -b "{APPROVE_MSG.format(pr_number)}"')
+def merge_pr(pr_number) -> None:
+    """Merge the PR using admin bypass, no review step required."""
+    print(f"All status checks passed for PR #{pr_number}. Proceeding with merge...")
     sh(f"gh pr merge {pr_number} --admin --squash")
 
 
@@ -44,11 +42,13 @@ def process_pull_requests():
 
     for pr in prs:
         pr_number: int = pr["number"]
-
-        if check_pr_passed(pr_number):
-            approve_and_merge_pr(pr_number)
-        else:
-            print(f"Status checks have not passed for PR #{pr_number}. Skipping merge.")
+        try:
+            if check_pr_passed(pr_number):
+                merge_pr(pr_number)
+            else:
+                print(f"Status checks have not passed for PR #{pr_number}. Skipping merge.")
+        except Exception as e:
+            print(f"Failed to process PR #{pr_number}: {e}")
 
 
 if __name__ == "__main__":
