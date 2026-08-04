@@ -3,6 +3,7 @@
 import shlex
 import subprocess
 import json
+import sys
 
 LABEL = "automerge"
 
@@ -25,8 +26,17 @@ def get_pull_requests() -> list:
 
 def check_pr_passed(pr_number) -> bool:
     """Check if all status checks passed for the given PR."""
-    checks_json = sh(f"gh pr checks {pr_number} --json bucket")
-    checks = json.loads(checks_json)
+    # gh pr checks exits non-zero when checks are pending or failed, but still
+    # emits valid JSON to stdout. Avoid raising so pending PRs are quietly
+    # skipped rather than counted as processing errors.
+    _pipe = subprocess.PIPE
+    result = subprocess.run(
+        shlex.split(f"gh pr checks {pr_number} --json bucket"),
+        stdout=_pipe, stderr=_pipe, text=True
+    )
+    if not result.stdout.strip():
+        return False
+    checks = json.loads(result.stdout.strip())
     return all(check["bucket"] in ["pass", "skipping"] for check in checks)
 
 
@@ -39,6 +49,7 @@ def merge_pr(pr_number) -> None:
 def process_pull_requests():
     """Process the PRs and merge if checks have passed."""
     prs = get_pull_requests()
+    failed = []
 
     for pr in prs:
         pr_number: int = pr["number"]
@@ -48,7 +59,12 @@ def process_pull_requests():
             else:
                 print(f"Status checks have not passed for PR #{pr_number}. Skipping merge.")
         except Exception as e:
-            print(f"Failed to process PR #{pr_number}: {e}")
+            print(f"Failed to merge PR #{pr_number}: {e}")
+            failed.append(pr_number)
+
+    if failed:
+        print(f"The following PRs failed to merge: {failed}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
