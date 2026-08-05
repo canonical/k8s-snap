@@ -1,17 +1,16 @@
 #!/bin/env python3
 
-import shlex
 import subprocess
 import json
 
 LABEL = "automerge"
-APPROVE_MSG = "All status checks passed for PR #{}."
+APPROVE_MSG = "All status checks passed for PR #{}".
 
 
-def sh(cmd: str) -> str:
+def sh(cmd: list) -> str:
     """Run a shell command and return its output."""
     _pipe = subprocess.PIPE
-    result = subprocess.run(shlex.split(cmd), stdout=_pipe, stderr=_pipe, text=True)
+    result = subprocess.run(cmd, stdout=_pipe, stderr=_pipe, text=True)
     if result.returncode != 0:
         raise Exception(f"Error running command: {cmd}\nError: {result.stderr}")
     return result.stdout.strip()
@@ -19,14 +18,14 @@ def sh(cmd: str) -> str:
 
 def get_pull_requests() -> list:
     """Fetch open pull requests matching some label."""
-    prs_json = sh("gh pr list --state open --json number,labels")
+    prs_json = sh(["gh", "pr", "list", "--state", "open", "--json", "number,labels"])
     prs = json.loads(prs_json)
     return [pr for pr in prs if any(label["name"] == LABEL for label in pr["labels"])]
 
 
 def check_pr_passed(pr_number) -> bool:
     """Check if all status checks passed for the given PR."""
-    checks_json = sh(f"gh pr checks {pr_number} --json bucket")
+    checks_json = sh(["gh", "pr", "checks", str(pr_number), "--json", "bucket"])
     checks = json.loads(checks_json)
     return all(check["bucket"] in ["pass", "skipping"] for check in checks)
 
@@ -34,8 +33,8 @@ def check_pr_passed(pr_number) -> bool:
 def approve_and_merge_pr(pr_number) -> None:
     """Approve and merge the PR."""
     print(APPROVE_MSG.format(pr_number) + " Proceeding with merge...")
-    sh(f'gh pr review {pr_number} --approve -b "{APPROVE_MSG.format(pr_number)}"')
-    sh(f"gh pr merge {pr_number} --admin --squash")
+    sh(["gh", "pr", "review", str(pr_number), "--approve", "-b", APPROVE_MSG.format(pr_number)])
+    sh(["gh", "pr", "merge", str(pr_number), "--admin", "--squash"])
 
 
 def process_pull_requests():
