@@ -2,6 +2,7 @@
 myst:
   html_meta:
     description: "Explanation of Cluster API (CAPI) and how Canonical Kubernetes integrates with it for declarative cluster provisioning across infrastructure providers."
+relatedlinks: "[Cluster&#32;API&#32;documentation](https://cluster-api.sigs.k8s.io/)"
 ---
 
 # Cluster API and {{product}}

@@ -2,6 +2,7 @@
 myst:
   html_meta:
     description: "Explanation of package management in Canonical Kubernetes using Helm, including charts, chart repositories, and Helm installation and upgrade workflows."
+relatedlinks: "[Helm&#32;documentation](https://helm.sh/docs/)"
 ---
 
 # Package management with Helm
