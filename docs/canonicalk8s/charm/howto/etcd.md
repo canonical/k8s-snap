@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to deploy Canonical Kubernetes with an external etcd cluster as the datastore using Juju."
+---
+
 # How to integrate {{product}} with external etcd
 
 Integrating [etcd][] with your {{product}} deployment provides a

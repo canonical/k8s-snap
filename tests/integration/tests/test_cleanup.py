@@ -53,7 +53,7 @@ def test_node_cleanup(instances: List[harness.Instance], tmp_path):
 
 @pytest.mark.node_count(2)
 @pytest.mark.disable_k8s_bootstrapping()
-@pytest.mark.containerd_cfgdir("/home/ubuntu/k8s-containerd/etc/containerd")
+@pytest.mark.containerd_cfgdir("/home/ubuntu/etc/containerd")
 @pytest.mark.tags(tags.NIGHTLY)
 def test_node_cleanup_new_containerd_path(instances: List[harness.Instance]):
     main = instances[0]
@@ -79,9 +79,7 @@ containerd-base-dir: /home/ubuntu
 
     boostrap_config = yaml.safe_load(containerd_path_bootstrap_config)
     new_containerd_paths = [
-        os.path.join(
-            boostrap_config["containerd-base-dir"], "k8s-containerd", p.lstrip("/")
-        )
+        os.path.join(boostrap_config["containerd-base-dir"], p.lstrip("/"))
         for p in CONTAINERD_PATHS
     ]
 
@@ -114,6 +112,64 @@ containerd-base-dir: /home/ubuntu
     for instance in instances:
         util.remove_k8s_snap(instance)
         # Check that the containerd-related folders are not in the new locations after snap removal.
+        _assert_paths_not_exist(instance, new_containerd_paths)
+
+
+@pytest.mark.node_count(2)
+@pytest.mark.disable_k8s_bootstrapping()
+@pytest.mark.containerd_cfgdir("/home/ubuntu/etc/containerd")
+@pytest.mark.tags(tags.NIGHTLY)
+def test_containerd_base_dir_cli_flag(instances: List[harness.Instance]):
+    """Tests that the --containerd-base-dir CLI flag correctly sets the
+    containerd base directory during bootstrap and join-cluster.
+
+    This validates the CLI flag path (as opposed to the config-file path
+    tested in test_node_cleanup_new_containerd_path).
+    """
+    main = instances[0]
+    joiner = instances[1]
+
+    containerd_base_dir = "/home/ubuntu"
+
+    # Bootstrap using the CLI flag instead of a config file.
+    main.exec(
+        ["k8s", "bootstrap", "--containerd-base-dir", containerd_base_dir],
+    )
+
+    join_token = util.get_join_token(main, joiner)
+    joiner.exec(
+        [
+            "k8s",
+            "join-cluster",
+            join_token,
+            "--containerd-base-dir",
+            containerd_base_dir,
+        ],
+    )
+
+    new_containerd_paths = [
+        os.path.join(containerd_base_dir, p.lstrip("/")) for p in CONTAINERD_PATHS
+    ]
+
+    exp_missing_paths = [
+        "/etc/containerd",
+        "/run/containerd/containerd.sock",
+        "/var/lib/containerd",
+    ]
+
+    for instance in instances:
+        # Check that the containerd-related folders are not in the default locations.
+        _assert_paths_not_exist(instance, exp_missing_paths)
+
+        # Check that the containerd-related folders are in the new locations.
+        instance.exec(["ls", *new_containerd_paths], check=True)
+
+    # Ensure that the cluster actually becomes available.
+    util.wait_until_k8s_ready(main, instances)
+
+    for instance in instances:
+        util.remove_k8s_snap(instance)
+        # Check that the containerd-related folders are cleaned up after snap removal.
         _assert_paths_not_exist(instance, new_containerd_paths)
 
 

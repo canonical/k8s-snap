@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to install a specific Canonical Kubernetes version on CAPI-managed machines using the channel, revision, or localPath spec fields."
+---
+
 # How to install custom {{product}} on machines
 
 By default, the `version` field in the machine specifications will determine
@@ -17,6 +23,8 @@ Please refer to the [getting-started guide][getting-started] for further
 details on the required setup.
 
 This guide will call the generated cluster spec manifest `cluster.yaml`.
+
+(using-config-spec)=
 
 ## Use the configuration specification
 
@@ -68,7 +76,7 @@ Now the new control plane nodes that are created using this manifest will have
 the `1.35-classic/candidate` {{product}} snap installed on them!
 
 ```{note}
-[Use the configuration specification](#using-config-spec),
+{ref}`Use the configuration specification <using-config-spec>`,
 if you're only interested in installing a specific channel, revision, or
 form the local path.
 ```

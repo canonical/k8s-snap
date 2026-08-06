@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Reference for DISA STIG guidelines for Canonical Kubernetes, with per-control guidance for manual DISA STIG compliance auditing."
+---
+
 # DISA STIG for {{product}}
 
 Security Technical Implementation Guides (STIGs) are developed by the Defense
@@ -2832,6 +2838,13 @@ start with `PASS`.
 **Guideline:** The Kubernetes Kube Proxy kubeconfig must have file permissions
 set to 644 or more restrictive
 
+```{note}
+{{product}} uses Cilium's kube-proxy replacement and does not run kube-proxy
+as a separate service. The proxy kubeconfig file still exists for compatibility
+purposes but is not actively used for service routing. The file permission and
+ownership checks below remain valid for security hardening.
+```
+
 **Severity:** Medium
 
 **Class**: Default
@@ -2909,6 +2922,13 @@ start with `PASS`.
 ### [V-242448]
 
 **Guideline:** The Kubernetes Kube Proxy kubeconfig must be owned by root
+
+```{note}
+{{product}} uses Cilium's kube-proxy replacement and does not run kube-proxy
+as a separate service. The proxy kubeconfig file still exists for compatibility
+purposes but is not actively used for service routing. The file permission and
+ownership checks below remain valid for security hardening.
+```
 
 **Severity:** Medium
 

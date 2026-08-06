@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Reference for Canonical Kubernetes inspection reports, a diagnostic tarball with service logs, SBOM, system and network diagnostics used for troubleshooting."
+---
+
 # Inspection reports
 
 {{product}} ships with a command to compile a complete report on {{product}} and
@@ -36,7 +42,7 @@ Collecting service information
 Running inspection on a control-plane node
  INFO:  Service k8s.containerd is running
  INFO:  Service k8s.etcd is not-running
- INFO:  Service k8s.kube-proxy is running
+ INFO:  Service k8s.kube-proxy is not-running
  INFO:  Service k8s.etcd is running
  INFO:  Service k8s.k8sd is running
  INFO:  Service k8s.kube-apiserver is running

@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Security how-to guide index for Canonical Kubernetes, covering cluster hardening, CIS assessment, certificates, and security issue reporting."
+---
+
 # Security
 
 Administrators are provided with detailed instructions and compliance guidance

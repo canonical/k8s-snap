@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Reference documentation for Canonical Kubernetes CAPI provider configuration options, covering the bootstrap and the control plane providers."
+---
+
 # Providers configurations
 
 {{product}} bootstrap and control plane providers (CABPCK and CACPCK)
@@ -153,6 +159,8 @@ spec:
     - echo "second-command"
 ```
 
+(preRunCommands)=
+
 ### `preRunCommands`
 
 **Type:** `[]string`
@@ -203,7 +211,7 @@ spec:
 `airGapped` is used to signal that we are deploying to an air-gapped
 environment. In this case, the provider will not attempt to install
 k8s-snap on the machine. The user is expected to install k8s-snap
-manually with [`preRunCommands`](#preRunCommands), or provide an image
+manually with [`preRunCommands`](#preruncommands), or provide an image
 with k8s-snap pre-installed.
 
 **Example usage:**
@@ -465,6 +473,6 @@ spec:
 ```
 
 <!-- LINKS -->
-[Install custom {{product}} on machines]: ../howto/custom-ck8s.md
+[Install custom {{product}} on machines]: /capi/howto/custom-ck8s.md
 [etcd best practices]: https://etcd.io/docs/v3.5/faq/#why-an-odd-number-of-cluster-members
-[Bootstrap configuration file reference]: ../../snap/reference/bootstrap-config-reference.md
+[Bootstrap configuration file reference]: /snap/reference/config-files/bootstrap-config.md

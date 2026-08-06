@@ -40,8 +40,6 @@ extra-node-kube-controller-manager-args:
   --leader-elect-retry-period: 3s
 extra-node-kube-scheduler-args:
   --authorization-webhook-cache-authorized-ttl: 11s
-extra-node-kube-proxy-args:
-  --config-sync-period: 14m
 extra-node-kubelet-args:
   --authentication-token-webhook-cache-ttl: 3m
 extra-node-containerd-args:

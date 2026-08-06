@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to install Canonical Kubernetes in an LXD virtual machine."
+---
+
 # How to install {{product}} in LXD
 
 {{product}} can also be installed inside an LXD virtual machine. This is a

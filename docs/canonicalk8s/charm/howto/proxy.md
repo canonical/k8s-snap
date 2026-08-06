@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to configure proxy settings for Canonical Kubernetes charm deployments via Juju model configuration."
+---
+
 # How to configure proxy settings for {{product}}
 
 {{product}} packages a number of utilities (for example curl, helm) which need

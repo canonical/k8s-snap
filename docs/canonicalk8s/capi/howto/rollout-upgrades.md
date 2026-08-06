@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to perform a rolling Kubernetes upgrade on a CAPI-managed cluster, updating the CK8sControlPlane and MachineDeployment resources."
+---
+
 # How to upgrade the Kubernetes version of a cluster
 
 This guide walks you through the steps to rollout an upgrade for a

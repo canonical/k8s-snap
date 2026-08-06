@@ -66,6 +66,9 @@
         "localASN": {
           "type": "integer"
         },
+        "advertiseAllPools": {
+          "type": "boolean"
+        },
         "neighbors": {
           "type": "array",
           "items": {
@@ -79,12 +82,20 @@
               },
               "peerPort": {
                 "type": "integer"
+              },
+              "myASN": {
+                "type": "integer"
+              },
+              "nodeSelector": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
               }
             },
             "required": [
               "peerAddress",
-              "peerASN",
-              "peerPort"
+              "peerASN"
             ]
           }
         }

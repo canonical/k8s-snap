@@ -1,7 +1,7 @@
 ---
 myst:
   html_meta:
-    description: How to upgrade Canonical Kubernetes to new minor and patch versions. Learn to use Juju to update control-plane and worker units to the latest releases.
+    description: How to upgrade Canonical Kubernetes to new minor and patch versions.
 ---
 
 # How to upgrade {{product}} 
@@ -86,6 +86,8 @@ Machine  State    Address         Inst id              Base          AZ         
 ```
 
 <!-- markdownlint-restore -->
+
+(patch-upgrades)=
 
 ## Patch upgrades 
 
@@ -191,6 +193,8 @@ version of **Kubernetes** is listed in the application's **Version**.
 
 It is recommended that you run a [cluster validation][cluster-validation]
 to ensure that the cluster is fully functional.
+
+(minor-upgrades)=
 
 ## Minor upgrades
 

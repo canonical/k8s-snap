@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Tutorials for Canonical Kubernetes charms, covering initial cluster deployment and day-two operations with the k8s Juju operator."
+---
+
 # Tutorials
 
 This section contains a step-by-step guide to help you start exploring how to

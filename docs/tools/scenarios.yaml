@@ -1,0 +1,17 @@
+scenarios:
+  - name: cis
+    suite: snap_bootstrapped
+    pages:
+      - snap/howto/security/hardening.md
+      - snap/howto/security/cis-assessment.md
+  - name: default_networking
+    suite: snap_clean
+    pages:
+      - snap/howto/install/snap.md
+      - snap/howto/networking/default-network.md
+      - snap/howto/networking/default-dns.md
+      - snap/howto/networking/default-ingress.md
+      - snap/howto/networking/default-loadbalancer.md
+      - snap/howto/networking/default-gateway.md
+      
+      

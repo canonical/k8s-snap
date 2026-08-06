@@ -1,3 +1,10 @@
+---
+myst:
+  html_meta:
+    description: "Learn basic Kubernetes cluster operations with kubectl in Canonical Kubernetes, including pod deployment, service management, and cluster inspection."
+relatedlinks: "[kubectl&#32;documentation](https://kubernetes.io/docs/reference/kubectl/)"
+---
+
 # Basic operations with {{product}} using kubectl
 
 Kubernetes provides a command line tool for communicating with a Kubernetes

@@ -1,4 +1,12 @@
+---
+myst:
+  html_meta:
+    description: "How to manage container images in Canonical Kubernetes using the containerd CLI, including listing and importing images."
+---
+
 # How to manage images
+
+<!-- SPREAD SUITE: snap_bootstrapped -->
 
 {{product}} uses the containerd runtime to manage images, which in turn uses
 runc to run containers. Some users may need to use containerd's capabilities
@@ -39,6 +47,8 @@ sudo /snap/k8s/current/bin/ctr --address /run/containerd/containerd.sock --names
 
 You should see:
 
+<!-- SPREAD SKIP -->
+
 ```
 ghcr.io/canonical/cilium-operator-generic:1.17.1-ck0
 ghcr.io/canonical/cilium-operator-generic@sha256:e02dcce1e175312bf4dc2da6a97df49456a8eef6b2a1a9f2d68d4342dc0d3664
@@ -47,6 +57,16 @@ ghcr.io/canonical/k8s-snap/pause@sha256:ee6521f290b2168b6e0935a181d4cff9be1ac3f5
 sha256:27e1954b8e6cbf80ddccbb54f1b0cb78111c3cafe28d742044ecb6cbb22f9d1c
 sha256:873ed75102791e5b0b8a7fcd41606c92fcec98d56d05ead4ac5131650004c136
 ```
+
+<!-- SPREAD SKIP END -->
+
+<!-- SPREAD 
+# Ensure all pods are up and images pulled before query
+sudo k8s kubectl rollout status daemonset/cilium -n kube-system --timeout=10m
+sudo k8s kubectl rollout status deployment/cilium-operator -n kube-system --timeout=10m
+sudo k8s kubectl wait --for=condition=Ready pods --all -n kube-system --timeout=10m
+sudo /snap/k8s/current/bin/ctr --address /run/containerd/containerd.sock --namespace k8s.io images list -q | grep "ghcr.io"
+-->
 
 ## Pulling images
 
@@ -64,9 +84,13 @@ sudo /snap/k8s/current/bin/ctr --address /run/containerd/containerd.sock --names
 
 You should see:
 
+<!-- SPREAD SKIP -->
+
 ```
 docker.io/library/hello-world:latest
 ```
+
+<!-- SPREAD SKIP END -->
 
 <!-- LINKS -->
 

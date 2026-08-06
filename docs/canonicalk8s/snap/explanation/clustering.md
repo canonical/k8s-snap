@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Explanation of Kubernetes clustering in Canonical Kubernetes, including k8sd's role in cluster coordination."
+---
+
 # Clustering
 
 Kubernetes clustering allows you to manage a group of hosts as a single entity.
@@ -64,7 +70,6 @@ entire life-cycle. Their components include:
 - **Kubelet**: Communicates with the control plane node and manages the
     containers running on the machine according to the configurations provided
     by the user.
-- **Kube-Proxy (kube-proxy)**: Manages network communication within the cluster.
 - **Container Runtime**: The software responsible for running containers. In
     {{product}} the runtime is `containerd`.
 

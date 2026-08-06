@@ -2,6 +2,7 @@
 myst:
   html_meta:
     description: Learn how to deploy your first Canonical Kubernetes cluster using the k8s snap and execute typical cluster operations in this tutorial.
+relatedlinks: "[Snap&#32;documentation](https://snapcraft.io/docs/), [kubectl&#32;documentation](https://kubernetes.io/docs/reference/kubectl/)"
 ---
 
 # Getting started
@@ -73,6 +74,10 @@ to wait for {{product}} to bring up the cluster:
 ```
 sudo k8s status --wait-ready
 ```
+
+<!-- SPREAD 
+sudo k8s kubectl wait --for=condition=Ready node --all --timeout=5m
+-->
 
 <!-- SPREAD SKIP -->
 
@@ -306,9 +311,11 @@ restoration, simply run :
 
 <!-- SPREAD SKIP -->
 
+
 ```
 sudo snap remove k8s
 ```
+
 
 <!-- SPREAD SKIP END -->
 

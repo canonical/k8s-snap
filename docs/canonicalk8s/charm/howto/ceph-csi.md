@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to integrate Canonical Kubernetes with ceph-csi for Ceph-backed Kubernetes persistent volumes using Juju."
+---
+
 # How to integrate {{product}} with ceph-csi
 
 [Ceph] can be used to hold Kubernetes persistent volumes and is the recommended
@@ -265,7 +271,7 @@ juju config ceph-csi-alt ceph-rbac-name-formatter="{name}-{app}"
 
 <!-- LINKS -->
 
-[charm installation]: ./charm
+[charm installation]: /charm/howto/install/charm.md
 [Ceph]: https://docs.ceph.com/
 [ceph-rbac-name-formatter]: https://charmhub.io/ceph-csi/configurations?channel=latest/edge#ceph-rbac-name-formatter
 [ceph-ext4-storage-class-name-formatter]: https://charmhub.io/ceph-csi/configurations?channel=latest/edge#ceph-ext4-storage-class-name-formatter

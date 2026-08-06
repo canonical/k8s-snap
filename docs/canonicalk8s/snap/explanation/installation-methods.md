@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Explanation of Canonical Kubernetes installation methods: the k8s snap, Juju charms, and Cluster API, with guidance on choosing the right approach."
+---
+
 # Choose an installation method
 
 {{ product }} can be installed in a variety of ways, depending on your needs and

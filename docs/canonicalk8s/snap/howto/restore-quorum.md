@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to recover a Canonical Kubernetes highly available cluster after quorum loss, restoring the cluster datastore."
+---
+
 # How to recover a cluster after quorum loss
 
 Highly available {{product}} clusters are designed to tolerate the loss of

@@ -101,8 +101,10 @@ jobs:
       - name: Set current formatted date as env variable
         run: echo "FORMATTED_DATE=$(date +'%d/%m/%Y')" >> $GITHUB_ENV
       - name: Test results
+        env:
+          NEEDS_JSON: ${{ toJson(needs) }}
         run: |
-         RESULTS=$(echo '${{ toJson(needs) }}' | jq -c '[.[] | .result]')
+         RESULTS=$(echo "$NEEDS_JSON" | jq -c '[.[] | .result]')
 
          if echo $RESULTS | jq -e 'all(. == "success")'; then
            echo "RESULT=success" >> $GITHUB_ENV
@@ -110,13 +112,16 @@ jobs:
            echo "RESULT=failure" >> $GITHUB_ENV
          fi
       - name: Generate Mattermost Message
+        env:
+          SERVER_URL: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
         run: |
-         if [[ "${{ env.RESULT }}" == "success" ]]; then
-           echo "MM_TEXT=:white_check_mark: *Success!* CI completed successfully. [View Run](${{
-             github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_ENV
+         RUN_LINK="${SERVER_URL}/${REPOSITORY}/actions/runs/${RUN_ID}"
+         if [[ "$RESULT" == "success" ]]; then
+           echo "MM_TEXT=:white_check_mark: *Success!* CI completed successfully. [View Run](${RUN_LINK})" >> $GITHUB_ENV
          else
-           echo "MM_TEXT=:x: *Failure!* CI failed, @k8s-engineers please fix ASAP. [View Run](${{
-             github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_ENV
+           echo "MM_TEXT=:x: *Failure!* CI failed, @k8s-engineers please fix ASAP. [View Run](${RUN_LINK})" >> $GITHUB_ENV
          fi
       - name: Notify Mattermost
         uses: mattermost/action-mattermost-notify@d317daebed2a792679f68fd0248557a8d21d82b6 # master

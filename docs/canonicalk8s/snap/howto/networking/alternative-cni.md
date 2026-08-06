@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to replace the default CNI in Canonical Kubernetes with an alternative Container Network Interface (CNI) plugin."
+---
+
 # How to use an alternative CNI
 
 While {{product}} ships with a default [Container Network Interface] (CNI) that

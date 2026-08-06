@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to validate a Canonical Kubernetes charm deployment by running end-to-end (e2e) tests with the kubernetes-e2e charm."
+---
+
 # How to validate {{product}}
 
 End-to-end (e2e) tests for **Kubernetes** provide a mechanism
@@ -62,7 +68,7 @@ Check operation status with 'juju show-operation 25'
 Check task status with 'juju show-task 26'
 ```
 
-See the section on [Test output](#test-output) below for details.
+See the section on {ref}`Test output <test-output>` below for details.
 
 ## Run specific tests
 
@@ -82,6 +88,8 @@ Note that the brackets for the regex need to be escaped as shown.
 
 Running this command will return a uuid for that specific test run, as with the
 default case.
+
+(test-output)=
 
 ## Test output
 

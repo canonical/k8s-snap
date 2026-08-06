@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to refresh Kubernetes certificates for control plane and worker nodes in a Canonical Kubernetes cluster."
+---
+
 # How to refresh Kubernetes certificates
 
 To keep your {{product}} cluster secure and functional, it is essential

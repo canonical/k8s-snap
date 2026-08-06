@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to install a FIPS 140-3 compliant Canonical Kubernetes cluster on Ubuntu for U.S. government and regulated industry compliance requirements."
+---
+
 # How to install a FIPS compliant Kubernetes cluster
 
 ```{versionadded} release-1.34

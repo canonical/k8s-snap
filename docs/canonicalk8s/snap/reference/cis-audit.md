@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Reference for CIS Kubernetes Benchmark hardening in Canonical Kubernetes, with per-control guidance for manual CIS compliance auditing."
+---
+
 #  CIS hardening for {{product}}
 
 CIS Hardening refers to the process of implementing security configurations that

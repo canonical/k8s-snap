@@ -41,23 +41,26 @@
     <div class="copyright">
       {%- if hasdoc('copyright') %}
         {% trans path=pathto('copyright'), copyright=copyright|e -%}
-          <a href="{{ path }}">Copyright</a> &#169; {{ copyright }}
+          <a href="{{ path }}">&copy; {{ copyright }} {{ author }}</a>
         {%- endtrans %}
       {%- else %}
         {% trans copyright=copyright|e -%}
-          Copyright &#169; {{ copyright }}
+          &copy; {{ copyright }} {{ author }}
         {%- endtrans %}
       {%- endif %}
-      {%- if license is defined and license and license.name %}
-        {% if license.url %}
-          <a href="{{ license.url }}">{{ license.name }}</a>
-        {% else %}
-          {{ license.name }}
-        {% endif %}
-      {%- endif %}
-      {%- if author is defined and author %}, {{ author }}{%- endif %}
     </div>
     {%- endif %}
+    {%- if license and license.name -%}
+      {%- if license.url -%}
+      <div class="license">
+        This page is licensed under <a href="{{ license.url }}">{{ license.name }}</a>
+      </div>
+      {%- else -%}
+      <div class="license">
+        This page is licensed under {{ license.name }}
+      </div>
+      {%- endif -%}
+    {%- endif -%}
 
     {# mod: removed "Made with" #}
 
@@ -68,12 +71,18 @@
       {%- endtrans -%}
     </div>
     {%- endif %}
-    <div class="cookies"><a href="" class="js-revoke-cookie-manager muted-link">Manage your tracker settings</a></div>
+
+    {%- if show_source and has_source and sourcename %}
+    <div class="show-source">
+      <a class="muted-link" href="{{ pathto('_sources/' + sourcename, true)|e }}"
+         rel="nofollow">Show source</a>
+    </div>
+    {%- endif %}
   </div>
   <div>
    {% if has_contributor_listing and display_contributors and pagename and page_source_suffix %}
        {% set contributors = get_contributors_for_file(pagename, page_source_suffix) %}
-        {% if contributors %}
+       {% if contributors %}
           {% if contributors | length > 1 %}
               <a class="display-contributors">Thanks to the {{ contributors |length }} contributors!</a>
           {% else %}
@@ -87,8 +96,8 @@
                   </li>
               {% endfor %}
           </ul>
-        {% endif %}
-    {% endif %}
+       {% endif %}
+   {% endif %}
   </div>
-  </div>
+  <div class="right-details"><a href="" class="js-revoke-cookie-manager muted-link">Manage your tracker settings</a></div>
 </div>

@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Canonical Kubernetes snap installation how-to guide index, covering snap, Multipass, LXD, air-gapped, DISA STIG, FIPS, and custom configuration."
+---
+
 # Install {{product}}
 
 There's more than one way to install {{product}}. You'll find links to

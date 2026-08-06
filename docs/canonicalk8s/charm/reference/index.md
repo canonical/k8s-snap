@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Reference index for Canonical Kubernetes charms, covering charm configuration, actions, availability zones, ports, and release notes."
+---
+
 # Reference
 
 Our Reference section is for when you need to check specific details or

@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to perform an in-place Kubernetes upgrade on a CAPI-managed machine by annotating the Machine resource with the upgrade-to annotation."
+---
+
 # How to perform an in-place upgrade for a machine
 
 This guide walks you through the steps to perform an in-place upgrade for a

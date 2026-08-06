@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to install Canonical Kubernetes with Multipass on Ubuntu, macOS, or Windows, enabling multi-node cluster deployment on any platform."
+---
+
 # How to install {{product}} with Multipass (Ubuntu/macOS/Windows)
 
 [Multipass] provides an easy way to run Ubuntu in a virtual machine, regardless
@@ -115,6 +121,6 @@ multipass delete k8s-node --purge
 [Multipass-options]: https://documentation.ubuntu.com/multipass/latest/tutorial/#create-a-customised-instance
 [install instructions]: ./snap
 [Getting started]: ../../tutorial/getting-started
-[Multipass website]: https://multipass.run/docs
+[Multipass website]: https://documentation.ubuntu.com/multipass/stable/
 [latest Windows version]:https://canonical.com/multipass/download/windows
 [latest macOS version]:https://canonical.com/multipass/download/macos

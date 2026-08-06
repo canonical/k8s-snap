@@ -2,6 +2,7 @@
 myst:
   html_meta:
     description: Learn how to set up a management cluster to deploy your first Canonical Kubernetes cluster using the Cluster API in this tutorial.
+relatedlinks: "[clusterctl&#32;installation](https://cluster-api.sigs.k8s.io/user/quick-start#install-clusterctl), [clusterawsadm&#32;documentation](https://cluster-api-aws.sigs.k8s.io/)"
 ---
 
 # Getting started with Cluster API

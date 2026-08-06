@@ -42,6 +42,26 @@ jobs:
       max-parallel: 10
       upload-results: true
 
+  build-snap-go-candidate:
+    name: Build snap (Go candidate)
+    uses: ./.github/workflows/build-snap.yaml
+    with:
+      arch: amd64
+      go-snap-risk: candidate
+
+  test-go-candidate-smoke:
+    name: Go candidate smoke test
+    needs: build-snap-go-candidate
+    uses: ./.github/workflows/e2e-tests.yaml
+    with:
+      arch: amd64
+      os: ubuntu:24.04
+      # Smallest tag set, used as a lightweight smoke test.
+      test-tags: "pull_request"
+      artifact: ${{ needs.build-snap-go-candidate.outputs.snap-artifact }}
+      parallel: true
+      # upload-results stays false so these don't enter the aggregated report.
+
   test-performance:
     name: Run performance tests for ${{ matrix.os }}-${{ matrix.arch }}
     strategy:

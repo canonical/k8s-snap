@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to configure an intermediate Certificate Authority (CA) with Canonical Kubernetes CAPI workload clusters."
+---
+
 # How to use intermediate CAs with Vault
 
 By default, the ClusterAPI provider will generate self-signed CA certificates

@@ -1,31 +1,43 @@
-{{- if (eq .Values.driver "metallb") }}
-{{- if .Values.bgp.enabled }}
-
-apiVersion: "metallb.io/v1beta2"
+{{- if and (eq .Values.driver "metallb") .Values.bgp.enabled .Values.bgp.neighbors }}
+{{- range $i, $n := .Values.bgp.neighbors }}
+---
+apiVersion: metallb.io/v1beta2
 kind: BGPPeer
 metadata:
-  name: {{ include "ck-loadbalancer.fullname" . }}
-  labels:
-    {{- include "ck-loadbalancer.labels" . | nindent 4 }}
-spec:
-  myASN: {{ .Values.bgp.localASN }}
-  {{- with (index .Values.bgp.neighbors 0) }}
-  peerASN: {{ .peerASN }}
-  peerAddress: {{ .peerAddress }}
-  peerPort: {{ .peerPort }}
+  {{- if eq $i 0 }}
+  name: {{ include "ck-loadbalancer.fullname" $ }}
+  {{- else }}
+  name: {{ include "ck-loadbalancer.fullname" $ }}-{{ $i }}
   {{- end }}
-
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "ck-loadbalancer.labels" $ | nindent 4 }}
+spec:
+  myASN: {{ $n.myASN | default $.Values.bgp.localASN }}
+  peerASN: {{ $n.peerASN }}
+  peerAddress: {{ $n.peerAddress }}
+  peerPort: {{ $n.peerPort | default 179 }}
+  {{- if $n.nodeSelector }}
+  nodeSelectors:
+    - matchLabels:
+        {{- range $k, $v := $n.nodeSelector }}
+        {{ $k }}: {{ $v | quote }}
+        {{- end }}
+  {{- end }}
+{{- end }}
 ---
-
-apiVersion: "metallb.io/v1beta1"
+apiVersion: metallb.io/v1beta1
 kind: BGPAdvertisement
 metadata:
-  name: {{ include "ck-loadbalancer.fullname" . }}
+  name: {{ include "ck-loadbalancer.fullname" $ }}
+  namespace: {{ $.Release.Namespace }}
   labels:
-    {{- include "ck-loadbalancer.labels" . | nindent 4 }}
+    {{- include "ck-loadbalancer.labels" $ | nindent 4 }}
+{{- if $.Values.bgp.advertiseAllPools }}
+spec: {}
+{{- else }}
 spec:
-   ipAddressPools:
-     - {{ include "ck-loadbalancer.fullname" . }}
-
+  ipAddressPools:
+    - {{ include "ck-loadbalancer.fullname" $ }}
 {{- end }}
-{{- end}}
+{{- end }}

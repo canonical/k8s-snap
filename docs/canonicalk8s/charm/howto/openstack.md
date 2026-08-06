@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to deploy Canonical Kubernetes on OpenStack using the openstack-integrator charm overlay."
+---
+
 # How to integrate with OpenStack
 
 This guide explains how to integrate {{product}} with the OpenStack cloud

@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Upgrade notes for Canonical Kubernetes snap, including version-specific migration steps and compatibility changes between releases."
+---
+
 # Upgrade notes
 
 ## Upgrade 1.34 to 1.35
@@ -10,7 +16,7 @@ before refreshing.
 
 Simply run:
 
-```bash
+```
 sudo snap refresh k8s --channel=1.35-classic/stable
 ```
 

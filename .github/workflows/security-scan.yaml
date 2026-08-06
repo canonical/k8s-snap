@@ -57,14 +57,16 @@ jobs:
           # Persist downloaded artifacts
           clean: 'false'
       - name: Run Trivy vulnerability scanner
+        env:
+          SNAP_PATH: ${{ steps.download-snap.outputs.snap-path }}
         run: |
           cp $GITHUB_WORKSPACE/trivy-scan.sh ./tests/trivy-scan.sh
-          ./tests/trivy-scan.sh ${{ steps.download-snap.outputs.snap-path }}
+          ./tests/trivy-scan.sh "$SNAP_PATH"
       - name: Get checked out commit SHA
         id: scan-ref
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - name: Upload Trivy scan results to Github Security tab
-        uses: github/codeql-action/upload-sarif@5c8a8a642e79153f5d047b10ec1cba1d1cc65699 # v3
+        uses: github/codeql-action/upload-sarif@5c8a8a642e79153f5d047b10ec1cba1d1cc65699 # v3.35.1
         with:
           sarif_file: ./.trivy/sarifs/trivy-k8s-repo-scan--results.sarif
           # Attribute results to the branch that was actually scanned,

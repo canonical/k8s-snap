@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Networking how-to guide index for Canonical Kubernetes, covering DNS, CNI, Ingress, load balancer, Gateway API, dual-stack, IPv6, UFW, and proxy."
+---
+
 # Networking
 
 Networking is a core part of a working Kubernetes cluster. These topics cover
@@ -10,6 +16,7 @@ Use default DNS <default-dns.md>
 Use default network <default-network.md>
 Use default Ingress <default-ingress.md>
 Use default load balancer <default-loadbalancer.md>
+Configure multi-peer BGP <multi-peer-bgp.md>
 Use default gateway <default-gateway.md>
 Use an alternative CNI <alternative-cni.md>
 Enable Dual-Stack networking <dualstack.md>

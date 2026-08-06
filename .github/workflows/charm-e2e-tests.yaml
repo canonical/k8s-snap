@@ -82,9 +82,11 @@ jobs:
       - name: Install virtualenv
         run: sudo apt install -y python3.10-venv
       - name: Generate snap tarball
+        env:
+          SNAP_PATH: ${{ steps.download-snap.outputs.snap-path }}
         run: |
           mkdir snap_installation
-          mv ${{ steps.download-snap.outputs.snap-path }} snap_installation/k8s.snap
+          mv "$SNAP_PATH" snap_installation/k8s.snap
           tar cvzf snap_installation.tar.gz -C snap_installation/ .
       - name: Setup Astral UV
         uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8

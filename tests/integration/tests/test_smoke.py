@@ -53,7 +53,6 @@ def test_smoke(instances: List[harness.Instance]):
         "kube-apiserver": '--request-timeout="2m"',
         "kube-controller-manager": '--leader-elect-retry-period="3s"',
         "kube-scheduler": '--authorization-webhook-cache-authorized-ttl="11s"',
-        "kube-proxy": '--config-sync-period="14m"',
         "kubelet": '--authentication-token-webhook-cache-ttl="3m"',
         "containerd": '--log-level="debug"',
         "etcd": '--log-level="info"',
