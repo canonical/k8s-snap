@@ -268,3 +268,72 @@ def test_dns_cluster_dns_propagates_to_late_joiners(
     assert (
         f"nameserver {coredns_ip}" in resolv
     ), f"expected CoreDNS ClusterIP in pod resolv.conf, got: {resolv}"
+
+
+@pytest.mark.node_count(2)
+@pytest.mark.tags(tags.PULL_REQUEST)
+def test_coredns_replicas_spread_across_nodes(instances: List[harness.Instance]):
+    """
+    Verify that CoreDNS replicas are spread across nodes in a 1 CP + 1 Worker cluster
+    without infinite rebalancing restarts.
+    """
+    cp_node = instances[0]
+    worker_node = instances[1]
+
+    util.wait_until_k8s_ready(cp_node, [cp_node])
+    util.wait_for_dns(cp_node)
+
+    join_token = util.get_join_token(cp_node, worker_node, "--worker")
+    util.join_cluster(worker_node, join_token)
+    util.wait_until_k8s_ready(cp_node, instances)
+
+    # Wait for CoreDNS deployment to settle
+    util.stubbornly(retries=12, delay_s=5).on(cp_node).exec(
+        [
+            "k8s",
+            "kubectl",
+            "rollout",
+            "status",
+            "deployment/coredns",
+            "-n",
+            "kube-system",
+            "--timeout=60s",
+        ]
+    )
+
+    # CoreDNS replicas must be placed on different nodes
+    result = cp_node.exec(
+        [
+            "k8s",
+            "kubectl",
+            "get",
+            "pods",
+            "-n",
+            "kube-system",
+            "-l",
+            "k8s-app=coredns",
+            "-o",
+            "jsonpath='{.items[*].spec.nodeName}'",
+        ],
+        text=True,
+        capture_output=True,
+    )
+
+    nodes = set(result.stdout.replace("'", "").strip().split())
+    LOG.info(f"CoreDNS pods scheduled on nodes: {nodes}")
+
+    # Check k8sd log for dnsrebalancer rollout restart triggers
+    log_result = cp_node.exec(
+        ["journalctl", "-u", "snap.k8s.k8sd", "--no-pager"],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert (
+        "CoreDNS pods need rebalancing" not in log_result.stdout
+    ), f"dnsrebalancer triggered rollout restart because pods were not spread: {log_result.stdout}"
+
+    assert (
+        len(nodes) > 1
+    ), f"Expected CoreDNS pods to be spread across multiple nodes, got: {nodes}"
