@@ -3,9 +3,9 @@
 import shlex
 import subprocess
 import json
+import sys
 
 LABEL = "automerge"
-APPROVE_MSG = "All status checks passed for PR #{}."
 
 
 def sh(cmd: str) -> str:
@@ -26,29 +26,45 @@ def get_pull_requests() -> list:
 
 def check_pr_passed(pr_number) -> bool:
     """Check if all status checks passed for the given PR."""
-    checks_json = sh(f"gh pr checks {pr_number} --json bucket")
-    checks = json.loads(checks_json)
+    # gh pr checks exits non-zero when checks are pending or failed, but still
+    # emits valid JSON to stdout. Avoid raising so pending PRs are quietly
+    # skipped rather than counted as processing errors.
+    _pipe = subprocess.PIPE
+    result = subprocess.run(
+        shlex.split(f"gh pr checks {pr_number} --json bucket"),
+        stdout=_pipe, stderr=_pipe, text=True
+    )
+    if not result.stdout.strip():
+        return False
+    checks = json.loads(result.stdout.strip())
     return all(check["bucket"] in ["pass", "skipping"] for check in checks)
 
 
-def approve_and_merge_pr(pr_number) -> None:
-    """Approve and merge the PR."""
-    print(APPROVE_MSG.format(pr_number) + " Proceeding with merge...")
-    sh(f'gh pr review {pr_number} --approve -b "{APPROVE_MSG.format(pr_number)}"')
+def merge_pr(pr_number) -> None:
+    """Merge the PR using admin bypass, no review step required."""
+    print(f"All status checks passed for PR #{pr_number}. Proceeding with merge...")
     sh(f"gh pr merge {pr_number} --admin --squash")
 
 
 def process_pull_requests():
     """Process the PRs and merge if checks have passed."""
     prs = get_pull_requests()
+    failed = []
 
     for pr in prs:
         pr_number: int = pr["number"]
+        try:
+            if check_pr_passed(pr_number):
+                merge_pr(pr_number)
+            else:
+                print(f"Status checks have not passed for PR #{pr_number}. Skipping merge.")
+        except Exception as e:
+            print(f"Failed to merge PR #{pr_number}: {e}")
+            failed.append(pr_number)
 
-        if check_pr_passed(pr_number):
-            approve_and_merge_pr(pr_number)
-        else:
-            print(f"Status checks have not passed for PR #{pr_number}. Skipping merge.")
+    if failed:
+        print(f"The following PRs failed to merge: {failed}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
