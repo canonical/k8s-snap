@@ -23,7 +23,12 @@ on:
                 type: boolean
                 default: true
 
-# One in-flight run per issue; a newer event supersedes an older run.
+# One in-flight run per issue; a newer event queues rather than cancels the
+# older one. Not cancel-in-progress: the pipeline job is self-hosted and
+# stateful (LXD cluster, git worktree), and a hard-cancelled run may not
+# reach its cleanup finally-block before the runner kills it, orphaning the
+# cluster. Queuing costs runner time on a rapid burst of events; it never
+# leaks cluster state.
 concurrency:
     group: triage-${{ github.event.issue.number || inputs.issue }}
     cancel-in-progress: false
@@ -177,13 +182,16 @@ jobs:
         name: Triage (branch cleanup)
         needs: gate
         if: needs.gate.outputs.route == 'cleanup'
-        # A closed issue only needs its dangling draft-fix branch removed -- a
-        # pure GitHub API call. No cluster, no LLM, so this runs on shared
-        # infrastructure with just contents:write and no model key, keeping the
-        # self-hosted runner off the close path entirely.
+        # A closed issue only needs its dangling draft-fix branch removed, but
+        # dispatch() unconditionally fetches the issue (title/body/labels/
+        # comments) before routing to any handler, cleanup included -- so
+        # this job needs issues:read too, not just contents:write for the
+        # branch delete. Still shared infrastructure with no model key,
+        # keeping the self-hosted runner off the close path entirely.
         runs-on: ubuntu-latest
         permissions:
             contents: write
+            issues: read
         steps:
             - name: Check out code
               uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1

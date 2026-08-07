@@ -7,8 +7,9 @@ The triage handler is the FSM entry transition. It always applies the
 deterministic ``kind/``/``area/`` labels, then runs three cheap gates before
 spending a cluster run:
 
-1. **duplicate** -- a strong title match to another open issue is flagged for a
-   maintainer and parked as not-actionable.
+1. **duplicate** -- a strong title match to another open issue is flagged for
+   a maintainer and parked at ``needs-triage`` (retriageable via a follow-up
+   comment, never terminal, since a false positive must stay reachable).
 2. **already supported** -- a request for behaviour that already ships (or a
    bug already fixed) is answered with links to the documentation, or, when
    nothing documents it, with working commands plus a ``docs-change-needed``
