@@ -74,7 +74,10 @@ def _add_run_parser(sub):
     p.add_argument(
         "--auto-pr",
         action="store_true",
-        help="Open a draft fix PR when the fix stage succeeds.",
+        help=(
+            "Open a draft PR for a successful fix, or for a reproducer test "
+            "salvaged from a run that failed before reaching the fix stage."
+        ),
     )
     p.add_argument(
         "--bot-login",

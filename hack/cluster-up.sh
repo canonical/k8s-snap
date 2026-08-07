@@ -89,7 +89,7 @@ done
 [ "$CONTROL_PLANE" -ge 1 ] || die "--control-plane must be at least 1"
 
 FIRST="${PREFIX}-cp1"
-nodes() { lxc list --format=csv -c n | grep "^$(re_escape "$PREFIX")-" || true; }
+nodes() { lxc list --format=csv -c n | grep -- "^$(re_escape "$PREFIX")-" || true; }
 
 # --- tooling -----------------------------------------------------------------
 

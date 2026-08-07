@@ -206,6 +206,19 @@ def test_failed_fix_still_opens_a_pr_carrying_the_test():
     assert f"Refs #{ISSUE}" in pr["body"]
 
 
+def test_open_pr_omits_the_parenthetical_when_no_test_is_known():
+    # salvage_reproducer() passes a bare ReproducerResult() after a crash: no
+    # test_selector, no test_path. The body must not render empty backticks.
+    gh = FakeGitHub(local_branches=[BRANCH])
+
+    _open_pr(_Rt(gh), _issue(), _fix(fixed=False), ReproducerResult())
+
+    body = gh.pulls_created[0]["body"]
+    assert "``" not in body
+    assert "()" not in body
+    assert f"End-to-end test reproducing #{ISSUE}, observed" in body
+
+
 def test_open_pr_updates_branch_then_reuses_existing_pr():
     gh = FakeGitHub(local_branches=[BRANCH])
     existing = gh.create_pull_request(

@@ -159,8 +159,19 @@ def classify(
     """One structured LLM call producing typed ``kind``/``area``/``missing``."""
     llm = make_llm(model_spec).with_structured_output(Classification)
     result: Classification = llm.invoke(_classify_prompt(title, fields, tarball))
-    kind = [f"kind/{k}" for k in result.kind_labels if k in _KIND_LABELS]
-    area = [f"area/{a}" for a in result.area_labels if a in _AREA_LABELS]
+    # Defensive: the prompt asks for bare names, but a model can echo back a
+    # GitHub-style prefix it has seen elsewhere in training data. Strip one if
+    # present rather than silently dropping an otherwise-correct label.
+    kind = [
+        f"kind/{k}"
+        for raw in result.kind_labels
+        if (k := raw.removeprefix("kind/")) in _KIND_LABELS
+    ]
+    area = [
+        f"area/{a}"
+        for raw in result.area_labels
+        if (a := raw.removeprefix("area/")) in _AREA_LABELS
+    ]
     missing = [c for c in (sanitize_comment_text(m) for m in result.missing_info) if c][
         :5
     ]
@@ -222,6 +233,10 @@ def verify_fix(
 DOCS_DIR = "docs/canonicalk8s"
 DOCS_BASE_URL = "https://documentation.ubuntu.com/canonical-kubernetes/latest"
 _DOCS_SKIP = ("_build", "_parts", "_dev", "_templates")
+# Cap the inventory injected into a prompt: an uncapped list is unbounded
+# prompt cost that only grows as docs are added. Shared by both doc-aware
+# checks so one cannot silently outgrow the other.
+_DOCS_PROMPT_CAP = 60
 
 
 def doc_inventory(root: Path) -> list[str]:
@@ -272,7 +287,7 @@ def check_existing_support(
         "instructions.\n\n"
         f"Issue title: {title}\n"
         f"Issue body:\n{body[:4000]}\n\n"
-        "Documentation pages:\n" + "\n".join(pages)
+        "Documentation pages:\n" + "\n".join(pages[:_DOCS_PROMPT_CAP])
     )
     llm = make_llm(model_spec).with_structured_output(ExistingSupport)
     result: ExistingSupport = llm.invoke(prompt)
@@ -314,7 +329,7 @@ def propose_enhancement(
         "kubelet flags (`--register-node=false`), or annotation keys. "
         "Do not invent flags that do not exist.\n"
         "Documentation pages available for context (cite only real pages):\n"
-        + "\n".join(pages[:60])
+        + "\n".join(pages[:_DOCS_PROMPT_CAP])
         + f"\n\nIssue title: {title}\nIssue body:\n{body[:3000]}"
     )
     llm = make_llm(model_spec).with_structured_output(EnhancementProposal)

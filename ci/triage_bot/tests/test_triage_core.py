@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 from triage_bot import triage_core
-from triage_bot.schema import ExistingSupport
+from triage_bot.schema import Classification, ExistingSupport
 
 
 def test_parse_template_extracts_known_fields():
@@ -115,3 +115,28 @@ def test_invented_doc_pages_are_dropped(monkeypatch):
     )
 
     assert result.doc_paths == [real]
+
+
+# --- classification -----------------------------------------------------
+
+
+def test_classify_strips_a_prefix_the_model_added_by_habit(monkeypatch):
+    # The prompt asks for bare names ("bug", "network"), but a model can
+    # echo back the GitHub-style "kind/"/"area/" prefix it has seen
+    # elsewhere in training data. A label must not be silently dropped just
+    # because the model was more specific than asked.
+    class _LLM:
+        def with_structured_output(self, _model):
+            return self
+
+        def invoke(self, _prompt):
+            return Classification(
+                kind_labels=["kind/bug"], area_labels=["area/network"]
+            )
+
+    monkeypatch.setattr(triage_core, "make_llm", lambda *_a, **_k: _LLM())
+
+    result = triage_core.classify(title="t", fields={}, tarball=False)
+
+    assert result.kind_labels == ["kind/bug"]
+    assert result.area_labels == ["area/network"]

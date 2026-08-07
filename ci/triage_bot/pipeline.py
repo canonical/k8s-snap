@@ -218,6 +218,17 @@ def _cleanup(checkout: Path) -> None:
         log.warning("[cleanup] failed (non-fatal): %s", exc)
 
 
+def _test_reference(reproducer: ReproducerResult) -> str:
+    """A human-readable ``" (`selector`)"`` reference, or "" when unknown.
+
+    Empty in the crash-salvage path (:func:`salvage_reproducer` passes a bare
+    ``ReproducerResult()``): there is a committed branch, but not necessarily
+    a confirmed reproducer test on it, so nothing specific is asserted.
+    """
+    ref = reproducer.test_selector or reproducer.test_path
+    return f" (`{ref}`)" if ref else ""
+
+
 def _open_pr(rt, issue, fix: FixResult, reproducer: ReproducerResult) -> Optional[str]:
     """Push the agent's local branch and open a draft PR, idempotently.
 
@@ -247,15 +258,15 @@ def _open_pr(rt, issue, fix: FixResult, reproducer: ReproducerResult) -> Optiona
             title = fix.commit_message or f"fix: resolve issue #{issue.number}"
             body = (
                 f"Automated draft fix for #{issue.number}, with the end-to-end "
-                f"test that reproduces it (`{reproducer.test_selector}`).\n\n"
+                f"test that reproduces it{_test_reference(reproducer)}.\n\n"
                 "Prepared by the triage bot; awaiting maintainer verification.\n\n"
                 f"Closes #{issue.number}"
             )
         else:
             title = f"test: add failing reproducer for #{issue.number}"
             body = (
-                f"End-to-end test reproducing #{issue.number} "
-                f"(`{reproducer.test_selector}`), observed to fail against "
+                f"End-to-end test reproducing #{issue.number}"
+                f"{_test_reference(reproducer)}, observed to fail against "
                 "current `main`.\n\nThe triage bot could not prepare a "
                 "confident fix, so only the test is proposed here. **CI is "
                 "expected to fail until the underlying bug is fixed.**\n\n"
