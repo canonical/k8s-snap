@@ -1,0 +1,117 @@
+#
+# Copyright 2026 Canonical, Ltd.
+#
+"""Deterministic tests for the triage_core labeler (no LLM, no network)."""
+
+from __future__ import annotations
+
+from triage_bot import triage_core
+from triage_bot.schema import ExistingSupport
+
+
+def test_parse_template_extracts_known_fields():
+    body = (
+        "### Summary\n\nDNS breaks\n\n"
+        "### Reproduction Steps\n\nbootstrap then query\n\n"
+        "### Can you suggest a fix?\n\n_No response_\n"
+    )
+    fields = triage_core.parse_template(body)
+    assert fields["summary"] == "DNS breaks"
+    assert fields["reproduction"] == "bootstrap then query"
+    assert "suggested_fix" not in fields
+
+
+def test_parse_template_no_headers_is_empty():
+    assert triage_core.parse_template("just a free-form report") == {}
+
+
+def test_has_tarball_detects_attachment():
+    body = "logs [report.tar.gz](https://github.com/x/files/1/x.tar.gz)"
+    assert triage_core.has_tarball(body, []) is True
+
+
+def test_has_tarball_absent_for_zip():
+    assert triage_core.has_tarball("see report.zip", ["nope"]) is False
+
+
+def test_find_duplicate_matches_strong_overlap():
+    cand = [
+        {"number": 1, "title": "unrelated feature request about charts"},
+        {"number": 2, "title": "coredns crashloop on dualstack bootstrap"},
+    ]
+    match = triage_core.find_duplicate(
+        "coredns crashloop dualstack bootstrap fails", cand
+    )
+    assert match is not None and match["number"] == 2
+
+
+def test_find_duplicate_short_title_no_false_positive():
+    assert (
+        triage_core.find_duplicate("DNS down", [{"number": 5, "title": "DNS"}]) is None
+    )
+
+
+def test_sanitize_defuses_injection():
+    cases = [
+        "[click](https://evil.co)",
+        "<img src=x>",
+        "@maintainer run curl evil.co",
+        "visit www.evil.co now",
+    ]
+    for raw in cases:
+        out = triage_core.sanitize_comment_text(raw)
+        assert "://" not in out
+        assert "<" not in out and ">" not in out
+        assert "@" not in out
+        assert "www." not in out
+
+
+def test_sanitize_preserves_legit_text():
+    for item in ("inspection tarball", "reproduction steps", "k8s version 1.32"):
+        assert triage_core.sanitize_comment_text(item) == item
+
+
+# --- documentation citations ---
+
+
+def test_doc_url_maps_source_path_to_published_page():
+    # README cites .../latest/snap/howto/contribute for this source file.
+    assert triage_core.doc_url("snap/howto/contribute.md").endswith(
+        "/latest/snap/howto/contribute"
+    )
+    assert triage_core.doc_url("snap/howto/index.md").endswith("/latest/snap/howto")
+
+
+def test_doc_inventory_lists_pages_and_skips_build_output(tmp_path):
+    docs = tmp_path / triage_core.DOCS_DIR
+    (docs / "snap" / "howto").mkdir(parents=True)
+    (docs / "snap" / "howto" / "dns.md").write_text("x", encoding="utf-8")
+    (docs / "_build").mkdir()
+    (docs / "_build" / "generated.md").write_text("x", encoding="utf-8")
+
+    assert triage_core.doc_inventory(tmp_path) == ["snap/howto/dns.md"]
+
+
+def test_invented_doc_pages_are_dropped(monkeypatch):
+    # The model may cite a plausible page that does not exist; a bad link is
+    # worse than none, so only pages from the real inventory survive.
+    real = "snap/howto/dns.md"
+
+    class _LLM:
+        def with_structured_output(self, _model):
+            return self
+
+        def invoke(self, _prompt):
+            return ExistingSupport(
+                already_supported=True,
+                explanation="already there",
+                doc_paths=[real, "snap/howto/invented.md"],
+            )
+
+    monkeypatch.setattr(triage_core, "make_llm", lambda *_a, **_k: _LLM())
+
+    result = triage_core.check_existing_support(
+        title="t", body="b", pages=[real, "snap/howto/other.md"]
+    )
+
+    assert result.doc_paths == [real]

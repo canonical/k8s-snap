@@ -1,0 +1,7 @@
+# Direct dependencies for the k8s-ci triage bot. Compile with:
+#   pip-compile --generate-hashes --strip-extras ci/requirements-triage.in
+langgraph==1.2.7
+langchain==1.3.11
+langchain-google-genai==4.2.6
+pydantic==2.9.2
+pytest==8.3.3
