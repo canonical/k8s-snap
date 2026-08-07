@@ -67,7 +67,12 @@ def test_sanitize_defuses_injection():
 
 
 def test_sanitize_preserves_legit_text():
-    for item in ("inspection tarball", "reproduction steps", "k8s version 1.32"):
+    for item in (
+        "inspection tarball",
+        "reproduction steps",
+        "k8s version 1.32",
+        "k8s set foo=bar",
+    ):
         assert triage_core.sanitize_comment_text(item) == item
 
 

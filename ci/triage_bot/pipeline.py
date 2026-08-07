@@ -207,13 +207,20 @@ def _cleanup(checkout: Path) -> None:
         log.warning("[cleanup] cluster-up.sh not found at %s, skipping", script)
         return
     try:
-        subprocess.run(
+        result = subprocess.run(
             ["bash", str(script), "--destroy"],
             capture_output=True,
             text=True,
             timeout=120,
         )
-        log.info("[cleanup] done")
+        if result.returncode == 0:
+            log.info("[cleanup] done")
+        else:
+            log.warning(
+                "[cleanup] cluster-up.sh --destroy exited %s: %s",
+                result.returncode,
+                result.stderr.strip()[-500:],
+            )
     except Exception as exc:
         log.warning("[cleanup] failed (non-fatal): %s", exc)
 

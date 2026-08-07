@@ -331,3 +331,28 @@ def test_cleanup_never_raises_even_if_destroy_fails(tmp_path, monkeypatch, caplo
         _cleanup(checkout)  # must not raise
 
     assert any("[cleanup] failed" in r.message for r in caplog.records)
+
+
+def test_cleanup_warns_when_destroy_exits_non_zero(tmp_path, monkeypatch, caplog):
+    # The script ran (no exception) but failed: this must not be reported as
+    # "[cleanup] done", or a leaked cluster becomes invisible in the logs.
+    checkout, primary, _ = _fake_primary_with_script(tmp_path)
+
+    def fake_run(args, **kwargs):
+        if args[0] == "git":
+            return subprocess.CompletedProcess(args, 0, stdout=f"worktree {primary}\n")
+        return subprocess.CompletedProcess(
+            args, 1, stdout="", stderr="lxc: container is locked"
+        )
+
+    monkeypatch.setattr("subprocess.run", fake_run)
+
+    with caplog.at_level("INFO", logger="triage_bot"):
+        _cleanup(checkout)
+
+    messages = [r.message for r in caplog.records]
+    assert not any(m == "[cleanup] done" for m in messages)
+    assert any(
+        "cluster-up.sh --destroy exited 1" in m and "container is locked" in m
+        for m in messages
+    )

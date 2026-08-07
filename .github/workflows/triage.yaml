@@ -59,7 +59,7 @@ jobs:
                   INPUT_ACTION: ${{ inputs.action }}
                   ASSOC_ISSUE: ${{ github.event.issue.author_association }}
                   ASSOC_COMMENT: ${{ github.event.comment.author_association }}
-                  PR: ${{ github.event.issue.pull_request }}
+                  PR: ${{ toJson(github.event.issue.pull_request) }}
               run: |
                   action="$ACTION"
                   assoc="$ASSOC_ISSUE"
@@ -79,7 +79,7 @@ jobs:
                   fi
                   # An issue_comment on a PR (not an issue) would boot the
                   # pipeline, but the bot Skips it; keep it off self-hosted.
-                  if [[ -n "$PR" ]]; then
+                  if [[ "$PR" != "null" ]]; then
                     route=classify
                   fi
                   # A close only cleans up a branch: cheap, low-risk, ubuntu.

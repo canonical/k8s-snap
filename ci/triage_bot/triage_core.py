@@ -64,7 +64,7 @@ _AREA_LABELS = {
 # character allowlist: this structurally defuses markdown links ``[](url)``,
 # inline HTML ``<...>``, @mentions, and scheme/``www.`` autolinks in one rule,
 # rather than chasing an ever-growing blocklist.
-_UNSAFE_COMMENT_CHARS = re.compile(r"[^A-Za-z0-9 ,.:;/_+-]")
+_UNSAFE_COMMENT_CHARS = re.compile(r"[^A-Za-z0-9 ,.:;/_+=-]")
 
 
 def sanitize_comment_text(text: str, limit: int = 80) -> str:
