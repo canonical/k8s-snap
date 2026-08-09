@@ -13,9 +13,10 @@ in ``pipeline.py``, not here), while failures always reach INFO and above.
 
 from __future__ import annotations
 
+import json
 import logging
 
-from triage_bot.runlog import CredentialRedactor, RunLogger
+from triage_bot.runlog import CredentialRedactor, RunLogger, jsonl_sink
 
 
 def _logger(sink=None, secrets=None):
@@ -82,3 +83,27 @@ def test_long_output_is_clipped_in_the_log_but_kept_whole_in_the_sink(caplog):
     assert len(records[0]["detail"]) == 5000
     assert len(caplog.text) < 1000
     assert "chars)" in caplog.text
+
+
+def test_jsonl_sink_creates_a_missing_parent_directory(tmp_path):
+    # A fresh per-issue directory (.triage/runlogs/issue-42.jsonl) is the
+    # common case; the first write must not raise FileNotFoundError just
+    # because nothing created that directory yet.
+    path = tmp_path / "runlogs" / "issue-42.jsonl"
+
+    sink = jsonl_sink(str(path))
+    sink({"event": "tool_start", "detail": "k8s status"})
+
+    lines = path.read_text(encoding="utf-8").splitlines()
+    assert json.loads(lines[0]) == {"event": "tool_start", "detail": "k8s status"}
+
+
+def test_jsonl_sink_appends_one_line_per_record(tmp_path):
+    path = tmp_path / "run.jsonl"
+    sink = jsonl_sink(str(path))
+
+    sink({"event": "tool_start"})
+    sink({"event": "tool_end"})
+
+    lines = path.read_text(encoding="utf-8").splitlines()
+    assert [json.loads(ln)["event"] for ln in lines] == ["tool_start", "tool_end"]

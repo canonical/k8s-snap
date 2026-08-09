@@ -117,8 +117,20 @@ _GIT_IDENTITY = {
 _TOX_WORK_DIR = os.environ.get("TRIAGE_TOX_WORK_DIR", "/tmp/triage-tox")
 
 
-def _safe_env(home: Path) -> dict:
-    """A minimal, secret-free environment for the agent shell."""
+# Matches hack/cluster-up.sh's own ``PREFIX="${CLUSTER_PREFIX:-k8s-triage}"``
+# default. Kept as one named constant (rather than duplicating the literal)
+# since pipeline.py's cleanup must destroy the same prefix the agent used.
+DEFAULT_CLUSTER_PREFIX = "k8s-triage"
+
+
+def _safe_env(home: Path, cluster_prefix: str = DEFAULT_CLUSTER_PREFIX) -> dict:
+    """A minimal, secret-free environment for the agent shell.
+
+    ``CLUSTER_PREFIX`` scopes ``hack/cluster-up.sh`` to this issue: concurrent
+    pipeline runs (different issues, same self-hosted runner pool) would
+    otherwise share the script's default prefix and collide on container
+    names, or have one run's cleanup destroy another's cluster.
+    """
     env = {k: os.environ[k] for k in _ENV_PASSTHROUGH if k in os.environ}
     env.setdefault(
         "PATH", "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
@@ -126,6 +138,7 @@ def _safe_env(home: Path) -> dict:
     env["HOME"] = str(home)
     env.update(_GIT_IDENTITY)
     env["TOX_WORK_DIR"] = _TOX_WORK_DIR
+    env["CLUSTER_PREFIX"] = cluster_prefix
     return env
 
 
@@ -195,7 +208,9 @@ def _release_branch(root: Path, branch: str) -> None:
         return
 
 
-def _make_shell_tool(workdir: Path, cwd: Path):
+def _make_shell_tool(
+    workdir: Path, cwd: Path, cluster_prefix: str = DEFAULT_CLUSTER_PREFIX
+):
     from langchain_core.tools import tool
 
     # The agent works in its own worktree; the per-issue dir is scratch --
@@ -203,7 +218,7 @@ def _make_shell_tool(workdir: Path, cwd: Path):
     # user's real HOME stay out of reach.
     home = workdir / "home"
     home.mkdir(parents=True, exist_ok=True)
-    safe_env = _safe_env(home)
+    safe_env = _safe_env(home, cluster_prefix)
 
     @tool
     def shell(command: str) -> str:
@@ -242,6 +257,7 @@ def run_skill(
     extra_context: str = "",
     run_id: Optional[str] = None,
     jsonl_path: Optional[str] = None,
+    cluster_prefix: str = DEFAULT_CLUSTER_PREFIX,
 ) -> T:
     """Run one skill step and return its structured result.
 
@@ -250,7 +266,8 @@ def run_skill(
     worktree the shell runs in; ``result_model`` is the Pydantic schema the
     agent must satisfy. When ``run_id`` is given the stage is logged (redacted)
     via :class:`~triage_bot.runlog.RunLogger`, to ``jsonl_path`` as well when
-    set.
+    set. ``cluster_prefix`` scopes the agent's ``hack/cluster-up.sh`` calls to
+    this issue; the caller must destroy that same prefix in cleanup.
     """
     from langgraph.prebuilt import create_react_agent
 
@@ -260,7 +277,7 @@ def run_skill(
     system = load_skill(skill_dir, step)
     agent = create_react_agent(
         make_llm(model_spec),
-        tools=[_make_shell_tool(Path(workdir), Path(cwd))],
+        tools=[_make_shell_tool(Path(workdir), Path(cwd), cluster_prefix)],
         prompt=system,
     )
     user = instructions if not extra_context else f"{instructions}\n\n{extra_context}"

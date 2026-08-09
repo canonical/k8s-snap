@@ -32,6 +32,7 @@ from triage_bot.tests.doubles import FakeGitHub
 ISSUE = 42
 BRANCH = f"triage/fix-{ISSUE}"
 TEST_PATH = "tests/integration/tests/test_dns.py"
+CLUSTER_PREFIX = f"k8s-triage-{ISSUE}"
 
 
 class _Rt:
@@ -89,7 +90,7 @@ def _stub_stages(monkeypatch, results):
 
     monkeypatch.setattr("triage_bot.pipeline.run_skill", fake_run_skill)
     monkeypatch.setattr("triage_bot.pipeline.ensure_worktree", lambda path, _: path)
-    monkeypatch.setattr("triage_bot.pipeline._cleanup", lambda checkout: None)
+    monkeypatch.setattr("triage_bot.pipeline._cleanup", lambda checkout, prefix: None)
     return ran
 
 
@@ -175,6 +176,30 @@ def test_no_pr_is_opened_unless_auto_pr_is_set(tmp_path, monkeypatch):
 
     assert run_pipeline(rt, _issue()).pr_url is None
     assert rt.gh.pulls_created == []
+
+
+def test_agent_and_cleanup_share_one_issue_scoped_cluster_prefix(tmp_path, monkeypatch):
+    # Concurrent runs (different issues, same self-hosted runner pool) must
+    # never share hack/cluster-up.sh's default prefix: the agent's shell and
+    # cleanup's --destroy have to agree on the same issue-scoped one, or one
+    # run's cleanup can miss its own cluster or destroy another run's.
+    seen: list[tuple[str, str]] = []
+
+    def fake_run_skill(*, step, cluster_prefix, **_):
+        seen.append(("skill", cluster_prefix))
+        return _all_green()[step]
+
+    def fake_cleanup(checkout, cluster_prefix):
+        seen.append(("cleanup", cluster_prefix))
+
+    monkeypatch.setattr("triage_bot.pipeline.run_skill", fake_run_skill)
+    monkeypatch.setattr("triage_bot.pipeline.ensure_worktree", lambda path, _: path)
+    monkeypatch.setattr("triage_bot.pipeline._cleanup", fake_cleanup)
+
+    run_pipeline(_pipeline_runtime(tmp_path), _issue())
+
+    assert seen  # both the skill runner and cleanup were actually exercised
+    assert {prefix for _, prefix in seen} == {f"k8s-triage-{ISSUE}"}
 
 
 # --- the PR seam ------------------------------------------------------------
@@ -290,11 +315,11 @@ def test_cleanup_destroys_via_the_primary_checkouts_script(
     monkeypatch.setattr("subprocess.run", fake_run)
 
     with caplog.at_level("INFO", logger="triage_bot"):
-        _cleanup(checkout)
+        _cleanup(checkout, CLUSTER_PREFIX)
 
-    assert calls[-1] == ["bash", str(script), "--destroy"]
+    assert calls[-1] == ["bash", str(script), "--prefix", CLUSTER_PREFIX, "--destroy"]
     messages = [r.message for r in caplog.records]
-    assert "[cleanup] destroying cluster" in messages
+    assert f"[cleanup] destroying cluster {CLUSTER_PREFIX}" in messages
     assert "[cleanup] done" in messages
 
 
@@ -310,7 +335,7 @@ def test_cleanup_warns_and_returns_when_script_is_missing(
     monkeypatch.setattr("triage_bot.pipeline.repo_root", lambda: tmp_path / "nowhere")
 
     with caplog.at_level("INFO", logger="triage_bot"):
-        _cleanup(checkout)
+        _cleanup(checkout, CLUSTER_PREFIX)
 
     assert any("cluster-up.sh not found" in r.message for r in caplog.records)
 
@@ -328,7 +353,7 @@ def test_cleanup_never_raises_even_if_destroy_fails(tmp_path, monkeypatch, caplo
     monkeypatch.setattr("subprocess.run", fake_run)
 
     with caplog.at_level("INFO", logger="triage_bot"):
-        _cleanup(checkout)  # must not raise
+        _cleanup(checkout, CLUSTER_PREFIX)  # must not raise
 
     assert any("[cleanup] failed" in r.message for r in caplog.records)
 
@@ -348,11 +373,12 @@ def test_cleanup_warns_when_destroy_exits_non_zero(tmp_path, monkeypatch, caplog
     monkeypatch.setattr("subprocess.run", fake_run)
 
     with caplog.at_level("INFO", logger="triage_bot"):
-        _cleanup(checkout)
+        _cleanup(checkout, CLUSTER_PREFIX)
 
     messages = [r.message for r in caplog.records]
     assert not any(m == "[cleanup] done" for m in messages)
     assert any(
-        "cluster-up.sh --destroy exited 1" in m and "container is locked" in m
+        f"cluster-up.sh --prefix {CLUSTER_PREFIX} --destroy exited 1" in m
+        and "container is locked" in m
         for m in messages
     )

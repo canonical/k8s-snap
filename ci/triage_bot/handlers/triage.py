@@ -117,8 +117,9 @@ def handle_triage(
                 "needs_info",
             )
 
-    # The reproduce->diagnose->verify->fix pipeline drives a shell-wielding
-    # agent on a live cluster, so reporter-controlled text must never reach it.
+    # The reproduce->verify->reproducer->diagnose->fix pipeline drives a
+    # shell-wielding agent on a live cluster, so reporter-controlled text
+    # must never reach it.
     # It runs only for a maintainer-triggered (trusted) event; for anyone else
     # the issue rests, classified, at needs-triage until a maintainer starts it.
     if not trusted:

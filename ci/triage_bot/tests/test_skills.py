@@ -108,6 +108,18 @@ def test_agent_shell_builds_tox_envs_off_the_checkout(tmp_path):
     assert not env["TOX_WORK_DIR"].startswith(str(skills.repo_root()))
 
 
+def test_agent_shell_defaults_to_the_scripts_own_prefix(tmp_path):
+    env = skills._safe_env(tmp_path / "home")
+
+    assert env["CLUSTER_PREFIX"] == skills.DEFAULT_CLUSTER_PREFIX
+
+
+def test_agent_shell_uses_the_given_cluster_prefix(tmp_path):
+    env = skills._safe_env(tmp_path / "home", "k8s-triage-42")
+
+    assert env["CLUSTER_PREFIX"] == "k8s-triage-42"
+
+
 def test_agent_shell_never_inherits_stdin(tmp_path):
     # A command that reads stdin must hit EOF immediately: inheriting a
     # terminal would let ``sudo``/``git`` prompts block for the full ceiling.

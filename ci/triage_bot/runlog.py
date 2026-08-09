@@ -22,6 +22,7 @@ from __future__ import annotations
 import json
 import logging
 import time
+from pathlib import Path
 from typing import Any, Callable, Optional
 
 from langchain_core.callbacks import BaseCallbackHandler
@@ -165,7 +166,14 @@ class RunLogger(BaseCallbackHandler):
 
 
 def jsonl_sink(path: str) -> Callable[[dict], None]:
-    """Return a sink that appends each record as one JSON line to ``path``."""
+    """Return a sink that appends each record as one JSON line to ``path``.
+
+    Creates the parent directory up front: a path under a fresh per-run or
+    per-issue directory (e.g. ``.triage/runlogs/issue-42.jsonl``) is the
+    common case, and the first write must not fail with ``FileNotFoundError``
+    just because nothing has created that directory yet.
+    """
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
 
     def _write(record: dict) -> None:
         with open(path, "a", encoding="utf-8") as fh:

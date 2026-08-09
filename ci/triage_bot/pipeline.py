@@ -30,7 +30,13 @@ from .schema import (
     TriageResult,
     VerifyResult,
 )
-from .skills import ensure_worktree, render_report_json, repo_root, run_skill
+from .skills import (
+    DEFAULT_CLUSTER_PREFIX,
+    ensure_worktree,
+    render_report_json,
+    repo_root,
+    run_skill,
+)
 
 log = logging.getLogger("triage_bot")
 
@@ -66,6 +72,10 @@ def run_pipeline(rt, issue) -> TriageResult:
     report = Report(workdir).start(issue.number, issue.title, issue.body)
     skill_dir = rt.ctx.triage_skill_dir
     model = rt.ctx.triage_model
+    # Scopes this run's hack/cluster-up.sh calls (agent + cleanup) so a
+    # concurrent run on another issue can never collide with or destroy
+    # this one's cluster.
+    cluster_prefix = f"{DEFAULT_CLUSTER_PREFIX}-{issue.number}"
 
     def _run(step, model_cls, instructions):
         log.info("[%s] running", step)
@@ -80,6 +90,7 @@ def run_pipeline(rt, issue) -> TriageResult:
             extra_context=report.read(),
             run_id=f"issue-{issue.number}",
             jsonl_path=rt.ctx.jsonl_path,
+            cluster_prefix=cluster_prefix,
         )
         report.append(step, render_report_json(result))
         log.info("[%s] %s", step, _SUMMARY[step](result))
@@ -169,10 +180,10 @@ def run_pipeline(rt, issue) -> TriageResult:
             test_path=reproducer.test_path,
         )
     finally:
-        _cleanup(checkout)
+        _cleanup(checkout, cluster_prefix)
 
 
-def _cleanup(checkout: Path) -> None:
+def _cleanup(checkout: Path, cluster_prefix: str) -> None:
     """Destroy the manual triage cluster created by hack/cluster-up.sh.
 
     Runs on both success and failure (called from a finally block) so LXD
@@ -180,13 +191,18 @@ def _cleanup(checkout: Path) -> None:
     logged but never propagates -- an issue-verdict must not be swallowed by
     a cleanup hiccup.
 
+    ``cluster_prefix`` must match what the agent's shell used (see
+    :func:`~triage_bot.skills.run_skill`): destroying the script's bare
+    default would miss this run's actual cluster, or tear down a concurrent
+    run's, on a self-hosted pool with more than one matching runner.
+
     The harness manages its own k8s-integration-* containers via pytest
     fixtures and cleans them up regardless, so those do not need special
     handling here.
     """
     import subprocess
 
-    log.info("[cleanup] destroying cluster")
+    log.info("[cleanup] destroying cluster %s", cluster_prefix)
     # Find the cluster-up script: it lives in hack/ relative to the primary
     # checkout (first worktree entry), not necessarily this worktree.
     primary_lines = subprocess.run(
@@ -208,7 +224,7 @@ def _cleanup(checkout: Path) -> None:
         return
     try:
         result = subprocess.run(
-            ["bash", str(script), "--destroy"],
+            ["bash", str(script), "--prefix", cluster_prefix, "--destroy"],
             capture_output=True,
             text=True,
             timeout=120,
@@ -217,7 +233,8 @@ def _cleanup(checkout: Path) -> None:
             log.info("[cleanup] done")
         else:
             log.warning(
-                "[cleanup] cluster-up.sh --destroy exited %s: %s",
+                "[cleanup] cluster-up.sh --prefix %s --destroy exited %s: %s",
+                cluster_prefix,
                 result.returncode,
                 result.stderr.strip()[-500:],
             )
