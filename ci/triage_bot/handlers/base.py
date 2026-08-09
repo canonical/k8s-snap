@@ -76,8 +76,6 @@ ProposeFn = Callable[..., EnhancementProposal]
 PipelineFn = Callable[["Runtime", IssueContext], TriageResult]
 ClassifyFn = Callable[..., Classification]
 RetriageFn = Callable[..., RetriageDecision]
-VerifyFn = Callable[..., FixVerification]
-SupportFn = Callable[..., ExistingSupport]
 
 
 @dataclass

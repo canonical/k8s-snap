@@ -62,8 +62,9 @@ def load_skill(skill_dir: str | Path, step: Optional[str] = None) -> str:
     parts = [skill_md.read_text(encoding="utf-8")]
     if step:
         step_md = root / f"{step}.md"
-        if step_md.exists():
-            parts.append(step_md.read_text(encoding="utf-8"))
+        if not step_md.exists():
+            raise SkillError(f"skill step not found: {step_md}")
+        parts.append(step_md.read_text(encoding="utf-8"))
     return "\n\n---\n\n".join(parts)
 
 

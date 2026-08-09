@@ -61,6 +61,18 @@ def test_missing_skill_reports_the_resolved_path(tmp_path, monkeypatch):
         skills.load_skill("nope")
 
 
+def test_missing_step_file_raises_instead_of_dropping_instructions(tmp_path):
+    # A missing SKILL.md + step pairing must be loud: silently running the
+    # agent on the generic SKILL.md alone, without the step's instructions,
+    # is a confusing, hard-to-diagnose degraded run.
+    skill = tmp_path / "triage"
+    skill.mkdir()
+    (skill / "SKILL.md").write_text("BASE", encoding="utf-8")
+
+    with pytest.raises(skills.SkillError, match="reproduce.md"):
+        skills.load_skill(skill, "reproduce")
+
+
 def test_agent_shell_can_commit_with_the_supplied_identity(tmp_path):
     # The scratch HOME hides the runner's ~/.gitconfig, so without an injected
     # identity ``git commit`` fails and the fix step degrades to "no PR".
