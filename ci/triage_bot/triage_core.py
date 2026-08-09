@@ -172,13 +172,19 @@ def classify(
         for raw in result.area_labels
         if (a := raw.removeprefix("area/")) in _AREA_LABELS
     ]
-    missing = [c for c in (sanitize_comment_text(m) for m in result.missing_info) if c][
-        :5
-    ]
-    # A bug with no tarball is always missing the inspection report.
-    if "kind/bug" in kind and not tarball:
-        if not any("tarball" in m or "inspection" in m for m in missing):
-            missing.append("inspection tarball")
+    missing = [c for c in (sanitize_comment_text(m) for m in result.missing_info) if c]
+    # A bug with no tarball is always missing the inspection report. Reserve
+    # a slot for it rather than appending after the cap (which could grow
+    # the list past 5) or before it (which could truncate the safeguard
+    # itself away if the model already filled all 5 slots).
+    if (
+        "kind/bug" in kind
+        and not tarball
+        and not any("tarball" in m or "inspection" in m for m in missing)
+    ):
+        missing = missing[:4] + ["inspection tarball"]
+    else:
+        missing = missing[:5]
     return Classification(
         kind_labels=kind,
         area_labels=area,

@@ -43,6 +43,11 @@ jobs:
     # self-hosted pipeline; a close needs only the GitHub API for branch
     # cleanup, so it runs on a dedicated ubuntu job and never spins up a
     # privileged runner; everything else is confined to unprivileged classify.
+    # "Maintainer association" for a non-comment event reads the issue
+    # author's association, which is reliable for `opened` but not
+    # `reopened` (GitHub exposes no separate reopener association here); a
+    # maintainer reopening another user's issue therefore routes to classify
+    # rather than pipeline -- under-grants trust, never over-grants it.
     # Defense-in-depth: the bot re-derives trust from the same author_association
     # before invoking the shell pipeline.
     gate:

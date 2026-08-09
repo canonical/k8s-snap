@@ -59,7 +59,12 @@ class GitHubEvent:
         # Trust binds to the actor of THIS event: a comment event uses only the
         # commenter's association (never the issue author's, or an untrusted
         # commenter on a maintainer's issue would inherit the author's trust); an
-        # issue event uses the issue author's.
+        # issue event uses the issue author's association. That is exactly the
+        # actor for `opened`; for `reopened` GitHub does not expose the actual
+        # reopener's own association here, so a maintainer reopening someone
+        # else's untrusted issue reads as untrusted. Only the author or a
+        # collaborator can reopen another user's issue, so this can only
+        # under-grant trust, never over-grant it.
         is_comment = "comment" in payload
         association = (
             comment.get("author_association")

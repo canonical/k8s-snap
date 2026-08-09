@@ -145,3 +145,28 @@ def test_classify_strips_a_prefix_the_model_added_by_habit(monkeypatch):
 
     assert result.kind_labels == ["kind/bug"]
     assert result.area_labels == ["area/network"]
+
+
+def test_classify_caps_missing_info_at_five_with_the_tarball_safeguard_included(
+    monkeypatch,
+):
+    # A bug with no tarball always gets the inspection-tarball reminder. It
+    # must never push the list past the 5-item cap, and it must never be the
+    # one dropped when the model already filled all 5 slots itself.
+    class _LLM:
+        def with_structured_output(self, _model):
+            return self
+
+        def invoke(self, _prompt):
+            return Classification(
+                kind_labels=["bug"],
+                area_labels=[],
+                missing_info=[f"detail {i}" for i in range(5)],
+            )
+
+    monkeypatch.setattr(triage_core, "make_llm", lambda *_a, **_k: _LLM())
+
+    result = triage_core.classify(title="t", fields={}, tarball=False)
+
+    assert len(result.missing_info) == 5
+    assert "inspection tarball" in result.missing_info
