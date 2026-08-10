@@ -16,10 +16,34 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+import tempfile
 from typing import Optional
 from urllib.parse import quote
 
 REPO = "canonical/k8s-snap"
+
+
+def _write_askpass_helper() -> str:
+    """A throwaway script that hands ``git push`` the token via env, not argv.
+
+    Embedding the token in the remote URL puts it in this process's own argv
+    for as long as the push runs -- readable by anything else on the host via
+    ``ps`` or ``/proc/<pid>/cmdline``. ``GIT_ASKPASS`` has git invoke this
+    script as a *separate* child process per credential prompt; the token
+    reaches it only through ``TRIAGE_PUSH_TOKEN`` in that child's env, which
+    ``ps``/``cmdline`` do not expose. Caller owns deleting the returned path.
+    """
+    fd, path = tempfile.mkstemp(prefix="triage-askpass-", suffix=".sh")
+    with os.fdopen(fd, "w") as fh:
+        fh.write(
+            "#!/bin/sh\n"
+            'case "$1" in\n'
+            '*[Pp]assword*) printf %s "$TRIAGE_PUSH_TOKEN" ;;\n'
+            '*) printf %s "x-access-token" ;;\n'
+            "esac\n"
+        )
+    os.chmod(path, 0o700)
+    return path
 
 
 class GitHubClient:
@@ -123,11 +147,13 @@ class GitHubClient:
         branch degrades to "no PR" rather than crashing the pipeline.
 
         The CI checkout uses ``persist-credentials: false``, so ``origin`` holds
-        no usable credential; push to ``https://x-access-token:<GH_TOKEN>@`` so
-        the token the orchestrator already has authenticates the push (falling
-        back to ``origin`` locally when no token is set). ``branch`` is the bot's
-        own ``triage/fix-<n>``, so a force update is safe and makes a re-fix
-        idempotent (no remote-tracking ref to lease against here).
+        no usable credential; push to ``https://x-access-token@github.com/...``
+        with the token supplied via :func:`_write_askpass_helper` (never in the
+        URL -- see its docstring) so the token the orchestrator already has
+        authenticates the push, falling back to ``origin`` locally when no
+        token is set. ``branch`` is the bot's own ``triage/fix-<n>``, so a
+        force update is safe and makes a re-fix idempotent (no
+        remote-tracking ref to lease against here).
         """
         if self.dry_run:
             return False
@@ -147,11 +173,19 @@ class GitHubClient:
         if check.returncode != 0:
             return False
         token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
-        remote = (
-            f"https://x-access-token:{token}@github.com/{self.repo}.git"
-            if token
-            else "origin"
-        )
+        env = None
+        askpass_path = None
+        if token:
+            remote = f"https://x-access-token@github.com/{self.repo}.git"
+            askpass_path = _write_askpass_helper()
+            env = {
+                **os.environ,
+                "GIT_ASKPASS": askpass_path,
+                "GIT_TERMINAL_PROMPT": "0",
+                "TRIAGE_PUSH_TOKEN": token,
+            }
+        else:
+            remote = "origin"
         try:
             subprocess.run(
                 [
@@ -167,6 +201,7 @@ class GitHubClient:
                 text=True,
                 check=True,
                 timeout=120,
+                env=env,
             )
         except subprocess.CalledProcessError as e:
             err = str(e.stderr or e)
@@ -175,6 +210,9 @@ class GitHubClient:
             raise GitHubError(f"git push {branch}: {err}") from e
         except subprocess.TimeoutExpired as e:
             raise GitHubError(f"git push {branch}: {e}") from e
+        finally:
+            if askpass_path:
+                os.unlink(askpass_path)
         return True
 
     def create_pull_request(

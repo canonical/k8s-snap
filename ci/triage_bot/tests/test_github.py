@@ -9,8 +9,12 @@ leave the process. ``_api`` is stubbed to explode so any leak fails loudly.
 
 from __future__ import annotations
 
+import os
+import subprocess
+
 import pytest
 
+from triage_bot import github
 from triage_bot.github import GitHubClient, GitHubError
 
 
@@ -50,9 +54,10 @@ def test_create_pull_request_raises_on_bad_response():
         gh.create_pull_request(head="h", base="main", title="t", body="b")
 
 
-def test_push_branch_uses_token_authenticated_remote(monkeypatch):
-    # Pin the real argv: persist-credentials:false means the push must carry the
-    # token in the URL (not rely on `origin`), with an explicit refspec.
+def test_push_branch_keeps_the_token_out_of_argv(monkeypatch):
+    # The whole point: a token embedded in the remote URL sits in this
+    # process's own argv (readable via ps/proc) for as long as the push
+    # runs. It must only ever reach git through the askpass child's env.
     calls = []
 
     class _Done:
@@ -61,7 +66,7 @@ def test_push_branch_uses_token_authenticated_remote(monkeypatch):
         stderr = ""
 
     def fake_run(cmd, *a, **k):
-        calls.append(cmd)
+        calls.append((cmd, k.get("env")))
         return _Done()
 
     monkeypatch.setattr("triage_bot.github.subprocess.run", fake_run)
@@ -69,14 +74,40 @@ def test_push_branch_uses_token_authenticated_remote(monkeypatch):
     gh = GitHubClient(repo="canonical/k8s-snap", dry_run=False)
     assert gh.push_branch("triage/fix-42", cwd="/repo") is True
     # 1) verify branch exists locally, 2) push to authenticated URL.
-    assert calls[0][:4] == ["git", "-C", "/repo", "rev-parse"]
-    push = calls[1]
-    assert push[:5] == ["git", "-C", "/repo", "push", "--force"]
-    assert (
-        push[5]
-        == "https://x-access-token:secrettoken@github.com/canonical/k8s-snap.git"
-    )
-    assert push[6] == "refs/heads/triage/fix-42:refs/heads/triage/fix-42"
+    assert calls[0][0][:4] == ["git", "-C", "/repo", "rev-parse"]
+    push_cmd, push_env = calls[1]
+    assert push_cmd[:5] == ["git", "-C", "/repo", "push", "--force"]
+    assert push_cmd[5] == "https://x-access-token@github.com/canonical/k8s-snap.git"
+    assert push_cmd[6] == "refs/heads/triage/fix-42:refs/heads/triage/fix-42"
+    assert "secrettoken" not in push_cmd
+    assert " ".join(push_cmd).count("secrettoken") == 0
+    # The token instead flows through the askpass child's environment.
+    assert push_env["TRIAGE_PUSH_TOKEN"] == "secrettoken"
+    assert push_env["GIT_TERMINAL_PROMPT"] == "0"
+    askpass_path = push_env["GIT_ASKPASS"]
+    # The helper is cleaned up once the push completes.
+    assert not os.path.exists(askpass_path)
+
+
+def test_askpass_helper_answers_password_with_the_token_only(monkeypatch):
+    monkeypatch.setenv("TRIAGE_PUSH_TOKEN", "secrettoken")
+    path = github._write_askpass_helper()
+    try:
+        password = subprocess.run(
+            [path, "Password for 'https://x-access-token@github.com': "],
+            capture_output=True,
+            text=True,
+        )
+        username = subprocess.run(
+            [path, "Username for 'https://github.com': "],
+            capture_output=True,
+            text=True,
+        )
+        assert password.stdout == "secrettoken"
+        assert username.stdout == "x-access-token"
+        assert "secrettoken" not in username.stdout
+    finally:
+        os.unlink(path)
 
 
 def test_push_branch_missing_local_branch_returns_false(monkeypatch):
