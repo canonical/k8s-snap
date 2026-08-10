@@ -239,6 +239,7 @@ def main() -> int:
         )
     )
 
+    had_error = False
     for number in issue_numbers:
         gh.recorded.clear()
         real_issue = gh.get_issue(number)
@@ -253,12 +254,16 @@ def main() -> int:
         event = GitHubEvent.from_payload(payload, bot_logins=ctx.bot_logins)
         try:
             result = dispatch(event, rt)
-        except Exception as exc:  # the demo itself must never crash mid-run
+        except Exception as exc:
+            # A per-issue failure must not silently exit 0 -- that would look
+            # like a working demo when nothing actually ran (this hid a real
+            # missing-secret misconfiguration the first time this ran in CI).
+            had_error = True
             print(_c(RED, f"--- #{number}: demo-side error: {exc!r} ---\n"))
             continue
         _render(number, real_issue, event, result, gh.recorded)
 
-    return 0
+    return 1 if had_error else 0
 
 
 if __name__ == "__main__":
