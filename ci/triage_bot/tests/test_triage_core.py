@@ -89,6 +89,28 @@ def test_sanitize_preserves_legit_text():
         assert triage_core.sanitize_comment_text(item) == item
 
 
+def test_sanitize_fenced_preserves_formatting_and_shell_syntax():
+    # This text is rendered inside a ``` fence, which already blocks
+    # markdown/HTML interpretation; the fence-safe sanitizer must not
+    # flatten it the way the plain-comment one does.
+    text = 'sudo k8s set foo="bar baz"\nk8s kubectl get pods -A\n(see docs)'
+    assert triage_core.sanitize_fenced_text(text) == text
+
+
+def test_sanitize_fenced_caps_a_backtick_run_that_would_close_the_fence():
+    # A run of 3+ backticks landing at the start of a line would close our
+    # ``` wrapper early, letting the rest of the text escape into
+    # interpreted markdown. Capping to 2 makes that impossible.
+    text = "before\n```\nrm -rf /\n```\nafter [click](https://evil.co)"
+    out = triage_core.sanitize_fenced_text(text)
+    assert "```" not in out
+    assert "before" in out and "after" in out and "rm -rf /" in out
+
+
+def test_sanitize_fenced_respects_the_length_limit():
+    assert len(triage_core.sanitize_fenced_text("x" * 5000, limit=100)) == 100
+
+
 # --- documentation citations ---
 
 

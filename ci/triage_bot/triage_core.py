@@ -80,6 +80,25 @@ def sanitize_comment_text(text: str, limit: int = 80) -> str:
     return re.sub(r"\s+", " ", cleaned).strip()[:limit]
 
 
+_FENCE_RUN_RE = re.compile(r"`{3,}")
+
+
+def sanitize_fenced_text(text: str, limit: int = 1200) -> str:
+    """Defang attacker-influenceable text destined for a ``` fenced block.
+
+    A fence already blocks markdown/HTML interpretation, so the character
+    allowlist :func:`sanitize_comment_text` needs is not: it would flatten
+    multi-line commands to one line and strip quotes/parens a shell command
+    needs to mean what it says. The one thing a fence does not defend
+    against is content escaping it: a run of 3+ backticks landing at the
+    start of a line closes the fence early, letting the rest of the text
+    render as ordinary (interpreted) markdown. Capping every run to 2 makes
+    that impossible regardless of where it falls, without touching anything
+    else -- newlines, quoting, and command syntax survive intact.
+    """
+    return _FENCE_RUN_RE.sub("``", text).strip()[:limit]
+
+
 def parse_template(body: str) -> dict:
     """Split an issue body into fields keyed by the bug-report template.
 
@@ -313,7 +332,7 @@ def check_existing_support(
         already_supported=result.already_supported,
         explanation=sanitize_comment_text(result.explanation, limit=1200),
         doc_paths=[p for p in result.doc_paths if p in known],
-        instructions=sanitize_comment_text(result.instructions, limit=1200),
+        instructions=sanitize_fenced_text(result.instructions, limit=1200),
     )
 
 
@@ -362,7 +381,7 @@ def propose_enhancement(
             ImplementationIdea(
                 title=sanitize_comment_text(idea.title, limit=120),
                 description=sanitize_comment_text(idea.description, limit=800),
-                example=sanitize_comment_text(idea.example, limit=600),
+                example=sanitize_fenced_text(idea.example, limit=600),
                 effort=(
                     idea.effort
                     if idea.effort in ("workaround", "small", "medium", "large")

@@ -88,7 +88,7 @@ def run_pipeline(rt, issue) -> TriageResult:
             cwd=checkout,
             model_spec=model,
             extra_context=report.read(),
-            run_id=f"issue-{issue.number}",
+            run_id=f"issue-{issue.number}-{step}",
             jsonl_path=rt.ctx.jsonl_path,
             cluster_prefix=cluster_prefix,
         )

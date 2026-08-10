@@ -21,9 +21,13 @@ def handle_verify_fix(
     labels = rt.ctx.labels
     # Classify the exact trust-checked triggering comment, not whatever is
     # newest at fetch time: the router only routes a fix verdict here for a
-    # maintainer comment, but a reporter could otherwise race a later comment
-    # into comments[-1] during the pipeline's multi-minute checkout window.
-    latest = comment_body or (issue.comments[-1].body if issue.comments else "")
+    # maintainer comment (a `created` event, always carrying a real
+    # comment_body), so there is nothing to fall back to -- and falling back
+    # to comments[-1] would reintroduce the very race this guards against (a
+    # reporter racing a later comment in during the multi-minute checkout
+    # window), or silently swap in a different comment for an intentionally
+    # empty one (e.g. `--issue --action created` with no --comment-body).
+    latest = comment_body
     report = rt.report(issue).read()
 
     verification = rt.verify_fix(

@@ -202,6 +202,30 @@ def test_agent_and_cleanup_share_one_issue_scoped_cluster_prefix(tmp_path, monke
     assert {prefix for _, prefix in seen} == {f"k8s-triage-{ISSUE}"}
 
 
+def test_each_stage_gets_a_distinct_run_id_for_log_filtering(tmp_path, monkeypatch):
+    # All five stages sharing one run_id made it hard to isolate one stage's
+    # records in the JSONL log; the step name must distinguish them.
+    seen_run_ids = []
+
+    def fake_run_skill(*, step, run_id, **_):
+        seen_run_ids.append(run_id)
+        return _all_green()[step]
+
+    monkeypatch.setattr("triage_bot.pipeline.run_skill", fake_run_skill)
+    monkeypatch.setattr("triage_bot.pipeline.ensure_worktree", lambda path, _: path)
+    monkeypatch.setattr("triage_bot.pipeline._cleanup", lambda checkout, prefix: None)
+
+    run_pipeline(_pipeline_runtime(tmp_path), _issue())
+
+    assert seen_run_ids == [
+        f"issue-{ISSUE}-reproduce",
+        f"issue-{ISSUE}-verify",
+        f"issue-{ISSUE}-reproducer",
+        f"issue-{ISSUE}-diagnose",
+        f"issue-{ISSUE}-fix",
+    ]
+
+
 # --- the PR seam ------------------------------------------------------------
 
 

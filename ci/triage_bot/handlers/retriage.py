@@ -35,7 +35,11 @@ def handle_retriage(
             [f"skip:max_failures>={rt.ctx.max_triage_failures}"],
         )
 
-    latest = comment_body or (issue.comments[-1].body if issue.comments else "")
+    # The router only constructs Retriage for a `created` event, which
+    # always carries a real comment_body: no fallback needed, and falling
+    # back to comments[-1] would risk classifying a different comment than
+    # the one that actually triggered this run.
+    latest = comment_body
     report = rt.report(issue).read()
     decision = rt.decide_retriage(
         latest_comment=latest,

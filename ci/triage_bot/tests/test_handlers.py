@@ -514,6 +514,38 @@ def test_verify_fix_classifies_triggering_comment_not_raced_latest(tmp_path):
     assert seen["latest"] == "no, this still fails on my cluster"
 
 
+def test_verify_fix_uses_an_empty_comment_body_as_is(tmp_path):
+    # comment_body="" is a legitimate, deliberate value (e.g. --issue
+    # --action created run with no --comment-body given), not a signal to
+    # go fetch something else. Falling back to comments[-1] here would
+    # silently classify a different comment than the one that triggered
+    # this run -- exactly the race the docstring above guards against.
+    gh = FakeGitHub(
+        issue={"number": ISSUE, "title": "t", "body": "x"},
+        labels=[LABELS.fix_pending],
+        comments=["an unrelated earlier comment"],
+    )
+    seen = {}
+
+    def capture(*, latest_comment, report, model_spec):
+        seen["latest"] = latest_comment
+        return FixVerification(status="inconclusive")
+
+    rt = _runtime(
+        gh, tmp=tmp_path, pipeline=make_pipeline(TriageResult()), verify_fix=capture
+    )
+    event = GitHubEvent(
+        action="created",
+        issue_number=ISSUE,
+        issue_labels=[LABELS.fix_pending],
+        comment_author="maintainer",
+        author_association="OWNER",
+        comment_body="",
+    )
+    dispatch(event, rt)
+    assert seen["latest"] == ""
+
+
 # --- retriage transitions ---
 
 
@@ -538,6 +570,40 @@ def test_retriage_with_new_info_reruns(tmp_path):
     assert result.action == "retriage"
     assert result.label == LABELS.fix_pending
     assert LABELS.needs_reproduction in gh.removed_labels
+
+
+def test_retriage_uses_an_empty_comment_body_as_is(tmp_path):
+    # Same contract as verify-fix: the router only constructs Retriage for a
+    # `created` event, which always carries a real comment_body. Falling
+    # back to comments[-1] on an empty (but deliberate) one would classify
+    # a different comment than the one that triggered this run.
+    gh = FakeGitHub(
+        issue={"number": ISSUE, "title": "unique title here", "body": "x"},
+        labels=[LABELS.needs_reproduction],
+        comments=["an unrelated earlier comment"],
+    )
+    seen = {}
+
+    def capture(*, latest_comment, report, model_spec):
+        seen["latest"] = latest_comment
+        return RetriageDecision(retriage=False)
+
+    rt = _runtime(
+        gh,
+        tmp=tmp_path,
+        pipeline=make_pipeline(TriageResult()),
+        decide_retriage=capture,
+    )
+    event = GitHubEvent(
+        action="created",
+        issue_number=ISSUE,
+        issue_labels=[LABELS.needs_reproduction],
+        comment_author="reporter",
+        author_association="NONE",
+        comment_body="",
+    )
+    dispatch(event, rt)
+    assert seen["latest"] == ""
 
 
 def test_retriage_bypasses_duplicate_gate(tmp_path):
