@@ -138,6 +138,19 @@ def test_invented_doc_pages_are_dropped(monkeypatch):
 # --- classification -----------------------------------------------------
 
 
+def test_classify_prompt_caps_each_template_field():
+    # A reporter can paste an arbitrarily large log dump under one field
+    # (e.g. "Reproduction Steps"); every other prompt in this module caps
+    # its user-controlled text, and the classify prompt must not be the
+    # exception that lets one field blow up the whole request.
+    huge = "x" * 10000
+    prompt = triage_core._classify_prompt(
+        "t", {"summary": huge, "reproduction": huge}, tarball=False
+    )
+    assert huge not in prompt
+    assert "x" * triage_core._FIELD_CHARS_CAP in prompt
+
+
 def test_classify_strips_a_prefix_the_model_added_by_habit(monkeypatch):
     # The prompt asks for bare names ("bug", "network"), but a model can
     # echo back the GitHub-style "kind/"/"area/" prefix it has seen
@@ -150,6 +163,27 @@ def test_classify_strips_a_prefix_the_model_added_by_habit(monkeypatch):
         def invoke(self, _prompt):
             return Classification(
                 kind_labels=["kind/bug"], area_labels=["area/network"]
+            )
+
+    monkeypatch.setattr(triage_core, "make_llm", lambda *_a, **_k: _LLM())
+
+    result = triage_core.classify(title="t", fields={}, tarball=False)
+
+    assert result.kind_labels == ["kind/bug"]
+    assert result.area_labels == ["area/network"]
+
+
+def test_classify_strips_whitespace_around_a_label(monkeypatch):
+    # A model can pad a label with stray whitespace ("bug ", " kind/bug")
+    # without meaning anything by it; the membership check must not treat
+    # that as a different, unrecognized label.
+    class _LLM:
+        def with_structured_output(self, _model):
+            return self
+
+        def invoke(self, _prompt):
+            return Classification(
+                kind_labels=["bug \n"], area_labels=[" area/network "]
             )
 
     monkeypatch.setattr(triage_core, "make_llm", lambda *_a, **_k: _LLM())

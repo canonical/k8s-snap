@@ -133,6 +133,13 @@ def dedup_query_tokens(title: str) -> list[str]:
     return re.findall(r"[a-zA-Z0-9]{4,}", (title or "").lower())
 
 
+# Caps each bug-report template field injected into the classify prompt. A
+# reporter can paste an arbitrarily large log dump under "Reproduction
+# Steps"; every other prompt in this module caps its user-controlled text
+# (body, report, comment) and this one should not be the exception.
+_FIELD_CHARS_CAP = 1500
+
+
 def _classify_prompt(title: str, fields: dict, tarball: bool) -> str:
     parts = [
         "You are triaging a GitHub issue for the canonical/k8s-snap project.",
@@ -146,7 +153,7 @@ def _classify_prompt(title: str, fields: dict, tarball: bool) -> str:
     ]
     for key in ("summary", "expected", "reproduction", "suggested_fix"):
         if fields.get(key):
-            parts.append(f"{key}: {fields[key]}")
+            parts.append(f"{key}: {fields[key][:_FIELD_CHARS_CAP]}")
     parts.append(f"inspection tarball attached: {tarball}")
     return "\n".join(parts)
 
@@ -167,12 +174,12 @@ def classify(
     kind = [
         f"kind/{k}"
         for raw in result.kind_labels
-        if (k := raw.removeprefix("kind/")) in _KIND_LABELS
+        if (k := raw.strip().removeprefix("kind/").strip()) in _KIND_LABELS
     ]
     area = [
         f"area/{a}"
         for raw in result.area_labels
-        if (a := raw.removeprefix("area/")) in _AREA_LABELS
+        if (a := raw.strip().removeprefix("area/").strip()) in _AREA_LABELS
     ]
     missing = [c for c in (sanitize_comment_text(m) for m in result.missing_info) if c]
     # A bug with no tarball is always missing the inspection report. Reserve
