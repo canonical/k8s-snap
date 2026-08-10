@@ -183,3 +183,25 @@ def test_classify_caps_missing_info_at_five_with_the_tarball_safeguard_included(
 
     assert len(result.missing_info) == 5
     assert "inspection tarball" in result.missing_info
+
+
+def test_classify_recognizes_a_differently_cased_tarball_mention(monkeypatch):
+    # A model that phrases its own item as "Inspection Tarball" must not be
+    # treated as silent on the topic -- that would append a redundant
+    # second entry and could push out a different missing-info item.
+    class _LLM:
+        def with_structured_output(self, _model):
+            return self
+
+        def invoke(self, _prompt):
+            return Classification(
+                kind_labels=["bug"],
+                area_labels=[],
+                missing_info=["Please attach an Inspection Tarball"],
+            )
+
+    monkeypatch.setattr(triage_core, "make_llm", lambda *_a, **_k: _LLM())
+
+    result = triage_core.classify(title="t", fields={}, tarball=False)
+
+    assert result.missing_info == ["Please attach an Inspection Tarball"]

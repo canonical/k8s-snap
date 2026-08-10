@@ -231,17 +231,20 @@ def test_failed_fix_still_opens_a_pr_carrying_the_test():
     assert f"Refs #{ISSUE}" in pr["body"]
 
 
-def test_open_pr_omits_the_parenthetical_when_no_test_is_known():
-    # salvage_reproducer() passes a bare ReproducerResult() after a crash: no
-    # test_selector, no test_path. The body must not render empty backticks.
+def test_open_pr_is_honest_about_an_unconfirmed_crash_salvage():
+    # salvage_reproducer() passes a bare ReproducerResult(): fails_before_fix
+    # is unset, so nothing here has actually been confirmed. The PR must not
+    # claim a test was "observed to fail" -- that would misreport a crash
+    # (before the reproducer stage even ran) as a proven-red reproducer.
     gh = FakeGitHub(local_branches=[BRANCH])
 
     _open_pr(_Rt(gh), _issue(), _fix(fixed=False), ReproducerResult())
 
-    body = gh.pulls_created[0]["body"]
-    assert "``" not in body
-    assert "()" not in body
-    assert f"End-to-end test reproducing #{ISSUE}, observed" in body
+    pr = gh.pulls_created[0]
+    assert "observed to fail" not in pr["body"]
+    assert "has not been verified" in pr["body"]
+    assert "``" not in pr["body"]
+    assert pr["title"] == f"wip: salvaged triage branch for #{ISSUE}"
 
 
 def test_open_pr_updates_branch_then_reuses_existing_pr():

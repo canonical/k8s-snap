@@ -182,7 +182,9 @@ def classify(
     if (
         "kind/bug" in kind
         and not tarball
-        and not any("tarball" in m or "inspection" in m for m in missing)
+        and not any(
+            "tarball" in m.lower() or "inspection" in m.lower() for m in missing
+        )
     ):
         missing = missing[:4] + ["inspection tarball"]
     else:

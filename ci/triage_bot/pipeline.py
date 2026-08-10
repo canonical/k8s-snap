@@ -286,7 +286,7 @@ def _open_pr(rt, issue, fix: FixResult, reproducer: ReproducerResult) -> Optiona
                 "Prepared by the triage bot; awaiting maintainer verification.\n\n"
                 f"Closes #{issue.number}"
             )
-        else:
+        elif reproducer.fails_before_fix:
             title = f"test: add failing reproducer for #{issue.number}"
             body = (
                 f"End-to-end test reproducing #{issue.number}"
@@ -294,6 +294,19 @@ def _open_pr(rt, issue, fix: FixResult, reproducer: ReproducerResult) -> Optiona
                 "current `main`.\n\nThe triage bot could not prepare a "
                 "confident fix, so only the test is proposed here. **CI is "
                 "expected to fail until the underlying bug is fixed.**\n\n"
+                f"Refs #{issue.number}"
+            )
+        else:
+            # Crash salvage (salvage_reproducer): the run stopped before the
+            # reproducer stage confirmed anything. Publish what was
+            # committed without claiming a fact nobody verified.
+            title = f"wip: salvaged triage branch for #{issue.number}"
+            body = (
+                f"The triage bot's run for #{issue.number} did not finish. "
+                "This branch carries whatever it had already committed "
+                "before stopping, salvaged rather than discarded. It has "
+                "not been verified to reproduce the issue or fail as "
+                "expected -- review before relying on it.\n\n"
                 f"Refs #{issue.number}"
             )
         pr = rt.gh.create_pull_request(head=branch, base="main", title=title, body=body)
