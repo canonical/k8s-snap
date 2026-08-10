@@ -224,21 +224,36 @@ def classify(
 
 
 def decide_retriage(
-    *, latest_comment: str, report: str, model_spec: str = DEFAULT_MODEL
+    *,
+    latest_comment: str,
+    report: str,
+    prior_request: str = "",
+    model_spec: str = DEFAULT_MODEL,
 ) -> RetriageDecision:
-    """Decide whether a new comment warrants re-running triage.
+    """Decide how a new comment on a parked issue affects its triage state.
 
     Conservative by construction: a bare acknowledgement ("thanks", "any
     update?") must not burn a cluster run, but genuinely new reproduction
-    details or an attached inspection report should.
+    details or an attached inspection report should. Distinct from that is
+    an explicit decline -- the reporter saying they cannot or will not
+    provide what was asked for -- which should stop the bot from asking
+    again rather than being read as silence.
     """
 
     prompt = (
-        "You decide whether a new comment on a previously-triaged k8s-snap "
-        "issue provides materially new information (new reproduction steps, "
-        "versions, logs, or an inspection report) that justifies re-running "
-        "automated triage. Acknowledgements, pings, or unrelated discussion "
-        "do NOT.\n\n"
+        "You decide how a new comment on a previously-triaged k8s-snap "
+        "issue affects whether to re-run automated triage. Choose exactly "
+        "one outcome:\n"
+        "- 'retriage': the comment provides materially new information (new "
+        "reproduction steps, versions, logs, or an inspection report) that "
+        "justifies re-running automated triage.\n"
+        "- 'declined': the reporter explicitly says they cannot or will not "
+        "provide what was asked for (no access to the system anymore, no "
+        "time, don't know how, etc.) -- there is nothing further to wait "
+        "for.\n"
+        "- 'no_new_info': an acknowledgement, ping, or unrelated discussion; "
+        "neither of the above.\n\n"
+        f"What was asked for:\n{prior_request[:1000]}\n\n"
         f"Prior triage report:\n{report[:4000]}\n\n"
         f"New comment:\n{latest_comment[:2000]}"
     )

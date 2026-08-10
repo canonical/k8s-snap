@@ -45,8 +45,9 @@ class ActionContext:
     max_triage_failures: int = 3
     # Root directory for per-issue scratch space (report.md, checkouts).
     workdir_root: str = ".triage"
-    # GitHub team to mention in the maintainer section of enhancement proposals.
-    # Written without the leading ``@``; leave empty to skip the mention.
+    # GitHub team pinged whenever a comment needs a maintainer to act (see
+    # handlers.base.maintainer_ping). Written without the leading ``@``;
+    # leave empty to skip the mention.
     maintainer_team: str = "canonical/kubernetes"
 
     def with_bot_logins(self, extra: list[str]) -> "ActionContext":

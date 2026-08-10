@@ -495,12 +495,36 @@ def test_verify_fix_confirmed_tags_pr(tmp_path):
     result = dispatch(_event("created", [LABELS.fix_pending]), rt)
     assert result.label == LABELS.fix_verified
     assert LABELS.pr_fix_verified in gh.pr_labels[pr["number"]]
+    assert any(pr["html_url"] in c for c in gh.comments_posted)
+
+
+def test_verify_fix_confirmed_without_a_pr_uses_a_generic_message(tmp_path):
+    # No branch/PR the fake can find (e.g. it was deleted, or auto_pr was
+    # off) -- best-effort lookup degrades to a generic instruction rather
+    # than crashing or omitting the merge step entirely.
+    gh = FakeGitHub(
+        issue={"number": ISSUE, "title": "t", "body": "x"},
+        labels=[LABELS.fix_pending],
+    )
+    rt = _runtime(
+        gh,
+        tmp=tmp_path,
+        pipeline=make_pipeline(TriageResult()),
+        verify_fix=make_verifier(FixVerification(status="confirmed")),
+    )
+    result = dispatch(_event("created", [LABELS.fix_pending]), rt)
+    assert result.label == LABELS.fix_verified
+    assert any("Merge the draft fix PR" in c for c in gh.comments_posted)
 
 
 def test_verify_fix_rejected(tmp_path):
     gh = FakeGitHub(
         issue={"number": ISSUE, "title": "t", "body": "x"},
         labels=[LABELS.fix_pending],
+        branches=[f"triage/fix-{ISSUE}"],
+    )
+    pr = gh.create_pull_request(
+        head=f"triage/fix-{ISSUE}", base="main", title="fix", body="b"
     )
     rt = _runtime(
         gh,
@@ -510,6 +534,28 @@ def test_verify_fix_rejected(tmp_path):
     )
     result = dispatch(_event("created", [LABELS.fix_pending]), rt)
     assert result.label == LABELS.fix_rejected
+    assert any(pr["html_url"] in c for c in gh.comments_posted)
+    assert any("cc @canonical/kubernetes" in c for c in gh.comments_posted)
+
+
+def test_verify_fix_inconclusive_posts_a_comment(tmp_path):
+    # A maintainer comment that doesn't clearly confirm or reject must not
+    # be a silent no-op -- they get told their comment didn't register.
+    gh = FakeGitHub(
+        issue={"number": ISSUE, "title": "t", "body": "x"},
+        labels=[LABELS.fix_pending],
+    )
+    rt = _runtime(
+        gh,
+        tmp=tmp_path,
+        pipeline=make_pipeline(TriageResult()),
+        verify_fix=make_verifier(FixVerification(status="inconclusive")),
+    )
+    result = dispatch(_event("created", [LABELS.fix_pending]), rt)
+    assert result.outcome == "inconclusive"
+    assert result.label == LABELS.fix_pending
+    assert len(gh.comments_posted) == 1
+    assert "cc @canonical/kubernetes" in gh.comments_posted[0]
 
 
 def test_verify_fix_classifies_triggering_comment_not_raced_latest(tmp_path):
@@ -662,7 +708,7 @@ def test_retriage_with_new_info_reruns(tmp_path):
                 completed_stage="fix", reproducible=True, verdict="bug", fixed=True
             )
         ),
-        decide_retriage=make_retriage(RetriageDecision(retriage=True)),
+        decide_retriage=make_retriage(RetriageDecision(outcome="retriage")),
     )
     result = dispatch(_event("created", [LABELS.needs_reproduction]), rt)
     assert result.action == "retriage"
@@ -682,9 +728,9 @@ def test_retriage_uses_an_empty_comment_body_as_is(tmp_path):
     )
     seen = {}
 
-    def capture(*, latest_comment, report, model_spec):
+    def capture(*, latest_comment, report, prior_request, model_spec):
         seen["latest"] = latest_comment
-        return RetriageDecision(retriage=False)
+        return RetriageDecision(outcome="no_new_info")
 
     rt = _runtime(
         gh,
@@ -727,7 +773,7 @@ def test_retriage_bypasses_duplicate_gate(tmp_path):
                 completed_stage="fix", reproducible=True, verdict="bug", fixed=True
             )
         ),
-        decide_retriage=make_retriage(RetriageDecision(retriage=True)),
+        decide_retriage=make_retriage(RetriageDecision(outcome="retriage")),
     )
     result = dispatch(_event("created", [LABELS.needs_triage]), rt)
     assert result.action == "retriage"
@@ -754,7 +800,7 @@ def test_retriage_bypasses_missing_info_gate(tmp_path):
                 completed_stage="fix", reproducible=True, verdict="bug", fixed=True
             )
         ),
-        decide_retriage=make_retriage(RetriageDecision(retriage=True)),
+        decide_retriage=make_retriage(RetriageDecision(outcome="retriage")),
     )
     result = dispatch(_event("created", [LABELS.needs_reproduction]), rt)
     assert result.action == "retriage"
@@ -772,7 +818,7 @@ def test_retriage_without_new_info_skips(tmp_path):
         gh,
         tmp=tmp_path,
         pipeline=make_pipeline(TriageResult()),
-        decide_retriage=make_retriage(RetriageDecision(retriage=False)),
+        decide_retriage=make_retriage(RetriageDecision(outcome="no_new_info")),
     )
     result = dispatch(_event("created", [LABELS.needs_reproduction]), rt)
     assert result.outcome == "no-new-info"
@@ -793,10 +839,135 @@ def test_retriage_stops_at_failure_cap(tmp_path):
         gh,
         tmp=tmp_path,
         pipeline=make_pipeline(TriageResult()),
-        decide_retriage=make_retriage(RetriageDecision(retriage=True)),
+        decide_retriage=make_retriage(RetriageDecision(outcome="retriage")),
     )
     result = dispatch(_event("created", [LABELS.unable_to_reproduce]), rt)
     assert result.outcome == "skipped-max-failures"
+
+
+def test_retriage_declined_on_needs_reproduction_flags_manual_review(tmp_path):
+    gh = FakeGitHub(
+        issue={"number": ISSUE, "title": "unique title here", "body": "x"},
+        labels=[LABELS.needs_reproduction],
+        comments=["I don't have access to that cluster anymore, sorry"],
+    )
+    rt = _runtime(
+        gh,
+        tmp=tmp_path,
+        pipeline=make_pipeline(TriageResult()),
+        decide_retriage=make_retriage(RetriageDecision(outcome="declined")),
+    )
+    result = dispatch(_event("created", [LABELS.needs_reproduction]), rt)
+    assert result.outcome == "declined"
+    assert result.label == LABELS.needs_manual_review
+    assert LABELS.needs_reproduction in gh.removed_labels
+    assert LABELS.needs_manual_review in gh.added_labels
+    assert any("cc @canonical/kubernetes" in c for c in gh.comments_posted)
+
+
+def test_retriage_declined_on_unable_to_reproduce_flags_manual_review(tmp_path):
+    gh = FakeGitHub(
+        issue={"number": ISSUE, "title": "t", "body": "x"},
+        labels=[LABELS.unable_to_reproduce],
+        comments=["I can't run that script on this system"],
+    )
+    rt = _runtime(
+        gh,
+        tmp=tmp_path,
+        pipeline=make_pipeline(TriageResult()),
+        decide_retriage=make_retriage(RetriageDecision(outcome="declined")),
+    )
+    result = dispatch(_event("created", [LABELS.unable_to_reproduce]), rt)
+    assert result.label == LABELS.needs_manual_review
+
+
+def test_retriage_declined_is_ignored_outside_the_declinable_labels(tmp_path):
+    # "declined" only means something for the two labels that actually ask
+    # the reporter for a specific thing; elsewhere it degrades to no-op, same
+    # as any other non-"retriage" outcome.
+    gh = FakeGitHub(
+        issue={"number": ISSUE, "title": "t", "body": "x"},
+        labels=[LABELS.unable_to_fix],
+        comments=["I don't know, good luck"],
+    )
+    rt = _runtime(
+        gh,
+        tmp=tmp_path,
+        pipeline=make_pipeline(TriageResult()),
+        decide_retriage=make_retriage(RetriageDecision(outcome="declined")),
+    )
+    result = dispatch(_event("created", [LABELS.unable_to_fix]), rt)
+    assert result.outcome == "no-new-info"
+    assert result.label == LABELS.unable_to_fix
+    assert gh.comments_posted == []
+
+
+def test_needs_triage_trusted_comment_bypasses_the_classifier_entirely(tmp_path):
+    # needs-triage is a trust gate, not an information gate: a maintainer
+    # comment with no reproduction content at all ("please go ahead") still
+    # unlocks the pipeline, and decide_retriage is never even consulted.
+    gh = FakeGitHub(
+        issue={"number": ISSUE, "title": "unique title here", "body": "x"},
+        labels=[LABELS.needs_triage],
+        comments=["please go ahead"],
+    )
+
+    def _unused(**_):
+        raise AssertionError("decide_retriage must not be called for needs-triage")
+
+    rt = _runtime(
+        gh,
+        tmp=tmp_path,
+        classify=make_classifier(_clean_classification()),
+        pipeline=make_pipeline(
+            TriageResult(
+                completed_stage="fix", reproducible=True, verdict="bug", fixed=True
+            )
+        ),
+        decide_retriage=_unused,
+    )
+    result = dispatch(_event("created", [LABELS.needs_triage]), rt)
+    assert result.action == "retriage"
+    assert result.label == LABELS.fix_pending
+
+
+def test_needs_triage_untrusted_comment_is_a_noop(tmp_path):
+    gh = FakeGitHub(
+        issue={"number": ISSUE, "title": "t", "body": "x"},
+        labels=[LABELS.needs_triage],
+        comments=["please go ahead"],
+    )
+    rt = _runtime(gh, tmp=tmp_path, pipeline=_exploding_pipeline)
+    result = dispatch(_event("created", [LABELS.needs_triage], association=""), rt)
+    assert result.outcome == "untrusted-comment"
+    assert result.label == LABELS.needs_triage
+    assert gh.comments_posted == []
+
+
+def test_failed_trusted_comment_retries_regardless_of_content(tmp_path):
+    gh = FakeGitHub(
+        issue={"number": ISSUE, "title": "unique title here", "body": "x"},
+        labels=[LABELS.failed],
+        comments=["try again please"],
+    )
+
+    def _unused(**_):
+        raise AssertionError("decide_retriage must not be called for failed")
+
+    rt = _runtime(
+        gh,
+        tmp=tmp_path,
+        classify=make_classifier(_clean_classification()),
+        pipeline=make_pipeline(
+            TriageResult(
+                completed_stage="fix", reproducible=True, verdict="bug", fixed=True
+            )
+        ),
+        decide_retriage=_unused,
+    )
+    result = dispatch(_event("created", [LABELS.failed]), rt)
+    assert result.action == "retriage"
+    assert result.label == LABELS.fix_pending
 
 
 # --- cleanup + dry-run ---
@@ -864,7 +1035,7 @@ def test_untrusted_retriage_reclassifies_without_pipeline(tmp_path):
         tmp=tmp_path,
         classify=make_classifier(_clean_classification()),
         pipeline=_exploding_pipeline,
-        decide_retriage=make_retriage(RetriageDecision(retriage=True)),
+        decide_retriage=make_retriage(RetriageDecision(outcome="retriage")),
     )
     result = dispatch(
         _event("created", [LABELS.needs_reproduction], association=""), rt
@@ -890,7 +1061,7 @@ def test_forged_failure_marker_does_not_count(tmp_path):
         tmp=tmp_path,
         classify=make_classifier(_clean_classification()),
         pipeline=make_pipeline(TriageResult(reproducible=False)),
-        decide_retriage=make_retriage(RetriageDecision(retriage=True)),
+        decide_retriage=make_retriage(RetriageDecision(outcome="retriage")),
     )
     result = dispatch(_event("created", [LABELS.unable_to_reproduce]), rt)
     assert result.action == "retriage"

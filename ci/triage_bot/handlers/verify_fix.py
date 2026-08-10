@@ -18,7 +18,7 @@ from typing import Literal, Optional
 
 from ..labels import current_triage_label
 from ..schema import FixVerification
-from .base import HandlerResult, IssueContext, Runtime, with_marker
+from .base import HandlerResult, IssueContext, Runtime, maintainer_ping, with_marker
 
 
 def handle_verify_fix(
@@ -65,10 +65,16 @@ def handle_verify_fix(
 
     if verification.status == "confirmed":
         rt.gh.swap_label(issue.number, labels.fix_pending, labels.fix_verified)
-        _tag_fix_pr(rt, issue.number)
+        pr = _find_fix_pr(rt, issue.number)
+        _tag_fix_pr(rt, pr)
+        merge_note = (
+            f" Merge {pr['html_url']} to complete this."
+            if pr and pr.get("html_url")
+            else " Merge the draft fix PR to complete this."
+        )
         rt.gh.add_comment(
             issue.number,
-            with_marker("Fix confirmed. Thanks for verifying."),
+            with_marker(f"Fix confirmed. Thanks for verifying.{merge_note}"),
         )
         return HandlerResult(
             "verify_fix", "confirmed", labels.fix_verified, ["fix:confirmed"]
@@ -76,11 +82,18 @@ def handle_verify_fix(
 
     if verification.status == "rejected":
         rt.gh.swap_label(issue.number, labels.fix_pending, labels.fix_rejected)
+        pr = _find_fix_pr(rt, issue.number)
+        close_note = (
+            f" Please close {pr['html_url']} without merging."
+            if pr and pr.get("html_url")
+            else " Please close the draft fix PR without merging."
+        )
         rt.gh.add_comment(
             issue.number,
             with_marker(
-                "Thanks, marking the proposed fix as rejected. A maintainer "
-                "will revisit; further details on what still fails are welcome.",
+                f"Thanks, marking the proposed fix as rejected.{close_note} "
+                f"{maintainer_ping(rt)}further details on what still fails "
+                "are welcome.",
                 failure=True,
             ),
         )
@@ -88,16 +101,29 @@ def handle_verify_fix(
             "verify_fix", "rejected", labels.fix_rejected, ["fix:rejected"]
         )
 
+    rt.gh.add_comment(
+        issue.number,
+        with_marker(
+            "That comment didn't clearly confirm or reject the fix. "
+            f"{maintainer_ping(rt)}reply with a clear confirmation or "
+            "rejection, or merge the draft PR to confirm it / close the PR "
+            "without merging to reject it."
+        ),
+    )
     return HandlerResult(
         "verify_fix", "inconclusive", labels.fix_pending, ["fix:inconclusive"]
     )
 
 
-def _tag_fix_pr(rt: Runtime, number: int) -> None:
-    """Best-effort: tag the open fix PR so CI can key off the confirmation."""
+def _find_fix_pr(rt: Runtime, number: int) -> Optional[dict]:
+    """Best-effort: locate the bot's own open draft PR for this issue."""
     branch = rt.gh.find_branch([f"triage/fix-{number}", f"fix/issue-{number}"])
     if not branch:
-        return
-    pr = rt.gh.find_pull_request(branch)
+        return None
+    return rt.gh.find_pull_request(branch)
+
+
+def _tag_fix_pr(rt: Runtime, pr: Optional[dict]) -> None:
+    """Tag the open fix PR so the CI side can key off the confirmation."""
     if pr and pr.get("number") is not None:
         rt.gh.add_labels(pr["number"], [rt.ctx.labels.pr_fix_verified])

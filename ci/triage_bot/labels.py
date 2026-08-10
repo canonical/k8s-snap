@@ -20,6 +20,7 @@ class LabelConfig:
     needs_triage: str = "triage/needs-triage"
     not_actionable: str = "triage/not-actionable"
     needs_reproduction: str = "triage/needs-reproduction"
+    needs_manual_review: str = "triage/needs-manual-review"
     skipped: str = "triage/skipped"
     unable_to_reproduce: str = "triage/unable-to-reproduce"
     unable_to_fix: str = "triage/unable-to-fix"
@@ -52,7 +53,12 @@ class LabelConfig:
 
     def terminal_labels(self) -> list[str]:
         """Labels where the bot takes no further action on new comments."""
-        return [self.fix_verified, self.not_actionable, self.skipped]
+        return [
+            self.fix_verified,
+            self.not_actionable,
+            self.skipped,
+            self.needs_manual_review,
+        ]
 
 
 def current_triage_label(issue_labels: list[str], config: LabelConfig) -> str | None:

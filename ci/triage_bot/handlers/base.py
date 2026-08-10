@@ -151,6 +151,29 @@ def count_failures(comments: list[Comment], bot_logins: tuple[str, ...]) -> int:
     )
 
 
+def last_bot_comment(comments: list[Comment], bot_logins: tuple[str, ...]) -> str:
+    """The bot's most recent own comment, or "" if it has never posted one.
+
+    Used to give the retriage classifier the actual prior ask (e.g. "please
+    attach an inspection tarball") when ``report.md`` doesn't exist yet -- a
+    park via the cheap gates never reaches the pipeline stage that writes it.
+    """
+    for c in reversed(comments):
+        if BOT_MARKER in (c.body or "") and c.author in bot_logins:
+            return c.body
+    return ""
+
+
+def maintainer_ping(rt: "Runtime") -> str:
+    """``cc @team: `` prefix for a comment that needs maintainer action.
+
+    "" when ``maintainer_team`` is unset, so the opt-out stays silent rather
+    than pinging an empty name.
+    """
+    team = rt.ctx.maintainer_team
+    return f"cc @{team}: " if team else ""
+
+
 def with_marker(body: str, *, failure: bool = False) -> str:
     """Append the bot marker (and optionally the failure marker) to a comment."""
     markers = BOT_MARKER + (FAILURE_MARKER if failure else "")

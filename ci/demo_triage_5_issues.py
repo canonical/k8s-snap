@@ -27,6 +27,8 @@ Safety:
 Usage (from the repo root):
     PYTHONPATH=ci GEMINI_API_KEY=... python3 ci/demo_triage_5_issues.py
     PYTHONPATH=ci GEMINI_API_KEY=... python3 ci/demo_triage_5_issues.py --issue 2646 --issue 2672
+    PYTHONPATH=ci GEMINI_API_KEY=... python3 ci/demo_triage_5_issues.py \
+        --issue 2631 --as-label triage/needs-reproduction --comment "..."
 """
 
 from __future__ import annotations
@@ -211,6 +213,19 @@ def main() -> int:
         dest="issues",
         help="explicit issue number (repeatable); overrides --count",
     )
+    parser.add_argument(
+        "--comment",
+        help=(
+            "simulate a `created` (comment) event instead of `opened` -- "
+            "requires exactly one --issue. Real issue metadata still comes "
+            "from the given issue; only the label and comment are "
+            "overridden, to demonstrate a retriage decision in isolation."
+        ),
+    )
+    parser.add_argument(
+        "--as-label",
+        help="triage/* label to simulate the issue resting at, with --comment",
+    )
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -221,6 +236,31 @@ def main() -> int:
     gh = RecordingGitHubClient(repo=args.repo, dry_run=True)
     ctx = ActionContext(repo=args.repo, dry_run=True, auto_pr=False)
     rt = Runtime(ctx=ctx, gh=gh, pipeline=_demo_pipeline)
+
+    if args.comment:
+        if not args.issues or len(args.issues) != 1:
+            parser.error("--comment requires exactly one --issue")
+        if not args.as_label:
+            parser.error("--comment requires --as-label")
+        number = args.issues[0]
+        real_issue = gh.get_issue(number)
+        payload = {
+            "action": "created",
+            "issue": {
+                "number": number,
+                "labels": [{"name": args.as_label}],
+                "author_association": real_issue.get("author_association", ""),
+            },
+            "comment": {
+                "body": args.comment,
+                "user": {"login": "demo-maintainer"},
+                "author_association": "MEMBER",
+            },
+        }
+        event = GitHubEvent.from_payload(payload, bot_logins=ctx.bot_logins)
+        result = dispatch(event, rt)
+        _render(number, real_issue, event, result, gh.recorded)
+        return 0
 
     issue_numbers = args.issues or _latest_open_issue_numbers(args.repo, args.count)
 

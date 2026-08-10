@@ -33,7 +33,7 @@ from ..labels import current_triage_label
 from ..pipeline import salvage_reproducer
 from ..schema import TriageResult
 from ..skills import repo_root
-from .base import HandlerResult, IssueContext, Runtime, with_marker
+from .base import HandlerResult, IssueContext, Runtime, maintainer_ping, with_marker
 
 _INSPECT = "sudo /snap/k8s/current/k8s/scripts/inspect.sh"
 
@@ -83,7 +83,9 @@ def handle_triage(
                 current,
                 labels.needs_triage,
                 f"This looks like a possible duplicate of #{duplicate}. "
-                "A maintainer will confirm and close it if so; comment if not.",
+                f"{maintainer_ping(rt)}close this issue as a duplicate if "
+                "confirmed, or comment saying it isn't -- that retriages it "
+                "automatically.",
                 actions + [f"duplicate:{duplicate}"],
                 "duplicate",
             )
@@ -128,8 +130,9 @@ def handle_triage(
             issue,
             current,
             labels.needs_triage,
-            "Thanks for the report. It has been classified and is ready for a "
-            "maintainer to start automated reproduction.",
+            "Thanks for the report. It has been classified. "
+            f"{maintainer_ping(rt)}comment on this issue to start automated "
+            "reproduction.",
             actions + ["awaiting_maintainer"],
             "awaiting_maintainer",
         )
@@ -152,8 +155,8 @@ def handle_triage(
         rt.gh.add_comment(
             issue.number,
             with_marker(
-                "Automated triage hit an internal error and will retry on the "
-                f"next maintainer comment.{note}",
+                f"Automated triage hit an internal error.{note} "
+                f"{maintainer_ping(rt)}comment on this issue to retry.",
                 failure=True,
             ),
         )
@@ -225,7 +228,8 @@ def _already_supported(
             body.append(f"How to do it today:\n\n```\n{support.instructions}\n```")
         body.append(
             "No documentation page covers this yet, so it is labelled "
-            f"`{labels.docs_needed}` for a docs update."
+            f"`{labels.docs_needed}`. {maintainer_ping(rt)}add a docs page "
+            "covering it."
         )
         rt.gh.add_labels(issue.number, [labels.docs_needed])
         taken.append("docs_needed")
@@ -326,53 +330,61 @@ def _resolve(result: TriageResult, rt: Runtime) -> tuple[str, str, str]:
     if not result.reproducible:
         return (
             labels.unable_to_reproduce,
-            "Automated triage could not reproduce this issue. Please attach an "
-            f"inspection report (`{_INSPECT}`) and the exact steps, versions, "
-            "and environment used.",
+            "Automated triage could not reproduce this issue. Please attach "
+            f"an inspection report (`{_INSPECT}`) and the exact steps, "
+            "versions, and environment used. If you're not able to provide "
+            "this, let us know in a comment and this will be flagged for "
+            "manual review instead.",
             "unable_to_reproduce",
         )
     if result.verdict == "intended-behavior":
         return (
             labels.not_actionable,
-            "Automated triage reproduced the described behaviour and found it "
-            "matches the documented, intended behaviour. Marking not-actionable; "
-            "a maintainer will review and close it, or reopen the discussion if "
-            "this is wrong.",
+            "Automated triage reproduced the described behaviour and found "
+            "it matches the documented, intended behaviour. "
+            f"{maintainer_ping(rt)}close this issue if that's correct, or "
+            "reopen it with why the behaviour is actually wrong.",
             "intended_behavior",
         )
     if result.completed_stage == "reproducer":
         return (
             labels.unable_to_fix,
-            "Automated triage reproduced this issue by hand but could not turn "
-            "it into an end-to-end test that fails, so there is nothing to "
-            "verify a fix against. No code was changed. A maintainer will need "
-            "to take it from here.",
+            "Automated triage reproduced this issue by hand but could not "
+            "turn it into an end-to-end test that fails, so there is "
+            "nothing to verify a fix against. No code was changed. "
+            f"{maintainer_ping(rt)}please continue manually, or close this "
+            "if it isn't worth pursuing.",
             "no_reproducer",
         )
     if result.fixed:
         if result.pr_url:
             body = (
-                "Automated triage reproduced the issue and opened a draft fix "
-                f"PR: {result.pr_url}. A maintainer will review, then comment "
-                "to confirm or reject once verified."
+                "Automated triage reproduced the issue and opened a draft "
+                f"fix PR: {result.pr_url}. {maintainer_ping(rt)}review it, "
+                "then merge to confirm the fix or close it without merging "
+                "to reject -- a clear comment works too."
             )
         else:
             body = (
-                "Automated triage reproduced the issue and prepared a candidate "
-                "fix. A maintainer will review and open a PR."
+                "Automated triage reproduced the issue and prepared a "
+                "candidate fix, but no PR was opened automatically. "
+                f"{maintainer_ping(rt)}re-run with auto-PR enabled, or open "
+                "one from the bot's branch manually."
             )
         return (labels.fix_pending, body, "fix_pending")
     if result.pr_url:
         body = (
-            "Automated triage reproduced the issue and pushed the end-to-end "
-            f"test that captures it: {result.pr_url}. That test fails against "
-            "`main` by design. A confident fix could not be prepared, so a "
-            "maintainer will need to take it from here."
+            "Automated triage reproduced the issue and pushed the "
+            f"end-to-end test that captures it: {result.pr_url}. That test "
+            "fails against `main` by design. A confident fix could not be "
+            f"prepared. {maintainer_ping(rt)}please continue from that "
+            "branch, or close the PR if this isn't worth pursuing."
         )
     else:
         body = (
             "Automated triage reproduced the issue but could not prepare a "
-            "confident fix. A maintainer will need to take it from here."
+            f"confident fix. {maintainer_ping(rt)}please continue manually, "
+            "or close this if it isn't worth pursuing."
         )
     return (labels.unable_to_fix, body, "unable_to_fix")
 
@@ -384,7 +396,8 @@ def _needs_info_comment(missing: list[str]) -> str:
         "could you please provide:\n\n"
         f"{bullets}\n\n"
         f"For the inspection tarball, run `{_INSPECT}` and attach the "
-        "generated file."
+        "generated file. If you're not able to provide this, let us know "
+        "in a comment and this will be flagged for manual review instead."
     )
 
 

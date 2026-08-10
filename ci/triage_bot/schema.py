@@ -118,7 +118,7 @@ class TriageResult(BaseModel):
 
 
 class RetriageDecision(BaseModel):
-    retriage: bool = False
+    outcome: Literal["retriage", "declined", "no_new_info"] = "no_new_info"
     reason: str = ""
 
 
