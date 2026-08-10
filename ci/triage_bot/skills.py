@@ -158,6 +158,12 @@ def ensure_worktree(path: Path, branch: str) -> Path:
     tree, and its branch is ready to commit on without a checkout step.
     """
     if (path / ".git").exists():
+        current = _git(path, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip()
+        if current != branch:
+            raise SkillError(
+                f"worktree at {path} exists but is on {current!r}, not "
+                f"{branch!r}. Remove it manually if it is safe to replace."
+            )
         return path
     root = repo_root()
     _git(root, "worktree", "prune")

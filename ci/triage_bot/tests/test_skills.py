@@ -208,6 +208,28 @@ def test_worktree_is_reused_and_stale_ones_reclaimed(tmp_path, monkeypatch):
     assert (second / "tracked.txt").exists()
 
 
+def test_worktree_refuses_to_reuse_a_directory_on_the_wrong_branch(
+    tmp_path, monkeypatch
+):
+    # A directory with a .git could be stale, manually tampered with, or a
+    # leftover from a future bug that reuses a path across branches. Working
+    # in it anyway would commit the agent's changes onto the wrong branch,
+    # and a later push of the *expected* branch name would push stale
+    # content instead of the run's actual work.
+    root, git = _tiny_repo(tmp_path)
+    monkeypatch.setattr(skills, "repo_root", lambda: root)
+    path = tmp_path / "a" / "checkout"
+    skills.ensure_worktree(path, "triage/fix-1")
+    subprocess.run(
+        ("git", "-C", str(path), "switch", "-c", "some-other-branch"),
+        check=True,
+        capture_output=True,
+    )
+
+    with pytest.raises(skills.SkillError, match="some-other-branch"):
+        skills.ensure_worktree(path, "triage/fix-1")
+
+
 def test_worktree_keeps_commits_an_earlier_run_made(tmp_path, monkeypatch):
     # The reproducer test is committed on the branch before the fix stage runs.
     # Re-creating the worktree (a retry, a crash) must not reset that away.
