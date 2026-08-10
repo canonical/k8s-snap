@@ -189,7 +189,6 @@ if os.environ.get("READTHEDOCS"):
 # A regex list of URLs that are ignored by 'make linkcheck'
 linkcheck_ignore = [
     'http://127.0.0.1:8000',
-    'http://rocks.canonical.com',
     'about',
     'https://ceph.io/',
     'https://charmhub.io/k8s/',
