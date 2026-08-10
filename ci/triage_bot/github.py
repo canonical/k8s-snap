@@ -42,7 +42,10 @@ def _write_askpass_helper() -> str:
             '*) printf %s "x-access-token" ;;\n'
             "esac\n"
         )
-    os.chmod(path, 0o700)
+    # 0o500: read+execute for the owner only. No write bit -- the content is
+    # already final by this point, and no group/other access is ever needed
+    # (git invokes this file directly, in-process, as GIT_ASKPASS).
+    os.chmod(path, 0o500)
     return path
 
 

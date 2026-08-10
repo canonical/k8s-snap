@@ -10,6 +10,7 @@ leave the process. ``_api`` is stubbed to explode so any leak fails loudly.
 from __future__ import annotations
 
 import os
+import stat
 import subprocess
 
 import pytest
@@ -106,6 +107,19 @@ def test_askpass_helper_answers_password_with_the_token_only(monkeypatch):
         assert password.stdout == "secrettoken"
         assert username.stdout == "x-access-token"
         assert "secrettoken" not in username.stdout
+    finally:
+        os.unlink(path)
+
+
+def test_askpass_helper_is_owner_only_read_execute():
+    # The script itself carries no secret (the token only ever reaches it
+    # via env at invoke time), but it must still be unreadable/unwritable/
+    # unexecutable by anyone but its owner, and never writable once its
+    # content is final.
+    path = github._write_askpass_helper()
+    try:
+        mode = stat.S_IMODE(os.stat(path).st_mode)
+        assert mode == 0o500
     finally:
         os.unlink(path)
 
