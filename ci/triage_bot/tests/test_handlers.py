@@ -210,6 +210,34 @@ def test_enhancement_request_gets_implementation_proposal(tmp_path, monkeypatch)
     assert posted.index("snap stop k8s.kubelet") < posted.index("register-node=false")
 
 
+def test_enhancement_workaround_without_ideas_has_no_dangling_separator(
+    tmp_path, monkeypatch
+):
+    # A workaround-only proposal (no implementation ideas) must not leave a
+    # trailing "---" with nothing after it. The workaround also renders
+    # inside a fence now, matching how ExistingSupport.instructions already
+    # does, so multi-line/quoted commands survive intact.
+    _inventory(monkeypatch, [])
+    gh = FakeGitHub(issue={"number": ISSUE, "title": "disable kubelet", "body": "x"})
+    rt = _runtime(
+        gh,
+        tmp=tmp_path,
+        classify=make_classifier(Classification(kind_labels=["kind/enhancement"])),
+        pipeline=make_pipeline(TriageResult()),
+        propose_enhancement=_has_ideas(
+            workaround_exists=True,
+            workaround_instructions="sudo snap stop k8s.kubelet",
+        ),
+    )
+
+    result = dispatch(_event("opened", []), rt)
+
+    assert result.outcome == "enhancement_proposal"
+    posted = "\n".join(gh.comments_posted)
+    assert not posted.rstrip().endswith("---")
+    assert "```\nsudo snap stop k8s.kubelet\n```" in posted
+
+
 def test_enhancement_proposal_omits_maintainer_ping_when_team_unset(
     tmp_path, monkeypatch
 ):

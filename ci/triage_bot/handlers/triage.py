@@ -269,7 +269,10 @@ def _propose_enhancement(
     # First part: for the reporter -- followable steps, not framing.
     reporter_parts: list[str] = ["This feature is not yet part of k8s-snap."]
     if proposal.workaround_exists and proposal.workaround_instructions:
-        workaround = "**What you can do today:**\n\n" + proposal.workaround_instructions
+        workaround = (
+            "**What you can do today:**\n\n"
+            f"```\n{proposal.workaround_instructions}\n```"
+        )
         if proposal.workaround_doc_paths:
             links = "\n".join(
                 f"- {triage_core.doc_url(p)}" for p in proposal.workaround_doc_paths
@@ -278,22 +281,26 @@ def _propose_enhancement(
         reporter_parts.append(workaround)
 
     # Second part: the proposal, at the end. The `cc` is the only signal this
-    # is for maintainers -- no need to say so explicitly.
+    # is for maintainers -- no need to say so explicitly. Omitted entirely
+    # (no dangling separator) when there are no ideas to present.
     team = rt.ctx.maintainer_team
-    proposal_parts: list[str] = ["---"]
+    proposal_parts: list[str] = []
     if proposal.ideas:
         lines = [
             f"cc @{team}" if team else "",
             "**Possible implementation paths:**",
         ]
         for i, idea in enumerate(proposal.ideas, 1):
-            block = f"{i}. **{idea.title}** · effort: {idea.effort}\n\n   {idea.description}"
+            block = (
+                f"{i}. **{idea.title}** · effort: {idea.effort}\n\n"
+                f"   {idea.description}"
+            )
             if idea.example:
                 block += f"\n\n   ```\n   {idea.example}\n   ```"
             lines.append(block)
-        proposal_parts.append("\n\n".join(part for part in lines if part))
+        proposal_parts = ["---", "\n\n".join(part for part in lines if part)]
 
-    comment = "\n\n".join(reporter_parts) + "\n\n" + "\n\n".join(proposal_parts)
+    comment = "\n\n".join([*reporter_parts, *proposal_parts])
 
     return _park(
         rt,

@@ -373,7 +373,7 @@ def propose_enhancement(
     known = set(pages)
     return EnhancementProposal(
         workaround_exists=result.workaround_exists,
-        workaround_instructions=sanitize_comment_text(
+        workaround_instructions=sanitize_fenced_text(
             result.workaround_instructions, limit=1200
         ),
         workaround_doc_paths=[p for p in result.workaround_doc_paths if p in known],

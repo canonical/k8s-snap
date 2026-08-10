@@ -141,8 +141,12 @@ ensure_snap() {
     # in the primary checkout. Reuse it rather than spend tens of minutes
     # rebuilding a byte-identical artefact.
     if [ ! -f "$SNAP" ]; then
-      primary="$(git -C "$REPO_ROOT" worktree list --porcelain 2>/dev/null |
-        sed -n '1s/^worktree //p')"
+      # Best-effort: a source tree without git (a tarball, git missing)
+      # must fall through to building below, not abort the whole script.
+      primary="$(
+        git -C "$REPO_ROOT" worktree list --porcelain 2>/dev/null |
+          sed -n '1s/^worktree //p'
+      )" || true
       if [ -n "$primary" ] && [ -f "$primary/k8s.snap" ]; then
         SNAP="$primary/k8s.snap"
       fi
