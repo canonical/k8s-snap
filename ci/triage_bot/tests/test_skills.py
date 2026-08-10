@@ -131,6 +131,25 @@ def test_agent_shell_never_inherits_stdin(tmp_path):
     assert "PROMPTED" not in out
 
 
+def test_agent_shell_marks_truncated_output(tmp_path):
+    # A silent cut would hide the real failure from both the agent and the
+    # run log, which only ever see what this tool returns.
+    shell = skills._make_shell_tool(tmp_path, tmp_path)
+
+    out = shell.invoke({"command": "printf 'x%.0s' {1..9000}"})
+
+    assert "chars omitted" in out
+    assert len(out) < 9000
+
+
+def test_agent_shell_leaves_short_output_untouched(tmp_path):
+    shell = skills._make_shell_tool(tmp_path, tmp_path)
+
+    out = shell.invoke({"command": "echo hello"})
+
+    assert out == "exit=0\nhello\n"
+
+
 # --- worktree isolation ---
 
 

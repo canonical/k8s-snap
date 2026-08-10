@@ -36,6 +36,11 @@ T = TypeVar("T", bound=BaseModel)
 # the primary reproduce path can never succeed.
 _SHELL_TIMEOUT = 3600
 
+# The agent and the run log both only see what this tool returns, so a
+# silent cut would hide the real failure from both. Keep the tail (the most
+# recent, usually most relevant output) but mark it explicitly when trimmed.
+_SHELL_OUTPUT_CHARS = 8000
+
 # LangGraph's default recursion limit (25) allows only ~12 tool calls, far
 # fewer than a reproduce or fix step needs (expand tarball, build, bootstrap a
 # cluster, drive `k8s`, run an e2e test). Exhausting it aborts the step, so the
@@ -240,7 +245,10 @@ def _make_shell_tool(
         except subprocess.TimeoutExpired:
             return f"[timed out after {_SHELL_TIMEOUT}s]"
         out = (proc.stdout or "") + (proc.stderr or "")
-        return f"exit={proc.returncode}\n{out[-8000:]}"
+        if len(out) > _SHELL_OUTPUT_CHARS:
+            omitted = len(out) - _SHELL_OUTPUT_CHARS
+            out = f"(+{omitted} chars omitted)...\n{out[-_SHELL_OUTPUT_CHARS:]}"
+        return f"exit={proc.returncode}\n{out}"
 
     return shell
 
