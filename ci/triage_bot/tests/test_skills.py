@@ -131,6 +131,18 @@ def test_agent_shell_never_inherits_stdin(tmp_path):
     assert "PROMPTED" not in out
 
 
+def test_agent_shell_timeout_returns_the_standard_exit_format(tmp_path, monkeypatch):
+    # Every other return starts with "exit=<code>"; a timeout must too, or
+    # callers (the agent included) need a separate path just to notice one.
+    monkeypatch.setattr(skills, "_SHELL_TIMEOUT", 0.1)
+    shell = skills._make_shell_tool(tmp_path, tmp_path)
+
+    out = shell.invoke({"command": "sleep 5"})
+
+    assert out.startswith("exit=124\n")
+    assert "timed out" in out
+
+
 def test_agent_shell_marks_truncated_output(tmp_path):
     # A silent cut would hide the real failure from both the agent and the
     # run log, which only ever see what this tool returns.

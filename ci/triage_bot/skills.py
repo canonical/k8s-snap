@@ -243,7 +243,10 @@ def _make_shell_tool(
                 stdin=subprocess.DEVNULL,
             )
         except subprocess.TimeoutExpired:
-            return f"[timed out after {_SHELL_TIMEOUT}s]"
+            # 124 matches the coreutils `timeout(1)` convention: every other
+            # return starts with "exit=<code>", and callers (the agent
+            # included) should not need a separate path to notice a timeout.
+            return f"exit=124\n[timed out after {_SHELL_TIMEOUT}s]"
         out = (proc.stdout or "") + (proc.stderr or "")
         if len(out) > _SHELL_OUTPUT_CHARS:
             omitted = len(out) - _SHELL_OUTPUT_CHARS
