@@ -86,6 +86,15 @@ while [ $# -gt 0 ]; do
   esac
 done
 
+case "$CONTROL_PLANE" in
+'' | *[!0-9]*) die "--control-plane must be a non-negative integer, got '$CONTROL_PLANE'" ;;
+esac
+case "$WORKERS" in
+'' | *[!0-9]*) die "--workers must be a non-negative integer, got '$WORKERS'" ;;
+esac
+case "$PER_NODE_GB" in
+'' | *[!0-9]*) die "PER_NODE_GB must be a non-negative integer, got '$PER_NODE_GB'" ;;
+esac
 [ "$CONTROL_PLANE" -ge 1 ] || die "--control-plane must be at least 1"
 
 FIRST="${PREFIX}-cp1"
