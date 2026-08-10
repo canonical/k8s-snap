@@ -51,6 +51,19 @@ def test_find_duplicate_short_title_no_false_positive():
     )
 
 
+def test_find_duplicate_survives_a_null_title():
+    # A GitHub search result can carry a present-but-null "title" field; that
+    # must not crash the duplicate gate for every other candidate behind it.
+    cand = [
+        {"number": 1, "title": None},
+        {"number": 2, "title": "coredns crashloop on dualstack bootstrap"},
+    ]
+    match = triage_core.find_duplicate(
+        "coredns crashloop dualstack bootstrap fails", cand
+    )
+    assert match is not None and match["number"] == 2
+
+
 def test_sanitize_defuses_injection():
     cases = [
         "[click](https://evil.co)",

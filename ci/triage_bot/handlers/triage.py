@@ -178,7 +178,7 @@ def _duplicate(rt: Runtime, issue: IssueContext) -> Optional[int]:
     except Exception:
         return None
     candidates = [
-        {"number": it.get("number"), "title": it.get("title", "")}
+        {"number": it.get("number"), "title": it.get("title") or ""}
         for it in items
         if it.get("number") is not None and it.get("number") != issue.number
     ]

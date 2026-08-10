@@ -118,7 +118,9 @@ def find_duplicate(title: str, candidates: list[dict]) -> Optional[dict]:
     if len(title_tokens) < 4:
         return None
     for cand in candidates:
-        cand_tokens = set(re.findall(r"[a-z0-9]{4,}", cand.get("title", "").lower()))
+        cand_tokens = set(
+            re.findall(r"[a-z0-9]{4,}", (cand.get("title") or "").lower())
+        )
         shared = title_tokens & cand_tokens
         union = title_tokens | cand_tokens
         if len(shared) >= 3 and len(shared) / len(union) >= 0.6:

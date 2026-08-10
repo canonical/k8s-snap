@@ -65,6 +65,11 @@ def _add_run_parser(sub):
         default="opened",
         help="Event action for --issue mode (opened|reopened|closed|created).",
     )
+    p.add_argument(
+        "--comment-body",
+        metavar="TEXT",
+        help="Simulated triggering comment body for --issue --action created.",
+    )
     p.add_argument("--model", default=DEFAULT_MODEL, help="provider:model spec.")
     p.add_argument(
         "--dry-run",
@@ -122,6 +127,7 @@ def _load_event(args, gh) -> dict:
             payload["comment"] = {
                 "user": {"login": "maintainer"},
                 "author_association": "OWNER",
+                "body": args.comment_body or "",
             }
         return payload
     path = args.event_file or os.environ.get("GITHUB_EVENT_PATH")

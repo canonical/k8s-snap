@@ -102,7 +102,6 @@ ensure_tooling() {
   sudo lxd init --auto >/dev/null 2>&1 || true
   lxc list >/dev/null 2>&1 ||
     die "cannot reach lxd as $(id -un): add yourself to the 'lxd' group and re-login"
-  command -v jq >/dev/null || sudo apt-get install -y -qq jq
 }
 
 ensure_capacity() {

@@ -293,6 +293,32 @@ def test_triage_duplicate_parks_retriageable(tmp_path):
     assert "#7" in gh.comments_posted[0]
 
 
+def test_triage_duplicate_search_survives_a_null_title(tmp_path):
+    # A GitHub search result can carry a present-but-null "title" field
+    # (e.g. a redacted/migrated issue); it must not crash the duplicate
+    # gate before the real match behind it is even considered.
+    gh = FakeGitHub(
+        issue={
+            "number": ISSUE,
+            "title": "coredns crashloop dualstack bootstrap",
+            "body": "x",
+        },
+        search=[
+            {"number": 3, "title": None},
+            {"number": 7, "title": "coredns crashloop dualstack bootstrap fails"},
+        ],
+    )
+    rt = _runtime(
+        gh,
+        tmp=tmp_path,
+        classify=make_classifier(_clean_classification()),
+        pipeline=make_pipeline(TriageResult()),
+    )
+    result = dispatch(_event("opened", []), rt)
+    assert result.label == LABELS.needs_triage
+    assert "#7" in gh.comments_posted[0]
+
+
 def test_triage_reproducible_fixed_goes_fix_pending(tmp_path):
     gh = FakeGitHub(issue={"number": ISSUE, "title": "unique title here", "body": "x"})
     rt = _runtime(
