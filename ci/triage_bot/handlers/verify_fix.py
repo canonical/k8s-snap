@@ -1,40 +1,67 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
-"""``created`` on a fix-pending issue -> verify the fix.
+"""``created`` on a fix-pending issue, or its own PR closing -> verify the fix.
 
-When the bot has posted a candidate fix (issue resting at ``fix-pending``), the
-next non-bot comment is a maintainer verdict. The injected ``verify_fix`` seam
-classifies it as confirmed / rejected / inconclusive, and the handler swaps to
-the matching terminal (or re-triageable) label. On confirmation it also tags the
-open fix PR so the CI side can pick it up.
+A fix-pending issue's verdict comes from whichever happens first: a
+maintainer comment (classified confirmed / rejected / inconclusive by the
+injected ``verify_fix`` seam), or the bot's own draft PR being merged or
+closed (ground truth, no classification needed -- see
+``router.GitHubEvent.pr_verdict``). Either way the handler swaps to the
+matching terminal (or re-triageable) label, and on confirmation also tags
+the open fix PR so the CI side can pick it up.
 """
 
 from __future__ import annotations
 
+from typing import Literal, Optional
+
+from ..labels import current_triage_label
+from ..schema import FixVerification
 from .base import HandlerResult, IssueContext, Runtime, with_marker
 
 
 def handle_verify_fix(
-    rt: Runtime, issue: IssueContext, *, comment_body: str = ""
+    rt: Runtime,
+    issue: IssueContext,
+    *,
+    comment_body: str = "",
+    verdict: Optional[Literal["confirmed", "rejected"]] = None,
 ) -> HandlerResult:
     labels = rt.ctx.labels
-    # Classify the exact trust-checked triggering comment, not whatever is
-    # newest at fetch time: the router only routes a fix verdict here for a
-    # maintainer comment (a `created` event, always carrying a real
-    # comment_body), so there is nothing to fall back to -- and falling back
-    # to comments[-1] would reintroduce the very race this guards against (a
-    # reporter racing a later comment in during the multi-minute checkout
-    # window), or silently swap in a different comment for an intentionally
-    # empty one (e.g. `--issue --action created` with no --comment-body).
-    latest = comment_body
-    report = rt.report(issue).read()
+    current = current_triage_label(issue.labels, labels)
+    if current != labels.fix_pending:
+        # Defence in depth: the comment path is already gated by route()
+        # (a verdict is only routed for an issue at fix-pending), but the
+        # PR-driven path (GitHubEvent.pr_verdict) has no such issue-state
+        # gate upstream -- a pull_request webhook carries no issue labels
+        # at all, only the closing PR's own metadata. Re-checking here,
+        # against the issue's real current label, is what actually stops
+        # an unrelated PR that merely happens to be named triage/fix-<n>
+        # (or fix/issue-<n>) from mutating that issue's state.
+        return HandlerResult("verify_fix", "not-fix-pending", current, [])
 
-    verification = rt.verify_fix(
-        latest_comment=latest,
-        report=report,
-        model_spec=rt.ctx.verification_model,
-    )
+    if verdict is not None:
+        # Driven directly by the PR's own merge/close outcome: that is
+        # already ground truth, so skip the LLM classifier entirely.
+        verification = FixVerification(status=verdict)
+    else:
+        # Classify the exact trust-checked triggering comment, not whatever
+        # is newest at fetch time: the router only routes a fix verdict here
+        # for a maintainer comment (a `created` event, always carrying a
+        # real comment_body), so there is nothing to fall back to -- and
+        # falling back to comments[-1] would reintroduce the very race this
+        # guards against (a reporter racing a later comment in during the
+        # pipeline's multi-minute checkout window), or silently swap in a
+        # different comment for an intentionally empty one (e.g.
+        # `--issue --action created` with no --comment-body).
+        latest = comment_body
+        report = rt.report(issue).read()
+        verification = rt.verify_fix(
+            latest_comment=latest,
+            report=report,
+            model_spec=rt.ctx.verification_model,
+        )
 
     if verification.status == "confirmed":
         rt.gh.swap_label(issue.number, labels.fix_pending, labels.fix_verified)

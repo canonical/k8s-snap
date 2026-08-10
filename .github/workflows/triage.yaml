@@ -5,6 +5,13 @@ on:
         types: [opened, reopened, closed]
     issue_comment:
         types: [created]
+    # The bot's own draft fix PR closing (merged or not) is a fix verdict --
+    # see the gate step below and router.GitHubEvent.pr_verdict. Firing on
+    # every PR close in the repo is intentional: filtering to just the
+    # triage/fix-<n>/fix/issue-<n> branches happens in Python, matching how
+    # issue_comment already fires for every comment and filters later.
+    pull_request:
+        types: [closed]
     workflow_dispatch:
         inputs:
             issue:
@@ -30,7 +37,7 @@ on:
 # cluster. Queuing costs runner time on a rapid burst of events; it never
 # leaks cluster state.
 concurrency:
-    group: triage-${{ github.event.issue.number || inputs.issue }}
+    group: triage-${{ github.event.issue.number || github.event.pull_request.number || inputs.issue }}
     cancel-in-progress: false
 
 # Default to read-only; each job elevates only what it needs.
@@ -90,6 +97,13 @@ jobs:
                   # A close only cleans up a branch: cheap, low-risk, ubuntu.
                   if [[ "$action" == "closed" ]]; then
                     route=cleanup
+                  fi
+                  # A pull_request close/merge is a fix verdict (verify_fix),
+                  # never the plain issue-closed cleanup path above -- both
+                  # share action=="closed", so this must run after (override)
+                  # it. No cluster needed either way: unprivileged classify.
+                  if [[ "$EVENT_NAME" == "pull_request" ]]; then
+                    route=classify
                   fi
                   echo "route=$route" >> "$GITHUB_OUTPUT"
 
@@ -165,6 +179,12 @@ jobs:
               uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
               with:
                   persist-credentials: false
+                  # actions/checkout defaults to the PR's own merge ref for a
+                  # pull_request event (this job is now reachable via the fix
+                  # PR closing) -- pin to main explicitly so the bot always
+                  # runs its own trusted code, never whatever the closing
+                  # branch itself contains.
+                  ref: main
 
             - name: Setup Python
               uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5

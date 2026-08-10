@@ -50,7 +50,9 @@ def dispatch(event: GitHubEvent, rt: Runtime) -> HandlerResult:
             comment_body=action.comment_body,
         )
     if isinstance(action, VerifyFix):
-        return handle_verify_fix(rt, issue, comment_body=action.comment_body)
+        return handle_verify_fix(
+            rt, issue, comment_body=action.comment_body, verdict=action.verdict
+        )
     if isinstance(action, Cleanup):
         return handle_cleanup(rt, issue)
 

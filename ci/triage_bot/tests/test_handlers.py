@@ -574,6 +574,76 @@ def test_verify_fix_uses_an_empty_comment_body_as_is(tmp_path):
     assert seen["latest"] == ""
 
 
+def _exploding_verify_fix(**_):
+    raise AssertionError("the LLM classifier must not run for a PR-driven verdict")
+
+
+def _pr_closed_event(*, merged: bool, ref: str = f"triage/fix-{ISSUE}"):
+    return GitHubEvent.from_payload(
+        {"action": "closed", "pull_request": {"head": {"ref": ref}, "merged": merged}}
+    )
+
+
+def test_merged_fix_pr_confirms_without_a_comment_or_an_llm_call(tmp_path):
+    # "Approving + merging the PR" must be sufficient on its own -- no issue
+    # comment, and no LLM classification of one either.
+    gh = FakeGitHub(
+        issue={"number": ISSUE, "title": "t", "body": "x"},
+        labels=[LABELS.fix_pending],
+        branches=[f"triage/fix-{ISSUE}"],
+    )
+    pr = gh.create_pull_request(
+        head=f"triage/fix-{ISSUE}", base="main", title="fix", body="b"
+    )
+    rt = _runtime(
+        gh,
+        tmp=tmp_path,
+        pipeline=make_pipeline(TriageResult()),
+        verify_fix=_exploding_verify_fix,
+    )
+    result = dispatch(_pr_closed_event(merged=True), rt)
+    assert result.label == LABELS.fix_verified
+    assert LABELS.pr_fix_verified in gh.pr_labels[pr["number"]]
+
+
+def test_closed_without_merge_rejects_without_a_comment_or_an_llm_call(tmp_path):
+    gh = FakeGitHub(
+        issue={"number": ISSUE, "title": "t", "body": "x"},
+        labels=[LABELS.fix_pending],
+    )
+    rt = _runtime(
+        gh,
+        tmp=tmp_path,
+        pipeline=make_pipeline(TriageResult()),
+        verify_fix=_exploding_verify_fix,
+    )
+    result = dispatch(_pr_closed_event(merged=False), rt)
+    assert result.label == LABELS.fix_rejected
+
+
+def test_pr_verdict_is_ignored_when_the_issue_is_not_actually_fix_pending(tmp_path):
+    # route() cannot see the issue's real label from a pull_request payload
+    # alone (it carries no issue_labels at all); handle_verify_fix is what
+    # actually re-checks it against the freshly fetched issue before
+    # touching anything -- this is what stops an unrelated PR that merely
+    # happens to be named triage/fix-<n> from mutating that issue's state.
+    gh = FakeGitHub(
+        issue={"number": ISSUE, "title": "t", "body": "x"},
+        labels=[LABELS.needs_triage],
+    )
+    rt = _runtime(
+        gh,
+        tmp=tmp_path,
+        pipeline=make_pipeline(TriageResult()),
+        verify_fix=_exploding_verify_fix,
+    )
+    result = dispatch(_pr_closed_event(merged=True), rt)
+    assert result.label == LABELS.needs_triage
+    assert gh.added_labels == []
+    assert gh.removed_labels == []
+    assert gh.comments_posted == []
+
+
 # --- retriage transitions ---
 
 

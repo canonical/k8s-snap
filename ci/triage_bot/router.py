@@ -10,12 +10,17 @@ handlers it selects perform all the GitHub and LLM side effects.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
-from typing import Optional, Union
+from typing import Literal, Optional, Union
 
 from .labels import LabelConfig, current_triage_label
 
 TRUSTED_ASSOCIATIONS = frozenset({"OWNER", "MEMBER", "COLLABORATOR"})
+
+# The bot's own draft-fix branch, in either naming convention it has used
+# (see handlers/verify_fix.py's _tag_fix_pr and pipeline.py's _branch).
+_FIX_BRANCH_RE = re.compile(r"^(?:triage/fix|fix/issue)-(\d+)$")
 
 
 @dataclass(frozen=True)
@@ -34,6 +39,11 @@ class GitHubEvent:
     # so the handler classifies the exact trust-checked comment rather than
     # whatever is newest at fetch time (which a reporter could race in).
     comment_body: str = ""
+    # Set only when this event IS a native ``pull_request`` webhook for one
+    # of the bot's own draft fix branches: merging or closing that PR is
+    # itself the maintainer's verdict, so this bypasses the LLM classifier
+    # and the comment-based path entirely -- no issue comment is needed.
+    pr_verdict: Optional[Literal["confirmed", "rejected"]] = None
 
     @property
     def trusted(self) -> bool:
@@ -43,11 +53,36 @@ class GitHubEvent:
     def from_payload(
         cls, payload: dict, bot_logins: tuple[str, ...] = ()
     ) -> "GitHubEvent":
-        """Parse a GitHub ``issues``/``issue_comment`` webhook payload.
+        """Parse a GitHub ``issues``/``issue_comment``/``pull_request`` webhook.
 
         Unknown or missing fields degrade to a benign no-op event (action
         ``""`` with issue number 0), which the router turns into a Skip.
         """
+        pr = payload.get("pull_request")
+        if pr is not None:
+            # A native pull_request webhook -- the bot's own draft fix PR
+            # closing (merged or not) IS the maintainer's verdict, so this
+            # never falls through to the issues/issue_comment parsing below.
+            head = pr.get("head") or {}
+            base = pr.get("base") or {}
+            same_repo = (head.get("repo") or {}).get("full_name") == (
+                base.get("repo") or {}
+            ).get("full_name")
+            match = _FIX_BRANCH_RE.match(head.get("ref", ""))
+            # Same-repo only: a fork PR's head.ref is entirely attacker-
+            # controlled, so an external contributor could otherwise name a
+            # branch triage/fix-<n> for an arbitrary existing issue and
+            # self-close their own PR to forge that issue's verdict.
+            if payload.get("action") != "closed" or not match or not same_repo:
+                return cls(action="", issue_number=0, issue_labels=[])
+            return cls(
+                action="closed",
+                issue_number=int(match.group(1)),
+                issue_labels=[],
+                bot_logins=bot_logins,
+                pr_verdict="confirmed" if pr.get("merged") else "rejected",
+            )
+
         issue = payload.get("issue") or {}
         labels = [
             label.get("name", "")
@@ -101,6 +136,9 @@ class Retriage:
 class VerifyFix:
     issue_number: int
     comment_body: str = ""
+    # Set directly from a PR merge/close (GitHubEvent.pr_verdict), bypassing
+    # the LLM classifier entirely -- see handle_verify_fix.
+    verdict: Optional[Literal["confirmed", "rejected"]] = None
 
 
 @dataclass(frozen=True)
@@ -123,6 +161,13 @@ def route(event: GitHubEvent, labels: LabelConfig) -> Action:
     can drive privileged work: only a trusted actor's event runs the shell
     pipeline (gated in ``handle_triage``) or is accepted as a fix verdict.
     """
+    # A PR-driven verdict is the most specific, authoritative signal: check
+    # it before anything else, since such an event also carries action ==
+    # "closed" (the same value a plain issue-closed cleanup event uses) --
+    # it must never fall into the Cleanup branch below.
+    if event.pr_verdict is not None:
+        return VerifyFix(event.issue_number, verdict=event.pr_verdict)
+
     if event.is_pull_request:
         return Skip("event is on a pull request, not an issue")
 
