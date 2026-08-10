@@ -3,7 +3,7 @@
 #
 """Autonomous issue triage bot for canonical/k8s-snap.
 
-A label-driven finite state machine: an issue's single ``triage:`` label is its
+A label-driven finite state machine: an issue's single ``triage/`` label is its
 state, GitHub events drive transitions, and a pure :mod:`~triage_bot.router`
 maps ``(event, current label)`` to one of the action handlers. The handlers own
 the GitHub side effects and invoke project-owned *skills* (markdown under

@@ -3,7 +3,7 @@
 #
 """Label-driven state machine configuration.
 
-The bot keeps no database. An issue's triage state *is* the single ``triage:``
+The bot keeps no database. An issue's triage state *is* the single ``triage/``
 label it carries, and transitions are atomic label swaps (remove the old, add
 the new). This module owns the label vocabulary and the three sets the router
 needs: every triage label, the re-triageable subset (a new comment may restart
