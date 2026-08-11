@@ -155,6 +155,13 @@ jobs:
                     args="--issue $DISPATCH_ISSUE --action $DISPATCH_ACTION"
                     if [[ "$DISPATCH_DRY_RUN" == "true" ]]; then
                       args="$args --dry-run"
+                    else
+                      # A real (non-dry-run) manual dispatch is already a
+                      # fully-trusted, fully-effecting run (see _load_event's
+                      # OWNER stamp) -- open the draft PR too, matching the
+                      # webhook path below, instead of silently dropping the
+                      # fix on the floor with no visible artifact.
+                      args="$args --auto-pr"
                     fi
                   else
                     # Consume the webhook payload GitHub wrote for this event.
