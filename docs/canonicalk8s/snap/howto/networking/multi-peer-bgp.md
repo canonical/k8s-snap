@@ -37,6 +37,13 @@ sudo k8s set \
 
 ### Set the multi-peer annotation
 
+```{note}
+The `k8s` charm's `cluster-annotations` config option only accepts flat
+`key=value` pairs and cannot express the nested YAML shown below. To set
+multi-peer BGP annotations on a charmed deployment, `juju exec` into a unit
+and use the `k8s` CLI directly, as described in this guide.
+```
+
 Define peers in a YAML file and pass the whole file via the `annotations` key:
 
 ```bash
@@ -130,6 +137,8 @@ Correct the annotation and the reconciler retries automatically.
 - The annotation value is write-only — inspect it directly with
   `k8s kubectl get node <node> -o yaml`.
 - No per-peer BFD or multi-hop support.
+- Not settable via the `k8s` charm's `cluster-annotations` config option
+  (nested YAML is unsupported there); use `juju exec` and the `k8s` CLI.
 
 ## Next steps
 
