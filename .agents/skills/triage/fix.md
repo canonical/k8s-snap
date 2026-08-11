@@ -67,3 +67,26 @@ short reason. This is a normal outcome, not a failure to hide: the branch still
 carries the failing test, the orchestrator pushes it and opens a draft PR, and a
 maintainer picks it up from a reproducible starting point. Leaving a correct
 red test behind is worth more than a speculative fix.
+
+### When you have a fix but cannot verify it
+
+Sometimes you reach step 4 with a change you are confident addresses the
+diagnosed root cause, but the **rebuild or test tooling itself** fails, not
+your fix: `snapcraft --use-lxd` refuses to run (permission/confinement
+errors), the LXD cluster from step 4 becomes unreachable, a required tool is
+missing, or similar. This is different from being unsure whether the change
+is correct -- do not use this for that. If you cannot tell whether the fix
+is right, treat it as no confident fix (above), not this.
+
+When it is specifically the *infrastructure* that failed:
+
+1. Still commit the fix as its own commit (step 5) -- do not discard a
+   diagnosed, plausible change just because you could not watch it run.
+2. Return `fixed: false`, `verification_blocked: true`, and
+   `blocked_reason`: one short phrase naming what failed (e.g. `"snapcraft
+   --use-lxd: permission denied"`, `"cluster unreachable after rebuild"`).
+
+The orchestrator opens a draft PR that says plainly this fix is unverified
+and needs manual confirmation -- it is never presented as a working fix.
+Getting a real diagnosis and candidate in front of a maintainer beats
+discarding both because the last step could not run.

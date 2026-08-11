@@ -100,6 +100,15 @@ class VerifyResult(BaseModel):
 class FixResult(BaseModel):
     fixed: bool = False
     commit_message: Optional[str] = None
+    # True only when a plausible fix was written and committed for the
+    # diagnosed root cause, but rebuild/test infrastructure (not doubt about
+    # the fix itself) prevented watching it pass -- distinct from "fixed"
+    # (verified) and from the zero-value default (no candidate at all, or
+    # not confident in one). Lets the orchestrator preserve a real,
+    # diagnosed candidate instead of silently discarding it alongside a
+    # genuine "found nothing" outcome.
+    verification_blocked: bool = False
+    blocked_reason: Optional[str] = None
 
 
 class TriageResult(BaseModel):
@@ -115,6 +124,8 @@ class TriageResult(BaseModel):
     commit_message: Optional[str] = None
     pr_url: Optional[str] = None
     test_path: Optional[str] = None
+    verification_blocked: bool = False
+    blocked_reason: Optional[str] = None
 
 
 class RetriageDecision(BaseModel):

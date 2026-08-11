@@ -49,9 +49,12 @@ def _issue():
     return IssueContext(number=ISSUE, title="dns broke", body="x")
 
 
-def _fix(fixed=True):
+def _fix(fixed=True, verification_blocked=False, blocked_reason=None):
     return FixResult(
-        fixed=fixed, commit_message="fix: resolve dns crashloop" if fixed else None
+        fixed=fixed,
+        commit_message="fix: resolve dns crashloop" if fixed else None,
+        verification_blocked=verification_blocked,
+        blocked_reason=blocked_reason,
     )
 
 
@@ -72,7 +75,7 @@ def _pipeline_runtime(tmp_path, **ctx_kwargs):
     return Runtime(ctx=ctx, gh=FakeGitHub(), pipeline=run_pipeline)
 
 
-def _stub_stages(monkeypatch, results):
+def _stub_stages(monkeypatch, results, *, commit_lie_at=None):
     """Record the steps run, returning a canned result for each.
 
     The real worktree is stubbed: these tests pin ordering, and checking out a
@@ -81,15 +84,37 @@ def _stub_stages(monkeypatch, results):
     ``hack/cluster-up.sh --destroy``, which on a bare CI runner tries to
     ``sudo snap install lxd``. ``_cleanup`` has its own dedicated tests below,
     with ``subprocess.run`` mocked instead of the whole function.
+
+    ``commit_sha`` is faked with a counter that advances whenever a stage's
+    canned result claims a commit (reproducer's ``fails_before_fix``, fix's
+    ``fixed``/``verification_blocked``) -- matching run_pipeline's own
+    ground-truth check against an honest run by default. Pass
+    ``commit_lie_at="reproducer"`` or ``"fix"`` to simulate that one stage's
+    self-report NOT being backed by an actual commit, for tests targeting
+    that check itself.
     """
     ran: list[str] = []
+    sha = [0]
 
     def fake_run_skill(*, step, **_):
         ran.append(step)
-        return results[step]
+        result = results[step]
+        claims_commit = (
+            step == "reproducer" and getattr(result, "fails_before_fix", False)
+        ) or (
+            step == "fix"
+            and (
+                getattr(result, "fixed", False)
+                or getattr(result, "verification_blocked", False)
+            )
+        )
+        if claims_commit and step != commit_lie_at:
+            sha[0] += 1
+        return result
 
     monkeypatch.setattr("triage_bot.pipeline.run_skill", fake_run_skill)
     monkeypatch.setattr("triage_bot.pipeline.ensure_worktree", lambda path, _: path)
+    monkeypatch.setattr("triage_bot.pipeline.commit_sha", lambda _checkout: str(sha[0]))
     monkeypatch.setattr("triage_bot.pipeline._cleanup", lambda checkout, prefix: None)
     return ran
 
@@ -178,6 +203,55 @@ def test_no_pr_is_opened_unless_auto_pr_is_set(tmp_path, monkeypatch):
     assert rt.gh.pulls_created == []
 
 
+def test_reproducer_claiming_a_commit_with_none_landed_stops_the_pipeline(
+    tmp_path, monkeypatch
+):
+    # The skill can honestly believe it succeeded (see reproducer.md's own
+    # note on this) without the commit actually landing. run_pipeline must
+    # not take that on faith: it stops exactly like a genuine
+    # fails_before_fix=False would, rather than diagnosing and fixing
+    # against a test that was never actually committed.
+    ran = _stub_stages(monkeypatch, _all_green(), commit_lie_at="reproducer")
+
+    result = run_pipeline(_pipeline_runtime(tmp_path), _issue())
+
+    assert ran == ["reproduce", "verify", "reproducer"]
+    assert result.completed_stage == "reproducer"
+    assert not result.fixed
+
+
+def test_fix_claiming_a_commit_with_none_landed_is_reported_as_no_fix(
+    tmp_path, monkeypatch
+):
+    ran = _stub_stages(monkeypatch, _all_green(), commit_lie_at="fix")
+
+    result = run_pipeline(_pipeline_runtime(tmp_path), _issue())
+
+    # Unlike the reproducer case this cannot stop early -- fix is the last
+    # stage -- so the pipeline still completes, but must not report a fix
+    # (or an unverified candidate) that was never actually committed.
+    assert ran == ["reproduce", "verify", "reproducer", "diagnose", "fix"]
+    assert not result.fixed
+    assert not result.verification_blocked
+
+
+def _fake_advancing_commit_sha():
+    """A ``commit_sha`` fake that returns a new value on every call.
+
+    Matches an honest run where every stage that runs genuinely commits, so
+    tests using ``_all_green()`` unconditionally never trip run_pipeline's
+    own ground-truth check (see ``_stub_stages`` above for the version that
+    can also simulate a stage lying about it).
+    """
+    sha = [0]
+
+    def fake(_checkout):
+        sha[0] += 1
+        return str(sha[0])
+
+    return fake
+
+
 def test_agent_and_cleanup_share_one_issue_scoped_cluster_prefix(tmp_path, monkeypatch):
     # Concurrent runs (different issues, same self-hosted runner pool) must
     # never share hack/cluster-up.sh's default prefix: the agent's shell and
@@ -194,6 +268,7 @@ def test_agent_and_cleanup_share_one_issue_scoped_cluster_prefix(tmp_path, monke
 
     monkeypatch.setattr("triage_bot.pipeline.run_skill", fake_run_skill)
     monkeypatch.setattr("triage_bot.pipeline.ensure_worktree", lambda path, _: path)
+    monkeypatch.setattr("triage_bot.pipeline.commit_sha", _fake_advancing_commit_sha())
     monkeypatch.setattr("triage_bot.pipeline._cleanup", fake_cleanup)
 
     run_pipeline(_pipeline_runtime(tmp_path), _issue())
@@ -213,6 +288,7 @@ def test_each_stage_gets_a_distinct_run_id_for_log_filtering(tmp_path, monkeypat
 
     monkeypatch.setattr("triage_bot.pipeline.run_skill", fake_run_skill)
     monkeypatch.setattr("triage_bot.pipeline.ensure_worktree", lambda path, _: path)
+    monkeypatch.setattr("triage_bot.pipeline.commit_sha", _fake_advancing_commit_sha())
     monkeypatch.setattr("triage_bot.pipeline._cleanup", lambda checkout, prefix: None)
 
     run_pipeline(_pipeline_runtime(tmp_path), _issue())
@@ -253,6 +329,33 @@ def test_failed_fix_still_opens_a_pr_carrying_the_test():
     # It must not claim to close an issue it did not fix.
     assert "Closes #" not in pr["body"]
     assert f"Refs #{ISSUE}" in pr["body"]
+
+
+def test_verification_blocked_fix_opens_an_unverified_pr():
+    # A diagnosed, committed candidate that rebuild/test tooling prevented
+    # confirming must not be discarded alongside a genuine "found nothing":
+    # it still opens a PR, worded so nobody mistakes it for a verified fix.
+    gh = FakeGitHub(local_branches=[BRANCH])
+
+    url = _open_pr(
+        _Rt(gh),
+        _issue(),
+        _fix(
+            fixed=False,
+            verification_blocked=True,
+            blocked_reason="snapcraft --use-lxd: permission denied",
+        ),
+        _reproducer(),
+    )
+
+    assert url is not None
+    pr = gh.pulls_created[0]
+    assert pr["title"].startswith("wip:")
+    assert "unverified" in pr["title"]
+    assert "Not verified" in pr["body"]
+    assert "snapcraft --use-lxd: permission denied" in pr["body"]
+    # It must not claim to close an issue nobody confirmed is fixed.
+    assert "Closes #" not in pr["body"]
 
 
 def test_open_pr_is_honest_about_an_unconfirmed_crash_salvage():

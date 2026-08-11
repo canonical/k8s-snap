@@ -185,6 +185,17 @@ def ensure_worktree(path: Path, branch: str) -> Path:
     return path
 
 
+def commit_sha(path: Path) -> str:
+    """Current HEAD commit of the worktree at ``path``.
+
+    Lets a caller capture a before/after baseline and independently confirm
+    a skill actually committed something, rather than trusting its own
+    structured report of having done so (self-reported success and the real
+    git state can drift apart -- see ``pipeline.py``'s use of this).
+    """
+    return _git(path, "rev-parse", "HEAD").stdout.strip()
+
+
 def _git(cwd: Path, *args: str) -> subprocess.CompletedProcess:
     return subprocess.run(
         ["git", "-C", str(cwd), *args], capture_output=True, text=True

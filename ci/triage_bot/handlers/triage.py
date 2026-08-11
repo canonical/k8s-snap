@@ -372,6 +372,26 @@ def _resolve(result: TriageResult, rt: Runtime) -> tuple[str, str, str]:
                 "one from the bot's branch manually."
             )
         return (labels.fix_pending, body, "fix_pending")
+    if result.verification_blocked:
+        reason = f" ({result.blocked_reason})" if result.blocked_reason else ""
+        if result.pr_url:
+            body = (
+                "Automated triage diagnosed the issue and committed a "
+                f"candidate fix, but could not rebuild and re-run the test "
+                f"to confirm it{reason}: {result.pr_url}. "
+                f"{maintainer_ping(rt)}review the change and verify it "
+                "locally, then merge to confirm the fix or close it "
+                "without merging to reject."
+            )
+        else:
+            body = (
+                "Automated triage diagnosed the issue and prepared a "
+                f"candidate fix, but could not verify it{reason}, and no "
+                f"PR was opened automatically. {maintainer_ping(rt)}re-run "
+                "with auto-PR enabled, or open one from the bot's branch "
+                "manually."
+            )
+        return (labels.fix_pending, body, "fix_pending_unverified")
     if result.pr_url:
         body = (
             "Automated triage reproduced the issue and pushed the "

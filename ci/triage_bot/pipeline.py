@@ -32,6 +32,7 @@ from .schema import (
 )
 from .skills import (
     DEFAULT_CLUSTER_PREFIX,
+    commit_sha,
     ensure_worktree,
     render_report_json,
     repo_root,
@@ -76,6 +77,9 @@ def run_pipeline(rt, issue) -> TriageResult:
     # concurrent run on another issue can never collide with or destroy
     # this one's cluster.
     cluster_prefix = f"{DEFAULT_CLUSTER_PREFIX}-{issue.number}"
+    # Independent ground truth for "did a skill actually commit what it
+    # claims", captured before any skill runs -- see the checks below.
+    base_sha = commit_sha(checkout)
 
     def _run(step, model_cls, instructions):
         log.info("[%s] running", step)
@@ -133,6 +137,22 @@ def run_pipeline(rt, issue) -> TriageResult:
             ReproducerResult,
             "Write an end-to-end test that captures this bug and prove it fails now.",
         )
+        reproducer_sha = commit_sha(checkout)
+        # Trust, but verify: a skill can honestly believe it succeeded and
+        # still not have actually committed (see reproducer.md's own note on
+        # this). A commit either landed on the branch or it didn't --
+        # checking that costs one `git rev-parse` and catches the mismatch
+        # regardless of why the self-report drifted from reality.
+        if reproducer.fails_before_fix and reproducer_sha == base_sha:
+            log.warning(
+                "[pipeline] issue #%s: reproducer reported fails_before_fix "
+                "but no commit landed on %s -- treating as no reproducer",
+                issue.number,
+                _branch(issue),
+            )
+            reproducer = ReproducerResult(
+                test_path=reproducer.test_path, fails_before_fix=False
+            )
         # A test that does not fail today cannot demonstrate a fix tomorrow, so
         # stop rather than edit code against an unproven premise.
         if not (reproducer.test_path and reproducer.fails_before_fix):
@@ -157,6 +177,22 @@ def run_pipeline(rt, issue) -> TriageResult:
             FixResult,
             "Make the failing end-to-end test pass with a minimal fix.",
         )
+        # Same ground-truth check as the reproducer above: fixed or
+        # verification_blocked both claim a commit exists beyond the
+        # reproducer's own; if the branch didn't move, neither claim holds.
+        if (fix.fixed or fix.verification_blocked) and commit_sha(
+            checkout
+        ) == reproducer_sha:
+            log.warning(
+                "[pipeline] issue #%s: fix reported fixed=%s "
+                "verification_blocked=%s but no additional commit landed on "
+                "%s -- treating as no fix",
+                issue.number,
+                fix.fixed,
+                fix.verification_blocked,
+                _branch(issue),
+            )
+            fix = FixResult()
 
         # Opened even when the fix failed: a proven-red test is worth landing.
         pr_url: Optional[str] = None
@@ -164,9 +200,10 @@ def run_pipeline(rt, issue) -> TriageResult:
             pr_url = _open_pr(rt, issue, fix, reproducer)
 
         log.info(
-            "[pipeline] issue #%s: done (fixed=%s, pr=%s)",
+            "[pipeline] issue #%s: done (fixed=%s, verification_blocked=%s, pr=%s)",
             issue.number,
             fix.fixed,
+            fix.verification_blocked,
             pr_url or "none",
         )
         return TriageResult(
@@ -178,6 +215,8 @@ def run_pipeline(rt, issue) -> TriageResult:
             commit_message=fix.commit_message,
             pr_url=pr_url,
             test_path=reproducer.test_path,
+            verification_blocked=fix.verification_blocked,
+            blocked_reason=fix.blocked_reason,
         )
     finally:
         _cleanup(checkout, cluster_prefix)
@@ -267,7 +306,10 @@ def _open_pr(rt, issue, fix: FixResult, reproducer: ReproducerResult) -> Optiona
 
     A failed fix still opens a PR, carrying the failing test alone: it is a
     reproducer a maintainer can run, and it is expected to fail CI until the
-    bug is fixed, so it never claims to close the issue.
+    bug is fixed, so it never claims to close the issue. A fix that was
+    written but never rebuild-verified (``verification_blocked``) also opens
+    a PR, carrying both the test and the unverified candidate -- distinct
+    wording throughout makes clear it is not confirmed working.
     """
     branch = _branch(issue)
     try:
@@ -285,6 +327,21 @@ def _open_pr(rt, issue, fix: FixResult, reproducer: ReproducerResult) -> Optiona
                 f"test that reproduces it{_test_reference(reproducer)}.\n\n"
                 "Prepared by the triage bot; awaiting maintainer verification.\n\n"
                 f"Closes #{issue.number}"
+            )
+        elif fix.verification_blocked:
+            title = (
+                fix.commit_message
+                or f"wip: candidate fix for #{issue.number} (unverified)"
+            )
+            reason = f" ({fix.blocked_reason})" if fix.blocked_reason else ""
+            body = (
+                f"Draft fix for #{issue.number}, with the end-to-end test "
+                f"that reproduces it{_test_reference(reproducer)}.\n\n"
+                "**Not verified**: the triage bot diagnosed a root cause and "
+                f"committed a candidate fix, but could not rebuild and "
+                f"re-run the test to confirm it{reason}. Review the change "
+                "and confirm locally before merging.\n\n"
+                f"Refs #{issue.number}"
             )
         elif reproducer.fails_before_fix:
             title = f"test: add failing reproducer for #{issue.number}"

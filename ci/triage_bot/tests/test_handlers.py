@@ -364,6 +364,37 @@ def test_triage_reproducible_fixed_goes_fix_pending(tmp_path):
     assert "kind/bug" in gh.added_labels and "area/dns" in gh.added_labels
 
 
+def test_triage_verification_blocked_goes_fix_pending_with_a_ping(tmp_path):
+    # A diagnosed, committed candidate that rebuild tooling prevented
+    # verifying must still land at fix-pending (a maintainer reviews it via
+    # the same merge/close verdict as any other draft fix PR), not get
+    # silently folded into a generic unable-to-fix outcome.
+    gh = FakeGitHub(issue={"number": ISSUE, "title": "unique title here", "body": "x"})
+    rt = _runtime(
+        gh,
+        tmp=tmp_path,
+        classify=make_classifier(_clean_classification()),
+        pipeline=make_pipeline(
+            TriageResult(
+                completed_stage="fix",
+                reproducible=True,
+                verdict="bug",
+                fixed=False,
+                verification_blocked=True,
+                blocked_reason="snapcraft --use-lxd: permission denied",
+                pr_url="https://github.com/canonical/k8s-snap/pull/2686",
+            )
+        ),
+    )
+    result = dispatch(_event("opened", []), rt)
+    assert result.label == LABELS.fix_pending
+    assert result.outcome == "fix_pending_unverified"
+    comment = gh.comments_posted[0]
+    assert "cc @canonical/kubernetes" in comment
+    assert "pull/2686" in comment
+    assert "snapcraft --use-lxd: permission denied" in comment
+
+
 def test_triage_not_reproducible(tmp_path):
     gh = FakeGitHub(issue={"number": ISSUE, "title": "unique title here", "body": "x"})
     rt = _runtime(

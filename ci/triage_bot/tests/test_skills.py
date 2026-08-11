@@ -273,3 +273,40 @@ def test_worktree_refuses_to_steal_a_branch_from_the_primary_tree(
 
     with pytest.raises(skills.SkillError, match="primary tree"):
         skills.ensure_worktree(tmp_path / "scratch" / "checkout", "triage/fix-1")
+
+
+def test_commit_sha_reads_the_worktrees_own_head(tmp_path, monkeypatch):
+    root, git = _tiny_repo(tmp_path)
+    monkeypatch.setattr(skills, "repo_root", lambda: root)
+    tree = skills.ensure_worktree(tmp_path / "scratch" / "checkout", "triage/fix-1")
+
+    assert skills.commit_sha(tree) == skills.commit_sha(root)
+
+
+def test_commit_sha_advances_after_a_new_commit(tmp_path, monkeypatch):
+    root, git = _tiny_repo(tmp_path)
+    monkeypatch.setattr(skills, "repo_root", lambda: root)
+    tree = skills.ensure_worktree(tmp_path / "scratch" / "checkout", "triage/fix-1")
+    before = skills.commit_sha(tree)
+
+    (tree / "new_file.txt").write_text("x\n", encoding="utf-8")
+    subprocess.run(("git", "-C", str(tree), "add", "new_file.txt"), check=True)
+    subprocess.run(
+        (
+            "git",
+            "-C",
+            str(tree),
+            "-c",
+            "user.name=t",
+            "-c",
+            "user.email=t@e",
+            "commit",
+            "-qm",
+            "a real commit",
+        ),
+        check=True,
+    )
+
+    after = skills.commit_sha(tree)
+    assert after != before
+    assert len(after) == 40  # a real, full git SHA -- not a truncated/empty read

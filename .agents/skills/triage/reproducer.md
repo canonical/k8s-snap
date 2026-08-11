@@ -66,8 +66,11 @@ run is starved.
 - `test_path`: the file you added or extended, e.g.
   `tests/integration/tests/test_dns.py`.
 - `test_selector`: the `-k` expression that runs just this test.
-- `fails_before_fix`: true only if you ran it and watched it fail for the
-  reported reason.
+- `fails_before_fix`: true only if you ran it, watched it fail for the
+  reported reason, **and** completed step 7's commit. The orchestrator
+  trusts this field alone to decide whether to push the branch and open a
+  PR -- a true here with no commit behind it silently loses the reproducer
+  for good.
 - `failure_output`: the assertion or error lines proving that.
 
 If you cannot get a test to fail for the reported reason, return
