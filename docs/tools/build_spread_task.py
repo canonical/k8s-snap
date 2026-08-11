@@ -315,7 +315,8 @@ def build_standalone(
         )
 
     if not doc_path.is_file():
-        raise FileNotFoundError(f"File not found: {doc_path}")
+        print(f"Skipping {doc_path.name} (file not found — deleted or moved)")
+        return None, ""
 
     suite = detect_suite(doc_path)
     if suite is None:

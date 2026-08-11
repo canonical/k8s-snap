@@ -28,7 +28,7 @@ This guide assumes the following:
 
 ### Disable on an existing cluster
 
-For an existing cluster, disable the default network plugin and its 
+For an existing cluster, disable the default network plugin and its
 dependencies:
 
 ```{note}
@@ -48,7 +48,7 @@ sudo k8s get gateway | grep "enabled: false"
 Remove any configuration files left behind by the default Cilium implementation in `/etc/cni/net.d/`:
 
 ```
-sudo rm /etc/cni/net.d/05-cilium.conflist
+sudo rm -f /etc/cni/net.d/05-cilium.conflist
 ```
 
 ### Disable on new clusters
@@ -138,7 +138,7 @@ repeat_checks "sudo k8s kubectl get nodes" "Ready"
 
 ## Revert to default
 
-You can always revert to the default networking configuration. Remove all resources associated with the alternative CNI (pods, namespace, Helm charts etc.). 
+You can always revert to the default networking configuration. Remove all resources associated with the alternative CNI (pods, namespace, Helm charts etc.).
 
 <!-- SPREAD
 sudo k8s kubectl delete installation default --ignore-not-found

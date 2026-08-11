@@ -30,7 +30,7 @@ sudo mkdir -p /etc/systemd/system/snap.k8s.containerd.service.d
  cluster itself to the `NO_PROXY` and `no_proxy` variables.
 ```
 
-For example, assume we have a proxy running at `http://squid.internal:3128` and
+For example, assume we have a proxy running at `http://proxy.internal:3128` and
 we are using the networks `10.0.0.0/8`,`192.168.0.0/16` and `172.16.0.0/12`.
 We would add the configuration to the
 (`/etc/systemd/system/snap.k8s.containerd.service.d/http-proxy.conf`) file:
@@ -41,11 +41,11 @@ We would add the configuration to the
 
 ```
 [Service]
-Environment="HTTPS_PROXY=http://squid.internal:3128"
-Environment="HTTP_PROXY=http://squid.internal:3128"
+Environment="HTTPS_PROXY=http://proxy.internal:3128"
+Environment="HTTP_PROXY=http://proxy.internal:3128"
 Environment="NO_PROXY=10.1.0.0/16,10.152.183.0/24,192.168.0.0/16,127.0.0.1,172.16.0.0/12"
-Environment="https_proxy=http://squid.internal:3128"
-Environment="http_proxy=http://squid.internal:3128"
+Environment="https_proxy=http://proxy.internal:3128"
+Environment="http_proxy=http://proxy.internal:3128"
 Environment="no_proxy=10.1.0.0/16,10.152.183.0/24,192.168.0.0/16,127.0.0.1,172.16.0.0/12"
 ```
 
@@ -81,4 +81,3 @@ see the [documentation for adding proxy configuration via Juju][juju-proxy].
 <!-- LINKS -->
 
 [juju-proxy]: ../../../charm/howto/proxy
-[squid]: https://ubuntu.com/server/docs/how-to-install-a-squid-server
