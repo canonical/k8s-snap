@@ -100,6 +100,36 @@ def test_agent_shell_carries_no_secrets(tmp_path):
     assert not [k for k in env if k.endswith(("_TOKEN", "_KEY"))]
 
 
+def test_agent_shell_can_locate_the_session_bus_for_snap_tracking(
+    tmp_path, monkeypatch
+):
+    # Every `snap run` (`snapcraft`, `lxc`) fails immediately with "cannot
+    # run snap applications on this system" unless it can reach the session
+    # D-Bus bus PAM/logind set up for this uid -- a bare subprocess child
+    # does not inherit that pointer the way an interactive login shell does.
+    # See https://forum.snapcraft.io/t/46210.
+    monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
+    monkeypatch.delenv("DBUS_SESSION_BUS_ADDRESS", raising=False)
+    monkeypatch.setattr(skills.os, "getuid", lambda: 424242)
+
+    env = skills._safe_env(tmp_path / "home")
+
+    assert env["XDG_RUNTIME_DIR"] == "/run/user/424242"
+    assert env["DBUS_SESSION_BUS_ADDRESS"] == "unix:path=/run/user/424242/bus"
+
+
+def test_agent_shell_prefers_the_orchestrators_own_session_bus(tmp_path, monkeypatch):
+    # A runner where these are already set to something non-default must not
+    # be overridden by the generic /run/user/<uid> guess.
+    monkeypatch.setenv("XDG_RUNTIME_DIR", "/custom/runtime")
+    monkeypatch.setenv("DBUS_SESSION_BUS_ADDRESS", "unix:path=/custom/runtime/bus")
+
+    env = skills._safe_env(tmp_path / "home")
+
+    assert env["XDG_RUNTIME_DIR"] == "/custom/runtime"
+    assert env["DBUS_SESSION_BUS_ADDRESS"] == "unix:path=/custom/runtime/bus"
+
+
 def test_agent_shell_builds_tox_envs_off_the_checkout(tmp_path):
     # virtualenv symlinks the interpreter, which a multipass/sshfs checkout
     # mount rejects, so `.tox` must never be created inside the tree.

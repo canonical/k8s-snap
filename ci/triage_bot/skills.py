@@ -89,6 +89,11 @@ def load_skill(skill_dir: str | Path, step: Optional[str] = None) -> str:
 # self-hosted runner (or under bwrap/nsjail with a private /proc and no host-HOME
 # bind, as a dedicated low-privilege uid without passwordless sudo). See the
 # rollout notes in the plan; the workflow's pipeline job documents this too.
+#
+# One deliberate, non-secret exception to the allowlist: the session D-Bus
+# address (see ``_safe_env``). It grants no access an attacker doesn't already
+# have via the same-uid /proc read or passwordless sudo above, and every
+# `snap run` -- `snapcraft`, `lxc` -- is unusable without it.
 _ENV_PASSTHROUGH = ("PATH", "LANG", "LC_ALL", "TERM", "TZ")
 
 
@@ -141,6 +146,26 @@ def _safe_env(home: Path, cluster_prefix: str = DEFAULT_CLUSTER_PREFIX) -> dict:
         "PATH", "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
     )
     env["HOME"] = str(home)
+    # Every `snap run` (`snapcraft`, `lxc`) asks systemd to track its process
+    # via a transient scope over the session D-Bus, which requires locating
+    # the bus PAM/logind set up when this uid's session started. A bare
+    # same-uid subprocess.run(...) child (unlike an interactive login shell)
+    # does not inherit that pointer, and snapd does not fall back to probing
+    # for it: left unset, every classic-snap invocation fails immediately,
+    # before running anything, with "cannot run snap applications on this
+    # system" / "cannot track application process" -- indistinguishable from
+    # a real build/permission failure. Point at the standard systemd/XDG
+    # location explicitly; prefer the orchestrator's own env when already
+    # set (e.g. a differently-configured runner). Per
+    # https://forum.snapcraft.io/t/46210, this also requires the runner
+    # account to have `loginctl enable-linger <user>` set so the session
+    # (and its bus) exists even with no interactive login -- one-time
+    # provisioning for whichever host runs this job.
+    xdg_runtime_dir = os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
+    env["XDG_RUNTIME_DIR"] = xdg_runtime_dir
+    env["DBUS_SESSION_BUS_ADDRESS"] = os.environ.get(
+        "DBUS_SESSION_BUS_ADDRESS", f"unix:path={xdg_runtime_dir}/bus"
+    )
     env.update(_GIT_IDENTITY)
     env["TOX_WORK_DIR"] = _TOX_WORK_DIR
     env["CLUSTER_PREFIX"] = cluster_prefix
