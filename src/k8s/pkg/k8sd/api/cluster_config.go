@@ -40,14 +40,18 @@ func (e *Endpoints) putClusterConfig(s state.State, r *http.Request) response.Re
 	}
 
 	e.provider.NotifyUpdateNodeConfigController()
+
+	// Annotations can affect any feature (e.g. advertise-all-pools affects LoadBalancer).
+	// Notify all feature controllers when annotations are present so they re-reconcile.
+	hasAnnotations := len(requestedConfig.Annotations) > 0
 	e.provider.NotifyFeatureController(
-		!requestedConfig.Network.Empty(),
-		!requestedConfig.Gateway.Empty(),
-		!requestedConfig.Ingress.Empty(),
-		!requestedConfig.LoadBalancer.Empty(),
-		!requestedConfig.LocalStorage.Empty(),
-		!requestedConfig.MetricsServer.Empty(),
-		!requestedConfig.DNS.Empty() || !requestedConfig.Kubelet.Empty(),
+		!requestedConfig.Network.Empty() || hasAnnotations,
+		!requestedConfig.Gateway.Empty() || hasAnnotations,
+		!requestedConfig.Ingress.Empty() || hasAnnotations,
+		!requestedConfig.LoadBalancer.Empty() || hasAnnotations,
+		!requestedConfig.LocalStorage.Empty() || hasAnnotations,
+		!requestedConfig.MetricsServer.Empty() || hasAnnotations,
+		!requestedConfig.DNS.Empty() || !requestedConfig.Kubelet.Empty() || hasAnnotations,
 	)
 
 	return response.SyncResponse(true, &apiv1.SetClusterConfigResponse{})
