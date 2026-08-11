@@ -12,6 +12,18 @@ on:
     # issue_comment already fires for every comment and filters later.
     pull_request:
         types: [closed]
+    # GitHub only discovers a workflow_dispatch-triggerable workflow once
+    # some event has actually run it -- issues/issue_comment only evaluate
+    # from the default branch (this file isn't on main yet), and
+    # pull_request:[closed] hasn't fired (this PR is still open). Without
+    # this, workflow_dispatch 404s pre-merge with no other trigger able to
+    # bootstrap discovery. A push here always routes to unprivileged
+    # classify and cleanly no-ops (GitHubEvent.from_payload has no
+    # issue/pull_request/comment key to read, action=="", so route() falls
+    # through to Skip) -- self-cleaning once this branch merges and is
+    # deleted, and harmless before then.
+    push:
+        branches: [feat/autonomous-triage-bot]
     workflow_dispatch:
         inputs:
             issue:
