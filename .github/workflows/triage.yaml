@@ -202,8 +202,15 @@ jobs:
                   # pull_request event (this job is now reachable via the fix
                   # PR closing) -- pin to main explicitly so the bot always
                   # runs its own trusted code, never whatever the closing
-                  # branch itself contains.
-                  ref: main
+                  # (possibly fork-owned) branch itself contains. issues/
+                  # issue_comment/push never carry attacker-controlled branch
+                  # content the same way (push requires repo write access;
+                  # issue events have no associated branch ref at all -- github.ref
+                  # already resolves to the default branch for them), so only
+                  # pull_request needs the override; forcing it unconditionally
+                  # would make a push event's self-test run main's (unmerged)
+                  # tox.ini instead of its own.
+                  ref: ${{ github.event_name == 'pull_request' && 'main' || github.ref }}
 
             - name: Setup Python
               uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
