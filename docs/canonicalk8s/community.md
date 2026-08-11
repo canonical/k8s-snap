@@ -6,7 +6,7 @@ myst:
 
 # Welcome to the {{product}} community
 
-{{product}} is an open-source project. This page describes how to get involved in the community - how to ask questions, report bugs and contribute to the code or documentation.
+{{product}} is an open source project. This page describes how to get involved in the community - how to ask questions, report bugs and contribute to the code or documentation.
 
 ## Do you have questions?
 
@@ -39,8 +39,8 @@ for more information on contributing.
 ## Contribute to docs
 
 Our documentation is actively maintained by the entire team. However, it can always be improved. Every page
-in the documentation has an "Contribute to this page" link (pencil icon) which 
-takes you to the GitHub editor to make small changes. For larger contributions, 
+in the documentation has a "Contribute to this page" link (pencil icon) which
+takes you to the GitHub editor to make small changes. For larger contributions,
 please see the [docs contributing guide].
 
 ## Code of conduct
