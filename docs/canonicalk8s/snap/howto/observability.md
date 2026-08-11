@@ -206,6 +206,6 @@ repeat_checks "sudo k8s kubectl get all -n observability" "No resources found"
 [Prometheus]: https://prometheus.io/
 [snap-install-howto]: ./install/snap.md
 [getting-started-guide]: ../tutorial/getting-started.md
-[install-helm]: ../explanation/package-management.md
+[install-helm]: https://helm.sh/docs/intro/install/
 [enable-storage]: ./storage/index.md
 [Grafana]: https://grafana.com/

@@ -86,3 +86,6 @@
 "charm/howto/charm" "charm/howto/install/charm"
 # Reverted feature
 "snap/howto/helm-overrides" "snap/index"
+
+# Deleted files
+"snap/explanation/package-management" "snap/explanation/index"

@@ -18,9 +18,6 @@ trap 'sudo rm -rf /etc/systemd/system/snap.k8s.containerd.service.d; sudo system
 to fetch resources they expect to find on the internet. In a restricted
 network environment, such access is usually controlled through proxies.
 
-To set up a proxy using Squid follow the
-[How to install a Squid server][squid] tutorial.
-
 ## Adding proxy configuration for the k8s snap
 
 If necessary, create the `snap.k8s.containerd.service.d` directory:
