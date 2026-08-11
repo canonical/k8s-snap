@@ -15,7 +15,8 @@ trap 'sudo rm -f values.yaml' EXIT
 {{product}} ships with a default [Container Network Interface](https://github.com/containernetworking/cni) (CNI) that
 is fully compatible with our distribution. It is possible, however, to use a
 different CNI plugin for your specific networking requirements. This guide
-explains how to safely disable the default CNI so you can then deploy your own networking solution and how to revert to the default solution if needed.
+explains how to safely disable the default CNI and deploy your own networking
+solution, and how to revert to the default configuration if needed.
 
 ## Prerequisites
 
@@ -69,6 +70,7 @@ Then, bootstrap the cluster with this configuration:
 ```
 sudo k8s bootstrap --file bootstrap-config.yaml
 ```
+
 <!-- SPREAD SKIP END -->
 
 ## Install your CNI
@@ -178,7 +180,7 @@ sudo k8s kubectl taint nodes --all node.kubernetes.io/network-unavailable-
 sudo k8s kubectl taint nodes --all node.kubernetes.io/network-unavailable- || true
 -->
 
-Watch the `Cilium` pods deploy and reach a `Ready` state.
+Watch the `Cilium` pods deploy and reach a `Running` status:
 
 <!-- SPREAD SKIP -->
 
@@ -190,9 +192,17 @@ watch sudo k8s kubectl get pods -n kube-system
 
 <!-- SPREAD
 sudo k8s kubectl rollout status daemonset/cilium -n kube-system --timeout=10m
+# It seems Kubernetes applies the taint multiple times
 sudo k8s kubectl taint nodes --all node.kubernetes.io/network-unavailable- || true
 sudo k8s kubectl rollout status deployment/cilium-operator -n kube-system --timeout=10m
 sudo k8s kubectl taint nodes --all node.kubernetes.io/network-unavailable- || true
 sudo k8s kubectl wait --for=condition=Ready pods --all -n kube-system --timeout=10m
 -->
+
+Once all Cilium pods are `Running` and all nodes show `Ready`, the cluster has
+been successfully reverted to the default networking configuration.
+
+```
+sudo k8s kubectl get nodes
+```
 
