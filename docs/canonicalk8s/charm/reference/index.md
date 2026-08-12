@@ -24,6 +24,7 @@ Charms <charms>
 Configuration options <charm-configurations>
 Actions <actions>
 Availability Zones <az>
+Annotations <annotations>
 ```
 
 ## Networking
