@@ -40,6 +40,37 @@ The charm's configuration options include:
   - Feature specific configuration options (e.g., `dns-cluster-domain`)
 - **Cluster wide configurations** (e.g., labels, taints).
 
+## Set cluster annotations
+
+```{note}
+v1alpha annotations are experimental and subject to change or removal in
+future {{product}} releases.
+```
+
+The `k8s` charm can set the same [cluster annotations][snap-annotations] used
+by the {{product}} snap, via the `cluster-annotations` config option. It
+accepts a space-separated list of `key=value` pairs:
+
+```
+juju config k8s cluster-annotations="k8sd/v1alpha1/cilium/tunnel-port=8473 k8sd/v1alpha1/csrsigning/auto-approve=true"
+```
+
+See the [snap annotations reference][snap-annotations] for the full list of
+supported annotation keys and their values.
+
+Annotations are only overwritten when `cluster-annotations` is non-empty.
+Clearing the config (`juju config k8s --reset cluster-annotations`) leaves any
+existing cluster annotations untouched rather than deleting them.
+
+Some annotations, such as the [multi-peer BGP annotation][multi-peer-bgp],
+require nested YAML rather than a flat `key=value` pair, which
+`cluster-annotations` cannot express. Set these annotations by running the
+`k8s` CLI on a unit instead:
+
+```
+juju exec --unit <k8s/unit#> -- sudo k8s set annotations="$(cat bgp-peers.yaml)"
+```
+
 ## Apply the configuration
 
 You can configure your cluster either during the initial deployment or by
@@ -117,3 +148,5 @@ juju config k8s-worker
 [juju install]: https://juju.is/docs/juju/install-and-manage-the-client
 [k8s configuration]: https://charmhub.io/k8s/configurations
 [k8s-worker configuration]: https://charmhub.io/k8s-worker/configurations
+[snap-annotations]: /snap/reference/annotations.md
+[multi-peer-bgp]: /snap/howto/networking/multi-peer-bgp.md
