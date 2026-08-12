@@ -45,7 +45,6 @@ management.
 :titlesonly:
 high-availability
 Upgrades <upgrade.md>
-package-management
 epa
 roles
 ```
