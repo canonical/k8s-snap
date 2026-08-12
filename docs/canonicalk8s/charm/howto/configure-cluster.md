@@ -38,34 +38,24 @@ The charm's configuration options include:
   ingress):
   - An enable/disable flag (e.g., `dns-enabled`)
   - Feature specific configuration options (e.g., `dns-cluster-domain`)
-- **Cluster wide configurations** (e.g., labels, taints).
+- **Cluster wide configurations** (e.g., labels, taints, and annotations).
 
-## Set cluster annotations
+### Cluster annotations
 
 ```{note}
 v1alpha annotations are experimental and subject to change or removal in
 future {{product}} releases.
 ```
 
-The `k8s` charm can set the same [cluster annotations][snap-annotations] used
-by the {{product}} snap, via the `cluster-annotations` config option. It
-accepts a space-separated list of `key=value` pairs:
-
-```
-juju config k8s cluster-annotations="k8sd/v1alpha1/cilium/tunnel-port=8473 k8sd/v1alpha1/csrsigning/auto-approve=true"
-```
-
-See the [snap annotations reference][snap-annotations] for the full list of
-supported annotation keys and their values.
-
-Annotations are only overwritten when `cluster-annotations` is non-empty.
-Clearing the config (`juju config k8s --reset cluster-annotations`) leaves any
-existing cluster annotations untouched rather than deleting them.
+The `cluster-annotations` config option sets the same
+[cluster annotations][snap-annotations] used by the {{product}} snap. It
+accepts a space-separated list of `key=value` pairs, and is only applied when
+non-empty — clearing it (`juju config k8s --reset cluster-annotations`)
+leaves any existing cluster annotations untouched rather than deleting them.
 
 Some annotations, such as the [multi-peer BGP annotation][multi-peer-bgp],
-require nested YAML rather than a flat `key=value` pair, which
-`cluster-annotations` cannot express. Set these annotations by running the
-`k8s` CLI on a unit instead:
+require nested YAML that `cluster-annotations` cannot express. Set these by
+running the `k8s` CLI on a unit instead:
 
 ```
 juju exec --unit <k8s/unit#> -- sudo k8s set annotations="$(cat bgp-peers.yaml)"
