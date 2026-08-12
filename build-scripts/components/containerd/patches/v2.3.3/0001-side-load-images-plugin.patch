@@ -1,0 +1,181 @@
+From 2ac157e08dbd7c1a4a643809ebc7d0fd84f24dad Mon Sep 17 00:00:00 2001
+From: Homayoon Alimohammadi <homayoonalimohammadi@gmail.com>
+Date: Wed, 12 Aug 2026 11:54:35 +0400
+Subject: [PATCH] side load images plugin
+
+Signed-off-by: Homayoon Alimohammadi <homayoonalimohammadi@gmail.com>
+---
+ cmd/containerd/builtins_custom.go |   6 ++
+ custom_plugins/sideload.go        | 147 ++++++++++++++++++++++++++++++
+ 2 files changed, 153 insertions(+)
+ create mode 100644 cmd/containerd/builtins_custom.go
+ create mode 100644 custom_plugins/sideload.go
+
+diff --git a/cmd/containerd/builtins_custom.go b/cmd/containerd/builtins_custom.go
+new file mode 100644
+index 000000000..d4bfd80c5
+--- /dev/null
++++ b/cmd/containerd/builtins_custom.go
+@@ -0,0 +1,6 @@
++package main
++
++// register custom containerd plugins here
++import (
++	_ "github.com/containerd/containerd/v2/custom_plugins"
++)
+diff --git a/custom_plugins/sideload.go b/custom_plugins/sideload.go
+new file mode 100644
+index 000000000..f2823c408
+--- /dev/null
++++ b/custom_plugins/sideload.go
+@@ -0,0 +1,147 @@
++package custom_plugins
++
++import (
++	"fmt"
++	"os"
++	"path/filepath"
++	"time"
++
++	containerd "github.com/containerd/containerd/v2/client"
++	"github.com/containerd/containerd/v2/pkg/namespaces"
++	"github.com/containerd/containerd/v2/plugins"
++	"github.com/containerd/log"
++	"github.com/containerd/platforms"
++	"github.com/containerd/plugin"
++	"github.com/containerd/plugin/registry"
++)
++
++const pluginName = "sideload-images"
++
++var logger = log.L.WithField("plugin", pluginName)
++
++type Config struct {
++	// Disabled is a toggle option to completely disable this plugin.
++	Disabled bool `toml:"enabled"`
++
++	// Interval configures how frequently the plugin will look for new images found
++	// in the sources. If set to zero, images are only loaded during initial start.
++	Interval time.Duration `toml:"interval"`
++
++	// Sources is a list of paths to look for .tar images.
++	// For example, `/var/snap/k8s/common/images`
++	Sources []string `toml:"sources"`
++
++	// Namespace the images will be loaded into, e.g. "k8s.io"
++	Namespace string `toml:"namespace"`
++}
++
++func (c *Config) SetDefaults() {
++	if c.Namespace == "" {
++		c.Namespace = "k8s.io"
++	}
++	if len(c.Sources) == 0 {
++		snapCommon := os.Getenv("SNAP_COMMON")
++		if snapCommon == "" {
++			snapCommon = "/var/snap/k8s/common"
++		}
++		c.Sources = []string{filepath.Join(snapCommon, "images")}
++	}
++}
++
++func init() {
++	c := &Config{}
++	registry.Register(&plugin.Registration{
++		// NOTE: this cannot be a ServicePlugin, since it requires all service
++		// plugins to be initialized first and containerd/plugin v1.1.0 panics
++		// on a plugin that requires its own type.
++		Type:   plugins.InternalPlugin,
++		ID:     pluginName,
++		Config: c,
++		Requires: []plugin.Type{
++			plugins.EventPlugin,
++			plugins.LeasePlugin,
++			plugins.SandboxStorePlugin,
++			plugins.TransferPlugin,
++			plugins.ServicePlugin,
++		},
++		InitFn: func(ic *plugin.InitContext) (interface{}, error) {
++			config := ic.Config.(*Config)
++			config.SetDefaults()
++
++			logger.Debugf("Loaded config %#v", config)
++
++			if config.Disabled {
++				return nil, fmt.Errorf("plugin disabled through config: %w", plugin.ErrSkipPlugin)
++			}
++			if len(config.Sources) == 0 {
++				return nil, fmt.Errorf("no sources configured: %w", plugin.ErrSkipPlugin)
++			}
++
++			cl, err := containerd.New(
++				"",
++				containerd.WithDefaultNamespace(config.Namespace),
++				containerd.WithDefaultPlatform(platforms.Default()),
++				containerd.WithInMemoryServices(ic),
++				containerd.WithTimeout(2*time.Second),
++			)
++			if err != nil {
++				return nil, fmt.Errorf("sideload: failed to create containerd client: %w", err)
++			}
++
++			ctx := ic.Context
++			go func() {
++				defer func() {
++					if err := cl.Close(); err != nil {
++						logger.WithError(err).Warn("Failed to close containerd client")
++					}
++				}()
++				for {
++				nextDir:
++					for _, dir := range config.Sources {
++						logger := logger.WithField("dir", dir)
++						logger.Debug("Looking for images")
++						files, err := filepath.Glob(filepath.Join(dir, "*.tar"))
++						if err != nil {
++							logger.WithError(err).Warn("Failed to look for images")
++							continue nextDir
++						}
++
++					nextFile:
++						for _, file := range files {
++							logger := logger.WithField("file", file)
++							r, err := os.Open(file)
++							if err != nil {
++								logger.WithError(err).Warn("Failed to open file")
++								continue nextFile
++							}
++							nsCtx := namespaces.WithNamespace(ctx, config.Namespace)
++							images, err := cl.Import(nsCtx, r, containerd.WithImportPlatform(platforms.DefaultStrict()))
++							if err != nil {
++								logger.WithError(err).Error("Failed to import images")
++							} else {
++								logger.Infof("Imported %d images", len(images))
++								os.Rename(file, file+".loaded")
++							}
++							if closeErr := r.Close(); closeErr != nil {
++								logger.WithError(closeErr).Error("Failed to close reader")
++							}
++						}
++					}
++
++					// retry after interval, finish if interval is zero
++					if config.Interval == 0 {
++						logger.Info("Plugin terminating")
++						return
++					}
++					select {
++					case <-ctx.Done():
++						return
++					case <-time.After(config.Interval):
++					}
++				}
++			}()
++
++			return nil, nil
++		},
++	})
++}
+-- 
+2.53.0
+
