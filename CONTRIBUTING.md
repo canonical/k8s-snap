@@ -2,6 +2,16 @@
 
 Thanks for your interest in contributing to Canonical Kubernetes!
 
+## Before you start
+
+We welcome improvements and bug-fixes to the Canonical Kubernetes project. If
+you are simply correcting a typo or fixing a minor issue, continue straight to
+the relevant section below. 
+
+For more substantial changes or new functionality, please open a GitHub issue
+and describe what you would like to contribute. This allows us to give early
+feedback to ensure the scope is a good fit for the project.
+
 ## Contribute to the code
 
 Canonical Kubernetes is shipped as a snap package. To contribute to the code,
@@ -110,14 +120,12 @@ require (
 
 ### Contribute changes
 
-We welcome any improvements and bug-fixes to the Canonical Kubernetes code.
 Once you have tested your changes, please make a pull request and we will review
 it as soon as possible.
 
-
 ## Contribute to the documentation 
 
-Our aim is to provide easy-to-understand documentation on all aspects of 
-Canonical Kubernetes, so we greatly appreciate your feedback and contributions. 
+Our aim is to provide easy-to-understand documentation on all aspects of
+Canonical Kubernetes, so we greatly appreciate your feedback and contributions.
 Our docs contribution guide is hosted here: 
 https://documentation.ubuntu.com/canonical-kubernetes/latest/snap/howto/contribute/
