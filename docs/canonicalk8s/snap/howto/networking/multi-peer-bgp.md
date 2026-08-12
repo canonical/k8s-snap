@@ -35,6 +35,7 @@ sudo k8s set \
   load-balancer.cidrs=10.0.0.0/24
 ```
 
+(set-the-multi-peer-annotation)=
 ### Set the multi-peer annotation
 
 ```{note}
@@ -137,9 +138,8 @@ Correct the annotation and the reconciler retries automatically.
 - The annotation value is write-only — inspect it directly with
   `k8s kubectl get node <node> -o yaml`.
 - No per-peer BFD or multi-hop support.
-- Not settable via the `k8s` charm's `cluster-annotations` config option
-  (nested YAML is unsupported there); run the `k8s` CLI on a unit instead:
-  `juju exec --unit <k8s/unit#> -- sudo k8s set annotations=...`.
+- Not settable via the `k8s` charm's `cluster-annotations` config option — see
+  the note in [Set the multi-peer annotation](set-the-multi-peer-annotation).
 
 ## Next steps
 
