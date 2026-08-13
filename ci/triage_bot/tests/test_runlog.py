@@ -37,16 +37,17 @@ def test_tool_calls_are_recorded(caplog):
     assert "cluster status: ready" in caplog.text
 
 
-def test_routine_tool_events_are_silent_at_the_default_info_level(caplog):
-    # The whole point of the DEBUG split: a normal run at the default level
-    # must not print every shell command, only the per-stage narrative.
+def test_tool_start_events_are_visible_at_info_but_not_tool_end_output(caplog):
+    # The user wants to see the commands run (high-level progress), but not
+    # the verbose output of every shell command at the default level.
     rl = _logger()
 
     with caplog.at_level(logging.INFO, logger="triage_bot"):
         rl.on_tool_start({"name": "shell"}, "some noisy diagnostic command")
         rl.on_tool_end("noisy output nobody asked to see by default")
 
-    assert caplog.text == ""
+    assert "some noisy diagnostic command" in caplog.text
+    assert "noisy output nobody asked to see" not in caplog.text
 
 
 def test_failures_are_recorded_at_error_level(caplog):

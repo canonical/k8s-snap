@@ -108,24 +108,46 @@ class RunLogger(BaseCallbackHandler):
         run_id: str,
         redactor: CredentialRedactor,
         sink: Optional[Callable[[dict], None]] = None,
+        step: str = "-",
     ):
         self.run_id = run_id
         self._redactor = redactor
         self._sink = sink
+        self._step = step
 
     def _emit(self, record: dict) -> None:
         record = self._redactor.redact_record({"run_id": self.run_id, **record})
         event = str(record.get("event", ""))
         detail = record.get("detail")
-        # Routine records are DEBUG (the granular per-tool trace); failures are
-        # ERROR so they surface even at the default INFO level.
-        log.log(
-            logging.ERROR if event.endswith("error") else logging.DEBUG,
-            "[%s] %s%s",
-            record.get("node", "-"),
-            event,
-            f" {_clip(detail)}" if detail else "",
-        )
+        if event == "tool_start":
+            tool_name = record.get("tool", "tool")
+            clean_detail = detail
+            if (
+                isinstance(clean_detail, str)
+                and clean_detail.startswith("{")
+                and "'command':" in clean_detail
+            ):
+                try:
+                    import ast
+
+                    parsed = ast.literal_eval(clean_detail)
+                    if isinstance(parsed, dict) and "command" in parsed:
+                        clean_detail = parsed["command"]
+                except Exception:
+                    pass
+            # Exclude read_doc from high-level logging since the user doesn't want all tool calls
+            if tool_name != "read_doc":
+                log.info("[%s] %s: %s", self._step, tool_name, _clip(clean_detail))
+        else:
+            # Routine records are DEBUG (the granular per-tool trace); failures are
+            # ERROR so they surface even at the default INFO level.
+            log.log(
+                logging.ERROR if event.endswith("error") else logging.DEBUG,
+                "[%s] %s%s",
+                record.get("node", "-"),
+                event,
+                f" {_clip(detail)}" if detail else "",
+            )
         if self._sink is not None:
             self._sink(record)
 

@@ -340,7 +340,7 @@ def run_skill(
         {k: v for k, v in os.environ.items() if k.endswith(("_TOKEN", "_KEY"))}
     )
     logger = RunLogger(
-        run_id, redactor, sink=jsonl_sink(jsonl_path) if jsonl_path else None
+        run_id, redactor, sink=jsonl_sink(jsonl_path) if jsonl_path else None, step=step
     )
     result = agent.invoke(
         {"messages": [{"role": "user", "content": user}]},
