@@ -203,7 +203,11 @@ def _duplicate(rt: Runtime, issue: IssueContext) -> Optional[int]:
 
 
 def _already_supported(
-    rt: Runtime, issue: IssueContext, current: Optional[str], actions: list[str], kind_area: list[str]
+    rt: Runtime,
+    issue: IssueContext,
+    current: Optional[str],
+    actions: list[str],
+    kind_area: list[str],
 ) -> Optional[HandlerResult]:
     """Answer a report asking for something k8s-snap already does.
 
@@ -235,11 +239,12 @@ def _already_supported(
     taken = actions + ["already_supported"]
     body = [support.explanation]
     links = [triage_core.doc_url(p) for p in support.doc_paths]
+    if support.instructions:
+        body.append(f"How to do it today:\n\n```\n{support.instructions}\n```")
+
     if links:
         body.append("Documentation:\n" + "\n".join(f"- {url}" for url in links))
     else:
-        if support.instructions:
-            body.append(f"How to do it today:\n\n```\n{support.instructions}\n```")
         body.append(
             "No documentation page covers this yet, so it is labelled "
             f"`{labels.docs_needed}`. {maintainer_ping(rt)}add a docs page "
@@ -350,6 +355,16 @@ def _resolve(result: TriageResult, rt: Runtime) -> tuple[str, str, str]:
     labels = rt.ctx.labels
     if result.skipped:
         reason = result.skipped_reason or "not-actionable"
+        if reason == "missing-details":
+            return (
+                labels.needs_reproduction,
+                "Automated triage could not attempt to reproduce this issue due to missing details. Please attach "
+                f"an inspection report (`{_INSPECT}`) and the exact commands, "
+                "configuration files, and environment used. If you're not able to provide "
+                "this, let us know in a comment and this will be flagged for "
+                "manual review instead.",
+                "needs_info",
+            )
         return (
             labels.skipped,
             f"Automated triage skipped this issue ({reason}).",
