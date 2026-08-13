@@ -96,7 +96,7 @@ def handle_triage(
         # This runs ahead of the missing-info gate on purpose: a feature
         # request has no reproduction steps, so that gate would bounce it back
         # to the reporter instead of just answering the question.
-        answered = _already_supported(rt, issue, current, actions)
+        answered = _already_supported(rt, issue, current, actions, kind_area)
         if answered is not None:
             return answered
 
@@ -203,7 +203,7 @@ def _duplicate(rt: Runtime, issue: IssueContext) -> Optional[int]:
 
 
 def _already_supported(
-    rt: Runtime, issue: IssueContext, current: Optional[str], actions: list[str]
+    rt: Runtime, issue: IssueContext, current: Optional[str], actions: list[str], kind_area: list[str]
 ) -> Optional[HandlerResult]:
     """Answer a report asking for something k8s-snap already does.
 
@@ -247,14 +247,27 @@ def _already_supported(
         )
         rt.gh.add_labels(issue.number, [labels.docs_needed])
         taken.append("docs_needed")
+    if "kind/bug" in kind_area:
+        body.append(
+            "Since this is a supported feature but you are experiencing an issue, "
+            "we need more information to investigate why it is failing in your environment. "
+            "Please attach an inspection report (`sudo /snap/k8s/current/k8s/scripts/inspect.sh`) "
+            "and any relevant specific component logs."
+        )
+        new_label = labels.needs_reproduction
+        outcome = "needs_info"
+    else:
+        new_label = labels.needs_human
+        outcome = "already_supported"
+
     return _park(
         rt,
         issue,
         current,
-        labels.needs_human,
+        new_label,
         "\n\n".join(body),
         taken,
-        "already_supported",
+        outcome,
     )
 
 

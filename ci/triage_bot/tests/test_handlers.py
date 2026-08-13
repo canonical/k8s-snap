@@ -99,8 +99,8 @@ def test_already_shipped_feature_is_answered_with_a_doc_link(tmp_path, monkeypat
 
     result = dispatch(_event("opened", []), rt)
 
-    assert result.outcome == "already_supported"
-    assert result.label == LABELS.needs_human
+    assert result.outcome == "needs_info"
+    assert result.label == LABELS.needs_reproduction
     posted = "\n".join(gh.comments_posted)
     assert "canonical-kubernetes/latest/snap/howto/networking/dualstack" in posted
     assert LABELS.docs_needed not in gh.added_labels
@@ -123,7 +123,8 @@ def test_supported_but_undocumented_is_flagged_for_a_docs_update(tmp_path, monke
 
     result = dispatch(_event("opened", []), rt)
 
-    assert result.outcome == "already_supported"
+    assert result.outcome == "needs_info"
+    assert result.label == LABELS.needs_reproduction
     assert LABELS.docs_needed in gh.added_labels
     posted = "\n".join(gh.comments_posted)
     assert "k8s set widgets.enabled=true" in posted
@@ -142,7 +143,7 @@ def test_supported_request_is_answered_not_bounced_for_missing_details(
         tmp=tmp_path,
         classify=make_classifier(
             Classification(
-                kind_labels=["kind/bug"], missing_info=["inspection tarball"]
+                kind_labels=["kind/enhancement"], missing_info=["reproduction steps"]
             )
         ),
         pipeline=make_pipeline(TriageResult()),
@@ -152,7 +153,7 @@ def test_supported_request_is_answered_not_bounced_for_missing_details(
     result = dispatch(_event("opened", []), rt)
 
     assert result.outcome == "already_supported"
-    assert result.label != LABELS.needs_reproduction
+    assert result.label == LABELS.needs_human
 
 
 def _has_ideas(**fields):
