@@ -21,13 +21,13 @@ jobs:
       no_suites: ${{ steps.generate.outputs.no_suites }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
           persist-credentials: false
 
       - name: Checkout upstream spread script
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           repository: canonical/operator-workflows
           ref: ${{ env.OPERATOR_WORKFLOWS_REF }}
@@ -100,7 +100,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
           persist-credentials: false
