@@ -167,6 +167,7 @@ def _classify_prompt(title: str, fields: dict, tarball: bool) -> str:
         f"area labels: {sorted(_AREA_LABELS)}",
         "If required bug-report information is missing, list what is missing"
         " in `missing_info` (e.g. 'reproduction steps', 'inspection tarball').",
+        "Only list missing_info if the issue cannot even be attempted to be reproduced. Do NOT ask for an inspection tarball if the reproduction steps are clear enough to try.",
         "",
         f"Title: {title}",
     ]
@@ -201,20 +202,7 @@ def classify(
         if (a := raw.strip().removeprefix("area/").strip()) in _AREA_LABELS
     ]
     missing = [c for c in (sanitize_comment_text(m) for m in result.missing_info) if c]
-    # A bug with no tarball is always missing the inspection report. Reserve
-    # a slot for it rather than appending after the cap (which could grow
-    # the list past 5) or before it (which could truncate the safeguard
-    # itself away if the model already filled all 5 slots).
-    if (
-        "kind/bug" in kind
-        and not tarball
-        and not any(
-            "tarball" in m.lower() or "inspection" in m.lower() for m in missing
-        )
-    ):
-        missing = missing[:4] + ["inspection tarball"]
-    else:
-        missing = missing[:5]
+    missing = missing[:5]
     return Classification(
         kind_labels=kind,
         area_labels=area,
@@ -315,6 +303,7 @@ def check_existing_support(
     title: str,
     body: str,
     pages: list[str],
+    root: Optional[Path] = None,
     model_spec: str = DEFAULT_MODEL,
 ) -> ExistingSupport:
     """Decide whether the issue asks for something k8s-snap already does.
@@ -338,8 +327,19 @@ def check_existing_support(
         "instructions.\n\n"
         f"Issue title: {title}\n"
         f"Issue body:\n{body[:4000]}\n\n"
-        "Documentation pages:\n" + "\n".join(pages[:_DOCS_PROMPT_CAP])
+        "Documentation pages:\n"
     )
+    doc_lines = []
+    for p in pages[:_DOCS_PROMPT_CAP]:
+        excerpt = ""
+        if root:
+            try:
+                content = (root / DOCS_DIR / p).read_text(encoding="utf-8")
+                excerpt = f"\n  Excerpt: {content[:300].strip()}..."
+            except Exception:
+                pass
+        doc_lines.append(f"- {p}{excerpt}")
+    prompt += "\n".join(doc_lines)
     llm = make_llm(model_spec).with_structured_output(ExistingSupport)
     result: ExistingSupport = llm.invoke(prompt)
     known = set(pages)
@@ -356,6 +356,7 @@ def propose_enhancement(
     title: str,
     body: str,
     pages: list[str],
+    root: Optional[Path] = None,
     model_spec: str = DEFAULT_MODEL,
 ) -> EnhancementProposal:
     """Surface implementation ideas and workarounds for a feature request.
@@ -372,6 +373,10 @@ def propose_enhancement(
         "annotation, a service stop command). If a documentation page below "
         "covers it, cite it exactly as listed; otherwise leave doc_paths empty "
         "rather than guessing a URL.\n"
+        "The workaround_instructions field MUST contain ONLY the raw terminal "
+        "command(s) or code. Do NOT wrap it in markdown ticks (```), provide "
+        "NO prose, and NO explanations, as it will be wrapped in a code block "
+        "automatically.\n"
         "2. Propose 1-3 concrete, minimal implementation ideas ranked by "
         "effort. Each idea must name the specific file or component to change "
         "and include an example command or code snippet.\n"
@@ -380,9 +385,19 @@ def propose_enhancement(
         "kubelet flags (`--register-node=false`), or annotation keys. "
         "Do not invent flags that do not exist.\n"
         "Documentation pages available for context (cite only real pages):\n"
-        + "\n".join(pages[:_DOCS_PROMPT_CAP])
-        + f"\n\nIssue title: {title}\nIssue body:\n{body[:3000]}"
     )
+    doc_lines = []
+    for p in pages[:_DOCS_PROMPT_CAP]:
+        excerpt = ""
+        if root:
+            try:
+                content = (root / DOCS_DIR / p).read_text(encoding="utf-8")
+                excerpt = f"\n  Excerpt: {content[:300].strip()}..."
+            except Exception:
+                pass
+        doc_lines.append(f"- {p}{excerpt}")
+    prompt += "\n".join(doc_lines)
+    prompt += f"\n\nIssue title: {title}\nIssue body:\n{body[:3000]}"
     llm = make_llm(model_spec).with_structured_output(EnhancementProposal)
     result: EnhancementProposal = llm.invoke(prompt)
     known = set(pages)

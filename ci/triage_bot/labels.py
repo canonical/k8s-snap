@@ -18,7 +18,7 @@ from dataclasses import dataclass, fields
 @dataclass(frozen=True)
 class LabelConfig:
     needs_triage: str = "triage/needs-triage"
-    not_actionable: str = "triage/not-actionable"
+    needs_human: str = "triage/needs-human"
     needs_reproduction: str = "triage/needs-reproduction"
     needs_manual_review: str = "triage/needs-manual-review"
     skipped: str = "triage/skipped"
@@ -55,7 +55,7 @@ class LabelConfig:
         """Labels where the bot takes no further action on new comments."""
         return [
             self.fix_verified,
-            self.not_actionable,
+            self.needs_human,
             self.skipped,
             self.needs_manual_review,
         ]

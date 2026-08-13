@@ -30,6 +30,7 @@ from typing import Optional
 
 from .. import triage_core
 from ..labels import current_triage_label
+from ..skills import repo_root
 from ..pipeline import salvage_reproducer
 from ..schema import TriageResult
 from ..skills import repo_root
@@ -137,6 +138,18 @@ def handle_triage(
             "awaiting_maintainer",
         )
 
+    if "kind/bug" not in kind_area:
+        return _park(
+            rt,
+            issue,
+            current,
+            labels.needs_human,
+            "Automated triage classified this as a non-bug issue. "
+            "The automated reproduce and fix pipeline only runs for defects. "
+            f"{maintainer_ping(rt)}please review and process manually.",
+            actions + ["skip_pipeline_non_bug"],
+            "needs_human",
+        )
     try:
         result = rt.pipeline(rt, issue)
     except Exception as exc:
@@ -210,6 +223,7 @@ def _already_supported(
             body=issue.body,
             pages=pages,
             model_spec=rt.ctx.triage_model,
+            root=repo_root(),
         )
     except Exception:
         # Never let an advisory check block triage.
@@ -237,7 +251,7 @@ def _already_supported(
         rt,
         issue,
         current,
-        labels.not_actionable,
+        labels.needs_human,
         "\n\n".join(body),
         taken,
         "already_supported",
@@ -261,6 +275,7 @@ def _propose_enhancement(
             body=issue.body,
             pages=pages,
             model_spec=rt.ctx.triage_model,
+            root=repo_root(),
         )
     except Exception:
         log.exception("enhancement proposal failed for #%s", issue.number)
@@ -310,7 +325,7 @@ def _propose_enhancement(
         rt,
         issue,
         current,
-        labels.not_actionable,
+        labels.needs_human,
         comment,
         taken,
         "enhancement_proposal",
@@ -339,7 +354,7 @@ def _resolve(result: TriageResult, rt: Runtime) -> tuple[str, str, str]:
         )
     if result.verdict == "intended-behavior":
         return (
-            labels.not_actionable,
+            labels.needs_human,
             "Automated triage reproduced the described behaviour and found "
             "it matches the documented, intended behaviour. "
             f"{maintainer_ping(rt)}close this issue if that's correct, or "

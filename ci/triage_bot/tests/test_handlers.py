@@ -100,7 +100,7 @@ def test_already_shipped_feature_is_answered_with_a_doc_link(tmp_path, monkeypat
     result = dispatch(_event("opened", []), rt)
 
     assert result.outcome == "already_supported"
-    assert result.label == LABELS.not_actionable
+    assert result.label == LABELS.needs_human
     posted = "\n".join(gh.comments_posted)
     assert "canonical-kubernetes/latest/snap/howto/networking/dualstack" in posted
     assert LABELS.docs_needed not in gh.added_labels
@@ -197,7 +197,7 @@ def test_enhancement_request_gets_implementation_proposal(tmp_path, monkeypatch)
     result = dispatch(_event("opened", []), rt)
 
     assert result.outcome == "enhancement_proposal"
-    assert result.label == LABELS.not_actionable
+    assert result.label == LABELS.needs_human
     posted = "\n".join(gh.comments_posted)
     assert "snap stop k8s.kubelet" in posted
     assert "register-node" in posted
@@ -256,26 +256,22 @@ def test_enhancement_proposal_omits_maintainer_ping_when_team_unset(
     assert "cc @" not in "\n".join(gh.comments_posted)
 
 
-def test_enhancement_without_ideas_falls_through_to_pipeline(tmp_path, monkeypatch):
+def test_enhancement_without_ideas_parks_at_needs_human(tmp_path, monkeypatch):
     _inventory(monkeypatch, [])
     gh = FakeGitHub(issue={"number": ISSUE, "title": "new widget", "body": "x"})
-    pipeline_ran = []
-
-    def _recording_pipeline(rt, issue):
-        pipeline_ran.append(True)
-        return TriageResult(skipped=True, skipped_reason="not-actionable")
 
     rt = _runtime(
         gh,
         tmp=tmp_path,
         classify=make_classifier(Classification(kind_labels=["kind/enhancement"])),
-        pipeline=_recording_pipeline,
+        pipeline=make_pipeline(TriageResult()),
         propose_enhancement=lambda **_: EnhancementProposal(),
     )
 
-    dispatch(_event("opened", []), rt)
+    result = dispatch(_event("opened", []), rt)
 
-    assert pipeline_ran, "pipeline must still run when no ideas were produced"
+    assert result.label == LABELS.needs_human
+    assert "non-bug" in gh.comments_posted[0]
 
 
 # --- triage entry transitions ---
@@ -418,7 +414,7 @@ def test_triage_intended_behavior_not_actionable(tmp_path):
         ),
     )
     result = dispatch(_event("opened", []), rt)
-    assert result.label == LABELS.not_actionable
+    assert result.label == LABELS.needs_human
 
 
 def test_triage_reproducible_unfixed_unable_to_fix(tmp_path):
