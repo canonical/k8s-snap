@@ -322,7 +322,7 @@ def check_existing_support(
         "request is not evidence that it is missing.\n"
         "If it is supported, explain briefly how to use it, and cite the "
         "documentation pages that cover it, chosen ONLY from the list below "
-        "and copied exactly. If no page in the list covers it, return no "
+        "and copied exactly (use the string after 'PATH: '). If no page in the list covers it, return no "
         "doc_paths and put the exact commands a user should run in "
         "instructions.\n\n"
         f"Issue title: {title}\n"
@@ -338,7 +338,7 @@ def check_existing_support(
                 excerpt = f"\n  Excerpt: {content[:300].strip()}..."
             except Exception:
                 pass
-        doc_lines.append(f"- {p}{excerpt}")
+        doc_lines.append(f"PATH: {p}{excerpt}\n")
     prompt += "\n".join(doc_lines)
     llm = make_llm(model_spec).with_structured_output(ExistingSupport)
     result: ExistingSupport = llm.invoke(prompt)
@@ -371,7 +371,7 @@ def propose_enhancement(
         "1. Check whether any workaround already exists that satisfies the "
         "request TODAY, even partially (e.g. a flag, a CLI command, an "
         "annotation, a service stop command). If a documentation page below "
-        "covers it, cite it exactly as listed; otherwise leave doc_paths empty "
+        "covers it, cite it exactly as listed (use the string after 'PATH: '); otherwise leave doc_paths empty "
         "rather than guessing a URL.\n"
         "The workaround_instructions field MUST contain ONLY the raw terminal "
         "command(s) or code. Do NOT wrap it in markdown ticks (```), provide "
@@ -395,7 +395,7 @@ def propose_enhancement(
                 excerpt = f"\n  Excerpt: {content[:300].strip()}..."
             except Exception:
                 pass
-        doc_lines.append(f"- {p}{excerpt}")
+        doc_lines.append(f"PATH: {p}{excerpt}\n")
     prompt += "\n".join(doc_lines)
     prompt += f"\n\nIssue title: {title}\nIssue body:\n{body[:3000]}"
     llm = make_llm(model_spec).with_structured_output(EnhancementProposal)
