@@ -41,9 +41,9 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                # 2705: enhancement, 2706: docs already answer this,
-                # 2707: duplicate of #2630, 2708: too vague to reproduce.
-                issue: [2705, 2706, 2707, 2708]
+                # 2711: enhancement, 2712: docs already answer this,
+                # 2713: too vague to reproduce, 2714: non-duplicate enhancement.
+                issue: [2711, 2712, 2713, 2714]
         steps:
             - name: Check out code
               uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -65,10 +65,10 @@ jobs:
                   GOOGLE_API_KEY: ${{ secrets.TRIAGE_GOOGLE_API_KEY }}
               run: tox -e triage-run -- --issue ${{ matrix.issue }} --action opened --auto-pr
 
-    # #2704 is a real, currently-reproducible bug: both CoreDNS replicas can
-    # land on the same node. This reaches the full reproduce -> verify ->
-    # reproducer -> diagnose -> fix pipeline -- builds the snap, spins up an
-    # LXD cluster, writes and runs a real e2e test -- the same self-hosted,
+    # #2710 is a real bug: containerd fails to start with custom config.
+    # This reaches the full reproduce -> verify -> reproducer -> diagnose ->
+    # fix pipeline -- builds the snap, spins up an LXD cluster, writes and
+    # runs a real e2e test -- the same self-hosted,
     # tens-of-minutes cost the real pipeline job documents.
     demo-pipeline:
         name: "Run demo (bug -> real reproduce/fix pipeline)"
@@ -78,7 +78,7 @@ jobs:
             contents: write
             pull-requests: write
         concurrency:
-            group: demo-pipeline-2704
+            group: demo-pipeline-2710
             # Matches the real pipeline job: a cancelled run may not reach
             # its cleanup finally-block, orphaning the LXD cluster.
             cancel-in-progress: false
@@ -101,4 +101,4 @@ jobs:
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   GOOGLE_API_KEY: ${{ secrets.TRIAGE_GOOGLE_API_KEY }}
-              run: tox -e triage-run -- --issue 2704 --action opened --auto-pr
+              run: tox -e triage-run -- --issue 2710 --action opened --auto-pr
