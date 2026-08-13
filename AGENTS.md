@@ -18,6 +18,7 @@ Before working in a subfolder, read its `AGENTS.md`:
 snap/snapcraft.yaml              snap definition; parts reference build-scripts/components/*
 build-scripts/                   component build scripts (see build-scripts/AGENTS.md)
 k8s/                             snap runtime: lib.sh, wrappers, manifests (see k8s/AGENTS.md)
+.agents/skills/triage/           Playbooks for all agents: reproduce, test, diagnose, fix
 ci/                              CI automation Python (GitHub Actions, tox, Mattermost)
 tests/integration/               pytest integration tests (see tests/integration/AGENTS.md)
 docs/                            MkDocs user docs and proposals (see docs/AGENTS.md)
@@ -41,6 +42,18 @@ API changes require PRs in all three. During development, add a `replace` direct
 Built with `snapcraft --use-lxd`. Architectures: `amd64`, `arm64`, `ppc64el`, `s390x` (see `snap/snapcraft.yaml` for snap base and other build metadata).
 Uses `go/<version>-fips/stable` for all Go component builds. FIPS mode is a first-class concern.
 
+## Agent Skills
+
+The repository includes documented workflows in `.agents/skills/triage/` that
+are used by the autonomous triage bot, but they serve as definitive playbooks
+for **any agent** working in this repository:
+
+- **`reproduce.md`**: How to use `hack/cluster-up.sh` to build a cluster and manually reproduce a reported issue.
+- **`reproducer.md`**: How to write, isolate, and run end-to-end tests in `tests/integration/`.
+- **`diagnose.md`**: How to root-cause failures, particularly those crossing the boundary between the snap shell and the `k8sd` backend.
+- **`fix.md`**: How to cleanly implement fixes across the multi-repo structure, rebuild the snap from source, and verify the fix against the tests.
+
+Whenever you are asked to reproduce a bug, write a test, or fix an issue, you should consult these skill files for the exact commands, constraints, and architecture rules you must follow.
 ## Snap Channels
 
 Channel format: `{major}.{minor}-{flavor}/{risk}`, e.g. `1.35-classic/stable`.
