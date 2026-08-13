@@ -1,37 +1,49 @@
 #
-# DEMO ONLY -- delete this workflow (and ci/demo_triage_5_issues.py) before
-# the autonomous-triage-bot PR merges.
+# LIVE DEMO -- exercises the real triage bot end to end (real labels, real
+# comments, and for the bug issue a genuine reproduce -> test -> fix ->
+# draft PR run) against a fixed set of purpose-made issues so PR reviewers
+# can see genuine bot behaviour without waiting for a real webhook event.
+# Every issue it targets carries the `demo-triage-bot-test` label and says
+# so in its body -- see #2699-#2703.
 #
-# Runs the triage bot's real decision engine (classification, duplicate
-# detection, docs/existing-support check, enhancement proposals) against the
-# latest real k8s-snap issues, in dry-run, so maintainers reviewing the PR
-# can see actual model output without waiting for a real webhook event.
-# Every GitHub write is intercepted client-side and only printed, never
-# sent -- see ci/demo_triage_5_issues.py for the safety details.
-name: "[DEMO] Triage bot dry-run"
+# Manual dispatch only, deliberately: ``route()`` treats every dispatched
+# ``opened`` action as a fresh triage regardless of the issue's current
+# label, so firing this on every push would re-classify and re-comment on
+# the same issues repeatedly instead of giving one clean, real run to look
+# at.
+#
+# Delete this workflow (and those issues) before the autonomous-triage-bot
+# PR merges.
+name: "[DEMO] Triage bot live run"
 
 on:
     workflow_dispatch:
-    push:
-        branches: [feat/autonomous-triage-bot]
-        paths:
-            - "ci/demo_triage_5_issues.py"
-            - "ci/triage_bot/**"
-            - "ci/tox.ini"
-            - ".github/workflows/demo-triage-bot.yaml"
 
-concurrency:
-    group: demo-triage-bot-${{ github.ref }}
-    cancel-in-progress: true
-
+# Default to read-only; each job elevates only what it needs.
 permissions:
     contents: read
-    issues: read
 
 jobs:
-    demo:
-        name: Run demo (dry-run, no cluster, no writes)
+    # Duplicate detection, the docs/existing-support answer, the enhancement
+    # proposal, and the missing-info request all resolve inside the classify
+    # layer before the pipeline's trust gate -- no cluster, seconds not
+    # minutes.
+    demo-classify:
+        name: "Run demo (issue ${{ matrix.issue }})"
         runs-on: ubuntu-latest
+        permissions:
+            issues: write
+            contents: read
+            pull-requests: read
+        concurrency:
+            group: demo-classify-${{ matrix.issue }}
+            cancel-in-progress: true
+        strategy:
+            fail-fast: false
+            matrix:
+                # 2700: enhancement, 2701: docs already answer this,
+                # 2702: duplicate of #2630, 2703: too vague to reproduce.
+                issue: [2700, 2701, 2702, 2703]
         steps:
             - name: Check out code
               uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -46,9 +58,47 @@ jobs:
             - name: Install tox
               run: python -m pip install 'tox<5'
 
-            - name: Run demo
+            - name: Run triage bot
               working-directory: ci
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   GOOGLE_API_KEY: ${{ secrets.TRIAGE_GOOGLE_API_KEY }}
-              run: tox -e demo -- --count 5
+              run: tox -e triage-run -- --issue ${{ matrix.issue }} --action opened --auto-pr
+
+    # #2699 is a real, currently-reproducible bug: both CoreDNS replicas can
+    # land on the same node. This reaches the full reproduce -> verify ->
+    # reproducer -> diagnose -> fix pipeline -- builds the snap, spins up an
+    # LXD cluster, writes and runs a real e2e test -- the same self-hosted,
+    # tens-of-minutes cost the real pipeline job documents.
+    demo-pipeline:
+        name: "Run demo (bug -> real reproduce/fix pipeline)"
+        runs-on: [self-hosted, linux, noble, xlarge]
+        permissions:
+            issues: write
+            contents: write
+            pull-requests: write
+        concurrency:
+            group: demo-pipeline-2699
+            # Matches the real pipeline job: a cancelled run may not reach
+            # its cleanup finally-block, orphaning the LXD cluster.
+            cancel-in-progress: false
+        steps:
+            - name: Check out code
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              with:
+                  persist-credentials: false
+
+            - name: Setup Python
+              uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+              with:
+                  python-version: "3.12"
+
+            - name: Install tox
+              run: python -m pip install 'tox<5'
+
+            - name: Run triage bot
+              working-directory: ci
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GOOGLE_API_KEY: ${{ secrets.TRIAGE_GOOGLE_API_KEY }}
+              run: tox -e triage-run -- --issue 2699 --action opened --auto-pr
