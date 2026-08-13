@@ -346,7 +346,7 @@ def check_existing_support(
     return ExistingSupport(
         already_supported=result.already_supported,
         explanation=sanitize_comment_text(result.explanation, limit=1200),
-        doc_paths=[p for p in result.doc_paths if p in known],
+        doc_paths=[p.replace("PATH: ", "").strip() for p in result.doc_paths if p.replace("PATH: ", "").strip() in known],
         instructions=sanitize_fenced_text(result.instructions, limit=1200),
     )
 
@@ -406,7 +406,7 @@ def propose_enhancement(
         workaround_instructions=sanitize_fenced_text(
             result.workaround_instructions, limit=1200
         ),
-        workaround_doc_paths=[p for p in result.workaround_doc_paths if p in known],
+        workaround_doc_paths=[p.replace("PATH: ", "").strip() for p in result.workaround_doc_paths if p.replace("PATH: ", "").strip() in known],
         ideas=[
             ImplementationIdea(
                 title=sanitize_comment_text(idea.title, limit=120),
