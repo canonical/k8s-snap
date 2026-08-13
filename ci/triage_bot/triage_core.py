@@ -332,7 +332,10 @@ def check_existing_support(
     prompt = (
         "You triage issues for the Canonical Kubernetes snap (k8s-snap).\n"
         "Decide whether the report asks for behaviour the project ALREADY "
-        "provides: a feature that already ships, or a bug already fixed.\n"
+        "provides: a feature that already ships, or a bug that is ALREADY FIXED.\n"
+        "IMPORTANT: If the user is reporting that an existing, supported feature is BROKEN or failing, "
+        "this is a new BUG, NOT already supported! Only set already_supported=true if the feature works "
+        "and they just don't know how to use it, or if the exact bug is documented as fixed.\n"
         "Set already_supported only when you are confident; an unfamiliar "
         "request is not evidence that it is missing.\n"
         "If it is supported, explain briefly how to use it, and cite the "
