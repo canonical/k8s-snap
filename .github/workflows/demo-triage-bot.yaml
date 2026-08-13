@@ -41,9 +41,9 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                # 2722: enhancement, 2723: docs already answer this,
-                # 2724: too vague to reproduce, 2725: non-duplicate enhancement.
-                issue: [2722, 2723, 2724, 2725]
+                # 2728: enhancement, 2729: docs already answer this,
+                # 2730: too vague to reproduce, 2731: non-duplicate enhancement.
+                issue: [2728, 2729, 2730, 2731]
         steps:
             - name: Check out code
               uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -65,7 +65,7 @@ jobs:
                   GOOGLE_API_KEY: ${{ secrets.TRIAGE_GOOGLE_API_KEY }}
               run: tox -e triage-run -- --issue ${{ matrix.issue }} --action opened --auto-pr
 
-    # #2726 is a real bug: CoreDNS replicas lack spreading constraints.
+    # #2727 is a real bug: CoreDNS replicas lack spreading constraints.
     # This reaches the full reproduce -> verify -> reproducer -> diagnose ->
     # fix pipeline -- builds the snap, spins up an LXD cluster, writes and
     # runs a real e2e test -- the same self-hosted,
@@ -78,7 +78,7 @@ jobs:
             contents: write
             pull-requests: write
         concurrency:
-            group: demo-pipeline-2726
+            group: demo-pipeline-2727
             # Matches the real pipeline job: a cancelled run may not reach
             # its cleanup finally-block, orphaning the LXD cluster.
             cancel-in-progress: false
@@ -101,4 +101,4 @@ jobs:
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   GOOGLE_API_KEY: ${{ secrets.TRIAGE_GOOGLE_API_KEY }}
-              run: tox -e triage-run -- --issue 2726 --action opened --auto-pr
+              run: tox -e triage-run -- --issue 2727 --action opened --auto-pr
