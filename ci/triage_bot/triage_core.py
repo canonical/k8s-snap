@@ -275,7 +275,7 @@ _DOCS_SKIP = ("_build", "_parts", "_dev", "_templates")
 # Cap the inventory injected into a prompt: an uncapped list is unbounded
 # prompt cost that only grows as docs are added. Shared by both doc-aware
 # checks so one cannot silently outgrow the other.
-_DOCS_PROMPT_CAP = 60
+_DOCS_PROMPT_CAP = 400
 
 
 def doc_inventory(root: Path) -> list[str]:
