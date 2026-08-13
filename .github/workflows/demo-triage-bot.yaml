@@ -65,7 +65,7 @@ jobs:
                   GOOGLE_API_KEY: ${{ secrets.TRIAGE_GOOGLE_API_KEY }}
               run: tox -e triage-run -- --issue ${{ matrix.issue }} --action opened --auto-pr
 
-    # #2715 is a real bug: containerd fails to start with custom config.
+    # #2720 is a real bug: containerd fails to start with custom config.
     # This reaches the full reproduce -> verify -> reproducer -> diagnose ->
     # fix pipeline -- builds the snap, spins up an LXD cluster, writes and
     # runs a real e2e test -- the same self-hosted,
@@ -78,7 +78,7 @@ jobs:
             contents: write
             pull-requests: write
         concurrency:
-            group: demo-pipeline-2715
+            group: demo-pipeline-2720
             # Matches the real pipeline job: a cancelled run may not reach
             # its cleanup finally-block, orphaning the LXD cluster.
             cancel-in-progress: false
@@ -101,4 +101,4 @@ jobs:
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   GOOGLE_API_KEY: ${{ secrets.TRIAGE_GOOGLE_API_KEY }}
-              run: tox -e triage-run -- --issue 2715 --action opened --auto-pr
+              run: tox -e triage-run -- --issue 2720 --action opened --auto-pr
