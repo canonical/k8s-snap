@@ -314,6 +314,21 @@ def check_existing_support(
     run. Any page the model cites is checked against the real inventory, so a
     plausible-looking but non-existent link can never reach the issue.
     """
+    from langchain_core.tools import tool
+    from langgraph.prebuilt import create_react_agent
+
+    @tool
+    def read_doc(path: str) -> str:
+        """Read the full content of a documentation page. `path` must be exactly one of the available pages."""
+        if not root:
+            return "Error: documentation root not available"
+        if path not in pages:
+            return f"Error: path must be one of the available pages."
+        try:
+            return (root / DOCS_DIR / path).read_text(encoding="utf-8")
+        except Exception as e:
+            return f"Error reading {path}: {e}"
+
     prompt = (
         "You triage issues for the Canonical Kubernetes snap (k8s-snap).\n"
         "Decide whether the report asks for behaviour the project ALREADY "
@@ -322,32 +337,35 @@ def check_existing_support(
         "request is not evidence that it is missing.\n"
         "If it is supported, explain briefly how to use it, and cite the "
         "documentation pages that cover it, chosen ONLY from the list below "
-        "and copied exactly (use the string after 'PATH: '). If no page in the list covers it, return no "
+        "and copied exactly. If no page in the list covers it, return no "
         "doc_paths and put the exact commands a user should run in "
         "instructions.\n\n"
+        "Use the read_doc tool to inspect the content of these pages to see if they answer the user's question.\n\n"
         f"Issue title: {title}\n"
         f"Issue body:\n{body[:4000]}\n\n"
-        "Documentation pages:\n"
+        "Documentation pages available to read:\n" + "\n".join(f"- {p}" for p in pages[:_DOCS_PROMPT_CAP])
     )
-    doc_lines = []
-    for p in pages[:_DOCS_PROMPT_CAP]:
-        excerpt = ""
-        if root:
-            try:
-                content = (root / DOCS_DIR / p).read_text(encoding="utf-8")
-                excerpt = f"\n  Excerpt: {content[:300].strip()}..."
-            except Exception:
-                pass
-        doc_lines.append(f"PATH: {p}{excerpt}\n")
-    prompt += "\n".join(doc_lines)
-    llm = make_llm(model_spec).with_structured_output(ExistingSupport)
-    result: ExistingSupport = llm.invoke(prompt)
+    llm = make_llm(model_spec)
+    agent = create_react_agent(llm, tools=[read_doc], prompt=prompt)
+    result = agent.invoke({"messages": [("user", "Check existing support for this issue.")]})
+
+    answer = next((str(m.content) for m in reversed(result["messages"]) if getattr(m, "type", "") == "ai" and m.content), "")
+    if not answer:
+        return ExistingSupport(already_supported=False)
+
+    llm2 = make_llm(model_spec).with_structured_output(ExistingSupport)
+    structured_result = llm2.invoke(
+        f"An agent analyzed the issue and produced this report:\n\n{answer}\n\n"
+        "Extract the structured result from this analysis. Use ONLY doc paths from this list:\n"
+        + "\n".join(f"- {p}" for p in pages[:_DOCS_PROMPT_CAP])
+    )
+
     known = set(pages)
     return ExistingSupport(
-        already_supported=result.already_supported,
-        explanation=sanitize_comment_text(result.explanation, limit=1200),
-        doc_paths=[p.replace("PATH: ", "").strip() for p in result.doc_paths if p.replace("PATH: ", "").strip() in known],
-        instructions=sanitize_fenced_text(result.instructions, limit=1200),
+        already_supported=structured_result.already_supported,
+        explanation=sanitize_comment_text(structured_result.explanation, limit=1200),
+        doc_paths=[p for p in structured_result.doc_paths if p in known],
+        instructions=sanitize_fenced_text(structured_result.instructions, limit=1200),
     )
 
 
@@ -365,13 +383,28 @@ def propose_enhancement(
     "enhancement noted" comment: it tells the reporter whether they can do
     something today, and gives implementers concrete starting points.
     """
+    from langchain_core.tools import tool
+    from langgraph.prebuilt import create_react_agent
+
+    @tool
+    def read_doc(path: str) -> str:
+        """Read the full content of a documentation page. `path` must be exactly one of the available pages."""
+        if not root:
+            return "Error: documentation root not available"
+        if path not in pages:
+            return f"Error: path must be one of the available pages."
+        try:
+            return (root / DOCS_DIR / path).read_text(encoding="utf-8")
+        except Exception as e:
+            return f"Error reading {path}: {e}"
+
     prompt = (
         "You are a senior engineer on the Canonical Kubernetes snap project.\n"
         "A user has opened a FEATURE REQUEST (not a bug). Your job is to:\n"
         "1. Check whether any workaround already exists that satisfies the "
         "request TODAY, even partially (e.g. a flag, a CLI command, an "
         "annotation, a service stop command). If a documentation page below "
-        "covers it, cite it exactly as listed (use the string after 'PATH: '); otherwise leave doc_paths empty "
+        "covers it, cite it exactly as listed; otherwise leave doc_paths empty "
         "rather than guessing a URL.\n"
         "The workaround_instructions field MUST contain ONLY the raw terminal "
         "command(s) or code. Do NOT wrap it in markdown ticks (```), provide "
@@ -384,29 +417,34 @@ def propose_enhancement(
         "`k8s bootstrap --file`), snap service names (`k8s.kubelet`), "
         "kubelet flags (`--register-node=false`), or annotation keys. "
         "Do not invent flags that do not exist.\n"
+        "Use the read_doc tool to inspect the content of these pages if needed to find workarounds.\n\n"
+        f"Issue title: {title}\n"
+        f"Issue body:\n{body[:3000]}\n\n"
         "Documentation pages available for context (cite only real pages):\n"
+        + "\n".join(f"- {p}" for p in pages[:_DOCS_PROMPT_CAP])
     )
-    doc_lines = []
-    for p in pages[:_DOCS_PROMPT_CAP]:
-        excerpt = ""
-        if root:
-            try:
-                content = (root / DOCS_DIR / p).read_text(encoding="utf-8")
-                excerpt = f"\n  Excerpt: {content[:300].strip()}..."
-            except Exception:
-                pass
-        doc_lines.append(f"PATH: {p}{excerpt}\n")
-    prompt += "\n".join(doc_lines)
-    prompt += f"\n\nIssue title: {title}\nIssue body:\n{body[:3000]}"
-    llm = make_llm(model_spec).with_structured_output(EnhancementProposal)
-    result: EnhancementProposal = llm.invoke(prompt)
+    llm = make_llm(model_spec)
+    agent = create_react_agent(llm, tools=[read_doc], prompt=prompt)
+    result = agent.invoke({"messages": [("user", "Propose an enhancement and find workarounds for this issue.")]})
+
+    answer = next((str(m.content) for m in reversed(result["messages"]) if getattr(m, "type", "") == "ai" and m.content), "")
+    if not answer:
+        return EnhancementProposal()
+
+    llm2 = make_llm(model_spec).with_structured_output(EnhancementProposal)
+    structured_result = llm2.invoke(
+        f"An agent analyzed the issue and produced this report:\n\n{answer}\n\n"
+        "Extract the structured result from this analysis. Use ONLY doc paths from this list:\n"
+        + "\n".join(f"- {p}" for p in pages[:_DOCS_PROMPT_CAP])
+    )
+
     known = set(pages)
     return EnhancementProposal(
-        workaround_exists=result.workaround_exists,
+        workaround_exists=structured_result.workaround_exists,
         workaround_instructions=sanitize_fenced_text(
-            result.workaround_instructions, limit=1200
+            structured_result.workaround_instructions, limit=1200
         ),
-        workaround_doc_paths=[p.replace("PATH: ", "").strip() for p in result.workaround_doc_paths if p.replace("PATH: ", "").strip() in known],
+        workaround_doc_paths=[p for p in structured_result.workaround_doc_paths if p in known],
         ideas=[
             ImplementationIdea(
                 title=sanitize_comment_text(idea.title, limit=120),
@@ -418,6 +456,6 @@ def propose_enhancement(
                     else "medium"
                 ),
             )
-            for idea in result.ideas[:4]
+            for idea in structured_result.ideas[:4]
         ],
     )
