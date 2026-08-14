@@ -115,6 +115,20 @@ v1alpha annotations are experimental and subject to change or removal in future 
 | **Values**      | string                                                 |
 | **Description** | Override the default image tag for the metrics-server. |
 
+## `k8sd/v1alpha1/metallb/bgp-peers`
+
+|                 |                                                                                                                                                                                                                                                                          |
+|-----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Values**      | YAML-encoded list of BGP peer configurations                                                                                                                                                                                                                             |
+| **Description** | Configure multi-peer MetalLB BGP mode. Each item may include `peerAddress` (required), `peerASN` (required), `myASN` (optional, falls back to `load-balancer.bgp-local-asn`), `peerPort` (optional, default 179) and `nodeSelector` (optional). When set, this annotation replaces the single-peer typed BGP keys entirely. See [multi-peer BGP]. |
+
+## `k8sd/v1alpha1/metallb/advertise-all-pools`
+
+|                 |                                                                                                                              |
+|-----------------|------------------------------------------------------------------------------------------------------------------------------|
+| **Values**      | "true"\|"false"                                                                                                              |
+| **Description** | If set to "true", the BGPAdvertisement is emitted with an empty spec, advertising all IP pools. By default, only the named IPAddressPool is advertised. |
+
 <script>
 const el = document.getElementsByTagName("h2");
 for(var i=0;i<el.length;i++){
@@ -126,3 +140,4 @@ for(var i=0;i<el.length;i++){
 <!-- Links -->
 
 [bootstrap]: /snap/reference/config-files/bootstrap-config.md
+[multi-peer BGP]: /snap/howto/networking/multi-peer-bgp.md
