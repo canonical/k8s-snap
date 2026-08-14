@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: nginxipv6
-        image: rocks.canonical.com/cdk/diverdane/nginxdualstack:1.0.0
+        image: ghcr.io/canonical/cdk/diverdane/nginxdualstack:1.0.0
         ports:
         - containerPort: 80
 ---
