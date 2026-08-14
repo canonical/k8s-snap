@@ -70,7 +70,7 @@ required. Ensure that the placeholder gateway rule survives a node reboot.
 #### Ensure proxy access
 
 This section is only relevant if access to upstream image registries
-(e.g. docker.io, quay.io, rocks.canonical.com, etc.)
+(e.g. docker.io, quay.io, ghcr.io, etc.)
 is only allowed through an HTTP proxy (e.g. [squid][squid]).
 
 Ensure that all nodes can use the proxy to access the image registry.
