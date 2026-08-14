@@ -104,7 +104,7 @@ Apply the configuration from a file:
 juju config k8s --file ./basic-config.yaml
 ```
 
-Specify the configuration options directly:
+Alternatively, specify the configuration options directly:
 
 ```
 juju config k8s dns-enabled=true dns-cluster-domain=cluster.local
