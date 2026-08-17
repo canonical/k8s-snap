@@ -30,7 +30,6 @@ from typing import Optional
 
 from .. import triage_core
 from ..labels import current_triage_label
-from ..skills import repo_root
 from ..pipeline import salvage_reproducer
 from ..schema import TriageResult
 from ..skills import repo_root

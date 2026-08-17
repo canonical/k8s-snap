@@ -167,7 +167,8 @@ def _classify_prompt(title: str, fields: dict, tarball: bool) -> str:
         f"area labels: {sorted(_AREA_LABELS)}",
         "If required bug-report information is missing, list what is missing"
         " in `missing_info` (e.g. 'reproduction steps', 'inspection tarball').",
-        "Only list missing_info if the issue cannot even be attempted to be reproduced. Do NOT ask for an inspection tarball if the reproduction steps are clear enough to try.",
+        "Only list missing_info if the issue cannot even be attempted to be reproduced."
+        " Do NOT ask for an inspection tarball if the reproduction steps are clear enough to try.",
         "",
         f"Title: {title}",
     ]
@@ -291,11 +292,18 @@ def doc_inventory(root: Path) -> list[str]:
 
 
 def doc_url(page: str) -> str:
-    """The published URL for a page path from :func:`doc_inventory`."""
+    """The published URL for a page path from :func:`doc_inventory`.
+
+    ``page`` may carry a ``#anchor`` suffix pointing at a specific section;
+    the anchor is preserved on the returned URL rather than resolved away
+    with the rest of the path.
+    """
+    page, _, anchor = page.partition("#")
     slug = page[: -len(".md")] if page.endswith(".md") else page
     if slug.endswith("/index"):
         slug = slug[: -len("/index")]
-    return f"{DOCS_BASE_URL}/{slug}"
+    url = f"{DOCS_BASE_URL}/{slug}"
+    return f"{url}#{anchor}" if anchor else url
 
 
 def check_existing_support(
@@ -323,7 +331,7 @@ def check_existing_support(
         if not root:
             return "Error: documentation root not available"
         if path not in pages:
-            return f"Error: path must be one of the available pages."
+            return f"Error: {path} is not one of the available pages."
         try:
             return (root / DOCS_DIR / path).read_text(encoding="utf-8")
         except Exception as e:
@@ -341,8 +349,9 @@ def check_existing_support(
         "If it is supported, explain briefly how to use it, and ALWAYS put the exact terminal commands "
         "a user should run in the `instructions` field (do not wrap in markdown ticks). "
         "Additionally, cite the documentation pages that cover it, chosen ONLY from the list below "
-        "and copied exactly. If no page in the list covers it, just return no "
-        "doc_paths.\n\n"
+        "and copied exactly. You may append a #anchor naming the specific section that answers "
+        "the question (e.g. snap/howto/networking/default-ingress.md#enable-ingress); otherwise "
+        "cite the bare path. If no page in the list covers it, just return no doc_paths.\n\n"
         "Use the read_doc tool to inspect the content of these pages to see if they answer the user's question.\n\n"
         f"Issue title: {title}\n"
         f"Issue body:\n{body[:4000]}\n\n"
@@ -377,7 +386,9 @@ def check_existing_support(
     return ExistingSupport(
         already_supported=structured_result.already_supported,
         explanation=sanitize_comment_text(structured_result.explanation, limit=1200),
-        doc_paths=[p for p in structured_result.doc_paths if p in known],
+        doc_paths=[
+            p for p in structured_result.doc_paths if p.partition("#")[0] in known
+        ],
         instructions=sanitize_fenced_text(structured_result.instructions, limit=1200),
     )
 
@@ -405,7 +416,7 @@ def propose_enhancement(
         if not root:
             return "Error: documentation root not available"
         if path not in pages:
-            return f"Error: path must be one of the available pages."
+            return f"Error: {path} is not one of the available pages."
         try:
             return (root / DOCS_DIR / path).read_text(encoding="utf-8")
         except Exception as e:
@@ -417,7 +428,8 @@ def propose_enhancement(
         "1. Check whether any workaround already exists that satisfies the "
         "request TODAY, even partially (e.g. a flag, a CLI command, an "
         "annotation, a service stop command). If a documentation page below "
-        "covers it, cite it exactly as listed; otherwise leave doc_paths empty "
+        "covers it, cite it exactly as listed, optionally appending a #anchor "
+        "for the section that answers it; otherwise leave doc_paths empty "
         "rather than guessing a URL.\n"
         "The workaround_instructions field MUST contain ONLY the raw terminal "
         "command(s) or code. Do NOT wrap it in markdown ticks (```), provide "
@@ -471,7 +483,9 @@ def propose_enhancement(
             structured_result.workaround_instructions, limit=1200
         ),
         workaround_doc_paths=[
-            p for p in structured_result.workaround_doc_paths if p in known
+            p
+            for p in structured_result.workaround_doc_paths
+            if p.partition("#")[0] in known
         ],
         ideas=[
             ImplementationIdea(

@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from triage_bot.context import ActionContext
 from triage_bot.handlers import Runtime, dispatch
+from triage_bot.handlers.base import ALPHA_DISCLAIMER, BOT_MARKER
 from triage_bot.labels import LabelConfig
 from triage_bot.router import GitHubEvent
 from triage_bot.schema import (
@@ -128,6 +129,33 @@ def test_supported_but_undocumented_is_flagged_for_a_docs_update(tmp_path, monke
     assert LABELS.docs_needed in gh.added_labels
     posted = "\n".join(gh.comments_posted)
     assert "k8s set widgets.enabled=true" in posted
+
+
+def test_already_supported_shows_both_instructions_and_doc_links(tmp_path, monkeypatch):
+    # Instructions used to render only when there were no doc links; fixed so a
+    # supported feature with both a runnable command and documentation gives
+    # the reporter both, not just whichever the model happened to fill in.
+    page = "snap/howto/networking/default-ingress.md"
+    _inventory(monkeypatch, [page])
+    gh = FakeGitHub(issue={"number": ISSUE, "title": "enable ingress", "body": "x"})
+    rt = _runtime(
+        gh,
+        tmp=tmp_path,
+        classify=make_classifier(_clean_classification()),
+        pipeline=make_pipeline(TriageResult()),
+        existing_support=_supported(
+            explanation="Ingress already ships.",
+            doc_paths=[page],
+            instructions="sudo k8s enable ingress",
+        ),
+    )
+
+    dispatch(_event("opened", []), rt)
+
+    posted = "\n".join(gh.comments_posted)
+    assert "How to do it today" in posted
+    assert "sudo k8s enable ingress" in posted
+    assert "canonical-kubernetes/latest/snap/howto/networking/default-ingress" in posted
 
 
 def test_supported_request_is_answered_not_bounced_for_missing_details(
@@ -390,6 +418,47 @@ def test_triage_verification_blocked_goes_fix_pending_with_a_ping(tmp_path):
     assert "cc @canonical/kubernetes" in comment
     assert "pull/2686" in comment
     assert "snapcraft --use-lxd: permission denied" in comment
+
+
+def test_pipeline_skip_missing_details_routes_to_needs_reproduction(tmp_path):
+    # A skip means the pipeline never even attempted a reproduction; routing
+    # that to the terminal triage/skipped label would silently drop a bug the
+    # reporter could still supply more information for. It must land on the
+    # same needs-info path as the classifier-level missing-info gate instead.
+    gh = FakeGitHub(issue={"number": ISSUE, "title": "unique title here", "body": "x"})
+    rt = _runtime(
+        gh,
+        tmp=tmp_path,
+        classify=make_classifier(_clean_classification()),
+        pipeline=make_pipeline(
+            TriageResult(skipped=True, skipped_reason="missing-details")
+        ),
+    )
+    result = dispatch(_event("opened", []), rt)
+    assert result.label == LABELS.needs_reproduction
+    assert result.label != LABELS.skipped
+    assert result.outcome == "needs_info"
+    comment = gh.comments_posted[0]
+    assert "inspection report" in comment
+    assert "exact commands, configuration files, and environment" in comment
+
+
+def test_pipeline_skip_other_reason_still_lands_on_skipped(tmp_path):
+    # Proves the needs-reproduction route above is narrow to "missing-details":
+    # any other skip reason must still hit the ordinary terminal skipped label
+    # rather than also being swept onto the needs-info path.
+    gh = FakeGitHub(issue={"number": ISSUE, "title": "unique title here", "body": "x"})
+    rt = _runtime(
+        gh,
+        tmp=tmp_path,
+        classify=make_classifier(_clean_classification()),
+        pipeline=make_pipeline(
+            TriageResult(skipped=True, skipped_reason="unsupported-runtime")
+        ),
+    )
+    result = dispatch(_event("opened", []), rt)
+    assert result.label == LABELS.skipped
+    assert result.outcome == "skipped:unsupported-runtime"
 
 
 def test_triage_not_reproducible(tmp_path):
@@ -1134,3 +1203,32 @@ def test_fix_pending_comment_links_real_pr(tmp_path):
     result = dispatch(_event("opened", []), rt)
     assert result.label == LABELS.fix_pending
     assert any("pull/123" in c for c in gh.comments_posted)
+
+
+# --- alpha disclaimer ---
+
+
+def test_bot_comment_carries_the_alpha_disclaimer(tmp_path):
+    # The disclaimer text was rewritten to drop the emoji/exclamation mark for
+    # the writing-style rules; it must still reach every posted comment, with
+    # the hidden bot marker still present and still last so count_failures()
+    # and last_bot_comment() keep recognising the comment.
+    gh = FakeGitHub(issue={"number": ISSUE, "title": "dns broke", "body": "x"})
+    rt = _runtime(
+        gh,
+        tmp=tmp_path,
+        classify=make_classifier(
+            Classification(
+                kind_labels=["kind/bug"], missing_info=["inspection tarball"]
+            )
+        ),
+        pipeline=make_pipeline(TriageResult()),
+    )
+
+    dispatch(_event("opened", []), rt)
+
+    posted = gh.comments_posted[0]
+    assert ALPHA_DISCLAIMER in posted
+    assert posted.endswith(BOT_MARKER)
+    assert ALPHA_DISCLAIMER.isascii()
+    assert "!" not in ALPHA_DISCLAIMER

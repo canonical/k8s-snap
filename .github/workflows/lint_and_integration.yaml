@@ -18,13 +18,7 @@ permissions:
   contents: read
 
 jobs:
-  # TEMPORARY, for feat/autonomous-triage-bot iteration only: this job (and
-  # test-integration/security-scan/charm-e2e-tests, which need it and
-  # cascade-skip automatically) burns ~1-1.5h per push on a full snap build
-  # + integration matrix for changes that are currently workflow-YAML-only.
-  # REMOVE THIS if: BEFORE MERGE.
   build-snap:
-    if: github.head_ref != 'feat/autonomous-triage-bot'
     name: Build k8s-snap ${{ matrix.patch }} ${{ matrix.arch }}
     uses: ./.github/workflows/build-snap.yaml
     strategy:
@@ -36,10 +30,7 @@ jobs:
       flavor: ${{ matrix.patch }}
       arch: ${{ matrix.arch }}
 
-  # TEMPORARY, for feat/autonomous-triage-bot iteration only.
-  # REMOVE THIS if: BEFORE MERGE.
   test-branches:
-    if: github.head_ref != 'feat/autonomous-triage-bot'
     name: Test Branch Management
     runs-on: ubuntu-latest
     steps:
@@ -81,12 +72,7 @@ jobs:
         if: env.kubernetes_minor_same == 'true'
         run: |
           tox -c tests/branch_management -e test
-  # TEMPORARY, for feat/autonomous-triage-bot iteration only -- ci/ (triage
-  # bot) lint/bandit is already covered locally before every push, and
-  # get-e2e-tags/test-integration/charm-e2e-tests need this job too, so
-  # skipping it cascades to skip those as well. REMOVE THIS if: BEFORE MERGE.
   python-lint:
-    if: github.head_ref != 'feat/autonomous-triage-bot'
     name: Python lint
     runs-on: ubuntu-latest
     steps:

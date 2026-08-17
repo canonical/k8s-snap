@@ -108,3 +108,48 @@ def test_jsonl_sink_appends_one_line_per_record(tmp_path):
 
     lines = path.read_text(encoding="utf-8").splitlines()
     assert [json.loads(ln)["event"] for ln in lines] == ["tool_start", "tool_end"]
+
+
+def test_dict_style_tool_input_surfaces_the_bare_command_at_info(caplog):
+    # LangChain passes the tool's real argument mapping via kwargs["inputs"];
+    # the log line must show the command itself, not the dict's repr.
+    rl = _logger()
+
+    with caplog.at_level(logging.INFO, logger="triage_bot"):
+        rl.on_tool_start(
+            {"name": "shell"},
+            "{'command': 'k8s status --wait-ready'}",
+            inputs={"command": "k8s status --wait-ready"},
+        )
+
+    assert "k8s status --wait-ready" in caplog.text
+    assert "{" not in caplog.text
+    assert "'command'" not in caplog.text
+
+
+def test_read_doc_tool_start_is_not_logged_but_still_reaches_the_sink(caplog):
+    records = []
+    rl = _logger(sink=records.append)
+
+    with caplog.at_level(logging.INFO, logger="triage_bot"):
+        rl.on_tool_start({"name": "read_doc"}, "networking/index.md")
+
+    assert "networking/index.md" not in caplog.text
+    assert records[0]["event"] == "tool_start"
+    assert records[0]["tool"] == "read_doc"
+
+
+def test_shell_tool_start_reaches_the_structured_sink(caplog):
+    records = []
+    rl = _logger(sink=records.append)
+
+    with caplog.at_level(logging.INFO, logger="triage_bot"):
+        rl.on_tool_start(
+            {"name": "shell"},
+            "{'command': 'k8s status --wait-ready'}",
+            inputs={"command": "k8s status --wait-ready"},
+        )
+
+    assert records[0]["event"] == "tool_start"
+    assert records[0]["tool"] == "shell"
+    assert records[0]["detail"] == "k8s status --wait-ready"

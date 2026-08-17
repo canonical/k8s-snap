@@ -41,7 +41,7 @@ BOT_MARKER = "<!-- triage-bot -->"
 
 # Alpha disclaimer appended to every comment.
 ALPHA_DISCLAIMER = (
-    "\n\n---\n*🤖 This automated triage bot is in alpha. We are open to feedback!*"
+    "\n\n---\n*This automated triage bot is in alpha. Feedback is welcome.*"
 )
 
 

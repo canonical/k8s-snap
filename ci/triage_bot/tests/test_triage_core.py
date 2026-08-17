@@ -122,6 +122,34 @@ def test_doc_url_maps_source_path_to_published_page():
     assert triage_core.doc_url("snap/howto/index.md").endswith("/latest/snap/howto")
 
 
+def test_doc_url_without_an_anchor_is_unchanged():
+    # Anchor support must not perturb the far more common anchor-free
+    # path; a regression here would rewrite every doc link the bot posts.
+    assert (
+        triage_core.doc_url("snap/howto/contribute.md")
+        == f"{triage_core.DOCS_BASE_URL}/snap/howto/contribute"
+    )
+
+
+def test_doc_url_with_an_anchor_keeps_it_and_still_strips_md():
+    # Cited links must point at the relevant section, not just the page;
+    # losing the anchor here would silently degrade every such link.
+    assert (
+        triage_core.doc_url("snap/howto/networking/default-ingress.md#enable-ingress")
+        == f"{triage_core.DOCS_BASE_URL}/snap/howto/networking/default-ingress"
+        "#enable-ingress"
+    )
+
+
+def test_doc_url_with_an_anchor_on_an_index_page():
+    # /index collapses to its parent directory URL; the anchor must survive
+    # that collapse instead of being dropped along with "/index".
+    assert (
+        triage_core.doc_url("snap/howto/index.md#uninstall")
+        == f"{triage_core.DOCS_BASE_URL}/snap/howto#uninstall"
+    )
+
+
 def test_doc_inventory_lists_pages_and_skips_build_output(tmp_path):
     docs = tmp_path / triage_core.DOCS_DIR
     (docs / "snap" / "howto").mkdir(parents=True)
@@ -165,6 +193,44 @@ def test_invented_doc_pages_are_dropped(monkeypatch):
     )
 
     assert result.doc_paths == [real]
+
+
+def test_anchored_doc_path_validates_against_its_base_page(monkeypatch):
+    # Validation used to test the whole string for membership, so a real
+    # page with an anchor appended was dropped like an invented one; only
+    # a path whose base page is actually missing from the inventory should
+    # be.
+    real = "snap/howto/dns.md"
+
+    class _LLM:
+        def with_structured_output(self, _model):
+            return self
+
+        def invoke(self, _prompt):
+            return ExistingSupport(
+                already_supported=True,
+                explanation="already there",
+                doc_paths=[f"{real}#troubleshooting", "snap/howto/invented.md#x"],
+            )
+
+    class _Agent:
+        def invoke(self, _input):
+            class Msg:
+                type = "ai"
+                content = "dummy answer"
+
+            return {"messages": [Msg()]}
+
+    monkeypatch.setattr(triage_core, "make_llm", lambda *_a, **_k: _LLM())
+    monkeypatch.setattr(
+        "langgraph.prebuilt.create_react_agent", lambda *_a, **_k: _Agent()
+    )
+
+    result = triage_core.check_existing_support(
+        title="t", body="b", pages=[real, "snap/howto/other.md"]
+    )
+
+    assert result.doc_paths == [f"{real}#troubleshooting"]
 
 
 # --- classification -----------------------------------------------------

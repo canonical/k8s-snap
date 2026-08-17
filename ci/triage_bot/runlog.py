@@ -100,6 +100,19 @@ def _clip(text: Any) -> str:
     return f"{collapsed[:_DETAIL_CHARS]}... (+{len(collapsed) - _DETAIL_CHARS} chars)"
 
 
+def _tool_command(inputs: Any, input_str: str) -> str:
+    """Resolve a tool call to its bare command, not a stringified dict repr.
+
+    LangChain also passes the tool's real argument mapping via
+    ``kwargs["inputs"]`` (e.g. ``{"command": "..."}`` for the shell tool);
+    prefer that over parsing ``input_str``, and fall back to it only when a
+    provider omits ``inputs``.
+    """
+    if isinstance(inputs, dict) and inputs:
+        return str(inputs.get("command", inputs))
+    return str(input_str)
+
+
 class RunLogger(BaseCallbackHandler):
     """Emit one structured record per node, LLM call, tool call, and failure."""
 
@@ -121,23 +134,9 @@ class RunLogger(BaseCallbackHandler):
         detail = record.get("detail")
         if event == "tool_start":
             tool_name = record.get("tool", "tool")
-            clean_detail = detail
-            if (
-                isinstance(clean_detail, str)
-                and clean_detail.startswith("{")
-                and "'command':" in clean_detail
-            ):
-                try:
-                    import ast
-
-                    parsed = ast.literal_eval(clean_detail)
-                    if isinstance(parsed, dict) and "command" in parsed:
-                        clean_detail = parsed["command"]
-                except Exception:
-                    pass
             # Exclude read_doc from high-level logging since the user doesn't want all tool calls
             if tool_name != "read_doc":
-                log.info("[%s] %s: %s", self._step, tool_name, _clip(clean_detail))
+                log.info("[%s] %s: %s", self._step, tool_name, _clip(detail))
         else:
             # Routine records are DEBUG (the granular per-tool trace); failures are
             # ERROR so they surface even at the default INFO level.
@@ -169,7 +168,7 @@ class RunLogger(BaseCallbackHandler):
             {
                 "event": "tool_start",
                 "tool": (serialized or {}).get("name", "shell"),
-                "detail": str(input_str),
+                "detail": _tool_command(kwargs.get("inputs"), input_str),
                 "ts": time.time(),
             }
         )
