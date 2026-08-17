@@ -127,7 +127,7 @@ v1alpha annotations are experimental and subject to change or removal in future 
 |                 |                                                                                                                              |
 |-----------------|------------------------------------------------------------------------------------------------------------------------------|
 | **Values**      | "true"\|"false"                                                                                                              |
-| **Description** | If set to "true", the BGPAdvertisement is emitted with an empty spec, advertising all IP pools. By default, only the named IPAddressPool is advertised. |
+| **Description** | If set to "true", the BGPAdvertisement is created with an empty spec, which advertises all IP pools. If "false" (default), only the IPAddressPool created by {{product}} is advertised. |
 
 <script>
 const el = document.getElementsByTagName("h2");
