@@ -346,13 +346,23 @@ def check_existing_support(
         "Use the read_doc tool to inspect the content of these pages to see if they answer the user's question.\n\n"
         f"Issue title: {title}\n"
         f"Issue body:\n{body[:4000]}\n\n"
-        "Documentation pages available to read:\n" + "\n".join(f"- {p}" for p in pages[:_DOCS_PROMPT_CAP])
+        "Documentation pages available to read:\n"
+        + "\n".join(f"- {p}" for p in pages[:_DOCS_PROMPT_CAP])
     )
     llm = make_llm(model_spec)
     agent = create_react_agent(llm, tools=[read_doc], prompt=prompt)
-    result = agent.invoke({"messages": [("user", "Check existing support for this issue.")]})
+    result = agent.invoke(
+        {"messages": [("user", "Check existing support for this issue.")]}
+    )
 
-    answer = next((str(m.content) for m in reversed(result["messages"]) if getattr(m, "type", "") == "ai" and m.content), "")
+    answer = next(
+        (
+            str(m.content)
+            for m in reversed(result["messages"])
+            if getattr(m, "type", "") == "ai" and m.content
+        ),
+        "",
+    )
     if not answer:
         return ExistingSupport(already_supported=False)
 
@@ -428,9 +438,22 @@ def propose_enhancement(
     )
     llm = make_llm(model_spec)
     agent = create_react_agent(llm, tools=[read_doc], prompt=prompt)
-    result = agent.invoke({"messages": [("user", "Propose an enhancement and find workarounds for this issue.")]})
+    result = agent.invoke(
+        {
+            "messages": [
+                ("user", "Propose an enhancement and find workarounds for this issue.")
+            ]
+        }
+    )
 
-    answer = next((str(m.content) for m in reversed(result["messages"]) if getattr(m, "type", "") == "ai" and m.content), "")
+    answer = next(
+        (
+            str(m.content)
+            for m in reversed(result["messages"])
+            if getattr(m, "type", "") == "ai" and m.content
+        ),
+        "",
+    )
     if not answer:
         return EnhancementProposal()
 
@@ -447,7 +470,9 @@ def propose_enhancement(
         workaround_instructions=sanitize_fenced_text(
             structured_result.workaround_instructions, limit=1200
         ),
-        workaround_doc_paths=[p for p in structured_result.workaround_doc_paths if p in known],
+        workaround_doc_paths=[
+            p for p in structured_result.workaround_doc_paths if p in known
+        ],
         ideas=[
             ImplementationIdea(
                 title=sanitize_comment_text(idea.title, limit=120),

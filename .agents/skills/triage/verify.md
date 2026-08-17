@@ -28,7 +28,7 @@ diagnosis; judge the behaviour, not the implementation.
   - `unclear`: the evidence does not support a confident call.
 - `confidence`: `high` | `medium` | `low` for that verdict.
 
-`intended-behavior` stops the pipeline and parks the issue as not-actionable.
+`intended-behavior` stops the pipeline and parks the issue at `triage/needs-human`.
 `bug` and `unclear` both continue to the reproducer step: capturing the
 behaviour in a failing test is useful either way, and a maintainer reviewing the
 draft PR sees the verdict and can judge whether the expectation is right.

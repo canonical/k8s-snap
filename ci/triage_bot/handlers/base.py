@@ -39,6 +39,11 @@ FAILURE_MARKER = "<!-- triage-bot:failure -->"
 # even when posted under a user account in local runs.
 BOT_MARKER = "<!-- triage-bot -->"
 
+# Alpha disclaimer appended to every comment.
+ALPHA_DISCLAIMER = (
+    "\n\n---\n*🤖 This automated triage bot is in alpha. We are open to feedback!*"
+)
+
 
 @dataclass
 class Comment:
@@ -177,4 +182,4 @@ def maintainer_ping(rt: "Runtime") -> str:
 def with_marker(body: str, *, failure: bool = False) -> str:
     """Append the bot marker (and optionally the failure marker) to a comment."""
     markers = BOT_MARKER + (FAILURE_MARKER if failure else "")
-    return f"{body}\n\n{markers}"
+    return f"{body}{ALPHA_DISCLAIMER}\n\n{markers}"

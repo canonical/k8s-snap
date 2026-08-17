@@ -135,6 +135,7 @@ def test_doc_inventory_lists_pages_and_skips_build_output(tmp_path):
 def test_invented_doc_pages_are_dropped(monkeypatch):
     # worse than none, so only pages from the real inventory survive.
     real = "snap/howto/dns.md"
+
     class _LLM:
         def with_structured_output(self, _model):
             return self
@@ -145,16 +146,19 @@ def test_invented_doc_pages_are_dropped(monkeypatch):
                 explanation="already there",
                 doc_paths=[real, "snap/howto/invented.md"],
             )
-            
+
     class _Agent:
         def invoke(self, _input):
             class Msg:
                 type = "ai"
                 content = "dummy answer"
+
             return {"messages": [Msg()]}
 
     monkeypatch.setattr(triage_core, "make_llm", lambda *_a, **_k: _LLM())
-    monkeypatch.setattr("langgraph.prebuilt.create_react_agent", lambda *_a, **_k: _Agent())
+    monkeypatch.setattr(
+        "langgraph.prebuilt.create_react_agent", lambda *_a, **_k: _Agent()
+    )
 
     result = triage_core.check_existing_support(
         title="t", body="b", pages=[real, "snap/howto/other.md"]
@@ -220,4 +224,3 @@ def test_classify_strips_whitespace_around_a_label(monkeypatch):
 
     assert result.kind_labels == ["kind/bug"]
     assert result.area_labels == ["area/network"]
-
