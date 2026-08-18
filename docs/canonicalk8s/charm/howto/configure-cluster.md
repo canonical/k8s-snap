@@ -40,7 +40,7 @@ certain configuration settings (prefixed with `bootstrap-`) that cannot be
 changed later. Be sure to check the charm's documentation beforehand to
 understand the available configuration options.
 
-## Cluster annotations
+### Cluster annotations
 
 ```{note}
 v1alpha annotations are experimental and subject to change or removal in
@@ -49,13 +49,25 @@ future {{product}} releases.
 
 The `cluster-annotations` config option sets the same
 [cluster annotations][snap-annotations] used by the {{product}} snap. It
-accepts a space-separated list of `key=value` pairs, and is only applied when
-non-empty — clearing it via `key=-` removes an existing cluster annotation.
+accepts a space-separated list of `key=value` pairs:
 
-The [multi-peer BGP annotation][multi-peer-bgp],
-require nested YAML that `cluster-annotations` cannot express. The BGP
-configuration can not be set via `juju deploy` or `juju config`.
-Set these by running the `k8s` CLI on a unit instead:
+```
+juju config k8s cluster-annotations="k8sd/v1alpha1/cilium/cni-exclusive=true k8sd/v1alpha1/cilium/sctp/enabled=true"
+```
+
+The given pairs are merged into the existing cluster annotations: setting a
+key adds or updates its value, while annotations set out-of-band (e.g. via
+the `k8s` CLI) are left untouched. To remove an annotation from the cluster,
+set its value to `-`:
+
+```
+juju config k8s cluster-annotations="k8sd/v1alpha1/cilium/cni-exclusive=-"
+```
+
+The [multi-peer BGP annotation][multi-peer-bgp] is the only annotation that
+requires nested YAML, which `cluster-annotations` cannot express — it cannot
+be set via `juju deploy` or `juju config`. Set it by running the `k8s` CLI
+on a unit instead:
 
 ```
 juju exec --unit <k8s/unit#> -- sudo k8s set annotations="$(cat bgp-peers.yaml)"
@@ -125,6 +137,19 @@ Check the current configuration values with:
 juju config k8s
 juju config k8s-worker
 ```
+
+## Remove the configuration
+
+To return a configuration option to its default value, reset it:
+
+```
+juju config k8s --reset dns-enabled,dns-cluster-domain
+```
+
+Cluster annotations are the exception: they are merged into the cluster's
+existing annotations, so resetting the option does not remove annotations
+that were already applied. Remove them individually with the `key=-` syntax
+described in [Cluster annotations](#cluster-annotations).
 
 <!-- LINKS -->
 [juju install]: https://juju.is/docs/juju/install-and-manage-the-client
