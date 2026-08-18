@@ -81,20 +81,20 @@ def test_deploy_nvidia_gpu_operator(
         LOG.warn(msg)
         pytest.skip(msg)
 
-    # NOTE(aznashwan): considering the Nvidia gpu-operator's main purpose
-    # is to set up the drivers on the nodes, and that running the `gpu-operator`
-    # with pre-installed drivers can lead to incompatibilities between the
-    # version of the drivers and the rest of the toolchain, we skip the test
-    # if any of the drivers happened to be pre-loaded on the harness instance:
+    # Check if drivers are already loaded on the instance.
+    # When running inside LXD containers with GPU passthrough, the host's
+    # kernel modules are visible. In this case, we tell the gpu-operator
+    # to skip its driver installation and use the existing host drivers.
     modules_loaded = _check_nvidia_drivers_loaded(instance)
-    if any(modules_loaded.values()):
-        msg = (
-            f"Cannot have any pre-loaded Nvidia GPU drivers before running "
-            f"the Nvidia 'gpu-operator' test on instance {instance.id}. "
-            f"Current Nvidia driver statuses: {modules_loaded}"
+    host_drivers_present = any(modules_loaded.values())
+    if host_drivers_present:
+        LOG.info(
+            "Nvidia drivers already loaded on instance '%s'. "
+            "Will deploy gpu-operator with driver.enabled=false. "
+            "Driver statuses: %s",
+            instance.id,
+            modules_loaded,
         )
-        LOG.warn(msg)
-        pytest.skip(msg)
 
     instance_release = util.get_os_version_id_for_instance(instance)
     if (
@@ -115,26 +115,29 @@ def test_deploy_nvidia_gpu_operator(
     instance.exec(["k8s", "helm", "repo", "update"])
 
     # Install `gpu-operator` chart:
-    instance.exec(
-        [
-            "k8s",
-            "helm",
-            "install",
-            "--generate-name",
-            "-n",
-            test_namespace,
-            "--create-namespace",
-            "nvidia/gpu-operator",
-            f"--version={gpu_operator_version}",
-        ]
-    )
+    helm_install_cmd = [
+        "k8s",
+        "helm",
+        "install",
+        "--generate-name",
+        "-n",
+        test_namespace,
+        "--create-namespace",
+        "nvidia/gpu-operator",
+        f"--version={gpu_operator_version}",
+    ]
+    if host_drivers_present:
+        helm_install_cmd.append("--set=driver.enabled=false")
+
+    instance.exec(helm_install_cmd)
 
     # Wait for the core daemonsets of the gpu-operator to be ready:
     daemonsets = [
-        "nvidia-driver-daemonset",
         "nvidia-device-plugin-daemonset",
         "nvidia-container-toolkit-daemonset",
     ]
+    if not host_drivers_present:
+        daemonsets.insert(0, "nvidia-driver-daemonset")
     # NOTE(aznashwan): it takes on average a little under 10 minutes for all
     # of the core daemonsets of the Nvidia GPU-operator to do their thing
     # on an AWS `g4dn.xlarge` instance (4 vCPUs/16GiB RAM), so we offer a
