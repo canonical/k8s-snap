@@ -2,8 +2,8 @@
 # Copyright 2026 Canonical, Ltd.
 #
 import logging
-import os
 import shlex
+import shutil
 import subprocess
 from pathlib import Path
 from typing import List
@@ -25,10 +25,14 @@ SSH_OPTS = [
 
 
 class BareMetalHarness(Harness):
-    """A Harness that connects to an existing machine over SSH.
+    """A Harness that runs commands on an existing machine.
 
     Unlike LXD or Multipass, this harness does not create or destroy machines.
-    It treats the remote host as a single node and runs commands over SSH.
+    It treats the target host as a single node.
+
+    When the host is 'localhost', commands are run directly via subprocess
+    (no SSH overhead). Otherwise, commands are run over SSH.
+
     This is useful for testflinger environments where the device under test
     (DUT) has hardware (e.g. GPUs) that cannot be virtualized.
     """
@@ -40,19 +44,21 @@ class BareMetalHarness(Harness):
 
         self.ssh_host = config.BARE_METAL_SSH_HOST
         self.ssh_user = config.BARE_METAL_SSH_USER
+        self._is_local = self.ssh_host in ("localhost", "127.0.0.1", "")
 
-        if not self.ssh_host:
+        if not self._is_local and not self.ssh_host:
             raise HarnessError(
                 "TEST_BARE_METAL_SSH_HOST must be set when using the bare_metal substrate"
             )
 
         self.instances = set()
-        self._instance_id = f"bare-metal-{self.ssh_host}"
+        self._instance_id = f"bare-metal-{self.ssh_host or 'localhost'}"
 
         LOG.debug(
-            "Configured bare_metal substrate (host=%s, user=%s)",
+            "Configured bare_metal substrate (host=%s, user=%s, local=%s)",
             self.ssh_host,
             self.ssh_user,
+            self._is_local,
         )
 
     def _ssh_target(self) -> str:
@@ -70,18 +76,19 @@ class BareMetalHarness(Harness):
         instance_id = self._instance_id
         self.instances.add(instance_id)
 
-        # Verify SSH connectivity before proceeding.
-        try:
-            run(
-                ["ssh", *SSH_OPTS, self._ssh_target(), "echo", "ok"],
-                capture_output=True,
-                timeout=30,
-            )
-        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
-            self.instances.discard(instance_id)
-            raise HarnessError(
-                f"Cannot connect to bare_metal host {self.ssh_host} via SSH"
-            ) from e
+        if not self._is_local:
+            # Verify SSH connectivity before proceeding.
+            try:
+                run(
+                    ["ssh", *SSH_OPTS, self._ssh_target(), "echo", "ok"],
+                    capture_output=True,
+                    timeout=30,
+                )
+            except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
+                self.instances.discard(instance_id)
+                raise HarnessError(
+                    f"Cannot connect to bare_metal host {self.ssh_host} via SSH"
+                ) from e
 
         LOG.info("Connected to bare_metal instance %s", instance_id)
         instance = Instance(self, instance_id)
@@ -107,16 +114,18 @@ class BareMetalHarness(Harness):
             "Copying file %s to %s at %s", source, instance_id, destination
         )
         try:
-            # Ensure parent directory exists.
             self.exec(
                 instance_id,
                 ["mkdir", "-m=0777", "-p", Path(destination).parent.as_posix()],
                 capture_output=True,
             )
-            run(
-                ["scp", *SSH_OPTS, source, f"{self._ssh_target()}:{destination}"],
-                capture_output=True,
-            )
+            if self._is_local:
+                shutil.copy2(source, destination)
+            else:
+                run(
+                    ["scp", *SSH_OPTS, source, f"{self._ssh_target()}:{destination}"],
+                    capture_output=True,
+                )
         except subprocess.CalledProcessError as e:
             raise HarnessError(
                 f"failed to send file {source} to {destination}"
@@ -133,10 +142,13 @@ class BareMetalHarness(Harness):
             "Pulling file %s from %s to %s", source, instance_id, destination
         )
         try:
-            run(
-                ["scp", *SSH_OPTS, f"{self._ssh_target()}:{source}", destination],
-                capture_output=True,
-            )
+            if self._is_local:
+                shutil.copy2(source, destination)
+            else:
+                run(
+                    ["scp", *SSH_OPTS, f"{self._ssh_target()}:{source}", destination],
+                    capture_output=True,
+                )
         except subprocess.CalledProcessError as e:
             raise HarnessError(
                 f"failed to pull file {source} from {instance_id}"
@@ -150,19 +162,27 @@ class BareMetalHarness(Harness):
 
         LOG.debug("Execute command %s on %s", command, instance_id)
 
-        # Build the remote command string.
-        command_str = shlex.join(command)
-        return run(
-            ["ssh", *SSH_OPTS, self._ssh_target(), "--", "sudo", "bash", "-c",
-             command_str],
-            **kwargs,
-        )
+        if self._is_local:
+            return run(["sudo", *command], **kwargs)
+        else:
+            command_str = shlex.join(command)
+            return run(
+                ["ssh", *SSH_OPTS, self._ssh_target(), "--", "sudo", "bash", "-c",
+                 command_str],
+                **kwargs,
+            )
 
     def restart_instance(self, instance_id: str):
         if instance_id not in self.instances:
             raise HarnessError(f"unknown instance {instance_id}")
 
         LOG.info("Rebooting bare_metal instance %s", instance_id)
+
+        if self._is_local:
+            raise HarnessError(
+                "Cannot reboot localhost — would kill the test process"
+            )
+
         try:
             run(
                 ["ssh", *SSH_OPTS, self._ssh_target(), "sudo", "reboot"],
