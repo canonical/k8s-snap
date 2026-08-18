@@ -23,10 +23,20 @@ quietly change what is being asserted.
    diagnosis. Match surrounding style; no unrelated refactors, no new
    dependencies. Self-explanatory code over comments.
 3. If the root cause is in an adjacent repository, change it there, in the clone
-   in your scratch directory, and build this snap against that clone with a
-   `replace` directive; `SKILL.md` names the sources that describe both. That
-   repository needs its own PR, so say so in your reasoning and the orchestrator
-   will say so on the issue.
+   in your scratch directory, and point this build at that clone. This
+   repository is not a Go module, so there is no `replace` directive to add
+   here: the build resolves a component purely from its two pin files, so
+   temporarily aim them at your clone and rebuild.
+   ```bash
+   echo "$PWD/.triage/issue-<n>/k8sd" > build-scripts/components/k8sd/repository
+   git -C .triage/issue-<n>/k8sd rev-parse --abbrev-ref HEAD \
+     > build-scripts/components/k8sd/version
+   ```
+   Those two files are product code: never commit them pointing at a local path.
+   Restore them before you commit, and put the real change in a PR against that
+   repository, saying so in your reasoning so the orchestrator says so on the
+   issue. (`CONTRIBUTING.md`'s `replace` workflow is a different case: a Go
+   module edit *inside* `k8sd` to build it against a local `k8s-snap-api`.)
 4. Rebuild the snap so the artefact under test actually contains your change,
    then re-run the one test. A change to a Go component reaches the cluster only
    through a rebuild: a green run without one proves nothing. The build costs

@@ -29,8 +29,11 @@ finish the job.
 - Your shell is rooted in a **git worktree of your own**, with the branch
   `triage/fix-<issue>` already checked out. It shares history with the primary
   checkout but has its own files, so nothing you do can disturb work in
-  progress there. Never create, switch or reset branches, and never reach into
+  progress there. Never create, switch or reset branches, and never **modify**
   the primary checkout: commit here and the orchestrator pushes this branch.
+  Building the snap is the single sanctioned exception, because snapcraft
+  cannot build from this worktree's mount: that reads the primary tree and
+  writes `k8s.snap` into it, and must touch nothing else there.
 - Commands run non-interactively with no terminal attached, so anything that
   prompts fails rather than hangs. Prefer idempotent, non-destructive
   invocations.
@@ -106,4 +109,4 @@ traps, while the step file tells you what to produce and what to return.
 | verify | `verify.md` | `verdict`, `confidence` |
 | reproducer | `reproducer.md` | `test_path`, `test_selector`, `fails_before_fix`, `failure_output` |
 | diagnose | `diagnose.md` | `confidence` |
-| fix | `fix.md` | `fixed`, `commit_message` |
+| fix | `fix.md` | `fixed`, `commit_message`, `verification_blocked`, `blocked_reason` |

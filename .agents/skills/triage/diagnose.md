@@ -20,8 +20,7 @@ is a command that fails, and its output is in the report. Start from that.
 2. Trace from the observed failure to the code responsible for it. `SKILL.md`
    says where that code lives; the practical consequence here is that the answer
    is usually **not** in this repository. Clone the adjacent repository at the
-   version this build actually ships, never at its default branch, into your
-   scratch directory:
+   version this build actually ships into your scratch directory:
    ```bash
    git clone --depth 1 --branch "$(cat build-scripts/components/k8sd/version)" \
      "$(cat build-scripts/components/k8sd/repository)" .triage/issue-<n>/k8sd
@@ -30,9 +29,10 @@ is a command that fails, and its output is in the report. Start from that.
    source rather than fighting the build, and let the snap rebuild in the fix
    step be your validation.
 3. Correlate what you have: log lines, service names, the args files under
-   `/var/snap/k8s/common/args`, and the code path you just read. The cluster
-   from the reproduction is still up, so you can go back and read live state
-   instead of guessing.
+   `/var/snap/k8s/common/args`, and the code path you just read. If the
+   reproducer step did not destroy it, the cluster from the reproduction is
+   still up, so you can go back and read live state instead of guessing. If it
+   is gone, read the state from the inspection tarball.
 4. Form a single, specific hypothesis: the file and function, and the mechanism
    by which it produces the failure the test observes. Note whether the fix
    would land in this repository or in an adjacent one.
