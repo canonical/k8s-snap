@@ -9,32 +9,30 @@ likely root cause and state how confident you are.
 You run after the reproducer step, so you are not chasing a description: there
 is a command that fails, and its output is in the report. Start from that.
 
+> Uses: `inspection-report`, `local-cluster`
+
 ## Procedure
 
-1. Re-read the reproduction evidence and the test failure in the report.
-2. Trace from the observed failure to the responsible code. Remember that this
-   repository holds packaging, hooks and tests, not Go source (see `SKILL.md`):
-   - daemon and CLI behaviour lives in `k8sd`
-     (https://github.com/canonical/k8sd, pinned by
-     `build-scripts/components/k8sd/{repository,version}`). Clone it into your
-     per-issue scratch, never into the checkout root:
-     ```bash
-     git clone --depth 1 --branch "$(cat build-scripts/components/k8sd/version)" \
-       "$(cat build-scripts/components/k8sd/repository)" .triage/issue-<n>/k8sd
-     ```
-     Building it locally needs `libdqlite-dev`; if that is missing, read the
-     source rather than fighting the build, and validate through the snap
-     rebuild in the fix step.
-   - the API contract lives in `k8s-snap-api`
-     (https://github.com/canonical/k8s-snap-api)
-   - packaging, service definitions and hooks live under `snap/`, `hooks/`,
-     `k8s/` and `build-scripts/` in this repository
-3. Correlate log lines, service names, and args files
-   (`/var/snap/k8s/common/args/*`) with the code path. The node names from the
-   reproduction (`k8s-triage-*`) still exist, so you can read live state:
+1. Re-read the reproduction evidence and the test failure in `report.md`. If the
+   issue carries an inspection tarball, read it now as well: it is a snapshot of
+   the failure on the reporter's own machine, and it frequently names the
+   mechanism your reproduction only shows the symptom of.
+2. Trace from the observed failure to the code responsible for it. `SKILL.md`
+   says where that code lives; the practical consequence here is that the answer
+   is usually **not** in this repository. Clone the adjacent repository at the
+   version this build actually ships, never at its default branch, into your
+   scratch directory:
    ```bash
-   lxc exec k8s-triage-cp1 -- k8s kubectl logs -n kube-system <pod>
+   git clone --depth 1 --branch "$(cat build-scripts/components/k8sd/version)" \
+     "$(cat build-scripts/components/k8sd/repository)" .triage/issue-<n>/k8sd
    ```
+   Building `k8sd` locally needs `libdqlite-dev`; when that is missing, read the
+   source rather than fighting the build, and let the snap rebuild in the fix
+   step be your validation.
+3. Correlate what you have: log lines, service names, the args files under
+   `/var/snap/k8s/common/args`, and the code path you just read. The cluster
+   from the reproduction is still up, so you can go back and read live state
+   instead of guessing.
 4. Form a single, specific hypothesis: the file and function, and the mechanism
    by which it produces the failure the test observes. Note whether the fix
    would land in this repository or in an adjacent one.

@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import uuid
 from pathlib import Path
@@ -52,8 +53,57 @@ class SkillError(RuntimeError):
     """Raised when a skill cannot be loaded or produces no structured result."""
 
 
+# Anchored to the start of a line (MULTILINE) so a "> Uses:" that follows other
+# text on the same line is never mistaken for a real directive. It does NOT
+# exempt fenced code blocks: a directive written as a documentation *example*
+# still matches when it starts its own line, so never demonstrate this syntax
+# at column 0 inside a fence. Conversely, indenting a real directive (or
+# nesting it in another blockquote) silently stops it matching at all -- which
+# is why every skill file keeps its ``Uses:`` line flush left.
+_USES_RE = re.compile(r"^> Uses:(.*)$", re.MULTILINE)
+
+# A shared skill's directory name. Deliberately excludes anything that could
+# escape ``<skill_dir>.parent`` once joined onto it -- path separators, ``..``,
+# an absolute path -- and any casing but the one the directory itself uses.
+_SKILL_NAME_RE = re.compile(r"[a-z0-9][a-z0-9-]*")
+
+
+def _named_skills(texts: list[tuple[str, Path]]) -> list[tuple[str, Path]]:
+    """Ordered, de-duplicated ``(name, declaring file)`` pairs from every
+    ``> Uses:`` line across ``texts``.
+
+    ``texts`` is scanned in the given order, so that order is the caller's
+    only lever over precedence (the base file's names before the step file's).
+    The declaring file rides along with each name so a later "missing skill"
+    error can name it directly, instead of forcing whoever reads the CI log
+    to re-scan both source files to find out which one is responsible.
+    """
+    seen: set[str] = set()
+    named: list[tuple[str, Path]] = []
+    for text, source in texts:
+        for line in _USES_RE.findall(text):
+            for raw in line.split(","):
+                name = raw.strip().strip("`").strip()
+                if not _SKILL_NAME_RE.fullmatch(name):
+                    raise SkillError(
+                        f"invalid skill name {name!r} named by {source}'s 'Uses:' directive"
+                    )
+                if name not in seen:
+                    seen.add(name)
+                    named.append((name, source))
+    return named
+
+
 def load_skill(skill_dir: str | Path, step: Optional[str] = None) -> str:
-    """Return the skill text: ``SKILL.md`` plus the step file when given."""
+    """Return the skill text: ``SKILL.md``, any shared skills either file
+    names with ``Uses:``, then the step file when given.
+
+    A shared skill resolves as a sibling of ``skill_dir``: ``<skill_dir>.parent
+    / <name>`` (see ``_named_skills`` for how ``> Uses:`` lines are parsed) --
+    the same layout ``triage`` already shares with ``inspection-report`` and
+    ``local-cluster`` under ``.agents/skills/`` -- regardless of which file,
+    base or step, named it.
+    """
     # A relative skill_dir is anchored to the checkout root, not the process
     # cwd: the CLI runs from ``ci/`` (locally and via the workflow's
     # ``working-directory``), while the skills live at the repo root. An
@@ -64,12 +114,39 @@ def load_skill(skill_dir: str | Path, step: Optional[str] = None) -> str:
     skill_md = root / "SKILL.md"
     if not skill_md.exists():
         raise SkillError(f"skill not found: {skill_md}")
-    parts = [skill_md.read_text(encoding="utf-8")]
+    base_text = skill_md.read_text(encoding="utf-8")
+    texts = [(base_text, skill_md)]
+
+    step_text = None
     if step:
         step_md = root / f"{step}.md"
         if not step_md.exists():
             raise SkillError(f"skill step not found: {step_md}")
-        parts.append(step_md.read_text(encoding="utf-8"))
+        step_text = step_md.read_text(encoding="utf-8")
+        texts.append((step_text, step_md))
+
+    parts = [base_text]
+    for name, source in _named_skills(texts):
+        shared_md = root.parent / name / "SKILL.md"
+        if not shared_md.exists():
+            raise SkillError(
+                f"skill {name!r}, named by {source}'s 'Uses:' directive, not found: {shared_md}"
+            )
+        shared_text = shared_md.read_text(encoding="utf-8")
+        # A shared skill is reference-only leaf content. Resolving a directive
+        # inside one would need cycle detection to stay safe; ignoring it would
+        # paste the line into the prompt as inert text and quietly drop the
+        # knowledge it asked for. Refuse it instead, so the authoring mistake
+        # surfaces in CI rather than as a subtly under-briefed agent.
+        if _USES_RE.search(shared_text):
+            raise SkillError(
+                f"shared skill {name!r} ({shared_md}) declares its own 'Uses:' "
+                "directive; nested composition is not supported"
+            )
+        parts.append(shared_text)
+    if step_text is not None:
+        parts.append(step_text)
+
     return "\n\n---\n\n".join(parts)
 
 

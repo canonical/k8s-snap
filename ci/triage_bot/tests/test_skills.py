@@ -73,6 +73,118 @@ def test_missing_step_file_raises_instead_of_dropping_instructions(tmp_path):
         skills.load_skill(skill, "reproduce")
 
 
+# --- shared skill composition ("> Uses:") ---
+
+
+def _skill(root, name, skill_md="BASE", **steps):
+    """A ``<root>/<name>`` skill directory: SKILL.md plus any given steps.
+
+    ``steps`` maps step name to file text, e.g. ``reproduce="STEP"``.
+    """
+    skill = root / name
+    skill.mkdir(parents=True)
+    (skill / "SKILL.md").write_text(skill_md, encoding="utf-8")
+    for step, text in steps.items():
+        (skill / f"{step}.md").write_text(text, encoding="utf-8")
+    return skill
+
+
+def test_step_uses_directive_inlines_the_shared_skill(tmp_path):
+    _skill(tmp_path, "local-cluster", "CLUSTER TEXT")
+    skill = _skill(tmp_path, "triage", reproduce="> Uses: `local-cluster`\n\nSTEP")
+
+    text = skills.load_skill(skill, "reproduce")
+
+    assert "CLUSTER TEXT" in text
+
+
+def test_base_skill_uses_directive_inlines_the_shared_skill(tmp_path):
+    _skill(tmp_path, "local-cluster", "CLUSTER TEXT")
+    skill = _skill(
+        tmp_path, "triage", "> Uses: `local-cluster`\n\nBASE", reproduce="STEP"
+    )
+
+    text = skills.load_skill(skill, "reproduce")
+
+    assert "CLUSTER TEXT" in text
+
+
+def test_skill_named_by_both_base_and_step_is_inlined_once(tmp_path):
+    _skill(tmp_path, "local-cluster", "CLUSTER TEXT")
+    skill = _skill(
+        tmp_path,
+        "triage",
+        "> Uses: `local-cluster`\n\nBASE",
+        reproduce="> Uses: `local-cluster`\n\nSTEP",
+    )
+
+    text = skills.load_skill(skill, "reproduce")
+
+    assert text.count("CLUSTER TEXT") == 1
+
+
+def test_assembly_order_is_base_then_shared_then_step(tmp_path):
+    _skill(tmp_path, "local-cluster", "CLUSTER TEXT")
+    skill = _skill(tmp_path, "triage", reproduce="> Uses: `local-cluster`\n\nSTEP")
+
+    text = skills.load_skill(skill, "reproduce")
+
+    assert text.index("BASE") < text.index("CLUSTER TEXT") < text.index("STEP")
+
+
+def test_missing_shared_skill_raises_naming_it(tmp_path):
+    skill = _skill(tmp_path, "triage", reproduce="> Uses: `nope`\n\nSTEP")
+
+    with pytest.raises(skills.SkillError, match="nope"):
+        skills.load_skill(skill, "reproduce")
+
+
+def test_invalid_shared_skill_name_raises(tmp_path):
+    # Anything outside [a-z0-9][a-z0-9-]* must fail loudly rather than
+    # resolve to nothing: a relative escape out of the skills tree, a name
+    # whose case disagrees with the directory it has to match, and an empty
+    # name (backticks with nothing between them).
+    for index, bad_name in enumerate(("../evil", "Foo", "")):
+        skill = _skill(
+            tmp_path / str(index), "triage", reproduce=f"> Uses: `{bad_name}`\n\nSTEP"
+        )
+
+        with pytest.raises(skills.SkillError):
+            skills.load_skill(skill, "reproduce")
+
+
+def test_no_uses_directive_matches_todays_output_byte_for_byte(tmp_path):
+    skill = _skill(tmp_path, "triage", reproduce="STEP")
+
+    assert skills.load_skill(skill, "reproduce") == "BASE\n\n---\n\nSTEP"
+
+
+def test_one_directive_naming_two_skills_inlines_both_in_order(tmp_path):
+    # The shape every real step file uses: a single directive, two names.
+    _skill(tmp_path, "local-cluster", "CLUSTER TEXT")
+    _skill(tmp_path, "inspection-report", "REPORT TEXT")
+    skill = _skill(
+        tmp_path,
+        "triage",
+        reproduce="> Uses: `local-cluster`, `inspection-report`\n\nSTEP",
+    )
+
+    text = skills.load_skill(skill, "reproduce")
+
+    assert text.index("CLUSTER TEXT") < text.index("REPORT TEXT") < text.index("STEP")
+
+
+def test_uses_directive_inside_a_shared_skill_is_refused(tmp_path):
+    # Nested composition is unsupported, and pasting the directive through as
+    # inert text would silently drop the knowledge it asked for.
+    _skill(tmp_path, "inspection-report", "REPORT TEXT")
+    _skill(tmp_path, "local-cluster", "> Uses: `inspection-report`\n\nCLUSTER TEXT")
+    skill = _skill(tmp_path, "triage", reproduce="> Uses: `local-cluster`\n\nSTEP")
+
+    with pytest.raises(skills.SkillError, match="nested composition"):
+        skills.load_skill(skill, "reproduce")
+
+
 def test_agent_shell_can_commit_with_the_supplied_identity(tmp_path):
     # The scratch HOME hides the runner's ~/.gitconfig, so without an injected
     # identity ``git commit`` fails and the fix step degrades to "no PR".

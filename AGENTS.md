@@ -18,7 +18,7 @@ Before working in a subfolder, read its `AGENTS.md`:
 snap/snapcraft.yaml              snap definition; parts reference build-scripts/components/*
 build-scripts/                   component build scripts (see build-scripts/AGENTS.md)
 k8s/                             snap runtime: lib.sh, wrappers, manifests (see k8s/AGENTS.md)
-.agents/skills/triage/           Playbooks for all agents: reproduce, test, diagnose, fix
+.agents/skills/                  Agent playbooks: shared project skills + the triage pipeline
 ci/                              CI automation Python (GitHub Actions, tox, Mattermost)
 tests/integration/               pytest integration tests (see tests/integration/AGENTS.md)
 docs/                            MkDocs user docs and proposals (see docs/AGENTS.md)
@@ -44,16 +44,24 @@ Uses `go/<version>-fips/stable` for all Go component builds. FIPS mode is a firs
 
 ## Agent Skills
 
-The repository includes documented workflows in `.agents/skills/triage/` that
-are used by the autonomous triage bot, but they serve as definitive playbooks
-for **any agent** working in this repository:
+`.agents/skills/` holds markdown playbooks. The autonomous triage bot composes
+them into its prompts, but they are written for **any agent** working in this
+repository, so read the relevant one before starting:
 
-- **`reproduce.md`**: How to use `hack/cluster-up.sh` to build a cluster and manually reproduce a reported issue.
-- **`reproducer.md`**: How to write, isolate, and run end-to-end tests in `tests/integration/`.
-- **`diagnose.md`**: How to root-cause failures, particularly those crossing the boundary between the snap shell and the `k8sd` backend.
-- **`fix.md`**: How to cleanly implement fixes across the multi-repo structure, rebuild the snap from source, and verify the fix against the tests.
+- **`local-cluster/`**: bring up a real cluster from this checkout with
+  `hack/cluster-up.sh`, drive the nodes, and the snap-build constraints
+  (a rebuild is the only way a Go change reaches a cluster).
+- **`inspection-report/`**: the layout of an inspection report tarball and the
+  order to read it in to find a fault, including the traps that make an absent
+  file look like a healthy one.
+- **`triage/`**: the bot's own pipeline (`reproduce -> verify -> reproducer ->
+  diagnose -> fix`), one file per step. These encode the contract with the
+  orchestrator, so they are only directly useful when running that pipeline;
+  the project knowledge they used to carry now lives in the skills above.
 
-Whenever you are asked to reproduce a bug, write a test, or fix an issue, you should consult these skill files for the exact commands, constraints, and architecture rules you must follow.
+A step declares the shared skills it needs with a `> Uses:` line, and the runner
+in `ci/triage_bot/skills.py` appends each named skill to the prompt.
+
 ## Snap Channels
 
 Channel format: `{major}.{minor}-{flavor}/{risk}`, e.g. `1.35-classic/stable`.

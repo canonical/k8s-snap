@@ -10,30 +10,27 @@ That failing test is the specification the fix must satisfy. A test that already
 passes proves nothing about a later change, so this step is only finished once
 you have watched it fail for the reported reason.
 
-## The cluster, and the test's own cluster
-
-These are two different things, and mixing them up wastes a lot of time:
-
-- `hack/cluster-up.sh` gave you a cluster (`k8s-triage-*`) to poke at by hand.
-- `tests/integration` builds and tears down **its own** instances from the
-  `harness.Instance` fixtures. Your test must not assume the manual cluster.
-
-They use separate names and LXD profiles, so they coexist. On a small machine
-they compete for CPU and disk: `hack/cluster-up.sh --destroy` first if the test
-run is starved.
+> Uses: `local-cluster`
 
 ## Procedure
 
 1. You are already in a dedicated worktree with `triage/fix-<issue>` checked
    out. Never create, switch or reset branches; just commit here.
-2. Find the closest existing test under `tests/integration/tests` and follow its
-   conventions rather than inventing your own (`test_dns.py` for DNS, and so
-   on). Reuse the helpers in `tests/integration/tests/test_util/util.py`.
-3. Declare the cluster shape the reporter used. `node_count` **defaults to 1**,
-   so a missing marker silently tests a single-node cluster and quietly proves
-   nothing about a multi-node bug:
+2. `tests/integration/AGENTS.md` documents the suite: the markers, the mandatory
+   tags, the `Instance` API and the helpers that already exist. Read it before
+   writing anything, and follow the closest existing test (`test_dns.py` for
+   DNS, and so on) rather than inventing conventions. Reuse the helpers in
+   `tests/integration/tests/test_util/`; most of what you need is there.
+3. Declare the cluster shape and tag the test. `node_count` **defaults to 1**, so
+   a missing marker silently tests a single-node cluster and quietly proves
+   nothing about a multi-node bug. A test with no `tags` marker is worse: the
+   suite's `conftest.py` fails it at collection, which looks like a red test but
+   proves nothing at all.
    ```python
+   from test_util import harness, tags
+
    @pytest.mark.node_count(2)   # the reporter's 1 control-plane + 1 worker
+   @pytest.mark.tags(tags.PULL_REQUEST)
    def test_coredns_replicas_spread_across_nodes(instances: List[harness.Instance]):
        ...
    ```
@@ -45,11 +42,8 @@ run is starved.
    would leave it red, and the test would pass while the reported symptom
    persists. Assert what should happen, not what is happening today, so the
    test fails now and passes once the bug is gone.
-5. Run only your test:
-   ```bash
-   export TEST_SNAP=$PWD/k8s.snap TEST_SUBSTRATE=lxd
-   cd tests/integration && tox -e integration -- -k <test_name>
-   ```
+5. Run only your test, as `tests/integration/AGENTS.md` describes, against the
+   snap under test.
 6. Confirm it fails **for the reported reason**. An `ImportError`, a fixture
    error, a typo or a timeout during bootstrap is not a reproduction: fix your
    test and run it again until the failure is the bug itself.

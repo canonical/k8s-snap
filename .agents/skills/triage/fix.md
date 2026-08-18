@@ -10,6 +10,8 @@ and is known to fail. It is the specification. **Do not weaken, skip, delete or
 rewrite it to get a green run.** If the test is wrong, say so and stop; do not
 quietly change what is being asserted.
 
+> Uses: `local-cluster`
+
 ## Procedure
 
 1. You are in your own worktree, on `triage/fix-<issue>`, with the reproducer
@@ -20,31 +22,16 @@ quietly change what is being asserted.
 2. Make the **smallest** change that addresses the root cause from the
    diagnosis. Match surrounding style; no unrelated refactors, no new
    dependencies. Self-explanatory code over comments.
-3. If the root cause is in an adjacent repository (`k8sd`, `k8s-snap-api`),
-   follow `CONTRIBUTING.md`: clone it, change it there, and add a `replace`
-   directive so this build picks up your checkout. A separate PR in that
-   repository is required; note that in your reasoning so the orchestrator can
-   say so on the issue.
+3. If the root cause is in an adjacent repository, change it there, in the clone
+   in your scratch directory, and build this snap against that clone with a
+   `replace` directive; `SKILL.md` names the sources that describe both. That
+   repository needs its own PR, so say so in your reasoning and the orchestrator
+   will say so on the issue.
 4. Rebuild the snap so the artefact under test actually contains your change,
-   then re-run the one test. The build **must run from the primary checkout**
-   (the real directory, not this worktree): snapcraft copies every project file
-   into the LXD build instance, and the sshfs mount that backs this worktree
-   refuses those copies with a permission error. Use the `REPO_ROOT` variable
-   that `hack/cluster-up.sh` derives — or find the primary tree from the git
-   worktree list:
-   ```bash
-   # Find the primary checkout (first entry in worktree list)
-   PRIMARY="$(git worktree list --porcelain | sed -n '1s/^worktree //p')"
-   # Reuse an existing snap rather than spending tens of minutes rebuilding
-   SNAP="$PRIMARY/k8s.snap"
-   if [ ! -f "$SNAP" ]; then
-     (cd "$PRIMARY" && snapcraft --use-lxd && mv k8s_*.snap k8s.snap)
-   fi
-   export TEST_SNAP="$SNAP" TEST_SUBSTRATE=lxd
-   cd tests/integration && tox -e integration -- -k <test_name>
-   ```
-   A change to `k8sd` only reaches the cluster through a rebuild. Skipping it
-   means your green run proves nothing. The build takes tens of minutes.
+   then re-run the one test. A change to a Go component reaches the cluster only
+   through a rebuild: a green run without one proves nothing. The build costs
+   tens of minutes, and it must run from the primary checkout rather than this
+   worktree.
 5. Commit the fix as its own commit, separate from the test. Stage only the
    files you changed: the checkout may carry unrelated work in progress, and
    `commit -a` would sweep it into the bot's PR.

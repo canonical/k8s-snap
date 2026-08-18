@@ -34,56 +34,45 @@ finish the job.
 - Commands run non-interactively with no terminal attached, so anything that
   prompts fails rather than hangs. Prefer idempotent, non-destructive
   invocations.
-- `hack/cluster-up.sh` is how you get a cluster. It verifies or installs the
-  tooling, builds `k8s.snap` when it is missing, launches LXD nodes and joins
-  them:
-  ```bash
-  hack/cluster-up.sh --control-plane 1 --workers 1   # match the reported shape
-  hack/cluster-up.sh --status
-  hack/cluster-up.sh --destroy
-  ```
-  Nodes are `k8s-triage-cp<i>` / `k8s-triage-w<i>`; reach them with
-  `lxc exec <node> -- k8s ...`. Building the snap takes tens of minutes; the
-  script reuses an existing `k8s.snap` from the primary checkout automatically,
-  so never start a build by hand here. If you must rebuild (e.g. in the fix
-  step after changing `k8sd`), the build **must run from the primary checkout**:
-  the sshfs mount backing this worktree rejects the file copies snapcraft makes
-  inside the LXD build instance. Find the primary tree with:
-  ```bash
-  PRIMARY="$(git worktree list --porcelain | sed -n '1s/^worktree //p')"
-  ```
-- End-to-end tests live in `tests/integration` and build **their own** instances
-  from the harness fixtures, independent of the cluster above:
-  ```bash
-  export TEST_SNAP="$PRIMARY/k8s.snap" TEST_SUBSTRATE=lxd
-  cd tests/integration && tox -e integration -- -k <test_name>
-  ```
+- `.triage/issue-<n>/` is your per-issue scratch directory, and it is
+  gitignored. Everything you download, unpack or clone belongs there, so the
+  branch you commit contains only your test and your fix.
+- `CLUSTER_PREFIX` is already set in your shell to `k8s-triage-<issue>`, which
+  scopes your cluster to this issue so a concurrent run on another issue can
+  never collide with or destroy it. `hack/cluster-up.sh` picks it up on its own:
+  do not pass `--prefix`, and derive node names from it rather than from the
+  default, or you will address a node that does not exist.
 
 ## Where the code lives
 
 This repository is snap packaging, hooks, and end-to-end tests. **It contains no
-Go source.** The daemon and the API live in adjacent repositories that the build
-fetches at pinned versions:
+Go source**, and there is no `src/` directory; do not go looking for one. The
+daemon `k8sd` (which provides the `k8s` CLI) and the shared API types
+(`k8s-snap-api`) live in adjacent repositories that the build fetches at pinned
+versions. Rather than restate that here:
 
-- `k8sd` (the `k8sd` daemon and `k8s` CLI): https://github.com/canonical/k8sd,
-  pinned by `build-scripts/components/k8sd/{repository,version}`
-- `k8s-snap-api`: https://github.com/canonical/k8s-snap-api
+- the three-repo topology and the rule that an API change needs a PR in each:
+  root `AGENTS.md`, section "Multi-Repo Dependencies"
+- how a component is pinned, patched and built, and the
+  `build-scripts/components/<name>/{repository,version}` files that name the
+  commit actually shipped: `build-scripts/AGENTS.md`
+- the `replace`-directive workflow for building against a local checkout of an
+  adjacent repository: `CONTRIBUTING.md`
 
-There is no `src/` directory; do not go looking for one. To change either
-repository, follow `CONTRIBUTING.md`: clone it, make the change there, and add a
-`replace` directive so k8s-snap builds against your checkout. Those changes need
-their own PR in that repository.
+Clone an adjacent repository into your scratch directory, never into the
+checkout root, and remember a change there needs its own PR in that repository.
 
-## The inspection report
+## Reference skills
 
-Bug reports should attach an inspection tarball produced by
-`sudo /snap/k8s/current/k8s/scripts/inspect.sh`. It contains service logs,
-`k8s status`, and system context. When one is attached, download and expand it
-into `.triage/issue-<n>/` (your per-issue scratch, which is gitignored) and read
-it before building anything: it usually names the mechanism and saves you a
-search. It is evidence, not a reproduction. Keep every artefact you download,
-unpack or clone inside that scratch directory: the checkout itself must stay
-clean so the branch you commit contains only your test and your fix.
+Some steps need project knowledge that is not specific to triage: how to bring
+up a cluster from this checkout, how to read an inspection report. That
+knowledge lives in separate skills under `.agents/skills/`, so any agent can use
+it. A step declares what it needs with a `> Uses:` line naming them, and the
+runner appends each named skill to this prompt, between these instructions and
+the step's own file.
+
+Treat an appended skill as reference material: it describes the tooling and its
+traps, while the step file tells you what to produce and what to return.
 
 ## Ground rules
 
