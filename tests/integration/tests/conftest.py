@@ -95,9 +95,11 @@ def h() -> harness.Harness:
         h = harness.MultipassHarness()
     elif config.SUBSTRATE == "juju":
         h = harness.JujuHarness()
+    elif config.SUBSTRATE == "bare_metal":
+        h = harness.BareMetalHarness()
     else:
         raise harness.HarnessError(
-            "TEST_SUBSTRATE must be one of: lxd, multipass, juju"
+            "TEST_SUBSTRATE must be one of: lxd, multipass, juju, bare_metal"
         )
 
     yield h
