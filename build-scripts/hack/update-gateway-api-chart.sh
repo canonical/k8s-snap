@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION="v1.4.1"
+VERSION="v1.6.1"
 DIR=$(realpath $(dirname "${0}"))
 
 CHARTS_PATH="$DIR/../../k8s/manifests/charts"
@@ -15,7 +15,9 @@ helm create gateway-api
 rm -rf gateway-api/templates/*
 rm -rf gateway-api/charts
 cp gateway-api-src/config/crd/standard/* gateway-api/templates/
-cp gateway-api-src/config/crd/experimental/gateway.networking.k8s.io_tlsroutes.yaml gateway-api/templates/
+# The standard channel also ships a ValidatingAdmissionPolicy that restricts how
+# the CRDs may be upgraded. This chart only carries the CRDs themselves.
+rm -f gateway-api/templates/gateway.networking.k8s.io_vap_safeupgrades.yaml
 sed -i 's/^\(version: \).*$/\1'"${VERSION:1}"'/' gateway-api/Chart.yaml
 sed -i 's/^\(appVersion: \).*$/\1'"${VERSION:1}"'/' gateway-api/Chart.yaml
 sed -i 's/^\(description: \).*$/\1'"A Helm Chart containing Gateway API CRDs"'/' gateway-api/Chart.yaml

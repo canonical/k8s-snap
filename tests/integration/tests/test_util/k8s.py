@@ -168,23 +168,25 @@ def update_resource_container_env(
                         "value": val,
                     }
                 )
+            elif env:
+                patches.append(
+                    {
+                        "op": "add",
+                        "path": f"/spec/template/spec/containers/{i}/env/-",
+                        "value": {"name": key, "value": val},
+                    }
+                )
             else:
-                if env:
-                    patches.append(
-                        {
-                            "op": "add",
-                            "path": f"/spec/template/spec/containers/{i}/env/-",
-                            "value": {"name": key, "value": val},
-                        }
-                    )
-                else:
-                    patches.append(
-                        {
-                            "op": "add",
-                            "path": f"/spec/template/spec/containers/{i}/env",
-                            "value": [{"name": key, "value": val}],
-                        }
-                    )
+                # The container has no env list yet, so create it with the first
+                # variable and append the rest to it.
+                patches.append(
+                    {
+                        "op": "add",
+                        "path": f"/spec/template/spec/containers/{i}/env",
+                        "value": [{"name": key, "value": val}],
+                    }
+                )
+                env = [{"name": key, "value": val}]
 
     if not patches:
         raise ValueError(f"No containers found in {resource_type}/{name}")
