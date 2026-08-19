@@ -1,12 +1,13 @@
 name: Weekly
 
+# Deliberately not triggered by pull_request. Every job here targets a
+# published snap channel or a release branch, so none of them cover a PR's own
+# changes. e2e-tests.yaml is exercised on every PR by lint_and_integration.yaml
+# and linkcheck.yaml by docs-checks.yml. Use workflow_dispatch to test an edit.
 on:
+  workflow_dispatch:
   schedule:
     - cron: "0 0 * * 6" # Runs every saturday at midnight
-  pull_request:
-    paths:
-      - .github/workflows/weekly-test.yaml
-      - .github/workflows/e2e-tests.yaml
 permissions:
   contents: read
   actions: read

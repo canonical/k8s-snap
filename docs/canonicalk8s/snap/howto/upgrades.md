@@ -34,7 +34,7 @@ These updates ensure that the latest changes in the installed track are applied.
 Patch upgrades can also be triggered manually by following the steps below.
 
 <!-- SPREAD 
-sudo snap install k8s --classic --channel=1.34-classic/stable
+sudo snap install k8s --classic --channel=1.35-classic/stable
 sudo k8s bootstrap
 sudo k8s status --wait-ready --timeout 3m
 # Ensure Cilium exists
@@ -54,7 +54,7 @@ snap info k8s
 ```
 
 <!-- SPREAD 
-snap info k8s | grep "tracking:     1.34-classic/stable"
+snap info k8s | grep "tracking:     1.35-classic/stable"
 -->
 
 

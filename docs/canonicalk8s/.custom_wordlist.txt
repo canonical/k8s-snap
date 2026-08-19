@@ -141,6 +141,7 @@ DaemonSets
 databag
 databags
 Data Integrator
+datapath
 datastore
 datastores
 dbus
