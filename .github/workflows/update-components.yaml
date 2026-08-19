@@ -4,10 +4,6 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "0 10 * * *"
-  pull_request:
-    paths:
-      - .github/workflows/update-components.yaml
-      - build-scripts/hack/update-component-versions.py
 
 permissions:
   contents: read
