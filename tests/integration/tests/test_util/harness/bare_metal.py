@@ -110,9 +110,7 @@ class BareMetalHarness(Harness):
         if not Path(destination).is_absolute():
             raise HarnessError(f"path {destination} must be absolute")
 
-        LOG.debug(
-            "Copying file %s to %s at %s", source, instance_id, destination
-        )
+        LOG.debug("Copying file %s to %s at %s", source, instance_id, destination)
         try:
             self.exec(
                 instance_id,
@@ -130,9 +128,7 @@ class BareMetalHarness(Harness):
                     capture_output=True,
                 )
         except subprocess.CalledProcessError as e:
-            raise HarnessError(
-                f"failed to send file {source} to {destination}"
-            ) from e
+            raise HarnessError(f"failed to send file {source} to {destination}") from e
 
     def pull_file(self, instance_id: str, source: str, destination: str):
         if instance_id not in self.instances:
@@ -141,9 +137,7 @@ class BareMetalHarness(Harness):
         if not Path(source).is_absolute():
             raise HarnessError(f"path {source} must be absolute")
 
-        LOG.debug(
-            "Pulling file %s from %s to %s", source, instance_id, destination
-        )
+        LOG.debug("Pulling file %s from %s to %s", source, instance_id, destination)
         try:
             if self._is_local:
                 src = Path(source).resolve()
@@ -173,8 +167,16 @@ class BareMetalHarness(Harness):
         else:
             command_str = shlex.join(command)
             return run(
-                ["ssh", *SSH_OPTS, self._ssh_target(), "--", "sudo", "bash", "-c",
-                 command_str],
+                [
+                    "ssh",
+                    *SSH_OPTS,
+                    self._ssh_target(),
+                    "--",
+                    "sudo",
+                    "bash",
+                    "-c",
+                    command_str,
+                ],
                 **kwargs,
             )
 
@@ -185,9 +187,7 @@ class BareMetalHarness(Harness):
         LOG.info("Rebooting bare_metal instance %s", instance_id)
 
         if self._is_local:
-            raise HarnessError(
-                "Cannot reboot localhost — would kill the test process"
-            )
+            raise HarnessError("Cannot reboot localhost — would kill the test process")
 
         try:
             run(

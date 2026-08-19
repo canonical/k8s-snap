@@ -151,6 +151,23 @@ def test_deploy_nvidia_gpu_operator(
             retry_delay_s=60,
         )
 
+    # Wait for nvidia.com/gpu resources to be advertised on the node.
+    # The device-plugin may be "Ready" but not yet registered GPU resources.
+    LOG.info("Waiting for nvidia.com/gpu resources to appear on the node...")
+    util.stubbornly(retries=30, delay_s=10).on(instance).until(
+        lambda p: "nvidia.com/gpu" in p.stdout.decode()
+    ).exec(
+        [
+            "k8s",
+            "kubectl",
+            "get",
+            "nodes",
+            "-o",
+            "jsonpath={.items[*].status.allocatable}",
+        ],
+        capture_output=True,
+    )
+
     # Deploy a sample CUDA app and let it run to completion:
     pod_spec_file = config.MANIFESTS_DIR / "cuda-vectoradd-nvidia-gpu-test-pod.yaml"
     pod_spec = pod_spec_file.read_text().format(
@@ -160,7 +177,7 @@ def test_deploy_nvidia_gpu_operator(
         ["k8s", "kubectl", "-n", test_namespace, "apply", "-f", "-"],
         input=pod_spec.encode(),
     )
-    util.stubbornly(retries=3, delay_s=1).on(instance).exec(
+    util.stubbornly(retries=5, delay_s=1).on(instance).exec(
         [
             "k8s",
             "kubectl",
