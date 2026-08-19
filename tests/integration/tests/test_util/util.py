@@ -1,6 +1,8 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
+from __future__ import annotations
+
 import ipaddress
 import json
 import logging
