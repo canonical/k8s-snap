@@ -179,8 +179,16 @@ def test_fips_images(instances: List[harness.Instance]):
 
         LOG.info(f"Testing FIPS compliance for {resource_type}/{name} in {namespace}")
 
+        # Rock-based images run their workload under pebble, which only
+        # forwards the service output to the container stdout when
+        # PEBBLE_VERBOSE=1. Without it the FIPS panic is invisible to
+        # `kubectl logs`.
         k8s.update_resource_container_env(
-            instance, namespace, resource_type, name, {"GOFIPS": "1"}
+            instance,
+            namespace,
+            resource_type,
+            name,
+            {"GOFIPS": "1", "PEBBLE_VERBOSE": "1"},
         )
 
         # Wait for pods to restart with GOFIPS=1
@@ -198,7 +206,11 @@ def test_fips_images(instances: List[harness.Instance]):
 
         LOG.info(f"Restoring {resource_type}/{name} to GOFIPS=0")
         k8s.update_resource_container_env(
-            instance, namespace, resource_type, name, {"GOFIPS": "0"}
+            instance,
+            namespace,
+            resource_type,
+            name,
+            {"GOFIPS": "0", "PEBBLE_VERBOSE": "0"},
         )
         LOG.info(f"Waiting for {resource_type}/{name} pods to restart with GOFIPS=0...")
         util.stubbornly().until(
