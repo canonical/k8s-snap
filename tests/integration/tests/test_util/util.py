@@ -880,7 +880,7 @@ def _find_stable_track(major: int, minor: int, flavor: str) -> Optional[str]:
         flavor: the snap flavor (e.g. 'classic', '')
 
     Returns:
-        the track string (e.g. '1.35-classic') or None if no stable track is found
+        the track string (e.g. '1.36-classic') or None if no stable track is found
     """
     INFO_URL = f"https://api.snapcraft.io/v2/snaps/info/{config.SNAP_NAME}"
     HEADERS = {

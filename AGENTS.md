@@ -43,5 +43,5 @@ Uses `go/<version>-fips/stable` for all Go component builds. FIPS mode is a firs
 
 ## Snap Channels
 
-Channel format: `{major}.{minor}-{flavor}/{risk}`, e.g. `1.35-classic/stable`.
+Channel format: `{major}.{minor}-{flavor}/{risk}`, e.g. `1.36-classic/stable`.
 Flavors: `classic` (default), `strict`. Risk levels (ascending): `stable`, `candidate`, `beta`, `edge`.

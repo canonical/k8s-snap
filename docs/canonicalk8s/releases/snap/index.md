@@ -19,6 +19,7 @@ and backwards-incompatible changes.
 1.33
 1.34
 1.35
+1.36 LTS <1.36.md>
 ```
 
 ## Upgrade notes

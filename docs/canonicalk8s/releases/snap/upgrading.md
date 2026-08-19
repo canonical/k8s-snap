@@ -6,6 +6,10 @@ myst:
 
 # Upgrade notes
 
+## Upgrade 1.35 to 1.36
+
+TODO (mention cilium kube-proxy replacement)
+
 ## Upgrade 1.34 to 1.35
 
 ```{note}

@@ -14,4 +14,7 @@
 <sitemap>
 <loc>https://documentation.ubuntu.com/canonical-kubernetes/release-1.35/sitemap.xml</loc>
 </sitemap>
+<sitemap>
+<loc>https://documentation.ubuntu.com/canonical-kubernetes/release-1.36/sitemap.xml</loc>
+</sitemap>
 </sitemapindex>

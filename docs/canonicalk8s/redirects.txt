@@ -55,6 +55,7 @@
 # Release notes redirects
 ## In version 1.36,  moved to top level
 "snap/reference/releases" "releases/snap"
+"snap/reference/versions/1.36" "releases/snap/1.36"
 "snap/reference/versions/1.35" "releases/snap/1.35"
 "snap/reference/versions/1.34" "releases/snap/1.34"
 "snap/reference/versions/1.33" "releases/snap/1.33"
