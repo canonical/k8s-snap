@@ -53,31 +53,17 @@ class SkillError(RuntimeError):
     """Raised when a skill cannot be loaded or produces no structured result."""
 
 
-# Anchored to the start of a line (MULTILINE) so a "> Uses:" that follows other
-# text on the same line is never mistaken for a real directive. It does NOT
-# exempt fenced code blocks: a directive written as a documentation *example*
-# still matches when it starts its own line, so never demonstrate this syntax
-# at column 0 inside a fence. Conversely, indenting a real directive (or
-# nesting it in another blockquote) silently stops it matching at all -- which
-# is why every skill file keeps its ``Uses:`` line flush left.
+# Line-anchored (MULTILINE) to ignore mid-line mentions. Matches inside
+# fenced code blocks if at column 0. Indented or nested blockquotes fail to match.
 _USES_RE = re.compile(r"^> Uses:(.*)$", re.MULTILINE)
 
-# A shared skill's directory name. Deliberately excludes anything that could
-# escape ``<skill_dir>.parent`` once joined onto it -- path separators, ``..``,
-# an absolute path -- and any casing but the one the directory itself uses.
+# Shared skill directory name. Restricts chars to prevent path traversal (/, ..)
+# and enforce casing.
 _SKILL_NAME_RE = re.compile(r"[a-z0-9][a-z0-9-]*")
 
 
 def _named_skills(texts: list[tuple[str, Path]]) -> list[tuple[str, Path]]:
-    """Ordered, de-duplicated ``(name, declaring file)`` pairs from every
-    ``> Uses:`` line across ``texts``.
-
-    ``texts`` is scanned in the given order, so that order is the caller's
-    only lever over precedence (the base file's names before the step file's).
-    The declaring file rides along with each name so a later "missing skill"
-    error can name it directly, instead of forcing whoever reads the CI log
-    to re-scan both source files to find out which one is responsible.
-    """
+    """Extract ordered, de-duplicated ``(name, source_file)`` pairs from ``> Uses:`` lines."""
     seen: set[str] = set()
     named: list[tuple[str, Path]] = []
     for text, source in texts:
@@ -95,19 +81,8 @@ def _named_skills(texts: list[tuple[str, Path]]) -> list[tuple[str, Path]]:
 
 
 def load_skill(skill_dir: str | Path, step: Optional[str] = None) -> str:
-    """Return the skill text: ``SKILL.md``, any shared skills either file
-    names with ``Uses:``, then the step file when given.
-
-    A shared skill resolves as a sibling of ``skill_dir``: ``<skill_dir>.parent
-    / <name>`` (see ``_named_skills`` for how ``> Uses:`` lines are parsed) --
-    the same layout ``triage`` already shares with ``inspection-report`` and
-    ``local-cluster`` under ``.agents/skills/`` -- regardless of which file,
-    base or step, named it.
-    """
-    # A relative skill_dir is anchored to the checkout root, not the process
-    # cwd: the CLI runs from ``ci/`` (locally and via the workflow's
-    # ``working-directory``), while the skills live at the repo root. An
-    # absolute dir (e.g. a test's tmp_path) is used as-is.
+    """Compose SKILL.md, shared skills declared via ``> Uses:``, and optional step file."""
+    # Anchor relative paths to repo root.
     root = Path(skill_dir)
     if not root.is_absolute():
         root = repo_root() / root
@@ -133,11 +108,8 @@ def load_skill(skill_dir: str | Path, step: Optional[str] = None) -> str:
                 f"skill {name!r}, named by {source}'s 'Uses:' directive, not found: {shared_md}"
             )
         shared_text = shared_md.read_text(encoding="utf-8")
-        # A shared skill is reference-only leaf content. Resolving a directive
-        # inside one would need cycle detection to stay safe; ignoring it would
-        # paste the line into the prompt as inert text and quietly drop the
-        # knowledge it asked for. Refuse it instead, so the authoring mistake
-        # surfaces in CI rather than as a subtly under-briefed agent.
+        # Fail loudly on nested Uses directives to avoid cycle detection complexity
+        # or silent knowledge drops.
         if _USES_RE.search(shared_text):
             raise SkillError(
                 f"shared skill {name!r} ({shared_md}) declares its own 'Uses:' "

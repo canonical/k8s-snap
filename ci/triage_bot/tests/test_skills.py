@@ -160,7 +160,7 @@ def test_no_uses_directive_matches_todays_output_byte_for_byte(tmp_path):
 
 
 def test_one_directive_naming_two_skills_inlines_both_in_order(tmp_path):
-    # The shape every real step file uses: a single directive, two names.
+    # Two names in one directive.
     _skill(tmp_path, "local-cluster", "CLUSTER TEXT")
     _skill(tmp_path, "inspection-report", "REPORT TEXT")
     skill = _skill(
@@ -175,8 +175,7 @@ def test_one_directive_naming_two_skills_inlines_both_in_order(tmp_path):
 
 
 def test_uses_directive_inside_a_shared_skill_is_refused(tmp_path):
-    # Nested composition is unsupported, and pasting the directive through as
-    # inert text would silently drop the knowledge it asked for.
+    # Nested Uses directives fail loudly.
     _skill(tmp_path, "inspection-report", "REPORT TEXT")
     _skill(tmp_path, "local-cluster", "> Uses: `inspection-report`\n\nCLUSTER TEXT")
     skill = _skill(tmp_path, "triage", reproduce="> Uses: `local-cluster`\n\nSTEP")
