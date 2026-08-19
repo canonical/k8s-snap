@@ -31,6 +31,14 @@ test_data:
     sudo apt-get update
     sudo apt-get install -y python3-pip python3-venv tox linux-headers-$(uname -r)
 
+    # Verify kernel headers were installed
+    echo "=== Kernel: $(uname -r) ==="
+    ls /usr/src/linux-headers-$(uname -r)/ | head -5
+    echo "=== GPU info ==="
+    lspci | grep -i nvidia
+    echo "=== Loaded nvidia modules ==="
+    lsmod | grep nvidia || echo "none"
+
     # Unpack test suite
     cd /tmp
     tar xzf k8s-test-suite.tar.gz
@@ -48,4 +56,21 @@ test_data:
 
     tox -e integration -- \
         --tags gpu
+    RC=$?
+
+    # Dump diagnostic info on failure
+    if [ $RC -ne 0 ]; then
+        echo "=== DIAGNOSTICS: gpu-operator namespace pods ==="
+        sudo k8s kubectl get pods -n gpu-operator -o wide 2>/dev/null || true
+        echo "=== DIAGNOSTICS: gpu-operator namespace daemonsets ==="
+        sudo k8s kubectl get daemonsets -n gpu-operator 2>/dev/null || true
+        echo "=== DIAGNOSTICS: gpu-operator controller logs ==="
+        sudo k8s kubectl logs -n gpu-operator -l app=gpu-operator --tail=50 2>/dev/null || true
+        echo "=== DIAGNOSTICS: node labels (nvidia/feature) ==="
+        sudo k8s kubectl get nodes -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{range .metadata.labels}{"\t"}{@}{"\n"}{end}{end}' 2>/dev/null | grep -i -E 'nvidia|gpu|feature' || echo "no gpu/nvidia labels found"
+        echo "=== DIAGNOSTICS: events ==="
+        sudo k8s kubectl get events -n gpu-operator --sort-by='.lastTimestamp' 2>/dev/null | tail -30 || true
+    fi
+
+    exit $RC
     REMOTE
