@@ -8,7 +8,69 @@ myst:
 
 ## Upgrade 1.35 to 1.36
 
-TODO (mention cilium kube-proxy replacement)
+### Before you upgrade: the k8s-dqlite datastore is removed
+
+{{product}} 1.36 removes the `k8s-dqlite` datastore that was deprecated in
+1.35. The `post-refresh` hook rejects the upgrade if the cluster still uses it,
+and there is no migration path. Check the datastore in use before refreshing:
+
+```
+sudo k8s status
+```
+
+If the `datastore` line reports anything other than `etcd`, `external` or
+`disabled`, stay on 1.35 or deploy a new cluster backed by etcd.
+
+### Perform the upgrade
+
+```
+sudo snap refresh k8s --channel=1.36-classic/stable
+```
+
+All components will be updated automatically, including Cilium (1.20),
+MetalLB (0.16.1) and the Gateway API CRDs (v1.6.1).
+
+### Verify the upgrade
+
+Check the `k8s` snap version has been updated and the cluster is back in the
+`Ready` state.
+
+```
+snap info k8s
+sudo k8s status --wait-ready
+```
+
+### Optional: switch to the Cilium kube-proxy replacement
+
+Clusters bootstrapped on 1.36 with the default Cilium network do not run
+`kube-proxy`; Cilium handles service routing in eBPF instead. Upgraded clusters
+keep `kube-proxy` running so that the refresh does not change the datapath.
+
+To adopt the kube-proxy replacement on an upgraded cluster:
+
+```
+sudo k8s set network.kube-proxy-enabled=false
+```
+
+Each node stops its `kube-proxy` service and removes the iptables rules it
+installed. Verify that services are still reachable and that `kube-proxy` is no
+longer running:
+
+```
+sudo k8s status
+sudo snap services k8s.kube-proxy
+```
+
+```{note}
+This changes how service traffic is routed on every node. Roll it out during a
+maintenance window and validate your workloads afterwards.
+```
+
+```{warning}
+The switch is one-way while the network feature is enabled: setting
+`network.kube-proxy-enabled` back to `true` is rejected as long as the default
+Cilium network is in use.
+```
 
 ## Upgrade 1.34 to 1.35
 
