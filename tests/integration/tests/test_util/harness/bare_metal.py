@@ -120,7 +120,10 @@ class BareMetalHarness(Harness):
                 capture_output=True,
             )
             if self._is_local:
-                shutil.copy2(source, destination)
+                src = Path(source).resolve()
+                dst = Path(destination).resolve()
+                if src != dst:
+                    shutil.copy2(source, destination)
             else:
                 run(
                     ["scp", *SSH_OPTS, source, f"{self._ssh_target()}:{destination}"],
@@ -143,7 +146,10 @@ class BareMetalHarness(Harness):
         )
         try:
             if self._is_local:
-                shutil.copy2(source, destination)
+                src = Path(source).resolve()
+                dst = Path(destination).resolve()
+                if src != dst:
+                    shutil.copy2(source, destination)
             else:
                 run(
                     ["scp", *SSH_OPTS, f"{self._ssh_target()}:{source}", destination],
