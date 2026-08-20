@@ -29,9 +29,12 @@ test_data:
     export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH"
 
     # Install kernel headers (required for gpu-operator driver compilation)
-    # Clear outdated package cache on Jetsons (not wiped by MAAS)
+    # Clear outdated package cache on Jetsons (not wiped by MAAS).
+    # apt-get update may return non-zero if a proxy corrupts some InRelease
+    # signatures (e.g. noble-proposed) — tolerate partial failures since the
+    # base and security repos usually work fine.
     sudo rm -rf /var/lib/apt/lists/*
-    sudo apt-get update
+    sudo apt-get update || echo "WARNING: apt-get update had errors (partial repo failure); continuing..."
     sudo apt-get install -y python3-pip python3-venv tox linux-headers-$(uname -r)
 
     # Verify kernel headers were installed
