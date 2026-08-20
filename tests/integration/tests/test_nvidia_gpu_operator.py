@@ -18,7 +18,7 @@ NVIDIA_GPU_OPERATOR_HELM_CHART_REPO = "https://helm.ngc.nvidia.com/nvidia"
 # includes kernel drivers, its container image's release lifecycle is
 # strictly tied to the version of Ubuntu on the host.
 # https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/platform-support.html
-NVIDIA_GPU_OPERATOR_SUPPORTED_UBUNTU_VERSIONS = {"v24.9.1": ["20.04", "22.04"]}
+NVIDIA_GPU_OPERATOR_SUPPORTED_UBUNTU_VERSIONS = {"v24.9.1": ["20.04", "22.04", "24.04"]}
 
 NVIDIA_KERNEL_MODULE_NAMES = ["nvidia", "nvidia_uvm", "nvidia_modeset"]
 
