@@ -26,6 +26,7 @@ test_data:
     # the exit code when clear_console fails over SSH with set -e.
     $SSH bash -s << 'REMOTE'
     set -eux
+    export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH"
 
     # Install kernel headers (required for gpu-operator driver compilation)
     # Clear outdated package cache on Jetsons (not wiped by MAAS)
