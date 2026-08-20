@@ -177,17 +177,82 @@ def test_deploy_nvidia_gpu_operator(
         ["k8s", "kubectl", "-n", test_namespace, "apply", "-f", "-"],
         input=pod_spec.encode(),
     )
-    util.stubbornly(retries=5, delay_s=1).on(instance).exec(
-        [
-            "k8s",
-            "kubectl",
-            "-n",
-            test_namespace,
-            "wait",
-            "--for=condition=ready",
-            "pod",
-            NVIDIA_CUDA_VECTOR_ADDITION_TEST_POD_NAME,
-            "--timeout",
-            "180s",
-        ]
-    )
+    try:
+        util.stubbornly(retries=5, delay_s=1).on(instance).exec(
+            [
+                "k8s",
+                "kubectl",
+                "-n",
+                test_namespace,
+                "wait",
+                "--for=condition=ready",
+                "pod",
+                NVIDIA_CUDA_VECTOR_ADDITION_TEST_POD_NAME,
+                "--timeout",
+                "180s",
+            ]
+        )
+    except Exception:
+        # Dump diagnostics before re-raising so we can see why the pod failed.
+        LOG.warning("CUDA pod never became ready — collecting diagnostics")
+        for diag_cmd, label in [
+            (
+                [
+                    "k8s",
+                    "kubectl",
+                    "-n",
+                    test_namespace,
+                    "describe",
+                    "pod",
+                    NVIDIA_CUDA_VECTOR_ADDITION_TEST_POD_NAME,
+                ],
+                "pod describe",
+            ),
+            (
+                [
+                    "k8s",
+                    "kubectl",
+                    "-n",
+                    test_namespace,
+                    "get",
+                    "pod",
+                    NVIDIA_CUDA_VECTOR_ADDITION_TEST_POD_NAME,
+                    "-o",
+                    "wide",
+                ],
+                "pod status",
+            ),
+            (
+                [
+                    "k8s",
+                    "kubectl",
+                    "get",
+                    "events",
+                    "-n",
+                    test_namespace,
+                    "--sort-by=.lastTimestamp",
+                ],
+                "namespace events",
+            ),
+            (
+                [
+                    "k8s",
+                    "kubectl",
+                    "get",
+                    "nodes",
+                    "-o",
+                    "jsonpath={.items[*].status.allocatable}",
+                ],
+                "node allocatable",
+            ),
+        ]:
+            try:
+                result = instance.exec(
+                    diag_cmd, capture_output=True, text=True, check=False
+                )
+                LOG.warning("=== DIAG: %s ===\n%s", label, result.stdout)
+                if result.stderr:
+                    LOG.warning("stderr: %s", result.stderr)
+            except Exception as diag_exc:
+                LOG.warning("Failed to collect %s: %s", label, diag_exc)
+        raise
