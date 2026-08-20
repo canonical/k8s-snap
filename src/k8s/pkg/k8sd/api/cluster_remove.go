@@ -238,6 +238,12 @@ func removeNodeFromEtcd(ctx context.Context, snap snap.Snap, s state.State, cfg 
 	defer client.Close()
 
 	log := log.FromContext(ctx).WithValues("remove", "etcd", "name", nodeName, "clientURLs", clientURLs)
+	log.Info("Transferring etcd leadership if node is the current leader")
+	if err := client.MoveLeaderIfNeeded(ctx, nodeName); err != nil {
+		// Best-effort: log and continue. Etcd will re-elect, but this minimises the leaderless window.
+		log.Error(err, "Failed to transfer etcd leadership before removal")
+	}
+
 	log.Info("Deleting node from etcd cluster")
 	if err := client.RemoveNodeByName(ctx, nodeName); err != nil {
 		return fmt.Errorf("failed to remove node %s from etcd cluster: %w", nodeName, err)
