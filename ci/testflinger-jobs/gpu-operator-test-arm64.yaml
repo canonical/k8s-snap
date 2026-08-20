@@ -28,18 +28,31 @@ test_data:
     set -eux
     export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH"
 
-    # Install kernel headers (required for gpu-operator driver compilation)
-    # Clear outdated package cache on Jetsons (not wiped by MAAS).
-    # apt-get update may return non-zero if a proxy corrupts some InRelease
-    # signatures (e.g. noble-proposed) — tolerate partial failures since the
-    # base and security repos usually work fine.
-    sudo rm -rf /var/lib/apt/lists/*
-    sudo apt-get update || echo "WARNING: apt-get update had errors (partial repo failure); continuing..."
-    sudo apt-get install -y python3-pip python3-venv tox linux-headers-$(uname -r)
+    # Identify what we're running on (for debugging heterogeneous queue issues).
+    echo "=== Device identification ==="
+    cat /etc/os-release
+    uname -a
+    echo "apt-get location: $(which apt-get 2>/dev/null || echo 'NOT FOUND')"
+    echo "snap version: $(snap version 2>/dev/null || echo 'NOT FOUND')"
 
-    # Verify kernel headers were installed
+    # Install dependencies and kernel headers (required for gpu-operator driver compilation).
+    if command -v apt-get >/dev/null 2>&1; then
+        # Clear outdated package cache (not wiped by MAAS on Jetsons).
+        # apt-get update may return non-zero if a proxy corrupts some InRelease
+        # signatures — tolerate partial failures.
+        sudo rm -rf /var/lib/apt/lists/*
+        sudo apt-get update || echo "WARNING: apt-get update had errors (partial repo failure); continuing..."
+        sudo apt-get install -y python3-pip python3-venv tox linux-headers-$(uname -r) || \
+            echo "WARNING: apt-get install had errors; some packages may be missing"
+    else
+        echo "ERROR: apt-get not available. This device may be running Ubuntu Core or a non-standard image."
+        echo "ERROR: The gpu-operator test requires a full Ubuntu installation with apt."
+        exit 1
+    fi
+
+    # Verify kernel headers were installed (if available)
     echo "=== Kernel: $(uname -r) ==="
-    ls /usr/src/linux-headers-$(uname -r)/ | head -5
+    ls /usr/src/linux-headers-$(uname -r)/ 2>/dev/null | head -5 || echo "WARNING: kernel headers not found"
     echo "=== GPU info ==="
     lspci | grep -i nvidia || echo "No discrete NVIDIA GPU (integrated GPU expected on Jetson)"
     echo "=== Loaded nvidia modules ==="
