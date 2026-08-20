@@ -24,7 +24,9 @@ test_data:
     $SCP attachments/test/k8s-test-suite.tar.gz ubuntu@$DEVICE_IP:/tmp/
 
     # 2. Set up test environment on the device
-    $SSH << 'REMOTE'
+    # Use 'bash -s' to avoid login shell — .bash_logout can override
+    # the exit code when clear_console fails over SSH with set -e.
+    $SSH bash -s << 'REMOTE'
     set -eux
 
     # Install kernel headers (required for gpu-operator driver compilation)
