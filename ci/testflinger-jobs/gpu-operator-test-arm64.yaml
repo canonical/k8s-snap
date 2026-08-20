@@ -21,45 +21,53 @@ test_data:
     $SCP attachments/test/k8s-arm64.snap ubuntu@$DEVICE_IP:/tmp/
     $SCP attachments/test/k8s-test-suite.tar.gz ubuntu@$DEVICE_IP:/tmp/
 
-    # 2. Run all test steps on the device via SSH
-    $SSH << 'REMOTE'
+    # 2. Set up test environment on the device
+    # Use 'bash -s' to avoid login shell — .bash_logout can override
+    # the exit code when clear_console fails over SSH with set -e.
+    $SSH bash -s << 'REMOTE'
     set -eux
 
-    # Verify GPU hardware is present
-    if ! lspci -k | grep -q "NVIDIA Corporation"; then
-        echo "ERROR: No NVIDIA GPU detected on this machine."
-        exit 1
-    fi
+    # Install kernel headers (required for gpu-operator driver compilation)
+    sudo apt-get update
+    sudo apt-get install -y python3-pip python3-venv tox linux-headers-$(uname -r)
 
-    # Ensure no pre-loaded NVIDIA drivers (gpu-operator must manage them)
-    if lsmod | grep -q "^nvidia"; then
-        echo "NVIDIA drivers detected on host. Purging to allow GPU-operator to manage them..."
-        sudo apt-get purge -y '^nvidia-.*' || true
-        sudo apt-get autoremove -y || true
-        sudo rmmod nvidia_uvm || true
-        sudo rmmod nvidia_modeset || true
-        sudo rmmod nvidia || true
-    fi
-
-    # Set up LXD (required substrate for the test framework)
-    sudo snap install lxd --channel=latest/stable || true
-    sudo lxd init --auto || true
+    # Verify kernel headers were installed
+    echo "=== Kernel: $(uname -r) ==="
+    ls /usr/src/linux-headers-$(uname -r)/ | head -5
+    echo "=== GPU info ==="
+    lspci | grep -i nvidia || echo "No discrete NVIDIA GPU (integrated GPU expected on Jetson)"
+    echo "=== Loaded nvidia modules ==="
+    lsmod | grep nvidia || echo "none"
 
     # Unpack test suite
     cd /tmp
     tar xzf k8s-test-suite.tar.gz
     cd tests/integration
 
-    # Install test dependencies
-    sudo apt-get update
-    sudo apt-get install -y python3-pip python3-venv tox
-
-    # Run the NVIDIA GPU operator test via tox
-    export TEST_LXD_PROFILE="$(cat lxd-gpu-profile.yaml)"
+    # Run the GPU operator test directly on bare metal via SSH harness.
     export TEST_SNAP="/tmp/k8s-arm64.snap"
-    export TEST_SUBSTRATE=lxd
-    export TEST_LXD_IMAGE="ubuntu:22.04"
+    export TEST_SUBSTRATE=bare_metal
+    export TEST_BARE_METAL_SSH_HOST=localhost
+    export TEST_BARE_METAL_SSH_USER=ubuntu
+    export TEST_USE_LOCAL_MIRROR=0
 
     tox -e integration -- \
         --tags gpu
+    RC=$?
+
+    # Dump diagnostic info on failure
+    if [ $RC -ne 0 ]; then
+        echo "=== DIAGNOSTICS: gpu-operator namespace pods ==="
+        sudo k8s kubectl get pods -n gpu-operator -o wide 2>/dev/null || true
+        echo "=== DIAGNOSTICS: gpu-operator namespace daemonsets ==="
+        sudo k8s kubectl get daemonsets -n gpu-operator 2>/dev/null || true
+        echo "=== DIAGNOSTICS: gpu-operator controller logs ==="
+        sudo k8s kubectl logs -n gpu-operator -l app=gpu-operator --tail=50 2>/dev/null || true
+        echo "=== DIAGNOSTICS: node labels (nvidia/feature) ==="
+        sudo k8s kubectl get nodes -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{range .metadata.labels}{"\t"}{@}{"\n"}{end}{end}' 2>/dev/null | grep -i -E 'nvidia|gpu|feature' || echo "no gpu/nvidia labels found"
+        echo "=== DIAGNOSTICS: events ==="
+        sudo k8s kubectl get events -n gpu-operator --sort-by='.lastTimestamp' 2>/dev/null | tail -30 || true
+    fi
+
+    exit $RC
     REMOTE
