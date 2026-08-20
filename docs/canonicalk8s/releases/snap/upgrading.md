@@ -8,7 +8,7 @@ myst:
 
 ## Upgrade 1.35 to 1.36
 
-### Before you upgrade: the k8s-dqlite datastore is removed
+### Datastore upgrade considerations
 
 {{product}} 1.36 removes the `k8s-dqlite` datastore that was deprecated in
 1.35. The `post-refresh` hook rejects the upgrade if the cluster still uses it,
@@ -42,9 +42,11 @@ sudo k8s status --wait-ready
 
 ### Optional: switch to the Cilium kube-proxy replacement
 
-Clusters bootstrapped on 1.36 with the default Cilium network do not run
-`kube-proxy`; Cilium handles service routing in eBPF instead. Upgraded clusters
-keep `kube-proxy` running so that the refresh does not change the datapath.
+Clusters bootstrapped on 1.36 with the default Cilium network do not deploy
+`kube-proxy`. Instead, Cilium handles service routing in eBPF. Upgraded
+clusters keep running `kube-proxy`: the refresh deliberately leaves the
+existing datapath in place, so moving to the eBPF replacement is an explicit
+opt-in.
 
 To adopt the kube-proxy replacement on an upgraded cluster:
 
@@ -67,9 +69,9 @@ maintenance window and validate your workloads afterwards.
 ```
 
 ```{warning}
-The switch is one-way while the network feature is enabled: setting
-`network.kube-proxy-enabled` back to `true` is rejected as long as the default
-Cilium network is in use.
+Disabling `kube-proxy` on 1.36 is not reversible while the network feature is
+enabled. If you try to set `network.kube-proxy-enabled` back to `true`, it will
+be rejected as long as the default Cilium network is in use.
 ```
 
 ## Upgrade 1.34 to 1.35
