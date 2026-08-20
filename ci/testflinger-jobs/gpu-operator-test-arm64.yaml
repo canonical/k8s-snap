@@ -28,6 +28,8 @@ test_data:
     set -eux
 
     # Install kernel headers (required for gpu-operator driver compilation)
+    # Clear outdated package cache on Jetsons (not wiped by MAAS)
+    sudo rm -rf /var/lib/apt/lists/*
     sudo apt-get update
     sudo apt-get install -y python3-pip python3-venv tox linux-headers-$(uname -r)
 
