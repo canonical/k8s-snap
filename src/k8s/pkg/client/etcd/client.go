@@ -2,11 +2,15 @@ package etcd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	pkiutil "github.com/canonical/k8s/pkg/utils/pki"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
+
+// ErrNotFound is returned when an etcd member is not found.
+var ErrNotFound = errors.New("etcd member not found")
 
 type Client struct {
 	*clientv3.Client
@@ -51,7 +55,8 @@ func (c *Client) RemoveNodeByName(ctx context.Context, name string) error {
 	}
 
 	if memberID == 0 {
-		return fmt.Errorf("no etcd member found with name: %s", name)
+		// Member not found.
+		return fmt.Errorf("%w: %s", ErrNotFound, name)
 	}
 
 	if _, err = c.MemberRemove(ctx, memberID); err != nil {
