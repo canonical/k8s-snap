@@ -7,8 +7,33 @@ k8s::common::setup_env
 # Ensure XDG_RUNTIME_DIR exists, needed by runc for 'kubectl exec' to work
 [ ! -z "${XDG_RUNTIME_DIR:=}" ] && mkdir -p "${XDG_RUNTIME_DIR}"
 
-# Apply apparmor profile for "cri-containerd.apparmor.d"
-if ! apparmor_parser -r "$SNAP/k8s/profiles/containerd"; then
+# Apply apparmor profile for "cri-containerd.apparmor.d".
+# On AppArmor 5.x (Ubuntu 26.04+), signal mediation was tightened: processes in user
+# namespaces get peer labels suffixed with "//&unconfined", and those are not matched by
+# plain "peer=<profile>" rules. Without the extended rule, BIND 9.18+ threads (e.g.
+# isc-net-0000 in nslookup) cannot signal each other, causing nslookup to exit with
+# SIGSEGV (rc:139) and breaking CNCF conformance tests.
+# Try the extended profile first; if the parser rejects it (older AppArmor), fall back.
+_apparmor_load_profile() {
+  local profile_file="$SNAP/k8s/profiles/containerd"
+  local tmpfile
+
+  # AppArmor 5.x: add rule for "//&unconfined" peer variants used when signalling
+  # across AppArmor policy-namespace boundaries inside containers.
+  tmpfile=$(mktemp)
+  sed 's|^}$|  signal (send, receive) peer="cri-containerd.apparmor.d//**",\n}|' \
+      "$profile_file" > "$tmpfile"
+  if apparmor_parser -r "$tmpfile" 2>/dev/null; then
+    rm -f "$tmpfile"
+    return 0
+  fi
+  rm -f "$tmpfile"
+
+  # Fall back to the base profile (without the 5.x-specific rule).
+  apparmor_parser -r "$profile_file"
+}
+
+if ! _apparmor_load_profile; then
   echo "
 
 WARNING: Failed to configure the 'cri-containerd.apparmor.d' AppArmor profile.
