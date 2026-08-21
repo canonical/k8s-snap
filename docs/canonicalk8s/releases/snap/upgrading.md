@@ -60,7 +60,7 @@ longer running:
 
 ```
 sudo k8s status
-sudo snap services k8s.kube-proxy
+sudo snap services k8s
 ```
 
 ```{note}
