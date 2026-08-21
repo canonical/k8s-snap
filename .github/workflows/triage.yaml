@@ -1,0 +1,266 @@
+name: Issue Triage Bot
+
+on:
+    issues:
+        types: [opened, reopened, closed]
+    issue_comment:
+        types: [created]
+    # The bot's own draft fix PR closing (merged or not) is a fix verdict --
+    # see the gate step below and router.GitHubEvent.pr_verdict. Firing on
+    # every PR close in the repo is intentional: filtering to just the
+    # triage/fix-<n>/fix/issue-<n> branches happens in Python, matching how
+    # issue_comment already fires for every comment and filters later.
+    pull_request:
+        types: [closed]
+    # GitHub only discovers a workflow_dispatch-triggerable workflow once
+    # some event has actually run it -- issues/issue_comment only evaluate
+    # from the default branch (this file isn't on main yet), and
+    # pull_request:[closed] hasn't fired (this PR is still open). Without
+    # this, workflow_dispatch 404s pre-merge with no other trigger able to
+    # bootstrap discovery. A push here always routes to unprivileged
+    # classify and cleanly no-ops (GitHubEvent.from_payload has no
+    # issue/pull_request/comment key to read, action=="", so route() falls
+    # through to Skip) -- self-cleaning once this branch merges and is
+    # deleted, and harmless before then.
+    push:
+        branches: [feat/autonomous-triage-bot]
+    workflow_dispatch:
+        inputs:
+            issue:
+                description: Issue number to triage
+                type: string
+                required: true
+            action:
+                description: Simulated event action
+                type: choice
+                # Only actions the pipeline job services via --issue/--action; a
+                # dispatched close/comment has no issue payload and would no-op.
+                options: [opened, reopened]
+                default: opened
+            dry_run:
+                description: Compute transitions but write nothing
+                type: boolean
+                default: true
+
+# One in-flight run per issue; a newer event queues rather than cancels the
+# older one. Not cancel-in-progress: the pipeline job is self-hosted and
+# stateful (LXD cluster, git worktree), and a hard-cancelled run may not
+# reach its cleanup finally-block before the runner kills it, orphaning the
+# cluster. Queuing costs runner time on a rapid burst of events; it never
+# leaks cluster state.
+concurrency:
+    group: triage-${{ github.event.issue.number || github.event.pull_request.number || inputs.issue }}
+    cancel-in-progress: false
+
+# Default to read-only; each job elevates only what it needs.
+permissions:
+    contents: read
+
+jobs:
+    # Route each event to the least-privileged job that can serve it. Trusted
+    # non-close events (maintainer association or manual dispatch) get the
+    # self-hosted pipeline; a close needs only the GitHub API for branch
+    # cleanup, so it runs on a dedicated ubuntu job and never spins up a
+    # privileged runner; everything else is confined to unprivileged classify.
+    # "Maintainer association" for a non-comment event reads the issue
+    # author's association, which is reliable for `opened` but not
+    # `reopened` (GitHub exposes no separate reopener association here); a
+    # maintainer reopening another user's issue therefore routes to classify
+    # rather than pipeline -- under-grants trust, never over-grants it.
+    # Defense-in-depth: the bot re-derives trust from the same author_association
+    # before invoking the shell pipeline.
+    gate:
+        name: Decide route
+        runs-on: ubuntu-latest
+        outputs:
+            route: ${{ steps.decide.outputs.route }}
+        steps:
+            - name: Evaluate event
+              id: decide
+              env:
+                  EVENT_NAME: ${{ github.event_name }}
+                  ACTION: ${{ github.event.action }}
+                  INPUT_ACTION: ${{ inputs.action }}
+                  ASSOC_ISSUE: ${{ github.event.issue.author_association }}
+                  ASSOC_COMMENT: ${{ github.event.comment.author_association }}
+                  PR: ${{ toJson(github.event.issue.pull_request) }}
+              run: |
+                  action="$ACTION"
+                  assoc="$ASSOC_ISSUE"
+                  if [[ "$EVENT_NAME" == "issue_comment" ]]; then
+                    assoc="$ASSOC_COMMENT"
+                  fi
+                  if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+                    action="$INPUT_ACTION"
+                  fi
+                  route=classify
+                  case "$assoc" in
+                    OWNER|MEMBER|COLLABORATOR) route=pipeline ;;
+                  esac
+                  # Manual dispatch is maintainer-gated by repo permissions.
+                  if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+                    route=pipeline
+                  fi
+                  # An issue_comment on a PR (not an issue) would boot the
+                  # pipeline, but the bot Skips it; keep it off self-hosted.
+                  if [[ "$PR" != "null" ]]; then
+                    route=classify
+                  fi
+                  # A close only cleans up a branch: cheap, low-risk, ubuntu.
+                  if [[ "$action" == "closed" ]]; then
+                    route=cleanup
+                  fi
+                  # A pull_request close/merge is a fix verdict (verify_fix),
+                  # never the plain issue-closed cleanup path above -- both
+                  # share action=="closed", so this must run after (override)
+                  # it. No cluster needed either way: unprivileged classify.
+                  if [[ "$EVENT_NAME" == "pull_request" ]]; then
+                    route=classify
+                  fi
+                  echo "route=$route" >> "$GITHUB_OUTPUT"
+
+    pipeline:
+        name: Triage (maintainer-gated pipeline)
+        needs: gate
+        if: needs.gate.outputs.route == 'pipeline'
+        # Self-hosted: the reproduce/fix stages build the snap and spin up an
+        # LXD cluster. Reached only for trusted (maintainer) events, so
+        # reporter-controlled text drives the shell agent only after a
+        # maintainer starts it. That text is still adversarial (prompt
+        # injection), and the in-code env/HOME stripping is defense-in-depth,
+        # not containment: a same-uid child can read this job's GH_TOKEN via
+        # /proc, and passwordless sudo reaches host creds. This runner MUST
+        # therefore be an isolated, ephemeral instance whose only secrets are
+        # the triage GITHUB_TOKEN + TRIAGE_GOOGLE_API_KEY and whose compromise
+        # is disposable -- do not schedule it on a shared/long-lived host.
+        runs-on: [self-hosted, linux, noble, xlarge]
+        permissions:
+            issues: write
+            contents: write
+            pull-requests: write
+        steps:
+            - name: Check out code
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              with:
+                  persist-credentials: false
+
+            - name: Setup Python
+              uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+              with:
+                  python-version: "3.12"
+
+            - name: Install tox
+              run: python -m pip install 'tox<5'
+
+            - name: Run triage bot
+              working-directory: ci
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GOOGLE_API_KEY: ${{ secrets.TRIAGE_GOOGLE_API_KEY }}
+                  GITHUB_EVENT_PATH: ${{ github.event_path }}
+                  EVENT_NAME: ${{ github.event_name }}
+                  DISPATCH_ISSUE: ${{ inputs.issue }}
+                  DISPATCH_ACTION: ${{ inputs.action }}
+                  DISPATCH_DRY_RUN: ${{ inputs.dry_run }}
+              run: |
+                  if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+                    args="--issue $DISPATCH_ISSUE --action $DISPATCH_ACTION"
+                    if [[ "$DISPATCH_DRY_RUN" == "true" ]]; then
+                      args="$args --dry-run"
+                    else
+                      # A real (non-dry-run) manual dispatch is already a
+                      # fully-trusted, fully-effecting run (see _load_event's
+                      # OWNER stamp) -- open the draft PR too, matching the
+                      # webhook path below, instead of silently dropping the
+                      # fix on the floor with no visible artifact.
+                      args="$args --auto-pr"
+                    fi
+                  else
+                    # Consume the webhook payload GitHub wrote for this event.
+                    args="--event-file $GITHUB_EVENT_PATH --auto-pr"
+                  fi
+                  tox -e triage-run -- $args
+
+    classify:
+        name: Triage (unprivileged classify)
+        needs: gate
+        if: needs.gate.outputs.route == 'classify'
+        # Untrusted events: label, dedup, and request missing info only. Runs on
+        # shared infrastructure with no cluster and read-only repo scope; the bot
+        # code parks the issue at needs-triage without touching the pipeline.
+        runs-on: ubuntu-latest
+        permissions:
+            issues: write
+            contents: read
+            pull-requests: read
+        steps:
+            - name: Check out code
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              with:
+                  persist-credentials: false
+                  # actions/checkout defaults to the PR's own merge ref for a
+                  # pull_request event (this job is now reachable via the fix
+                  # PR closing) -- pin to main explicitly so the bot always
+                  # runs its own trusted code, never whatever the closing
+                  # (possibly fork-owned) branch itself contains. issues/
+                  # issue_comment/push never carry attacker-controlled branch
+                  # content the same way (push requires repo write access;
+                  # issue events have no associated branch ref at all -- github.ref
+                  # already resolves to the default branch for them), so only
+                  # pull_request needs the override; forcing it unconditionally
+                  # would make a push event's self-test run main's (unmerged)
+                  # tox.ini instead of its own.
+                  ref: ${{ github.event_name == 'pull_request' && 'main' || github.ref }}
+
+            - name: Setup Python
+              uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+              with:
+                  python-version: "3.12"
+
+            - name: Install tox
+              run: python -m pip install 'tox<5'
+
+            - name: Run triage bot
+              working-directory: ci
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GOOGLE_API_KEY: ${{ secrets.TRIAGE_GOOGLE_API_KEY }}
+                  GITHUB_EVENT_PATH: ${{ github.event_path }}
+              run: |
+                  tox -e triage-run -- --event-file "$GITHUB_EVENT_PATH"
+
+    cleanup:
+        name: Triage (branch cleanup)
+        needs: gate
+        if: needs.gate.outputs.route == 'cleanup'
+        # A closed issue only needs its dangling draft-fix branch removed, but
+        # dispatch() unconditionally fetches the issue (title/body/labels/
+        # comments) before routing to any handler, cleanup included -- so
+        # this job needs issues:read too, not just contents:write for the
+        # branch delete. Still shared infrastructure with no model key,
+        # keeping the self-hosted runner off the close path entirely.
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+            issues: read
+        steps:
+            - name: Check out code
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              with:
+                  persist-credentials: false
+
+            - name: Setup Python
+              uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+              with:
+                  python-version: "3.12"
+
+            - name: Install tox
+              run: python -m pip install 'tox<5'
+
+            - name: Run triage bot
+              working-directory: ci
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GITHUB_EVENT_PATH: ${{ github.event_path }}
+              run: |
+                  tox -e triage-run -- --event-file "$GITHUB_EVENT_PATH"

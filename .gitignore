@@ -29,3 +29,6 @@ subunit.html
 subunit.out
 
 .benchmark
+
+# triage bot per-issue scratch (report.md, agent HOME, caches)
+/.triage/
