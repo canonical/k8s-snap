@@ -93,7 +93,7 @@ suites:
       fi
       sudo rm -rf /run/containerd || true
       
-      sudo snap install k8s --classic --channel=1.35-classic/stable
+      sudo snap install k8s --classic --channel=1.36-classic/stable
       sudo k8s bootstrap --timeout 10m
       
       sudo k8s status --wait-ready --timeout 3m

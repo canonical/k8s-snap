@@ -50,7 +50,7 @@ is a safeguard to make sure the user is aware that the snap is not signed by
 the snap store, and is not confined:
 
 ```
-sudo snap install k8s_v1.35.3_multi.snap --dangerous --classic
+sudo snap install k8s_v1.36.3_multi.snap --dangerous --classic
 ```
 
 Please note that you will not be able to install this snap if there is already a
