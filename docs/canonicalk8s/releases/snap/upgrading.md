@@ -27,8 +27,8 @@ If the `datastore` line reports anything other than `etcd`, `external` or
 sudo snap refresh k8s --channel=1.36-classic/stable
 ```
 
-All components will be updated automatically, including Cilium (1.20),
-MetalLB (0.16.1) and the Gateway API CRDs (v1.6.1).
+All components will be updated automatically, including Cilium (1.19.4),
+MetalLB (0.16.1) and the Gateway API CRDs (v1.4.1).
 
 ### Verify the upgrade
 
