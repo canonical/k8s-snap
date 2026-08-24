@@ -27,17 +27,35 @@ NVIDIA_KERNEL_MODULE_NAMES = ["nvidia", "nvidia_uvm", "nvidia_modeset"]
 NVIDIA_CUDA_VECTOR_ADDITION_TEST_POD_NAME = "cuda-vectoradd"
 
 
+# PCI device classes that represent actual GPU hardware.
+# Excludes PCI bridges, audio devices, and other non-GPU NVIDIA controllers
+# (e.g. Jetson/Tegra SoC PCI bridges show "NVIDIA Corporation" but are not GPUs).
+_NVIDIA_GPU_PCI_CLASSES = [
+    "VGA compatible controller",
+    "3D controller",
+    "Display controller",
+]
+
+
 def _check_nvidia_gpu_present(instance: harness.Instance) -> bool:
-    """Checks whether at least one Nvidia GPU is available
-    by exec-ing `lspci` on the target instance."""
+    """Checks whether at least one discrete Nvidia GPU is available
+    by exec-ing `lspci` on the target instance.
+
+    Only matches actual GPU device classes (VGA, 3D controller), not PCI bridges
+    or other NVIDIA controllers. The GPU Operator requires discrete GPUs —
+    integrated GPUs (e.g. Jetson/Tegra) are not supported.
+    """
     proc = instance.exec(["lspci", "-k"], capture_output=True, text=True)
 
     for line in proc.stdout.split("\n"):
-        if "NVIDIA Corporation" in line:
+        if "NVIDIA" in line and any(cls in line for cls in _NVIDIA_GPU_PCI_CLASSES):
             LOG.info(f"Found NVIDIA GPU in lspci output: {line}")
             return True
 
-    LOG.info(f"Failed to find NVIDIA GPU in lspci output: {proc.stdout}")
+    LOG.info(
+        "No discrete NVIDIA GPU found in lspci output. "
+        "Jetson/Tegra integrated GPUs are not supported by the GPU Operator."
+    )
     return False
 
 
