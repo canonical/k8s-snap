@@ -1,10 +1,11 @@
-job_queue: jetson-agx-orin
+job_queue: nvidia-igx-orin-dgpu-a6000
 
-# Skip provisioning - Jetson devices don't support MAAS-style distro provisioning.
-# The device runs whatever OS was last flashed onto it.
+provision_data:
+  distro: jammy
 
 # The GPU operator takes up to 10-15 mins to compile/install drivers inside k8s.
-global_timeout: 2700  # 45 minutes total execution boundary
+# MAAS provisioning takes ~10 mins. Allow 60 mins total.
+global_timeout: 3600
 
 test_data:
   attachments:
@@ -28,33 +29,15 @@ test_data:
     set -eux
     export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH"
 
-    # Identify what we're running on (for debugging heterogeneous queue issues).
-    echo "=== Device identification ==="
-    cat /etc/os-release
-    uname -a
-    echo "apt-get location: $(which apt-get 2>/dev/null || echo 'NOT FOUND')"
-    echo "snap version: $(snap version 2>/dev/null || echo 'NOT FOUND')"
+    # Install kernel headers (required for gpu-operator driver compilation)
+    sudo apt-get update
+    sudo apt-get install -y python3-pip python3-venv tox linux-headers-$(uname -r)
 
-    # Install dependencies and kernel headers (required for gpu-operator driver compilation).
-    if command -v apt-get >/dev/null 2>&1; then
-        # Clear outdated package cache (not wiped by MAAS on Jetsons).
-        # apt-get update may return non-zero if a proxy corrupts some InRelease
-        # signatures — tolerate partial failures.
-        sudo rm -rf /var/lib/apt/lists/*
-        sudo apt-get update || echo "WARNING: apt-get update had errors (partial repo failure); continuing..."
-        sudo apt-get install -y python3-pip python3-venv tox linux-headers-$(uname -r) || \
-            echo "WARNING: apt-get install had errors; some packages may be missing"
-    else
-        echo "ERROR: apt-get not available. This device may be running Ubuntu Core or a non-standard image."
-        echo "ERROR: The gpu-operator test requires a full Ubuntu installation with apt."
-        exit 1
-    fi
-
-    # Verify kernel headers were installed (if available)
+    # Verify kernel headers were installed
     echo "=== Kernel: $(uname -r) ==="
-    ls /usr/src/linux-headers-$(uname -r)/ 2>/dev/null | head -5 || echo "WARNING: kernel headers not found"
+    ls /usr/src/linux-headers-$(uname -r)/ | head -5
     echo "=== GPU info ==="
-    lspci | grep -i nvidia || echo "No discrete NVIDIA GPU (integrated GPU expected on Jetson)"
+    lspci | grep -i nvidia
     echo "=== Loaded nvidia modules ==="
     lsmod | grep nvidia || echo "none"
 
