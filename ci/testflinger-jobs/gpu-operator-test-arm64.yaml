@@ -1,11 +1,10 @@
 job_queue: nvidia-igx-orin-dgpu-a6000
 
-provision_data:
-  distro: jammy
+# IGX Orin devices are non-provision — no MAAS provisioning needed.
+# The device runs whatever OS was last deployed onto it.
 
 # The GPU operator takes up to 10-15 mins to compile/install drivers inside k8s.
-# MAAS provisioning takes ~10 mins. Allow 60 mins total.
-global_timeout: 3600
+global_timeout: 2700
 
 test_data:
   attachments:
@@ -70,6 +69,12 @@ test_data:
         echo "=== DIAGNOSTICS: events ==="
         sudo k8s kubectl get events -n gpu-operator --sort-by='.lastTimestamp' 2>/dev/null | tail -30 || true
     fi
+
+    # Cleanup: device is non-provision so state persists between runs.
+    echo "=== Cleaning up test artifacts ==="
+    sudo snap remove k8s --purge 2>/dev/null || true
+    sudo rm -rf /tmp/k8s-arm64.snap /tmp/k8s-test-suite.tar.gz /tmp/tests 2>/dev/null || true
+    sudo rm -rf /tmp/snapd.snap /tmp/snapd.assert /tmp/core22.snap /tmp/core22.assert 2>/dev/null || true
 
     exit $RC
     REMOTE
