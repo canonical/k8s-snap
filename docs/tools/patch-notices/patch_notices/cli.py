@@ -136,6 +136,10 @@ def cmd_generate(args: argparse.Namespace) -> None:
     delta = _fetch_delta(args.source, channel_key)
 
     if not delta:
+        existing_sha = metadata.load().get("tracks", {}).get(channel_key, {}).get("last_documented_sha")
+        if existing_sha:
+            # Bookmark is unchanged, but refresh the date so up-to-date tracks stay current.
+            metadata.update(channel_key, existing_sha)
         _write_json(args.summary_out, {
             "track": channel_key,
             "status": "up-to-date",

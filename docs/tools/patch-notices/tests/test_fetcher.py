@@ -39,7 +39,7 @@ def test_github_commits_single_page(monkeypatch: pytest.MonkeyPatch) -> None:
 
     def fake_get(url: str, **_: Any) -> _Response:
         query = parse_qs(urlparse(url).query)
-        assert query == {"per_page": ["250"]}
+        assert query == {"per_page": ["100"], "page": ["1"]}
         return _Response({"total_commits": 2, "commits": commits})
 
     monkeypatch.setattr(fetcher.requests, "get", fake_get)
@@ -49,6 +49,27 @@ def test_github_commits_single_page(monkeypatch: pytest.MonkeyPatch) -> None:
 
     assert [entry["sha"] for entry in result] == ["a" * 40, "b" * 40]
     assert all(entry["diff"] == "diff" for entry in result)
+
+
+def test_github_commits_paginates_compare_results(monkeypatch: pytest.MonkeyPatch) -> None:
+    page1 = [_commit(f"{index:040x}") for index in range(100)]
+    page2 = [_commit(f"{index:040x}") for index in range(100, 150)]
+    requested_pages: list[int] = []
+
+    def fake_get(url: str, **_: Any) -> _Response:
+        query = parse_qs(urlparse(url).query)
+        page = int(query["page"][0])
+        requested_pages.append(page)
+        commits = page1 if page == 1 else page2
+        return _Response({"total_commits": 150, "commits": commits})
+
+    monkeypatch.setattr(fetcher.requests, "get", fake_get)
+    monkeypatch.setattr(fetcher, "_github_commit_diff", lambda *_: "diff")
+
+    result = fetcher._github_commits("base", "head")
+
+    assert requested_pages == [1, 2]
+    assert len(result) == 150
 
 
 def test_github_commits_uses_github_token(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -66,27 +87,31 @@ def test_github_commits_uses_github_token(monkeypatch: pytest.MonkeyPatch) -> No
 
 
 def test_github_commits_detects_truncated_compare_results(monkeypatch: pytest.MonkeyPatch) -> None:
-    commits = [_commit(f"{index:040x}") for index in range(250)]
+    # GitHub stops returning commits well short of total_commits.
+    full_page = [_commit(f"{index:040x}") for index in range(100)]
     request_count = 0
 
     def fake_get(url: str, **_: Any) -> _Response:
         nonlocal request_count
         request_count += 1
+        commits = full_page if request_count <= 3 else []
         return _Response({"total_commits": 400, "commits": commits})
 
     monkeypatch.setattr(fetcher.requests, "get", fake_get)
     monkeypatch.setattr(fetcher, "_github_commit_diff", lambda *_: "diff")
 
-    with pytest.raises(ValueError, match="GitHub compare returned 250 of 400 commits"):
+    with pytest.raises(ValueError, match="GitHub compare returned 300 of 400 commits"):
         fetcher._github_commits("base", "head")
-    assert request_count == 1
+    assert request_count == 4
 
 
 def test_github_commits_raises_on_incomplete_compare(monkeypatch: pytest.MonkeyPatch) -> None:
     commits = [_commit(f"{index:040x}") for index in range(10)]
 
     def fake_get(url: str, **_: Any) -> _Response:
-        return _Response({"total_commits": 11, "commits": commits})
+        query = parse_qs(urlparse(url).query)
+        page = int(query["page"][0])
+        return _Response({"total_commits": 11, "commits": commits if page == 1 else []})
 
     monkeypatch.setattr(fetcher.requests, "get", fake_get)
     monkeypatch.setattr(fetcher, "_github_commit_diff", lambda *_: "diff")

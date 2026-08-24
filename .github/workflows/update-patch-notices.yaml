@@ -9,14 +9,6 @@ permissions:
   contents: read
 
 env:
-  OPENAI_API_KEY: ${{ secrets.PATCH_NOTICES_OPENAI_KEY }}
-  OPENAI_BASE_URL: ${{ secrets.PATCH_NOTICES_OPENAI_BASE_URL }}
-  OPENAI_MODEL: gpt-4o
-  OPENAI_GROUP_MODEL: gpt-4o-mini
-  # Use BOT_TOKEN (not github.token) so the created PR triggers CI checks.
-  # github.token-created PRs are blocked from triggering other workflows
-  # by GitHub's anti-infinite-loop protection.
-  GITHUB_TOKEN: ${{ secrets.BOT_TOKEN }}
   # -----------------------------------------------------------------------
   # TRACKS — source, short version, and release notes path.
   # To add 1.36 when it ships: append two lines (snap + charm).
@@ -43,20 +35,31 @@ jobs:
       pull-requests: write
 
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.12"
 
       - name: Install patch-notices
-        # Editable install so state.py resolves metadata/ relative to the repo source tree.
+        # Editable install so metadata.py resolves metadata/ relative to the repo source tree.
         run: pip install -e docs/tools/patch-notices/
 
       - name: Set run date
         run: echo "TODAY=$(date +%Y-%m-%d)" >> "$GITHUB_ENV"
 
       - name: Run generate for all tracks
+        env:
+          OPENAI_API_KEY: ${{ secrets.PATCH_NOTICES_OPENAI_KEY }}
+          OPENAI_BASE_URL: ${{ secrets.PATCH_NOTICES_OPENAI_BASE_URL }}
+          OPENAI_MODEL: gpt-4o
+          OPENAI_GROUP_MODEL: gpt-4o-mini
+          # Use BOT_TOKEN (not github.token) so the created PR triggers CI checks.
+          # github.token-created PRs are blocked from triggering other workflows
+          # by GitHub's anti-infinite-loop protection.
+          GITHUB_TOKEN: ${{ secrets.BOT_TOKEN }}
         run: |
           mkdir -p /tmp/summaries
           while IFS= read -r line; do

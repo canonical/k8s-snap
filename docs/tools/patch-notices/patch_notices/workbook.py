@@ -29,6 +29,14 @@ from patch_notices import sanitize
 
 SHA_TAG_RE = re.compile(r"<!--\s*sha:([0-9a-f]{7,40})\s*-->")
 
+
+def _safe_short_sha(value: Any) -> str:
+    """Return a short SHA, or 'unknown' if the stored value is malformed."""
+    try:
+        return sanitize.short_sha(value)
+    except ValueError:
+        return "unknown"
+
 CATEGORY_ORDER = [
     "Major Feature",
     "Security",
@@ -98,13 +106,6 @@ def _pr_suffix(value: Any, *, parens: bool = True) -> str:
     if number is None:
         return ""
     return f" (PR #{number})" if parens else f" PR #{number}"
-
-
-def _display_sha(value: Any) -> str:
-    try:
-        return sanitize.short_sha(value)
-    except ValueError:
-        return "unknown"
 
 
 def _clean_entry_lines(triage_results: list[dict[str, Any]]) -> list[str]:
@@ -318,9 +319,10 @@ def insert_patch_notice(
     if "## Patch notices" in text:
         # Insert new entry immediately after the section heading + blank line.
         # Pattern: the heading followed by one or more blank lines.
+        # Callable replacement avoids re interpreting backslashes in entry_block as escapes.
         new_text, n = re.subn(
             r"(## Patch notices\n\n)",
-            f"\\1{entry_block}\n\n",
+            lambda match: match.group(1) + entry_block + "\n\n",
             text,
             count=1,
         )
@@ -372,7 +374,8 @@ def build_track_summary(
     """
     included = [r for r in triage_results if r["triage"]["action"] == "include"]
     discarded = [r for r in triage_results if r["triage"]["action"] == "discard"]
-    limited = [r for r in included if r["triage"].get("limited_context")]
+    # Low-context flag applies regardless of action, so discards need the warning too.
+    limited = [r for r in triage_results if r["triage"].get("limited_context")]
 
     return {
         "track": track,
@@ -494,7 +497,7 @@ def build_pr_body(summaries: list[dict[str, Any]]) -> str:
             lines.append("### ⚠️ Large diff — verify manually before approving")
             lines.append("")
             for item in s["limited_context"]:
-                sha = _display_sha(item.get("sha", ""))
+                sha = _safe_short_sha(item.get("sha", ""))
                 pr = _pr_suffix(item.get("pr_number"))
                 title = sanitize.markdown_text(item.get("title", ""))
                 lines.append(f"- `{sha}`{pr} — {title}")
@@ -505,7 +508,7 @@ def build_pr_body(summaries: list[dict[str, Any]]) -> str:
             lines.append("### Discarded")
             lines.append("")
             for item in s["discarded"]:
-                sha = _display_sha(item.get("sha", ""))
+                sha = _safe_short_sha(item.get("sha", ""))
                 pr = _pr_suffix(item.get("pr_number"), parens=False)
                 reason = sanitize.markdown_text(item.get("reason", ""))
                 title = sanitize.markdown_text(item.get("title", ""))

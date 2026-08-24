@@ -94,7 +94,7 @@ sections. The `<!-- sha:... -->` tags are the only thing `finalize` reads.
 ### 3. finalize — close the loop
 
 ```bash
-patch-notices finalize --track 1.32
+patch-notices finalize
 ```
 
 Parses the workbook for `<!-- sha:... -->` tags, writes
@@ -156,14 +156,21 @@ patch-notices fetch --source charm --track 1.32
 patch-notices review --source charm --track 1.32
 
 # 3. Update state and export the clean patch notice
-patch-notices finalize --source charm --track 1.32
+patch-notices finalize
 ```
 
 ## Automated workflow (CI)
 
 The `generate` and `pr-body` commands are used by the GitHub Actions workflow
-to process all tracks automatically. See [ARCHITECTURE.md](ARCHITECTURE.md) for the
-full architecture.
+to process all tracks automatically. The workflow installs this repo-local
+package, runs `generate` for each configured snap and charm track, updates the
+release notes and `metadata/patch-metadata.json` together, builds a PR body from
+the per-track summaries, and opens a docs PR for review.
+
+The tool intentionally lives in this repository because the tracked metadata,
+release notes paths, supported channels, and PR workflow are specific to
+Canonical Kubernetes. If another project needs the same automation, the package
+boundary here should make extraction straightforward.
 
 ### generate — fetch, triage, and insert in one step
 
@@ -199,8 +206,3 @@ reasons, and commit titles are treated as untrusted plain text before they are
 rendered into release notes, review workbooks, or PR bodies. The human PR review
 step is still required: always review the workbook or PR body before approving.
 
-## See also
-
-[PLAN.md](PLAN.md) — original system specification (snap pipeline only; predates charm support).
-
-[ARCHITECTURE.md](ARCHITECTURE.md) — architecture and PR flow for the automated monthly workflow.

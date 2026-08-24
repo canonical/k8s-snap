@@ -183,6 +183,10 @@ is a group label string (if grouped) or null (if standalone):
 # Override via PATCH_NOTICES_MAX_DIFF_CHARS if your endpoint has a tighter limit.
 _MAX_DIFF_CHARS = int(os.environ.get("PATCH_NOTICES_MAX_DIFF_CHARS", "12000"))
 
+# The only actions downstream include/discard filters recognise; anything else
+# must be treated as a manual-review fallback rather than silently dropped.
+_VALID_ACTIONS = {"include", "discard"}
+
 
 def triage(prs: list[dict[str, Any]], source: str = "snap") -> list[dict[str, Any]]:
     """Run each commit through two LLM passes. Returns an enriched list of records.
@@ -196,8 +200,8 @@ def triage(prs: list[dict[str, Any]], source: str = "snap") -> list[dict[str, An
 
     Supports OpenAI directly or any OpenAI-compatible endpoint.
     Set OPENAI_BASE_URL to override, e.g.:
-      export OPENAI_BASE_URL=https://models.inference.ai.azure.com
-      export OPENAI_API_KEY=ghp_...
+      export OPENAI_BASE_URL=https://openrouter.ai/api/v1
+      export OPENAI_API_KEY=sk-or-...
     """
     system_prompt = CHARM_SYSTEM_PROMPT if source == "charm" else SNAP_SYSTEM_PROMPT
     client = openai.OpenAI(
@@ -292,13 +296,15 @@ def _triage_one(client: openai.OpenAI, pr: dict[str, Any], system_prompt: str) -
     )
     try:
         result = json.loads(response.choices[0].message.content)
+        if not isinstance(result, dict) or result.get("action") not in _VALID_ACTIONS:
+            raise ValueError(f"unsupported action {result.get('action')!r}" if isinstance(result, dict) else f"response is not a JSON object: {result!r}")
     except Exception as exc:
         sha = pr.get("sha", "")[:8]
-        print(f"[warning] JSON parse failed for {sha} ({exc}); flagging for manual review.", flush=True)
+        print(f"[warning] Invalid triage response for {sha} ({exc}); flagging for manual review.", flush=True)
         result = {
             "action": "include",
             "category": None,
-            "summary": "(AI response unparseable — review manually)",
+            "summary": "(AI response invalid — review manually)",
             "components": None,
             "reason": None,
         }

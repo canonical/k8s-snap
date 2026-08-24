@@ -149,35 +149,66 @@ def _github_commit_diff(sha: str, repo: str, headers: dict) -> str:
     )
 
 
+# GitHub caps per_page at 250 for an unpaginated compare request, but once a
+# page/per_page parameter is supplied the endpoint's documented cap drops to 100.
+_COMPARE_PAGE_SIZE = 100
+# Safety cap on pages fetched (50k commits) so a misbehaving response can't loop forever.
+_MAX_COMPARE_PAGES = 500
+
+
+def _github_compare_commits(base_sha: str, head_sha: str, repo: str, headers: dict) -> list[dict[str, Any]]:
+    """Return every commit between *base_sha* and *head_sha*, paginating as needed.
+
+    Backfills or long gaps between runs (see README) can produce deltas larger
+    than a single compare page, so pages are fetched until the aggregated
+    commit count reaches total_commits.
+    """
+    commits: list[dict[str, Any]] = []
+    page = 1
+    data: dict[str, Any] = {}
+    while True:
+        resp = requests.get(
+            f"{GITHUB_API}/repos/{repo}/compare/{base_sha}...{head_sha}"
+            f"?per_page={_COMPARE_PAGE_SIZE}&page={page}",
+            headers=headers,
+            timeout=30,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        page_commits = data.get("commits", [])
+        commits.extend(page_commits)
+        total_commits = data.get("total_commits")
+        if not page_commits or (total_commits is not None and len(commits) >= total_commits):
+            break
+        page += 1
+        if page > _MAX_COMPARE_PAGES:
+            break
+
+    total_commits = data.get("total_commits")
+    if total_commits is not None and total_commits > len(commits):
+        raise ValueError(
+            f"GitHub compare returned {len(commits)} of {total_commits} commits "
+            f"for {repo} {base_sha}...{head_sha} after paginating. Narrow the delta."
+        )
+    return commits
+
+
 def _github_commits(base_sha: str, head_sha: str, repo: str = GITHUB_REPO) -> list[dict[str, Any]]:
     """Return one entry per commit between *base_sha* and *head_sha*.
 
-    Uses a GitHub compare request to obtain the commit list, then fetches
-    each commit's individual diff via a dedicated API call so the AI receives
-    focused, accurate context instead of the entire release's aggregate diff.
-    PR numbers are extracted from commit message subjects where GitHub embeds
-    them (e.g. "fix: something (#2131)").
+    Uses paginated GitHub compare requests to obtain the commit list, then
+    fetches each commit's individual diff via a dedicated API call so the AI
+    receives focused, accurate context instead of the entire release's
+    aggregate diff. PR numbers are extracted from commit message subjects
+    where GitHub embeds them (e.g. "fix: something (#2131)").
     """
     token = os.environ.get("GITHUB_TOKEN")
     headers = {"Authorization": f"Bearer {token}"} if token else {}
     headers["Accept"] = "application/vnd.github+json"
     headers["X-GitHub-Api-Version"] = "2022-11-28"
 
-    resp = requests.get(
-        f"{GITHUB_API}/repos/{repo}/compare/{base_sha}...{head_sha}?per_page=250",
-        headers=headers,
-        timeout=30,
-    )
-    resp.raise_for_status()
-    data = resp.json()
+    commits = _github_compare_commits(base_sha, head_sha, repo, headers)
 
-    commits = data.get("commits", [])
-    total_commits = data.get("total_commits")
-    if total_commits is not None and total_commits > len(commits):
-        raise ValueError(
-            f"GitHub compare returned {len(commits)} of {total_commits} commits "
-            f"for {repo} {base_sha}...{head_sha}. Narrow the delta or add pagination."
-        )
     if not token and len(commits) > 20:
         print(
             f"\u26a0 GITHUB_TOKEN not set \u2014 fetching per-commit diffs for {len(commits)} commits "
