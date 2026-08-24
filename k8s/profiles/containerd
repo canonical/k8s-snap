@@ -32,12 +32,26 @@ profile cri-containerd.apparmor.d flags=(attach_disconnected,mediate_deleted) {
   deny /sys/kernel/security/** rwklx,
 
 
-  # suppress ptrace denials when using 'docker ps' or using 'ps' inside a container
-  ptrace (trace,read) peer=cri-containerd.apparmor.d,
+  # Allow ptrace between container processes (e.g. 'docker ps', 'ps' inside a container).
+  # On kernel 6.17+ with AppArmor profile stacking enabled, exec'd processes run under
+  # the stacked peer label "cri-containerd.apparmor.d//&unconfined" rather than the plain
+  # profile name; the //&* glob matches all such stacked variants.
+  # See: https://github.com/containerd/containerd/issues/12886
+  ptrace (trace,tracedby,read,readby) peer=cri-containerd.apparmor.d,
+  ptrace (trace,tracedby,read,readby) peer=cri-containerd.apparmor.d//&*,
 
   signal (receive) peer=snap.k8s.containerd,
   signal (receive) peer=snap.k8s.kubelet,
   signal (receive) peer=snap.k8s.k8sd,
   signal (receive) peer=snap.k8s.k8s,
   signal (receive) peer=snap.k8s.hook.remove,
+
+  # Allow signals between container processes (e.g. ISC BIND isc-net-0000 threads in
+  # nslookup). On kernel 6.17+ with AppArmor profile stacking, exec'd processes run under
+  # the stacked peer label "cri-containerd.apparmor.d//&unconfined"; without a send rule
+  # AppArmor denies inter-thread signals, causing nslookup to crash with SIGSEGV (rc:139).
+  # The //&* glob matches all stacked variants; it is a no-op on older kernels where
+  # stacking is inactive. See: https://github.com/containerd/containerd/issues/12886
+  signal (send, receive) peer=cri-containerd.apparmor.d,
+  signal (send, receive) peer=cri-containerd.apparmor.d//&*,
 }
