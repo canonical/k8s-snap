@@ -8,6 +8,10 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "0 0 * * 6" # Runs every saturday at midnight
+  # TODO: remove once LXD channel fix is validated
+  pull_request:
+    paths:
+      - ".github/workflows/e2e-tests.yaml"
 permissions:
   contents: read
   actions: read
