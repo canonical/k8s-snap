@@ -32,6 +32,9 @@ LOG = logging.getLogger(__name__)
 RISKS = ["stable", "candidate", "beta", "edge"]
 TRACK_RE = re.compile(r"^v?(\d+)\.(\d+)(.\d+)?(\S*)$")
 MAIN_BRANCH = "main"
+# kube-proxy was replaced by the Cilium kube-proxy replacement in 1.36. Snaps older
+# than this always run kube-proxy and ignore `network.kube-proxy-enabled`.
+KUBE_PROXY_REPLACEMENT_MIN_VERSION = (1, 36)
 
 
 def run(command: list, **kwargs) -> subprocess.CompletedProcess:
@@ -1141,16 +1144,27 @@ def check_snap_services_ready(
         if datastore_type != "external":
             expected_control_plane_services.add(datastore_type)
 
-    expected_active_services = (
+    base_expected_services = (
         expected_control_plane_services
         if node_type == "control-plane"
         else expected_worker_services
     )
 
-    if skip_services:
-        expected_active_services = [
-            s for s in expected_active_services if s not in skip_services
-        ]
+    kube_proxy_check_skip: set = set(skip_services)
+    expected_active_services = set(base_expected_services)
+
+    if "kube-proxy" not in skip_services:
+        kube_proxy_active = _is_kube_proxy_expected_active(instance)
+        if kube_proxy_active is True:
+            expected_active_services.add("kube-proxy")
+        elif kube_proxy_active is False:
+            expected_active_services.discard("kube-proxy")
+        else:
+            # The expected kube-proxy state could not be determined — skip the
+            # check entirely to avoid false failures in upgrade scenarios.
+            kube_proxy_check_skip.add("kube-proxy")
+
+    expected_active_services -= set(skip_services)
 
     result = instance.exec(["snap", "services", "k8s"], capture_output=True, text=True)
     services_output = result.stdout.split("\n")[1:-1]  # Skip the header line
@@ -1163,6 +1177,8 @@ def check_snap_services_ready(
             service_status[service_name] = parts[2]  # "active" or "inactive"
 
     for service in expected_active_services:
+        if service in kube_proxy_check_skip:
+            continue
         assert (
             service in service_status
         ), f"Service {service} is missing from 'snap services' output"
@@ -1171,7 +1187,7 @@ def check_snap_services_ready(
         ), f"Service {service} should be active, but it is {service_status[service]}"
 
     for service, status in service_status.items():
-        if service in skip_services:
+        if service in kube_proxy_check_skip:
             continue
         if service not in expected_active_services:
             assert (
@@ -1274,6 +1290,190 @@ def check_service_logs_for_panics(
         assert False, "Panic/segfault traces found in service logs:\n" + "\n".join(
             details
         )
+
+
+
+def is_fips_enabled(instance: harness.Instance):
+    """
+    Returns True if the provided instance is running with FIPS enabled, False otherwise.
+    """
+    fips_path = "/proc/sys/crypto/fips_enabled"
+    try:
+        result = instance.exec(["cat", fips_path], capture_output=True, text=True)
+        return result.stdout.strip() == "1"
+    except subprocess.CalledProcessError:
+        return False
+
+
+def status_output_matches(
+    p: subprocess.CompletedProcess, status_pattern: List[str]
+) -> bool:
+    """
+    Check if the output of the `k8s status` command matches the expected pattern.
+    """
+    result_lines = p.stdout.decode().strip().split("\n")
+    if len(result_lines) != len(status_pattern):
+        LOG.info(
+            "wrong number of results lines, expected %s, got %s",
+            len(status_pattern),
+            len(result_lines),
+        )
+        return False
+
+    for i, l in enumerate(result_lines):
+        line, pattern = l, status_pattern[i]
+        if not re.search(pattern, line):
+            LOG.info(
+                "could not match `%s` with `%s`",
+                line.strip(),
+                pattern,
+            )
+            return False
+
+    return True
+
+
+def set_node_labels(
+    instance: harness.Instance,
+    node_name: str,
+    labels: dict[str, str],
+):
+    """Set the given labels on the given node.
+
+    Args:
+        instance:   instance on which to execute the command
+        node_name:  name of the node to label
+        labels:     dictionary of labels to set
+    """
+    labels_str = " ".join(f"{key}={value}" for key, value in labels.items())
+
+    instance.exec(
+        [
+            "k8s",
+            "kubectl",
+            "label",
+            "nodes",
+            node_name,
+            f"{labels_str}",
+        ],
+        check=True,
+    )
+
+
+def _is_kube_proxy_enabled(
+    instance: harness.Instance,
+) -> Optional[bool]:
+    """Return the kube-proxy enabled state from the cluster config.
+
+    Queries the k8sd datastore for the `network.kube-proxy-enabled` config value.
+
+    Returns:
+        True  — field is present and set to true
+        False — field is present and set to false
+        None  — field is absent (older snap without this config key) or query failed.
+                Callers should treat None as "unknown" and avoid asserting either way.
+
+    Args:
+        instance: instance on which to execute the command
+    """
+    try:
+        result = instance.exec(
+            [
+                "/snap/k8s/current/bin/k8sd",
+                "sql",
+                "--state-dir",
+                "/var/snap/k8s/common/var/lib/k8sd/state",
+                "select value from cluster_configs where key = 'v1alpha2'",
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except subprocess.CalledProcessError:
+        LOG.warning(
+            "Failed to query kube-proxy-enabled on %s, returning None",
+            instance.id,
+        )
+        return None
+
+    try:
+        rows = json.loads(result.stdout)
+        for row in rows:
+            for value in row:
+                network = value.get("network", {})
+                if "kube-proxy-enabled" in network:
+                    LOG.info(
+                        f"kube-proxy-enabled in cluster config: {network['kube-proxy-enabled']}"
+                    )
+                    return str(network["kube-proxy-enabled"]).lower() == "true"
+                else:
+                    LOG.info("kube-proxy-enabled was not found in cluster_config")
+    except json.decoder.JSONDecodeError as e:
+        LOG.error(f"failed to load cluster config json: {e}")
+
+    # Field absent: this is an older snap that predates the kube-proxy-enabled config
+    # key. Return None so callers skip the kube-proxy service assertion entirely.
+    return None
+
+
+def _installed_k8s_version(instance: harness.Instance) -> Optional[tuple]:
+    """Return the (major, minor) version of the k8s snap installed on the instance.
+
+    Returns None if the snap is not installed or the version cannot be parsed.
+
+    Args:
+        instance: instance on which to execute the command
+    """
+    try:
+        result = instance.exec(
+            ["snap", "list", config.SNAP_NAME],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except subprocess.CalledProcessError:
+        LOG.warning("Failed to list the k8s snap on %s, returning None", instance.id)
+        return None
+
+    lines = result.stdout.strip().split("\n")
+    if len(lines) < 2:
+        return None
+
+    fields = lines[-1].split()
+    if len(fields) < 2:
+        return None
+
+    return major_minor(fields[1])
+
+
+def _is_kube_proxy_expected_active(instance: harness.Instance) -> Optional[bool]:
+    """Return whether the kube-proxy service is expected to be active on the instance.
+
+    Snaps older than KUBE_PROXY_REPLACEMENT_MIN_VERSION predate the Cilium kube-proxy
+    replacement and always run kube-proxy, regardless of the cluster config. The
+    `network.kube-proxy-enabled` row survives a downgrade, so on those nodes it
+    describes the config a newer peer wrote rather than what the snap actually does.
+
+    Returns:
+        True  — kube-proxy should be active
+        False — kube-proxy should be inactive
+        None  — undeterminable; callers should skip the assertion.
+
+    Args:
+        instance: instance on which to execute the command
+    """
+    version = _installed_k8s_version(instance)
+    if version and version < KUBE_PROXY_REPLACEMENT_MIN_VERSION:
+        LOG.info(
+            "k8s snap %d.%d on %s predates the kube-proxy replacement, "
+            "expecting kube-proxy to be active",
+            version[0],
+            version[1],
+            instance.id,
+        )
+        return True
+
+    return _is_kube_proxy_enabled(instance)
 
 
 def diverged_cluster_memberships(
