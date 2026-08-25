@@ -32,12 +32,8 @@ profile cri-containerd.apparmor.d flags=(attach_disconnected,mediate_deleted) {
   deny /sys/kernel/security/** rwklx,
 
 
-  # Allow ptrace between container processes (e.g. 'docker ps', 'ps' inside a container).
-  # Both trace+read (tracer side) and tracedby+readby (tracee side) are required: AppArmor
-  # checks both the tracer's and the tracee's profile, so omitting either half silently
-  # denies the operation. On kernel 6.17+ with AppArmor stacking, exec'd processes get
-  # a stacked peer label (e.g. "cri-containerd.apparmor.d//&unconfined"); //&* covers
-  # all stacked variants. See: https://github.com/containerd/containerd/issues/12886
+  # suppress ptrace denials when using 'docker ps' or using 'ps' inside a container
+  # //&* covers stacked peer labels on kernel 6.17+ (https://github.com/containerd/containerd/issues/12886)
   ptrace (trace,tracedby,read,readby) peer=cri-containerd.apparmor.d,
   ptrace (trace,tracedby,read,readby) peer=cri-containerd.apparmor.d//&*,
 
@@ -47,12 +43,8 @@ profile cri-containerd.apparmor.d flags=(attach_disconnected,mediate_deleted) {
   signal (receive) peer=snap.k8s.k8s,
   signal (receive) peer=snap.k8s.hook.remove,
 
-  # Allow signals between container processes (e.g. ISC BIND isc-net-0000 threads in
-  # nslookup). No self-referential signal rule existed before; without a send rule,
-  # inter-thread signals are denied and nslookup crashes with SIGSEGV (rc:139).
-  # On kernel 6.17+ with AppArmor stacking, exec'd processes get a stacked peer label
-  # (e.g. "cri-containerd.apparmor.d//&unconfined"); //&* covers all stacked variants.
-  # See: https://github.com/containerd/containerd/issues/12886
+  # Allow signals between container processes.
+  # //&* covers stacked peer labels on kernel 6.17+ (https://github.com/containerd/containerd/issues/12886)
   signal (send,receive) peer=cri-containerd.apparmor.d,
   signal (send,receive) peer=cri-containerd.apparmor.d//&*,
 }
