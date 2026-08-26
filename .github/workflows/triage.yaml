@@ -157,16 +157,16 @@ jobs:
                   DISPATCH_DRY_RUN: ${{ inputs.dry_run }}
               run: |
                   source .venv/bin/activate
-                  mkdir -p .triage-artifacts
+                  mkdir -p triage-artifacts
                   if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
                     args="--issue $DISPATCH_ISSUE --action $DISPATCH_ACTION"
                     if [[ "$DISPATCH_DRY_RUN" == "true" ]]; then
                       args="$args --dry-run"
                     else
-                      args="$args --auto-pr --export-dir .triage-artifacts"
+                      args="$args --auto-pr --export-dir triage-artifacts"
                     fi
                   else
-                    args="--event-file $GITHUB_EVENT_PATH --auto-pr --export-dir .triage-artifacts"
+                    args="--event-file $GITHUB_EVENT_PATH --auto-pr --export-dir triage-artifacts"
                   fi
                   ai-triage --config .triage-config.yaml $args
 
@@ -175,7 +175,7 @@ jobs:
               uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
               with:
                   name: triage-artifacts-${{ needs.gate.outputs.issue }}
-                  path: .triage-artifacts/
+                  path: triage-artifacts/
                   retention-days: 1
 
     publish:
@@ -216,14 +216,14 @@ jobs:
               uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
               with:
                   name: triage-artifacts-${{ needs.gate.outputs.issue }}
-                  path: .triage-artifacts
+                  path: triage-artifacts
 
             - name: Publish triage results
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   source .venv/bin/activate
-                  ai-triage publish --config .triage-config.yaml --artifact-dir .triage-artifacts
+                  ai-triage publish --config .triage-config.yaml --artifact-dir triage-artifacts
 
     classify:
         name: Triage (unprivileged classify)
