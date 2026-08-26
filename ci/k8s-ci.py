@@ -8,7 +8,6 @@ from cmds.charm import add_charm_cmds
 from cmds.deps import add_deps_cmds
 from cmds.docs import add_docs_cmds
 from cmds.mattermost import add_mattermost_cmds
-from cmds.triage import add_triage_cmds
 
 
 def main(argv: list[str]) -> int:
@@ -20,7 +19,6 @@ def main(argv: list[str]) -> int:
     add_deps_cmds(subparsers)
     add_docs_cmds(subparsers)
     add_mattermost_cmds(subparsers)
-    add_triage_cmds(subparsers)
 
     args = parser.parse_args(argv)
 
