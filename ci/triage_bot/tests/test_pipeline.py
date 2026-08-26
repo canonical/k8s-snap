@@ -316,6 +316,19 @@ def test_open_pr_pushes_committed_branch_and_opens_draft():
     assert url == gh.pulls_created[0]["html_url"]
 
 
+def test_open_pr_refuses_to_push_when_component_pins_are_touched(monkeypatch):
+    gh = FakeGitHub(local_branches=[BRANCH])
+    monkeypatch.setattr(
+        "triage_bot.pipeline._touches_component_pins", lambda _worktree: True
+    )
+
+    url = _open_pr(_Rt(gh), _issue(), _fix(), _reproducer())
+
+    assert url is None
+    assert BRANCH not in gh.pushed_branches
+    assert len(gh.pulls_created) == 0
+
+
 def test_failed_fix_still_opens_a_pr_carrying_the_test():
     # The whole point of committing the test separately: a maintainer gets a
     # runnable reproducer even though the bot could not fix the bug.
@@ -447,7 +460,7 @@ def test_cleanup_destroys_via_the_primary_checkouts_script(
     with caplog.at_level("INFO", logger="triage_bot"):
         _cleanup(checkout, CLUSTER_PREFIX)
 
-    assert calls[-1] == ["bash", str(script), "--prefix", CLUSTER_PREFIX, "--destroy"]
+    assert ["bash", str(script), "--prefix", CLUSTER_PREFIX, "--destroy"] in calls
     messages = [r.message for r in caplog.records]
     assert f"[cleanup] destroying cluster {CLUSTER_PREFIX}" in messages
     assert "[cleanup] done" in messages

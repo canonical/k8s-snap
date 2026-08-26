@@ -1,23 +1,16 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
-"""Deterministic triage labeling and issue parsing.
-
-Action-owned counterpart to the project-owned skills: everything here is a pure
-function of the issue text (or a single structured LLM call), with no cluster
-access. It is the analog of the reference bot's ``selectTriageLabels`` -- it
-decides the ``kind/`` and ``area/`` labels, detects a missing inspection
-tarball, and flags likely duplicates, all offline-testable.
-
-The regexes and the sanitiser are carried over verbatim from the original graph
-nodes; only the plumbing changed (plain arguments instead of a graph state).
-"""
+"""Deterministic triage labeling and issue parsing."""
 
 from __future__ import annotations
 
 import re
 from pathlib import Path
 from typing import Optional
+
+from langchain_core.tools import tool
+from langgraph.prebuilt import create_react_agent
 
 from .llm import DEFAULT_MODEL, make_llm
 from .schema import (
@@ -81,22 +74,45 @@ def sanitize_comment_text(text: str, limit: int = 80) -> str:
 
 
 _FENCE_RUN_RE = re.compile(r"`{3,}")
+_SAFE_COMMAND_RE = re.compile(
+    r"^\s*(?:#.*|(?:sudo\s+)?(?:k8s|kubectl|snap|lxc|helm|microk8s)\b.*)$"
+)
+_SAFE_PIPE_CMD_RE = re.compile(
+    r"^(?:sudo\s+)?(?:k8s|kubectl|snap|lxc|helm|microk8s|grep|awk|jq|cat|"
+    r"head|tail|sort|uniq|wc|tr|cut|tee|echo|systemctl|journalctl)\b"
+)
+_DANGEROUS_TOKENS_RE = re.compile(
+    r"\b(?:curl|wget|nc|netcat|socat|eval|exec|source|bash|sh|zsh|python|perl|ruby)\b",
+    re.IGNORECASE,
+)
+_SPLIT_PIPE_CHAIN_RE = re.compile(r";|&&|\|\||\|")
 
 
 def sanitize_fenced_text(text: str, limit: int = 1200) -> str:
-    """Defang attacker-influenceable text destined for a ``` fenced block.
-
-    A fence already blocks markdown/HTML interpretation, so the character
-    allowlist :func:`sanitize_comment_text` needs is not: it would flatten
-    multi-line commands to one line and strip quotes/parens a shell command
-    needs to mean what it says. The one thing a fence does not defend
-    against is content escaping it: a run of 3+ backticks landing at the
-    start of a line closes the fence early, letting the rest of the text
-    render as ordinary (interpreted) markdown. Capping every run to 2 makes
-    that impossible regardless of where it falls, without touching anything
-    else -- newlines, quoting, and command syntax survive intact.
-    """
-    return _FENCE_RUN_RE.sub("``", text).strip()[:limit]
+    """Defang text for a ``` fenced block and restrict commands to an allowlist."""
+    if not text:
+        return ""
+    cleaned = _FENCE_RUN_RE.sub("``", text).strip()
+    lines = [ln.strip() for ln in cleaned.splitlines() if ln.strip()]
+    for line in lines:
+        if line.startswith("#") or line.strip("` ") == "":
+            continue
+        if not _SAFE_COMMAND_RE.match(line):
+            return ""
+        subcmds = _SPLIT_PIPE_CHAIN_RE.split(line)
+        for i, sub in enumerate(subcmds):
+            sub = sub.strip()
+            if not sub:
+                continue
+            if i == 0:
+                if not _SAFE_COMMAND_RE.match(sub):
+                    return ""
+            else:
+                if not _SAFE_PIPE_CMD_RE.match(sub):
+                    return ""
+            if _DANGEROUS_TOKENS_RE.search(sub):
+                return ""
+    return cleaned[:limit]
 
 
 def parse_template(body: str) -> dict:
@@ -322,8 +338,6 @@ def check_existing_support(
     run. Any page the model cites is checked against the real inventory, so a
     plausible-looking but non-existent link can never reach the issue.
     """
-    from langchain_core.tools import tool
-    from langgraph.prebuilt import create_react_agent
 
     @tool
     def read_doc(path: str) -> str:
@@ -407,8 +421,6 @@ def propose_enhancement(
     "enhancement noted" comment: it tells the reporter whether they can do
     something today, and gives implementers concrete starting points.
     """
-    from langchain_core.tools import tool
-    from langgraph.prebuilt import create_react_agent
 
     @tool
     def read_doc(path: str) -> str:

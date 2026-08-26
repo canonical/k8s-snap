@@ -1,15 +1,7 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
-"""Shared plumbing for the event handlers.
-
-The handlers are the action-owned orchestration: each one is selected by the
-router for a given event and drives the GitHub side effects (label swaps,
-comments, PRs) around one or more skill invocations. Everything a handler needs
-is bundled in :class:`Runtime`, and the two expensive, non-deterministic seams
--- the skill pipeline and the LLM classifier -- are injected so the handlers run
-fully offline in tests with canned results.
-"""
+"""Shared plumbing and data structures for event handlers."""
 
 from __future__ import annotations
 
@@ -31,12 +23,10 @@ from ..schema import (
 )
 from ..skills import repo_root
 
-# Hidden marker appended to every failure comment. Re-triage counts these to
-# enforce the ``max_triage_failures`` cap without any external state.
+# Hidden marker on failure comments for failure counting.
 FAILURE_MARKER = "<!-- triage-bot:failure -->"
 
-# Marker on the bot's own triage comments, so its comments are recognisable
-# even when posted under a user account in local runs.
+# Marker on bot comments.
 BOT_MARKER = "<!-- triage-bot -->"
 
 # Alpha disclaimer appended to every comment.
@@ -77,7 +67,7 @@ class HandlerResult:
 VerifyFn = Callable[..., FixVerification]
 SupportFn = Callable[..., ExistingSupport]
 ProposeFn = Callable[..., EnhancementProposal]
-# Production wires the real skill runner; tests inject a canned function.
+# Injected dependencies for handlers.
 PipelineFn = Callable[["Runtime", IssueContext], TriageResult]
 ClassifyFn = Callable[..., Classification]
 RetriageFn = Callable[..., RetriageDecision]

@@ -1,14 +1,7 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
-"""Label-driven state machine configuration.
-
-The bot keeps no database. An issue's triage state *is* the single ``triage/``
-label it carries, and transitions are atomic label swaps (remove the old, add
-the new). This module owns the label vocabulary and the three sets the router
-needs: every triage label, the re-triageable subset (a new comment may restart
-triage), and the terminal subset (the bot stops acting).
-"""
+"""Label-driven state machine configuration."""
 
 from __future__ import annotations
 
@@ -35,13 +28,13 @@ class LabelConfig:
     _NON_STATE = ("pr_fix_verified", "docs_needed")
 
     def all_triage_labels(self) -> list[str]:
-        """Every triage-state label (excludes the labels above)."""
+        """All triage-state labels."""
         return [
             getattr(self, f.name) for f in fields(self) if f.name not in self._NON_STATE
         ]
 
     def retriageable_labels(self) -> list[str]:
-        """Labels where a fresh non-bot comment may warrant re-triage."""
+        """Labels eligible for retriage on fresh comments."""
         return [
             self.needs_triage,
             self.needs_reproduction,
@@ -52,7 +45,7 @@ class LabelConfig:
         ]
 
     def terminal_labels(self) -> list[str]:
-        """Labels where the bot takes no further action on new comments."""
+        """Labels where the bot takes no further action."""
         return [
             self.fix_verified,
             self.needs_human,
@@ -62,12 +55,7 @@ class LabelConfig:
 
 
 def current_triage_label(issue_labels: list[str], config: LabelConfig) -> str | None:
-    """Return the first triage label present on the issue, or ``None``.
-
-    An issue should carry at most one triage label; if several are present
-    (manual tampering) the first match in declaration order wins, which keeps
-    routing deterministic.
-    """
+    """Return the first triage label present on the issue, or ``None``."""
     present = set(issue_labels)
     return next(
         (label for label in config.all_triage_labels() if label in present), None

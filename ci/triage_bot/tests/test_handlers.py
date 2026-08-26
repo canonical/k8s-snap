@@ -595,6 +595,62 @@ def test_verify_fix_confirmed_tags_pr(tmp_path):
     assert any(pr["html_url"] in c for c in gh.comments_posted)
 
 
+def test_verify_fix_confirmed_via_pr_verdict_does_not_ask_to_merge(tmp_path):
+    gh = FakeGitHub(
+        issue={"number": ISSUE, "title": "t", "body": "x"},
+        labels=[LABELS.fix_pending],
+        branches=[f"triage/fix-{ISSUE}"],
+    )
+    pr = gh.create_pull_request(
+        head=f"triage/fix-{ISSUE}", base="main", title="fix", body="b"
+    )
+    rt = _runtime(
+        gh,
+        tmp=tmp_path,
+        pipeline=make_pipeline(TriageResult()),
+        verify_fix=make_verifier(FixVerification(status="confirmed")),
+    )
+    event = GitHubEvent(
+        action="closed",
+        issue_number=ISSUE,
+        issue_labels=[],
+        author_association="MEMBER",
+        pr_verdict="confirmed",
+    )
+    result = dispatch(event, rt)
+    assert result.label == LABELS.fix_verified
+    assert LABELS.pr_fix_verified in gh.pr_labels[pr["number"]]
+    assert not any("Merge" in c for c in gh.comments_posted)
+    assert any("Fix confirmed. Thanks for verifying." in c for c in gh.comments_posted)
+
+
+def test_verify_fix_rejected_via_pr_verdict_does_not_ask_to_close(tmp_path):
+    gh = FakeGitHub(
+        issue={"number": ISSUE, "title": "t", "body": "x"},
+        labels=[LABELS.fix_pending],
+        branches=[f"triage/fix-{ISSUE}"],
+    )
+    gh.create_pull_request(
+        head=f"triage/fix-{ISSUE}", base="main", title="fix", body="b"
+    )
+    rt = _runtime(
+        gh,
+        tmp=tmp_path,
+        pipeline=make_pipeline(TriageResult()),
+        verify_fix=make_verifier(FixVerification(status="rejected")),
+    )
+    event = GitHubEvent(
+        action="closed",
+        issue_number=ISSUE,
+        issue_labels=[],
+        author_association="MEMBER",
+        pr_verdict="rejected",
+    )
+    result = dispatch(event, rt)
+    assert result.label == LABELS.fix_rejected
+    assert not any("close" in c.lower() for c in gh.comments_posted)
+
+
 def test_verify_fix_confirmed_without_a_pr_uses_a_generic_message(tmp_path):
     # No branch/PR the fake can find (e.g. it was deleted, or auto_pr was
     # off) -- best-effort lookup degrades to a generic instruction rather
@@ -653,6 +709,23 @@ def test_verify_fix_inconclusive_posts_a_comment(tmp_path):
     assert result.label == LABELS.fix_pending
     assert len(gh.comments_posted) == 1
     assert "cc @canonical/kubernetes" in gh.comments_posted[0]
+
+
+def test_verify_fix_inconclusive_does_not_repeat_comment_if_already_nagged(tmp_path):
+    gh = FakeGitHub(
+        issue={"number": ISSUE, "title": "t", "body": "x"},
+        labels=[LABELS.fix_pending],
+        comments=["That comment didn't clearly confirm or reject the fix."],
+    )
+    rt = _runtime(
+        gh,
+        tmp=tmp_path,
+        pipeline=make_pipeline(TriageResult()),
+        verify_fix=make_verifier(FixVerification(status="inconclusive")),
+    )
+    result = dispatch(_event("created", [LABELS.fix_pending]), rt)
+    assert result.outcome == "inconclusive"
+    assert len(gh.comments_posted) == 0
 
 
 def test_verify_fix_classifies_triggering_comment_not_raced_latest(tmp_path):

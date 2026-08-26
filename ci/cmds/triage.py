@@ -1,14 +1,7 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
-"""``k8s-ci triage`` subcommand.
-
-Event-driven entry point for the label-FSM triage bot. In CI it consumes the
-GitHub Actions webhook payload (``GITHUB_EVENT_PATH``); locally it can be driven
-manually with ``--issue``/``--action`` or from a saved fixture. The heavy
-LangGraph/LangChain stack is imported lazily so the base ``k8s-ci`` CLI stays
-dependency-light.
-"""
+"""``k8s-ci triage`` subcommand."""
 
 import argparse
 import json
@@ -16,22 +9,18 @@ import logging
 import os
 import sys
 
+from triage_bot.context import ActionContext
+from triage_bot.github import GitHubClient, GitHubError
+from triage_bot.handlers import Runtime, dispatch
 from triage_bot.llm import DEFAULT_MODEL
+from triage_bot.pipeline import run_pipeline
+from triage_bot.router import GitHubEvent
 
 log = logging.getLogger("triage_bot.cli")
 
 
 def _configure_logging(level: str) -> None:
-    """Send the run log to stderr, keeping stdout a clean JSON result.
-
-    Without this the bot's own records sit below the root logger's default
-    level and are discarded -- a failed run would then have to be reproduced
-    to be understood. At the default INFO level you get one line per pipeline
-    stage (``[reproduce] reproducible=True``, and so on); the granular
-    per-tool-call trace (every shell command and its output) only appears at
-    ``--log-level DEBUG``. LLM/tool failures always log at ERROR, regardless
-    of the configured level.
-    """
+    """Configure logging to stderr."""
     logging.basicConfig(
         level=getattr(logging, level),
         format="%(asctime)s %(levelname)-7s %(name)s: %(message)s",
@@ -140,12 +129,6 @@ def _load_event(args, gh) -> dict:
 
 
 def cmd_triage_run(args: argparse.Namespace) -> int:
-    from triage_bot.context import ActionContext
-    from triage_bot.github import GitHubClient, GitHubError
-    from triage_bot.handlers import Runtime, dispatch
-    from triage_bot.pipeline import run_pipeline
-    from triage_bot.router import GitHubEvent
-
     _configure_logging(args.log_level)
     dry_run = args.dry_run
     ctx = ActionContext(

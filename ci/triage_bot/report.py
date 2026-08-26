@@ -1,14 +1,7 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
-"""The ``report.md`` scratchpad shared across pipeline stages.
-
-Each pipeline stage (reproduce -> verify -> reproducer -> diagnose -> fix) reads
-the report written by the previous stage and appends its own findings. The file
-is the only state carried between stages, so it is the single source of truth
-the comment generator later renders. Kept deliberately simple: a working
-directory per issue plus append-only section writes.
-"""
+"""Append-only report.md scratchpad shared across pipeline stages."""
 
 from __future__ import annotations
 

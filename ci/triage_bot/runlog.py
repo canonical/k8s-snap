@@ -1,21 +1,7 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
-"""Structured, redacted per-tool-call logging for the triage skills.
-
-A single ``RunLogger`` callback handler is the attach point, passed to the
-skill agent via ``config={"callbacks": [...]}``. It emits one redacted record
-per LangGraph node boundary, per LLM call, and per tool invocation (the shell
-commands the agent runs and what they returned). This is the *granular*
-trace -- every single tool call inside a stage -- so it logs at DEBUG; the
-high-level narrative (``[reproduce] reproducible=True``, and so on) comes
-from ``pipeline.py`` at INFO, which is the default level. Any LLM or tool
-failure is the one exception: it logs at ERROR regardless, so it survives a
-default-level configuration and a failed run is diagnosable from the job log
-alone, without reproducing it. Records also go, optionally, to a
-newline-delimited JSON sink (machine). Secrets are value-substituted out of
-every record before it is written.
-"""
+"""Structured, redacted logging callback for triage skills."""
 
 from __future__ import annotations
 
@@ -132,21 +118,13 @@ class RunLogger(BaseCallbackHandler):
         record = self._redactor.redact_record({"run_id": self.run_id, **record})
         event = str(record.get("event", ""))
         detail = record.get("detail")
-        if event == "tool_start":
-            tool_name = record.get("tool", "tool")
-            # Exclude read_doc from high-level logging since the user doesn't want all tool calls
-            if tool_name != "read_doc":
-                log.info("[%s] %s: %s", self._step, tool_name, _clip(detail))
-        else:
-            # Routine records are DEBUG (the granular per-tool trace); failures are
-            # ERROR so they surface even at the default INFO level.
-            log.log(
-                logging.ERROR if event.endswith("error") else logging.DEBUG,
-                "[%s] %s%s",
-                record.get("node", "-"),
-                event,
-                f" {_clip(detail)}" if detail else "",
-            )
+        log.log(
+            logging.ERROR if event.endswith("error") else logging.DEBUG,
+            "[%s] %s%s",
+            record.get("node", "-"),
+            event,
+            f" {_clip(detail)}" if detail else "",
+        )
         if self._sink is not None:
             self._sink(record)
 

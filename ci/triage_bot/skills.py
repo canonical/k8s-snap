@@ -1,18 +1,7 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
-"""Skill runner: execute a project-owned markdown skill as an agent.
-
-This is the bridge between action-owned orchestration (the handlers) and
-project-owned behaviour (the ``.agents/skills/triage`` markdown). A skill is a
-directory with a ``SKILL.md`` plus per-step files (``reproduce.md`` etc.). The
-runner builds a tool-using agent whose system prompt is the skill text, lets it
-run shell commands in the triage working directory, and coerces the final
-answer into a typed Pydantic model via structured output.
-
-Kept import-light: LangGraph/LangChain are imported lazily inside ``run_skill``
-so the base CLI and the pure FSM/router stay dependency-free.
-"""
+"""Skill runner: execute a project-owned markdown skill as an agent."""
 
 from __future__ import annotations
 
@@ -24,9 +13,12 @@ import uuid
 from pathlib import Path
 from typing import Optional, Type, TypeVar
 
+from langchain_core.tools import tool
+from langgraph.prebuilt import create_react_agent
 from pydantic import BaseModel
 
-from .llm import DEFAULT_MODEL
+from .llm import DEFAULT_MODEL, make_llm
+from .runlog import CredentialRedactor, RunLogger, jsonl_sink
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -304,10 +296,18 @@ def _release_branch(root: Path, branch: str) -> None:
         return
 
 
+def remove_worktree(path: Path) -> None:
+    """Remove worktree at ``path`` and prune git metadata."""
+    if not path.exists():
+        return
+    root = repo_root()
+    _git(root, "worktree", "remove", "--force", str(path))
+    _git(root, "worktree", "prune")
+
+
 def _make_shell_tool(
     workdir: Path, cwd: Path, cluster_prefix: str = DEFAULT_CLUSTER_PREFIX
 ):
-    from langchain_core.tools import tool
 
     # The agent works in its own worktree; the per-issue dir is scratch --
     # reuse it as an isolated HOME so credential stores under the runner
@@ -371,10 +371,6 @@ def run_skill(
     set. ``cluster_prefix`` scopes the agent's ``hack/cluster-up.sh`` calls to
     this issue; the caller must destroy that same prefix in cleanup.
     """
-    from langgraph.prebuilt import create_react_agent
-
-    from .llm import make_llm
-    from .runlog import CredentialRedactor, RunLogger, jsonl_sink
 
     system = load_skill(skill_dir, step)
     agent = create_react_agent(
@@ -413,7 +409,6 @@ def _structure(messages, *, step: str, result_model: Type[T], model_spec: str) -
     with a model turn are not supported"). Re-asking with the answer as a user
     turn is provider-neutral and mirrors the classifier in ``triage_core``.
     """
-    from .llm import make_llm
 
     answer = next(
         (

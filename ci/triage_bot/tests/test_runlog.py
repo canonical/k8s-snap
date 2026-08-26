@@ -37,17 +37,22 @@ def test_tool_calls_are_recorded(caplog):
     assert "cluster status: ready" in caplog.text
 
 
-def test_tool_start_events_are_visible_at_info_but_not_tool_end_output(caplog):
-    # The user wants to see the commands run (high-level progress), but not
-    # the verbose output of every shell command at the default level.
+def test_tool_start_and_end_events_are_at_debug_level(caplog):
     rl = _logger()
 
     with caplog.at_level(logging.INFO, logger="triage_bot"):
         rl.on_tool_start({"name": "shell"}, "some noisy diagnostic command")
         rl.on_tool_end("noisy output nobody asked to see by default")
 
-    assert "some noisy diagnostic command" in caplog.text
+    assert "some noisy diagnostic command" not in caplog.text
     assert "noisy output nobody asked to see" not in caplog.text
+
+    with caplog.at_level(logging.DEBUG, logger="triage_bot"):
+        rl.on_tool_start({"name": "shell"}, "some noisy diagnostic command")
+        rl.on_tool_end("noisy output nobody asked to see by default")
+
+    assert "some noisy diagnostic command" in caplog.text
+    assert "noisy output nobody asked to see" in caplog.text
 
 
 def test_failures_are_recorded_at_error_level(caplog):
@@ -110,12 +115,10 @@ def test_jsonl_sink_appends_one_line_per_record(tmp_path):
     assert [json.loads(ln)["event"] for ln in lines] == ["tool_start", "tool_end"]
 
 
-def test_dict_style_tool_input_surfaces_the_bare_command_at_info(caplog):
-    # LangChain passes the tool's real argument mapping via kwargs["inputs"];
-    # the log line must show the command itself, not the dict's repr.
+def test_dict_style_tool_input_surfaces_the_bare_command_at_debug(caplog):
     rl = _logger()
 
-    with caplog.at_level(logging.INFO, logger="triage_bot"):
+    with caplog.at_level(logging.DEBUG, logger="triage_bot"):
         rl.on_tool_start(
             {"name": "shell"},
             "{'command': 'k8s status --wait-ready'}",
@@ -125,18 +128,6 @@ def test_dict_style_tool_input_surfaces_the_bare_command_at_info(caplog):
     assert "k8s status --wait-ready" in caplog.text
     assert "{" not in caplog.text
     assert "'command'" not in caplog.text
-
-
-def test_read_doc_tool_start_is_not_logged_but_still_reaches_the_sink(caplog):
-    records = []
-    rl = _logger(sink=records.append)
-
-    with caplog.at_level(logging.INFO, logger="triage_bot"):
-        rl.on_tool_start({"name": "read_doc"}, "networking/index.md")
-
-    assert "networking/index.md" not in caplog.text
-    assert records[0]["event"] == "tool_start"
-    assert records[0]["tool"] == "read_doc"
 
 
 def test_shell_tool_start_reaches_the_structured_sink(caplog):

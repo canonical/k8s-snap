@@ -13,7 +13,6 @@ from __future__ import annotations
 import subprocess
 
 import pytest
-
 from triage_bot import skills
 from triage_bot.context import ActionContext
 
@@ -451,3 +450,17 @@ def test_commit_sha_advances_after_a_new_commit(tmp_path, monkeypatch):
     after = skills.commit_sha(tree)
     assert after != before
     assert len(after) == 40  # a real, full git SHA -- not a truncated/empty read
+
+
+def test_remove_worktree_cleans_up_directory(tmp_path, monkeypatch):
+    root, _ = _tiny_repo(tmp_path)
+    monkeypatch.setattr(skills, "repo_root", lambda: root)
+    path = tmp_path / "scratch" / "checkout"
+    tree = skills.ensure_worktree(path, "triage/fix-1")
+    assert tree.exists()
+
+    skills.remove_worktree(tree)
+    assert not tree.exists()
+
+    # Calling again on nonexistent path is a safe no-op.
+    skills.remove_worktree(tree)

@@ -151,7 +151,7 @@ class FakeGitHub:
             self._branches.append(head)
         return pr
 
-    def find_pull_request(self, head: str):
+    def find_pull_request(self, head: str, state: str = "open"):
         for pr in self.pulls_created:
             if pr["head"] == head:
                 return pr

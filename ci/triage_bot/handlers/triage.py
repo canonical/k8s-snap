@@ -1,27 +1,7 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
-"""``opened``/``reopened`` -> full triage.
-
-The triage handler is the FSM entry transition. It always applies the
-deterministic ``kind/``/``area/`` labels, then runs three cheap gates before
-spending a cluster run:
-
-1. **duplicate** -- a strong title match to another open issue is flagged for
-   a maintainer and parked at ``needs-triage`` (retriageable via a follow-up
-   comment, never terminal, since a false positive must stay reachable).
-2. **already supported** -- a request for behaviour that already ships (or a
-   bug already fixed) is answered with links to the documentation, or, when
-   nothing documents it, with working commands plus a ``docs-change-needed``
-   label. Runs before the missing-details gate, since a feature request has no
-   reproduction steps to be missing.
-3. **missing details** -- a bug with no inspection tarball / no reproduction
-   steps is sent back to the reporter and parked at ``needs-reproduction``.
-
-Only when all three gates pass does it invoke the reproduce -> verify ->
-reproducer -> diagnose -> fix skill pipeline and map the :class:`TriageResult`
-onto the terminal (or fix-pending) triage label.
-"""
+"""``opened``/``reopened`` -> full triage handler."""
 
 from __future__ import annotations
 
@@ -37,8 +17,6 @@ from .base import HandlerResult, IssueContext, Runtime, maintainer_ping, with_ma
 
 _INSPECT = "sudo /snap/k8s/current/k8s/scripts/inspect.sh"
 
-# Only the exception *type* reaches the issue (a message could echo attacker
-# text or credentials); the detail an operator needs goes to the job log.
 log = logging.getLogger("triage_bot")
 
 
@@ -68,15 +46,11 @@ def handle_triage(
 
     current = current_triage_label(issue.labels, labels)
 
-    # The cheap dedup/missing-info gates run on first triage only. On a retriage
-    # re-entry a human already judged the issue worth another look, so re-firing
-    # them would re-park (and re-comment) forever, wedging the pipeline behind a
-    # sticky false-positive duplicate or an unchanged missing-info verdict.
+    # Skip dedup/missing-info gates on retriage re-entries.
     if recheck_gates:
         duplicate = _duplicate(rt, issue)
         if duplicate is not None:
-            # Park at needs-triage (retriageable), never terminal not-actionable:
-            # a false positive must remain reachable by a follow-up comment.
+            # Park at needs-triage so false positives stay reachable by comment.
             return _park(
                 rt,
                 issue,
@@ -90,19 +64,12 @@ def handle_triage(
                 "duplicate",
             )
 
-        # Before asking for reproduction details, check the report is not
-        # asking for something that already ships (or a bug already fixed).
-        # This runs ahead of the missing-info gate on purpose: a feature
-        # request has no reproduction steps, so that gate would bounce it back
-        # to the reporter instead of just answering the question.
+        # Answer already-supported requests before the missing-info gate.
         answered = _already_supported(rt, issue, current, actions, kind_area)
         if answered is not None:
             return answered
 
-        # For enhancement requests, propose workarounds and implementation
-        # ideas before the missing-info gate -- a feature request has nothing
-        # to reproduce, so the pipeline would just return not-actionable
-        # without giving the reporter anything useful.
+        # Propose enhancement workarounds before the missing-info gate.
         if any(lbl == "kind/enhancement" for lbl in kind_area):
             proposal = _propose_enhancement(rt, issue, current, actions)
             if proposal is not None:
@@ -119,11 +86,7 @@ def handle_triage(
                 "needs_info",
             )
 
-    # The reproduce->verify->reproducer->diagnose->fix pipeline drives a
-    # shell-wielding agent on a live cluster, so reporter-controlled text
-    # must never reach it.
-    # It runs only for a maintainer-triggered (trusted) event; for anyone else
-    # the issue rests, classified, at needs-triage until a maintainer starts it.
+    # Self-hosted pipeline runs only for maintainer-triggered (trusted) events.
     if not trusted:
         return _park(
             rt,
@@ -152,12 +115,7 @@ def handle_triage(
     try:
         result = rt.pipeline(rt, issue)
     except Exception as exc:
-        log.exception("triage pipeline failed for #%s", issue.number)
-        # A cluster/skill failure must not leave the issue in limbo with no
-        # transition or feedback. Park at the retriageable failed state.
-        rt.gh.swap_label(issue.number, current, labels.failed)
-        # The crash may have landed hours after the reproducer test was
-        # committed. Publish that branch rather than throw the run away.
+        # Park at failed state on internal error.
         salvaged = salvage_reproducer(rt, issue) if rt.ctx.auto_pr else None
         note = (
             f" The end-to-end test it had already written is pushed here: {salvaged}."
@@ -332,7 +290,10 @@ def _propose_enhancement(
                 f"   {idea.description}"
             )
             if idea.example:
-                block += f"\n\n   ```\n   {idea.example}\n   ```"
+                indented = "\n".join(
+                    f"   {ln}" if ln else "" for ln in idea.example.splitlines()
+                )
+                block += f"\n\n   ```\n{indented}\n   ```"
             lines.append(block)
         proposal_parts = ["---", "\n\n".join(part for part in lines if part)]
 

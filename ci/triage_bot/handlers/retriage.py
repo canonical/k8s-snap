@@ -1,29 +1,7 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
-"""``created`` on a re-triageable issue -> maybe re-run triage.
-
-A new, non-bot comment on an issue resting at a re-triageable label can mean
-one of three different things, depending on why the bot is waiting:
-
-- **needs-triage / failed** -- the issue is already fully classified, or the
-  pipeline crashed for reasons unrelated to the report's content. Either way
-  the open question is trust, not information, so any comment from a trusted
-  actor is enough to re-enter triage; there is nothing about its content to
-  classify.
-- **needs-reproduction / unable-to-reproduce** -- the bot is waiting on a
-  specific thing (usually an inspection report) that the reporter may not be
-  able to provide. A new comment is classified -- conservatively, via the
-  injected ``decide_retriage`` seam -- as carrying the missing detail, an
-  explicit decline (flagged for manual review instead of asked again), or
-  neither.
-- **unable-to-fix / fix-rejected** -- the bot is inviting genuinely new
-  diagnostic detail; the same classifier decides whether the comment carries
-  it.
-
-The ``max_triage_failures`` cap applies uniformly so a back-and-forth thread
-cannot loop forever.
-"""
+"""``created`` on a re-triageable issue -> maybe re-run triage."""
 
 from __future__ import annotations
 
@@ -38,11 +16,9 @@ from .base import (
 )
 from .triage import handle_triage
 
-# Waiting on trust, not information: a comment's content is never classified
-# here, only whether its author is trusted.
+# Trust-gated states bypass LLM classification.
 _TRUST_GATED = "needs_triage", "failed"
-# Waiting on a specific thing the reporter may be unable to provide; a clear
-# decline moves to manual review instead of re-asking forever.
+# Information-gated states where decline moves to manual review.
 _DECLINABLE = "needs_reproduction", "unable_to_reproduce"
 
 
@@ -74,10 +50,7 @@ def handle_retriage(
         result.actions_taken = ["retriage:maintainer_comment", *result.actions_taken]
         return result
 
-    # The router only constructs Retriage for a `created` event, which
-    # always carries a real comment_body: no fallback needed, and falling
-    # back to comments[-1] would risk classifying a different comment than
-    # the one that actually triggered this run.
+    # Classify the triggering comment.
     latest = comment_body
     report = rt.report(issue).read()
     prior_request = last_bot_comment(issue.comments, rt.ctx.bot_logins)
@@ -110,9 +83,7 @@ def handle_retriage(
             "retriage", "no-new-info", current_label, ["skip:no_new_info"]
         )
 
-    # New info: reset to needs-triage and re-run triage. The pipeline itself
-    # runs only for a trusted (maintainer) trigger; an untrusted reporter's
-    # new info is re-classified and re-parked, never sent to the cluster.
+    # Reset to needs-triage and re-run triage.
     rt.gh.swap_label(issue.number, current_label, labels.needs_triage)
     issue.labels = [label for label in issue.labels if label != current_label] + [
         labels.needs_triage

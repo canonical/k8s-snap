@@ -14,7 +14,6 @@ import stat
 import subprocess
 
 import pytest
-
 from triage_bot import github
 from triage_bot.github import GitHubClient, GitHubError
 

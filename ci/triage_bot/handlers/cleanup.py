@@ -1,12 +1,7 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
-"""``closed`` -> clean up the fix branch.
-
-When an issue is closed (fix merged, or closed by a maintainer) any dangling
-draft-fix branch the bot pushed should be removed. Best-effort and idempotent:
-a missing branch is not an error.
-"""
+"""``closed`` -> clean up dangling draft-fix branch."""
 
 from __future__ import annotations
 

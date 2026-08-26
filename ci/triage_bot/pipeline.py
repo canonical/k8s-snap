@@ -1,22 +1,12 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
-"""The reproduce -> verify -> reproducer -> fix skill pipeline.
-
-This is the production :data:`~triage_bot.handlers.base.PipelineFn`: it runs the
-project-owned skills in order, threading the ``report.md`` scratchpad between
-stages and short-circuiting as soon as a stage is decisive (skipped, not
-reproducible, intended behaviour, or no failing test to fix against).
-
-The ordering is deliberate: nothing touches product code until an end-to-end
-test exists and has been observed to fail, so the fix has an executable
-specification to satisfy. Tests inject a canned pipeline instead, so nothing
-here needs a cluster to exercise the handler logic.
-"""
+"""The reproduce -> verify -> reproducer -> fix skill pipeline."""
 
 from __future__ import annotations
 
 import logging
+import subprocess
 from pathlib import Path
 from typing import Optional
 
@@ -34,6 +24,7 @@ from .skills import (
     DEFAULT_CLUSTER_PREFIX,
     commit_sha,
     ensure_worktree,
+    remove_worktree,
     render_report_json,
     repo_root,
     run_skill,
@@ -223,27 +214,8 @@ def run_pipeline(rt, issue) -> TriageResult:
 
 
 def _cleanup(checkout: Path, cluster_prefix: str) -> None:
-    """Destroy the manual triage cluster created by hack/cluster-up.sh.
-
-    Runs on both success and failure (called from a finally block) so LXD
-    containers do not accumulate between runs. Best-effort: a failure here is
-    logged but never propagates -- an issue-verdict must not be swallowed by
-    a cleanup hiccup.
-
-    ``cluster_prefix`` must match what the agent's shell used (see
-    :func:`~triage_bot.skills.run_skill`): destroying the script's bare
-    default would miss this run's actual cluster, or tear down a concurrent
-    run's, on a self-hosted pool with more than one matching runner.
-
-    The harness manages its own k8s-integration-* containers via pytest
-    fixtures and cleans them up regardless, so those do not need special
-    handling here.
-    """
-    import subprocess
-
+    """Destroy triage cluster and remove the temporary worktree."""
     log.info("[cleanup] destroying cluster %s", cluster_prefix)
-    # Find the cluster-up script: it lives in hack/ relative to the primary
-    # checkout (first worktree entry), not necessarily this worktree.
     primary_lines = subprocess.run(
         ["git", "-C", str(checkout), "worktree", "list", "--porcelain"],
         capture_output=True,
@@ -260,13 +232,14 @@ def _cleanup(checkout: Path, cluster_prefix: str) -> None:
     script = Path(primary_path) / "hack" / "cluster-up.sh"
     if not script.exists():
         log.warning("[cleanup] cluster-up.sh not found at %s, skipping", script)
+        remove_worktree(checkout)
         return
     try:
         result = subprocess.run(
             ["bash", str(script), "--prefix", cluster_prefix, "--destroy"],
             capture_output=True,
             text=True,
-            timeout=120,
+            timeout=600,
         )
         if result.returncode == 0:
             log.info("[cleanup] done")
@@ -279,15 +252,33 @@ def _cleanup(checkout: Path, cluster_prefix: str) -> None:
             )
     except Exception as exc:
         log.warning("[cleanup] failed (non-fatal): %s", exc)
+    remove_worktree(checkout)
+
+
+def _touches_component_pins(worktree: Path) -> bool:
+    """Check if the branch modifies component repository or version pins."""
+    try:
+        res = subprocess.run(
+            ["git", "-C", str(worktree), "diff", "--name-only", "main...HEAD"],
+            capture_output=True,
+            text=True,
+        )
+        for path in res.stdout.splitlines():
+            parts = Path(path).parts
+            if (
+                len(parts) >= 4
+                and parts[0] == "build-scripts"
+                and parts[1] == "components"
+                and parts[3] in ("repository", "version")
+            ):
+                return True
+    except Exception as exc:
+        log.warning("[pipeline] diff check against main failed: %s", exc)
+    return False
 
 
 def _test_reference(reproducer: ReproducerResult) -> str:
-    """A human-readable ``" (`selector`)"`` reference, or "" when unknown.
-
-    Empty in the crash-salvage path (:func:`salvage_reproducer` passes a bare
-    ``ReproducerResult()``): there is a committed branch, but not necessarily
-    a confirmed reproducer test on it, so nothing specific is asserted.
-    """
+    """Return selector or path reference string."""
     ref = reproducer.test_selector or reproducer.test_path
     return f" (`{ref}`)" if ref else ""
 
@@ -312,10 +303,15 @@ def _open_pr(rt, issue, fix: FixResult, reproducer: ReproducerResult) -> Optiona
     wording throughout makes clear it is not confirmed working.
     """
     branch = _branch(issue)
+    worktree_dir = rt.worktree(issue.number)
+    if _touches_component_pins(worktree_dir):
+        log.warning(
+            "[pipeline] issue #%s: refusing to open PR: commit modifies component repository/version pin",
+            issue.number,
+        )
+        return None
     try:
-        # The agent commits in its own worktree, so push from there -- before
-        # the reuse check, so the open PR always reflects the latest commit.
-        if not rt.gh.push_branch(branch, str(rt.worktree(issue.number))):
+        if not rt.gh.push_branch(branch, str(worktree_dir)):
             return None
         existing = rt.gh.find_pull_request(branch)
         if existing is not None:

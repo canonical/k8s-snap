@@ -233,11 +233,11 @@ class GitHubClient:
             raise GitHubError("create pull request: unexpected response")
         return data
 
-    def find_pull_request(self, head: str) -> Optional[dict]:
+    def find_pull_request(self, head: str, state: str = "open") -> Optional[dict]:
         owner = self.repo.split("/")[0]
         data = self._api(
             f"repos/{self.repo}/pulls?head={quote(f'{owner}:{head}', safe=':')}"
-            "&state=open"
+            f"&state={state}"
         )
         if isinstance(data, list) and data:
             return data[0]

@@ -1,0 +1,4 @@
+# Test dependencies for the k8s-ci triage bot. Compile with:
+#   pip-compile --generate-hashes --strip-extras ci/requirements-triage-test.in
+-r requirements-triage.in
+pytest==8.3.3

@@ -5,25 +5,9 @@ on:
         types: [opened, reopened, closed]
     issue_comment:
         types: [created]
-    # The bot's own draft fix PR closing (merged or not) is a fix verdict --
-    # see the gate step below and router.GitHubEvent.pr_verdict. Firing on
-    # every PR close in the repo is intentional: filtering to just the
-    # triage/fix-<n>/fix/issue-<n> branches happens in Python, matching how
-    # issue_comment already fires for every comment and filters later.
+    # PR close on a fix branch is a fix verdict (router.GitHubEvent.pr_verdict).
     pull_request:
         types: [closed]
-    # GitHub only discovers a workflow_dispatch-triggerable workflow once
-    # some event has actually run it -- issues/issue_comment only evaluate
-    # from the default branch (this file isn't on main yet), and
-    # pull_request:[closed] hasn't fired (this PR is still open). Without
-    # this, workflow_dispatch 404s pre-merge with no other trigger able to
-    # bootstrap discovery. A push here always routes to unprivileged
-    # classify and cleanly no-ops (GitHubEvent.from_payload has no
-    # issue/pull_request/comment key to read, action=="", so route() falls
-    # through to Skip) -- self-cleaning once this branch merges and is
-    # deleted, and harmless before then.
-    push:
-        branches: [feat/autonomous-triage-bot]
     workflow_dispatch:
         inputs:
             issue:
@@ -41,16 +25,6 @@ on:
                 description: Compute transitions but write nothing
                 type: boolean
                 default: true
-
-# One in-flight run per issue; a newer event queues rather than cancels the
-# older one. Not cancel-in-progress: the pipeline job is self-hosted and
-# stateful (LXD cluster, git worktree), and a hard-cancelled run may not
-# reach its cleanup finally-block before the runner kills it, orphaning the
-# cluster. Queuing costs runner time on a rapid burst of events; it never
-# leaks cluster state.
-concurrency:
-    group: triage-${{ github.event.issue.number || github.event.pull_request.number || inputs.issue }}
-    cancel-in-progress: false
 
 # Default to read-only; each job elevates only what it needs.
 permissions:
@@ -74,6 +48,7 @@ jobs:
         runs-on: ubuntu-latest
         outputs:
             route: ${{ steps.decide.outputs.route }}
+            issue: ${{ steps.decide.outputs.issue }}
         steps:
             - name: Evaluate event
               id: decide
@@ -84,6 +59,9 @@ jobs:
                   ASSOC_ISSUE: ${{ github.event.issue.author_association }}
                   ASSOC_COMMENT: ${{ github.event.comment.author_association }}
                   PR: ${{ toJson(github.event.issue.pull_request) }}
+                  ISSUE_NUM: ${{ github.event.issue.number }}
+                  INPUT_ISSUE: ${{ inputs.issue }}
+                  HEAD_REF: ${{ github.event.pull_request.head.ref }}
               run: |
                   action="$ACTION"
                   assoc="$ASSOC_ISSUE"
@@ -117,12 +95,25 @@ jobs:
                   if [[ "$EVENT_NAME" == "pull_request" ]]; then
                     route=classify
                   fi
+                  issue_num="$ISSUE_NUM"
+                  if [[ -z "$issue_num" ]]; then
+                    issue_num="$INPUT_ISSUE"
+                  fi
+                  if [[ "$EVENT_NAME" == "pull_request" ]]; then
+                    if [[ "$HEAD_REF" =~ ^(triage/fix|fix/issue)-([0-9]+)$ ]]; then
+                      issue_num="${BASH_REMATCH[2]}"
+                    fi
+                  fi
                   echo "route=$route" >> "$GITHUB_OUTPUT"
+                  echo "issue=$issue_num" >> "$GITHUB_OUTPUT"
 
     pipeline:
         name: Triage (maintainer-gated pipeline)
         needs: gate
         if: needs.gate.outputs.route == 'pipeline'
+        concurrency:
+            group: triage-${{ needs.gate.outputs.issue || 'none' }}
+            cancel-in-progress: false
         # Self-hosted: the reproduce/fix stages build the snap and spin up an
         # LXD cluster. Reached only for trusted (maintainer) events, so
         # reporter-controlled text drives the shell agent only after a
@@ -185,9 +176,10 @@ jobs:
         name: Triage (unprivileged classify)
         needs: gate
         if: needs.gate.outputs.route == 'classify'
-        # Untrusted events: label, dedup, and request missing info only. Runs on
-        # shared infrastructure with no cluster and read-only repo scope; the bot
-        # code parks the issue at needs-triage without touching the pipeline.
+        concurrency:
+            group: triage-${{ needs.gate.outputs.issue || 'none' }}
+            cancel-in-progress: false
+        # Untrusted events: label, dedup, and request missing info only.
         runs-on: ubuntu-latest
         permissions:
             issues: write
@@ -198,18 +190,7 @@ jobs:
               uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
               with:
                   persist-credentials: false
-                  # actions/checkout defaults to the PR's own merge ref for a
-                  # pull_request event (this job is now reachable via the fix
-                  # PR closing) -- pin to main explicitly so the bot always
-                  # runs its own trusted code, never whatever the closing
-                  # (possibly fork-owned) branch itself contains. issues/
-                  # issue_comment/push never carry attacker-controlled branch
-                  # content the same way (push requires repo write access;
-                  # issue events have no associated branch ref at all -- github.ref
-                  # already resolves to the default branch for them), so only
-                  # pull_request needs the override; forcing it unconditionally
-                  # would make a push event's self-test run main's (unmerged)
-                  # tox.ini instead of its own.
+                  # PR close events default to PR merge ref; pin to main so bot runs trusted code.
                   ref: ${{ github.event_name == 'pull_request' && 'main' || github.ref }}
 
             - name: Setup Python
@@ -233,12 +214,10 @@ jobs:
         name: Triage (branch cleanup)
         needs: gate
         if: needs.gate.outputs.route == 'cleanup'
-        # A closed issue only needs its dangling draft-fix branch removed, but
-        # dispatch() unconditionally fetches the issue (title/body/labels/
-        # comments) before routing to any handler, cleanup included -- so
-        # this job needs issues:read too, not just contents:write for the
-        # branch delete. Still shared infrastructure with no model key,
-        # keeping the self-hosted runner off the close path entirely.
+        concurrency:
+            group: triage-${{ needs.gate.outputs.issue || 'none' }}
+            cancel-in-progress: false
+        # Delete dangling draft-fix branch for closed issue.
         runs-on: ubuntu-latest
         permissions:
             contents: write
