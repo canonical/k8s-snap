@@ -137,10 +137,14 @@ jobs:
                   python-version: "3.12"
 
             - name: Install AI Agent Toolkit
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   python -m venv .venv
                   source .venv/bin/activate
+                  git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
                   pip install git+https://github.com/canonical/k8s-ai-agent-toolkit.git@feat/triage-bot-toolkit
+                  git config --global --unset url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf
 
             - name: Run triage pipeline (unprivileged)
               env:
@@ -199,10 +203,14 @@ jobs:
                   python-version: "3.12"
 
             - name: Install AI Agent Toolkit
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   python -m venv .venv
                   source .venv/bin/activate
+                  git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
                   pip install git+https://github.com/canonical/k8s-ai-agent-toolkit.git@feat/triage-bot-toolkit
+                  git config --global --unset url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf
 
             - name: Download triage artifacts
               uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
@@ -244,10 +252,14 @@ jobs:
                   python-version: "3.12"
 
             - name: Install AI Agent Toolkit
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   python -m venv .venv
                   source .venv/bin/activate
+                  git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
                   pip install git+https://github.com/canonical/k8s-ai-agent-toolkit.git@feat/triage-bot-toolkit
+                  git config --global --unset url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf
 
             - name: Run triage bot
               env:
@@ -282,11 +294,14 @@ jobs:
                   python-version: "3.12"
 
             - name: Install AI Agent Toolkit
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   python -m venv .venv
                   source .venv/bin/activate
+                  git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
                   pip install git+https://github.com/canonical/k8s-ai-agent-toolkit.git@feat/triage-bot-toolkit
-
+                  git config --global --unset url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf
             - name: Run triage bot
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
