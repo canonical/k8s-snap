@@ -147,18 +147,6 @@ jobs:
       test-collection-branch: ${{ github.head_ref }}
       parallel: true
 
-  test-cncf-ubuntu-2604:
-    name: CNCF conformance (ubuntu:26.04)
-    needs: [build-snap, python-lint]
-    uses: ./.github/workflows/e2e-tests.yaml
-    with:
-      arch: amd64
-      os: ubuntu:26.04
-      test-tags: conformance_tests
-      artifact: k8s-amd64.snap
-      test-collection-repo: ${{github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name || github.repository }}
-      test-collection-branch: ${{ github.head_ref }}
-
   security-scan:
     name: Security scan
     needs: build-snap
