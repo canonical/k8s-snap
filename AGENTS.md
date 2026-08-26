@@ -60,7 +60,7 @@ repository, so read the relevant one before starting:
   the project knowledge they used to carry now lives in the skills above.
 
 A step declares the shared skills it needs with a `> Uses:` line, and the runner
-in `ci/triage_bot/skills.py` appends each named skill to the prompt.
+in `k8s_ai_agent_toolkit.triage.skills` appends each named skill to the prompt.
 
 ## Snap Channels
 
