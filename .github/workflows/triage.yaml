@@ -138,7 +138,7 @@ jobs:
 
             - name: Install AI Agent Toolkit
               env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GH_TOKEN: ${{ secrets.BOT_TOKEN }}
               run: |
                   python -m venv .venv
                   source .venv/bin/activate
@@ -204,7 +204,7 @@ jobs:
 
             - name: Install AI Agent Toolkit
               env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GH_TOKEN: ${{ secrets.BOT_TOKEN }}
               run: |
                   python -m venv .venv
                   source .venv/bin/activate
@@ -253,7 +253,7 @@ jobs:
 
             - name: Install AI Agent Toolkit
               env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GH_TOKEN: ${{ secrets.BOT_TOKEN }}
               run: |
                   python -m venv .venv
                   source .venv/bin/activate
@@ -295,7 +295,7 @@ jobs:
 
             - name: Install AI Agent Toolkit
               env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GH_TOKEN: ${{ secrets.BOT_TOKEN }}
               run: |
                   python -m venv .venv
                   source .venv/bin/activate
