@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="k8sbot">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>k8s-snap Autonomous Triage + Fix Bot — Design Plan</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/daisyui.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/themes.css" />
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.2.4/dist/index.global.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  :where(.grid, .flex) > * { min-width: 0; }
+  :where(p, h1, h2, h3, h4, h5, h6, li, dd, blockquote, figcaption, td, th, .badge, .label) { overflow-wrap: anywhere; }
+  :where(img, svg, video, canvas, iframe) { max-width: 100%; }
+
+  @plugin "daisyui/theme" {
+    name: "k8sbot";
+    default: true;
+    color-scheme: light;
+    --color-base-100: oklch(99% 0.004 300);
+    --color-base-200: oklch(96% 0.006 300);
+    --color-base-300: oklch(91% 0.01 300);
+    --color-base-content: oklch(25% 0.02 300);
+    --color-primary: oklch(38% 0.11 330);        /* Canonical aubergine */
+    --color-primary-content: oklch(98% 0.01 330);
+    --color-secondary: oklch(64% 0.19 40);        /* Ubuntu orange */
+    --color-secondary-content: oklch(99% 0.01 40);
+    --color-accent: oklch(55% 0.13 250);
+    --color-accent-content: oklch(99% 0.01 250);
+    --color-neutral: oklch(30% 0.02 300);
+    --color-neutral-content: oklch(98% 0.01 300);
+    --color-info: oklch(60% 0.12 240);
+    --color-success: oklch(62% 0.15 150);
+    --color-warning: oklch(72% 0.16 70);
+    --color-error: oklch(58% 0.22 25);
+    --radius-box: 0.9rem;
+    --radius-field: 0.5rem;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { color-scheme: dark; }
+  }
+  html { scroll-behavior: smooth; }
+  .mermaid { display: flex; justify-content: center; }
+  .mermaid svg { max-width: 100%; height: auto; }
+  .sticky-toc { position: sticky; top: 1rem; }
+  .lead-num { font-variant-numeric: tabular-nums; }
+  mark { background: var(--color-secondary); color: var(--color-secondary-content); padding: 0 .2em; border-radius: .2em; }
+  .rule { border-left: 3px solid var(--color-primary); }
+  code { font-size: 0.85em; background: var(--color-base-200); padding: 0.1em 0.35em; border-radius: 0.3em; }
+  .prose-tight p { margin: 0.35rem 0; }
+  h1, h2, h3 { line-height: 1.25; padding-bottom: 0.12em; }
+  .card-title { padding-bottom: 0; }
+</style>
+</head>
+<body class="bg-base-200 text-base-content">
+
+<!-- ===================== HERO ===================== -->
+<header class="bg-primary text-primary-content">
+  <div class="max-w-6xl mx-auto px-6 py-10">
+    <div class="flex items-center gap-3 flex-wrap">
+      <span class="badge badge-secondary badge-lg font-semibold">Design Plan · v2</span>
+      <span class="badge badge-outline badge-lg border-primary-content/40 text-primary-content">post multi-agent review</span>
+      <span class="badge badge-outline badge-lg border-primary-content/40 text-primary-content">canonical/k8s-snap</span>
+    </div>
+    <h1 class="text-4xl md:text-5xl font-black mt-4 leading-tight">Autonomous Issue Triage&nbsp;+&nbsp;Fix Bot</h1>
+    <p class="text-lg md:text-xl mt-3 max-w-3xl opacity-90">
+      A reproduce-first bot that takes a GitHub bug report as far down the
+      triage &rarr; reproduce &rarr; test &rarr; fix pipeline as it safely can, and stops at a
+      human-reviewed <strong>draft PR</strong> &mdash; never merging.
+    </p>
+    <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3 max-w-4xl">
+      <div class="bg-primary-content/10 rounded-box p-3">
+        <div class="text-2xl font-bold">4</div>
+        <div class="text-sm opacity-80">research agents</div>
+      </div>
+      <div class="bg-primary-content/10 rounded-box p-3">
+        <div class="text-2xl font-bold">4</div>
+        <div class="text-sm opacity-80">review lenses</div>
+      </div>
+      <div class="bg-primary-content/10 rounded-box p-3">
+        <div class="text-2xl font-bold">2</div>
+        <div class="text-sm opacity-80">decoupled bots</div>
+      </div>
+      <div class="bg-primary-content/10 rounded-box p-3">
+        <div class="text-2xl font-bold">5</div>
+        <div class="text-sm opacity-80">rollout increments</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ===================== TL;DR ===================== -->
+<section class="max-w-6xl mx-auto px-6 py-8">
+  <div class="card bg-base-100 shadow-xl border border-base-300">
+    <div class="card-body">
+      <h2 class="card-title text-2xl"><span class="text-secondary">TL;DR</span> — the revised recommendation</h2>
+      <p class="text-base-content/80">Four independent reviewers (security, k8s-snap maintainer, ML-systems skeptic, ops/rollout) converged on the same reshaping of the original plan:</p>
+      <div class="grid md:grid-cols-2 gap-4 mt-2">
+        <div class="rule pl-4 py-1">
+          <h3 class="font-bold text-lg">1. Triage first, fix later</h3>
+          <p class="text-sm text-base-content/80">The always-on triage bot (dedup, missing-info gate, <code>inspect.sh</code> parse, labels/routing) is the real, cheap ROI. Ship it as a zero-LLM script in week 1. The Fixer is a separate, gated, later funding decision.</p>
+        </div>
+        <div class="rule pl-4 py-1">
+          <h3 class="font-bold text-lg">2. Wrap, don't build, the fix engine</h3>
+          <p class="text-sm text-base-content/80">Copilot coding agent / Claude Code Action already do issue&rarr;draft-PR. Our differentiator is the <strong>k8s-snap-specific glue</strong>: the e2e Harness oracle, the <code>inspect.sh</code> parser, and the cross-repo build wiring.</p>
+        </div>
+        <div class="rule pl-4 py-1">
+          <h3 class="font-bold text-lg">3. Decouple the reproduction oracle</h3>
+          <p class="text-sm text-base-content/80">Don't let the same LLM invent both the test and the pass/fail bar (reward hacking + flaky false-repros). A <strong>deterministic probe</strong> confirms the symptom in the live cluster <em>before</em> any test is written.</p>
+        </div>
+        <div class="rule pl-4 py-1">
+          <h3 class="font-bold text-lg">4. Treat all untrusted text as data, never prompt</h3>
+          <p class="text-sm text-base-content/80">Tarball logs and adjacent-repo code comments are attacker-controlled. Parse them deterministically; never feed raw strings to the model. Firewall bot PRs from the repo's live <code>auto-merge --admin</code> + backport chain.</p>
+        </div>
+      </div>
+      <div class="alert alert-warning mt-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+        <span><strong>Honest expectation:</strong> on k8s-snap's real issue mix (networking races, dqlite, multi-node), a net-value-positive Fixer resolve rate is <strong>~14–20%</strong>, and infra-bug attempts cost <strong>$13–28 each</strong> (runner compute, not tokens). The triage bot pays for itself regardless; the Fixer is a bet on a narrow slice.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== LAYOUT: TOC + CONTENT ===================== -->
+<div class="max-w-6xl mx-auto px-6 pb-16 grid lg:grid-cols-[220px_1fr] gap-8">
+  <!-- TOC -->
+  <aside class="hidden lg:block">
+    <nav class="sticky-toc menu bg-base-100 rounded-box border border-base-300 p-3 text-sm">
+      <li class="menu-title">Contents</li>
+      <li><a href="#goals">1 · Goals &amp; mandate</a></li>
+      <li><a href="#grounding">2 · How k8s-snap works</a></li>
+      <li><a href="#arch">3 · Architecture</a></li>
+      <li><a href="#oracle">4 · Reproduction oracle</a></li>
+      <li><a href="#crossrepo">5 · Cross-repo fix flow</a></li>
+      <li><a href="#tech">6 · Technology choices</a></li>
+      <li><a href="#security">7 · Security &amp; guardrails</a></li>
+      <li><a href="#cost">8 · Cost &amp; reliability</a></li>
+      <li><a href="#rollout">9 · Phased rollout</a></li>
+      <li><a href="#reviews">10 · Review incorporation</a></li>
+      <li><a href="#decisions">11 · Decide with me</a></li>
+    </nav>
+  </aside>
+
+  <main class="space-y-10">
+
+  <!-- ===== 1 GOALS ===== -->
+  <section id="goals" class="scroll-mt-6">
+    <h2 class="text-3xl font-bold mb-4"><span class="text-primary lead-num">1</span> · Goals &amp; the mandated workflow</h2>
+    <div class="card bg-base-100 border border-base-300 shadow">
+      <div class="card-body prose-tight">
+        <p>The bot must implement this exact flow (from the brief):</p>
+        <ol class="list-decimal ml-5 space-y-1">
+          <li>First, try to <strong>reproduce</strong> the issue.</li>
+          <li>First, create an <strong>e2e test</strong> that captures it &mdash; <em>except for docs updates</em>.</li>
+          <li>If <strong>not reproducible</strong>, ask the reporter for specific input (e.g. an <code>inspect.sh</code> inspection report), then stop.</li>
+          <li>If <strong>reproducible</strong>, fix it cleanly and minimally. If the fault is in an adjacent repo (<code>k8sd</code>, <code>k8s-snap-api</code>), check it out locally, fix it there, wire it back, make the e2e test pass locally, then open a <strong>draft PR in that repo</strong> and a <strong>draft PR in k8s-snap</strong> so CI reproduces it.</li>
+        </ol>
+        <div class="divider my-2"></div>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div>
+            <h4 class="font-semibold text-success">In scope (v1 target)</h4>
+            <ul class="list-disc ml-5 text-sm">
+              <li>Triage: dedup suggestion, missing-info gate, label + route</li>
+              <li>Reproduce &amp; test-first for <em>tractable</em> issue classes</li>
+              <li>Draft-PR-only fixes; human review always required</li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="font-semibold text-error">Explicitly out of scope (v1)</h4>
+            <ul class="list-disc ml-5 text-sm">
+              <li>Auto-merge; security / crypto / auth fixes</li>
+              <li>Large refactors (&gt;3 modules / ~200 lines), feature work</li>
+              <li>Anything a non-maintainer can trigger</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 2 GROUNDING ===== -->
+  <section id="grounding" class="scroll-mt-6">
+    <h2 class="text-3xl font-bold mb-4"><span class="text-primary lead-num">2</span> · How k8s-snap actually works</h2>
+    <p class="mb-4 text-base-content/80">Every design decision is constrained by these mechanics (verified against the repo). The maintainer review corrected several of the original plan's assumptions &mdash; shown as <span class="badge badge-error badge-sm">corrected</span>.</p>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="card bg-base-100 border border-base-300 shadow-sm"><div class="card-body">
+        <h3 class="font-bold">Language split &amp; adjacent repos</h3>
+        <p class="text-sm text-base-content/80">Snap = Python e2e + bash wrappers + YAML + snapcraft. The Go core lives in <code>k8sd</code> and <code>k8s-snap-api</code>. <code>build-scripts/components/k8sd/{repository,version}</code> pin the repo &amp; ref; <code>build-component.sh</code> does <code>git clone --depth 1 -b &lt;ref&gt;</code>, applies patches, <code>make dynamic</code>.</p>
+      </div></div>
+      <div class="card bg-base-100 border border-base-300 shadow-sm"><div class="card-body">
+        <h3 class="font-bold">E2E harness</h3>
+        <p class="text-sm text-base-content/80"><code>tox -e integration</code> over a <code>Harness</code> abstraction on <mark>LXD containers</mark> <span class="badge badge-error badge-sm">corrected</span> (not VMs) / Multipass / Juju. Every test <strong>must</strong> carry a tag (<code>pull_request</code>, …) — enforced at <em>collection time</em>, so a mistagged file aborts the whole run.</p>
+      </div></div>
+      <div class="card bg-base-100 border border-base-300 shadow-sm"><div class="card-body">
+        <h3 class="font-bold">Build cost is the bottleneck <span class="badge badge-error badge-sm">corrected</span></h3>
+        <p class="text-sm text-base-content/80">There is <strong>no</strong> "swap in a prebuilt binary" path. Any <code>k8sd</code> (Go) fix needs a full <code>snapcraft --use-lxd</code> build (~20–40 min, FIPS Go toolchain, <code>GOEXPERIMENT=opensslcrypto</code>, dqlite <code>.so</code>s). Only <code>k8s/</code> (python/bash/yaml) &amp; docs fixes skip it.</p>
+      </div></div>
+      <div class="card bg-base-100 border border-base-300 shadow-sm"><div class="card-body">
+        <h3 class="font-bold">CI reproduces draft PRs for free</h3>
+        <p class="text-sm text-base-content/80"><code>e2e-tests.yaml</code> accepts <code>artifact</code>/<code>channel</code> + <code>test-collection-repo</code>/<code>branch</code>. A bot branch's new test runs in CI against the built snap automatically.</p>
+      </div></div>
+      <div class="card bg-base-100 border border-base-300 shadow-sm"><div class="card-body">
+        <h3 class="font-bold">Existing automation to reuse &amp; respect</h3>
+        <p class="text-sm text-base-content/80"><code>ci/security_triage.py</code> (Python + <code>gh</code> + pinned SHAs + least-priv) is the house style. Also live: <code>stale</code>, Jira sync (<code>KU</code>/epic <code>KU-25</code>), <mark>backport auto-approve</mark> + <mark>auto-merge <code>--admin</code> cron</mark> <span class="badge badge-warning badge-sm">danger</span>.</p>
+      </div></div>
+      <div class="card bg-base-100 border border-base-300 shadow-sm"><div class="card-body">
+        <h3 class="font-bold">Reproduction reality <span class="badge badge-error badge-sm">corrected</span></h3>
+        <p class="text-sm text-base-content/80">Multi-node is the norm, not the exception: PR-tagged <code>test_clustering.py</code>/<code>test_dns.py</code> use <code>node_count(2..4)</code>. Single-node LXD reproduces roughly the <code>test_smoke.py</code> class only. Networking/dqlite/upgrade bugs need bridges, self-hosted <code>xlarge</code> runners, or specific images.</p>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- ===== 3 ARCHITECTURE ===== -->
+  <section id="arch" class="scroll-mt-6">
+    <h2 class="text-3xl font-bold mb-4"><span class="text-primary lead-num">3</span> · Architecture — two decoupled bots</h2>
+    <p class="mb-4 text-base-content/80">Split by cost and risk: a cheap always-on <strong>Triage Bot</strong>, and an expensive, maintainer-gated <strong>Fixer Bot</strong>. Each can ship and prove value independently.</p>
+    <div class="card bg-base-100 border border-base-300 shadow"><div class="card-body">
+      <div class="mermaid">
+flowchart TD
+  A([issue opened / edited]) --> B{{"Triage Bot — cheap, auto, no code exec"}}
+  B --> C[semantic dedup<br/>suggest only, never auto-close]
+  B --> D{required fields +<br/>inspect.sh tarball present?}
+  D -- "missing" --> E[/label needs-info<br/>comment EXACT asks · STOP/]
+  D -- "present" --> F[deterministic tarball parse<br/>channel · os · node count · panic sigs]
+  F --> G[LLM classify: kind/* + area/*<br/>route via CODEOWNERS]
+  G --> H{maintainer applies<br/>bot:fix label?}
+  H -- "no" --> I([human triage queue])
+  H -- "yes" --> J[[Fixer Bot — gated, sandboxed]]
+  J --> K[SHA-pin issue body<br/>against edit-race]
+  K --> L[Localize fault layer<br/>k8s-snap · k8sd · api — AST skeletons only]
+  L --> M[Deterministic symptom PROBE<br/>on live HEAD cluster]
+  M -- "symptom not seen" --> N[/comment specific asks<br/>label cannot-reproduce · STOP/]
+  M -- "symptom confirmed" --> O[generate e2e test<br/>tagged pull_request · fail on HEAD]
+  O --> P[minimal fix<br/>full snap rebuild if k8sd]
+  P --> Q[run e2e in sandbox<br/>baseline-flake gated]
+  Q -- "still red retry ≤1–2" --> P
+  Q -- "green" --> R[draft PR in adjacent repo<br/>+ draft PR in k8s-snap]
+  R --> S([CI reproduces · human review<br/>no automerge · no backport])
+  style B fill:#7a3b6f,color:#fff
+  style J fill:#c05a1f,color:#fff
+  style E fill:#b23,color:#fff
+  style N fill:#b23,color:#fff
+  style S fill:#2a7,color:#fff
+      </div>
+    </div></div>
+    <div class="grid md:grid-cols-2 gap-4 mt-4">
+      <div class="card bg-base-100 border-l-4 border-primary shadow-sm"><div class="card-body">
+        <h3 class="font-bold text-primary">Stage A · Triage Bot</h3>
+        <p class="text-sm">Trigger <code>issues:[opened,edited]</code>. Always-on, Haiku-tier or zero-LLM. No code execution. Delivers value even if the Fixer never ships. This is the <strong>first increment</strong>.</p>
+      </div></div>
+      <div class="card bg-base-100 border-l-4 border-secondary shadow-sm"><div class="card-body">
+        <h3 class="font-bold text-secondary">Stage B · Fixer Bot</h3>
+        <p class="text-sm">Trigger: a <strong>maintainer</strong> applies <code>bot:fix</code> (write-access gate). Agentless-style pipeline (Localize &rarr; Probe &rarr; Test &rarr; Repair &rarr; Verify) with a bounded repair loop. Sandboxed; draft-PR-only.</p>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- ===== 4 ORACLE ===== -->
+  <section id="oracle" class="scroll-mt-6">
+    <h2 class="text-3xl font-bold mb-4"><span class="text-primary lead-num">4</span> · The reproduction oracle — decoupled</h2>
+    <div class="alert alert-error mb-4 text-error-content">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+      <span><strong>The single most important correction from review.</strong> If one LLM writes both the test <em>and</em> decides what "pass" means, it will reward-hack (sleep past races, weak asserts) and a 2/3 flaky-guard still yields <strong>~22% false-repro</strong> on racy cluster tests.</span>
+    </div>
+    <div class="grid lg:grid-cols-2 gap-4">
+      <div class="card bg-base-100 border border-base-300 shadow"><div class="card-body">
+        <h3 class="font-bold mb-2">Deterministic probe &rarr; then test</h3>
+        <div class="mermaid">
+flowchart TD
+  A[issue symptom<br/>deterministic parse] --> B[Probe script<br/>kubectl get · journalctl · k8s status]
+  B --> C{symptom present<br/>on unpatched HEAD?}
+  C -- "no" --> D[/cannot-reproduce<br/>ask reporter · STOP/]
+  C -- "yes: signature match" --> E[baseline flake run<br/>5-7x on HEAD]
+  E --> F{stable red?}
+  F -- "intermittent" --> G[/label flaky<br/>human review · STOP/]
+  F -- "deterministic red" --> H[generate e2e test<br/>assert against PROBE output]
+  H --> I[apply fix]
+  I --> J[probe + test GREEN<br/>N reruns]
+  style D fill:#b23,color:#fff
+  style G fill:#c9a227,color:#111
+  style J fill:#2a7,color:#fff
+        </div>
+      </div></div>
+      <div class="card bg-base-100 border border-base-300 shadow"><div class="card-body prose-tight">
+        <h3 class="font-bold">Why this shape</h3>
+        <ul class="list-disc ml-5 text-sm space-y-1">
+          <li><strong>Probe is ground truth.</strong> A hand-written, per-issue-class diagnostic (not model output) decides whether the symptom exists. The generated test asserts against the probe's signal, so the model can't move its own goalposts.</li>
+          <li><strong>Baseline-flake gate.</strong> Measure the failure rate on unpatched HEAD first. Only a <em>stable</em> red qualifies as "reproduced"; intermittent &rarr; label <code>flaky</code>, hand to a human.</li>
+          <li><strong>Signature match.</strong> The probe must see the <em>same</em> error signature as the report (panic string, event reason), not just any failure.</li>
+          <li><strong>Docs exception.</strong> Docs/markdown issues skip the oracle entirely and go straight to a content PR.</li>
+        </ul>
+        <div class="mt-3 text-xs bg-base-200 rounded-box p-3">
+          <strong>Probe library</strong> is the asset we own and grow: one small deterministic checker per tractable issue class (service-not-ready, config-not-applied, wrapper-arg-regression, CRD-missing, …).
+        </div>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- ===== 5 CROSS-REPO ===== -->
+  <section id="crossrepo" class="scroll-mt-6">
+    <h2 class="text-3xl font-bold mb-4"><span class="text-primary lead-num">5</span> · Cross-repo fix flow</h2>
+    <p class="mb-4 text-base-content/80">The hard case from the brief: fault is in an adjacent repo. Review made the true cost explicit &mdash; a <code>k8sd</code> fix is a <strong>3-repo chain with a mandatory human merge+tag in the middle</strong>, and the bot <em>cannot</em> make k8s-snap CI green until a human acts.</p>
+    <div class="card bg-base-100 border border-base-300 shadow"><div class="card-body">
+      <div class="mermaid">
+sequenceDiagram
+  autonumber
+  participant F as Fixer Bot
+  participant KD as k8sd (Go)
+  participant API as k8s-snap-api
+  participant KS as k8s-snap
+  participant H as Human maintainer
+  F->>F: localize fault to k8sd
+  F->>KD: check out at pinned ref, apply minimal fix
+  F->>API: bump interface if contract changed
+  Note over F,API: if API changes, go.mod replace<br/>points k8sd/k8s-snap at fork branch
+  F->>KD: local build (make dynamic) + unit
+  F->>KS: snapcraft --use-lxd rebuild (~20-40 min)
+  F->>KS: run e2e Harness oracle locally
+  KS-->>F: green
+  F->>API: draft PR (if touched)
+  F->>KD: draft PR — repository/version bump staged
+  F->>KS: draft PR — component ref + go.mod replace
+  Note over KS,H: k8s-snap CI stays RED until human<br/>merges+tags API/k8sd. Bot cannot self-unblock.
+  F->>H: request review, list the exact merge order
+  H->>H: merge+tag adjacent, drop replace, approve
+      </div>
+    </div></div>
+    <div class="alert mt-4 bg-base-100 border border-base-300">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 text-info" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+      <span class="text-sm"><strong>Consequence for v1:</strong> only <code>area/k8s-snap</code> (python/bash/yaml/docs) fixes are a clean single-PR loop the bot can drive to green locally. Go/API fixes are <em>staged drafts</em> for a human to sequence — still useful, but not "hands-off". This is why cross-repo is a later increment, not v1.</span>
+    </div>
+  </section>
+
+  <!-- ===== 6 TECH ===== -->
+  <section id="tech" class="scroll-mt-6">
+    <h2 class="text-3xl font-bold mb-4"><span class="text-primary lead-num">6</span> · Technology choices &amp; trade-offs</h2>
+
+    <h3 class="font-bold text-xl mb-2">6.1 · Fix engine — wrap vs build</h3>
+    <div class="overflow-x-auto">
+      <table class="table table-zebra bg-base-100 border border-base-300 rounded-box">
+        <thead class="bg-base-300"><tr><th>Option</th><th>Hosting</th><th>Cross-repo</th><th>Model choice</th><th>Verdict</th></tr></thead>
+        <tbody>
+          <tr class="bg-success/10"><td><strong>Claude Code GitHub Action</strong></td><td>self-host on our Actions</td><td>via scripting</td><td>our API key, pinnable</td><td><span class="badge badge-success">recommended engine</span></td></tr>
+          <tr><td>GitHub Copilot coding agent</td><td>GitHub-managed</td><td>weak (single-repo)</td><td>fixed</td><td>great for the <em>easy</em> slice; less control</td></tr>
+          <tr><td>Build our own (LangGraph/SDK)</td><td>self-host</td><td>full control</td><td>any</td><td>only the <strong>glue</strong>, not the whole loop</td></tr>
+          <tr><td>Sweep / Devin / Qodo / Ellipsis</td><td>SaaS</td><td>varies</td><td>fixed</td><td>SaaS data-egress + lock-in; rejected</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="text-sm text-base-content/70 mt-2">Decision: <strong>wrap Claude Code Action</strong> as the repair driver (self-hostable, our key, Actions-native, scriptable for cross-repo). We build the <em>Localize/Probe/Oracle/Cross-repo</em> glue around it — that's the part no off-the-shelf agent knows.</p>
+
+    <h3 class="font-bold text-xl mb-2 mt-6">6.2 · Pipeline shape — agentless vs agentic</h3>
+    <div class="grid md:grid-cols-3 gap-4">
+      <div class="card bg-base-100 border border-base-300 shadow-sm"><div class="card-body">
+        <h4 class="font-bold">Agentless / fixed pipeline <span class="badge badge-primary badge-sm">chosen</span></h4>
+        <p class="text-sm">Deterministic stages, bounded cost, interpretable, testable. Best fit for infra where reproducibility matters more than open-ended reasoning.</p>
+      </div></div>
+      <div class="card bg-base-100 border border-base-300 shadow-sm opacity-80"><div class="card-body">
+        <h4 class="font-bold">Full agentic loop</h4>
+        <p class="text-sm">More capable on messy tasks, but unbounded cost/latency and hard to audit. Reserved for the repair step only, inside a cost/step cap.</p>
+      </div></div>
+      <div class="card bg-base-100 border border-base-300 shadow-sm opacity-80"><div class="card-body">
+        <h4 class="font-bold">Prior art we borrow</h4>
+        <p class="text-sm"><strong>Agentless</strong> (localize&rarr;repair&rarr;validate), <strong>SWE-agent</strong> (ACI), <strong>LIBRO/Issue2Test</strong> (repro-test generation), <strong>Prow</strong> (k8s label lifecycle).</p>
+      </div></div>
+    </div>
+
+    <h3 class="font-bold text-xl mb-2 mt-6">6.3 · Model &amp; sandbox</h3>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="card bg-base-100 border border-base-300 shadow-sm"><div class="card-body prose-tight">
+        <h4 class="font-bold">Model tiering</h4>
+        <p class="text-sm">Cheap tier (Haiku-class) for triage/classify; frontier tier (Sonnet-class) only inside the gated repair loop. <code>temperature=0</code> for fixes. Pin model versions; monthly prompt-regression check.</p>
+      </div></div>
+      <div class="card bg-base-100 border border-base-300 shadow-sm"><div class="card-body prose-tight">
+        <h4 class="font-bold">Sandbox</h4>
+        <p class="text-sm">Repair + e2e run in <strong>LXD on a self-hosted runner</strong> (matches existing e2e substrate; multi-node needs bridges + <code>xlarge</code>). Egress allowlist: <code>api.anthropic.com</code>, <code>api.github.com</code>, snap store, package mirrors. Bot machine account, not a human PAT.</p>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- ===== 7 SECURITY ===== -->
+  <section id="security" class="scroll-mt-6">
+    <h2 class="text-3xl font-bold mb-4"><span class="text-primary lead-num">7</span> · Security &amp; guardrails</h2>
+    <p class="mb-4 text-base-content/80">From the adversarial review. These are <strong>architectural</strong> requirements, not nice-to-haves — the bot reads attacker-controlled text and can open PRs into a repo with live auto-merge.</p>
+    <div class="space-y-3">
+      <div class="collapse collapse-arrow bg-base-100 border border-error/40">
+        <input type="checkbox" checked /><div class="collapse-title font-bold text-error flex items-center gap-2"><span class="badge badge-error">CRIT-1</span> Tarball / log prompt injection</div>
+        <div class="collapse-content text-sm prose-tight">
+          <p><strong>Attack:</strong> <code>inspect.sh</code> logs contain verbatim attacker strings; embedded fake <code>&lt;/system&gt;</code> tags hijack a naive Haiku parse (mechanically = CVE-2025-66032, CVSS 8.7, which the plan cites).</p>
+          <p><strong>Mitigation:</strong> never feed raw tarball text to the model. <strong>Deterministic extraction</strong> (grep/parse) pulls typed fields (channel, os, node count, panic signature) into a struct; only that struct — never free text — reaches the LLM. No tool-calls enabled during parse.</p>
+        </div>
+      </div>
+      <div class="collapse collapse-arrow bg-base-100 border border-error/40">
+        <input type="checkbox" /><div class="collapse-title font-bold text-error flex items-center gap-2"><span class="badge badge-error">CRIT-2</span> Second-order injection via repo code</div>
+        <div class="collapse-content text-sm prose-tight">
+          <p><strong>Attack:</strong> the bot reads source (incl. adjacent-repo code it's about to build) whose <em>comments</em> carry instructions.</p>
+          <p><strong>Mitigation:</strong> localize on <strong>AST skeletons with comments stripped</strong>; treat all file content as data; the repair step runs with no network except the egress allowlist.</p>
+        </div>
+      </div>
+      <div class="collapse collapse-arrow bg-base-100 border border-error/40">
+        <input type="checkbox" /><div class="collapse-title font-bold text-error flex items-center gap-2"><span class="badge badge-error">CRIT-3</span> Issue-edit race on the <code>bot:fix</code> gate</div>
+        <div class="collapse-content text-sm prose-tight">
+          <p><strong>Attack:</strong> benign issue gets labeled, attacker edits the body to inject a payload; any re-fetch during the run reads the mutated body.</p>
+          <p><strong>Mitigation:</strong> <strong>SHA-pin the issue body</strong> at label time; the run only ever uses that snapshot. Any change &rarr; abort. Gate strictly on <code>label.actor</code> having write access (verify via API, not payload).</p>
+        </div>
+      </div>
+      <div class="collapse collapse-arrow bg-base-100 border border-warning/50">
+        <input type="checkbox" /><div class="collapse-title font-bold text-warning-content flex items-center gap-2"><span class="badge badge-warning">CRIT-4</span> Live auto-merge + backport chain</div>
+        <div class="collapse-content text-sm prose-tight">
+          <p><strong>Attack:</strong> the repo already runs an auto-merge <code>--admin</code> cron and backport auto-approve. A bot PR that lands a passing label could ride that path to <code>main</code> and release branches with no human.</p>
+          <p><strong>Mitigation:</strong> all bot PRs carry <code>bot:generated</code> + <code>no-backport</code>; add these to the auto-merge/backport <strong>exclusion lists</strong>. Draft PRs can't auto-merge; keep them draft until a human un-drafts. Document as a hard invariant.</p>
+        </div>
+      </div>
+      <div class="collapse collapse-arrow bg-base-100 border border-warning/50">
+        <input type="checkbox" /><div class="collapse-title font-bold text-warning-content flex items-center gap-2"><span class="badge badge-warning">HIGH-1</span> <code>build-component.sh</code> runs code the bot wrote</div>
+        <div class="collapse-content text-sm prose-tight">
+          <p><strong>Attack:</strong> building an adjacent-repo fix executes <code>pre-patch.sh</code>/<code>build.sh</code> from the branch the bot just authored — arbitrary code exec by construction.</p>
+          <p><strong>Mitigation:</strong> that's exactly why build+e2e run only in the <strong>egress-locked LXD sandbox</strong> on an ephemeral runner with a scoped, short-lived token and <code>OUTPUT DROP</code> default. Never on a privileged host.</p>
+        </div>
+      </div>
+    </div>
+    <div class="mt-4 grid md:grid-cols-3 gap-3 text-sm">
+      <div class="bg-base-100 border border-base-300 rounded-box p-3"><strong>Token scope:</strong> <code>contents:write</code> + <code>pull_requests:write</code>, <code>issues:read</code>. Never <code>issues:write</code> beyond labels/comments.</div>
+      <div class="bg-base-100 border border-base-300 rounded-box p-3"><strong>CLA/DCO:</strong> bot commits sign-off as <code>k8s-snap-bot@canonical.com</code>; exempt via the existing signed-canonical-cla path.</div>
+      <div class="bg-base-100 border border-base-300 rounded-box p-3"><strong>Kill switch:</strong> a repo-level <code>bot:freeze</code> label + workflow env flag halts all bot runs instantly.</div>
+    </div>
+  </section>
+
+  <!-- ===== 8 COST ===== -->
+  <section id="cost" class="scroll-mt-6">
+    <h2 class="text-3xl font-bold mb-4"><span class="text-primary lead-num">8</span> · Cost &amp; reliability — honest numbers</h2>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="card bg-base-100 border border-base-300 shadow"><div class="card-body">
+        <h3 class="font-bold">Cost per attempt <span class="badge badge-error badge-sm">corrected up</span></h3>
+        <table class="table table-sm mt-2">
+          <thead><tr><th>Class</th><th>Dominant cost</th><th>$/attempt</th></tr></thead>
+          <tbody>
+            <tr><td>docs / markdown</td><td>tokens only</td><td>~$0.20</td></tr>
+            <tr><td>python/bash/yaml (<code>k8s/</code>)</td><td>single-node LXD</td><td>$2–8</td></tr>
+            <tr class="bg-error/10"><td>Go (<code>k8sd</code>) / multi-node</td><td>full snap build + <code>xlarge</code> runner</td><td><strong>$13–28</strong></td></tr>
+          </tbody>
+        </table>
+        <p class="text-xs text-base-content/70 mt-2">The original "~$0.50/fix" assumed a binary-swap that doesn't exist. Runner compute — not tokens — dominates infra bugs.</p>
+      </div></div>
+      <div class="card bg-base-100 border border-base-300 shadow"><div class="card-body prose-tight">
+        <h3 class="font-bold">Reliability expectation</h3>
+        <ul class="list-disc ml-5 text-sm space-y-1">
+          <li><strong>Resolve rate</strong> on k8s-snap's real mix: ~14–20% net-positive (SWE-bench numbers don't transfer — cluster bugs are harder than library bugs).</li>
+          <li><strong>Fault-localization</strong> across 3 repos is ~40–55% accurate &rarr; restrict cross-repo until proven; ~14% wrong-repo risk otherwise.</li>
+          <li><strong>Caps:</strong> hard wall-clock 20 min for python-class, separate long-lane for build-class; ≤1–2 repair retries; monthly spend alert; abort+notify on cap.</li>
+          <li><strong>Kill metric</strong> (below) decides go/no-go objectively.</li>
+        </ul>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- ===== 9 ROLLOUT ===== -->
+  <section id="rollout" class="scroll-mt-6">
+    <h2 class="text-3xl font-bold mb-4"><span class="text-primary lead-num">9</span> · Phased rollout — each phase is a real gate</h2>
+    <p class="mb-4 text-base-content/80">Not a checklist to rush — each increment must clear its gate before the next is funded. The <strong>kill metric</strong> is <em>mean time-to-first-meaningful-human-action</em> on a new issue; baseline it <em>now</em>, before any bot.</p>
+    <ul class="timeline timeline-vertical timeline-compact">
+      <li>
+        <div class="timeline-start badge badge-primary">wk 1–2</div>
+        <div class="timeline-middle"><div class="w-4 h-4 rounded-full bg-primary"></div></div>
+        <div class="timeline-end timeline-box"><strong>0 · Triage bot (zero-LLM)</strong><br/><span class="text-sm">dedup, missing-info gate, tarball parse, label/route. Pure Python + <code>gh</code>. <em>Gate:</em> reduces time-to-first-action &gt;25% with &lt;5% mislabels.</span></div>
+      </li>
+      <li><hr class="bg-primary"/>
+        <div class="timeline-start badge badge-secondary">mo 1–2</div>
+        <div class="timeline-middle"><div class="w-4 h-4 rounded-full bg-secondary"></div></div>
+        <div class="timeline-end timeline-box"><strong>1 · Fixer shadow — docs + python only</strong><br/><span class="text-sm">Wrap Claude Code Action; comment-only (no PR), draft PRs for docs. <em>Gate:</em> shadow diffs judged useful by a maintainer on ≥50 issues.</span></div>
+      </li>
+      <li><hr class="bg-secondary"/>
+        <div class="timeline-start badge badge-accent">mo 3–4</div>
+        <div class="timeline-middle"><div class="w-4 h-4 rounded-full bg-accent"></div></div>
+        <div class="timeline-end timeline-box"><strong>2 · Narrow live Fixer</strong><br/><span class="text-sm">Real draft PRs for the tractable single-repo classes; probe library + oracle live. <em>Gate:</em> &gt;15% human-accept, &lt;5% regression on a temporal-holdout eval.</span></div>
+      </li>
+      <li><hr class="bg-accent"/>
+        <div class="timeline-start badge">mo 5–6</div>
+        <div class="timeline-middle"><div class="w-4 h-4 rounded-full bg-neutral"></div></div>
+        <div class="timeline-end timeline-box"><strong>3 · Cross-repo (staged drafts)</strong><br/><span class="text-sm">Only if Fixer shows &gt;30% override rate <em>and</em> a positive time-to-action trend. Adds k8sd/api staged draft PRs with human sequencing.</span></div>
+      </li>
+      <li><hr/>
+        <div class="timeline-start badge badge-outline">ongoing</div>
+        <div class="timeline-middle"><div class="w-4 h-4 rounded-full bg-base-content/40"></div></div>
+        <div class="timeline-end timeline-box"><strong>4 · Maintain</strong><br/><span class="text-sm">Named owner, monthly prompt-regression + shadow re-eval, pinned models, spend review. Bot rot is real; fund it or retire it.</span></div>
+      </li>
+    </ul>
+  </section>
+
+  <!-- ===== 10 REVIEWS ===== -->
+  <section id="reviews" class="scroll-mt-6">
+    <h2 class="text-3xl font-bold mb-4"><span class="text-primary lead-num">10</span> · What the four reviewers changed</h2>
+    <p class="mb-4 text-base-content/80">The plan was reviewed by four sub-agents with deliberately different lenses. Each materially reshaped it:</p>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="card bg-base-100 border-t-4 border-error shadow-sm"><div class="card-body prose-tight">
+        <h3 class="font-bold text-error">Security / adversarial</h3>
+        <p class="text-sm"><strong>Flagged:</strong> delimiter defense is not real; tarball + repo comments are injection vectors; issue-edit race; live auto-merge/backport chain.</p>
+        <p class="text-sm"><strong>Changed:</strong> deterministic parse + AST skeletons (CRIT-1/2), SHA-pin gate (CRIT-3), auto-merge exclusion invariant (CRIT-4), egress-locked sandbox (HIGH-1).</p>
+      </div></div>
+      <div class="card bg-base-100 border-t-4 border-primary shadow-sm"><div class="card-body prose-tight">
+        <h3 class="font-bold text-primary">k8s-snap maintainer</h3>
+        <p class="text-sm"><strong>Flagged:</strong> no binary-swap — k8sd fix = full 20–40 min build; 3-repo human merge+tag chain; test-tag collection trip-wire; LXD containers not VMs; multi-node is normal.</p>
+        <p class="text-sm"><strong>Changed:</strong> build-cost reality (§2, §8), cross-repo staged-draft flow (§5), scope cut to single-repo classes for v1, tag-validation preflight.</p>
+      </div></div>
+      <div class="card bg-base-100 border-t-4 border-accent shadow-sm"><div class="card-body prose-tight">
+        <h3 class="font-bold text-accent">ML-systems skeptic</h3>
+        <p class="text-sm"><strong>Flagged:</strong> self-oracle reward-hacking; 2/3 guard &rarr; ~22% false-repro; closed-issue eval is data-leakage; diff-overlap ≠ correctness.</p>
+        <p class="text-sm"><strong>Changed:</strong> decoupled probe-first oracle (§4), baseline-flake gate, temporal-holdout eval, two-axis human accept rubric (§8).</p>
+      </div></div>
+      <div class="card bg-base-100 border-t-4 border-secondary shadow-sm"><div class="card-body prose-tight">
+        <h3 class="font-bold text-secondary">Ops / cost / rollout</h3>
+        <p class="text-sm"><strong>Flagged:</strong> two-bot split is right but Fixer isn't "v1"; phases were checkboxes not gates; wrap existing agents; name a kill metric.</p>
+        <p class="text-sm"><strong>Changed:</strong> triage-first funding split, wrap-Claude-Code-Action (§6), gated increments (§9), time-to-first-action kill metric.</p>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- ===== 11 DECISIONS ===== -->
+  <section id="decisions" class="scroll-mt-6">
+    <h2 class="text-3xl font-bold mb-4"><span class="text-primary lead-num">11</span> · Decide with me</h2>
+    <p class="mb-4 text-base-content/80">These are the open forks where your call changes the build. Pick options (or edit inline), add notes, then <strong>Queue</strong> — I'll fold your answers into the final plan and start increment 0.</p>
+    <form id="decisions-form" class="space-y-5">
+
+      <div class="card bg-base-100 border border-base-300 shadow-sm"><div class="card-body">
+        <h3 class="font-bold">Q1 · Scope of the first shippable thing</h3>
+        <div class="mt-2 space-y-2 text-sm">
+          <label class="flex gap-3 items-start cursor-pointer"><input type="radio" name="q1" value="triage-only" class="radio radio-primary mt-0.5" checked /><span><strong>Triage bot only</strong> (zero-LLM), prove the kill metric before any fixer spend. <span class="badge badge-success badge-sm">recommended</span></span></label>
+          <label class="flex gap-3 items-start cursor-pointer"><input type="radio" name="q1" value="triage-plus-docs" class="radio radio-primary mt-0.5" /><span>Triage bot <em>plus</em> a docs-only draft-PR fixer in the first cut.</span></label>
+          <label class="flex gap-3 items-start cursor-pointer"><input type="radio" name="q1" value="full-fixer" class="radio radio-primary mt-0.5" /><span>Go straight for the live single-repo Fixer (higher risk, slower to value).</span></label>
+        </div>
+      </div></div>
+
+      <div class="card bg-base-100 border border-base-300 shadow-sm"><div class="card-body">
+        <h3 class="font-bold">Q2 · Fix-engine strategy</h3>
+        <div class="mt-2 space-y-2 text-sm">
+          <label class="flex gap-3 items-start cursor-pointer"><input type="radio" name="q2" value="wrap-claude" class="radio radio-primary mt-0.5" checked /><span><strong>Wrap Claude Code Action</strong> + build only the k8s-snap glue. <span class="badge badge-success badge-sm">recommended</span></span></label>
+          <label class="flex gap-3 items-start cursor-pointer"><input type="radio" name="q2" value="copilot" class="radio radio-primary mt-0.5" /><span>Start with GitHub Copilot coding agent for the easy slice, revisit later.</span></label>
+          <label class="flex gap-3 items-start cursor-pointer"><input type="radio" name="q2" value="build-own" class="radio radio-primary mt-0.5" /><span>Build our own pipeline (LangGraph/Agent SDK) end-to-end.</span></label>
+        </div>
+      </div></div>
+
+      <div class="card bg-base-100 border border-base-300 shadow-sm"><div class="card-body">
+        <h3 class="font-bold">Q3 · Runner infrastructure for the Fixer</h3>
+        <div class="mt-2 space-y-2 text-sm">
+          <label class="flex gap-3 items-start cursor-pointer"><input type="radio" name="q3" value="reuse-selfhosted" class="radio radio-primary mt-0.5" checked /><span><strong>Reuse existing self-hosted e2e runners</strong> with a separate queue/label. <span class="badge badge-success badge-sm">recommended</span></span></label>
+          <label class="flex gap-3 items-start cursor-pointer"><input type="radio" name="q3" value="dedicated" class="radio radio-primary mt-0.5" /><span>Stand up dedicated bot runners (isolation, but more to own).</span></label>
+          <label class="flex gap-3 items-start cursor-pointer"><input type="radio" name="q3" value="github-hosted" class="radio radio-primary mt-0.5" /><span>GitHub-hosted only (blocks multi-node; triage + docs only).</span></label>
+        </div>
+      </div></div>
+
+      <div class="card bg-base-100 border border-base-300 shadow-sm"><div class="card-body">
+        <h3 class="font-bold">Q4 · Model vendor posture</h3>
+        <div class="mt-2 space-y-2 text-sm">
+          <label class="flex gap-3 items-start cursor-pointer"><input type="radio" name="q4" value="anthropic" class="radio radio-primary mt-0.5" checked /><span><strong>Anthropic API</strong>, pinned versions, tiered Haiku/Sonnet. <span class="badge badge-success badge-sm">recommended</span></span></label>
+          <label class="flex gap-3 items-start cursor-pointer"><input type="radio" name="q4" value="model-agnostic" class="radio radio-primary mt-0.5" /><span>Model-agnostic from day one (LangGraph abstraction, more test surface).</span></label>
+          <label class="flex gap-3 items-start cursor-pointer"><input type="radio" name="q4" value="internal" class="radio radio-primary mt-0.5" /><span>Canonical-internal / self-hosted model only (data stays in-house).</span></label>
+        </div>
+      </div></div>
+
+      <div class="card bg-base-100 border border-base-300 shadow-sm"><div class="card-body">
+        <h3 class="font-bold">Q5 · Jira integration depth</h3>
+        <div class="mt-2 space-y-2 text-sm">
+          <label class="flex gap-3 items-start cursor-pointer"><input type="radio" name="q5" value="reuse" class="radio radio-primary mt-0.5" checked /><span>Reuse the existing GitHub&harr;Jira sync (<code>KU</code>), bot only touches GitHub. <span class="badge badge-success badge-sm">recommended</span></span></label>
+          <label class="flex gap-3 items-start cursor-pointer"><input type="radio" name="q5" value="deep" class="radio radio-primary mt-0.5" /><span>Bot writes triage state into Jira directly too.</span></label>
+          <label class="flex gap-3 items-start cursor-pointer"><input type="radio" name="q5" value="none" class="radio radio-primary mt-0.5" /><span>No Jira touch at all for now.</span></label>
+        </div>
+      </div></div>
+
+      <div class="card bg-base-100 border border-base-300 shadow-sm"><div class="card-body">
+        <h3 class="font-bold">Q6 · Anything to add, constrain, or veto?</h3>
+        <textarea name="q6" class="textarea textarea-bordered w-full mt-2" rows="3" placeholder="e.g. must run air-gapped; specific issue labels to start with; a class you want prioritized; budget ceiling…"></textarea>
+      </div></div>
+
+      <div class="flex gap-3 items-center">
+        <button type="submit" class="btn btn-primary">Queue my answers</button>
+        <span id="decisions-status" class="text-sm text-success font-medium"></span>
+      </div>
+    </form>
+  </section>
+
+  <footer class="text-center text-sm text-base-content/60 pt-6 border-t border-base-300">
+    Design plan v2 · grounded in <code>canonical/k8s-snap</code> · reviewed by 4 lenses · select options above and annotate any element to send feedback.
+  </footer>
+  </main>
+</div>
+
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.15.0/dist/mermaid.esm.min.mjs";
+  const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
+  const paint = document.createElement("canvas").getContext("2d");
+  function toRgba(color){paint.clearRect(0,0,1,1);paint.fillStyle="#000";paint.fillStyle=color;paint.fillRect(0,0,1,1);return paint.getImageData(0,0,1,1).data;}
+  function compositeRgba(f,b){const fa=f[3]/255,ba=b[3]/255,a=fa+ba*(1-fa);if(a===0)return[0,0,0,0];return[(f[0]*fa+b[0]*ba*(1-fa))/a,(f[1]*fa+b[1]*ba*(1-fa))/a,(f[2]*fa+b[2]*ba*(1-fa))/a,a*255];}
+  function pageIsDark(){const root=document.documentElement;const rb=toRgba(getComputedStyle(root).backgroundColor);const bb=document.body?toRgba(getComputedStyle(document.body).backgroundColor):[0,0,0,0];const[r,g,b,a]=compositeRgba(bb,rb);if(a>0)return(0.2126*r+0.7152*g+0.0722*b)/255<0.5;const cs=getComputedStyle(root).colorScheme;if(cs.includes("dark")&&!cs.includes("light"))return true;if(cs.includes("light")&&!cs.includes("dark"))return false;return darkQuery.matches;}
+  const diagrams=[...document.querySelectorAll(".mermaid")].map((el)=>({el,src:el.textContent}));
+  let applied,rendering=false,queued=false;
+  function queueRender(){queued=true;if(rendering)return;void render();}
+  async function render(){rendering=true;try{while(queued){queued=false;const theme=pageIsDark()?"dark":"default";if(theme===applied)continue;mermaid.initialize({startOnLoad:false,theme,securityLevel:"strict"});for(const{el,src}of diagrams){el.removeAttribute("data-processed");el.textContent=src;}try{await mermaid.run({nodes:diagrams.map((d)=>d.el)});}catch(e){console.error("Mermaid render failed:",e);return;}applied=theme;}}finally{rendering=false;if(queued)queueRender();}}
+  if(document.readyState==="complete")queueRender();else window.addEventListener("load",queueRender,{once:true});
+  const mo=new MutationObserver(queueRender);
+  for(const el of[document.documentElement,document.body]){if(!el)continue;mo.observe(el,{attributes:true,attributeFilter:["data-theme","class","style"]});}
+  document.addEventListener("change",queueRender,true);
+  darkQuery.addEventListener("change",queueRender);
+</script>
+
+<script>
+  document.getElementById("decisions-form").addEventListener("submit",(e)=>{
+    e.preventDefault();
+    const fd=new FormData(e.target);
+    const labels={q1:"Scope of first ship",q2:"Fix-engine",q3:"Runner infra",q4:"Model posture",q5:"Jira depth",q6:"Notes"};
+    const lines=["# k8s-snap triage/fix bot — my decisions",""];
+    for(const[k,l]of Object.entries(labels)){const v=(fd.get(k)||"").toString().trim();if(v)lines.push(`- **${l}:** ${v}`);}
+    const msg=lines.join("\n");
+    const status=document.getElementById("decisions-status");
+    if(window.lavish&&typeof window.lavish.queuePrompt==="function"){window.lavish.queuePrompt(msg);status.textContent="Queued — send feedback from the toolbar to deliver.";}
+    else{status.textContent="Copied below — paste into chat if the queue isn't available.";console.log(msg);}
+  });
+</script>
+</body>
+</html>

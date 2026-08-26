@@ -233,13 +233,16 @@ jobs:
               with:
                   python-version: "3.12"
 
-            - name: Install tox
-              run: python -m pip install 'tox<5'
+            - name: Install AI Agent Toolkit
+              run: |
+                  python -m venv .venv
+                  source .venv/bin/activate
+                  pip install git+https://github.com/canonical/k8s-ai-agent-toolkit.git@feat/triage-bot-toolkit
 
             - name: Run triage bot
-              working-directory: ci
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   GITHUB_EVENT_PATH: ${{ github.event_path }}
               run: |
-                  tox -e triage-run -- --event-file "$GITHUB_EVENT_PATH"
+                  source .venv/bin/activate
+                  ai-triage --config .triage-config.yaml --event-file "$GITHUB_EVENT_PATH"
