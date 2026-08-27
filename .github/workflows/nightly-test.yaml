@@ -19,7 +19,7 @@ jobs:
     name: Integration
     strategy:
       matrix:
-        os: ["ubuntu:22.04", "ubuntu:24.04"]
+        os: ["ubuntu:22.04", "ubuntu:24.04", "ubuntu:26.04"]
         arch: ["amd64", "arm64"]
         # TODO(ben): Automatically fetch all supported releases.
         channel:
@@ -68,7 +68,7 @@ jobs:
     name: Run performance tests for ${{ matrix.os }}-${{ matrix.arch }}
     strategy:
       matrix:
-        os: ["ubuntu:22.04", "ubuntu:24.04"]
+        os: ["ubuntu:22.04", "ubuntu:24.04", "ubuntu:26.04"]
         arch: ["amd64", "arm64"]
       fail-fast: false
     uses: ./.github/workflows/compare-performance.yaml
