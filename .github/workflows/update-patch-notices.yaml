@@ -30,6 +30,7 @@ env:
 jobs:
   generate:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: write
       pull-requests: write
@@ -52,10 +53,9 @@ jobs:
       - name: Run generate for all tracks
         env:
           OPENAI_API_KEY: ${{ secrets.PATCH_NOTICES_OPENAI_KEY }}
-          OPENAI_BASE_URL: ${{ secrets.PATCH_NOTICES_OPENAI_BASE_URL }}
+          OPENAI_BASE_URL: https://openrouter.ai/api/v1
           OPENAI_MODEL: gpt-4o
           OPENAI_GROUP_MODEL: gpt-4o-mini
-          GITHUB_TOKEN: ${{ secrets.BOT_TOKEN }}
         run: |
           mkdir -p /tmp/summaries
           while IFS= read -r line; do
@@ -73,10 +73,11 @@ jobs:
         id: pr_body
         run: |
           patch-notices pr-body --summaries-dir /tmp/summaries > /tmp/pr_body.md
+          delim="body_$(openssl rand -hex 8)"
           {
-            echo 'body<<EOF'
+            echo "body<<$delim"
             cat /tmp/pr_body.md
-            echo 'EOF'
+            echo "$delim"
           } >> "$GITHUB_OUTPUT"
 
       - name: Create pull request
