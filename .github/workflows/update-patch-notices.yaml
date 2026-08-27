@@ -44,7 +44,6 @@ jobs:
           python-version: "3.12"
 
       - name: Install patch-notices
-        # Editable install so metadata.py resolves metadata/ relative to the repo source tree.
         run: pip install -e docs/tools/patch-notices/
 
       - name: Set run date
@@ -56,9 +55,6 @@ jobs:
           OPENAI_BASE_URL: ${{ secrets.PATCH_NOTICES_OPENAI_BASE_URL }}
           OPENAI_MODEL: gpt-4o
           OPENAI_GROUP_MODEL: gpt-4o-mini
-          # Use BOT_TOKEN (not github.token) so the created PR triggers CI checks.
-          # github.token-created PRs are blocked from triggering other workflows
-          # by GitHub's anti-infinite-loop protection.
           GITHUB_TOKEN: ${{ secrets.BOT_TOKEN }}
         run: |
           mkdir -p /tmp/summaries
