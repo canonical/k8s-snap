@@ -9,7 +9,7 @@ myst:
 <!-- SPREAD SUITE: snap_clean -->
 
 <!-- SPREAD
-sudo snap install k8s --classic --channel=1.36-classic/stable
+sudo snap install k8s --classic --channel=1.37-classic/stable
 -->
 
 When creating a {{ product }} cluster that differs from the default
