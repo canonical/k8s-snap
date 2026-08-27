@@ -23,7 +23,7 @@ def test_cncf_conformance(instances: List[harness.Instance]):
             "run",
             "--plugin",
             "e2e",
-            "--plugin-env=e2e.E2E_EXTRA_ARGS=--ginkgo.v --progress-report-url=http://localhost:8099/progress",
+            "--plugin-env=e2e.E2E_EXTRA_GINKGO_ARGS=--v",
             "--mode",
             "certified-conformance",
             "--wait",
