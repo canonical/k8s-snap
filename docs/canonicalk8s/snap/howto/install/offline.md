@@ -146,6 +146,10 @@ file on each node and set the appropriate `http_proxy`, `https_proxy` and
 `no_proxy` variables as described in the
 [adding proxy configuration section][proxy].
 
+```{note}
+The path to the HTTP proxy config file will change if you [changed the containerd base directory][how-to-containerd].
+```
+
 ````
 
 ````{tab-item} Private registry mirrors
@@ -352,3 +356,4 @@ to the cluster.
 [regctl]: https://github.com/regclient/regclient/blob/main/docs/regctl.md
 [nodes]: /snap/tutorial/add-remove-nodes.md
 [squid]: https://www.squid-cache.org/
+[how-to-containerd]: /snap/howto/install/dev-env.md/#containerd

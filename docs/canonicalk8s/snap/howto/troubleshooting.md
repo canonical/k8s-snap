@@ -279,17 +279,9 @@ that uses containerd.
 
 ````{dropdown} Solution
 
-We recommend running {{product}} in an isolated environment, for this purpose,
-you can create a LXD VM for your installation. See
-[Install {{product}} in LXD][lxd-install] for instructions.
+{{product}} is built on the assumption that it is deployed in an isolated environment, as is usually the case for production builds. A typical way of isolating {{product}} is to run it on an LXD VM. See [Install {{product}} in LXD][lxd-install] for instructions.
 
-As an alternative, you may specify a custom containerd path like so:
-
-```bash
-cat <<EOF | sudo k8s bootstrap --file -
-containerd-base-dir: $containerdBaseDir
-EOF
-```
+If the cluster is being deployed in a developer environment or cannot have the conflicting containerd bin removed, the flag `--containerd-base-dir` can be added to the `bootstrap` and `join-cluster` commands to specify an alternate absolute path for {{product}} to install containerd. See [How to resolve containerd conflicts][how-to-containerd] for further information.
 
 ````
 
@@ -550,4 +542,5 @@ troubleshooting a Kubernetes cluster.
 [kubernetes-122955-2020403422]: https://github.com/kubernetes/kubernetes/issues/122955#issuecomment-2020403422
 [@haircommander]: https://github.com/haircommander
 [lxd-install]: /snap/howto/install/lxd.md
+[how-to-containerd]: /snap/howto/install/dev-env.md/#containerd
 [reported here]: https://github.com/cilium/cilium/issues/30889
