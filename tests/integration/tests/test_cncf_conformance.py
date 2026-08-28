@@ -10,6 +10,21 @@ from test_util import harness, tags, util
 
 LOG = logging.getLogger(__name__)
 
+# Injected into the sonobuoy manifest before running so that the e2e plugin
+# produces verbose per-test output (required by CNCF for conformance submissions).
+# sonobuoy's --plugin-env flag is unreliable in this environment, so we generate
+# the manifest, patch it directly, then run from the patched file.
+_INJECT_VERBOSE_SCRIPT = """\
+content = open('sonobuoy_manifest.yaml').read()
+patched = content.replace(
+    '      - name: E2E_EXTRA_ARGS\\n',
+    '      - name: E2E_EXTRA_GINKGO_ARGS\\n        value: --v\\n      - name: E2E_EXTRA_ARGS\\n',
+    1,
+)
+assert '- name: E2E_EXTRA_GINKGO_ARGS' in patched, 'E2E_EXTRA_GINKGO_ARGS injection failed'
+open('sonobuoy_manifest.yaml', 'w').write(patched)
+"""
+
 
 @pytest.mark.node_count(3)
 @pytest.mark.tags(tags.CONFORMANCE)
@@ -17,18 +32,31 @@ def test_cncf_conformance(instances: List[harness.Instance]):
     cluster_node = cluster_setup(instances)
     install_sonobuoy(cluster_node)
 
+    # Generate the conformance manifest so we can patch it directly.
+    # sonobuoy gen auto-detects the k8s version from the running cluster.
     cluster_node.exec(
         [
             "./sonobuoy",
-            "run",
+            "gen",
             "--plugin",
             "e2e",
-            "--plugin-env=e2e.E2E_EXTRA_GINKGO_ARGS=--v",
             "--mode",
             "certified-conformance",
-            "--wait",
+            ">",
+            "sonobuoy_manifest.yaml",
         ],
     )
+
+    # Inject E2E_EXTRA_GINKGO_ARGS=--v for verbose per-test output.
+    cluster_node.exec(
+        ["dd", "of=/tmp/inject_verbose.py"],
+        input=_INJECT_VERBOSE_SCRIPT.encode(),
+    )
+    cluster_node.exec(["python3", "/tmp/inject_verbose.py"])
+
+    # -f is incompatible with --wait, so start the run and wait separately.
+    cluster_node.exec(["./sonobuoy", "run", "-f", "sonobuoy_manifest.yaml"])
+    cluster_node.exec(["./sonobuoy", "wait", "--wait"])
     cluster_node.exec(
         ["./sonobuoy", "retrieve", "-f", "sonobuoy_e2e.tar.gz"],
     )
