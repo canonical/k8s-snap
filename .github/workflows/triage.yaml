@@ -168,7 +168,8 @@ jobs:
                   else
                     args="--event-file $GITHUB_EVENT_PATH --auto-pr --export-dir triage-artifacts"
                   fi
-                  ai-triage --config .triage-config.yaml $args
+                  ai-triage --config .triage-config.yaml --log-level DEBUG $args
+
 
             - name: Upload triage artifacts
               if: always()
@@ -223,7 +224,8 @@ jobs:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   source .venv/bin/activate
-                  ai-triage publish --config .triage-config.yaml --artifact-dir triage-artifacts
+                  ai-triage publish --config .triage-config.yaml --log-level DEBUG --artifact-dir triage-artifacts
+
 
     classify:
         name: Triage (unprivileged classify)
@@ -268,7 +270,8 @@ jobs:
                   GITHUB_EVENT_PATH: ${{ github.event_path }}
               run: |
                   source .venv/bin/activate
-                  ai-triage --config .triage-config.yaml --event-file "$GITHUB_EVENT_PATH"
+                  ai-triage --config .triage-config.yaml --log-level DEBUG --event-file "$GITHUB_EVENT_PATH"
+
 
     cleanup:
         name: Triage (branch cleanup)
@@ -308,4 +311,4 @@ jobs:
                   GITHUB_EVENT_PATH: ${{ github.event_path }}
               run: |
                   source .venv/bin/activate
-                  ai-triage --config .triage-config.yaml --event-file "$GITHUB_EVENT_PATH"
+                  ai-triage --config .triage-config.yaml --log-level DEBUG --event-file "$GITHUB_EVENT_PATH"
