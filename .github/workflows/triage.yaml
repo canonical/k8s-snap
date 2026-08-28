@@ -142,9 +142,9 @@ jobs:
               run: |
                   python -m venv .venv
                   source .venv/bin/activate
-                  git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
-                  pip install git+https://github.com/canonical/k8s-ai-agent-toolkit.git@feat/triage-bot-toolkit
-                  git config --global --unset url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf
+                  git config --global credential.https://github.com.helper '!f() { echo "username=x-access-token"; echo "password=$GH_TOKEN"; }; f'
+                  pip install "git+https://github.com/canonical/k8s-ai-agent-toolkit.git@feat/triage-bot-toolkit"
+                  git config --global --unset credential.https://github.com.helper
 
             - name: Run triage pipeline (unprivileged)
               env:
@@ -208,9 +208,9 @@ jobs:
               run: |
                   python -m venv .venv
                   source .venv/bin/activate
-                  git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
-                  pip install git+https://github.com/canonical/k8s-ai-agent-toolkit.git@feat/triage-bot-toolkit
-                  git config --global --unset url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf
+                  git config --global credential.https://github.com.helper '!f() { echo "username=x-access-token"; echo "password=$GH_TOKEN"; }; f'
+                  pip install "git+https://github.com/canonical/k8s-ai-agent-toolkit.git@feat/triage-bot-toolkit"
+                  git config --global --unset credential.https://github.com.helper
 
             - name: Download triage artifacts
               uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
@@ -257,9 +257,9 @@ jobs:
               run: |
                   python -m venv .venv
                   source .venv/bin/activate
-                  git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
-                  pip install git+https://github.com/canonical/k8s-ai-agent-toolkit.git@feat/triage-bot-toolkit
-                  git config --global --unset url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf
+                  git config --global credential.https://github.com.helper '!f() { echo "username=x-access-token"; echo "password=$GH_TOKEN"; }; f'
+                  pip install "git+https://github.com/canonical/k8s-ai-agent-toolkit.git@feat/triage-bot-toolkit"
+                  git config --global --unset credential.https://github.com.helper
 
             - name: Run triage bot
               env:
@@ -299,9 +299,9 @@ jobs:
               run: |
                   python -m venv .venv
                   source .venv/bin/activate
-                  git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
-                  pip install git+https://github.com/canonical/k8s-ai-agent-toolkit.git@feat/triage-bot-toolkit
-                  git config --global --unset url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf
+                  git config --global credential.https://github.com.helper '!f() { echo "username=x-access-token"; echo "password=$GH_TOKEN"; }; f'
+                  pip install "git+https://github.com/canonical/k8s-ai-agent-toolkit.git@feat/triage-bot-toolkit"
+                  git config --global --unset credential.https://github.com.helper
             - name: Run triage bot
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
