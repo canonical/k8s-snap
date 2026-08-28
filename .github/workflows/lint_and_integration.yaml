@@ -114,7 +114,8 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           BASE_REF: ${{ github.base_ref }}
         run: |
-          tags="pull_request"
+          # TODO(Hue): remove
+          tags="up_to_weekly"
           if [ "$EVENT_NAME" = "pull_request" ]; then
             # Run all tests if there are test changes. In case of a PR, we'll
             # get a merge commit that includes all changes.
