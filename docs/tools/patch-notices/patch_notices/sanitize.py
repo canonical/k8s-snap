@@ -19,6 +19,7 @@ _HTML_TAG_RE = re.compile(r"</?[^>]+>")
 _WHITESPACE_RE = re.compile(r"\s+")
 _SHA_RE = re.compile(r"^[0-9a-f]{7,40}$", re.IGNORECASE)
 _MD_SPECIAL_RE = re.compile(r"([\\`*_{}\[\]()#!|<>])")
+_KUBERNETES_RE = re.compile(r"\bkubernetes\b", re.IGNORECASE)
 _CATEGORY_VALUES = {
     "Major Feature",
     "Security",
@@ -38,7 +39,9 @@ def markdown_text(value: Any, *, limit: int = MARKDOWN_TEXT_LIMIT) -> str:
 
 def component_text(value: Any) -> str:
     """Return a component/version entry as escaped plain text."""
-    return markdown_text(value, limit=COMPONENT_TEXT_LIMIT)
+    # AI output casing is inconsistent; "Kubernetes" is a proper noun, unlike containerd/runc.
+    text = _KUBERNETES_RE.sub("Kubernetes", "" if value is None else str(value))
+    return markdown_text(text, limit=COMPONENT_TEXT_LIMIT)
 
 
 def label_text(value: Any) -> str:

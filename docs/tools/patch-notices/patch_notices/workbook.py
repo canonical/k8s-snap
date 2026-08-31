@@ -101,6 +101,23 @@ def _components(value: Any) -> list[str]:
     return [component for item in (value or []) if (component := sanitize.component_text(item))]
 
 
+def _dedupe_components(components: list[str]) -> list[str]:
+    """Collapse repeat bumps of the same component to just the latest version.
+
+    Keeps each component's first-seen position but its last-seen version, since
+    *components* is built in chronological order.
+    """
+    latest: dict[str, str] = {}
+    order: list[str] = []
+    for component in components:
+        name, _, _version = component.partition(" ")
+        key = name.lower()
+        if key not in latest:
+            order.append(key)
+        latest[key] = component
+    return [latest[key] for key in order]
+
+
 def _pr_suffix(value: Any, *, parens: bool = True) -> str:
     number = sanitize.pr_number(value)
     if number is None:
@@ -122,7 +139,7 @@ def _clean_entry_lines(triage_results: list[dict[str, Any]]) -> list[str]:
             r = group[0]
             category = sanitize.category(r["triage"].get("category", ""))
             summary = sanitize.markdown_text(r["triage"].get("summary", ""))
-            components = _components(r["triage"].get("components"))
+            components = _dedupe_components(_components(r["triage"].get("components")))
             if category == "Component Bump" and components:
                 lines.append("- Version bumps")
                 for component in components:
@@ -136,6 +153,7 @@ def _clean_entry_lines(triage_results: list[dict[str, Any]]) -> list[str]:
             all_components: list[str] = []
             for r in group:
                 all_components.extend(_components(r["triage"].get("components")))
+            all_components = _dedupe_components(all_components)
             if category == "Component Bump" and all_components:
                 lines.append("- Version bumps")
                 for component in all_components:
@@ -173,7 +191,7 @@ def write(triage_results: list[dict[str, Any]], output_path: str, channel_key: s
             sha = sanitize.sha(r.get("sha", ""))
             category = sanitize.category(r["triage"].get("category", ""))
             summary = sanitize.markdown_text(r["triage"].get("summary", ""))
-            components = _components(r["triage"].get("components"))
+            components = _dedupe_components(_components(r["triage"].get("components")))
             lines.append(f"<!-- sha:{sha} -->")
             if category == "Component Bump" and components:
                 lines.append(f"- **{category}** Version bumps")
@@ -194,6 +212,7 @@ def write(triage_results: list[dict[str, Any]], output_path: str, channel_key: s
             all_components = []
             for r in group:
                 all_components.extend(_components(r["triage"].get("components")))
+            all_components = _dedupe_components(all_components)
             if category == "Component Bump" and all_components:
                 lines.append(f"- **{category}** Version bumps")
                 for component in all_components:
@@ -382,6 +401,9 @@ def build_track_summary(
         "date": date,
         "included": [
             {
+                "sha": r.get("sha", "")[:8],
+                "pr_number": r.get("pr_number"),
+                "title": r.get("title", ""),
                 "category": r["triage"].get("category", ""),
                 "summary": r["triage"].get("summary", ""),
                 "components": r["triage"].get("components"),
@@ -481,15 +503,10 @@ def build_pr_body(summaries: list[dict[str, Any]]) -> str:
             lines.append("### Included")
             lines.append("")
             for item in s["included"]:
-                category = sanitize.category(item.get("category", ""))
-                summary_text = sanitize.markdown_text(item.get("summary", ""))
-                components = _components(item.get("components"))
-                if category == "Component Bump" and components:
-                    lines.append("- Version bumps")
-                    for comp in components:
-                        lines.append(f"    - {comp}")
-                else:
-                    lines.append(f"- {summary_text}")
+                sha = _safe_short_sha(item.get("sha", ""))
+                pr = _pr_suffix(item.get("pr_number"))
+                title = sanitize.markdown_text(item.get("title", ""))
+                lines.append(f"- `{sha}`{pr} — {title}")
             lines.append("")
 
         if s.get("limited_context"):
