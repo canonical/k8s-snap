@@ -36,8 +36,9 @@ jobs:
     timeout-minutes: 20
     environment: Patch AI
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
+    outputs:
+      failures: ${{ steps.run_generate.outputs.failures }}
 
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -51,10 +52,8 @@ jobs:
       - name: Install patch-notices
         run: pip install -e docs/tools/patch-notices/
 
-      - name: Set run date
-        run: echo "TODAY=$(date +%Y-%m-%d)" >> "$GITHUB_ENV"
-
       - name: Run generate for all tracks
+        id: run_generate
         env:
           OPENAI_API_KEY: ${{ secrets.PATCH_NOTICES_OPENAI_KEY }}
           OPENAI_BASE_URL: https://openrouter.ai/api/v1
@@ -63,27 +62,66 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           mkdir -p /tmp/summaries
+          failures=0
           while IFS= read -r line; do
             [[ "$line" =~ ^[[:space:]]*# ]] && continue
             [[ -z "${line// }" ]] && continue
             read -r source version notes_path <<< "$line"
-            patch-notices generate \
+            if ! patch-notices generate \
               --source "$source" \
               --track "$version" \
               --release-notes "$notes_path" \
-              --summary-out "/tmp/summaries/${source}-${version}.json"
+              --summary-out "/tmp/summaries/${source}-${version}.json"; then
+              echo "::error::track $source $version failed to generate"
+              failures=$((failures + 1))
+            fi
           done <<< "$TRACKS"
+          echo "failures=$failures" >> "$GITHUB_OUTPUT"
 
       - name: Build PR body
-        id: pr_body
+        run: patch-notices pr-body --summaries-dir /tmp/summaries > /tmp/pr_body.md
+
+      - name: Stage generated files for handoff
         run: |
-          patch-notices pr-body --summaries-dir /tmp/summaries > /tmp/pr_body.md
-          delim="body_$(openssl rand -hex 8)"
-          {
-            echo "body<<$delim"
-            cat /tmp/pr_body.md
-            echo "$delim"
-          } >> "$GITHUB_OUTPUT"
+          stage=/tmp/patch-notices-artifact
+          mkdir -p "$stage/docs/canonicalk8s/releases" "$stage/docs/tools/patch-notices/metadata"
+          cp -r docs/canonicalk8s/releases/. "$stage/docs/canonicalk8s/releases/"
+          cp docs/tools/patch-notices/metadata/patch-metadata.json "$stage/docs/tools/patch-notices/metadata/patch-metadata.json"
+          cp /tmp/pr_body.md "$stage/pr_body.md"
+
+      - name: Upload generated files
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: patch-notices-output
+          path: /tmp/patch-notices-artifact
+          if-no-files-found: error
+
+  open-pr:
+    needs: generate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Set run date
+        run: echo "TODAY=$(date +%Y-%m-%d)" >> "$GITHUB_ENV"
+
+      - name: Download generated files
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: patch-notices-output
+          path: /tmp/patch-notices-artifact
+
+      - name: Apply generated files to checkout
+        run: |
+          cp -r /tmp/patch-notices-artifact/docs/canonicalk8s/releases/. docs/canonicalk8s/releases/
+          cp /tmp/patch-notices-artifact/docs/tools/patch-notices/metadata/patch-metadata.json docs/tools/patch-notices/metadata/patch-metadata.json
 
       - name: Create pull request
         uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c # v6
@@ -92,7 +130,12 @@ jobs:
           author: "K8s builder bot <k8s-bot@canonical.com>"
           commit-message: "docs: Update patch notices ${{ env.TODAY }}"
           title: "docs: Update patch notices ${{ env.TODAY }}"
-          body: ${{ steps.pr_body.outputs.body }}
+          body-path: /tmp/patch-notices-artifact/pr_body.md
           branch: "auto/patch-notices-${{ env.TODAY }}"
           delete-branch: true
-          base: main
+          # TEMPORARY: point at this PR's branch instead of main so the test PR is viewable; revert before merge.
+          base: ${{ github.head_ref }}
+
+      - name: Fail if any track errored
+        if: needs.generate.outputs.failures != '0'
+        run: exit 1
