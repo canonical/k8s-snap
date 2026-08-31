@@ -146,10 +146,6 @@ file on each node and set the appropriate `http_proxy`, `https_proxy` and
 `no_proxy` variables as described in the
 [adding proxy configuration section][proxy].
 
-```{note}
-The path to the HTTP proxy config file will change if you [changed the containerd base directory][how-to-containerd].
-```
-
 ````
 
 ````{tab-item} Private registry mirrors
@@ -277,7 +273,9 @@ instructions on all nodes. For each upstream registry that needs mirroring,
 create a `hosts.toml` file. Here's an example that configures
 `http://10.10.10.10:5050` as a mirror for `ghcr.io`:
 
-
+```{note}
+The paths below assume the default containerd base directory (`/etc/containerd`). If you [changed the containerd base directory][how-to-containerd], replace `/etc/containerd` with `<containerd-base-dir>/etc/containerd`.
+```
 
 #### HTTP registry mirror
 

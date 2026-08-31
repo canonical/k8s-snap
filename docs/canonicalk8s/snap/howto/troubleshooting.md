@@ -279,9 +279,9 @@ that uses containerd.
 
 ````{dropdown} Solution
 
-{{product}} is built on the assumption that it is deployed in an isolated environment, as is usually the case for production builds. A typical way of isolating {{product}} is to run it on an LXD VM. See [Install {{product}} in LXD][lxd-install] for instructions.
+We recommend {{product}} is deployed in an isolated environment. A typical way of isolating {{product}} is to run it on an LXD VM. See [Install {{product}} in LXD][lxd-install] for instructions.
 
-If the cluster is being deployed in a developer environment or cannot have the conflicting containerd bin removed, the flag `--containerd-base-dir` can be added to the `bootstrap` and `join-cluster` commands to specify an alternate absolute path for {{product}} to install containerd. See [How to resolve containerd conflicts][how-to-containerd] for further information.
+If the cluster is being deployed in an environment that cannot have the conflicting containerd bin removed, the flag `--containerd-base-dir` can be added to the `bootstrap` and `join-cluster` commands to specify an alternate absolute path for {{product}} to install containerd. See [How to resolve containerd conflicts][how-to-containerd] for further information.
 
 ````
 
