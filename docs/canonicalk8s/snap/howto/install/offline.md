@@ -273,7 +273,9 @@ instructions on all nodes. For each upstream registry that needs mirroring,
 create a `hosts.toml` file. Here's an example that configures
 `http://10.10.10.10:5050` as a mirror for `ghcr.io`:
 
-
+```{note}
+The paths below assume the default containerd base directory (`/etc/containerd`). If you [changed the containerd base directory][how-to-containerd], replace `/etc/containerd` with `<containerd-base-dir>/etc/containerd`.
+```
 
 #### HTTP registry mirror
 
@@ -352,3 +354,4 @@ to the cluster.
 [regctl]: https://github.com/regclient/regclient/blob/main/docs/regctl.md
 [nodes]: /snap/tutorial/add-remove-nodes.md
 [squid]: https://www.squid-cache.org/
+[how-to-containerd]: /snap/howto/install/dev-env.md/#containerd
