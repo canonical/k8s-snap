@@ -4,6 +4,9 @@ on:
   schedule:
     - cron: "0 10 1 * *"
   workflow_dispatch:
+  # TEMPORARY: testing this workflow on this PR; remove before merge.
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
 
 permissions:
   contents: read
@@ -56,6 +59,7 @@ jobs:
           OPENAI_BASE_URL: https://openrouter.ai/api/v1
           OPENAI_MODEL: gpt-4o
           OPENAI_GROUP_MODEL: gpt-4o-mini
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           mkdir -p /tmp/summaries
           while IFS= read -r line; do

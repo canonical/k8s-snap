@@ -44,10 +44,9 @@ def _atomic_write(path: pathlib.Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=".tmp-patch-metadata-")
     try:
-        os.write(fd, content.encode())
-        os.close(fd)
+        with os.fdopen(fd, "wb") as fh:
+            fh.write(content.encode())
         os.replace(tmp, path)
     except Exception:
-        os.close(fd)
         os.unlink(tmp)
         raise

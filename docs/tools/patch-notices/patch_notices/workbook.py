@@ -317,11 +317,11 @@ def insert_patch_notice(
     text = path.read_text()
 
     if "## Patch notices" in text:
-        # Insert new entry immediately after the section heading + blank line.
+        # Insert new entry immediately after the section heading 
         # Pattern: the heading followed by one or more blank lines.
-        # Callable replacement avoids re interpreting backslashes in entry_block as escapes.
+        # Callable replacement avoids re-interpreting backslashes in entry_block as escapes.
         new_text, n = re.subn(
-            r"(## Patch notices\n\n)",
+            r"(## Patch notices\n(?:[ \t]*\n)+)",
             lambda match: match.group(1) + entry_block + "\n\n",
             text,
             count=1,
@@ -354,11 +354,10 @@ def insert_patch_notice(
     # Atomic write: write to temp then rename
     fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=".tmp-patch-notice-")
     try:
-        os.write(fd, new_text.encode())
-        os.close(fd)
+        with os.fdopen(fd, "wb") as fh:
+            fh.write(new_text.encode())
         os.replace(tmp, path)
     except Exception:
-        os.close(fd)
         os.unlink(tmp)
         raise
 
