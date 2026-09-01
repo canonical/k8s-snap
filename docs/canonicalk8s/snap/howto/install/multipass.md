@@ -116,7 +116,7 @@ multipass delete k8s-node --purge
 
 <!-- LINKS -->
 <!-- markdownlint-disable MD053 -->
-[Multipass]:https://multipass.run/
+[Multipass]:https://canonical.com/multipass
 [snap-support]: https://snapcraft.io/docs/installing-snapd
 [Multipass-options]: https://canonical.com/multipass/docs/stable/how-to-guides/manage-instances/create-an-instance/
 [install instructions]: ./snap

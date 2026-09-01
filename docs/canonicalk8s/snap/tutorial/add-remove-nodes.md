@@ -167,7 +167,7 @@ multipass purge
 <!-- LINKS -->
 
 [Getting started]: getting-started
-[Multipass Installation]: https://multipass.run/install
+[Multipass Installation]: https://canonical.com/multipass/install
 [Ingress]: ../howto/networking/default-ingress
 [Kubectl]: kubectl
 [Command Reference]: ../reference/commands
