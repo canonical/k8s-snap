@@ -584,3 +584,82 @@ def test_feature_upgrades_rollout_upgrade(
         capture_output=True,
         text=True,
     )
+
+
+@pytest.mark.node_count(1)
+@pytest.mark.no_setup()
+@pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.skipif(
+    config.SUBSTRATE == "multipass", reason="runner size too small on multipass"
+)
+@pytest.mark.skipif(
+    not config.SNAP,
+    reason="Requires a local snap file to test the upgrade/downgrade migration path",
+)
+def test_kubelet_containerd_arg_migration(
+    instances: List[harness.Instance], tmp_path: Path
+):
+    """Verify the --containerd kubelet arg is correctly managed across version transitions.
+
+    The --containerd flag was removed in Kubernetes 1.37. k8sd 1.37 must remove it
+    from the persisted args file on upgrade (1.37 kubelet rejects the flag), and
+    k8sd 1.36 must restore it on downgrade (1.36 kubelet needs it to locate the
+    containerd socket at the snap-specific path).
+
+    Upgrade path:   1.36/stable → local snap (1.37): --containerd must be absent
+    Downgrade path: local snap (1.37) → 1.36/stable: --containerd must be restored
+    """
+    instance = instances[0]
+    prev_channel = util.previous_track(config.SNAP)
+    kubelet_args_path = "/var/snap/k8s/common/args/kubelet"
+
+    if not prev_channel.startswith("1.36"):
+        pytest.skip(
+            f"This test validates the 1.36->1.37 --containerd migration, "
+            f"previous track is {prev_channel!r}, not applicable"
+        )
+
+    LOG.info("Bootstrapping on previous channel: %s", prev_channel)
+    util.setup_k8s_snap(instance, prev_channel)
+    instance.exec(["k8s", "bootstrap"])
+    util.wait_until_k8s_ready(instance, instances)
+
+    # On 1.36, --containerd must be present (written by k8sd on bootstrap).
+    args = instance.exec(
+        ["cat", kubelet_args_path], capture_output=True, text=True
+    ).stdout
+    assert (
+        "--containerd" in args
+    ), f"Expected --containerd in kubelet args on 1.36 before upgrade, got:\n{args}"
+
+    # Upgrade to 1.37 (local snap).
+    LOG.info("Upgrading to local snap (1.37)")
+    util.setup_k8s_snap(instance, config.SNAP)
+    util.wait_until_k8s_ready(instance, instances)
+    util.check_snap_services_ready(instance, retries=10, delay_s=10)
+    util.check_service_logs_for_panics(instance)
+
+    # After upgrade, --containerd must be gone (k8sd 1.37 post-refresh removes it;
+    # 1.37 kubelet rejects the flag entirely).
+    args = instance.exec(
+        ["cat", kubelet_args_path], capture_output=True, text=True
+    ).stdout
+    assert (
+        "--containerd" not in args
+    ), f"Expected --containerd absent from kubelet args after upgrade to 1.37, got:\n{args}"
+
+    # Downgrade back to 1.36.
+    LOG.info("Downgrading back to %s", prev_channel)
+    util.snap_refresh(instance, prev_channel, "--amend")
+    util.wait_until_k8s_ready(instance, instances)
+    util.check_snap_services_ready(instance, retries=10, delay_s=10)
+    util.check_service_logs_for_panics(instance)
+
+    # After downgrade, --containerd must be restored (k8sd 1.36 post-refresh adds it
+    # back; without it kubelet cannot find the containerd socket).
+    args = instance.exec(
+        ["cat", kubelet_args_path], capture_output=True, text=True
+    ).stdout
+    assert (
+        "--containerd" in args
+    ), f"Expected --containerd restored in kubelet args after downgrade to 1.36, got:\n{args}"
