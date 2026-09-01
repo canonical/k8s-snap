@@ -215,7 +215,6 @@ linkcheck_anchors_ignore_for_url = [
     'https://github.com/kubernetes/kubernetes/blob/master/cmd/kube-apiserver/app/options/validation_test.go',
     'https://matrix.to',
     'https://ubuntu.com/about/release-cycle',
-    'https://canonical.com/multipass/docs/tutorial',
     'https://microk8s.io/docs/how-to-cis-harden',
     'https://registry.terraform.io/providers/juju/juju/latest/docs',
     'https://snapcraft.io/docs/managing-updates',
