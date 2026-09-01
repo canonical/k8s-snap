@@ -33,6 +33,10 @@ at `/snap/k8s/current/bin/ctr`. Although the containerd binary is in the snap
 installation folder, the containerd socket is located at
 `/run/containerd/containerd.sock`.
 
+```{note}
+This socket path may be different if you modified [the base directory containerd was installed in][how-to-containerd].
+```
+
 ## Listing all images
 
 {{product}} imports all images into the `k8s.io` namespace. When you're
@@ -96,3 +100,4 @@ docker.io/library/hello-world:latest
 
 [snap-install-howto]: ./install/snap
 [Source]: https://manpages.debian.org/testing/containerd/ctr.8.en.html
+[how-to-containerd]: /snap/howto/install/dev-env.md/#containerd

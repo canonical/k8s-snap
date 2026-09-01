@@ -29,7 +29,7 @@ you choose to do so, please take note of the following considerations.
 containerd-related paths by default (`/run/containerd`, `/var/lib/containerd`,
 `/etc/containerd`). If containerd is already installed at these paths by
 another application (e.g. Docker), the bootstrap will fail. To resolve this,
-provide a base directory for the files to be installed at by setting
+provide a base directory for the files to be installed at by either setting
 `containerd-base-dir` in the bootstrap config YAML:
 
 <!-- SPREAD
@@ -48,6 +48,8 @@ cluster-config:
     enabled: true
 EOF
 ```
+
+or by providing it via the CLI flag `--containerd-base-dir` at node initialization when running `sudo k8s bootstrap` or `sudo k8s join-cluster`.
 
 By doing this, all containerd files will be stored under the parent
 directory specified by `containerd-base-dir`. For example, if
