@@ -14,8 +14,12 @@ test_data:
     #!/bin/bash
     set -eux
 
-    SSH="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@$DEVICE_IP"
-    SCP="scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+    # IGX Orin noprovision devices ship with default ubuntu/ubuntu creds and no
+    # pre-installed SSH keys, so we authenticate with sshpass.
+    command -v sshpass >/dev/null 2>&1 || sudo apt-get install -y sshpass
+    SSHPASS_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PubkeyAuthentication=no -o PreferredAuthentications=password"
+    SSH="sshpass -p ubuntu ssh $SSHPASS_OPTS ubuntu@$DEVICE_IP"
+    SCP="sshpass -p ubuntu scp $SSHPASS_OPTS"
 
     # 1. Copy attachments to the device
     $SCP attachments/test/k8s-arm64.snap ubuntu@$DEVICE_IP:/tmp/
