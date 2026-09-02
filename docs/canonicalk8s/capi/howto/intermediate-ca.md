@@ -2,6 +2,7 @@
 myst:
   html_meta:
     description: "How to configure an intermediate Certificate Authority (CA) with Canonical Kubernetes CAPI workload clusters."
+relatedlinks: "[Vault&#32;documentation](https://developer.hashicorp.com/vault/docs)"
 ---
 
 # How to use intermediate CAs with Vault
