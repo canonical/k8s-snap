@@ -308,6 +308,12 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
     """
 
     start_branch = util.previous_track(config.SNAP)
+    start_major_minor = util.major_minor(start_branch)
+    if start_major_minor is None or start_major_minor < (1, 36):
+        pytest.skip(
+            "Feature upgrade inplace test requires bootstrap track >= 1.36 "
+            "(dqlite removed in 1.36)."
+        )
     bootstrap_cp = instances[0]
     worker = instances[-1]
 
