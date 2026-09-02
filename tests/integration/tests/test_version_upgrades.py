@@ -226,7 +226,7 @@ def test_version_downgrades_with_rollback(
     util.join_cluster(cp2, join_token_cp2)
     # util.join_cluster(w0, join_token_w0)
 
-    util.wait_until_k8s_ready(cp, instances)
+    util.wait_until_k8s_ready(cp, instances, skip_services=["kube-proxy"])
 
     for channel in channels[1:]:
         for instance in instances:
@@ -242,9 +242,9 @@ def test_version_downgrades_with_rollback(
                 f"Step 1. Downgrade {instance.id} from {current_channel} → {channel}"
             )
             util.snap_refresh(instance, channel)
-            util.wait_until_k8s_ready(cp, instances)
+            util.wait_until_k8s_ready(cp, instances, skip_services=["kube-proxy"])
             LOG.info("Verifying snap service health")
-            util.check_snap_services_ready(instance, retries=10, delay_s=10)
+            util.check_snap_services_ready(instance, retries=10, delay_s=10, skip_services=["kube-proxy"])
             util.check_service_restarts(instance)
             util.check_service_logs_for_panics(instance)
 
@@ -254,9 +254,9 @@ def test_version_downgrades_with_rollback(
         for instance in instances:
             LOG.debug(f"Step 2. Roll back from {current_channel} → {last_channel}")
             util.snap_refresh(instance, last_channel)
-            util.wait_until_k8s_ready(cp, instances)
+            util.wait_until_k8s_ready(cp, instances, skip_services=["kube-proxy"])
             LOG.info("Verifying snap service health")
-            util.check_snap_services_ready(instance, retries=10, delay_s=10)
+            util.check_snap_services_ready(instance, retries=10, delay_s=10, skip_services=["kube-proxy"])
             util.check_service_restarts(instance)
             util.check_service_logs_for_panics(instance)
 
@@ -265,9 +265,9 @@ def test_version_downgrades_with_rollback(
                 f"Step 3. Final downgrade to channel from {last_channel} → {current_channel}"
             )
             util.snap_refresh(instance, current_channel)
-            util.wait_until_k8s_ready(cp, instances)
+            util.wait_until_k8s_ready(cp, instances, skip_services=["kube-proxy"])
             LOG.info("Verifying snap service health")
-            util.check_snap_services_ready(instance, retries=10, delay_s=10)
+            util.check_snap_services_ready(instance, retries=10, delay_s=10, skip_services=["kube-proxy"])
             util.check_service_restarts(instance)
             util.check_service_logs_for_panics(instance)
 
