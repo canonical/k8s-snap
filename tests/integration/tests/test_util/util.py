@@ -913,6 +913,16 @@ def _find_stable_track(major: int, minor: int, flavor: str) -> Optional[str]:
         for ch in snap_info.get("channel-map", [])
         if ch["channel"]["risk"] == "stable" and ch["channel"]["architecture"] == arch
     }
+    # TODO: candidate_tracks is a temporary fallback for PR #2778 so the
+    # 1.36->1.37 --containerd migration test can validate against 1.36 before
+    # 1.36/stable is published. Revert this fallback (stable-only) once 1.36/stable
+    # is available.
+    candidate_tracks = {
+        ch["channel"]["track"]
+        for ch in snap_info.get("channel-map", [])
+        if ch["channel"]["risk"] == "candidate"
+        and ch["channel"]["architecture"] == arch
+    }
 
     _min = minor
     while _min >= 0:
@@ -920,6 +930,16 @@ def _find_stable_track(major: int, minor: int, flavor: str) -> Optional[str]:
         if track in stable_tracks:
             LOG.info("Found stable snap for track %s (arch=%s)", track, arch)
             return track
+        if track in candidate_tracks:
+            channel = f"{track}/candidate"
+            LOG.warning(
+                "No stable snap for track %s (arch=%s), falling back to %s "
+                "(temporary override for PR #2778 -- revert before merge)",
+                track,
+                arch,
+                channel,
+            )
+            return channel
         LOG.info(
             "No stable snap for track %s (arch=%s), trying previous minor",
             track,
