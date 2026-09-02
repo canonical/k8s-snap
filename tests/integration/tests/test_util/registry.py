@@ -55,7 +55,7 @@ class Registry:
         self.instance: Instance = self.harness.new_instance(name_suffix="-registry")
 
         arch = self.instance.arch
-        self.instance.exec(
+        util.stubbornly(retries=5, delay_s=10).on(self.instance).exec(
             [
                 "curl",
                 "-L",
