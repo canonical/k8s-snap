@@ -2,6 +2,7 @@
 myst:
   html_meta:
     description: "How to install Canonical Kubernetes using the Terraform Juju provider and the k8s-bundle Terraform module."
+relatedlinks: "[Terraform&#32;documentation](https://developer.hashicorp.com/terraform/docs)"
 ---
 
 # How to install with Terraform

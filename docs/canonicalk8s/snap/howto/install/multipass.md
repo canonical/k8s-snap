@@ -2,6 +2,7 @@
 myst:
   html_meta:
     description: "How to install Canonical Kubernetes with Multipass on Ubuntu, macOS, or Windows, enabling multi-node cluster deployment on any platform."
+relatedlinks: "[Multipass&#32;documentation](https://canonical.com/multipass/docs/stable)"
 ---
 
 # How to install {{product}} with Multipass (Ubuntu/macOS/Windows)

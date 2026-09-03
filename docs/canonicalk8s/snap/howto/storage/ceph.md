@@ -2,6 +2,7 @@
 myst:
   html_meta:
     description: "How to integrate Canonical Kubernetes with Ceph storage using the ceph-csi driver for RBD-backed persistent volumes."
+relatedlinks: "[Ceph&#32;documentation](https://docs.ceph.com/)"
 ---
 
 # How to use Ceph storage with {{product}}

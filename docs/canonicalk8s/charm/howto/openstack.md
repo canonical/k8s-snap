@@ -2,6 +2,7 @@
 myst:
   html_meta:
     description: "How to deploy Canonical Kubernetes on OpenStack using the openstack-integrator charm overlay."
+relatedlinks: "[OpenStack&#32;documentation](https://docs.openstack.org/)"
 ---
 
 # How to integrate with OpenStack
