@@ -74,9 +74,17 @@ def _check_nvidia_drivers_loaded(instance: harness.Instance) -> Mapping[str, boo
     return modules_present
 
 
+_GPU_BOOTSTRAP_CONFIG = (
+    f"containerd-base-dir: {config.CONTAINERD_BASE_DIR}\n"
+    if config.CONTAINERD_BASE_DIR
+    else None
+)
+
+
 @pytest.mark.node_count(1)
 @pytest.mark.tags(tags.WEEKLY)
 @pytest.mark.tags(tags.GPU)
+@pytest.mark.bootstrap_config(_GPU_BOOTSTRAP_CONFIG)
 @pytest.mark.parametrize(
     "gpu_operator_version", NVIDIA_GPU_OPERATOR_SUPPORTED_UBUNTU_VERSIONS.keys()
 )
