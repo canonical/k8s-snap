@@ -154,6 +154,19 @@ def test_deploy_nvidia_gpu_operator(
     ]
     if host_drivers_present:
         helm_install_cmd.append("--set=driver.enabled=false")
+    if config.CONTAINERD_BASE_DIR:
+        containerd_config = f"{config.CONTAINERD_BASE_DIR}/etc/containerd/config.toml"
+        containerd_socket = f"{config.CONTAINERD_BASE_DIR}/run/containerd/containerd.sock"
+        helm_install_cmd += [
+            "--set=toolkit.env[0].name=CONTAINERD_CONFIG",
+            f"--set=toolkit.env[0].value={containerd_config}",
+            "--set=toolkit.env[1].name=CONTAINERD_SOCKET",
+            f"--set=toolkit.env[1].value={containerd_socket}",
+            "--set=toolkit.env[2].name=CONTAINERD_RUNTIME_CLASS",
+            "--set=toolkit.env[2].value=nvidia",
+            "--set=toolkit.env[3].name=CONTAINERD_SET_AS_DEFAULT",
+            "--set=toolkit.env[3].value=true",
+        ]
 
     instance.exec(helm_install_cmd)
 
