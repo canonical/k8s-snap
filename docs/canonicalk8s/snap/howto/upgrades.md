@@ -29,7 +29,7 @@ This can be done by following the steps outlined in the [backup guide].
 Patch upgrades address bug fixes and are typically safe, introducing no
 breaking changes.
 Snaps automatically check for updates of their specific track
-(e.g. `1.36-classic`) several times a day and apply them when available.
+(e.g. `1.37-classic`) several times a day and apply them when available.
 These updates ensure that the latest changes in the installed track are applied.
 Patch upgrades can also be triggered manually by following the steps below.
 
@@ -100,7 +100,7 @@ command.
 
 
 ```
-snap refresh --channel=1.36-classic/stable k8s
+snap refresh --channel=1.37-classic/stable k8s
 ```
 
 4. **Verify the upgrade:**

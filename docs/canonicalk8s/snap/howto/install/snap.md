@@ -62,7 +62,7 @@ The snap can be installed with the snap command:
 <!-- SPREAD SKIP END -->
 
 <!-- SPREAD
-sudo snap install k8s --classic --channel=1.36-classic/stable
+sudo snap install k8s --classic --channel=1.37-classic/stable
 -->
 
 ## Bootstrap the cluster
