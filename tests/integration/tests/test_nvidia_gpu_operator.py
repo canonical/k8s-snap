@@ -3,7 +3,7 @@
 #
 
 import logging
-from typing import List, Mapping
+from collections.abc import Mapping
 
 import pytest
 from test_util import config, harness, tags, util
@@ -89,7 +89,7 @@ _GPU_BOOTSTRAP_CONFIG = (
     "gpu_operator_version", NVIDIA_GPU_OPERATOR_SUPPORTED_UBUNTU_VERSIONS.keys()
 )
 def test_deploy_nvidia_gpu_operator(
-    instances: List[harness.Instance], gpu_operator_version: str
+    instances: list[harness.Instance], gpu_operator_version: str
 ):
     """Tests that the Nvidia `gpu-operator` can be deployed successfully
     using the upstream Helm chart and a sample application running a small
@@ -104,7 +104,7 @@ def test_deploy_nvidia_gpu_operator(
             f"No Nvidia GPU present on harness instance '{instance.id}'. "
             "Skipping GPU-operator test."
         )
-        LOG.warn(msg)
+        LOG.warning(msg)
         pytest.skip(msg)
 
     # Check if drivers are already loaded on the instance.
@@ -131,7 +131,7 @@ def test_deploy_nvidia_gpu_operator(
             f"Unsupported Ubuntu release '{instance_release}' for `gpu-operator` "
             f"version '{gpu_operator_version}'. Skipping gpu-operator test."
         )
-        LOG.warn(msg)
+        LOG.warning(msg)
         pytest.skip(msg)
 
     # Add the upstream Nvidia GPU-operator Helm repo:
@@ -165,7 +165,7 @@ def test_deploy_nvidia_gpu_operator(
             "--set=toolkit.env[2].name=CONTAINERD_RUNTIME_CLASS",
             "--set=toolkit.env[2].value=nvidia",
             "--set=toolkit.env[3].name=CONTAINERD_SET_AS_DEFAULT",
-            "--set=toolkit.env[3].value=true",
+            "--set-string=toolkit.env[3].value=true",
         ]
 
     instance.exec(helm_install_cmd)
