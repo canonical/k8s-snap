@@ -55,6 +55,8 @@ test_data:
     export TEST_BARE_METAL_SSH_HOST=localhost
     export TEST_BARE_METAL_SSH_USER=ubuntu
     export TEST_USE_LOCAL_MIRROR=0
+    # IGX Orin has a system-wide containerd at the default path; relocate ours to avoid conflict.
+    export TEST_CONTAINERD_BASE_DIR=/home/ubuntu
 
     tox -e integration -- \
         --tags gpu
