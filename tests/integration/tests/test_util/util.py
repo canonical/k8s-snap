@@ -1,7 +1,6 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
-# TODO: remove this line after PR merges — triggers up_to_weekly CI for the 1.37 version bump
 import ipaddress
 import json
 import logging
