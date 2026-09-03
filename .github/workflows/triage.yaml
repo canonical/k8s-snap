@@ -1,0 +1,314 @@
+name: Issue Triage Bot
+
+on:
+    issues:
+        types: [opened, reopened, closed]
+    issue_comment:
+        types: [created]
+    # PR close on a fix branch is a fix verdict (router.GitHubEvent.pr_verdict).
+    pull_request:
+        types: [closed]
+    workflow_dispatch:
+        inputs:
+            issue:
+                description: Issue number to triage
+                type: string
+                required: true
+            action:
+                description: Simulated event action
+                type: choice
+                # Only actions the pipeline job services via --issue/--action; a
+                # dispatched close/comment has no issue payload and would no-op.
+                options: [opened, reopened]
+                default: opened
+            dry_run:
+                description: Compute transitions but write nothing
+                type: boolean
+                default: true
+
+# Default to read-only; each job elevates only what it needs.
+permissions:
+    contents: read
+
+jobs:
+    # Route each event to the least-privileged job that can serve it. Trusted
+    # non-close events (maintainer association or manual dispatch) get the
+    # self-hosted pipeline; a close needs only the GitHub API for branch
+    # cleanup, so it runs on a dedicated ubuntu job and never spins up a
+    # privileged runner; everything else is confined to unprivileged classify.
+    # "Maintainer association" for a non-comment event reads the issue
+    # author's association, which is reliable for `opened` but not
+    # `reopened` (GitHub exposes no separate reopener association here); a
+    # maintainer reopening another user's issue therefore routes to classify
+    # rather than pipeline -- under-grants trust, never over-grants it.
+    # Defense-in-depth: the bot re-derives trust from the same author_association
+    # before invoking the shell pipeline.
+    gate:
+        name: Decide route
+        runs-on: ubuntu-latest
+        outputs:
+            route: ${{ steps.decide.outputs.route }}
+            issue: ${{ steps.decide.outputs.issue }}
+        steps:
+            - name: Evaluate event
+              id: decide
+              env:
+                  EVENT_NAME: ${{ github.event_name }}
+                  ACTION: ${{ github.event.action }}
+                  INPUT_ACTION: ${{ inputs.action }}
+                  ASSOC_ISSUE: ${{ github.event.issue.author_association }}
+                  ASSOC_COMMENT: ${{ github.event.comment.author_association }}
+                  PR: ${{ toJson(github.event.issue.pull_request) }}
+                  ISSUE_NUM: ${{ github.event.issue.number }}
+                  INPUT_ISSUE: ${{ inputs.issue }}
+                  HEAD_REF: ${{ github.event.pull_request.head.ref }}
+              run: |
+                  action="$ACTION"
+                  assoc="$ASSOC_ISSUE"
+                  if [[ "$EVENT_NAME" == "issue_comment" ]]; then
+                    assoc="$ASSOC_COMMENT"
+                  fi
+                  if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+                    action="$INPUT_ACTION"
+                  fi
+                  route=classify
+                  case "$assoc" in
+                    OWNER|MEMBER|COLLABORATOR) route=pipeline ;;
+                  esac
+                  # Manual dispatch is maintainer-gated by repo permissions.
+                  if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+                    route=pipeline
+                  fi
+                  # An issue_comment on a PR (not an issue) would boot the
+                  # pipeline, but the bot Skips it; keep it off self-hosted.
+                  if [[ "$PR" != "null" ]]; then
+                    route=classify
+                  fi
+                  # A close only cleans up a branch: cheap, low-risk, ubuntu.
+                  if [[ "$action" == "closed" ]]; then
+                    route=cleanup
+                  fi
+                  # A pull_request close/merge is a fix verdict (verify_fix),
+                  # never the plain issue-closed cleanup path above -- both
+                  # share action=="closed", so this must run after (override)
+                  # it. No cluster needed either way: unprivileged classify.
+                  if [[ "$EVENT_NAME" == "pull_request" ]]; then
+                    route=classify
+                  fi
+                  issue_num="$ISSUE_NUM"
+                  if [[ -z "$issue_num" ]]; then
+                    issue_num="$INPUT_ISSUE"
+                  fi
+                  if [[ "$EVENT_NAME" == "pull_request" ]]; then
+                    if [[ "$HEAD_REF" =~ ^(triage/fix|fix/issue)-([0-9]+)$ ]]; then
+                      issue_num="${BASH_REMATCH[2]}"
+                    fi
+                  fi
+                  echo "route=$route" >> "$GITHUB_OUTPUT"
+                  echo "issue=$issue_num" >> "$GITHUB_OUTPUT"
+
+    pipeline:
+        name: Triage (maintainer-gated pipeline)
+        needs: gate
+        if: needs.gate.outputs.route == 'pipeline'
+        concurrency:
+            group: triage-${{ needs.gate.outputs.issue || 'none' }}
+            cancel-in-progress: false
+        # Self-hosted: the reproduce/fix stages build the snap and spin up an
+        # LXD cluster. Reached only for trusted (maintainer) events.
+        # Permissions are STRICTLY READ-ONLY so the shell agent has no write
+        # access to the repository or issues. Mutations are exported to
+        # artifacts and published in a separate privileged GitHub-hosted job.
+        runs-on: [self-hosted, linux, noble, xlarge]
+        permissions:
+            contents: read
+            issues: read
+            pull-requests: read
+        steps:
+            - name: Check out code
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              with:
+                  persist-credentials: false
+                  fetch-depth: 0
+
+            - name: Setup Python
+              uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+              with:
+                  python-version: "3.12"
+
+            - name: Install AI Agent Toolkit
+              env:
+                  GH_TOKEN: ${{ secrets.BOT_TOKEN }}
+              run: |
+                  python -m venv .venv
+                  source .venv/bin/activate
+                  git config --global credential.https://github.com.helper '!f() { echo "username=x-access-token"; echo "password=$GH_TOKEN"; }; f'
+                  pip install "git+https://github.com/canonical/k8s-ai-agent-toolkit.git@feat/triage-bot-toolkit"
+                  git config --global --unset credential.https://github.com.helper
+
+            - name: Run triage pipeline (unprivileged)
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GOOGLE_API_KEY: ${{ secrets.TRIAGE_GOOGLE_API_KEY }}
+                  GITHUB_EVENT_PATH: ${{ github.event_path }}
+                  EVENT_NAME: ${{ github.event_name }}
+                  DISPATCH_ISSUE: ${{ inputs.issue }}
+                  DISPATCH_ACTION: ${{ inputs.action }}
+                  DISPATCH_DRY_RUN: ${{ inputs.dry_run }}
+              run: |
+                  source .venv/bin/activate
+                  mkdir -p triage-artifacts
+                  if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+                    args="--issue $DISPATCH_ISSUE --action $DISPATCH_ACTION"
+                    if [[ "$DISPATCH_DRY_RUN" == "true" ]]; then
+                      args="$args --dry-run"
+                    else
+                      args="$args --auto-pr --export-dir triage-artifacts"
+                    fi
+                  else
+                    args="--event-file $GITHUB_EVENT_PATH --auto-pr --export-dir triage-artifacts"
+                  fi
+                  ai-triage --config .triage-config.yaml --log-level DEBUG $args
+
+
+            - name: Upload triage artifacts
+              if: always()
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+              with:
+                  name: triage-artifacts-${{ needs.gate.outputs.issue }}
+                  path: triage-artifacts/
+                  retention-days: 1
+
+    publish:
+        name: Triage (publish pipeline result)
+        needs: [gate, pipeline]
+        if: needs.gate.outputs.route == 'pipeline' && !inputs.dry_run
+        concurrency:
+            group: triage-${{ needs.gate.outputs.issue || 'none' }}
+            cancel-in-progress: false
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            issues: write
+            pull-requests: write
+        steps:
+            - name: Check out code
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              with:
+                  persist-credentials: false
+                  fetch-depth: 0
+
+            - name: Setup Python
+              uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+              with:
+                  python-version: "3.12"
+
+            - name: Install AI Agent Toolkit
+              env:
+                  GH_TOKEN: ${{ secrets.BOT_TOKEN }}
+              run: |
+                  python -m venv .venv
+                  source .venv/bin/activate
+                  git config --global credential.https://github.com.helper '!f() { echo "username=x-access-token"; echo "password=$GH_TOKEN"; }; f'
+                  pip install "git+https://github.com/canonical/k8s-ai-agent-toolkit.git@feat/triage-bot-toolkit"
+                  git config --global --unset credential.https://github.com.helper
+
+            - name: Download triage artifacts
+              uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+              with:
+                  name: triage-artifacts-${{ needs.gate.outputs.issue }}
+                  path: triage-artifacts
+
+            - name: Publish triage results
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  source .venv/bin/activate
+                  ai-triage publish --config .triage-config.yaml --log-level DEBUG --artifact-dir triage-artifacts
+
+
+    classify:
+        name: Triage (unprivileged classify)
+        needs: gate
+        if: needs.gate.outputs.route == 'classify'
+        concurrency:
+            group: triage-${{ needs.gate.outputs.issue || 'none' }}
+            cancel-in-progress: false
+        # Untrusted events: label, dedup, and request missing info only.
+        runs-on: ubuntu-latest
+        permissions:
+            issues: write
+            contents: read
+            pull-requests: read
+        steps:
+            - name: Check out code
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              with:
+                  persist-credentials: false
+                  # PR close events default to PR merge ref; pin to main so bot runs trusted code.
+                  ref: ${{ github.event_name == 'pull_request' && 'main' || github.ref }}
+
+            - name: Setup Python
+              uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+              with:
+                  python-version: "3.12"
+
+            - name: Install AI Agent Toolkit
+              env:
+                  GH_TOKEN: ${{ secrets.BOT_TOKEN }}
+              run: |
+                  python -m venv .venv
+                  source .venv/bin/activate
+                  git config --global credential.https://github.com.helper '!f() { echo "username=x-access-token"; echo "password=$GH_TOKEN"; }; f'
+                  pip install "git+https://github.com/canonical/k8s-ai-agent-toolkit.git@feat/triage-bot-toolkit"
+                  git config --global --unset credential.https://github.com.helper
+
+            - name: Run triage bot
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GOOGLE_API_KEY: ${{ secrets.TRIAGE_GOOGLE_API_KEY }}
+                  GITHUB_EVENT_PATH: ${{ github.event_path }}
+              run: |
+                  source .venv/bin/activate
+                  ai-triage --config .triage-config.yaml --log-level DEBUG --event-file "$GITHUB_EVENT_PATH"
+
+
+    cleanup:
+        name: Triage (branch cleanup)
+        needs: gate
+        if: needs.gate.outputs.route == 'cleanup'
+        concurrency:
+            group: triage-${{ needs.gate.outputs.issue || 'none' }}
+            cancel-in-progress: false
+        # Delete dangling draft-fix branch for closed issue.
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+            issues: read
+        steps:
+            - name: Check out code
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              with:
+                  persist-credentials: false
+
+            - name: Setup Python
+              uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+              with:
+                  python-version: "3.12"
+
+            - name: Install AI Agent Toolkit
+              env:
+                  GH_TOKEN: ${{ secrets.BOT_TOKEN }}
+              run: |
+                  python -m venv .venv
+                  source .venv/bin/activate
+                  git config --global credential.https://github.com.helper '!f() { echo "username=x-access-token"; echo "password=$GH_TOKEN"; }; f'
+                  pip install "git+https://github.com/canonical/k8s-ai-agent-toolkit.git@feat/triage-bot-toolkit"
+                  git config --global --unset credential.https://github.com.helper
+            - name: Run triage bot
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GITHUB_EVENT_PATH: ${{ github.event_path }}
+              run: |
+                  source .venv/bin/activate
+                  ai-triage --config .triage-config.yaml --log-level DEBUG --event-file "$GITHUB_EVENT_PATH"

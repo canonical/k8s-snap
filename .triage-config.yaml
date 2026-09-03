@@ -1,0 +1,11 @@
+kind_labels: ["bug", "enhancement", "documentation", "question"]
+area_labels: ["network", "storage", "dns", "ingress", "observability", "security", "cluster-lifecycle", "api", "snap", "performance"]
+docs_dir: "docs/canonicalk8s"
+docs_base_url: "https://documentation.ubuntu.com/canonical-kubernetes/latest"
+inspection_command: "sudo /snap/k8s/current/k8s/scripts/inspect.sh"
+cleanup_command: ["bash", "hack/cluster-up.sh", "--prefix", "{PREFIX}", "--destroy"]
+protected_paths_regex:
+  - "^build-scripts/components/[^/]+/(repository|version)$"
+ignored_users: ["github-actions[bot]"]
+maintainer_team: "canonical/kubernetes"
+triage_skill_dir: ".agents/skills/triage"
