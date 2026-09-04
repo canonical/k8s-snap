@@ -11,6 +11,7 @@ import (
 
 	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations"
 	upgradesv1alpha "github.com/canonical/k8s-snap-api/api/v1alpha"
+	etcdclient "github.com/canonical/k8s/pkg/client/etcd"
 	"github.com/canonical/k8s/pkg/client/kubernetes"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/pki"
@@ -496,7 +497,8 @@ func registerEtcdMemberReverter(snap snap.Snap, nodeName string, endpoints []str
 				log.Error(err, "failed to create etcd client for member removal using peer endpoints")
 			} else {
 				defer etcdClient.Close()
-				if err := etcdClient.RemoveNodeByName(rmCtx, nodeName); err != nil {
+				err := etcdClient.RemoveNodeByName(rmCtx, nodeName)
+				if err != nil && !errors.Is(err, etcdclient.ErrNotFound) {
 					log.Error(err, "failed to remove node from etcd cluster using peer endpoints")
 				} else {
 					if err := os.RemoveAll(snap.EtcdDir()); err != nil {
