@@ -156,7 +156,9 @@ def test_deploy_nvidia_gpu_operator(
         helm_install_cmd.append("--set=driver.enabled=false")
     if config.CONTAINERD_BASE_DIR:
         containerd_config = f"{config.CONTAINERD_BASE_DIR}/etc/containerd/config.toml"
-        containerd_socket = f"{config.CONTAINERD_BASE_DIR}/run/containerd/containerd.sock"
+        containerd_socket = (
+            f"{config.CONTAINERD_BASE_DIR}/run/containerd/containerd.sock"
+        )
         helm_install_cmd += [
             "--set=toolkit.env[0].name=CONTAINERD_CONFIG",
             f"--set=toolkit.env[0].value={containerd_config}",
