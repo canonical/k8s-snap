@@ -20,6 +20,7 @@ import (
 	"github.com/canonical/k8s/pkg/utils/node"
 	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/v2/cluster"
+	"github.com/canonical/microcluster/v2/microcluster"
 	"github.com/canonical/microcluster/v2/state"
 )
 
@@ -89,7 +90,7 @@ func (e *Endpoints) postClusterRemove(s state.State, r *http.Request) response.R
 		}
 
 		log.Info("Remove node from microcluster")
-		if err := removeNodeFromMicrocluster(ctx, s, req.Name, req.Force); err != nil {
+		if err := removeNodeFromMicrocluster(ctx, s, req.Name, req.Force, e.provider.MicroCluster()); err != nil {
 			if req.Force {
 				log.Error(err, "Failed to remove node from microcluster, but continuing due to force=true; ignore error for workers")
 			} else {
@@ -246,7 +247,7 @@ func removeNodeFromEtcd(ctx context.Context, snap snap.Snap, s state.State, cfg 
 	return nil
 }
 
-func removeNodeFromMicrocluster(ctx context.Context, s state.State, nodeName string, force bool) error {
+func removeNodeFromMicrocluster(ctx context.Context, s state.State, nodeName string, force bool, m *microcluster.MicroCluster) error {
 	log := log.FromContext(ctx).WithValues("name", nodeName)
 
 	maxRetries := 10
@@ -278,9 +279,9 @@ func removeNodeFromMicrocluster(ctx context.Context, s state.State, nodeName str
 	}
 
 	// Remove control plane via microcluster API.
-	c, err := s.Leader()
+	c, err := m.LocalClient()
 	if err != nil {
-		return fmt.Errorf("failed to create client to cluster leader: %w", err)
+		return fmt.Errorf("failed to create local microcluster client: %w", err)
 	}
 
 	// NOTE(hue): node removal process in CAPI might fail, we figured that the context passed to
