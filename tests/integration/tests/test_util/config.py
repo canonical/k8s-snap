@@ -46,8 +46,19 @@ SNAP = os.getenv("TEST_SNAP")
 SNAP_NAME = os.getenv("TEST_SNAP_NAME") or "k8s"
 
 # SUBSTRATE is the substrate to use for running the integration tests.
-# One of 'lxd' (default), 'juju', or 'multipass'.
+# One of 'lxd' (default), 'juju', 'multipass', or 'bare_metal'.
 SUBSTRATE = os.getenv("TEST_SUBSTRATE") or "lxd"
+
+# BARE_METAL_SSH_HOST is the hostname or IP of the target machine
+# when using the 'bare_metal' substrate.
+BARE_METAL_SSH_HOST = os.getenv("TEST_BARE_METAL_SSH_HOST") or ""
+
+# BARE_METAL_SSH_USER is the SSH user for the bare_metal substrate.
+BARE_METAL_SSH_USER = os.getenv("TEST_BARE_METAL_SSH_USER") or "ubuntu"
+
+# CONTAINERD_BASE_DIR relocates containerd files (needed when a system-wide
+# containerd is already installed at the default path, e.g. on non-provision arm64 IGX devices).
+CONTAINERD_BASE_DIR = os.getenv("TEST_CONTAINERD_BASE_DIR") or ""
 
 # SKIP_CLEANUP can be used to prevent machines to be automatically destroyed
 # after the tests complete.

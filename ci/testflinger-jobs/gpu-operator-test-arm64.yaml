@@ -1,0 +1,86 @@
+job_queue: nvidia-igx-orin-dgpu-a6000
+
+# IGX Orin devices are non-provision — no MAAS provisioning needed.
+# The device runs whatever OS was last deployed onto it.
+
+# The GPU operator takes up to 10-15 mins to compile/install drivers inside k8s.
+global_timeout: 2700
+
+test_data:
+  attachments:
+    - local: k8s-arm64.snap
+    - local: k8s-test-suite.tar.gz
+  test_cmds: |
+    #!/bin/bash
+    set -eux
+
+    # IGX Orin noprovision devices ship with default ubuntu/ubuntu creds and no
+    # pre-installed SSH keys, so we authenticate with sshpass.
+    command -v sshpass >/dev/null 2>&1 || sudo apt-get install -y sshpass
+    SSHPASS_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PubkeyAuthentication=no -o PreferredAuthentications=password"
+    SSH="sshpass -p ubuntu ssh $SSHPASS_OPTS ubuntu@$DEVICE_IP"
+    SCP="sshpass -p ubuntu scp $SSHPASS_OPTS"
+
+    # 1. Copy attachments to the device
+    $SCP attachments/test/k8s-arm64.snap ubuntu@$DEVICE_IP:/tmp/
+    $SCP attachments/test/k8s-test-suite.tar.gz ubuntu@$DEVICE_IP:/tmp/
+
+    # 2. Set up test environment on the device
+    # Use 'bash -s' to avoid login shell — .bash_logout can override
+    # the exit code when clear_console fails over SSH with set -e.
+    $SSH bash -s << 'REMOTE'
+    set -eux
+    export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH"
+
+    # Install kernel headers (required for gpu-operator driver compilation)
+    sudo apt-get update
+    sudo apt-get install -y python3-pip python3-venv tox linux-headers-$(uname -r)
+
+    # Verify kernel headers were installed
+    echo "=== Kernel: $(uname -r) ==="
+    ls /usr/src/linux-headers-$(uname -r)/ | head -5
+    echo "=== GPU info ==="
+    lspci | grep -i nvidia
+    echo "=== Loaded nvidia modules ==="
+    lsmod | grep nvidia || echo "none"
+
+    # Unpack test suite
+    cd /tmp
+    tar xzf k8s-test-suite.tar.gz
+    cd tests/integration
+
+    # Run the GPU operator test directly on bare metal via SSH harness.
+    export TEST_SNAP="/tmp/k8s-arm64.snap"
+    export TEST_SUBSTRATE=bare_metal
+    export TEST_BARE_METAL_SSH_HOST=localhost
+    export TEST_BARE_METAL_SSH_USER=ubuntu
+    export TEST_USE_LOCAL_MIRROR=0
+    # IGX Orin has a system-wide containerd at the default path; relocate ours to avoid conflict.
+    export TEST_CONTAINERD_BASE_DIR=/home/ubuntu
+
+    tox -e integration -- \
+        --tags gpu
+    RC=$?
+
+    # Dump diagnostic info on failure
+    if [ $RC -ne 0 ]; then
+        echo "=== DIAGNOSTICS: gpu-operator namespace pods ==="
+        sudo k8s kubectl get pods -n gpu-operator -o wide 2>/dev/null || true
+        echo "=== DIAGNOSTICS: gpu-operator namespace daemonsets ==="
+        sudo k8s kubectl get daemonsets -n gpu-operator 2>/dev/null || true
+        echo "=== DIAGNOSTICS: gpu-operator controller logs ==="
+        sudo k8s kubectl logs -n gpu-operator -l app=gpu-operator --tail=50 2>/dev/null || true
+        echo "=== DIAGNOSTICS: node labels (nvidia/feature) ==="
+        sudo k8s kubectl get nodes -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{range .metadata.labels}{"\t"}{@}{"\n"}{end}{end}' 2>/dev/null | grep -i -E 'nvidia|gpu|feature' || echo "no gpu/nvidia labels found"
+        echo "=== DIAGNOSTICS: events ==="
+        sudo k8s kubectl get events -n gpu-operator --sort-by='.lastTimestamp' 2>/dev/null | tail -30 || true
+    fi
+
+    # Cleanup: device is non-provision so state persists between runs.
+    echo "=== Cleaning up test artifacts ==="
+    sudo snap remove k8s --purge 2>/dev/null || true
+    sudo rm -rf /tmp/k8s-arm64.snap /tmp/k8s-test-suite.tar.gz /tmp/tests 2>/dev/null || true
+    sudo rm -rf /tmp/snapd.snap /tmp/snapd.assert /tmp/core22.snap /tmp/core22.assert 2>/dev/null || true
+
+    exit $RC
+    REMOTE
