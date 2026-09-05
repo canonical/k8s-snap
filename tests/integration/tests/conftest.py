@@ -35,8 +35,7 @@ def _harness_clean(h: harness.Harness):
 
     if config.SKIP_CLEANUP:
         LOG.warning(
-            "Skipping harness cleanup. "
-            "It is your job now to clean up cloud resources"
+            "Skipping harness cleanup. It is your job now to clean up cloud resources"
         )
     else:
         LOG.debug("Cleanup")
@@ -270,15 +269,20 @@ def instances(
 
     for _, snap in zip(range(node_count), snap_versions(request)):
         # Create <node_count> instances and setup the k8s snap in each.
-        instance = h.new_instance(network_type=network_type)
+        instance = h.new_instance(
+            network_type=network_type, required_ports=required_ports
+        )
         instances.append(instance)
 
         util.preload_snaps(instance)
 
-        h.open_ports(
-            instance.id,
-            required_ports,
-        )
+        if config.REQUIRED_SNAPS:
+            LOG.info(
+                "Ensuring required snaps (%s) are installed on instance %s",
+                config.REQUIRED_SNAPS,
+                instance.id,
+            )
+            util.ensure_required_snaps(instance, config.REQUIRED_SNAPS)
 
         if not no_setup:
             util.setup_core_dumps(instance)
