@@ -62,6 +62,18 @@ def main():
         print(f"Failed to parse ELF: {e}")
         sys.exit(1)
 
+    # Skip patching if the binary has no PT_DYNAMIC segment.
+    # Attempting to add rpath or interpreter to such a binary (e.g. a statically
+    # linked binary) creates an inconsistent ELF (has PT_INTERP but no PT_DYNAMIC),
+    # which breaks the snap classic linter and may cause runtime issues.
+    if (args.set_rpath or args.set_interpreter) and not binary.has(
+        lief.ELF.Segment.TYPE.DYNAMIC
+    ):
+        print(
+            f"Binary {args.elf_path} has no PT_DYNAMIC segment, skipping RPATH/interpreter patching."
+        )
+        sys.exit(0)
+
     did_modify = False
 
     if args.set_rpath:
