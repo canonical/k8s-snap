@@ -67,7 +67,9 @@ func RemoveVolumeMountsForce(ctx context.Context, s snap.Snap, mountHelper mount
 		for _, prefix := range prefixes {
 			if strings.HasPrefix(mountPoint, prefix) {
 				// unmount lingering Pod volumes by force, to prevent potential volume leaks.
-				return mountHelper.Unmount(ctx, mountPoint, unix.MNT_FORCE)
+				// MNT_DETACH prevents blocking on network-backed storage (e.g.: iSCSI)
+				// if the session logout in LogoutISCSISessions did not complete.
+				return mountHelper.Unmount(ctx, mountPoint, unix.MNT_FORCE|unix.MNT_DETACH)
 			}
 		}
 
