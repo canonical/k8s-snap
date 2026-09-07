@@ -4,12 +4,16 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"os"
 
 	"github.com/canonical/go-dqlite/v2/app"
 	"github.com/canonical/go-dqlite/v2/client"
 )
+
+// ErrNotFound is returned when a dqlite member is not found.
+var ErrNotFound = errors.New("dqlite member not found")
 
 type ClientOpts struct {
 	// ClusterYAML is the path cluster.yaml, containing the list of known dqlite nodes.
