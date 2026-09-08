@@ -1,0 +1,17 @@
+description: "LXD profile for an off-cluster client that reaches the public network through the router"
+devices:
+  eth1:
+    name: eth1
+    network: LXD_MULTI_NIC_CLIENT_NETWORK
+    type: nic
+config:
+  user.network-config: |
+    version: 2
+    ethernets:
+      eth0:
+        dhcp4: true
+      eth1:
+        addresses: [172.16.221.103/24]
+        routes:
+        - to: 10.68.93.0/24
+          via: 172.16.221.1

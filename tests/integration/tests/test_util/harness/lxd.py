@@ -1,6 +1,7 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
+import ipaddress
 import logging
 import os
 import shlex
@@ -13,6 +14,22 @@ from test_util.harness import Harness, HarnessError, Instance
 from test_util.util import run, stubbornly
 
 LOG = logging.getLogger(__name__)
+
+
+def _gateway(cidr: str) -> str:
+    """Return the first address of cidr with the prefix length, e.g. 10.0.0.1/24."""
+    network = ipaddress.ip_network(cidr)
+    return f"{network.network_address + 1}/{network.prefixlen}"
+
+
+def _dhcp_range(cidr: str) -> str:
+    """Return a DHCP range that covers the lower half of cidr.
+
+    Leaving the upper half unused allows tests to reserve addresses, for instance for
+    LoadBalancer VIPs, without colliding with instance addresses.
+    """
+    network = ipaddress.ip_network(cidr)
+    return f"{network.network_address + 20}-{network.network_address + 60}"
 
 
 class LXDHarness(Harness):
@@ -99,6 +116,54 @@ class LXDHarness(Harness):
             ),
         )
 
+        # The multi-nic setup mirrors a node that has a management network with the
+        # default route, a cluster network for the node address and a public network for
+        # LoadBalancer VIPs. Only the client network has no address on the host, so a
+        # reply that leaves a node through the wrong NIC is dropped instead of being
+        # routed by the host.
+        self._configure_network(
+            config.LXD_MULTI_NIC_CLUSTER_NETWORK,
+            f"ipv4.address={_gateway(config.LXD_MULTI_NIC_CLUSTER_CIDR)}",
+            "ipv4.nat=false",
+            f"ipv4.dhcp.ranges={_dhcp_range(config.LXD_MULTI_NIC_CLUSTER_CIDR)}",
+            "ipv6.address=none",
+        )
+        self._configure_network(
+            config.LXD_MULTI_NIC_PUBLIC_NETWORK,
+            f"ipv4.address={_gateway(config.LXD_MULTI_NIC_PUBLIC_CIDR)}",
+            "ipv4.nat=false",
+            f"ipv4.dhcp.ranges={_dhcp_range(config.LXD_MULTI_NIC_PUBLIC_CIDR)}",
+            "ipv6.address=none",
+        )
+        self._configure_network(
+            config.LXD_MULTI_NIC_CLIENT_NETWORK,
+            "ipv4.address=none",
+            "ipv6.address=none",
+        )
+        self.multi_nic_profile = config.LXD_MULTI_NIC_PROFILE_NAME
+        self.multi_nic_router_profile = config.LXD_MULTI_NIC_ROUTER_PROFILE_NAME
+        self.multi_nic_client_profile = config.LXD_MULTI_NIC_CLIENT_PROFILE_NAME
+        for profile_name, profile in (
+            (self.multi_nic_profile, config.LXD_MULTI_NIC_PROFILE),
+            (self.multi_nic_router_profile, config.LXD_MULTI_NIC_ROUTER_PROFILE),
+            (self.multi_nic_client_profile, config.LXD_MULTI_NIC_CLIENT_PROFILE),
+        ):
+            self._configure_profile(
+                profile_name,
+                profile.replace(
+                    "LXD_MULTI_NIC_CLUSTER_NETWORK",
+                    config.LXD_MULTI_NIC_CLUSTER_NETWORK,
+                )
+                .replace(
+                    "LXD_MULTI_NIC_PUBLIC_NETWORK",
+                    config.LXD_MULTI_NIC_PUBLIC_NETWORK,
+                )
+                .replace(
+                    "LXD_MULTI_NIC_CLIENT_NETWORK",
+                    config.LXD_MULTI_NIC_CLIENT_NETWORK,
+                ),
+            )
+
         LOG.debug(
             "Configured LXD substrate (profile %s, image %s)", self.profile, self.image
         )
@@ -122,7 +187,17 @@ class LXDHarness(Harness):
             self.profile,
         ]
 
-        valid_types = ["ipv4", "dualstack", "ipv6", "jumbo", "dualnic", "fan"]
+        valid_types = [
+            "ipv4",
+            "dualstack",
+            "ipv6",
+            "jumbo",
+            "dualnic",
+            "fan",
+            "multinic",
+            "multinicrouter",
+            "multinicclient",
+        ]
         if network_type.lower() not in valid_types:
             raise HarnessError(
                 f"unknown network type {network_type}, need to be one of {', '.join(valid_types)}"
@@ -146,6 +221,15 @@ class LXDHarness(Harness):
 
         if network_type.lower() == "fan":
             launch_lxd_command.extend(["-p", self.fan_profile])
+
+        if network_type.lower() == "multinic":
+            launch_lxd_command.extend(["-p", self.multi_nic_profile])
+
+        if network_type.lower() == "multinicrouter":
+            launch_lxd_command.extend(["-p", self.multi_nic_router_profile])
+
+        if network_type.lower() == "multinicclient":
+            launch_lxd_command.extend(["-p", self.multi_nic_client_profile])
 
         try:
             stubbornly(retries=3, delay_s=1).exec(launch_lxd_command)

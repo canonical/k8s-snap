@@ -1,0 +1,22 @@
+description: "LXD profile for the router between the public and the client network"
+devices:
+  eth1:
+    name: eth1
+    network: LXD_MULTI_NIC_PUBLIC_NETWORK
+    type: nic
+  eth2:
+    name: eth2
+    network: LXD_MULTI_NIC_CLIENT_NETWORK
+    type: nic
+config:
+  user.network-config: |
+    version: 2
+    ethernets:
+      eth0:
+        dhcp4: true
+      eth1:
+        dhcp4: true
+        dhcp4-overrides:
+          use-routes: false
+      eth2:
+        addresses: [172.16.221.1/24]

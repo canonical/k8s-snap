@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-nginx-multi-nic
+spec:
+  selector:
+    matchLabels:
+      run: my-nginx-multi-nic
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        run: my-nginx-multi-nic
+    spec:
+      # One replica per node, so that the node announcing the LoadBalancer VIP also
+      # hosts a backend and some requests are served locally.
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                run: my-nginx-multi-nic
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - name: my-nginx-multi-nic
+        image: ghcr.io/containerd/nginx:1.27.0
+        # Serve the pod name so that the test can tell which backend answered.
+        command:
+        - /bin/sh
+        - -c
+        - echo "$POD_NAME" > /usr/share/nginx/html/index.html; exec nginx -g "daemon off;"
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-nginx-multi-nic
+  labels:
+    run: my-nginx-multi-nic
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Cluster
+  ports:
+  - port: 80
+    protocol: TCP
+  selector:
+    run: my-nginx-multi-nic

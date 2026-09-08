@@ -135,6 +135,77 @@ LXD_DUAL_NIC_PROFILE = (
     or (DIR / ".." / ".." / "lxd-dual-nic-profile.yaml").read_text()
 )
 
+# The multi-nic networks reproduce a node with a management network that carries the
+# default route, a separate cluster network for the node addresses and a public network
+# that hosts LoadBalancer VIPs, plus a client network that is only reachable through a
+# router. The CIDRs are fixed so that tests can reserve VIPs outside the DHCP ranges.
+
+# LXD_MULTI_NIC_CLUSTER_NETWORK carries the Kubernetes node addresses (eth1).
+LXD_MULTI_NIC_CLUSTER_NETWORK = (
+    os.getenv("TEST_LXD_MULTI_NIC_CLUSTER_NETWORK") or "mnic-cluster0"
+)
+LXD_MULTI_NIC_CLUSTER_CIDR = "10.68.92.0/24"
+
+# LXD_MULTI_NIC_PUBLIC_NETWORK hosts the LoadBalancer VIPs (eth2).
+LXD_MULTI_NIC_PUBLIC_NETWORK = (
+    os.getenv("TEST_LXD_MULTI_NIC_PUBLIC_NETWORK") or "mnic-public0"
+)
+LXD_MULTI_NIC_PUBLIC_CIDR = "10.68.93.0/24"
+
+# LXD_MULTI_NIC_PUBLIC_NETWORK_GATEWAY is the address the LXD bridge owns on
+# LXD_MULTI_NIC_PUBLIC_NETWORK.
+LXD_MULTI_NIC_PUBLIC_NETWORK_GATEWAY = "10.68.93.1"
+
+# LXD_MULTI_NIC_LB_POOL is reserved for LoadBalancer VIPs, outside the DHCP range of
+# LXD_MULTI_NIC_PUBLIC_NETWORK.
+LXD_MULTI_NIC_LB_POOL = "10.68.93.70-10.68.93.80"
+
+# LXD_MULTI_NIC_CLIENT_NETWORK holds the off-cluster client. It has no address on the
+# host, so a reply that leaves a node through the wrong NIC cannot reach the client.
+LXD_MULTI_NIC_CLIENT_NETWORK = (
+    os.getenv("TEST_LXD_MULTI_NIC_CLIENT_NETWORK") or "mnic-client0"
+)
+LXD_MULTI_NIC_CLIENT_CIDR = "172.16.221.0/24"
+
+# LXD_MULTI_NIC_CLIENT_ADDRESS is the address configured by the client profile.
+LXD_MULTI_NIC_CLIENT_ADDRESS = "172.16.221.103"
+
+# LXD_MULTI_NIC_PROFILE_NAME is the profile name for nodes with management, cluster and
+# public NICs.
+LXD_MULTI_NIC_PROFILE_NAME = (
+    os.getenv("TEST_LXD_MULTI_NIC_PROFILE_NAME") or "k8s-integration-multi-nic"
+)
+
+# LXD_MULTI_NIC_PROFILE is the profile for nodes with management, cluster and public NICs.
+LXD_MULTI_NIC_PROFILE = (
+    os.getenv("TEST_LXD_MULTI_NIC_PROFILE")
+    or (DIR / ".." / ".." / "lxd-multi-nic-profile.yaml").read_text()
+)
+
+# LXD_MULTI_NIC_ROUTER_PROFILE_NAME is the profile name for the router instance.
+LXD_MULTI_NIC_ROUTER_PROFILE_NAME = (
+    os.getenv("TEST_LXD_MULTI_NIC_ROUTER_PROFILE_NAME")
+    or "k8s-integration-multi-nic-router"
+)
+
+# LXD_MULTI_NIC_ROUTER_PROFILE is the profile for the router instance.
+LXD_MULTI_NIC_ROUTER_PROFILE = (
+    os.getenv("TEST_LXD_MULTI_NIC_ROUTER_PROFILE")
+    or (DIR / ".." / ".." / "lxd-multi-nic-router-profile.yaml").read_text()
+)
+
+# LXD_MULTI_NIC_CLIENT_PROFILE_NAME is the profile name for the off-cluster client.
+LXD_MULTI_NIC_CLIENT_PROFILE_NAME = (
+    os.getenv("TEST_LXD_MULTI_NIC_CLIENT_PROFILE_NAME")
+    or "k8s-integration-multi-nic-client"
+)
+
+# LXD_MULTI_NIC_CLIENT_PROFILE is the profile for the off-cluster client.
+LXD_MULTI_NIC_CLIENT_PROFILE = (
+    os.getenv("TEST_LXD_MULTI_NIC_CLIENT_PROFILE")
+    or (DIR / ".." / ".." / "lxd-multi-nic-client-profile.yaml").read_text()
+)
+
 # LXD_IMAGE is the image to use for LXD containers.
 LXD_IMAGE = os.getenv("TEST_LXD_IMAGE") or "ubuntu:22.04"
 
