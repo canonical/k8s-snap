@@ -27,6 +27,13 @@ Cilium's VXLAN port you can run the following command:
 sudo k8s set annotations="k8sd/v1alpha1/cilium/tunnel-port=<PORT-NUMBER>"
 ```
 
+In that form commas separate annotations, so a value that itself contains commas
+has to be passed as a YAML document:
+
+```bash
+sudo k8s set annotations="k8sd/v1alpha1/cilium/devices: bond0,bond1.100"
+```
+
 ```{note}
 v1alpha annotations are experimental and subject to change or removal in future {{product}} releases
 ```
@@ -72,6 +79,23 @@ v1alpha annotations are experimental and subject to change or removal in future 
 |-----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **Values**      | string                                                                                                                                                                 |
 | **Description** | List of devices facing cluster/external network (used for BPF NodePort, BPF masquerading and host firewall); supports `+` as wildcard in device name, e.g. `eth+,ens+` |
+
+```{warning}
+The list **must** include the device that carries the node's default route, even
+when no service is exposed on it.
+
+Cilium reverse-NATs the reply of a LoadBalancer or NodePort connection in the eBPF
+program attached to the egress device. The Linux stack routes that reply while the
+source address is still the backend Pod IP, so on a node with several networks the
+reply is often sent to the default route device. If Cilium does not manage that
+device, no eBPF program runs on it: the reply leaves the node with the Pod IP as
+source and on the wrong interface, and the client never receives it. This only
+affects connections whose backend Pod happens to run on the node that received
+them, which makes the failure look intermittent.
+
+On a node with `bond0` (default route), `bond1.100` and `bond1.101`, set
+`bond0,bond1.100,bond1.101` (or `bond+`), not just `bond1.100,bond1.101`.
+```
 
 ## `k8sd/v1alpha1/cilium/direct-routing-device`
 
