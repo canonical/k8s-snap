@@ -17,8 +17,7 @@ on:
             action:
                 description: Simulated event action
                 type: choice
-                # Only actions the pipeline job services via --issue/--action; a
-                # dispatched close/comment has no issue payload and would no-op.
+                # Actions serviced via --issue/--action.
                 options: [opened, reopened]
                 default: opened
             dry_run:
@@ -31,18 +30,7 @@ permissions:
     contents: read
 
 jobs:
-    # Route each event to the least-privileged job that can serve it. Trusted
-    # non-close events (maintainer association or manual dispatch) get the
-    # self-hosted pipeline; a close needs only the GitHub API for branch
-    # cleanup, so it runs on a dedicated ubuntu job and never spins up a
-    # privileged runner; everything else is confined to unprivileged classify.
-    # "Maintainer association" for a non-comment event reads the issue
-    # author's association, which is reliable for `opened` but not
-    # `reopened` (GitHub exposes no separate reopener association here); a
-    # maintainer reopening another user's issue therefore routes to classify
-    # rather than pipeline -- under-grants trust, never over-grants it.
-    # Defense-in-depth: the bot re-derives trust from the same author_association
-    # before invoking the shell pipeline.
+    # Route events to the least-privileged job.
     gate:
         name: Decide route
         runs-on: ubuntu-latest
@@ -79,19 +67,15 @@ jobs:
                   if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
                     route=pipeline
                   fi
-                  # An issue_comment on a PR (not an issue) would boot the
-                  # pipeline, but the bot Skips it; keep it off self-hosted.
+                  # Ignore PR comments.
                   if [[ "$PR" != "null" ]]; then
                     route=classify
                   fi
-                  # A close only cleans up a branch: cheap, low-risk, ubuntu.
+                  # Issue close cleans up branches.
                   if [[ "$action" == "closed" ]]; then
                     route=cleanup
                   fi
-                  # A pull_request close/merge is a fix verdict (verify_fix),
-                  # never the plain issue-closed cleanup path above -- both
-                  # share action=="closed", so this must run after (override)
-                  # it. No cluster needed either way: unprivileged classify.
+                  # PR close/merge routes to classify for fix verification.
                   if [[ "$EVENT_NAME" == "pull_request" ]]; then
                     route=classify
                   fi
@@ -114,11 +98,7 @@ jobs:
         concurrency:
             group: triage-${{ needs.gate.outputs.issue || 'none' }}
             cancel-in-progress: false
-        # Self-hosted: the reproduce/fix stages build the snap and spin up an
-        # LXD cluster. Reached only for trusted (maintainer) events.
-        # Permissions are STRICTLY READ-ONLY so the shell agent has no write
-        # access to the repository or issues. Mutations are exported to
-        # artifacts and published in a separate privileged GitHub-hosted job.
+        # Maintainer pipeline runs cluster reproduction and fix drafting.
         runs-on: [self-hosted, linux, noble, xlarge]
         permissions:
             contents: read

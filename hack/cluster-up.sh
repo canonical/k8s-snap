@@ -2,10 +2,7 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
-# Bring up a Canonical Kubernetes cluster in LXD containers for local issue
-# reproduction. Uses the same profile, image and install path as
-# tests/integration, so a cluster built here behaves like one the e2e suite
-# builds. Safe to re-run: every step is skipped when already satisfied.
+# Bring up a Canonical Kubernetes cluster in LXD for local issue reproduction.
 #
 #   hack/cluster-up.sh --control-plane 1 --workers 1
 #   hack/cluster-up.sh --status
@@ -17,11 +14,9 @@ WORKERS=0
 PREFIX="${CLUSTER_PREFIX:-k8s-triage}"
 SNAP=""
 IMAGE="${TEST_LXD_IMAGE:-ubuntu:22.04}"
-# `k8s status --wait-ready` defaults to 90s, which a small machine routinely
-# overruns while the CNI settles, so wait long enough to mean something.
+# Wait for CNI to settle.
 READY_TIMEOUT="${READY_TIMEOUT:-10m}"
-# Rough disk budget per node (snap, container images, etcd, logs). Only used
-# for the pre-flight estimate.
+# Disk budget per node for pre-flight check.
 PER_NODE_GB="${PER_NODE_GB:-8}"
 ACTION="up"
 
@@ -34,9 +29,7 @@ die() {
   exit 1
 }
 
-# Escapes BRE metacharacters so PREFIX (user-supplied via --prefix/
-# CLUSTER_PREFIX) can never widen the grep below into matching -- and, on
-# --destroy, deleting -- containers outside its own prefix.
+# Escape BRE metacharacters in prefix.
 re_escape() {
   local s=$1
   s=${s//\\/\\\\}
@@ -107,16 +100,14 @@ ensure_tooling() {
     log "installing lxd"
     sudo snap install lxd
   fi
-  # Exits non-zero once already initialised, which is the common case.
+  # Ignore if already initialized.
   sudo lxd init --auto >/dev/null 2>&1 || true
   lxc list >/dev/null 2>&1 ||
     die "cannot reach lxd as $(id -un): add yourself to the 'lxd' group and re-login"
 }
 
 ensure_capacity() {
-  # A node that runs out of disk does not fail loudly: the kubelet reports
-  # DiskPressure, the CNI image pull backs off, and the node simply never
-  # becomes Ready. Refuse up front rather than time out much later.
+  # Fail early if disk space is insufficient for nodes.
   local want=$(((CONTROL_PLANE + WORKERS) * PER_NODE_GB))
   local where avail
   where="$(lxc storage get default source 2>/dev/null || true)"
@@ -137,12 +128,8 @@ ensure_snap() {
     [ -f "$SNAP" ] || die "--snap $SNAP does not exist"
   else
     SNAP="$REPO_ROOT/k8s.snap"
-    # Run from a git worktree (as the triage bot does), the snap normally sits
-    # in the primary checkout. Reuse it rather than spend tens of minutes
-    # rebuilding a byte-identical artefact.
+    # Reuse snap from primary checkout when run from a worktree.
     if [ ! -f "$SNAP" ]; then
-      # Best-effort: a source tree without git (a tarball, git missing)
-      # must fall through to building below, not abort the whole script.
       primary="$(
         git -C "$REPO_ROOT" worktree list --porcelain 2>/dev/null |
           sed -n '1s/^worktree //p'
@@ -189,8 +176,7 @@ install_snap_on() {
   log "$name: installing k8s snap"
   lxc file push "$SNAP" "$name/root/k8s.snap" >/dev/null
   lxc exec "$name" -- snap install --classic --dangerous /root/k8s.snap
-  # Connects interfaces and applies the network prerequisites, exactly as
-  # tests/integration does after installing by path.
+  # Initialize interfaces and network prerequisites.
   lxc exec "$name" -- /snap/k8s/current/k8s/hack/init.sh >/dev/null
 }
 
@@ -220,9 +206,7 @@ join_node() {
 }
 
 summary() {
-  # `--wait-ready` is satisfied by a single ready node, so a freshly joined
-  # worker can still be NotReady. Wait for all of them: a successful exit
-  # should mean the whole cluster is usable.
+  # Wait for all nodes to become ready.
   lxc exec "$FIRST" -- k8s status --wait-ready --timeout "$READY_TIMEOUT" >/dev/null
   log "waiting for all nodes to become Ready"
   lxc exec "$FIRST" -- k8s kubectl wait --for=condition=Ready nodes --all \
