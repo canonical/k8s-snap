@@ -41,15 +41,24 @@ def test_version_upgrades(
             pytest.fail("'recent' requires the number of releases as second argument")
         _, num_channels = channels
         ref = config.GH_BASE_REF or config.GH_REF
+        max_release = None
+        if ref and ref.startswith("release-"):
+            max_release = ref.replace("release-", "")
+
         channels = snap.get_most_stable_channels(
             int(num_channels),
             config.FLAVOR,
             cp.arch,
             min_release=config.VERSION_UPGRADE_MIN_RELEASE,
+            max_release=max_release,
             # Include `latest/edge/<flavor>` only if this is not a release branch.
             include_latest=ref == util.MAIN_BRANCH,
         )
         current_channel = channels[0]
+
+    start_major_minor = util.major_minor(current_channel)
+    if start_major_minor and start_major_minor < (1, 36) and ("24.04" in config.LXD_IMAGE or "26.04" in config.LXD_IMAGE):
+        pytest.skip(f"Snap {current_channel} lacks AppArmor profile for {config.LXD_IMAGE}")
 
     if config.SNAP:
         # Copy the current snap into the instances.
@@ -191,11 +200,16 @@ def test_version_downgrades_with_rollback(
             pytest.fail("'recent' requires the number of releases as second argument")
         _, num_channels = channels
         ref = config.GH_BASE_REF or config.GH_REF
+        max_release = None
+        if ref and ref.startswith("release-"):
+            max_release = ref.replace("release-", "")
+
         channels = snap.get_most_stable_channels(
             int(num_channels),
             config.FLAVOR,
             cp.arch,
             min_release=config.VERSION_UPGRADE_MIN_RELEASE,
+            max_release=max_release,
             reverse=True,
             # Include `latest/edge/<flavor>` only if this is not a release branch.
             include_latest=ref == util.MAIN_BRANCH,
@@ -205,6 +219,10 @@ def test_version_downgrades_with_rollback(
                 f"Need at least 2 channels to downgrade, got {len(channels)} for flavour {config.FLAVOR}"
             )
         current_channel = channels[0]
+
+    chan_major_minor = util.major_minor(current_channel)
+    if chan_major_minor and chan_major_minor < (1, 36) and ("24.04" in config.LXD_IMAGE or "26.04" in config.LXD_IMAGE):
+        pytest.skip(f"Snap {current_channel} lacks AppArmor profile for {config.LXD_IMAGE}")
 
     LOG.info(
         f"Bootstrap node on {current_channel} and downgrade through channels: {channels[1:]}"

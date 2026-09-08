@@ -118,7 +118,10 @@ def get_most_stable_channels(
     final_channels = [channel_map[v][0] for v in sorted_versions[:num_of_channels]]
 
     if include_latest:
-        final_channels.append(f"latest/edge/{flavor}")
+        if reverse:
+            final_channels.insert(0, f"latest/edge/{flavor}")
+        else:
+            final_channels.append(f"latest/edge/{flavor}")
 
     return final_channels
 
