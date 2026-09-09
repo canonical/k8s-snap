@@ -59,6 +59,7 @@ class Registry:
             [
                 "curl",
                 "-L",
+                "--fail",
                 f"{self.registry_url}/{self.registry_version}/registry_{self.registry_version[1:]}_linux_{arch}.tar.gz",
                 "-o",
                 f"/tmp/registry_{self.registry_version}_linux_{arch}.tar.gz",
