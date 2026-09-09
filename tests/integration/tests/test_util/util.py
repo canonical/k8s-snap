@@ -1292,7 +1292,6 @@ def check_service_logs_for_panics(
         )
 
 
-
 def is_fips_enabled(instance: harness.Instance):
     """
     Returns True if the provided instance is running with FIPS enabled, False otherwise.
