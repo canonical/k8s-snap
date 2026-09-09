@@ -104,7 +104,7 @@ def test_version_upgrades(instances: List[harness.Instance], tmp_path):
             util.wait_until_k8s_ready(cp, instances)
             LOG.info("Verifying snap service health")
             util.check_snap_services_ready(instance)
-            util.check_service_restarts(instance)
+            util.check_no_service_restarts_after_stabilization(instance)
             util.check_service_logs_for_panics(instance)
             LOG.info(f"Upgraded {instance.id} to channel {channel}")
 
