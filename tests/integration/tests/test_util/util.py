@@ -1450,31 +1450,33 @@ def check_service_restarts(
 def check_no_service_restarts_after_stabilization(
     instance: harness.Instance,
     services: Optional[List[str]] = None,
-    settle_s: int = 15,
-    poll_interval_s: int = 5,
+    retries: int = 3,
+    delay_s: int = config.DEFAULT_WAIT_DELAY_S,
 ):
-    """Fail if a service keeps restarting *after* this point (crash loop),
-    sampling NRestarts over a short settle window. Tolerates the expected
-    one-shot restart(s) a refresh itself causes; call once a step is
-    already confirmed stable."""
+    """Fail if a service's restart count is still climbing after this
+    point (crash loop). Reuses the same Retrying/wait_fixed cadence as
+    wait_until_k8s_ready instead of a fixed sleep: each attempt compares
+    against the previous sample (sliding baseline), so a single one-shot
+    restart from the refresh itself doesn't fail the check - only
+    restarts that keep recurring across consecutive samples do."""
     if services is None:
         services = _get_enabled_services(instance)
 
-    baseline = _get_service_restart_counts(instance, services)
-    samples = max(1, settle_s // poll_interval_s)
-    for _ in range(samples):
-        time.sleep(poll_interval_s)
-        current = _get_service_restart_counts(instance, services)
-        violations = [
-            (service, baseline[service], current[service])
-            for service in services
-            if current[service] > baseline[service]
-        ]
-        assert not violations, (
-            "Services restarted after stabilization (crash-loop suspected): "
-            + ", ".join(f"{s} ({b} -> {n})" for s, b, n in violations)
-        )
-        baseline = current
+    previous = _get_service_restart_counts(instance, services)
+    for attempt in Retrying(stop=stop_after_attempt(retries), wait=wait_fixed(delay_s)):
+        with attempt:
+            current = _get_service_restart_counts(instance, services)
+            violations = [
+                (service, previous[service], current[service])
+                for service in services
+                if current[service] > previous[service]
+            ]
+            previous = current
+            assert (
+                not violations
+            ), "Services still restarting (crash-loop suspected): " + ", ".join(
+                f"{s} ({b} -> {n})" for s, b, n in violations
+            )
 
 
 def check_service_logs_for_panics(
