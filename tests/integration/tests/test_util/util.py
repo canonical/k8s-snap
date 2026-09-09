@@ -1336,7 +1336,6 @@ def status_output_matches(
     return True
 
 
-
 def set_node_labels(
     instance: harness.Instance,
     node_name: str,
