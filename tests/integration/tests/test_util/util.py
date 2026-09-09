@@ -1403,12 +1403,8 @@ def _get_service_restart_counts(
     instance: harness.Instance,
     services: Optional[List[str]] = None,
 ) -> Dict[str, int]:
-    """
-    Read the current systemd NRestarts counter for the given (or all
-    enabled) k8s snap services. This is a lifetime counter that only
-    resets on a full unit stop/reset or host reboot - it never resets
-    between test steps on its own.
-    """
+    """Read systemd's NRestarts counter for the given services. Lifetime
+    counter, never resets between test steps on its own."""
     if services is None:
         services = _get_enabled_services(instance)
 
@@ -1428,23 +1424,12 @@ def check_service_restarts(
     services: Optional[List[str]] = None,
     max_restarts: int = 0,
 ):
-    """
-    Check that k8s snap services have not restarted excessively.
-    Uses systemctl show to read the NRestarts counter for each service.
-    By default, fails if any service has restarted at all (max_restarts=0).
-
-    NOTE: NRestarts is a lifetime counter. This check is only correct
-    against a baseline where no restarts are expected at all (e.g. a
-    freshly bootstrapped cluster in test_smoke.py). It is NOT correct to
-    call this repeatedly across multiple refresh/upgrade steps within a
-    single test, since restarting kubelet (and other services) during a
-    snap refresh is expected product behavior (e.g. node-ip argument
-    updates, deprecated flag removal, cert refresh) and those restarts
-    accumulate across steps. For upgrade/downgrade tests, use
-    check_no_service_restarts_after_stabilization() instead, which
-    verifies stability *after* a refresh rather than asserting zero
-    restarts ever happened.
-    """
+    """Fail if any service has restarted more than max_restarts times
+    (lifetime NRestarts counter). Correct only for a baseline where zero
+    restarts are expected outright (e.g. a fresh bootstrap in
+    test_smoke.py). Don't call repeatedly across upgrade/downgrade steps -
+    restarts there are expected and accumulate; use
+    check_no_service_restarts_after_stabilization() instead."""
     if services is None:
         services = _get_enabled_services(instance)
 
@@ -1468,23 +1453,10 @@ def check_no_service_restarts_after_stabilization(
     settle_s: int = 15,
     poll_interval_s: int = 5,
 ):
-    """
-    Verify that no k8s snap service is crash-looping *after* the point
-    this check is called - typically right after a refresh/upgrade step
-    has already been confirmed stable (e.g. via wait_until_k8s_ready and
-    check_snap_services_ready).
-
-    A refresh can legitimately restart services once as part of normal
-    reconciliation (kubelet restarting to apply new node-ip args, drop
-    deprecated flags, or apply refreshed certificates) - that is expected
-    and is NOT what this check guards against. Instead of asserting zero
-    restarts ever happened (which the raw NRestarts lifetime counter
-    can't distinguish from crash-looping), this samples the counter
-    multiple times over a short settle window and fails only if it keeps
-    climbing *after* we believed the node had stabilized, which indicates
-    an actual crash loop rather than the one-shot restart(s) caused by
-    the refresh itself.
-    """
+    """Fail if a service keeps restarting *after* this point (crash loop),
+    sampling NRestarts over a short settle window. Tolerates the expected
+    one-shot restart(s) a refresh itself causes; call once a step is
+    already confirmed stable."""
     if services is None:
         services = _get_enabled_services(instance)
 
