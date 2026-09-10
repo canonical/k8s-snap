@@ -2,6 +2,7 @@
 myst:
   html_meta:
     description: "How to install Canonical Kubernetes from the k8s charm."
+relatedlinks: "[Juju&#32;documentation](https://canonical.com/juju/docs)"
 ---
 
 # How to install {{product}} from a charm

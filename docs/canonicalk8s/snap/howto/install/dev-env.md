@@ -2,6 +2,7 @@
 myst:
   html_meta:
     description: Troubleshoot and resolve common issues that come from running the Canonical Kubernetes snap in a dev environment.
+relatedlinks: "[containerd&#32;documentation](https://containerd.io/docs/)"
 ---
 # Install {{product}} in development environments
 

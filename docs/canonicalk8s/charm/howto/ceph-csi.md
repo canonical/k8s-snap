@@ -2,6 +2,7 @@
 myst:
   html_meta:
     description: "How to integrate Canonical Kubernetes with ceph-csi for Ceph-backed Kubernetes persistent volumes using Juju."
+relatedlinks: "[Ceph&#32;documentation](https://docs.ceph.com/)"
 ---
 
 # How to integrate {{product}} with ceph-csi
