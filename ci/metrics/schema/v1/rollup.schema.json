@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canonical.com/k8s-snap/ci-metrics/v1/rollup.schema.json",
+  "title": "DailyRollup",
+  "description": "Committed, permanently retained aggregate. Rollups outside the 90-day excerpt window are frozen rather than retroactively reclassified, so they carry the taxonomy and ruleset versions that produced them.",
+  "type": "object",
+  "required": ["date", "workflow"],
+  "properties": {
+    "date": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
+    "workflow": {"type": "string"},
+    "runs": {"type": "integer", "minimum": 0},
+    "green_runs": {"type": "integer", "minimum": 0},
+    "pass_rate": {"type": "number", "minimum": 0, "maximum": 1},
+    "jobs_total": {"type": "integer", "minimum": 0},
+    "jobs_failure": {"type": "integer", "minimum": 0},
+    "failures_by_class": {"type": "object", "additionalProperties": {"type": "integer"}},
+    "failures_by_subclass": {"type": "object", "additionalProperties": {"type": "integer"}},
+    "flake_rate": {"type": "number", "minimum": 0, "maximum": 1},
+    "unclassified_rate": {"type": "number", "minimum": 0, "maximum": 1},
+    "top_signatures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "signature_id": {"type": "string"},
+          "count": {"type": "integer"},
+          "delta_vs_7d": {"type": ["number", "null"]}
+        }
+      }
+    },
+    "top5_concentration": {"type": "number", "minimum": 0, "maximum": 1},
+    "tests_collected_by_combo": {"type": "object", "additionalProperties": {"type": "integer"}},
+    "jobs_not_run_due_to_upstream": {"type": "integer", "minimum": 0},
+    "quarantined_count": {"type": "integer", "minimum": 0},
+    "quarantine_age_p50_days": {"type": ["number", "null"]},
+    "runner_minutes_wasted": {"type": "number", "minimum": 0},
+    "self_hosted_minutes_wasted": {"type": "number", "minimum": 0},
+    "taxonomy_version": {"type": "integer"},
+    "ruleset_version": {"type": ["integer", "null"]}
+  }
+}

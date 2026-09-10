@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canonical.com/k8s-snap/ci-metrics/v1/job_failure.schema.json",
+  "title": "JobFailure",
+  "description": "One failed job. Stores a scrubbed evidence excerpt rather than the full log, so classification can be replayed offline when the rule pack or normaliser changes.",
+  "type": "object",
+  "required": ["job_id", "run_id", "attempt", "job_name"],
+  "properties": {
+    "job_id": {"type": "integer"},
+    "run_id": {"type": "integer"},
+    "attempt": {"type": "integer", "minimum": 1},
+    "job_name": {"type": "string"},
+    "html_url": {"type": "string"},
+    "caller_job": {"type": ["string", "null"]},
+    "os": {"type": ["string", "null"]},
+    "arch": {"type": ["string", "null"]},
+    "channel": {"type": ["string", "null"]},
+    "flavor": {"type": ["string", "null"]},
+    "substrate": {"type": ["string", "null"], "enum": ["lxd", "multipass", "juju", null]},
+    "test_nodeid": {"type": ["string", "null"]},
+    "test_file": {"type": ["string", "null"]},
+    "runner_labels": {"type": "array", "items": {"type": "string"}},
+    "self_hosted": {"type": "boolean"},
+    "started_at": {"type": ["string", "null"]},
+    "completed_at": {"type": ["string", "null"]},
+    "duration_s": {"type": ["number", "null"]},
+    "failed_step_name": {
+      "type": ["string", "null"],
+      "description": "Null when a failed job has no failed step, which is the signature of a lost runner."
+    },
+    "failed_step_number": {"type": ["integer", "null"]},
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {"type": "string"},
+          "number": {"type": "integer"},
+          "conclusion": {"type": ["string", "null"]},
+          "duration_s": {"type": ["number", "null"]}
+        }
+      }
+    },
+    "log_available": {"type": ["boolean", "null"]},
+    "signature_id": {"type": ["string", "null"]},
+    "evidence_excerpt": {"type": ["string", "null"], "maxLength": 4096},
+    "failure_class": {
+      "type": "string",
+      "enum": ["infra.runner", "infra.provisioning", "external.dependency", "ci.config", "product.bug", "test.bug", "unknown"]
+    },
+    "subclass": {"type": ["string", "null"]},
+    "confidence": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+    "classified_by": {
+      "type": "string",
+      "enum": ["router", "rules", "human", "none"],
+      "description": "Never 'llm': model output is a proposed rule-pack change for human review, and becomes 'rules' once merged."
+    },
+    "classifier_version": {"type": ["string", "null"]},
+    "normaliser_version": {"type": ["integer", "null"]},
+    "ruleset_version": {"type": ["integer", "null"]},
+    "rule_id": {"type": ["string", "null"]},
+    "reproducibility": {"type": ["string", "null"], "enum": ["flaky", "systemic", "intermittent", "new", null]},
+    "retried": {"type": "boolean"},
+    "retry_outcome": {"type": ["string", "null"]}
+  }
+}

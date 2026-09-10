@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canonical.com/k8s-snap/ci-metrics/v1/run.schema.json",
+  "title": "RunRecord",
+  "description": "One attempt of a GitHub Actions workflow run, with aggregate job counts and full records for failed jobs only.",
+  "type": "object",
+  "required": ["run_id", "attempt", "workflow_name", "jobs_total", "ingest_version", "taxonomy_version"],
+  "properties": {
+    "run_id": {"type": "integer"},
+    "attempt": {"type": "integer", "minimum": 1},
+    "workflow_name": {"type": "string"},
+    "workflow_file": {"type": ["string", "null"]},
+    "event": {"type": ["string", "null"]},
+    "head_branch": {"type": ["string", "null"]},
+    "head_sha": {"type": ["string", "null"]},
+    "pr_number": {"type": ["integer", "null"]},
+    "created_at": {"type": ["string", "null"]},
+    "started_at": {"type": ["string", "null"]},
+    "completed_at": {"type": ["string", "null"]},
+    "conclusion": {"type": ["string", "null"]},
+    "jobs_total": {"type": "integer", "minimum": 0},
+    "jobs_success": {"type": "integer", "minimum": 0},
+    "jobs_failure": {"type": "integer", "minimum": 0},
+    "jobs_skipped": {"type": "integer", "minimum": 0},
+    "jobs_cancelled": {"type": "integer", "minimum": 0},
+    "jobs_not_run_due_to_upstream": {
+      "type": "integer", "minimum": 0,
+      "description": "Estimated test jobs that never ran because their Prepare Environment job failed. Estimated from the median sibling matrix cell; exact counts are unknowable because the test list is produced by the job that failed."
+    },
+    "failed_prepare_jobs": {"type": "array", "items": {"type": "string"}},
+    "tests_collected_by_combo": {
+      "type": "object", "additionalProperties": {"type": "integer"},
+      "description": "Denominator integrity: test counts vary per matrix cell because each channel collects tests from its matching release branch."
+    },
+    "runner_minutes_total": {"type": "number", "minimum": 0},
+    "runner_minutes_failed": {"type": "number", "minimum": 0},
+    "self_hosted_minutes": {"type": "number", "minimum": 0},
+    "self_hosted_minutes_failed": {"type": "number", "minimum": 0},
+    "failures": {"type": "array", "items": {"$ref": "job_failure.schema.json"}},
+    "ingest_version": {"type": "integer"},
+    "taxonomy_version": {"type": "integer"},
+    "ruleset_version": {"type": ["integer", "null"]}
+  }
+}

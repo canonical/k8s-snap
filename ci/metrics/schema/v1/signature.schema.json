@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canonical.com/k8s-snap/ci-metrics/v1/signature.schema.json",
+  "title": "Signature",
+  "description": "A durable failure fingerprint: the unit that is counted, owned and fixed. Grouping by signature is what turns 36 failed jobs into one thing to fix.",
+  "type": "object",
+  "required": ["signature_id", "normalised_pattern"],
+  "properties": {
+    "signature_id": {"type": "string", "pattern": "^[0-9a-f]{16}$"},
+    "normalised_pattern": {"type": "string"},
+    "exemplar_excerpt": {"type": "string"},
+    "exemplar_job_url": {"type": "string"},
+    "failure_class": {
+      "type": "string",
+      "enum": ["infra.runner", "infra.provisioning", "external.dependency", "ci.config", "product.bug", "test.bug", "unknown"]
+    },
+    "subclass": {"type": ["string", "null"]},
+    "owner": {"type": ["string", "null"]},
+    "linked_issue": {"type": ["integer", "null"]},
+    "first_seen": {"type": ["string", "null"]},
+    "last_seen": {"type": ["string", "null"]},
+    "runs_seen": {"type": "integer", "minimum": 0},
+    "total_occurrences": {"type": "integer", "minimum": 0},
+    "state": {"type": "string", "enum": ["active", "quarantined", "fixed", "wontfix"]},
+    "quarantined_at": {"type": ["string", "null"]},
+    "quarantine_expires_at": {
+      "type": ["string", "null"],
+      "description": "Quarantine always expires so it buys time rather than hiding debt."
+    },
+    "reproducibility": {"type": ["string", "null"], "enum": ["flaky", "systemic", "intermittent", "new", null]},
+    "configs_affected": {"type": "array", "items": {"type": "string"}}
+  }
+}
