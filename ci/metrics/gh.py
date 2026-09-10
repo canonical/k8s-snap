@@ -16,6 +16,8 @@ to well under a minute for ~160 API calls -- about 3% of the 5000/hour budget.
 import logging
 import math
 import os
+import shutil
+import subprocess
 import time
 from concurrent import futures
 from typing import Any, Dict, Iterator, List, Optional, Tuple
@@ -39,6 +41,29 @@ class GitHubError(RuntimeError):
     """Raised for non-retryable API failures."""
 
 
+def _token_from_gh_cli() -> Optional[str]:
+    """Borrow the token from an authenticated `gh` CLI, if there is one.
+
+    Local runs are the common case for backfills and for the validation gate,
+    and requiring a separately exported token there is friction with no
+    security benefit -- the same credential is already on the machine.
+    """
+    if not shutil.which("gh"):
+        return None
+    try:
+        result = subprocess.run(  # noqa: S603
+            ["gh", "auth", "token"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    token = result.stdout.strip()
+    return token or None
+
+
 class GitHubClient:
     """Minimal, rate-limit-aware GitHub Actions API client."""
 
@@ -52,8 +77,22 @@ class GitHubClient:
         self.repo = repo
         self.api_root = api_root.rstrip("/")
         self.token = (
-            token or os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
+            token
+            or os.environ.get("GH_TOKEN")
+            or os.environ.get("GITHUB_TOKEN")
+            or _token_from_gh_cli()
         )
+        if not self.token:
+            # Unauthenticated is 60 requests/hour against 5,000. A single
+            # nightly run needs 27, so a backfill would stall for an hour
+            # after the second run -- and the only symptom is a rate-limit
+            # warning that looks like a busy quota rather than a missing
+            # token. Say so once, plainly.
+            LOG.warning(
+                "No GitHub token found -- falling back to unauthenticated "
+                "access at 60 requests/hour. Set GH_TOKEN or run `gh auth "
+                "login`."
+            )
         self.session = session or requests.Session()
         # Tier-1 log fetching runs a thread pool over this session; urllib3's
         # default of 10 pooled connections thrashes above that.
