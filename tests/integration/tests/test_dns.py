@@ -137,7 +137,8 @@ def test_dns_ha_rebalancing(instances: List[harness.Instance]):
         pods = [
             pod
             for pod in json.loads(stdout)["items"]
-            if not pod["metadata"].get("deletionTimestamp") and pod["spec"].get("nodeName")
+            if not pod["metadata"].get("deletionTimestamp")
+            and pod["spec"].get("nodeName")
         ]
         return {pod["spec"]["nodeName"] for pod in pods}
 
