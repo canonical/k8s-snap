@@ -28,6 +28,8 @@ from metrics import TAXONOMY_VERSION
 from metrics.gh import DEFAULT_REPO, GitHubClient
 from metrics.ingest import ingest_run, record_month, workflow_slug
 from metrics.models import ClassifiedBy, FailureClass, JobFailure, StepRecord
+from metrics.report import render_markdown, render_mattermost
+from metrics.rollup import aggregate
 from metrics.router import ROUTER_VERSION, apply_router, route, route_all
 from metrics.rules import classify_with_rules, load_rules
 from metrics.scrub import find_secrets
@@ -147,6 +149,41 @@ def add_metrics_cmds(parser: argparse.ArgumentParser) -> None:
     )
     _add_common_args(audit)
     audit.set_defaults(func=cmd_audit_secrets)
+
+    rollup = metrics_sub.add_parser(
+        "rollup", help="Aggregate classified runs into a periodic rollup."
+    )
+    _add_common_args(rollup)
+    rollup.add_argument(
+        "--period",
+        help="Period label to aggregate, e.g. 2026-09. Defaults to every "
+        "month present in the store.",
+    )
+    rollup.add_argument("--workflow", help="Restrict to one workflow (alias or slug).")
+    rollup.add_argument("--dry-run", action="store_true", help="Print without writing.")
+    rollup.set_defaults(func=cmd_rollup)
+
+    report = metrics_sub.add_parser(
+        "report", help="Render a report from stored rollups."
+    )
+    _add_common_args(report)
+    report.add_argument(
+        "--format",
+        choices=("mattermost", "markdown"),
+        default="mattermost",
+        help="Output format.",
+    )
+    report.add_argument(
+        "--period", help="Period to report on. Defaults to the newest rollup."
+    )
+    report.add_argument(
+        "--periods",
+        type=int,
+        default=6,
+        help="How many periods the markdown trend table covers.",
+    )
+    report.add_argument("--out", help="Write to this path instead of stdout.")
+    report.set_defaults(func=cmd_report)
 
 
 def _add_common_args(parser: argparse.ArgumentParser) -> None:
@@ -631,3 +668,89 @@ if __name__ == "__main__":
     add_metrics_cmds(_sub)
     _args = _parser.parse_args()
     sys.exit(_args.func(_args))
+
+
+def cmd_rollup(args: argparse.Namespace) -> int:
+    """Aggregate stored run records into rollups, one per period.
+
+    Rollups are computed from stored records only. Nothing here touches the
+    API, so a rollup can always be regenerated and audited after the fact.
+    """
+    _setup_logging(args.verbose)
+    store = _store(args)
+
+    slug = None
+    if args.workflow:
+        slug = WORKFLOW_ALIASES.get(args.workflow, args.workflow)
+        slug = re.sub(r"\.ya?ml$", "", slug.rsplit("/", 1)[-1])
+
+    by_period: Dict[str, List[Dict[str, Any]]] = {}
+    for path in store.iter_runs(slug):
+        record = store.read_run_path(path)
+        if record is None:
+            continue
+        # The stored layout is runs/<workflow>/<YYYY-MM>/<run>-<attempt>.json.gz,
+        # so the period is the parent directory rather than a re-parsed date.
+        period = path.parent.name
+        record.setdefault("workflow_slug", path.parent.parent.name)
+        if args.period and period != args.period:
+            continue
+        by_period.setdefault(period, []).append(record)
+
+    if not by_period:
+        LOG.warning("No stored runs matched -- ingest and classify first")
+        return 1
+
+    pack = load_rules()
+    for period, records in sorted(by_period.items()):
+        payload = aggregate(records, period)
+        payload["ruleset_version"] = pack.version
+        if args.dry_run:
+            print(json.dumps(payload, indent=2, sort_keys=True))
+            continue
+        path = store.write_rollup(period, payload)
+        LOG.info(
+            "%s: %s run(s), %s failure(s), %s signature(s) -> %s",
+            period,
+            payload["runs"],
+            payload["jobs_failure"],
+            len(payload["signatures"]),
+            path,
+        )
+    return 0
+
+
+def cmd_report(args: argparse.Namespace) -> int:
+    """Render a digest or trend report from stored rollups."""
+    _setup_logging(args.verbose)
+    store = _store(args)
+
+    paths = sorted((store.root / "rollups").glob("*.json"))
+    if not paths:
+        LOG.error("No rollups found -- run `metrics rollup` first")
+        return 1
+
+    rollups = [store.read_json(p) for p in paths]
+    rollups = [r for r in rollups if r]
+
+    if args.format == "markdown":
+        start = max(0, len(rollups) - args.periods)
+        text = render_markdown(rollups[start:])
+    else:
+        if args.period:
+            selected = [r for r in rollups if r.get("period") == args.period]
+            if not selected:
+                LOG.error("No rollup for period %s", args.period)
+                return 1
+            index = rollups.index(selected[0])
+        else:
+            index = len(rollups) - 1
+        previous = rollups[index - 1] if index > 0 else None
+        text = render_mattermost(rollups[index], previous)
+
+    if args.out:
+        Path(args.out).write_text(text)
+        LOG.info("Wrote %s", args.out)
+    else:
+        print(text)
+    return 0
