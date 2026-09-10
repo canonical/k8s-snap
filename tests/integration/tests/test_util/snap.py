@@ -68,7 +68,6 @@ def get_most_stable_channels(
     include_latest: bool = True,
     min_release: Optional[str] = None,
     max_release: Optional[str] = None,
-    max_risk: str = "candidate",
     reverse: bool = False,
 ) -> List[str]:
     """Get an ascending list of latest channels based on the number of channels
@@ -99,16 +98,6 @@ def get_most_stable_channels(
             risk
         ) < RISK_LEVELS.index(channel_map[version_key][1]):
             channel_map[version_key] = (channel, risk)
-
-    # Only trim the newest contiguous versions below max_risk; never drop
-    # an interior version (e.g. don't skip a candidate-only 1.36 between
-    # 1.37 and stable 1.35).
-    if max_risk:
-        max_risk_index = RISK_LEVELS.index(max_risk)
-        for version_key in sorted(channel_map.keys(), reverse=True):
-            if RISK_LEVELS.index(channel_map[version_key][1]) <= max_risk_index:
-                break
-            del channel_map[version_key]
 
     # Sort channels by major and minor version (ascending order)
     sorted_versions = sorted(
