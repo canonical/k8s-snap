@@ -19,6 +19,7 @@ def make_job(
     log_available=None,
     job_id=1,
     name="Integration (ubuntu:26.04, amd64, 1.35-classic/edge) / tests/t.py::test_x",
+    channel=None,
 ):
     return JobFailure(
         job_id=job_id,
@@ -30,6 +31,7 @@ def make_job(
         steps=steps or [],
         duration_s=duration_s,
         log_available=log_available,
+        channel=channel,
     )
 
 
@@ -71,12 +73,26 @@ class TestRunnerLost:
 
 
 class TestStepRouting:
-    def test_snap_download_is_external_not_product(self):
-        # 6 occurrences in weekly run 33933942797. Fetching a published snap
-        # exercises the store, not the product.
-        verdict = route(make_job(failed_step="Download k8s-snap"))
+    def test_snap_download_from_a_channel_is_external(self):
+        # 438 occurrences across the backfill, all carrying a channel. Fetching
+        # a published snap exercises the store, not the product.
+        verdict = route(
+            make_job(failed_step="Download k8s-snap", channel="1.32-classic/edge")
+        )
         assert verdict.failure_class == FailureClass.EXTERNAL_DEPENDENCY.value
         assert verdict.subclass == "snap_store"
+
+    def test_snap_download_without_a_channel_is_ours(self):
+        """Same step name, opposite fault domain.
+
+        `Download k8s-snap` is a composite action with two modes. Without a
+        channel it downloads *our own* build artifact, so a failure is a
+        missing artifact we produced -- not the snap store's fault. Filing it
+        as external would tell the team to wait out a problem they own.
+        """
+        verdict = route(make_job(failed_step="Download k8s-snap", channel=None))
+        assert verdict.failure_class == FailureClass.CI_CONFIG.value
+        assert verdict.subclass == "missing_artifact"
 
     def test_lxd_setup_is_provisioning(self):
         verdict = route(make_job(failed_step="Setup LXD"))
@@ -141,8 +157,8 @@ class TestApplyAndSummarise:
 
     def test_route_all_counts_routed_and_deferred(self):
         jobs = [
-            make_job(failed_step="Download k8s-snap", job_id=1),
-            make_job(failed_step="Download k8s-snap", job_id=2),
+            make_job(failed_step="Download k8s-snap", job_id=1, channel="1.32/edge"),
+            make_job(failed_step="Download k8s-snap", job_id=2, channel="1.32/edge"),
             make_job(failed_step="Run test_x", job_id=3),
         ]
         summary = route_all(jobs)

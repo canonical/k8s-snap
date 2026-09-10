@@ -195,8 +195,8 @@ def _integrity_lines(
     coverage = rollup.get("m9_inspection_coverage")
     if coverage is not None and coverage < 99:
         lines.append(
-            f"- inspection coverage: {_pct(coverage)} of failures had logs "
-            "fetched -- the class split above is drawn from that subset only"
+            f"- inspection coverage: {_pct(coverage)} of failures have been "
+            "inspected -- the class split above covers that subset only"
         )
 
     lost = rollup.get("m11_jobs_not_run_due_to_upstream") or 0

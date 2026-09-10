@@ -14,6 +14,7 @@ See `docs/proposals/003-ci-failure-classification-and-metrics.md`.
 """
 
 import argparse
+import collections
 import json
 import logging
 import os
@@ -183,7 +184,32 @@ def add_metrics_cmds(parser: argparse.ArgumentParser) -> None:
         help="How many periods the markdown trend table covers.",
     )
     report.add_argument("--out", help="Write to this path instead of stdout.")
+    report.add_argument(
+        "--post",
+        action="store_true",
+        help="Post to Mattermost. Without it, the report only goes to stdout.",
+    )
+    report.add_argument(
+        "--webhook", help="Incoming webhook URL (or MATTERMOST_WEBHOOK_URL)."
+    )
     report.set_defaults(func=cmd_report)
+
+    reclass = metrics_sub.add_parser(
+        "reclassify",
+        help="Replay the rule pack over stored excerpts without refetching.",
+    )
+    _add_common_args(reclass)
+    reclass.add_argument("--workflow", help="Restrict to one workflow (alias or slug).")
+    reclass.add_argument("--period", help="Restrict to one period, e.g. 2026-09.")
+    reclass.add_argument(
+        "--rules", help="Path to the rule pack. Defaults to ci/failure_rules.yaml."
+    )
+    reclass.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Report what would change without writing.",
+    )
+    reclass.set_defaults(func=cmd_reclassify)
 
 
 def _add_common_args(parser: argparse.ArgumentParser) -> None:
@@ -753,4 +779,80 @@ def cmd_report(args: argparse.Namespace) -> int:
         LOG.info("Wrote %s", args.out)
     else:
         print(text)
+    return 0
+
+
+def cmd_reclassify(args: argparse.Namespace) -> int:
+    """Replay the rule pack over every stored failure.
+
+    This is what makes the rule pack safe to iterate on: rules can be added or
+    corrected and the entire retained history re-derived from stored excerpts,
+    with no API traffic and no dependence on job logs that GitHub has since
+    expired.
+
+    Both stages are replayed, in order. Stage A reads job metadata, which is
+    stored in full, so it is as replayable as Stage B -- and running it here
+    means a record that was ingested but never classified gets its router
+    verdict without any API traffic. Stage B then settles whatever Stage A
+    deferred.
+    """
+    _setup_logging(args.verbose)
+    store = _store(args)
+    pack = load_rules(Path(args.rules) if args.rules else None)
+    if not pack.rules:
+        LOG.error("Rule pack is empty -- nothing to replay")
+        return 1
+
+    slug = None
+    if args.workflow:
+        slug = WORKFLOW_ALIASES.get(args.workflow, args.workflow)
+        slug = re.sub(r"\.ya?ml$", "", slug.rsplit("/", 1)[-1])
+
+    changed_records = 0
+    changed = collections.Counter()
+    unchanged = 0
+    for path in store.iter_runs(slug):
+        if args.period and path.parent.name != args.period:
+            continue
+        record = store.read_run_path(path)
+        if record is None:
+            continue
+
+        dirty = False
+        for failure in record.get("failures") or []:
+            job = JobFailure.from_dict(failure)
+            before = (job.failure_class, job.subclass, job.rule_id)
+            # Reset before replaying. Without this, a rule deleted from the
+            # pack would leave its stale attribution behind forever, and
+            # reclassification would only ever be additive.
+            job.failure_class = FailureClass.UNKNOWN.value
+            job.subclass = None
+            job.rule_id = None
+            job.classified_by = ClassifiedBy.NONE.value
+            apply_router(job)
+            if job.classified_by != ClassifiedBy.ROUTER.value:
+                pack.apply(job)
+            after = (job.failure_class, job.subclass, job.rule_id)
+            if before == after:
+                unchanged += 1
+                continue
+            changed[f"{before[0]} -> {after[0]}"] += 1
+            failure.update(job.to_dict())
+            dirty = True
+
+        if dirty:
+            changed_records += 1
+            if not args.dry_run:
+                store.write_run_path(path, record)
+
+    verb = "would change" if args.dry_run else "changed"
+    LOG.info(
+        "%s %s failure(s) across %s run record(s); %s unchanged",
+        verb,
+        sum(changed.values()),
+        changed_records,
+        unchanged,
+    )
+    for transition, count in changed.most_common():
+        LOG.info("  %6d  %s", count, transition)
     return 0

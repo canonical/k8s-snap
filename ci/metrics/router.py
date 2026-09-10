@@ -26,7 +26,7 @@ wins, so the more specific patterns must precede the general ones.
 """
 
 import re
-from typing import Any, Dict, List, NamedTuple, Optional, Tuple
+from typing import Any, Callable, Dict, List, NamedTuple, Optional, Tuple
 
 from metrics.models import ClassifiedBy, FailureClass, JobFailure
 
@@ -47,7 +47,14 @@ class Verdict(NamedTuple):
 
 
 class StepRule(NamedTuple):
-    """Maps a failed step name to a fault domain."""
+    """Maps a failed step name to a fault domain.
+
+    ``guard`` narrows a rule to jobs satisfying an extra metadata predicate.
+    Step names are not always unambiguous: the same composite action can do
+    two unrelated things depending on its inputs, and the step name is
+    identical either way. A guard lets the fault domain follow the input
+    rather than the label.
+    """
 
     rule_id: str
     pattern: str
@@ -55,6 +62,7 @@ class StepRule(NamedTuple):
     subclass: Optional[str]
     confidence: float
     defer: bool = False
+    guard: Optional[Callable[[JobFailure], bool]] = None
 
 
 # Ordered. First match wins.
@@ -66,14 +74,30 @@ STEP_RULES: Tuple[StepRule, ...] = (
     StepRule("defer.test-step", r"^Run\s+test_", None, None, 0.0, defer=True),
     StepRule("defer.pytest", r"^Run\s+(pytest|tox)\b", None, None, 0.0, defer=True),
     # -- external dependencies -------------------------------------------
-    # Verified: 6 hits in weekly run 33933942797. Fetching the published snap
-    # is a snap-store interaction, not a product code path.
+    # `Download k8s-snap` is a composite action with two mutually exclusive
+    # modes, and the step name is the same in both:
+    #
+    #   channel mode  -> `snap download k8s --channel=...` -- the snap store
+    #   artifact mode -> actions/download-artifact -- *our own* build output
+    #
+    # Only the first is external. Conflating them would file every missing
+    # build artifact under "external -- usually wait/retry", telling the team
+    # to ignore a problem they own. The job name carries the channel for
+    # matrix jobs, so the mode is recoverable from metadata alone.
     StepRule(
         "external.snap-download",
         r"^(Download|Fetch|Install)\s+k8s-snap\b",
         FailureClass.EXTERNAL_DEPENDENCY.value,
         "snap_store",
         0.9,
+        guard=lambda job: bool(job.channel),
+    ),
+    StepRule(
+        "ci.snap-artifact-missing",
+        r"^(Download|Fetch|Install)\s+k8s-snap\b",
+        FailureClass.CI_CONFIG.value,
+        "missing_artifact",
+        0.8,
     ),
     StepRule(
         "external.snapcraft-login",
@@ -250,6 +274,8 @@ def route(job: JobFailure) -> Verdict:
     step_name = job.failed_step_name or ""
     for rule, compiled in _COMPILED:
         if not compiled.search(step_name):
+            continue
+        if rule.guard is not None and not rule.guard(job):
             continue
         if rule.defer:
             return Verdict(None, None, 0.0, rule.rule_id, defer=True)

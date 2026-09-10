@@ -151,6 +151,9 @@ class StepRecord:
         return _asdict_enum(self)
 
 
+STEP_FIELDS = {f.name for f in dataclasses.fields(StepRecord)}
+
+
 @dataclasses.dataclass
 class JobFailure:
     """One failed job, with enough evidence to reclassify it later offline.
@@ -207,6 +210,24 @@ class JobFailure:
 
     def to_dict(self) -> Dict[str, Any]:
         return _asdict_enum(self)
+
+    @classmethod
+    def from_dict(cls, payload: Dict[str, Any]) -> "JobFailure":
+        """Rebuild a failure from a stored record.
+
+        Unknown keys are dropped rather than raising, so a rule pack can be
+        replayed over records written by an older schema version. That
+        tolerance is the whole point of retaining excerpts: reclassification
+        must keep working across schema churn, otherwise history becomes
+        read-only the first time a field is added.
+        """
+        fields = {f.name for f in dataclasses.fields(cls)}
+        kwargs = {k: v for k, v in payload.items() if k in fields}
+        kwargs["steps"] = [
+            StepRecord(**{k: v for k, v in step.items() if k in STEP_FIELDS})
+            for step in payload.get("steps") or []
+        ]
+        return cls(**kwargs)
 
 
 @dataclasses.dataclass
