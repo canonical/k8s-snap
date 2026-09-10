@@ -191,11 +191,21 @@ def test_version_downgrades_with_rollback(
             pytest.fail("'recent' requires the number of releases as second argument")
         _, num_channels = channels
         ref = config.GH_BASE_REF or config.GH_REF
+        # On release branches, cap the downgrade path at the branch's own track so
+        # we bootstrap on this release and downgrade through its history, rather
+        # than bootstrapping on a newer in-flight track (e.g. 1.37 while 1.36/1.37
+        # are released in parallel) and downgrading across the skip.
+        max_release = (
+            ref.lstrip("release-")
+            if ref and ref.startswith("release-")
+            else None
+        )
         channels = snap.get_most_stable_channels(
             int(num_channels),
             config.FLAVOR,
             cp.arch,
             min_release=config.VERSION_UPGRADE_MIN_RELEASE,
+            max_release=max_release,
             reverse=True,
             # Include `latest/edge/<flavor>` only if this is not a release branch.
             include_latest=ref == util.MAIN_BRANCH,
