@@ -19,6 +19,7 @@ import logging
 import os
 import re
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -27,7 +28,9 @@ from metrics import TAXONOMY_VERSION
 from metrics.gh import DEFAULT_REPO, GitHubClient
 from metrics.ingest import ingest_run, record_month, workflow_slug
 from metrics.models import JobFailure, StepRecord
-from metrics.router import ROUTER_VERSION, route, route_all
+from metrics.router import ROUTER_VERSION, apply_router, route, route_all
+from metrics.scrub import find_secrets
+from metrics.signature import NORMALISER_VERSION, fingerprint
 from metrics.store import DATA_ROOT, MetricsStore
 
 LOG = logging.getLogger("k8s-ci.metrics")
@@ -110,6 +113,35 @@ def add_metrics_cmds(parser: argparse.ArgumentParser) -> None:
         help="Report verdicts without writing them back to the store.",
     )
     classify.set_defaults(func=cmd_classify)
+
+    fetch = metrics_sub.add_parser(
+        "fetch-logs",
+        help="Fetch logs for deferred failures and compute signatures (Tier 1).",
+    )
+    _add_common_args(fetch)
+    fetch.add_argument(
+        "--run-id", type=int, action="append", help="Run ID (repeatable)."
+    )
+    fetch.add_argument("--workflow", help="Process every stored run of this workflow.")
+    fetch.add_argument(
+        "--workers",
+        type=int,
+        default=12,
+        help="Concurrent log downloads (default: %(default)s).",
+    )
+    fetch.add_argument(
+        "--force",
+        action="store_true",
+        help="Refetch logs for failures that already carry a signature.",
+    )
+    fetch.set_defaults(func=cmd_fetch_logs)
+
+    audit = metrics_sub.add_parser(
+        "audit-secrets",
+        help="Scan every stored excerpt for secrets (release gate).",
+    )
+    _add_common_args(audit)
+    audit.set_defaults(func=cmd_audit_secrets)
 
 
 def _add_common_args(parser: argparse.ArgumentParser) -> None:
@@ -428,6 +460,142 @@ def _job_from_dict(payload: Dict[str, Any]) -> JobFailure:
     fields = {k: v for k, v in payload.items() if k in JobFailure.__annotations__}
     fields["steps"] = steps
     return JobFailure(**fields)
+
+
+def cmd_fetch_logs(args: argparse.Namespace) -> int:
+    """Tier 1: fetch logs for failures the router deferred, and fingerprint them.
+
+    Only deferred failures are fetched. Failures the router already resolved
+    from metadata need no log, which is what keeps this affordable: a nightly
+    run has ~2,500 jobs, ~75 failures, and only the deferred subset -- around
+    70 -- costs a download.
+
+    A 404 is recorded rather than retried. GitHub serves no log blob for a job
+    whose runner disappeared, so the absence *is* the evidence; it upgrades the
+    router's runner_lost verdict from inferred to confirmed.
+    """
+    _setup_logging(args.verbose)
+    client = GitHubClient(repo=args.repo)
+    store = _store(args)
+
+    paths = _iter_target_records(store, args)
+    if not paths:
+        LOG.warning("No stored runs matched -- ingest first")
+        return 1
+
+    fetched = skipped = missing = 0
+    signatures: Dict[str, int] = {}
+
+    for path in paths:
+        record = store.read_run_path(path)
+        if record is None:
+            continue
+        jobs = [_job_from_dict(f) for f in record.get("failures", [])]
+
+        targets = []
+        for job in jobs:
+            verdict = apply_router(job)
+            if not verdict.defer:
+                continue
+            if job.signature_id and not args.force:
+                skipped += 1
+                continue
+            targets.append(job)
+
+        if targets:
+            LOG.info(
+                "run %s: fetching %s log(s) of %s failure(s)",
+                record["run_id"],
+                len(targets),
+                len(jobs),
+            )
+            _fetch_into(client, targets, args.workers)
+
+        for job in jobs:
+            if job.signature_id:
+                signatures[job.signature_id] = signatures.get(job.signature_id, 0) + 1
+                if job.log_available:
+                    fetched += 1
+            elif job.log_available is False:
+                missing += 1
+
+        record["failures"] = [j.to_dict() for j in jobs]
+        record["normaliser_version"] = NORMALISER_VERSION
+        store.write_run_path(path, record)
+
+    print(f"Fingerprinted {fetched} failure(s) across {len(paths)} run(s)")
+    print(f"  {skipped} already had a signature, {missing} had no log blob")
+    print(f"  {len(signatures)} distinct signature(s)")
+    for sig, count in sorted(signatures.items(), key=lambda kv: -kv[1])[:15]:
+        print(f"    {count:5d}  {sig}")
+    return 0
+
+
+def _fetch_into(client: GitHubClient, jobs: List[JobFailure], workers: int) -> None:
+    """Download and fingerprint logs concurrently, writing onto each job."""
+
+    def work(job: JobFailure) -> None:
+        log = client.get_job_log(job.job_id)
+        if log is None:
+            # No blob: the runner vanished. Recording this lets the router
+            # raise its confidence on the next pass instead of guessing.
+            job.log_available = False
+            return
+        job.log_available = True
+        fp = fingerprint(log)
+        job.signature_id = fp.signature_id
+        job.evidence_excerpt = fp.excerpt
+        job.normaliser_version = fp.normaliser_version
+
+    with ThreadPoolExecutor(max_workers=max(1, workers)) as pool:
+        for future in as_completed([pool.submit(work, job) for job in jobs]):
+            try:
+                future.result()
+            except Exception as exc:  # one bad log must not sink the run
+                LOG.warning("Log fetch failed: %s", exc)
+
+
+def cmd_audit_secrets(args: argparse.Namespace) -> int:
+    """Scan every stored excerpt for secrets.
+
+    This is the hard gate from the rollout plan. It runs over what was
+    *actually persisted*, independently of the scrubber having been invoked,
+    so a scrubber regression cannot hide behind its own output.
+    """
+    _setup_logging(args.verbose)
+    store = _store(args)
+
+    scanned = 0
+    findings: List[str] = []
+
+    for path in store.iter_runs():
+        record = store.read_run_path(path)
+        if record is None:
+            continue
+        for failure in record.get("failures", []):
+            excerpt = failure.get("evidence_excerpt")
+            if not excerpt:
+                continue
+            scanned += 1
+            for line_no, rule in find_secrets(excerpt):
+                findings.append(
+                    f"{path.name} job {failure['job_id']} line {line_no}: {rule}"
+                )
+
+    for path in sorted(store.root.rglob("*.json")):
+        text = path.read_text(encoding="utf-8", errors="replace")
+        for line_no, rule in find_secrets(text):
+            findings.append(f"{path.name} line {line_no}: {rule}")
+        scanned += 1
+
+    print(f"Scanned {scanned} stored excerpt(s)/file(s)")
+    if findings:
+        print(f"\nFAIL: {len(findings)} finding(s)")
+        for finding in findings[:50]:
+            print(f"  {finding}")
+        return 1
+    print("PASS: no secrets found")
+    return 0
 
 
 if __name__ == "__main__":

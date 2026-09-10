@@ -52,6 +52,12 @@ class GitHubClient:
             token or os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
         )
         self.session = session or requests.Session()
+        # Tier-1 log fetching runs a thread pool over this session; urllib3's
+        # default of 10 pooled connections thrashes above that.
+        self.session.mount(
+            "https://",
+            requests.adapters.HTTPAdapter(pool_connections=32, pool_maxsize=32),
+        )
         self.calls_made = 0
 
     # -- plumbing ---------------------------------------------------------
