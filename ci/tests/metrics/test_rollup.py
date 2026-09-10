@@ -430,3 +430,24 @@ class TestRetryAccounting:
         rollup = aggregate(records, "2026-09", now=NOW)
         assert rollup["m4_flake_rate"] is None
         assert _sig(rollup, "a" * 16)["retry_occurrences"] == 1
+
+    def test_retry_only_signatures_stay_out_of_the_top_table(self):
+        """A signature with no failure volume is not a top failure.
+
+        It has zero occurrences by construction, so listing it would put an
+        "x0" row in the table the team uses to pick what to fix next.
+        """
+        records = [
+            run(
+                attempt=1,
+                failures=[
+                    failure(
+                        signature_id="b" * 16, retried=True, retry_outcome="success"
+                    )
+                ],
+            ),
+            run(attempt=2, failures=[failure()]),
+        ]
+        rollup = aggregate(records, "2026-09", now=NOW)
+        assert [s["signature_id"] for s in top_signatures(rollup)] == ["a" * 16]
+        assert _sig(rollup, "b" * 16)["tests_affected"] == ["tests/test_a.py::test_a"]

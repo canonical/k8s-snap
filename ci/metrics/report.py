@@ -147,7 +147,21 @@ def render_mattermost(
     )
     lines.append(
         f"- flake rate (recovered on retry): {_pct(rollup.get('m4_flake_rate'))}"
+        f"{_signed(delta(rollup, previous, 'm4_flake_rate'))}"
     )
+
+    flaky = _flaky_signatures(rollup)
+    if flaky:
+        lines.append("")
+        lines.append("**Papered over by re-runs** (quarantine candidates)")
+        for sig in flaky:
+            tests = sig.get("tests_affected") or []
+            label = tests[0] if tests else sig["signature_id"]
+            lines.append(
+                f"- `{label}` recovered on retry {sig['recovered_on_retry']}x "
+                f"of {sig['retry_occurrences']} -- "
+                f"{sig.get('failure_class')}/{sig.get('subclass')}"
+            )
 
     integrity = _integrity_lines(rollup, previous)
     if integrity:
@@ -170,6 +184,23 @@ def render_mattermost(
         f"rollup v{rollup.get('rollup_version', '?')}_"
     )
     return "\n".join(lines)
+
+
+def _flaky_signatures(rollup, limit=5):
+    """Signatures a re-run makes disappear.
+
+    These are the ones the team currently pays for twice -- once in runner
+    minutes, once in the habit of clicking re-run instead of filing a bug.
+    A flake rate alone names nobody and changes nothing, so the digest has
+    to say *which* signatures the re-runs are hiding.
+    """
+    flaky = [
+        s
+        for s in rollup.get("signatures") or []
+        if (s.get("recovered_on_retry") or 0) > 0
+    ]
+    flaky.sort(key=lambda s: (-(s.get("recovered_on_retry") or 0), s["signature_id"]))
+    return flaky[:limit]
 
 
 def _integrity_lines(

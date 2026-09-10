@@ -182,6 +182,15 @@ def aggregate(
                 stat.retry_occurrences += 1
                 if recovered:
                     stat.recovered_on_retry += 1
+                # A retry-only signature still needs a human-readable label:
+                # the flake list is meant to name a test to quarantine, not a
+                # hash to go look up.
+                test = failure.get("test_nodeid")
+                if test and test not in stat.tests_affected:
+                    stat.tests_affected.append(test)
+                config = _config_key(failure)
+                if config not in stat.configs_affected:
+                    stat.configs_affected.append(config)
             continue
 
         runs += 1
@@ -390,7 +399,17 @@ def delta(
 
 
 def top_signatures(rollup: Dict[str, Any], limit: int = 5) -> List[Dict[str, Any]]:
-    return list(rollup.get("signatures") or [])[:limit]
+    """The signatures carrying the most failure volume.
+
+    Retry-only signatures (seen solely on a superseded attempt) are excluded:
+    they have zero occurrences by construction, and listing them here as
+    "x0" would put entries in the top-failures table that contributed no
+    failures. They are reported in the flake section instead.
+    """
+    ranked = [
+        s for s in (rollup.get("signatures") or []) if (s.get("occurrences") or 0) > 0
+    ]
+    return ranked[:limit]
 
 
 def class_split(rollup: Dict[str, Any]) -> List[Tuple[str, int, Optional[float]]]:
