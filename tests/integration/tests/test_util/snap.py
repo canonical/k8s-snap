@@ -68,7 +68,7 @@ def get_most_stable_channels(
     include_latest: bool = True,
     min_release: Optional[str] = None,
     max_release: Optional[str] = None,
-    max_risk: str = "stable",
+    max_risk: str = "candidate",
     reverse: bool = False,
 ) -> List[str]:
     """Get an ascending list of latest channels based on the number of channels
@@ -100,14 +100,22 @@ def get_most_stable_channels(
         ) < RISK_LEVELS.index(channel_map[version_key][1]):
             channel_map[version_key] = (channel, risk)
 
-    # Filter out versions whose most stable channel is riskier than max_risk.
+    # Trim only the newest, not-yet-promoted versions (contiguous from the
+    # top) whose best available risk is worse than max_risk. We deliberately
+    # do NOT drop non-contiguous/interior versions purely by risk: risk only
+    # gets better as a release matures, so it's normal for the 1-2 most
+    # recent minor versions to sit on "candidate" while everything older is
+    # "stable" (e.g. a version currently pending promotion). Dropping such a
+    # version outright - rather than just excluding it from the "newest tip"
+    # - would skip it entirely from the upgrade/downgrade chain, causing
+    # tests to jump two minor versions at once instead of stepping through
+    # every adjacent one (e.g. 1.37 -> 1.35, silently skipping 1.36).
     if max_risk:
         max_risk_index = RISK_LEVELS.index(max_risk)
-        channel_map = {
-            k: v
-            for k, v in channel_map.items()
-            if RISK_LEVELS.index(v[1]) <= max_risk_index
-        }
+        for version_key in sorted(channel_map.keys(), reverse=True):
+            if RISK_LEVELS.index(channel_map[version_key][1]) <= max_risk_index:
+                break
+            del channel_map[version_key]
 
     # Sort channels by major and minor version (ascending order)
     sorted_versions = sorted(
