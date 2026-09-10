@@ -1403,8 +1403,8 @@ def _get_service_restart_counts(
     instance: harness.Instance,
     services: Optional[List[str]] = None,
 ) -> Dict[str, int]:
-    """Read systemd's NRestarts counter for the given services. Lifetime
-    counter, never resets between test steps on its own."""
+    """Read systemd's NRestarts counter per service. Lifetime counter,
+    never resets between steps."""
     if services is None:
         services = _get_enabled_services(instance)
 
@@ -1424,12 +1424,10 @@ def check_service_restarts(
     services: Optional[List[str]] = None,
     max_restarts: int = 0,
 ):
-    """Fail if any service has restarted more than max_restarts times
-    (lifetime NRestarts counter). Correct only for a baseline where zero
-    restarts are expected outright (e.g. a fresh bootstrap in
-    test_smoke.py). Don't call repeatedly across upgrade/downgrade steps -
-    restarts there are expected and accumulate; use
-    check_no_service_restarts_after_stabilization() instead."""
+    """Fail if any service restarted more than max_restarts times. Only
+    correct for a zero-restarts baseline (e.g. fresh bootstrap). For
+    upgrade/downgrade steps use check_no_service_restarts_after_stabilization()
+    instead."""
     if services is None:
         services = _get_enabled_services(instance)
 
@@ -1453,12 +1451,9 @@ def check_no_service_restarts_after_stabilization(
     retries: int = 3,
     delay_s: int = config.DEFAULT_WAIT_DELAY_S,
 ):
-    """Fail if a service's restart count is still climbing after this
-    point (crash loop). Reuses the same Retrying/wait_fixed cadence as
-    wait_until_k8s_ready instead of a fixed sleep: each attempt compares
-    against the previous sample (sliding baseline), so a single one-shot
-    restart from the refresh itself doesn't fail the check - only
-    restarts that keep recurring across consecutive samples do."""
+    """Fail if a service keeps restarting after this point (crash loop).
+    Uses a sliding baseline so one expected refresh-triggered restart
+    doesn't fail the check - only ongoing restarts do."""
     if services is None:
         services = _get_enabled_services(instance)
 
