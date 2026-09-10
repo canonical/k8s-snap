@@ -8,12 +8,6 @@
     RestartSec=5s
     LimitNOFILE=40000
     TimeoutStartSec=0
-
-    # Disable the Go HTTP/2 client so that proxy pulls of large upstream blobs
-    # (e.g. ghcr.io/canonical/cilium*) fall back to HTTP/1.1. Large blob transfers
-    # over HTTP/2 have been observed to fail intermittently with
-    # "stream error: ...; PROTOCOL_ERROR; received from peer", forcing a full
-    # multi-minute re-pull and, during bootstrap, stalling node readiness.
     Environment=GODEBUG=http2client=0
 
     ExecStart=/bin/registry serve /etc/distribution/$NAME.yaml
