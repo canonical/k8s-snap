@@ -143,6 +143,12 @@ class MetricsStore:
         with gzip.open(path, "rt", encoding="utf-8") as handle:
             return json.load(handle)
 
+    def write_run_path(self, path: Path, record: Dict[str, Any]) -> Path:
+        """Rewrite a run record in place, for reclassification passes."""
+        payload = json.dumps(record, indent=1, sort_keys=True).encode("utf-8")
+        _atomic_write(path, gzip.compress(payload))
+        return path
+
     def has_run(
         self, workflow_slug: str, month: str, run_id: int, attempt: int
     ) -> bool:

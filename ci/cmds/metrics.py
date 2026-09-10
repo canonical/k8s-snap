@@ -26,6 +26,8 @@ from typing import Any, Dict, List, Optional
 from metrics import TAXONOMY_VERSION
 from metrics.gh import DEFAULT_REPO, GitHubClient
 from metrics.ingest import ingest_run, record_month, workflow_slug
+from metrics.models import JobFailure, StepRecord
+from metrics.router import ROUTER_VERSION, route, route_all
 from metrics.store import DATA_ROOT, MetricsStore
 
 LOG = logging.getLogger("k8s-ci.metrics")
@@ -87,6 +89,27 @@ def add_metrics_cmds(parser: argparse.ArgumentParser) -> None:
         "--json", action="store_true", help="Emit the raw record as JSON."
     )
     show.set_defaults(func=cmd_show)
+
+    classify = metrics_sub.add_parser(
+        "classify",
+        help="Classify stored failures (Stage A metadata router).",
+    )
+    _add_common_args(classify)
+    classify.add_argument(
+        "--run-id", type=int, action="append", help="Run ID (repeatable)."
+    )
+    classify.add_argument(
+        "--workflow", help="Classify every stored run of this workflow."
+    )
+    classify.add_argument(
+        "--job-id", type=int, help="Explain the verdict for a single job."
+    )
+    classify.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Report verdicts without writing them back to the store.",
+    )
+    classify.set_defaults(func=cmd_classify)
 
 
 def _add_common_args(parser: argparse.ArgumentParser) -> None:
@@ -304,6 +327,107 @@ def cmd_show(args: argparse.Namespace) -> int:
         for step, count in sorted(by_step.items(), key=lambda kv: -kv[1]):
             print(f"    {count:4d}  {step}")
     return 0
+
+
+def _iter_target_records(store: MetricsStore, args: argparse.Namespace) -> List[Path]:
+    """Resolve the set of stored run records a command should operate on."""
+    if getattr(args, "run_id", None):
+        wanted = {str(run_id) for run_id in args.run_id}
+        return [p for p in store.iter_runs() if p.name.split("-")[0] in wanted]
+    if getattr(args, "workflow", None):
+        return store.iter_runs(WORKFLOW_ALIASES.get(args.workflow, args.workflow))
+    return store.iter_runs()
+
+
+def cmd_classify(args: argparse.Namespace) -> int:
+    """Apply the Stage A metadata router to stored failures.
+
+    Classification is a separate pass over stored records rather than part of
+    ingest. That separation is what makes the baseline honest: when the router
+    or rule pack changes, history is recomputed from the same stored evidence
+    instead of being refetched (and silently re-sampled) from GitHub.
+    """
+    _setup_logging(args.verbose)
+    store = _store(args)
+
+    paths = _iter_target_records(store, args)
+    if not paths:
+        LOG.warning("No stored runs matched -- ingest first")
+        return 1
+
+    totals: Dict[str, int] = {}
+    total_failures = deferred = 0
+
+    for path in paths:
+        record = store.read_run_path(path)
+        if record is None:
+            continue
+        jobs = [_job_from_dict(f) for f in record.get("failures", [])]
+
+        if args.job_id:
+            jobs = [j for j in jobs if j.job_id == args.job_id]
+            if not jobs:
+                continue
+            return _explain(jobs[0])
+
+        summary = route_all(jobs)
+        total_failures += summary["total"]
+        deferred += summary["deferred_to_stage_b"]
+        for key, count in summary["by_class"].items():
+            totals[key] = totals.get(key, 0) + count
+
+        if not args.dry_run:
+            record["failures"] = [j.to_dict() for j in jobs]
+            record["router_version"] = ROUTER_VERSION
+            store.write_run_path(path, record)
+
+    if args.job_id:
+        LOG.error("Job %s not found in the stored records", args.job_id)
+        return 1
+
+    print(f"Classified {total_failures} failed job(s) across {len(paths)} run(s)")
+    for key, count in sorted(totals.items(), key=lambda kv: -kv[1]):
+        share = _percent(count, total_failures)
+        print(f"  {count:5d}  {share:>6}  {key}")
+    print(
+        f"  {deferred:5d}  {_percent(deferred, total_failures):>6}  (deferred to stage B)"
+    )
+    if args.dry_run:
+        print("\n(dry run -- nothing written)")
+    return 0
+
+
+def _percent(count: int, total: int) -> str:
+    return f"{(100.0 * count / total) if total else 0.0:.1f}%"
+
+
+def _explain(job: JobFailure) -> int:
+    """Print a single job's routing verdict and the evidence behind it."""
+    verdict = route(job)
+    print(f"job {job.job_id}  {job.job_name}")
+    print(f"  url          {job.html_url}")
+    print(f"  failed step  {job.failed_step_name or '<none>'}")
+    print(f"  steps        {len(job.steps)} recorded")
+    null_steps = [s.name for s in job.steps if s.conclusion is None]
+    if null_steps:
+        print(f"  never ran    {len(null_steps)} step(s), first: {null_steps[0]}")
+    print(f"  log blob     {'present' if job.log_available else 'absent/unknown'}")
+    print(f"  duration     {job.duration_s}s")
+    print()
+    if verdict.defer:
+        print(f"  VERDICT      deferred to Stage B (rule {verdict.rule_id})")
+    else:
+        print(f"  VERDICT      {verdict.failure_class}/{verdict.subclass}")
+        print(f"  rule         {verdict.rule_id}  confidence {verdict.confidence}")
+    return 0
+
+
+def _job_from_dict(payload: Dict[str, Any]) -> JobFailure:
+    """Rebuild a JobFailure from its stored dict form."""
+    steps = [StepRecord(**s) for s in payload.get("steps", [])]
+    fields = {k: v for k, v in payload.items() if k in JobFailure.__annotations__}
+    fields["steps"] = steps
+    return JobFailure(**fields)
 
 
 if __name__ == "__main__":
