@@ -35,8 +35,8 @@ from typing import List, NamedTuple, Optional
 
 from metrics.scrub import scrub
 
-NORMALISER_VERSION = 1
-EXTRACTOR_VERSION = 1
+NORMALISER_VERSION = 2
+EXTRACTOR_VERSION = 2
 
 # Hard cap on stored evidence. Large enough for an exception chain plus
 # context, small enough that 90 days of failures stay a rounding error.
@@ -48,6 +48,7 @@ SIGNATURE_LENGTH = 16
 _GH_TIMESTAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T[\d:.]+Z\s?")
 
 _FAILURES_HEADER = re.compile(r"^=+\s*FAILURES\s*=+$")
+_ERRORS_HEADER = re.compile(r"^=+\s*ERRORS\s*=+$")
 _SUMMARY_HEADER = re.compile(r"^=+\s*short test summary info\s*=+$")
 _SECTION_END = re.compile(r"^=+\s*\S.*=+$")
 _TRACEBACK_START = re.compile(r"^Traceback \(most recent call last\):")
@@ -57,6 +58,7 @@ _EXCEPTION_LINE = re.compile(
 _ERROR_MARKER = re.compile(r"^##\[error\]")
 _USELESS_ERRORS = re.compile(r"^##\[error\]Process completed with exit code \d+\.?$")
 _FAILED_LINE = re.compile(r"^FAILED\s+\S+")
+_ERROR_LINE = re.compile(r"^ERROR\s+\S+")
 
 
 class Excerpt(NamedTuple):
@@ -68,6 +70,17 @@ class Excerpt(NamedTuple):
 
 def strip_timestamps(lines: List[str]) -> List[str]:
     return [_GH_TIMESTAMP.sub("", line).rstrip() for line in lines]
+
+
+def drop_caret_lines(lines: List[str]) -> List[str]:
+    """Remove Python 3.11+ caret annotation lines (``^^^^^``).
+
+    They carry nothing the frame above does not, and their width tracks
+    identifier length, so they are noise in a stored excerpt. Normalisation
+    already discards them before hashing, so removing them here changes how
+    excerpts *read* without changing any signature.
+    """
+    return [line for line in lines if set(line.strip()) != {"^"}]
 
 
 def _section(lines: List[str], header: "re.Pattern[str]") -> List[str]:
@@ -125,7 +138,7 @@ def _innermost_exception(block: List[str]) -> Optional[List[str]]:
 
 def extract(log: str) -> Excerpt:
     """Extract the most diagnostic excerpt available from a job log."""
-    lines = strip_timestamps(log.splitlines())
+    lines = drop_caret_lines(strip_timestamps(log.splitlines()))
 
     failures = _section(lines, _FAILURES_HEADER)
     if failures:
@@ -133,8 +146,24 @@ def extract(log: str) -> Excerpt:
         if root:
             return Excerpt("\n".join(root), "failures-block")
 
+    # pytest reports fixture failures under "=== ERRORS ===", not "===
+    # FAILURES ===", and the summary line calls them ERROR rather than FAILED.
+    # These matter disproportionately here: when a shared setup fixture breaks,
+    # every test in the suite errors at setup, so missing this section turns
+    # one root cause into dozens of single-occurrence signatures and buries it.
+    # The walk-back stops at "Traceback (most recent call last):", so the
+    # "ERROR at setup of test_x" header is excluded and all tests broken by the
+    # same fixture collapse to the same signature -- which is the truth.
+    errors = _section(lines, _ERRORS_HEADER)
+    if errors:
+        root = _innermost_exception(errors)
+        if root:
+            return Excerpt("\n".join(root), "errors-block")
+
     summary = [
-        line for line in _section(lines, _SUMMARY_HEADER) if _FAILED_LINE.match(line)
+        line
+        for line in _section(lines, _SUMMARY_HEADER)
+        if _FAILED_LINE.match(line) or _ERROR_LINE.match(line)
     ]
     if summary:
         return Excerpt("\n".join(summary), "summary-line")
@@ -190,9 +219,16 @@ _NORMALISERS = (
     (re.compile(r"\bpid=\d+"), "pid=<n>"),
     (re.compile(r"\b\d+\.\d+\s?s(?:econds)?\b"), "<duration>"),
     (re.compile(r"\(\d+:\d{2}:\d{2}\)"), "<duration>"),
+    # Counts quantify an outcome; they do not identify it. "kubelet (3
+    # restarts)" and "kubelet (1 restarts)" are the same bug seen twice, and
+    # keeping the count splits one signature into several, under-reporting the
+    # top offenders exactly where it matters most.
     (
-        re.compile(r"\b\d+\s+(?:failed|passed|warnings?|errors?|skipped)\b"),
-        "<n> \\g<0>",
+        re.compile(
+            r"\b\d+(\s+(?:failed|passed|warnings?|errors?|skipped|restarts?"
+            r"|times?|tests?|attempts?|retries|occurrences?|replicas?|nodes?|pods?))\b"
+        ),
+        "<n>\\1",
     ),
     (re.compile(r"\b\d{4,}\b"), "<n>"),
     (re.compile(r"[ \t]+"), " "),

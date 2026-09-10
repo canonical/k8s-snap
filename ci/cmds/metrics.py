@@ -27,8 +27,9 @@ from typing import Any, Dict, List, Optional
 from metrics import TAXONOMY_VERSION
 from metrics.gh import DEFAULT_REPO, GitHubClient
 from metrics.ingest import ingest_run, record_month, workflow_slug
-from metrics.models import JobFailure, StepRecord
+from metrics.models import ClassifiedBy, FailureClass, JobFailure, StepRecord
 from metrics.router import ROUTER_VERSION, apply_router, route, route_all
+from metrics.rules import classify_with_rules, load_rules
 from metrics.scrub import find_secrets
 from metrics.signature import NORMALISER_VERSION, fingerprint
 from metrics.store import DATA_ROOT, MetricsStore
@@ -111,6 +112,10 @@ def add_metrics_cmds(parser: argparse.ArgumentParser) -> None:
         "--dry-run",
         action="store_true",
         help="Report verdicts without writing them back to the store.",
+    )
+    classify.add_argument(
+        "--rules",
+        help="Path to the rule pack (default: ci/failure_rules.yaml).",
     )
     classify.set_defaults(func=cmd_classify)
 
@@ -387,8 +392,10 @@ def cmd_classify(args: argparse.Namespace) -> int:
         LOG.warning("No stored runs matched -- ingest first")
         return 1
 
+    pack = load_rules(Path(args.rules) if args.rules else None)
     totals: Dict[str, int] = {}
-    total_failures = deferred = 0
+    by_rule: Dict[str, int] = {}
+    total_failures = deferred = unresolved = 0
 
     for path in paths:
         record = store.read_run_path(path)
@@ -404,13 +411,27 @@ def cmd_classify(args: argparse.Namespace) -> int:
 
         summary = route_all(jobs)
         total_failures += summary["total"]
-        deferred += summary["deferred_to_stage_b"]
         for key, count in summary["by_class"].items():
             totals[key] = totals.get(key, 0) + count
+
+        # Stage B settles what Stage A deferred, using the stored excerpt.
+        rule_summary = classify_with_rules(jobs, pack)
+        for job in jobs:
+            if job.classified_by == ClassifiedBy.RULES.value:
+                key = f"{job.failure_class}/{job.subclass}"
+                totals[key] = totals.get(key, 0) + 1
+                deferred_class = f"{FailureClass.UNKNOWN.value}/None"
+                if deferred_class in totals:
+                    totals[deferred_class] -= 1
+        for rule_id, count in rule_summary["by_rule"].items():
+            by_rule[rule_id] = by_rule.get(rule_id, 0) + count
+        unresolved += rule_summary["unmatched"]
+        deferred += summary["deferred_to_stage_b"]
 
         if not args.dry_run:
             record["failures"] = [j.to_dict() for j in jobs]
             record["router_version"] = ROUTER_VERSION
+            record["ruleset_version"] = pack.version
             store.write_run_path(path, record)
 
     if args.job_id:
@@ -422,8 +443,14 @@ def cmd_classify(args: argparse.Namespace) -> int:
         share = _percent(count, total_failures)
         print(f"  {count:5d}  {share:>6}  {key}")
     print(
-        f"  {deferred:5d}  {_percent(deferred, total_failures):>6}  (deferred to stage B)"
+        f"\nStage A deferred {deferred} -- Stage B (rules v{pack.version}) "
+        f"resolved {deferred - unresolved}, left {unresolved} unclassified "
+        f"({_percent(unresolved, total_failures)} of all failures)"
     )
+    if by_rule:
+        print("\nBy rule:")
+        for rule_id, count in sorted(by_rule.items(), key=lambda kv: -kv[1]):
+            print(f"  {count:5d}  {rule_id}")
     if args.dry_run:
         print("\n(dry run -- nothing written)")
     return 0

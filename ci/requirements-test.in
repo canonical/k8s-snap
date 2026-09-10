@@ -1,4 +1,5 @@
 # Test dependencies for the `ci` tooling. Compile with:
 #   pip-compile --generate-hashes --strip-extras ci/requirements-test.in
+pyyaml==6.0.3
 pytest==8.3.3
 requests==2.32.5

@@ -1,0 +1,230 @@
+##
+## Copyright 2026 Canonical, Ltd.
+##
+
+version: 1
+
+rules:
+  # ---------------------------------------------------------------------
+  # Infrastructure and provisioning.
+  #
+  # First, because these failures happen underneath the product: a job whose
+  # LXD host ran out of disk will still print product-shaped errors as it
+  # dies, and blaming those on the product is how CI triage loses its way.
+  # ---------------------------------------------------------------------
+
+  - id: infra-disk-full
+    class: infra.runner
+    subclass: disk_space
+    excerpt_pattern: 'no space left on device|disk quota exceeded'
+    notes: >-
+      The runner filled its disk. Always infrastructure regardless of which
+      command happened to report it first.
+
+  - id: infra-oom
+    class: infra.runner
+    subclass: oom
+    excerpt_pattern: 'Out of memory: Killed process|oom-kill|Cannot allocate memory'
+    notes: >-
+      Kernel OOM killer. The victim process is incidental, so this matches on
+      text rather than on a pinned signature.
+
+  - id: infra-lxd-setup
+    class: infra.provisioning
+    subclass: lxd_setup
+    job:
+      failed_step_name: '^(Setup LXD|Install LXD|Configure LXD)'
+    notes: >-
+      Failure before the product is installed. Stage A already routes most of
+      these; this rule catches step-name variants it does not know about.
+
+  - id: infra-multipass-setup
+    class: infra.provisioning
+    subclass: multipass_setup
+    job:
+      failed_step_name: '^(Setup Multipass|Install Multipass|Launch .*(VM|instance))'
+    notes: >-
+      FIPS and STIG suites run on Multipass; provisioning them is a frequent
+      failure point that has nothing to do with the snap under test.
+
+  # ---------------------------------------------------------------------
+  # External dependencies.
+  # ---------------------------------------------------------------------
+
+  - id: external-snap-store
+    class: external.dependency
+    subclass: snap_store
+    excerpt_pattern: 'cannot install "?k8s"?|snap "k8s" is not available|error: cannot perform the following tasks|cannot refresh .* store, error|too many requests'
+    notes: >-
+      Snap Store unavailability or throttling. Verified against weekly run
+      33933942797, where six jobs failed in "Download k8s-snap".
+
+  - id: external-registry
+    class: external.dependency
+    subclass: registry
+    excerpt_pattern: '(ghcr\.io|docker\.io|registry\.k8s\.io|quay\.io).{0,80}(timeout|TLS handshake|no such host|connection refused|toomanyrequests|denied|500 Internal)'
+    notes: >-
+      Image pulls from a third-party registry. Scoped to a registry hostname
+      so that in-cluster pull failures are not swept up with it.
+
+  - id: external-apt
+    class: external.dependency
+    subclass: apt
+    excerpt_pattern: 'Failed to fetch http.{0,120}(archive|security)\.ubuntu\.com|E: Unable to locate package|Could not get lock /var/lib/dpkg'
+    notes: Ubuntu archive unreachable or busy during runner setup.
+
+  - id: external-docs-linkcheck
+    class: external.dependency
+    subclass: dns
+    job:
+      failed_step_name: '^Run linkcheck$'
+    notes: >-
+      The docs link checker walks hundreds of third-party URLs and fails when
+      any of them rate-limits or moves. Its log is a stream of per-link status
+      lines with no single error, so the extracted excerpt is a meaningless
+      tail and every job produces a fresh throwaway signature. Matched on the
+      step name instead. Genuine broken links in our own docs still need
+      fixing, but they are not a signal about the product, and the weekly
+      suite should not be red because GitHub throttled a link probe.
+
+  # ---------------------------------------------------------------------
+  # CI configuration.
+  # ---------------------------------------------------------------------
+
+  - id: ci-test-collection
+    class: ci.config
+    subclass: test_collection
+    job:
+      failed_step_name: '^Collect tests'
+    notes: >-
+      Collection runs before any test does. A failure here means the matrix
+      itself is wrong, and it silently shrinks the denominator for the whole
+      run.
+
+  - id: ci-missing-artifact
+    class: ci.config
+    subclass: missing_artifact
+    excerpt_pattern: 'Unable to (find|download) artifact|Artifact not found for name|no files were found with the provided path'
+    notes: >-
+      A job expected an artifact an upstream job never produced -- usually a
+      symptom of an upstream failure rather than a fault in this job.
+
+  - id: ci-tox-env
+    class: ci.config
+    subclass: tox_env
+    excerpt_pattern: "ERROR: (could not install deps|.*InvocationError)|No module named '?(pytest|tox)'?|tox: error: unrecognized arguments"
+    notes: The test environment failed to build, so nothing was exercised.
+
+  # ---------------------------------------------------------------------
+  # Product bugs.
+  #
+  # Seeded from nightly run 34172139128 (2,555 jobs, 74 failures) and weekly
+  # run 33933942797. Pinned by signature so they cannot over-match.
+  # ---------------------------------------------------------------------
+
+  - id: product-node-never-ready
+    signature_id: c55cefd2ca3f28e7
+    class: product.bug
+    subclass: service_not_active
+    excerpt_pattern: 'wait_until_k8s_ready'
+    notes: >-
+      `wait_until_k8s_ready` gives up because a node never reports Ready. The
+      single largest failure signature measured: 36 of 74 failures in nightly
+      run 34172139128, spanning four different tests and both architectures.
+      One root cause, so one signature -- the tests that observe it are
+      symptoms, not separate bugs. The bare `AssertionError` carries no
+      message, hence the extra excerpt guard so the pin cannot be reused by an
+      unrelated messageless assertion.
+
+  - id: product-kube-proxy-inactive
+    signature_id: 38c23bd3a1bab957
+    class: product.bug
+    subclass: service_not_active
+    notes: >-
+      "Service kube-proxy should be active, but it is inactive" during a
+      version downgrade with rollback. 18 occurrences in nightly run
+      34172139128. Hashes identically across Ubuntu versions, architectures
+      and both self-hosted and GitHub-hosted runners.
+
+  - id: infra-multipass-fixture-never-ready
+    signature_id: 8c531e6ba49b3382
+    class: infra.provisioning
+    subclass: multipass_setup
+    job:
+      substrate: '^multipass$'
+    notes: >-
+      The generic retry helper (`util._exec`, "Failed to meet condition")
+      giving up while a Multipass instance comes up -- typically polling
+      cloud-init. Measured in weekly run 33933942797 across twelve unrelated
+      test files (clustering, cleanup, ingress, dns, gateway, smoke, ...),
+      which is the tell: when one signature hits every test file at once it is
+      shared setup, not a product regression in each of them. Must stay ahead
+      of product-retry-condition-never-met, which pins the same signature; the
+      excerpt alone cannot distinguish these two cases, only the substrate can.
+
+  - id: product-retry-condition-never-met
+    signature_id: 8c531e6ba49b3382
+    class: product.bug
+    subclass: upgrade_failure
+    notes: >-
+      The same "Failed to meet condition" signature on the LXD substrate,
+      where it is concentrated in test_version_upgrades rather than sprayed
+      across the suite: 12 occurrences in nightly run 34172139128 and 2 in the
+      datastore spread tests. Here the cluster genuinely fails to reach the
+      expected state during an upgrade.
+
+  - id: product-service-restarts
+    signature_id: 35b12bf41b664182
+    class: product.bug
+    subclass: service_not_active
+    notes: >-
+      "Services have restarted more than 0 time(s): kubelet" during
+      test_version_upgrades. kubelet restarting mid-upgrade is a product
+      fault, not a test artefact.
+
+  - id: product-service-restarts-rollback
+    signature_id: '867525576ccca976'
+    class: product.bug
+    subclass: upgrade_failure
+    notes: >-
+      Same kubelet-restart symptom as product-service-restarts, but observed
+      during downgrade-with-rollback. Kept separate because the rollback path
+      is distinct code with a distinct owner.
+
+  - id: product-containerd-image-import
+    signature_id: '96001693f7bb9dbb'
+    class: product.bug
+    subclass: api_error
+    notes: >-
+      `ctr image import` exits non-zero inside the instance during
+      test_containerd.
+
+  # ---------------------------------------------------------------------
+  # Conformance.
+  # ---------------------------------------------------------------------
+
+  - id: product-cncf-conformance
+    class: product.bug
+    subclass: api_error
+    excerpt_pattern: 'test_cncf_conform(a|)ance.*tests failed|assert failed_tests == 0'
+    job:
+      failed_step_name: '^Run test_cncf_conformance$'
+    notes: >-
+      Upstream CNCF conformance assertions failing against our distribution.
+      Matched on text rather than pinned because the suite exists under two
+      spellings across release branches (test_cncf_conformance.py and the
+      misspelled test_cncf_conformace.py), which would otherwise need a new
+      pin per branch.
+
+  # ---------------------------------------------------------------------
+  # Test bugs. Last: only reached when nothing above claimed the failure.
+  # ---------------------------------------------------------------------
+
+  - id: test-timeout-too-short
+    class: test.bug
+    subclass: timeout_too_short
+    excerpt_pattern: 'Failed: Timeout >\d+\.\d+s|tenacity\.RetryError.*stop_after_delay'
+    notes: >-
+      pytest's own timeout fired, meaning the test never reached an
+      assertion. Classified as a test bug because a test that cannot state
+      what went wrong cannot be actioned by anyone else.
