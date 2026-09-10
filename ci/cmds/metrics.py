@@ -28,7 +28,12 @@ from typing import Any, Dict, List, Optional
 from cmds.mattermost import _post_webhook
 from metrics import TAXONOMY_VERSION
 from metrics.gh import DEFAULT_REPO, GitHubClient
-from metrics.ingest import ingest_run, record_month, workflow_slug
+from metrics.ingest import (
+    annotate_retries_offline,
+    ingest_run,
+    record_month,
+    workflow_slug,
+)
 from metrics.models import ClassifiedBy, FailureClass, JobFailure, StepRecord
 from metrics.report import render_markdown, render_mattermost
 from metrics.rollup import aggregate
@@ -211,6 +216,20 @@ def add_metrics_cmds(parser: argparse.ArgumentParser) -> None:
         help="Report what would change without writing.",
     )
     reclass.set_defaults(func=cmd_reclassify)
+
+    retries = metrics_sub.add_parser(
+        "annotate-retries",
+        help="Derive retry outcomes from stored attempts, without API calls.",
+    )
+    _add_common_args(retries)
+    retries.add_argument("--workflow", help="Restrict to one workflow (alias or slug).")
+    retries.add_argument("--period", help="Restrict to one period, e.g. 2026-09.")
+    retries.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Report what would change without writing.",
+    )
+    retries.set_defaults(func=cmd_annotate_retries)
 
 
 def _add_common_args(parser: argparse.ArgumentParser) -> None:
@@ -827,6 +846,54 @@ def cmd_report(args: argparse.Namespace) -> int:
         # it is meant to displace.
         _post_webhook(webhook, {"text": text})
         LOG.info("Posted digest to Mattermost")
+    return 0
+
+
+def cmd_annotate_retries(args: argparse.Namespace) -> int:
+    """Derive retry outcomes from stored attempts, without touching the API.
+
+    `--no-flake-detection`, and any store written before multi-attempt ingest,
+    leaves the retry annotation missing -- and because the ingest skip check is
+    per attempt, a plain re-ingest will never repair it. Refetching a 90-day
+    backfill just to recover the annotation costs thousands of calls, so it is
+    recomputed here from the attempts already on disk.
+    """
+    _setup_logging(args.verbose)
+    store = _store(args)
+    slug = _workflow_slug(args.workflow)
+
+    groups: Dict[Any, List[Any]] = collections.defaultdict(list)
+    for path in store.iter_runs(slug):
+        if args.period and path.parent.name != args.period:
+            continue
+        record = store.read_run_path(path)
+        if record is None:
+            continue
+        groups[(path.parent.parent.name, record.get("run_id"))].append((path, record))
+
+    annotated = 0
+    touched = 0
+    for entries in groups.values():
+        if len(entries) < 2:
+            continue
+        records = [record for _, record in entries]
+        changed = annotate_retries_offline(records)
+        if not changed:
+            continue
+        annotated += changed
+        for path, record in entries:
+            touched += 1
+            if not args.dry_run:
+                store.write_run_path(path, record)
+
+    verb = "would annotate" if args.dry_run else "annotated"
+    LOG.info(
+        "%s %s failure(s) across %s attempt record(s) of %s rerun run(s)",
+        verb,
+        annotated,
+        touched,
+        sum(1 for e in groups.values() if len(e) > 1),
+    )
     return 0
 
 

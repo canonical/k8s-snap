@@ -350,6 +350,60 @@ def annotate_retries(
         failure.retry_outcome = outcome
 
 
+def annotate_retries_offline(records: List[Dict[str, Any]]) -> int:
+    """Derive retry outcomes for one run from its stored attempts alone.
+
+    Every attempt of a run is stored, so the retry question is answerable
+    without the API: a job that failed on attempt N and is absent from the
+    failures of a later attempt did not fail again. That matters because
+    `--no-flake-detection` (and any pre-existing store written before
+    multi-attempt ingest) leaves the annotation missing, and the per-attempt
+    skip means a plain re-ingest will never repair it -- only a full refetch
+    would, which for a 90-day backfill is thousands of calls.
+
+    ``records`` are the attempt records of a *single* run, any order.
+
+    Caveat, deliberately conservative: absence from a later attempt's failure
+    list means "did not fail", which is usually "passed" but is also true of a
+    job that never ran (e.g. a prepare failure deleted the matrix). Such runs
+    lose jobs upstream, so outcomes are only inferred for later attempts that
+    recorded no upstream loss; otherwise the failure is left unannotated
+    rather than being scored as a flake it may not be.
+    """
+    by_attempt = {int(r.get("attempt") or 1): r for r in records}
+    if len(by_attempt) < 2:
+        return 0
+
+    changed = 0
+    for attempt in sorted(by_attempt):
+        later = [a for a in sorted(by_attempt) if a > attempt]
+        if not later:
+            continue
+        failures = by_attempt[attempt].get("failures") or []
+        for failure in failures:
+            name = failure.get("job_name")
+            if not name or failure.get("retried"):
+                continue
+            outcome = None
+            for a in later:
+                record = by_attempt[a]
+                names = {f.get("job_name") for f in (record.get("failures") or [])}
+                if name in names:
+                    outcome = "failure"
+                    break
+                if int(record.get("jobs_not_run_due_to_upstream") or 0) > 0:
+                    # Cannot distinguish "passed" from "never ran".
+                    break
+                outcome = "success"
+                break
+            if outcome is None:
+                continue
+            failure["retried"] = True
+            failure["retry_outcome"] = outcome
+            changed += 1
+    return changed
+
+
 def ingest_run(
     client: GitHubClient,
     run: Dict[str, Any],
