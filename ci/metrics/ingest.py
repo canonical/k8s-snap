@@ -360,7 +360,14 @@ def ingest_run(
     run_id = run["id"]
     attempt = attempt or run.get("run_attempt", 1)
 
-    jobs = client.list_run_jobs(run_id, attempt=attempt if attempt > 1 else None)
+    # `filter=latest` is cheaper and is what the job counts were verified
+    # against, but it always returns the *newest* attempt. Asking for an
+    # earlier attempt of a rerun run therefore has to go through the explicit
+    # attempts endpoint, or attempt 1 would silently be stored as a duplicate
+    # of attempt N -- and every failure would look like it was never retried.
+    latest = int(run.get("run_attempt") or 1)
+    explicit = attempt if attempt < latest or attempt > 1 else None
+    jobs = client.list_run_jobs(run_id, attempt=explicit)
     counts, collected, failed_prepare = summarise_jobs(jobs)
     minutes = _accumulate_minutes(jobs)
 

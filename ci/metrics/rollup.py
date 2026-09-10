@@ -77,6 +77,11 @@ class SignatureStat:
     exemplar_excerpt: Optional[str] = None
     tests_affected: List[str] = dataclasses.field(default_factory=list)
     configs_affected: List[str] = dataclasses.field(default_factory=list)
+    #: Hits on superseded attempts. Kept apart from ``occurrences`` so that a
+    #: signature which only ever fails on first attempts stays visible without
+    #: inflating the failure volume that the rest of the report is built on.
+    retry_occurrences: int = 0
+    recovered_on_retry: int = 0
 
     def age_days(self, now: Optional[dt.datetime] = None) -> Optional[float]:
         first = _parse_ts(self.first_seen)
@@ -109,6 +114,19 @@ def aggregate(
     """
     now = now or dt.datetime.now(dt.timezone.utc)
 
+    # Reruns are stored one record per attempt, because retry evidence only
+    # exists on the superseded ones. For every *volume* metric the run must
+    # still count once, or rerunning a red run would inflate job counts,
+    # runner minutes and failure totals -- i.e. the act of retrying would
+    # make CI look worse. Superseded attempts contribute retry evidence only.
+    materialised = list(records)
+    latest_attempt: Dict[Any, int] = {}
+    for entry in materialised:
+        key = (entry.get("workflow_slug"), entry.get("run_id"))
+        attempt = int(entry.get("attempt") or 1)
+        if attempt > latest_attempt.get(key, 0):
+            latest_attempt[key] = attempt
+
     runs = 0
     runs_by_workflow: Dict[str, Dict[str, int]] = collections.defaultdict(
         lambda: {"total": 0, "green": 0, "first_attempt_green": 0}
@@ -130,7 +148,42 @@ def aggregate(
         lambda: {"runs": 0, "jobs": 0, "failures": 0}
     )
 
-    for record in records:
+    for record in materialised:
+        superseded = int(record.get("attempt") or 1) != latest_attempt.get(
+            (record.get("workflow_slug"), record.get("run_id")), 1
+        )
+        if superseded:
+            # Retry evidence only. Occurrences are always tallied, even when
+            # the `retried` annotation is missing (`--no-flake-detection`),
+            # so that a superseded failure is never silently dropped from
+            # both the volume and the retry view at once. M4 itself still
+            # requires the annotation, since it needs the outcome.
+            for failure in record.get("failures") or []:
+                recovered = failure.get("retry_outcome") == "success"
+                if failure.get("retried"):
+                    retried += 1
+                    if recovered:
+                        flaked += 1
+                signature_id = failure.get("signature_id")
+                if not signature_id:
+                    continue
+                stat = signatures.get(signature_id)
+                if stat is None:
+                    stat = SignatureStat(
+                        signature_id=signature_id,
+                        failure_class=failure.get("failure_class")
+                        or FailureClass.UNKNOWN.value,
+                        subclass=failure.get("subclass"),
+                        rule_id=failure.get("rule_id"),
+                        exemplar_job_url=failure.get("html_url"),
+                        exemplar_excerpt=failure.get("evidence_excerpt"),
+                    )
+                    signatures[signature_id] = stat
+                stat.retry_occurrences += 1
+                if recovered:
+                    stat.recovered_on_retry += 1
+            continue
+
         runs += 1
         workflow = record.get("workflow_slug") or record.get("workflow_name") or "?"
         stats = runs_by_workflow[workflow]
@@ -186,10 +239,6 @@ def aggregate(
                     by_rule[failure["rule_id"]] += 1
                 if failure_class == FailureClass.UNKNOWN.value:
                     unclassified += 1
-            if failure.get("retried"):
-                retried += 1
-                if failure.get("retry_outcome") == "success":
-                    flaked += 1
 
             signature_id = failure.get("signature_id")
             if not signature_id:

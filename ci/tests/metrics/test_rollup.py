@@ -95,16 +95,68 @@ class TestRates:
         assert rollup["m2_pr_first_pass_rate"] == 100.0
 
     def test_retry_success_counts_as_a_flake(self):
+        """Flake evidence lives on superseded attempts, and only there.
+
+        A rerun run is stored once per attempt. The final attempt's failures
+        are by definition not retried, so M4 can only come from the earlier
+        ones -- which is also why they must be ingested at all.
+        """
         records = [
             run(
+                attempt=1,
                 failures=[
                     failure(retried=True, retry_outcome="success"),
                     failure(job_id=2, retried=True, retry_outcome="failure"),
-                ]
-            )
+                ],
+            ),
+            run(attempt=2, failures=[failure(job_id=2)]),
         ]
         rollup = aggregate(records, "2026-09", now=NOW)
         assert rollup["m4_flake_rate"] == 50.0
+
+    def test_superseded_attempts_do_not_inflate_volume(self):
+        """Rerunning a red run must not make CI look worse.
+
+        Volume metrics count each run once, at its latest attempt; otherwise
+        the act of retrying would add jobs, failures and runner minutes.
+        """
+        records = [
+            run(
+                attempt=1,
+                failures=[
+                    failure(retried=True, retry_outcome="success"),
+                    failure(job_id=2, retried=True, retry_outcome="failure"),
+                ],
+            ),
+            run(attempt=2, failures=[failure(job_id=2)]),
+        ]
+        rollup = aggregate(records, "2026-09", now=NOW)
+        assert rollup["runs"] == 1
+        assert rollup["jobs_total"] == run()["jobs_total"]
+        assert _sig(rollup, "a" * 16)["occurrences"] == 1
+        assert _sig(rollup, "a" * 16)["retry_occurrences"] == 2
+
+    def test_a_signature_only_seen_before_a_retry_stays_visible(self):
+        """A failure that a rerun papered over is exactly what M4 is for.
+
+        It must not vanish from the catalogue just because it is absent from
+        the final attempt -- but it must not count as failure volume either.
+        """
+        records = [
+            run(
+                attempt=1,
+                failures=[
+                    failure(
+                        signature_id="b" * 16, retried=True, retry_outcome="success"
+                    )
+                ],
+            ),
+            run(attempt=2, failures=[]),
+        ]
+        rollup = aggregate(records, "2026-09", now=NOW)
+        stat = _sig(rollup, "b" * 16)
+        assert stat["occurrences"] == 0
+        assert stat["recovered_on_retry"] == 1
 
 
 class TestInspection:
@@ -360,3 +412,21 @@ class TestRendering:
         text = render_mattermost(aggregate([], "2026-09", now=NOW))
         assert "nothing to attribute" in text
         assert "n/a" in text
+
+
+class TestRetryAccounting:
+    def test_unannotated_superseded_failures_are_still_visible(self):
+        """`--no-flake-detection` must lose the outcome, not the failure.
+
+        Superseded failures are excluded from volume by design. If they were
+        also skipped when the retry annotation is absent they would vanish
+        entirely, and the gap would look like a quiet run rather than
+        missing data.
+        """
+        records = [
+            run(attempt=1, failures=[failure(retried=False, retry_outcome=None)]),
+            run(attempt=2, failures=[]),
+        ]
+        rollup = aggregate(records, "2026-09", now=NOW)
+        assert rollup["m4_flake_rate"] is None
+        assert _sig(rollup, "a" * 16)["retry_occurrences"] == 1

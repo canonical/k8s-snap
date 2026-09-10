@@ -301,39 +301,51 @@ def cmd_ingest(args: argparse.Namespace) -> int:
 
     for run in runs:
         run_id = run["id"]
-        attempt = run.get("run_attempt", 1)
+        latest = run.get("run_attempt", 1)
         slug = workflow_slug_for(run)
         month = month_for(run)
 
-        if not args.force and store.has_run(slug, month, run_id, attempt):
-            skipped += 1
-            LOG.debug("Skipping already-ingested run %s attempt %s", run_id, attempt)
-            continue
+        # Every attempt is ingested, not just the latest. Flake detection asks
+        # "did this job pass on a *later* attempt", which is only answerable
+        # from the earlier attempt's record -- storing only the latest makes
+        # the question structurally unanswerable and pins the flake rate at
+        # zero. Reruns are a minority of runs, so the extra calls are cheap.
+        for attempt in range(1, latest + 1):
+            if not args.force and store.has_run(slug, month, run_id, attempt):
+                skipped += 1
+                LOG.debug("Skipping ingested run %s attempt %s", run_id, attempt)
+                continue
 
-        try:
-            record = ingest_run(
-                client, run, attempt=attempt, detect_flakes=not args.no_flake_detection
+            try:
+                record = ingest_run(
+                    client,
+                    run,
+                    attempt=attempt,
+                    detect_flakes=not args.no_flake_detection,
+                )
+            except Exception as exc:  # keep a long backfill going past one run
+                LOG.error(
+                    "Failed to ingest run %s attempt %s: %s", run_id, attempt, exc
+                )
+                continue
+
+            store.write_run(
+                workflow_slug(record),
+                record_month(record),
+                run_id,
+                attempt,
+                record.to_dict(),
             )
-        except Exception as exc:  # keep a long backfill going past one bad run
-            LOG.error("Failed to ingest run %s: %s", run_id, exc)
-            continue
-
-        store.write_run(
-            workflow_slug(record),
-            record_month(record),
-            run_id,
-            attempt,
-            record.to_dict(),
-        )
-        ingested += 1
-        LOG.info(
-            "run %s attempt %s: %s jobs, %s failed, %s lost upstream",
-            run_id,
-            attempt,
-            record.jobs_total,
-            record.jobs_failure,
-            record.jobs_not_run_due_to_upstream,
-        )
+            ingested += 1
+            LOG.info(
+                "run %s attempt %s/%s: %s jobs, %s failed, %s lost upstream",
+                run_id,
+                attempt,
+                latest,
+                record.jobs_total,
+                record.jobs_failure,
+                record.jobs_not_run_due_to_upstream,
+            )
 
     LOG.info(
         "Done: %s ingested, %s skipped, %s API calls",
