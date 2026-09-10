@@ -100,16 +100,9 @@ def get_most_stable_channels(
         ) < RISK_LEVELS.index(channel_map[version_key][1]):
             channel_map[version_key] = (channel, risk)
 
-    # Trim only the newest, not-yet-promoted versions (contiguous from the
-    # top) whose best available risk is worse than max_risk. We deliberately
-    # do NOT drop non-contiguous/interior versions purely by risk: risk only
-    # gets better as a release matures, so it's normal for the 1-2 most
-    # recent minor versions to sit on "candidate" while everything older is
-    # "stable" (e.g. a version currently pending promotion). Dropping such a
-    # version outright - rather than just excluding it from the "newest tip"
-    # - would skip it entirely from the upgrade/downgrade chain, causing
-    # tests to jump two minor versions at once instead of stepping through
-    # every adjacent one (e.g. 1.37 -> 1.35, silently skipping 1.36).
+    # Only trim the newest contiguous versions below max_risk; never drop
+    # an interior version (e.g. don't skip a candidate-only 1.36 between
+    # 1.37 and stable 1.35).
     if max_risk:
         max_risk_index = RISK_LEVELS.index(max_risk)
         for version_key in sorted(channel_map.keys(), reverse=True):
