@@ -25,6 +25,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from cmds.mattermost import _post_webhook
 from metrics import TAXONOMY_VERSION
 from metrics.gh import DEFAULT_REPO, GitHubClient
 from metrics.ingest import ingest_run, record_month, workflow_slug
@@ -429,14 +430,32 @@ def cmd_show(args: argparse.Namespace) -> int:
     return 0
 
 
+def _workflow_slug(workflow: Optional[str]) -> Optional[str]:
+    """Resolve a workflow alias or filename to the slug used on disk.
+
+    Records are stored under ``runs/<slug>/``, where the slug is the workflow
+    filename without its path or extension. Aliases resolve to a filename, so
+    the extension has to come off or the lookup silently matches nothing --
+    which reads exactly like "no data yet".
+    """
+    if not workflow:
+        return None
+    resolved = WORKFLOW_ALIASES.get(workflow, workflow)
+    return re.sub(r"\.ya?ml$", "", resolved.rsplit("/", 1)[-1])
+
+
 def _iter_target_records(store: MetricsStore, args: argparse.Namespace) -> List[Path]:
     """Resolve the set of stored run records a command should operate on."""
     if getattr(args, "run_id", None):
         wanted = {str(run_id) for run_id in args.run_id}
         return [p for p in store.iter_runs() if p.name.split("-")[0] in wanted]
-    if getattr(args, "workflow", None):
-        return store.iter_runs(WORKFLOW_ALIASES.get(args.workflow, args.workflow))
-    return store.iter_runs()
+    paths = store.iter_runs(_workflow_slug(getattr(args, "workflow", None)))
+
+    since = getattr(args, "since", None)
+    if since:
+        cutoff = _parse_since(since).strftime("%Y-%m")
+        paths = [p for p in paths if p.parent.name >= cutoff]
+    return paths
 
 
 def cmd_classify(args: argparse.Namespace) -> int:
@@ -590,6 +609,13 @@ def cmd_fetch_logs(args: argparse.Namespace) -> int:
             if job.signature_id and not args.force:
                 skipped += 1
                 continue
+            # GitHub already told us the blob does not exist. Logs are also
+            # expired after 90 days, so retrying is not merely wasteful --
+            # it can never succeed. Without this the hourly run accumulates
+            # a permanently growing set of doomed requests.
+            if job.log_available is False and not args.force:
+                skipped += 1
+                continue
             targets.append(job)
 
         if targets:
@@ -705,10 +731,7 @@ def cmd_rollup(args: argparse.Namespace) -> int:
     _setup_logging(args.verbose)
     store = _store(args)
 
-    slug = None
-    if args.workflow:
-        slug = WORKFLOW_ALIASES.get(args.workflow, args.workflow)
-        slug = re.sub(r"\.ya?ml$", "", slug.rsplit("/", 1)[-1])
+    slug = _workflow_slug(args.workflow)
 
     by_period: Dict[str, List[Dict[str, Any]]] = {}
     for path in store.iter_runs(slug):
@@ -775,10 +798,23 @@ def cmd_report(args: argparse.Namespace) -> int:
         text = render_mattermost(rollups[index], previous)
 
     if args.out:
-        Path(args.out).write_text(text)
-        LOG.info("Wrote %s", args.out)
+        out = Path(args.out)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(text)
+        LOG.info("Wrote %s", out)
     else:
         print(text)
+
+    if args.post:
+        webhook = args.webhook or os.environ.get("MATTERMOST_WEBHOOK_URL")
+        if not webhook:
+            LOG.error("--post requires --webhook or MATTERMOST_WEBHOOK_URL")
+            return 1
+        # Reuses the existing webhook poster so the metrics digest lands in
+        # the same channel, with the same credentials, as the nightly alert
+        # it is meant to displace.
+        _post_webhook(webhook, {"text": text})
+        LOG.info("Posted digest to Mattermost")
     return 0
 
 
@@ -803,10 +839,7 @@ def cmd_reclassify(args: argparse.Namespace) -> int:
         LOG.error("Rule pack is empty -- nothing to replay")
         return 1
 
-    slug = None
-    if args.workflow:
-        slug = WORKFLOW_ALIASES.get(args.workflow, args.workflow)
-        slug = re.sub(r"\.ya?ml$", "", slug.rsplit("/", 1)[-1])
+    slug = _workflow_slug(args.workflow)
 
     changed_records = 0
     changed = collections.Counter()

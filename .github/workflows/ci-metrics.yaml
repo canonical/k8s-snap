@@ -1,0 +1,182 @@
+name: CI metrics
+
+# Collects, classifies and reports on CI failures.
+#
+# This workflow deliberately does *not* run on pull_request. It is the
+# measurement system; if it were part of the checks it measures it would gate
+# merges on its own health, and a bad rule pack could block the repository.
+#
+# Data lands on the unprotected `ci-metrics` branch rather than on `main`:
+#
+#   * `main` is protected, so GITHUB_TOKEN cannot push to it;
+#   * routing via a pull request is circular -- lint_and_integration only
+#     ignores `docs/**`, so a commit touching `ci/` triggers the full build and
+#     e2e matrix, and automerge requires every check to pass. At the current
+#     pass rate the metrics PR would be blocked by the very redness it exists
+#     to measure.
+#
+# Only rollups, the signature catalogue and reports are committed. Per-run
+# records and their excerpts stay in artifacts, keeping the committed volume
+# at single-digit MB per year against a 14 MB repository.
+
+on:
+  workflow_run:
+    workflows: ["Nightly", "Weekly", "Lint and integration"]
+    types: [completed]
+  schedule:
+    # workflow_run delivery is best-effort and events are dropped under load.
+    # Hourly reconciliation makes collection eventually complete rather than
+    # silently lossy -- a metrics system that loses runs understates failure.
+    - cron: "37 * * * *"
+    # The daily digest. Deliberately an hour after the nightly sweep finishes
+    # rather than on its completion event, so a nightly run that never
+    # reported still produces a digest saying so.
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+    inputs:
+      since:
+        description: Backfill window, e.g. 90d
+        type: string
+        default: 7d
+      post:
+        description: Post the digest to Mattermost
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  # Everything here reads and writes one branch. Serialising avoids a
+  # non-fast-forward race between the workflow_run and cron paths.
+  group: ci-metrics
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    name: Collect and classify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - name: Check out code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Check out metrics branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ci-metrics
+          path: .metrics
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+
+      - name: Setup Astral UV
+        uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8
+
+      - name: Install tox with UV
+        run: uv tool install tox --with tox-uv
+
+      - name: Restore per-run records
+        # Records live in an artifact rather than in git. Losing them costs a
+        # re-ingest, not the trend: rollups are committed and independent.
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        continue-on-error: true
+        with:
+          name: ci-metrics-records
+          path: .metrics/ci/metrics-data
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id || github.run_id }}
+
+      - name: Ingest
+        working-directory: ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TRIGGERING_RUN: ${{ github.event.workflow_run.id }}
+          SINCE: ${{ inputs.since || '7d' }}
+        run: |
+          set -euo pipefail
+          DATA=../.metrics/ci/metrics-data
+          if [[ -n "${TRIGGERING_RUN}" ]]; then
+            tox -e k8s-ci -- metrics ingest \
+              --data-dir "$DATA" --run-id "${TRIGGERING_RUN}"
+          fi
+          # Always reconcile. The workflow_run path above is an optimisation
+          # for latency; this is what makes collection complete.
+          for wf in nightly weekly pr; do
+            tox -e k8s-ci -- metrics ingest \
+              --data-dir "$DATA" --workflow "$wf" --since "${SINCE}"
+          done
+
+      - name: Fetch logs and classify
+        working-directory: ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          DATA=../.metrics/ci/metrics-data
+          tox -e k8s-ci -- metrics fetch-logs --data-dir "$DATA" --since 7d
+          tox -e k8s-ci -- metrics reclassify --data-dir "$DATA"
+
+      - name: Audit excerpts for secrets
+        working-directory: ci
+        # Hard gate. Excerpts are derived from job logs, so a scrubber
+        # regression would publish credentials to a branch anyone can read.
+        # Nothing is committed or uploaded if this fails.
+        run: |
+          tox -e k8s-ci -- metrics audit-secrets \
+            --data-dir ../.metrics/ci/metrics-data
+
+      - name: Roll up
+        working-directory: ci
+        run: |
+          set -euo pipefail
+          DATA=../.metrics/ci/metrics-data
+          tox -e k8s-ci -- metrics rollup --data-dir "$DATA"
+          tox -e k8s-ci -- metrics report --data-dir "$DATA" \
+            --format markdown --out "$DATA/reports/latest.md"
+
+      - name: Upload per-run records
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ci-metrics-records
+          path: .metrics/ci/metrics-data/runs
+          retention-days: 90
+
+      - name: Commit rollups
+        working-directory: .metrics
+        run: |
+          set -euo pipefail
+          # Only aggregates are committed; per-run records stay in artifacts.
+          git add ci/metrics-data/rollups ci/metrics-data/reports \
+                  ci/metrics-data/signatures 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "No metrics changes to commit"
+            exit 0
+          fi
+          git -c user.name=github-actions[bot] \
+              -c user.email=41898282+github-actions[bot]@users.noreply.github.com \
+              commit -s -m "chore(ci): update metrics rollups"
+          # The cron and workflow_run paths can still interleave across
+          # concurrency-group boundaries, so retry rather than fail the run.
+          for attempt in 1 2 3; do
+            git pull --rebase --quiet origin ci-metrics && break
+            sleep $((attempt * 5))
+          done
+          git push origin HEAD:ci-metrics
+
+      - name: Post digest
+        # Only on the daily cron. Posting on every hourly reconciliation is
+        # how the existing nightly alert became background noise.
+        if: ${{ github.event.schedule == '0 7 * * *' || inputs.post }}
+        working-directory: ci
+        env:
+          MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
+        run: |
+          tox -e k8s-ci -- metrics report \
+            --data-dir ../.metrics/ci/metrics-data --format mattermost --post
