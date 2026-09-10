@@ -451,3 +451,24 @@ class TestRetryAccounting:
         rollup = aggregate(records, "2026-09", now=NOW)
         assert [s["signature_id"] for s in top_signatures(rollup)] == ["a" * 16]
         assert _sig(rollup, "b" * 16)["tests_affected"] == ["tests/test_a.py::test_a"]
+
+    def test_cancelled_retries_are_excluded_from_the_flake_rate(self):
+        """A cancelled retry reached no verdict, so it proves nothing.
+
+        Left in the denominator it would drag the flake rate down, making CI
+        look steadier because somebody cancelled a run.
+        """
+        records = [
+            run(
+                attempt=1,
+                failures=[
+                    failure(retried=True, retry_outcome="success"),
+                    failure(job_id=2, retried=True, retry_outcome="cancelled"),
+                ],
+            ),
+            run(attempt=2, failures=[]),
+        ]
+        rollup = aggregate(records, "2026-09", now=NOW)
+        assert rollup["m4_flake_rate"] == 100.0
+        assert rollup["retried_jobs"] == 1
+        assert rollup["inconclusive_retries"] == 1

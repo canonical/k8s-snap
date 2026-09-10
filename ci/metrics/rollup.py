@@ -139,7 +139,7 @@ def aggregate(
     by_rule: Dict[str, int] = collections.Counter()
     unclassified = 0
     inspected = 0
-    retried = flaked = 0
+    retried = flaked = inconclusive_retries = 0
     runner_minutes_total = runner_minutes_failed = 0.0
     self_hosted_minutes = self_hosted_minutes_failed = 0.0
     tests_collected: Dict[str, List[int]] = collections.defaultdict(list)
@@ -159,11 +159,20 @@ def aggregate(
             # both the volume and the retry view at once. M4 itself still
             # requires the annotation, since it needs the outcome.
             for failure in record.get("failures") or []:
-                recovered = failure.get("retry_outcome") == "success"
+                outcome = failure.get("retry_outcome")
+                recovered = outcome == "success"
                 if failure.get("retried"):
-                    retried += 1
-                    if recovered:
-                        flaked += 1
+                    if outcome in ("success", "failure"):
+                        # Only a retry that actually reached a verdict says
+                        # anything about flakiness. A cancelled or unknown
+                        # retry would otherwise sit in the denominator and
+                        # push the flake rate *down*, making CI look steadier
+                        # precisely because somebody cancelled a run.
+                        retried += 1
+                        if recovered:
+                            flaked += 1
+                    else:
+                        inconclusive_retries += 1
                 signature_id = failure.get("signature_id")
                 if not signature_id:
                     continue
@@ -361,6 +370,7 @@ def aggregate(
         "jobs_failure": jobs_failure,
         "jobs_skipped": jobs_skipped,
         "retried_jobs": retried,
+        "inconclusive_retries": inconclusive_retries,
         "recovered_on_retry": flaked,
         "by_rule": dict(by_rule.most_common()),
         "signatures": [s.to_dict() for s in ranked],
