@@ -192,9 +192,7 @@ def test_version_downgrades_with_rollback(
         _, num_channels = channels
         ref = config.GH_BASE_REF or config.GH_REF
         max_release = (
-            ref.removeprefix("release-")
-            if ref and ref.startswith("release-")
-            else None
+            ref.removeprefix("release-") if ref and ref.startswith("release-") else None
         )
         channels = snap.get_most_stable_channels(
             int(num_channels),
