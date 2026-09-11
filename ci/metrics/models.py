@@ -94,6 +94,7 @@ SUBCLASSES: Dict[FailureClass, List[str]] = {
         "cluster_never_ready",
         "bootstrap_failure",
         "snap_install_failure",
+        "join_failure",
     ],
     FailureClass.TEST_BUG: [
         "timeout_too_short",

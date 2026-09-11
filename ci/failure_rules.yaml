@@ -241,6 +241,17 @@ rules:
       The largest unowned family in the 90-day backfill (757 occurrences
       across two signatures, network and dns).
 
+  - id: product-join-failure
+    class: product.bug
+    subclass: join_failure
+    excerpt_pattern: "k8s join-cluster"
+    notes: >-
+      A node failed to join the cluster. Only became classifiable once the
+      scrubber stopped dropping the whole line: the join token is a base64
+      blob, so every one of these excerpts used to end at
+      "<line dropped: possible secret>" with the command invisible.
+      200 occurrences across two signatures.
+
   - id: product-cluster-never-ready
     class: product.bug
     subclass: cluster_never_ready
@@ -292,6 +303,17 @@ rules:
   # Test bugs. Last: only reached when nothing above claimed the failure.
   # ---------------------------------------------------------------------
 
+  - id: product-service-should-be-inactive
+    class: product.bug
+    subclass: service_not_active
+    excerpt_pattern: "Unexpected service \\S+ is active but should be inactive"
+    notes: >-
+      The mirror image of product-kube-proxy-inactive: a service that should
+      have been stopped is still running. Same subclass because the ownership
+      and the underlying concern -- service lifecycle not being honoured --
+      are identical; the direction of the error does not change who fixes it.
+      50 occurrences.
+
   - id: test-harness-bug
     class: test.bug
     subclass: harness_bug
@@ -308,7 +330,7 @@ rules:
   - id: test-timeout-too-short
     class: test.bug
     subclass: timeout_too_short
-    excerpt_pattern: 'Failed: Timeout >\d+\.\d+s|tenacity\.RetryError.*stop_after_delay'
+    excerpt_pattern: 'Failed: Timeout >\d+\.\d+s|tenacity\.RetryError.*stop_after_delay|TimeoutError: wait timed out after \d+s'
     notes: >-
       pytest's own timeout fired, meaning the test never reached an
       assertion. Classified as a test bug because a test that cannot state
