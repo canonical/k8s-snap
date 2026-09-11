@@ -138,6 +138,10 @@ def add_metrics_cmds(parser: argparse.ArgumentParser) -> None:
     )
     fetch.add_argument("--workflow", help="Process every stored run of this workflow.")
     fetch.add_argument(
+        "--since",
+        help="Only consider records from this window back, e.g. 7d, 12w, 3m.",
+    )
+    fetch.add_argument(
         "--workers",
         type=int,
         default=12,
