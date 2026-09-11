@@ -4,15 +4,15 @@
 
 | Period | Runs | Jobs | Failed | Fail % | Scheduled green | PR first-pass | Unclassified | Inspected | Top-5 conc. |
 |---|---|---|---|---|---|---|---|---|---|
-| 2026-09 | 53 | 8939 | 554 | 6.2% | 0.0% | 7.8% | 24.4% | 100.0% | 81.8% |
+| 2026-09 | 53 | 8947 | 556 | 6.2% | 0.0% | 7.8% | 24.3% | 100.0% | 81.5% |
 
 ## Failure attribution -- 2026-09
 
 | Class | Count | Share of inspected | Owner |
 |---|---|---|---|
-| `product.bug` | 391 | 70.6% | product team |
-| `unknown` | 135 | 24.4% | unowned -- needs triage |
-| `external.dependency` | 12 | 2.2% | external -- usually wait/retry |
+| `product.bug` | 391 | 70.3% | product team |
+| `unknown` | 135 | 24.3% | unowned -- needs triage |
+| `external.dependency` | 14 | 2.5% | external -- usually wait/retry |
 | `infra.provisioning` | 8 | 1.4% | CI/infra |
 | `infra.runner` | 8 | 1.4% | CI/infra |
 
@@ -40,7 +40,7 @@
 
 These guard against apparent improvement caused by running less, rather than by breaking less.
 
-- Unclassified rate: 24.4%
+- Unclassified rate: 24.3%
 - Jobs never run due to an upstream failure: 0
 - Failed `Prepare Environment` jobs: 0
 - Quarantined signatures: 0

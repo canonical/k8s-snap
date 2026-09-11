@@ -1,0 +1,924 @@
+{
+  "0c2fa8bb4b5b1c6f": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T17:00:47Z",
+    "last_seen": "2026-09-10T17:00:47Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [
+      "tests/test_version_upgrades.py::test_feature_upgrades_inplace"
+    ],
+    "total_occurrences": 1
+  },
+  "0c4e7cc7cce4959c": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T00:45:04Z",
+    "last_seen": "2026-09-11T00:44:25Z",
+    "periods": {
+      "2026-09": 5
+    },
+    "tests_affected": [],
+    "total_occurrences": 5
+  },
+  "0cbaa2fb7bdb3c4e": {
+    "failure_class": "unknown",
+    "periods": {
+      "2026-09": 0
+    },
+    "tests_affected": [],
+    "total_occurrences": 0
+  },
+  "15ffbef78620e149": {
+    "failure_class": "unknown",
+    "periods": {
+      "2026-09": 0
+    },
+    "tests_affected": [],
+    "total_occurrences": 0
+  },
+  "1dbdcafcc2d14ea8": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-11T00:40:49Z",
+    "last_seen": "2026-09-11T00:40:49Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [
+      "tests/test_gateway.py::test_gateway"
+    ],
+    "total_occurrences": 1
+  },
+  "246dccc1180b00b6": {
+    "failure_class": "unknown",
+    "periods": {
+      "2026-09": 0
+    },
+    "tests_affected": [
+      "tests/test_cleanup.py::test_node_cleanup_new_containerd_path"
+    ],
+    "total_occurrences": 0
+  },
+  "2c6a935ef7cd76bc": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T17:04:55Z",
+    "last_seen": "2026-09-10T17:04:55Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [
+      "tests/test_version_upgrades.py::test_version_upgrades"
+    ],
+    "total_occurrences": 1
+  },
+  "35868fe40d79058d": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-11T00:50:11Z",
+    "last_seen": "2026-09-11T01:05:01Z",
+    "periods": {
+      "2026-09": 2
+    },
+    "tests_affected": [
+      "tests/test_version_upgrades.py::test_version_upgrades"
+    ],
+    "total_occurrences": 2
+  },
+  "35b12bf41b664182": {
+    "failure_class": "product.bug",
+    "first_seen": "2026-09-10T01:09:43Z",
+    "last_seen": "2026-09-11T02:07:26Z",
+    "periods": {
+      "2026-09": 8
+    },
+    "rule_id": "product-service-restarts",
+    "subclass": "service_not_active",
+    "tests_affected": [
+      "tests/test_version_upgrades.py::test_version_upgrades"
+    ],
+    "total_occurrences": 8
+  },
+  "3730b48a87d5b1e8": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T01:10:10Z",
+    "last_seen": "2026-09-10T01:10:10Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [
+      "tests/test_gateway.py::test_gateway"
+    ],
+    "total_occurrences": 1
+  },
+  "38c23bd3a1bab957": {
+    "failure_class": "product.bug",
+    "first_seen": "2026-09-10T01:00:10Z",
+    "last_seen": "2026-09-11T03:07:40Z",
+    "periods": {
+      "2026-09": 41
+    },
+    "rule_id": "product-kube-proxy-inactive",
+    "subclass": "service_not_active",
+    "tests_affected": [
+      "tests/test_annotations.py::test_disable_separate_feature_upgrades",
+      "tests/test_version_upgrades.py::test_version_downgrades_with_rollback"
+    ],
+    "total_occurrences": 41
+  },
+  "3a51e6072640676d": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T10:25:01Z",
+    "last_seen": "2026-09-10T10:39:59Z",
+    "periods": {
+      "2026-09": 8
+    },
+    "tests_affected": [
+      "tests/test_cleanup.py::test_node_cleanup",
+      "tests/test_external_etcd.py::test_external_etcd"
+    ],
+    "total_occurrences": 8
+  },
+  "3a64943759434bc6": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T10:25:01Z",
+    "last_seen": "2026-09-10T10:25:02Z",
+    "periods": {
+      "2026-09": 2
+    },
+    "tests_affected": [
+      "tests/test_control_plane_taints.py::test_control_plane_taints"
+    ],
+    "total_occurrences": 2
+  },
+  "3c70a86b1043c86a": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T00:18:39Z",
+    "last_seen": "2026-09-10T00:18:39Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [
+      "tests/test_clustering.py::test_etcd_learner_promotion"
+    ],
+    "total_occurrences": 1
+  },
+  "3f2108396bd179b8": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T10:25:01Z",
+    "last_seen": "2026-09-10T10:40:16Z",
+    "periods": {
+      "2026-09": 34
+    },
+    "tests_affected": [
+      "tests/test_loadbalancer.py::test_loadbalancer_bgp_multi_peer_annotation",
+      "tests/test_loadbalancer.py::test_loadbalancer_ipv6_dualstack",
+      "tests/test_loadbalancer.py::test_loadbalancer_ipv6_only",
+      "tests/test_loadbalancer.py::test_loadbalancer_ipv4",
+      "tests/test_loadbalancer.py::test_loadbalancer_bgp_annotation_peers_with_advertise_all_pools",
+      "tests/test_loadbalancer.py::test_loadbalancer_bgp_single_peer",
+      "tests/test_loadbalancer.py::test_loadbalancer_bgp_advertise_all_pools_annotation"
+    ],
+    "total_occurrences": 34
+  },
+  "3fe83287df2c88bf": {
+    "failure_class": "unknown",
+    "periods": {
+      "2026-09": 0
+    },
+    "tests_affected": [
+      "tests/test_version_upgrades.py::test_feature_upgrades_inplace"
+    ],
+    "total_occurrences": 0
+  },
+  "47c677447284c0c9": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T07:55:46Z",
+    "last_seen": "2026-09-10T07:55:46Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [],
+    "total_occurrences": 1
+  },
+  "4d8238dae72dc386": {
+    "failure_class": "external.dependency",
+    "first_seen": "2026-09-11T08:47:18Z",
+    "last_seen": "2026-09-11T08:47:18Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "rule_id": "external-apt",
+    "subclass": "apt",
+    "tests_affected": [],
+    "total_occurrences": 1
+  },
+  "56aa719dbd6f844f": {
+    "failure_class": "unknown",
+    "periods": {
+      "2026-09": 0
+    },
+    "tests_affected": [
+      "tests/test_node_taints.py::test_node_taints"
+    ],
+    "total_occurrences": 0
+  },
+  "5be67c2063b467fe": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T10:25:27Z",
+    "last_seen": "2026-09-10T10:25:33Z",
+    "periods": {
+      "2026-09": 2
+    },
+    "tests_affected": [],
+    "total_occurrences": 2
+  },
+  "5ebb80c6814b5f0e": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-11T08:47:13Z",
+    "last_seen": "2026-09-11T08:47:13Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [],
+    "total_occurrences": 1
+  },
+  "627171b30904e029": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T17:09:47Z",
+    "last_seen": "2026-09-10T17:09:47Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [
+      "tests/test_version_upgrades.py::test_version_upgrades"
+    ],
+    "total_occurrences": 1
+  },
+  "77488af9f0feb381": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T13:50:22Z",
+    "last_seen": "2026-09-10T13:50:22Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [
+      "tests/test_metrics_server.py::test_metrics_server"
+    ],
+    "total_occurrences": 1
+  },
+  "77c7780c052d6b44": {
+    "failure_class": "unknown",
+    "periods": {
+      "2026-09": 0
+    },
+    "tests_affected": [],
+    "total_occurrences": 0
+  },
+  "7812166adb4d179b": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T00:26:18Z",
+    "last_seen": "2026-09-10T13:41:13Z",
+    "periods": {
+      "2026-09": 11
+    },
+    "tests_affected": [
+      "tests/test_feature_controller.py::test_feature_controller",
+      "tests/test_smoke.py::test_smoke"
+    ],
+    "total_occurrences": 11
+  },
+  "79e3ab4a30e23149": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T00:58:31Z",
+    "last_seen": "2026-09-10T00:58:31Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [
+      "tests/test_external_certificates.py::test_vault_certificates"
+    ],
+    "total_occurrences": 1
+  },
+  "7e0a389a7deb5372": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T10:26:20Z",
+    "last_seen": "2026-09-10T10:26:20Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [
+      "tests/test_version_upgrades.py::test_version_upgrades"
+    ],
+    "total_occurrences": 1
+  },
+  "85726a531a8cd21a": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T15:19:29Z",
+    "last_seen": "2026-09-10T15:19:29Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [],
+    "total_occurrences": 1
+  },
+  "85d9d0112cf49e94": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T17:00:46Z",
+    "last_seen": "2026-09-10T17:00:46Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [
+      "tests/test_cleanup.py::test_node_cleanup_new_containerd_path"
+    ],
+    "total_occurrences": 1
+  },
+  "867525576ccca976": {
+    "failure_class": "product.bug",
+    "first_seen": "2026-09-10T02:54:53Z",
+    "last_seen": "2026-09-10T08:56:48Z",
+    "periods": {
+      "2026-09": 2
+    },
+    "rule_id": "product-service-restarts-rollback",
+    "subclass": "upgrade_failure",
+    "tests_affected": [
+      "tests/test_version_upgrades.py::test_version_downgrades_with_rollback"
+    ],
+    "total_occurrences": 2
+  },
+  "873a4b0fb3a64225": {
+    "failure_class": "external.dependency",
+    "periods": {
+      "2026-09": 0
+    },
+    "rule_id": "external-apt",
+    "subclass": "apt",
+    "tests_affected": [],
+    "total_occurrences": 0
+  },
+  "8a9224850d7c13ce": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T08:13:01Z",
+    "last_seen": "2026-09-10T13:37:56Z",
+    "periods": {
+      "2026-09": 7
+    },
+    "tests_affected": [],
+    "total_occurrences": 7
+  },
+  "8bbe75f419474ccb": {
+    "failure_class": "unknown",
+    "periods": {
+      "2026-09": 0
+    },
+    "tests_affected": [
+      "tests/test_build.py::test_build"
+    ],
+    "total_occurrences": 0
+  },
+  "8c531e6ba49b3382": {
+    "failure_class": "product.bug",
+    "first_seen": "2026-09-10T00:43:51Z",
+    "last_seen": "2026-09-11T07:49:11Z",
+    "periods": {
+      "2026-09": 52
+    },
+    "rule_id": "product-retry-condition-never-met",
+    "subclass": "upgrade_failure",
+    "tests_affected": [
+      "tests/test_version_upgrades.py::test_feature_upgrades_inplace",
+      "tests/test_version_upgrades.py::test_version_upgrades",
+      "tests/test_clustering.py::test_node_removal_during_concurrent_join"
+    ],
+    "total_occurrences": 52
+  },
+  "8ce069bf2bf6cfb8": {
+    "failure_class": "external.dependency",
+    "first_seen": "2026-09-10T13:15:11Z",
+    "last_seen": "2026-09-10T13:15:11Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "rule_id": "external-snap-store",
+    "subclass": "snap_store",
+    "tests_affected": [],
+    "total_occurrences": 1
+  },
+  "8d3fc8734c0ec33c": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T17:13:19Z",
+    "last_seen": "2026-09-10T17:13:19Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [
+      "tests/test_version_upgrades.py::test_version_downgrades_with_rollback"
+    ],
+    "total_occurrences": 1
+  },
+  "8fd91c9143e4c34c": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T17:00:44Z",
+    "last_seen": "2026-09-10T17:00:44Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [
+      "tests/test_cilium_e2e.py::test_cilium_e2e"
+    ],
+    "total_occurrences": 1
+  },
+  "9149a7349d096cc3": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T13:47:58Z",
+    "last_seen": "2026-09-10T13:47:58Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [
+      "tests/test_annotations.py::test_skip_services_stop_on_remove"
+    ],
+    "total_occurrences": 1
+  },
+  "91c6347527f0244d": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T07:00:59Z",
+    "last_seen": "2026-09-10T07:00:59Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [],
+    "total_occurrences": 1
+  },
+  "97a24cd0dd8d3593": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T17:00:45Z",
+    "last_seen": "2026-09-10T17:00:45Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [
+      "tests/test_version_upgrades.py::test_version_upgrades"
+    ],
+    "total_occurrences": 1
+  },
+  "9a7c3d72f4d2ceca": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T15:19:32Z",
+    "last_seen": "2026-09-10T15:34:20Z",
+    "periods": {
+      "2026-09": 2
+    },
+    "tests_affected": [],
+    "total_occurrences": 2
+  },
+  "9ed78fc1c4e6ed74": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T01:09:14Z",
+    "last_seen": "2026-09-10T01:09:14Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [],
+    "total_occurrences": 1
+  },
+  "9f0bb9fda1e44c8e": {
+    "failure_class": "unknown",
+    "periods": {
+      "2026-09": 0
+    },
+    "tests_affected": [],
+    "total_occurrences": 0
+  },
+  "a2555afeb47d0614": {
+    "failure_class": "unknown",
+    "periods": {
+      "2026-09": 0
+    },
+    "tests_affected": [],
+    "total_occurrences": 0
+  },
+  "a5b20f221efdfa69": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T17:00:46Z",
+    "last_seen": "2026-09-10T17:00:46Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [
+      "tests/test_snap_services.py::test_snap_services"
+    ],
+    "total_occurrences": 1
+  },
+  "ae02f0ad3147d045": {
+    "failure_class": "external.dependency",
+    "first_seen": "2026-09-11T08:47:08Z",
+    "last_seen": "2026-09-11T08:47:08Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "rule_id": "external-apt",
+    "subclass": "apt",
+    "tests_affected": [],
+    "total_occurrences": 1
+  },
+  "b037f415998370a9": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T17:00:46Z",
+    "last_seen": "2026-09-10T17:00:46Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [
+      "tests/test_node_taints.py::test_node_taints"
+    ],
+    "total_occurrences": 1
+  },
+  "b20c49969895f111": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T17:00:44Z",
+    "last_seen": "2026-09-10T17:00:44Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [
+      "tests/test_annotations.py::test_disable_separate_feature_upgrades"
+    ],
+    "total_occurrences": 1
+  },
+  "b2fdc843a67d0cf8": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T10:36:26Z",
+    "last_seen": "2026-09-10T10:36:26Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [
+      "tests/test_version_upgrades.py::test_version_upgrades"
+    ],
+    "total_occurrences": 1
+  },
+  "b3c3973eccdcc279": {
+    "failure_class": "external.dependency",
+    "periods": {
+      "2026-09": 0
+    },
+    "rule_id": "external-apt",
+    "subclass": "apt",
+    "tests_affected": [],
+    "total_occurrences": 0
+  },
+  "b6127e3a84343105": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T17:18:25Z",
+    "last_seen": "2026-09-10T17:18:29Z",
+    "periods": {
+      "2026-09": 2
+    },
+    "tests_affected": [
+      "tests/test_clustering.py::test_join_cp_with_duplicate_name_rejected"
+    ],
+    "total_occurrences": 2
+  },
+  "b712c2f07d6919c1": {
+    "failure_class": "external.dependency",
+    "first_seen": "2026-09-11T08:47:11Z",
+    "last_seen": "2026-09-11T08:47:11Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "rule_id": "external-apt",
+    "subclass": "apt",
+    "tests_affected": [],
+    "total_occurrences": 1
+  },
+  "b778769bf6b01620": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T17:18:24Z",
+    "last_seen": "2026-09-10T17:18:29Z",
+    "periods": {
+      "2026-09": 2
+    },
+    "tests_affected": [
+      "tests/test_clustering.py::test_join_worker_with_duplicate_name_rejected"
+    ],
+    "total_occurrences": 2
+  },
+  "b94bbe467e6259f7": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T17:00:44Z",
+    "last_seen": "2026-09-10T17:00:44Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [
+      "tests/test_node_availability_zone.py::test_node_availability_zone[k8s-dqlite-True]"
+    ],
+    "total_occurrences": 1
+  },
+  "c24c19944ff11aae": {
+    "failure_class": "external.dependency",
+    "periods": {
+      "2026-09": 0
+    },
+    "rule_id": "external-apt",
+    "subclass": "apt",
+    "tests_affected": [],
+    "total_occurrences": 0
+  },
+  "c2ee02896490a527": {
+    "failure_class": "unknown",
+    "periods": {
+      "2026-09": 0
+    },
+    "tests_affected": [
+      "tests/test_node_availability_zone.py::test_node_availability_zone[k8s-dqlite-True]",
+      "tests/test_cleanup.py::test_containerd_path_cleanup_on_failed_init",
+      "tests/test_dns.py::test_dns",
+      "tests/test_dns.py::test_dns_cluster_dns_propagates_to_late_joiners",
+      "tests/test_networking.py::test_with_fan_networking",
+      "tests/test_loadbalancer.py::test_loadbalancer_ipv6_dualstack",
+      "tests/test_user_config.py::test_user_config",
+      "tests/test_annotations.py::test_skip_services_stop_on_remove",
+      "tests/test_clustering.py::test_disa_stig_clustering",
+      "tests/test_feature_controller.py::test_feature_controller",
+      "tests/test_loadbalancer.py::test_loadbalancer_bgp_single_peer",
+      "tests/test_loadbalancer.py::test_loadbalancer_bgp_multi_peer_annotation"
+    ],
+    "total_occurrences": 0
+  },
+  "c4eb1051b0d4f447": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T17:00:48Z",
+    "last_seen": "2026-09-10T17:00:48Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [
+      "tests/test_snap_services.py::test_snap_services"
+    ],
+    "total_occurrences": 1
+  },
+  "c55cefd2ca3f28e7": {
+    "failure_class": "product.bug",
+    "first_seen": "2026-09-10T01:14:05Z",
+    "last_seen": "2026-09-11T07:49:10Z",
+    "periods": {
+      "2026-09": 288
+    },
+    "rule_id": "product-node-never-ready",
+    "subclass": "service_not_active",
+    "tests_affected": [
+      "tests/test_snap_services.py::test_snap_services",
+      "tests/test_version_upgrades.py::test_version_downgrades_with_rollback",
+      "tests/test_airgapped.py::test_airgapped_with_proxy",
+      "tests/test_clustering.py::test_etcd_learner_promotion",
+      "tests/test_airgapped.py::test_airgapped_with_image_mirror",
+      "tests/test_annotations.py::test_disable_separate_feature_upgrades",
+      "tests/test_clustering.py::test_control_plane_nodes",
+      "tests/test_clustering.py::test_disa_stig_clustering",
+      "tests/test_clustering.py::test_concurrent_worker_membership_operations",
+      "tests/test_clustering.py::test_worker_nodes",
+      "tests/test_clustering.py::test_concurrent_cp_membership_operations",
+      "tests/test_clustering.py::test_concurrent_membership_restart_operations",
+      "tests/test_clustering.py::test_node_join_succeeds_when_original_control_plane_is_down",
+      "tests/test_clustering.py::test_mixed_concurrent_membership_operations",
+      "tests/test_clustering.py::test_cert_refresh",
+      "tests/test_dns.py::test_dns_cluster_dns_propagates_to_late_joiners",
+      "tests/test_clustering.py::test_join_cp_with_duplicate_name_rejected",
+      "tests/test_containerd.py::test_containerd",
+      "tests/test_clustering.py::test_join_with_custom_token_name",
+      "tests/test_clustering.py::test_join_worker_with_duplicate_name_rejected",
+      "tests/test_fips_images.py::test_fips_images",
+      "tests/test_clustering.py::test_node_removal_during_concurrent_join",
+      "tests/test_dns.py::test_dns",
+      "tests/test_kubectl.py::test_kubectl",
+      "tests/test_dns.py::test_dns_ha_rebalancing",
+      "tests/test_ingress.py::test_ingress",
+      "tests/test_networking.py::test_dual_nic",
+      "tests/test_gateway.py::test_gateway",
+      "tests/test_node_availability_zone.py::test_node_availability_zone[False]",
+      "tests/test_networking.py::test_jumbo",
+      "tests/test_metrics_server.py::test_metrics_server",
+      "tests/test_node_taints.py::test_node_taints",
+      "tests/test_network.py::test_network",
+      "tests/test_storage.py::test_storage",
+      "tests/test_networking.py::test_with_fan_networking",
+      "tests/test_node_availability_zone.py::test_node_availability_zone[True]",
+      "tests/test_user_config.py::test_no_unnecessary_helm_revisions",
+      "tests/test_version_upgrades.py::test_version_upgrades",
+      "tests/test_annotations.py::test_no_remove",
+      "tests/test_annotations.py::test_skip_services_stop_on_remove",
+      "tests/test_cleanup.py::test_node_cleanup_new_containerd_path",
+      "tests/test_cleanup.py::test_containerd_base_dir_cli_flag",
+      "tests/test_config_propagation.py::test_config_propagation",
+      "tests/test_clustering_race.py::test_wrong_token_race",
+      "tests/test_external_certificates.py::test_vault_intermediate_ca",
+      "tests/test_external_certificates.py::test_vault_certificates",
+      "tests/test_external_certificates.py::test_partial_refresh",
+      "tests/test_networking.py::test_ipv6_only_on_dualstack_infra",
+      "tests/test_restart.py::test_restart"
+    ],
+    "total_occurrences": 288
+  },
+  "c9efa01b0ec91950": {
+    "failure_class": "external.dependency",
+    "first_seen": "2026-09-11T08:47:20Z",
+    "last_seen": "2026-09-11T08:47:20Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "rule_id": "external-apt",
+    "subclass": "apt",
+    "tests_affected": [],
+    "total_occurrences": 1
+  },
+  "d33c47b42995f224": {
+    "failure_class": "unknown",
+    "periods": {
+      "2026-09": 0
+    },
+    "tests_affected": [],
+    "total_occurrences": 0
+  },
+  "d6578f62ead4b19a": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T15:19:28Z",
+    "last_seen": "2026-09-10T15:36:10Z",
+    "periods": {
+      "2026-09": 2
+    },
+    "tests_affected": [],
+    "total_occurrences": 2
+  },
+  "d8f08d7de672da57": {
+    "failure_class": "unknown",
+    "periods": {
+      "2026-09": 0
+    },
+    "tests_affected": [],
+    "total_occurrences": 0
+  },
+  "dc915cd37bc0f6f6": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T17:13:05Z",
+    "last_seen": "2026-09-10T17:13:05Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [
+      "tests/test_version_upgrades.py::test_version_upgrades"
+    ],
+    "total_occurrences": 1
+  },
+  "e1544e6745b12a55": {
+    "failure_class": "unknown",
+    "periods": {
+      "2026-09": 0
+    },
+    "tests_affected": [
+      "tests/test_clustering_race.py::test_wrong_token_race",
+      "tests/test_gateway.py::test_gateway",
+      "tests/test_kubectl.py::test_kubectl",
+      "tests/test_node_availability_zone.py::test_node_availability_zone[True]",
+      "tests/test_version_upgrades.py::test_feature_upgrades_inplace",
+      "tests/test_cleanup.py::test_containerd_base_dir_cli_flag",
+      "tests/test_networking.py::test_with_fan_networking",
+      "tests/test_loadbalancer.py::test_loadbalancer_ipv6_only",
+      "tests/test_version_upgrades.py::test_version_upgrades"
+    ],
+    "total_occurrences": 0
+  },
+  "e3044bee657f6ceb": {
+    "failure_class": "external.dependency",
+    "periods": {
+      "2026-09": 0
+    },
+    "rule_id": "external-apt",
+    "subclass": "apt",
+    "tests_affected": [],
+    "total_occurrences": 0
+  },
+  "e4fbfc4ac76358a3": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T13:15:04Z",
+    "last_seen": "2026-09-10T13:15:04Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [],
+    "total_occurrences": 1
+  },
+  "e74b35f1af23e8a3": {
+    "failure_class": "unknown",
+    "periods": {
+      "2026-09": 0
+    },
+    "tests_affected": [],
+    "total_occurrences": 0
+  },
+  "e78d17474b492b14": {
+    "failure_class": "external.dependency",
+    "first_seen": "2026-09-10T09:09:22Z",
+    "last_seen": "2026-09-11T08:16:07Z",
+    "periods": {
+      "2026-09": 9
+    },
+    "rule_id": "external-snap-store",
+    "subclass": "snap_store",
+    "tests_affected": [
+      "tests/test_version_upgrades.py::test_version_downgrades_with_rollback",
+      "tests/test_annotations.py::test_disable_separate_feature_upgrades",
+      "tests/test_version_upgrades.py::test_version_upgrades"
+    ],
+    "total_occurrences": 9
+  },
+  "e8473ad70f2b04ef": {
+    "failure_class": "external.dependency",
+    "periods": {
+      "2026-09": 0
+    },
+    "rule_id": "external-apt",
+    "subclass": "apt",
+    "tests_affected": [],
+    "total_occurrences": 0
+  },
+  "ebd66004560a0708": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T08:35:44Z",
+    "last_seen": "2026-09-11T00:08:44Z",
+    "periods": {
+      "2026-09": 25
+    },
+    "tests_affected": [
+      "tests/test_clustering.py::test_mixed_concurrent_membership_operations",
+      "tests/test_annotations.py::test_no_remove",
+      "tests/test_cleanup.py::test_node_cleanup_new_containerd_path",
+      "tests/test_cleanup.py::test_containerd_base_dir_cli_flag",
+      "tests/test_annotations.py::test_skip_services_stop_on_remove",
+      "tests/test_external_certificates.py::test_partial_refresh",
+      "tests/test_config_propagation.py::test_config_propagation",
+      "tests/test_clustering_race.py::test_wrong_token_race",
+      "tests/test_external_certificates.py::test_vault_intermediate_ca",
+      "tests/test_external_certificates.py::test_vault_certificates",
+      "tests/test_networking.py::test_ipv6_only_on_dualstack_infra",
+      "tests/test_restart.py::test_restart",
+      "tests/test_annotations.py::test_disable_separate_feature_upgrades"
+    ],
+    "total_occurrences": 25
+  },
+  "f0bedae9b9b4a495": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T13:57:45Z",
+    "last_seen": "2026-09-10T13:57:45Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [],
+    "total_occurrences": 1
+  },
+  "f2a2163289fd2335": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T17:00:46Z",
+    "last_seen": "2026-09-10T17:00:46Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [
+      "tests/test_annotations.py::test_disable_separate_feature_upgrades"
+    ],
+    "total_occurrences": 1
+  },
+  "f45076ee8da41a73": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-11T01:01:49Z",
+    "last_seen": "2026-09-11T01:01:49Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [],
+    "total_occurrences": 1
+  },
+  "fe0e71bd26391b89": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-10T13:33:25Z",
+    "last_seen": "2026-09-10T13:33:25Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [
+      "tests/test_version_upgrades.py::test_feature_upgrades_inplace"
+    ],
+    "total_occurrences": 1
+  },
+  "fea4ca5a5168bc64": {
+    "failure_class": "unknown",
+    "periods": {
+      "2026-09": 0
+    },
+    "tests_affected": [
+      "tests/test_cilium_e2e.py::test_cilium_e2e"
+    ],
+    "total_occurrences": 0
+  }
+}
