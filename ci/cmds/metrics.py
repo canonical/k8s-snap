@@ -196,7 +196,8 @@ def add_metrics_cmds(parser: argparse.ArgumentParser) -> None:
         help="Post to Mattermost. Without it, the report only goes to stdout.",
     )
     report.add_argument(
-        "--webhook", help="Incoming webhook URL (or MATTERMOST_WEBHOOK_URL)."
+        "--webhook",
+        help="Incoming webhook URL (or MATTERMOST_BOT_WEBHOOK_URL).",
     )
     report.set_defaults(func=cmd_report)
 
@@ -837,9 +838,17 @@ def cmd_report(args: argparse.Namespace) -> int:
         print(text)
 
     if args.post:
-        webhook = args.webhook or os.environ.get("MATTERMOST_WEBHOOK_URL")
+        # MATTERMOST_BOT_WEBHOOK_URL is the name the rest of the repo already
+        # uses (nightly-test, weekly-test, security-triage). Inventing a
+        # second name would resolve to the empty string in Actions -- a
+        # missing secret is not an error there -- and the digest would
+        # silently never appear.
+        webhook = args.webhook or os.environ.get("MATTERMOST_BOT_WEBHOOK_URL")
         if not webhook:
-            LOG.error("--post requires --webhook or MATTERMOST_WEBHOOK_URL")
+            LOG.error(
+                "--post requires --webhook or MATTERMOST_BOT_WEBHOOK_URL; "
+                "refusing to exit 0 on an unposted digest"
+            )
             return 1
         # Reuses the existing webhook poster so the metrics digest lands in
         # the same channel, with the same credentials, as the nightly alert

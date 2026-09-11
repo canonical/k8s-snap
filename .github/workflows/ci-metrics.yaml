@@ -176,7 +176,7 @@ jobs:
         if: ${{ github.event.schedule == '0 7 * * *' || inputs.post }}
         working-directory: ci
         env:
-          MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
+          MATTERMOST_BOT_WEBHOOK_URL: ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }}
         run: |
           tox -e k8s-ci -- metrics report \
             --data-dir ../.metrics/ci/metrics-data --format mattermost --post
