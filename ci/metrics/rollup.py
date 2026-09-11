@@ -428,3 +428,87 @@ def class_split(rollup: Dict[str, Any]) -> List[Tuple[str, int, Optional[float]]
         (name, payload["count"], payload["share"])
         for name, payload in (rollup.get("m3_by_class") or {}).items()
     ]
+
+
+def merge_catalogue(
+    catalogue: Dict[str, Any], rollup: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Fold one period's signatures into the persistent catalogue.
+
+    A rollup only sees its own period, so the ``first_seen`` it computes is
+    really "first seen *this month*". Age derived from it resets at every
+    month boundary, and understates worst for the signatures that have been
+    failing longest -- the September digest reported the top signature, which
+    had been failing since June, as ten days old. That inverts the
+    prioritisation the age column exists to drive.
+
+    The catalogue is the cross-period memory that fixes it. It also has to be
+    committed rather than derived on demand: per-run records live in artifacts
+    with 90-day retention, so once they expire this is the only remaining
+    evidence of when a signature first appeared.
+
+    Merging is idempotent and order-independent -- re-running an old period
+    must not move a first_seen forward or a last_seen back.
+    """
+    merged = dict(catalogue)
+    period = rollup.get("period")
+    for sig in rollup.get("signatures") or []:
+        sid = sig.get("signature_id")
+        if not sid:
+            continue
+        entry = dict(merged.get(sid) or {})
+        first, last = sig.get("first_seen"), sig.get("last_seen")
+        if first and (not entry.get("first_seen") or first < entry["first_seen"]):
+            entry["first_seen"] = first
+        if last and (not entry.get("last_seen") or last > entry["last_seen"]):
+            entry["last_seen"] = last
+
+        # Occurrences are stored per period rather than summed, so that
+        # re-running a period corrects its contribution instead of doubling
+        # it. The total is derived below.
+        periods = dict(entry.get("periods") or {})
+        if period:
+            periods[period] = int(sig.get("occurrences") or 0)
+        entry["periods"] = periods
+        entry["total_occurrences"] = sum(periods.values())
+
+        for field in ("failure_class", "subclass", "rule_id", "owner"):
+            value = sig.get(field)
+            # Latest period wins: a signature reclassified by a new rule
+            # should not keep its stale attribution forever.
+            if value and (period is None or period >= max(periods, default="")):
+                entry[field] = value
+
+        tests = list(entry.get("tests_affected") or [])
+        for test in sig.get("tests_affected") or []:
+            if test not in tests:
+                tests.append(test)
+        entry["tests_affected"] = tests
+        merged[sid] = entry
+    return merged
+
+
+def apply_catalogue(rollup: Dict[str, Any], catalogue: Dict[str, Any]) -> None:
+    """Re-derive per-signature age in a rollup from the catalogue.
+
+    Mutates ``rollup`` in place so that reports show how long a signature has
+    *actually* been failing, not how long it has been failing this month.
+    """
+    now = dt.datetime.now(dt.timezone.utc)
+    ages = []
+    for sig in rollup.get("signatures") or []:
+        entry = catalogue.get(sig.get("signature_id"))
+        if not entry:
+            continue
+        first = entry.get("first_seen")
+        if not first:
+            continue
+        sig["first_seen"] = first
+        sig["total_occurrences"] = entry.get("total_occurrences")
+        parsed = _parse_ts(first)
+        if parsed:
+            sig["age_days"] = round((now - parsed).total_seconds() / 86400.0, 1)
+            ages.append(sig["age_days"])
+    if ages:
+        rollup["m6_signature_age_days_p50"] = round(statistics.median(ages), 1)
+        rollup["m6_signature_age_days_max"] = max(ages)

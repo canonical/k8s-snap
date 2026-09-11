@@ -36,7 +36,7 @@ from metrics.ingest import (
 )
 from metrics.models import ClassifiedBy, FailureClass, JobFailure, StepRecord
 from metrics.report import render_markdown, render_mattermost
-from metrics.rollup import aggregate
+from metrics.rollup import aggregate, apply_catalogue, merge_catalogue
 from metrics.router import ROUTER_VERSION, apply_router, route, route_all
 from metrics.rules import classify_with_rules, load_rules
 from metrics.scrub import find_secrets
@@ -787,9 +787,28 @@ def cmd_rollup(args: argparse.Namespace) -> int:
         return 1
 
     pack = load_rules()
+    catalogue = store.read_catalogue()
+
+    # Periods are merged oldest-first so the catalogue accumulates in
+    # chronological order and the newest period wins on attribution.
+    rollups = []
     for period, records in sorted(by_period.items()):
         payload = aggregate(records, period)
         payload["ruleset_version"] = pack.version
+        catalogue = merge_catalogue(catalogue, payload)
+        rollups.append((period, payload))
+
+    # Applied in a second pass: a signature's true age can depend on a period
+    # processed after it, so ages are only correct once every period in this
+    # invocation has contributed to the catalogue.
+    for _, payload in rollups:
+        apply_catalogue(payload, catalogue)
+
+    if not args.dry_run:
+        store.write_catalogue(catalogue)
+        LOG.info("Catalogue: %s signature(s) tracked", len(catalogue))
+
+    for period, payload in rollups:
         if args.dry_run:
             print(json.dumps(payload, indent=2, sort_keys=True))
             continue
