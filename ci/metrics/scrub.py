@@ -26,7 +26,7 @@ dropped. :func:`find_secrets` provides the audit path used by the release gate
 import re
 from typing import List, NamedTuple, Tuple
 
-SCRUBBER_VERSION = 1
+SCRUBBER_VERSION = 2
 
 REDACTED = "<redacted>"
 DROPPED = "<line dropped: possible secret>"
@@ -59,6 +59,13 @@ TOKEN_RULES: Tuple[Rule, ...] = (
     Rule("snapcraft-macaroon", _c(r"\b[A-Za-z0-9_-]{40,}={0,2}@[A-Za-z0-9.-]+\b")),
     # Kubernetes bootstrap tokens have a fixed, unmistakable shape.
     Rule("k8s-bootstrap-token", _c(r"\b[a-z0-9]{6}\.[a-z0-9]{16}\b")),
+    # A long unbroken base64-ish run is a payload, not a message -- in practice
+    # a k8sd join token, which embeds a cluster secret and is minted at runtime
+    # so GitHub never masks it. 60 chars is above anything a normal traceback
+    # line contains but below a real blob. Redacted in place rather than
+    # dropping the line: the match *is* the payload boundary, so the command
+    # around it survives and the failure stays classifiable.
+    Rule("base64-blob", _c(r"[A-Za-z0-9+/]{60,}={0,2}")),
     # Credentials embedded in a URL's userinfo section.
     Rule(
         "url-userinfo",
@@ -124,9 +131,6 @@ LINE_RULES: Tuple[Rule, ...] = (
         _c(r"^\s*#cloud-config|\bcloud-init\b.*\b(password|token)\b"),
         drop_line=True,
     ),
-    # A long unbroken base64-ish run is a payload, not a message. 60 chars is
-    # above anything a normal traceback line contains but below a real blob.
-    Rule("base64-blob", _c(r"[A-Za-z0-9+/]{60,}={0,2}"), drop_line=True),
 )
 
 # Values GitHub itself masked. Kept as-is: already safe, and useful context.

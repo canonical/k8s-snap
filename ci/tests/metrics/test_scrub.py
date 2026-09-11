@@ -70,8 +70,34 @@ class TestSecretsAreRemoved:
     def test_kubeconfig_material_drops_the_line(self):
         assert scrub_line("    client-key-data: LS0tLS1CRUdJTg==") == DROPPED
 
-    def test_long_base64_blob_drops_the_line(self):
-        assert scrub_line("data: " + "QUJDRA" * 12) == DROPPED
+    def test_long_base64_blob_is_redacted_in_place(self):
+        """The blob is the payload boundary, so the line can survive it.
+
+        Dropping the whole line cost us the command that failed and left the
+        failure unclassifiable; the bytes removed are identical either way.
+        """
+        assert scrub_line("data: " + "QUJDRA" * 12) == "data: " + REDACTED
+
+    def test_real_join_token_is_removed_but_the_command_survives(self):
+        """Regression from real CI output (job 83117743428).
+
+        ``k8s join-cluster`` takes a base64 token that embeds a cluster secret
+        and fingerprint. It is minted at runtime, so GitHub never masks it --
+        this scrubber is the only thing standing between it and a durable
+        artifact. 281 excerpts in the 90-day backfill contained one.
+        """
+        token = (
+            "eyJzZWNyZXQiOiJkNTYzZGI0NDJiY2ZlM2YyYTY1NzViZjljYjNhOGJiZjZmZWI1"
+            "MmZkYmFkZDgxNTJmNmMyYTU1NGViZTkyYTQwIiwiZmluZ2VycHJpbnQiOiI3Zjhj"
+        )
+        line = "CalledProcessError: Command '['k8s', 'join-cluster', '{}']'".format(
+            token
+        )
+        out = scrub_line(line)
+        assert token not in out
+        assert "d563db442bcfe3f2" not in out
+        assert "join-cluster" in out, "context needed for classification was lost"
+        assert find_secrets(out) == []
 
     def test_multiline_excerpt(self):
         text = "\n".join(
