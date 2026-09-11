@@ -291,7 +291,7 @@ rules:
   - id: infra-missing-tool
     class: infra.runner
     subclass: missing_tool
-    excerpt_pattern: "^[^:]*: line \\d+: (\\w+): command not found|: command not found"
+    excerpt_pattern: ": command not found|FileNotFoundError: \\[Errno 2\\] No such file or directory: '(lxc|lxd|multipass|snap|zip|jq|kubectl)'"
     notes: >-
       A binary the workflow assumes is present is absent from the runner
       image -- observed as `zip: command not found` on self-hosted runners,
@@ -313,6 +313,58 @@ rules:
       and the underlying concern -- service lifecycle not being honoured --
       are identical; the direction of the error does not change who fixes it.
       50 occurrences.
+
+  - id: product-service-not-active-text
+    class: product.bug
+    subclass: service_not_active
+    excerpt_pattern: "Service \\S+ should be active, but it is inactive"
+    notes: >-
+      The text form of product-kube-proxy-inactive, which is pinned by
+      signature alone. Pins are exact by design, so the same assertion
+      arriving under a different signature -- different surrounding frames,
+      a different service name -- slipped past it and sat in unknown. This
+      rule generalises on the message; the pin above still wins for the
+      signature it names, so the attribution of already-classified failures
+      does not move.
+
+  - id: product-gateway-ip-missing
+    class: product.bug
+    subclass: networking
+    excerpt_pattern: "No Gateway IP found|AssertionError: No LoadBalancer IP"
+    notes: >-
+      The gateway or load-balancer never got an address, so the networking
+      feature did not finish coming up.
+
+  - id: product-upgrade-crd
+    class: product.bug
+    subclass: upgrade_failure
+    excerpt_pattern: "upgrade CRD should (not )?be created|AssertionError: upgrade .{0,40}(CRD|custom resource)"
+    notes: >-
+      The upgrade custom resource is in the wrong state -- created when the
+      test expected none, or absent when it expected one. Either way it is
+      the upgrade controller's own bookkeeping.
+
+  - id: product-fips-not-enforced
+    class: product.bug
+    subclass: api_error
+    excerpt_pattern: "k8sd should fail with FIPS enabled|Expected pods .{0,60}to fail with FIPS error"
+    notes: >-
+      FIPS enforcement did not happen: the product was expected to refuse a
+      non-compliant configuration and accepted it instead. A silent failure
+      to enforce is worth ranking as a product bug rather than a test
+      nuisance, because the test passing would be the dangerous outcome.
+
+  - id: test-empty-command-output
+    class: test.bug
+    subclass: bad_assumption
+    excerpt_pattern: "json\\.decoder\\.JSONDecodeError: Expecting value: line 1 column 1 \\(char 0\\)"
+    notes: >-
+      The harness parsed a command's stdout as JSON and got nothing. The
+      product may well have failed first, but the test discarded whatever it
+      said and reported a parse error instead, so the evidence needed to
+      blame the product no longer exists. Attributed to the test because the
+      fix is in the test: check the exit status and surface stderr before
+      parsing.
 
   - id: test-harness-bug
     class: test.bug
