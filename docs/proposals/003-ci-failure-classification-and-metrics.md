@@ -336,6 +336,35 @@ single-occurrence signatures and buries the root cause. Adding ERRORS
 extraction collapsed one weekly run from 46 signatures to 9, and its
 unclassified rate from 61.7% to 1.7%.
 
+**What the excerpt actually contains, and why it decides the rule shape.** The
+integration harness runs every command through `util.run`, so the overwhelming
+majority of product failures surface as the *same* `CalledProcessError`
+traceback. The Python frames are identical; the only discriminator left is the
+command that was wrapped. Rules therefore match on the wrapped command —
+`k8s x-wait-for`, `k8s status --wait-ready`, `k8s bootstrap`, `k8s join-cluster`,
+`snap install k8s` — rather than on assertion text, which for this repo mostly
+does not exist. Six such rules attributed 1,801 failures that had been sitting
+in `unknown`.
+
+This also bounds what classification can honestly claim. The excerpt captures
+the harness wrapper, not the wrapped command's own stderr, so
+`snap install k8s` failing tells us *that* it failed and not *why*. The rule
+records that limitation in its notes rather than inventing a subclass. Deeper
+extraction — capturing the failed command's output, not just the Python frame
+— is the single highest-value improvement available to Stage B, and would let
+several of these rules split into real causes.
+
+**Redaction breadth is traded against attribution, explicitly.** The scrubber
+originally dropped any line containing a long base64 run. That rule was
+catching something real: 281 excerpts in the backfill contained a k8sd join
+token, which embeds a cluster secret and is minted at runtime, so Actions never
+masks it. But dropping the whole line also removed the failing command, and
+every one of those failures was consequently unclassifiable. Because a base64
+run has an unambiguous boundary — unlike a private key block or a cloud-init
+body — the token can be excised in place instead. The same bytes are removed;
+the surrounding command survives. Whole-line kills are now reserved for
+payloads whose extent cannot be determined.
+
 Normalisation must collapse counts as well as identifiers. `kubelet (3
 restarts)` and `kubelet (1 restarts)` are the same failure and must hash the
 same.
