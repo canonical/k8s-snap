@@ -51,6 +51,8 @@ SUBCLASSES: Dict[FailureClass, List[str]] = {
         "oom",
         "self_hosted_unavailable",
         "node_cleanup",
+        # A tool the workflow assumes exists is absent from the image.
+        "missing_tool",
     ],
     FailureClass.INFRA_PROVISIONING: [
         "lxd_setup",
@@ -83,6 +85,15 @@ SUBCLASSES: Dict[FailureClass, List[str]] = {
         "upgrade_failure",
         "networking",
         "storage",
+        # Added in taxonomy v2 after the 90-day backfill showed that the
+        # integration harness funnels nearly every product failure through
+        # one CalledProcessError frame, leaving the wrapped command as the
+        # only discriminator. These name the four commands that account for
+        # the bulk of it, so "product.bug" stops being a single opaque heap.
+        "wait_for_timeout",
+        "cluster_never_ready",
+        "bootstrap_failure",
+        "snap_install_failure",
     ],
     FailureClass.TEST_BUG: [
         "timeout_too_short",
@@ -90,6 +101,8 @@ SUBCLASSES: Dict[FailureClass, List[str]] = {
         "resource_leak",
         "race_in_test",
         "unmaintained",
+        # The harness itself raised, so no product code ran at all.
+        "harness_bug",
     ],
     FailureClass.UNKNOWN: [],
 }

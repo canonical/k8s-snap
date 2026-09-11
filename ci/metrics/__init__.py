@@ -17,7 +17,7 @@ INGEST_VERSION = 1
 # Version of the failure taxonomy (the `class`/`subclass` value space).
 # Stored on every classified record so historical comparisons stay honest
 # when the taxonomy evolves.
-TAXONOMY_VERSION = 1
+TAXONOMY_VERSION = 2
 
 __all__ = [
     "SCHEMA_VERSION",

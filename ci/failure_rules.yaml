@@ -217,8 +217,93 @@ rules:
       pin per branch.
 
   # ---------------------------------------------------------------------
+  # Command-wrapper families.
+  #
+  # The integration harness runs everything through `util.run`, so almost
+  # every product failure surfaces as the same CalledProcessError frame and
+  # the only discriminator left in the excerpt is the command it wrapped.
+  # Matching on that command is therefore how the long tail gets owned:
+  # these five rules cover ~1,300 occurrences that were previously unknown.
+  #
+  # They sit below the external.dependency rules on purpose. Those match the
+  # underlying store/registry error text, so when a real external cause is
+  # visible it still wins and these never see the failure.
+  # ---------------------------------------------------------------------
+
+  - id: product-wait-for-timeout
+    class: product.bug
+    subclass: wait_for_timeout
+    excerpt_pattern: "k8s x-wait-for (network|dns|kube-system-ready|[a-z-]+).{0,40}--timeout"
+    notes: >-
+      `k8s x-wait-for <subsystem>` exhausted its own timeout -- 20 minutes in
+      every observed case. The product was asked whether it had converged, it
+      said no for twenty minutes, and it is the product that owns that answer.
+      The largest unowned family in the 90-day backfill (757 occurrences
+      across two signatures, network and dns).
+
+  - id: product-cluster-never-ready
+    class: product.bug
+    subclass: cluster_never_ready
+    excerpt_pattern: "k8s status --wait-ready"
+    notes: >-
+      `k8s status --wait-ready` returned non-zero, so the cluster never
+      reached a ready state. Distinct from wait_for_timeout because it is the
+      aggregate readiness check rather than one subsystem, and distinct from
+      product-node-never-ready which is the harness-side assertion.
+      230 occurrences.
+
+  - id: product-bootstrap-failure
+    class: product.bug
+    subclass: bootstrap_failure
+    excerpt_pattern: "k8s bootstrap"
+    notes: >-
+      `k8s bootstrap` failed outright. Nothing downstream of it in the test
+      can be meaningful, so this is deliberately ranked above the readiness
+      rules -- a bootstrap failure that also times out waiting should be
+      reported as the bootstrap failure. 74 occurrences.
+
+  - id: product-snap-install-failure
+    class: product.bug
+    subclass: snap_install_failure
+    excerpt_pattern: "snap (install|refresh) k8s"
+    notes: >-
+      Installing or refreshing our own snap from a published channel failed.
+      Attributed to the product rather than the store because the
+      external.dependency rules above match the store's own error text and
+      are evaluated first; if the store had said anything, this rule would
+      never have been reached. What remains is our snap failing to install
+      from a channel the store served. Caveat recorded honestly: the excerpt
+      captures the harness wrapper, not the snapd output, so the underlying
+      reason is not visible -- improving that extraction would let this split
+      into real subclasses.
+
+  - id: infra-missing-tool
+    class: infra.runner
+    subclass: missing_tool
+    excerpt_pattern: "^[^:]*: line \\d+: (\\w+): command not found|: command not found"
+    notes: >-
+      A binary the workflow assumes is present is absent from the runner
+      image -- observed as `zip: command not found` on self-hosted runners,
+      where the image is ours to fix and drifts from the GitHub-hosted one.
+      Infra rather than ci.config because the workflow is not wrong; the
+      machine it was given is incomplete.
+
+  # ---------------------------------------------------------------------
   # Test bugs. Last: only reached when nothing above claimed the failure.
   # ---------------------------------------------------------------------
+
+  - id: test-harness-bug
+    class: test.bug
+    subclass: harness_bug
+    excerpt_pattern: "tests/test_util/.*\\n.*\\n?.*(TypeError|AttributeError|NameError|ImportError)|BaseRetrying\\.__init__\\(\\) got an unexpected keyword"
+    notes: >-
+      The test harness itself raised, so no product code was ever exercised.
+      Found as 252 occurrences of
+      `BaseRetrying.__init__() got an unexpected keyword argument 'delay_3'`
+      -- `util.py` passing a malformed kwarg to tenacity, which fails every
+      test that uses the retry helper regardless of product state. Worth
+      calling out as its own subclass precisely because it is cheap to fix
+      and was invisible while it sat in the unknown bucket.
 
   - id: test-timeout-too-short
     class: test.bug
