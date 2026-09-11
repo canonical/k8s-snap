@@ -1,0 +1,2072 @@
+{
+  "by_rule": {
+    "external-apt": 2,
+    "external-snap-store": 10,
+    "product-kube-proxy-inactive": 41,
+    "product-node-never-ready": 288,
+    "product-retry-condition-never-met": 52,
+    "product-service-restarts": 8,
+    "product-service-restarts-rollback": 2,
+    "provisioning.lxd": 8,
+    "runner.lost": 8
+  },
+  "daily": {
+    "2026-09-10": {
+      "failures": 472,
+      "jobs": 6105,
+      "runs": 39
+    },
+    "2026-09-11": {
+      "failures": 82,
+      "jobs": 2834,
+      "runs": 14
+    }
+  },
+  "generated_at": "2026-09-11T09:07:27.564558+00:00",
+  "inconclusive_retries": 8,
+  "jobs_failure": 554,
+  "jobs_skipped": 31,
+  "jobs_total": 8939,
+  "m10_tests_collected": {
+    "Go candidate smoke test|||": {
+      "max": 19,
+      "median": 19,
+      "min": 19
+    },
+    "Integration|ubuntu:22.04|amd64|1.32-classic/edge": {
+      "max": 42,
+      "median": 42,
+      "min": 42
+    },
+    "Integration|ubuntu:22.04|amd64|1.33-classic/edge": {
+      "max": 48,
+      "median": 48,
+      "min": 48
+    },
+    "Integration|ubuntu:22.04|amd64|1.34-classic/edge": {
+      "max": 53,
+      "median": 53,
+      "min": 53
+    },
+    "Integration|ubuntu:22.04|amd64|1.35-classic/edge": {
+      "max": 63,
+      "median": 63,
+      "min": 63
+    },
+    "Integration|ubuntu:22.04|amd64|1.36-classic/edge": {
+      "max": 68,
+      "median": 68,
+      "min": 68
+    },
+    "Integration|ubuntu:22.04|amd64|1.37-classic/edge": {
+      "max": 68,
+      "median": 68,
+      "min": 68
+    },
+    "Integration|ubuntu:22.04|amd64|latest/edge": {
+      "max": 68,
+      "median": 68,
+      "min": 68
+    },
+    "Integration|ubuntu:22.04|arm64|1.32-classic/edge": {
+      "max": 42,
+      "median": 42,
+      "min": 42
+    },
+    "Integration|ubuntu:22.04|arm64|1.33-classic/edge": {
+      "max": 48,
+      "median": 48,
+      "min": 48
+    },
+    "Integration|ubuntu:22.04|arm64|1.34-classic/edge": {
+      "max": 53,
+      "median": 53,
+      "min": 53
+    },
+    "Integration|ubuntu:22.04|arm64|1.35-classic/edge": {
+      "max": 63,
+      "median": 63,
+      "min": 63
+    },
+    "Integration|ubuntu:22.04|arm64|1.36-classic/edge": {
+      "max": 68,
+      "median": 68,
+      "min": 68
+    },
+    "Integration|ubuntu:22.04|arm64|1.37-classic/edge": {
+      "max": 68,
+      "median": 68,
+      "min": 68
+    },
+    "Integration|ubuntu:22.04|arm64|latest/edge": {
+      "max": 68,
+      "median": 68,
+      "min": 68
+    },
+    "Integration|ubuntu:24.04|amd64|1.32-classic/edge": {
+      "max": 42,
+      "median": 42,
+      "min": 42
+    },
+    "Integration|ubuntu:24.04|amd64|1.33-classic/edge": {
+      "max": 48,
+      "median": 48,
+      "min": 48
+    },
+    "Integration|ubuntu:24.04|amd64|1.34-classic/edge": {
+      "max": 53,
+      "median": 53,
+      "min": 53
+    },
+    "Integration|ubuntu:24.04|amd64|1.35-classic/edge": {
+      "max": 63,
+      "median": 63,
+      "min": 63
+    },
+    "Integration|ubuntu:24.04|amd64|1.36-classic/edge": {
+      "max": 68,
+      "median": 68,
+      "min": 68
+    },
+    "Integration|ubuntu:24.04|amd64|1.37-classic/edge": {
+      "max": 68,
+      "median": 68,
+      "min": 68
+    },
+    "Integration|ubuntu:24.04|amd64|latest/edge": {
+      "max": 68,
+      "median": 68,
+      "min": 68
+    },
+    "Integration|ubuntu:24.04|arm64|1.32-classic/edge": {
+      "max": 42,
+      "median": 42,
+      "min": 42
+    },
+    "Integration|ubuntu:24.04|arm64|1.33-classic/edge": {
+      "max": 48,
+      "median": 48,
+      "min": 48
+    },
+    "Integration|ubuntu:24.04|arm64|1.34-classic/edge": {
+      "max": 53,
+      "median": 53,
+      "min": 53
+    },
+    "Integration|ubuntu:24.04|arm64|1.35-classic/edge": {
+      "max": 63,
+      "median": 63,
+      "min": 63
+    },
+    "Integration|ubuntu:24.04|arm64|1.36-classic/edge": {
+      "max": 68,
+      "median": 68,
+      "min": 68
+    },
+    "Integration|ubuntu:24.04|arm64|1.37-classic/edge": {
+      "max": 68,
+      "median": 68,
+      "min": 68
+    },
+    "Integration|ubuntu:24.04|arm64|latest/edge": {
+      "max": 68,
+      "median": 68,
+      "min": 68
+    },
+    "Integration|ubuntu:24.04||": {
+      "max": 50,
+      "median": 34,
+      "min": 18
+    },
+    "Integration|ubuntu:26.04|amd64|1.32-classic/edge": {
+      "max": 42,
+      "median": 42,
+      "min": 42
+    },
+    "Integration|ubuntu:26.04|amd64|1.33-classic/edge": {
+      "max": 48,
+      "median": 48,
+      "min": 48
+    },
+    "Integration|ubuntu:26.04|amd64|1.34-classic/edge": {
+      "max": 53,
+      "median": 53,
+      "min": 53
+    },
+    "Integration|ubuntu:26.04|amd64|1.35-classic/edge": {
+      "max": 63,
+      "median": 63,
+      "min": 63
+    },
+    "Integration|ubuntu:26.04|amd64|1.36-classic/edge": {
+      "max": 68,
+      "median": 68,
+      "min": 68
+    },
+    "Integration|ubuntu:26.04|amd64|1.37-classic/edge": {
+      "max": 68,
+      "median": 68,
+      "min": 68
+    },
+    "Integration|ubuntu:26.04|amd64|latest/edge": {
+      "max": 68,
+      "median": 68,
+      "min": 68
+    },
+    "Integration|ubuntu:26.04|arm64|1.32-classic/edge": {
+      "max": 42,
+      "median": 42,
+      "min": 42
+    },
+    "Integration|ubuntu:26.04|arm64|1.33-classic/edge": {
+      "max": 48,
+      "median": 48,
+      "min": 48
+    },
+    "Integration|ubuntu:26.04|arm64|1.34-classic/edge": {
+      "max": 53,
+      "median": 53,
+      "min": 53
+    },
+    "Integration|ubuntu:26.04|arm64|1.35-classic/edge": {
+      "max": 63,
+      "median": 63,
+      "min": 63
+    },
+    "Integration|ubuntu:26.04|arm64|1.36-classic/edge": {
+      "max": 68,
+      "median": 68,
+      "min": 68
+    },
+    "Integration|ubuntu:26.04|arm64|1.37-classic/edge": {
+      "max": 68,
+      "median": 68,
+      "min": 68
+    },
+    "Integration|ubuntu:26.04|arm64|latest/edge": {
+      "max": 68,
+      "median": 68,
+      "min": 68
+    },
+    "Integration||amd64|": {
+      "max": 71,
+      "median": 66,
+      "min": 19
+    },
+    "Integration||arm64|": {
+      "max": 71,
+      "median": 66,
+      "min": 19
+    },
+    "Test ubuntu:20.04|||": {
+      "max": 44,
+      "median": 44,
+      "min": 44
+    },
+    "Test ubuntu:22.04|||": {
+      "max": 44,
+      "median": 44,
+      "min": 44
+    },
+    "Test ubuntu:24.04|||": {
+      "max": 44,
+      "median": 44,
+      "min": 44
+    }
+  },
+  "m11_failed_prepare_jobs": 0,
+  "m11_jobs_not_run_due_to_upstream": 0,
+  "m12_quarantine_age_days_p50": null,
+  "m12_quarantined_signatures": 0,
+  "m1_scheduled_green_rate": 0.0,
+  "m2_pr_first_pass_rate": 7.8,
+  "m3_by_class": {
+    "external.dependency": {
+      "count": 12,
+      "share": 2.2
+    },
+    "infra.provisioning": {
+      "count": 8,
+      "share": 1.4
+    },
+    "infra.runner": {
+      "count": 8,
+      "share": 1.4
+    },
+    "product.bug": {
+      "count": 391,
+      "share": 70.6
+    },
+    "unknown": {
+      "count": 135,
+      "share": 24.4
+    }
+  },
+  "m3_by_subclass": {
+    "external.dependency/apt": 2,
+    "external.dependency/snap_store": 10,
+    "infra.provisioning/lxd_setup": 8,
+    "infra.runner/runner_lost": 8,
+    "product.bug/service_not_active": 337,
+    "product.bug/upgrade_failure": 54,
+    "unknown/None": 135
+  },
+  "m3_job_failure_rate": 6.2,
+  "m4_flake_rate": 48.1,
+  "m5_fingerprinted_failures": 538,
+  "m5_top5_concentration": 81.8,
+  "m6_signature_age_days_max": 1.4,
+  "m6_signature_age_days_p50": 0.8,
+  "m7_unowned_signatures": 59,
+  "m8_runner_minutes_failed": 15897.5,
+  "m8_runner_minutes_total": 94449.8,
+  "m8_runner_minutes_wasted_share": 16.8,
+  "m8_self_hosted_minutes_failed": 6082.6,
+  "m9_inspected_failures": 554,
+  "m9_inspection_coverage": 100.0,
+  "m9_unclassified_rate": 24.4,
+  "period": "2026-09",
+  "recovered_on_retry": 38,
+  "retried_jobs": 79,
+  "rollup_version": 1,
+  "ruleset_version": 1,
+  "runs": 53,
+  "runs_by_workflow": {
+    "lint_and_integration": {
+      "first_attempt_green": 4,
+      "green": 5,
+      "total": 51
+    },
+    "nightly-test": {
+      "first_attempt_green": 0,
+      "green": 0,
+      "total": 2
+    }
+  },
+  "signatures": [
+    {
+      "age_days": 1.3,
+      "configs_affected": [
+        "arm64",
+        "amd64",
+        "ubuntu:24.04",
+        "ubuntu:24.04/amd64/1.36-classic/edge",
+        "ubuntu:22.04/arm64/1.37-classic/edge",
+        "ubuntu:26.04/amd64/1.37-classic/edge",
+        "ubuntu:24.04/amd64/latest/edge",
+        "ubuntu:22.04/arm64/latest/edge",
+        "ubuntu:22.04/amd64/1.36-classic/edge",
+        "ubuntu:26.04/arm64/1.37-classic/edge",
+        "ubuntu:24.04/arm64/1.37-classic/edge",
+        "ubuntu:24.04/arm64/latest/edge",
+        "ubuntu:24.04/arm64/1.36-classic/edge",
+        "ubuntu:26.04/arm64/latest/edge",
+        "ubuntu:26.04/amd64/1.36-classic/edge",
+        "ubuntu:22.04/amd64/latest/edge",
+        "ubuntu:22.04/amd64/1.37-classic/edge",
+        "ubuntu:24.04/amd64/1.37-classic/edge",
+        "ubuntu:26.04/arm64/1.36-classic/edge",
+        "ubuntu:26.04/amd64/latest/edge",
+        "ubuntu:22.04/arm64/1.36-classic/edge"
+      ],
+      "exemplar_excerpt": "  File \"/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py\", line 399, in wait_until_k8s_ready\n    assert is_node_ready(control_node, node_name)\nAssertionError",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34452508229/job/102796001770",
+      "failure_class": "product.bug",
+      "first_seen": "2026-09-10T01:14:05Z",
+      "last_seen": "2026-09-11T07:49:10Z",
+      "occurrences": 288,
+      "owner": null,
+      "recovered_on_retry": 2,
+      "retry_occurrences": 19,
+      "rule_id": "product-node-never-ready",
+      "runs_seen": 15,
+      "signature_id": "c55cefd2ca3f28e7",
+      "subclass": "service_not_active",
+      "tests_affected": [
+        "tests/test_snap_services.py::test_snap_services",
+        "tests/test_version_upgrades.py::test_version_downgrades_with_rollback",
+        "tests/test_airgapped.py::test_airgapped_with_proxy",
+        "tests/test_clustering.py::test_etcd_learner_promotion",
+        "tests/test_airgapped.py::test_airgapped_with_image_mirror",
+        "tests/test_annotations.py::test_disable_separate_feature_upgrades",
+        "tests/test_clustering.py::test_control_plane_nodes",
+        "tests/test_clustering.py::test_disa_stig_clustering",
+        "tests/test_clustering.py::test_concurrent_worker_membership_operations",
+        "tests/test_clustering.py::test_worker_nodes",
+        "tests/test_clustering.py::test_concurrent_cp_membership_operations",
+        "tests/test_clustering.py::test_concurrent_membership_restart_operations",
+        "tests/test_clustering.py::test_node_join_succeeds_when_original_control_plane_is_down",
+        "tests/test_clustering.py::test_mixed_concurrent_membership_operations",
+        "tests/test_clustering.py::test_cert_refresh",
+        "tests/test_dns.py::test_dns_cluster_dns_propagates_to_late_joiners",
+        "tests/test_clustering.py::test_join_cp_with_duplicate_name_rejected",
+        "tests/test_containerd.py::test_containerd",
+        "tests/test_clustering.py::test_join_with_custom_token_name",
+        "tests/test_clustering.py::test_join_worker_with_duplicate_name_rejected",
+        "tests/test_fips_images.py::test_fips_images",
+        "tests/test_clustering.py::test_node_removal_during_concurrent_join",
+        "tests/test_dns.py::test_dns",
+        "tests/test_kubectl.py::test_kubectl",
+        "tests/test_dns.py::test_dns_ha_rebalancing",
+        "tests/test_ingress.py::test_ingress",
+        "tests/test_networking.py::test_dual_nic",
+        "tests/test_gateway.py::test_gateway",
+        "tests/test_node_availability_zone.py::test_node_availability_zone[False]",
+        "tests/test_networking.py::test_jumbo",
+        "tests/test_metrics_server.py::test_metrics_server",
+        "tests/test_node_taints.py::test_node_taints",
+        "tests/test_network.py::test_network",
+        "tests/test_storage.py::test_storage",
+        "tests/test_networking.py::test_with_fan_networking",
+        "tests/test_node_availability_zone.py::test_node_availability_zone[True]",
+        "tests/test_user_config.py::test_no_unnecessary_helm_revisions",
+        "tests/test_version_upgrades.py::test_version_upgrades",
+        "tests/test_annotations.py::test_no_remove",
+        "tests/test_annotations.py::test_skip_services_stop_on_remove",
+        "tests/test_cleanup.py::test_node_cleanup_new_containerd_path",
+        "tests/test_cleanup.py::test_containerd_base_dir_cli_flag",
+        "tests/test_config_propagation.py::test_config_propagation",
+        "tests/test_clustering_race.py::test_wrong_token_race",
+        "tests/test_external_certificates.py::test_vault_intermediate_ca",
+        "tests/test_external_certificates.py::test_vault_certificates",
+        "tests/test_external_certificates.py::test_partial_refresh",
+        "tests/test_networking.py::test_ipv6_only_on_dualstack_infra",
+        "tests/test_restart.py::test_restart"
+      ]
+    },
+    {
+      "age_days": 1.3,
+      "configs_affected": [
+        "arm64",
+        "amd64",
+        "ubuntu:22.04/amd64/1.35-classic/edge",
+        "ubuntu:22.04/arm64/1.37-classic/edge",
+        "ubuntu:26.04/amd64/1.37-classic/edge",
+        "ubuntu:24.04/amd64/latest/edge",
+        "ubuntu:22.04/arm64/latest/edge",
+        "ubuntu:26.04/arm64/1.37-classic/edge",
+        "ubuntu:24.04/arm64/1.37-classic/edge",
+        "ubuntu:24.04/arm64/latest/edge",
+        "ubuntu:26.04/arm64/latest/edge",
+        "ubuntu:22.04/amd64/latest/edge",
+        "ubuntu:22.04/amd64/1.37-classic/edge",
+        "ubuntu:24.04/amd64/1.37-classic/edge",
+        "ubuntu:26.04/amd64/latest/edge",
+        "ubuntu:24.04/amd64/1.35-classic/edge",
+        "ubuntu:24.04/amd64/1.36-classic/edge",
+        "ubuntu:26.04/arm64/1.36-classic/edge",
+        "ubuntu:22.04/amd64/1.34-classic/edge",
+        "ubuntu:22.04/arm64/1.35-classic/edge"
+      ],
+      "exemplar_excerpt": "  File \"/home/runner/work/k8s-snap/k8s-snap/tests/integration/.tox/integration/lib/python3.12/site-packages/tenacity/__init__.py\", line 382, in __call__\n    result = fn(*args, **kwargs)\n  File \"/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py\", line 95, in _exec\n    assert self._condition(resp), \"Failed to meet condition\"\nAssertionError: Failed to meet condition",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34452508229/job/102796004176",
+      "failure_class": "product.bug",
+      "first_seen": "2026-09-10T00:43:51Z",
+      "last_seen": "2026-09-11T07:49:11Z",
+      "occurrences": 52,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 4,
+      "rule_id": "product-retry-condition-never-met",
+      "runs_seen": 12,
+      "signature_id": "8c531e6ba49b3382",
+      "subclass": "upgrade_failure",
+      "tests_affected": [
+        "tests/test_version_upgrades.py::test_feature_upgrades_inplace",
+        "tests/test_version_upgrades.py::test_version_upgrades",
+        "tests/test_clustering.py::test_node_removal_during_concurrent_join"
+      ]
+    },
+    {
+      "age_days": 1.3,
+      "configs_affected": [
+        "arm64",
+        "ubuntu:24.04",
+        "amd64",
+        "ubuntu:24.04/amd64/1.34-classic/edge",
+        "ubuntu:22.04/amd64/1.34-classic/edge",
+        "ubuntu:24.04/arm64/1.34-classic/edge",
+        "ubuntu:26.04/arm64/1.34-classic/edge",
+        "ubuntu:24.04/amd64/1.35-classic/edge",
+        "ubuntu:24.04/arm64/1.35-classic/edge",
+        "ubuntu:22.04/amd64/1.35-classic/edge",
+        "ubuntu:24.04/arm64/1.33-classic/edge",
+        "ubuntu:22.04/arm64/1.34-classic/edge",
+        "ubuntu:26.04/amd64/1.35-classic/edge",
+        "ubuntu:26.04/amd64/1.33-classic/edge",
+        "ubuntu:26.04/arm64/1.35-classic/edge",
+        "ubuntu:26.04/amd64/1.34-classic/edge",
+        "ubuntu:24.04/amd64/1.33-classic/edge",
+        "ubuntu:22.04/arm64/1.33-classic/edge",
+        "ubuntu:22.04/arm64/1.35-classic/edge",
+        "ubuntu:26.04/arm64/1.33-classic/edge",
+        "ubuntu:22.04/amd64/1.33-classic/edge"
+      ],
+      "exemplar_excerpt": "  File \"/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py\", line 362, in wait_until_k8s_ready\n    check_snap_services_ready(instance)\n  File \"/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py\", line 1206, in check_snap_services_ready\n    service_status[service] == \"active\"\nAssertionError: Service kube-proxy should be active, but it is inactive",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34481480637/job/102893904891",
+      "failure_class": "product.bug",
+      "first_seen": "2026-09-10T01:00:10Z",
+      "last_seen": "2026-09-11T03:07:40Z",
+      "occurrences": 41,
+      "owner": null,
+      "recovered_on_retry": 1,
+      "retry_occurrences": 3,
+      "rule_id": "product-kube-proxy-inactive",
+      "runs_seen": 3,
+      "signature_id": "38c23bd3a1bab957",
+      "subclass": "service_not_active",
+      "tests_affected": [
+        "tests/test_annotations.py::test_disable_separate_feature_upgrades",
+        "tests/test_version_upgrades.py::test_version_downgrades_with_rollback"
+      ]
+    },
+    {
+      "age_days": 0.9,
+      "configs_affected": [
+        "arm64",
+        "amd64"
+      ],
+      "exemplar_excerpt": "  File \"/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py\", line 50, in run\n    return subprocess.run(command, **kwargs)\n  File \"/usr/lib/python3.12/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['lxc', 'shell', 'k8s-integration-2-3f2333', '--', 'bash', '-c', 'k8s x-wait-for network --timeout 20m']' returned non-zero exit status 1.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34464281672/job/102834393656",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T10:25:01Z",
+      "last_seen": "2026-09-10T10:40:16Z",
+      "occurrences": 34,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 3,
+      "signature_id": "3f2108396bd179b8",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_loadbalancer.py::test_loadbalancer_bgp_multi_peer_annotation",
+        "tests/test_loadbalancer.py::test_loadbalancer_ipv6_dualstack",
+        "tests/test_loadbalancer.py::test_loadbalancer_ipv6_only",
+        "tests/test_loadbalancer.py::test_loadbalancer_ipv4",
+        "tests/test_loadbalancer.py::test_loadbalancer_bgp_annotation_peers_with_advertise_all_pools",
+        "tests/test_loadbalancer.py::test_loadbalancer_bgp_single_peer",
+        "tests/test_loadbalancer.py::test_loadbalancer_bgp_advertise_all_pools_annotation"
+      ]
+    },
+    {
+      "age_days": 1.0,
+      "configs_affected": [
+        "arm64",
+        "amd64",
+        "ubuntu:22.04/arm64/1.36-classic/edge"
+      ],
+      "exemplar_excerpt": "  File \"/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py\", line 50, in run\n    return subprocess.run(command, **kwargs)\n  File \"/usr/lib/python3.12/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\n<line dropped: possible secret>",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34454500572/job/102802261908",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T08:35:44Z",
+      "last_seen": "2026-09-11T00:08:44Z",
+      "occurrences": 25,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 4,
+      "signature_id": "ebd66004560a0708",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_clustering.py::test_mixed_concurrent_membership_operations",
+        "tests/test_annotations.py::test_no_remove",
+        "tests/test_cleanup.py::test_node_cleanup_new_containerd_path",
+        "tests/test_cleanup.py::test_containerd_base_dir_cli_flag",
+        "tests/test_annotations.py::test_skip_services_stop_on_remove",
+        "tests/test_external_certificates.py::test_partial_refresh",
+        "tests/test_config_propagation.py::test_config_propagation",
+        "tests/test_clustering_race.py::test_wrong_token_race",
+        "tests/test_external_certificates.py::test_vault_intermediate_ca",
+        "tests/test_external_certificates.py::test_vault_certificates",
+        "tests/test_networking.py::test_ipv6_only_on_dualstack_infra",
+        "tests/test_restart.py::test_restart",
+        "tests/test_annotations.py::test_disable_separate_feature_upgrades"
+      ]
+    },
+    {
+      "age_days": 1.4,
+      "configs_affected": [
+        "arm64",
+        "amd64",
+        "ubuntu:26.04/arm64/1.32-classic/edge",
+        "ubuntu:24.04/arm64/1.37-classic/edge"
+      ],
+      "exemplar_excerpt": "  File \"/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py\", line 50, in run\n    return subprocess.run(command, **kwargs)\n  File \"/usr/lib/python3.12/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['lxc', 'shell', 'k8s-integration-2-0bae2c', '--', 'bash', '-c', 'k8s status --wait-ready']' returned non-zero exit status 1.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34464281672/job/102834393671",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T00:26:18Z",
+      "last_seen": "2026-09-10T13:41:13Z",
+      "occurrences": 11,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 5,
+      "signature_id": "7812166adb4d179b",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_feature_controller.py::test_feature_controller",
+        "tests/test_smoke.py::test_smoke"
+      ]
+    },
+    {
+      "age_days": 1.0,
+      "configs_affected": [
+        "arm64",
+        "amd64",
+        "ubuntu:24.04",
+        "ubuntu:22.04/amd64/latest/edge"
+      ],
+      "exemplar_excerpt": "  File \"/usr/lib/python3.12/urllib/request.py\", line 492, in _call_chain\n    result = func(*args)\n  File \"/usr/lib/python3.12/urllib/request.py\", line 639, in http_error_default\n    raise HTTPError(req.full_url, code, msg, hdrs, fp)\nurllib.error.HTTPError: HTTP Error 429: Too Many Requests",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34454500572/job/102802265906",
+      "failure_class": "external.dependency",
+      "first_seen": "2026-09-10T09:09:22Z",
+      "last_seen": "2026-09-11T08:16:07Z",
+      "occurrences": 9,
+      "owner": null,
+      "recovered_on_retry": 3,
+      "retry_occurrences": 11,
+      "rule_id": "external-snap-store",
+      "runs_seen": 7,
+      "signature_id": "e78d17474b492b14",
+      "subclass": "snap_store",
+      "tests_affected": [
+        "tests/test_version_upgrades.py::test_version_downgrades_with_rollback",
+        "tests/test_annotations.py::test_disable_separate_feature_upgrades",
+        "tests/test_version_upgrades.py::test_version_upgrades"
+      ]
+    },
+    {
+      "age_days": 1.3,
+      "configs_affected": [
+        "ubuntu:24.04/amd64/1.34-classic/edge",
+        "ubuntu:24.04/amd64/1.36-classic/edge",
+        "ubuntu:22.04/amd64/1.34-classic/edge",
+        "ubuntu:22.04/arm64/1.34-classic/edge",
+        "ubuntu:24.04/amd64/1.37-classic/edge",
+        "ubuntu:22.04/arm64/1.33-classic/edge",
+        "ubuntu:22.04/arm64/1.32-classic/edge",
+        "ubuntu:22.04/arm64/latest/edge"
+      ],
+      "exemplar_excerpt": "  File \"/home/ubuntu/actions-runner/_work/k8s-snap/k8s-snap/tests/integration/tests/test_version_upgrades.py\", line 139, in test_version_upgrades\n    util.check_service_restarts(instance)\n  File \"/home/ubuntu/actions-runner/_work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py\", line 1222, in check_service_restarts\n    not violations\nAssertionError: Services have restarted more than 0 time(s): kubelet (3 restarts)",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34419715087/job/102692380079",
+      "failure_class": "product.bug",
+      "first_seen": "2026-09-10T01:09:43Z",
+      "last_seen": "2026-09-11T02:07:26Z",
+      "occurrences": 8,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": "product-service-restarts",
+      "runs_seen": 2,
+      "signature_id": "35b12bf41b664182",
+      "subclass": "service_not_active",
+      "tests_affected": [
+        "tests/test_version_upgrades.py::test_version_upgrades"
+      ]
+    },
+    {
+      "age_days": 0.9,
+      "configs_affected": [
+        "arm64",
+        "amd64"
+      ],
+      "exemplar_excerpt": "  File \"/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py\", line 50, in run\n    return subprocess.run(command, **kwargs)\n  File \"/usr/lib/python3.12/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['lxc', 'shell', 'k8s-integration-2-91cf24', '--', 'bash', '-c', 'k8s x-wait-for dns --timeout 20m']' returned non-zero exit status 1.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34464281672/job/102834393426",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T10:25:01Z",
+      "last_seen": "2026-09-10T10:39:59Z",
+      "occurrences": 8,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 2,
+      "signature_id": "3a51e6072640676d",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_cleanup.py::test_node_cleanup",
+        "tests/test_external_etcd.py::test_external_etcd"
+      ]
+    },
+    {
+      "age_days": 1.0,
+      "configs_affected": [
+        "amd64"
+      ],
+      "exemplar_excerpt": "  LD_LIBRARY_PATH: /home/ubuntu/actions-runner/_work/_tool/Python/3.10.21/x64/lib\n  UV_CACHE_DIR: /home/ubuntu/.cache/uv\n##[endgroup]\n(node:11314) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.\n(Use `node --trace-deprecation ...` to show where the warning was created)\n##[error]Input required and not supplied: path",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34452508229/job/102795886230",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T08:13:01Z",
+      "last_seen": "2026-09-10T13:37:56Z",
+      "occurrences": 7,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 7,
+      "signature_id": "8a9224850d7c13ce",
+      "subclass": null,
+      "tests_affected": []
+    },
+    {
+      "age_days": 1.3,
+      "configs_affected": [
+        "unknown"
+      ],
+      "exemplar_excerpt": "  File \"/home/runner/work/k8s-snap/k8s-snap/tests/branch_management/tests/test_branches.py\", line 114, in test_branches\n    _confirm_all_branches_exist(branch)\n  File \"/home/runner/work/k8s-snap/k8s-snap/tests/branch_management/tests/test_branches.py\", line 54, in _confirm_all_branches_exist\n    assert _confirm_branch_exists(\nAssertionError: GH Branch release-1.38 does not exist",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34422507815/job/102700789471",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T00:45:04Z",
+      "last_seen": "2026-09-11T00:44:25Z",
+      "occurrences": 5,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 5,
+      "signature_id": "0c4e7cc7cce4959c",
+      "subclass": null,
+      "tests_affected": []
+    },
+    {
+      "age_days": 0.3,
+      "configs_affected": [
+        "ubuntu:22.04/amd64/1.32-classic/edge",
+        "ubuntu:24.04/amd64/1.32-classic/edge"
+      ],
+      "exemplar_excerpt": "  File \"/home/ubuntu/actions-runner/_work/k8s-snap/k8s-snap/tests/integration/tests/test_version_upgrades.py\", line 106, in test_version_upgrades\n    util.check_snap_services_ready(instance)\n  File \"/home/ubuntu/actions-runner/_work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py\", line 1088, in check_snap_services_ready\n    service_status[service] == \"active\"\nAssertionError: Service kubelet should be active, but it is inactive",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34544940175/job/103095542454",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-11T00:50:11Z",
+      "last_seen": "2026-09-11T01:05:01Z",
+      "occurrences": 2,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "35868fe40d79058d",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_version_upgrades.py::test_version_upgrades"
+      ]
+    },
+    {
+      "age_days": 0.9,
+      "configs_affected": [
+        "arm64",
+        "amd64"
+      ],
+      "exemplar_excerpt": "  File \"/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_control_plane_taints.py\", line 27, in test_control_plane_taints\n    assert len(nodes) == 1, \"Should have found one node in 30 sec\"\nAssertionError: Should have found one node in 30 sec",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34464281672/job/102834393686",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T10:25:01Z",
+      "last_seen": "2026-09-10T10:25:02Z",
+      "occurrences": 2,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "3a64943759434bc6",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_control_plane_taints.py::test_control_plane_taints"
+      ]
+    },
+    {
+      "age_days": 0.9,
+      "configs_affected": [
+        "amd64"
+      ],
+      "exemplar_excerpt": "  File \"/home/ubuntu/actions-runner/_work/k8s-snap/k8s-snap/k8s-operator/tests/integration/helpers.py\", line 106, in wait_active\n    return juju.wait(\n  File \"/home/ubuntu/actions-runner/_work/k8s-snap/k8s-snap/k8s-operator/.tox/integration/lib/python3.10/site-packages/jubilant/_juju.py\", line 1744, in wait\n    raise TimeoutError(f'wait timed out after {timeout}s\\n{status}')\nTimeoutError: wait timed out after 5400s",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34464281672/job/102834254131",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T10:25:27Z",
+      "last_seen": "2026-09-10T10:25:33Z",
+      "occurrences": 2,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 2,
+      "signature_id": "5be67c2063b467fe",
+      "subclass": null,
+      "tests_affected": []
+    },
+    {
+      "age_days": 1.3,
+      "configs_affected": [
+        "amd64",
+        "ubuntu:22.04/amd64/1.37-classic/edge"
+      ],
+      "exemplar_excerpt": "  File \"/home/ubuntu/actions-runner/_work/k8s-snap/k8s-snap/tests/integration/tests/test_version_upgrades.py\", line 248, in test_version_downgrades_with_rollback\n    util.check_service_restarts(instance)\n  File \"/home/ubuntu/actions-runner/_work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py\", line 1427, in check_service_restarts\n    not violations\nAssertionError: Services have restarted more than 0 time(s): kubelet (3 restarts)",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34454500572/job/102802188983",
+      "failure_class": "product.bug",
+      "first_seen": "2026-09-10T02:54:53Z",
+      "last_seen": "2026-09-10T08:56:48Z",
+      "occurrences": 2,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": "product-service-restarts-rollback",
+      "runs_seen": 2,
+      "signature_id": "867525576ccca976",
+      "subclass": "upgrade_failure",
+      "tests_affected": [
+        "tests/test_version_upgrades.py::test_version_downgrades_with_rollback"
+      ]
+    },
+    {
+      "age_days": 0.7,
+      "configs_affected": [
+        "arm64"
+      ],
+      "exemplar_excerpt": ":: + cd libtirpc\n:: /root/parts/k8sd/build/k8sd/hack/dynamic-dqlite.sh: line 24: cd: libtirpc: No such file or directory\n:: make: *** [Makefile:50: bin/dynamic/lib/libdqlite.so] Error 1\n'override-build' in part 'k8sd' failed with code 2.\n:: + git clone https://git.launchpad.net/libtirpc --depth 1 --branch upstream/1.3.3\n:: Cloning into 'libtirpc'...\n:: fatal: unable to access 'https://git.launchpad.net/libtirpc/': gnutls_handshake() failed: Error in the pull function.\n:: + sleep 5\n:: + cd libtirpc\n:: /root/parts/k8sd/build/k8sd/hack/dynamic-dqlite.sh: line 24: cd: libtirpc: No such file or directory\n:: make: *** [Makefile:50: bin/dynamic/lib/libdqlite.so] Error 1\nReview the scriptlet and make sure it's correct.\nFailed to execute pack in instance.\nRecommended resolution: Run the same command again with --debug to shell into the environment if you wish to introspect this failure.\nFull execution log: '/home/runner/.local/state/snapcraft/log/snapcraft-20260910-152027.292159.log'\n##[error]Process completed with exit code 1.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34494881564/job/102930662675",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T15:19:32Z",
+      "last_seen": "2026-09-10T15:34:20Z",
+      "occurrences": 2,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 2,
+      "signature_id": "9a7c3d72f4d2ceca",
+      "subclass": null,
+      "tests_affected": []
+    },
+    {
+      "age_days": 0.7,
+      "configs_affected": [
+        "amd64",
+        "arm64"
+      ],
+      "exemplar_excerpt": "  File \"/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_clustering.py\", line 662, in test_join_cp_with_duplicate_name_rejected\n    assert False, \"get-join-token should have failed due to duplicate node name\"\nAssertionError: get-join-token should have failed due to duplicate node name",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34505330379/job/102972817170",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T17:18:25Z",
+      "last_seen": "2026-09-10T17:18:29Z",
+      "occurrences": 2,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "b6127e3a84343105",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_clustering.py::test_join_cp_with_duplicate_name_rejected"
+      ]
+    },
+    {
+      "age_days": 0.7,
+      "configs_affected": [
+        "amd64",
+        "arm64"
+      ],
+      "exemplar_excerpt": "  File \"/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_clustering.py\", line 706, in test_join_worker_with_duplicate_name_rejected\n    assert False, \"get-join-token should have failed due to duplicate node name\"\nAssertionError: get-join-token should have failed due to duplicate node name",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34505330379/job/102972817059",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T17:18:24Z",
+      "last_seen": "2026-09-10T17:18:29Z",
+      "occurrences": 2,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "b778769bf6b01620",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_clustering.py::test_join_worker_with_duplicate_name_rejected"
+      ]
+    },
+    {
+      "age_days": 0.7,
+      "configs_affected": [
+        "unknown"
+      ],
+      "exemplar_excerpt": "  File \"/usr/lib/python3.12/subprocess.py\", line 466, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n  File \"/usr/lib/python3.12/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['git', 'ls-remote', '--heads', 'https://git.launchpad.net/k8s', 'release-1.36']' returned non-zero exit status 128.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34494881564/job/102930662576",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T15:19:28Z",
+      "last_seen": "2026-09-10T15:36:10Z",
+      "occurrences": 2,
+      "owner": null,
+      "recovered_on_retry": 1,
+      "retry_occurrences": 1,
+      "rule_id": null,
+      "runs_seen": 2,
+      "signature_id": "d6578f62ead4b19a",
+      "subclass": null,
+      "tests_affected": []
+    },
+    {
+      "age_days": 0.7,
+      "configs_affected": [
+        "arm64"
+      ],
+      "exemplar_excerpt": "Waiting 17 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/backport-2815-to-release-1.35*:refs/remotes/origin/backport-2815-to-release-1.35* +refs/tags/backport-2815-to-release-1.35*:refs/tags/backport-2815-to-release-1.35*\nThe process '/usr/bin/git' failed with exit code 1\nWaiting 14 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/backport-2815-to-release-1.35*:refs/remotes/origin/backport-2815-to-release-1.35* +refs/tags/backport-2815-to-release-1.35*:refs/tags/backport-2815-to-release-1.35*\n##[error]The process '/usr/bin/git' failed with exit code 1",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34481731425/job/102966813495",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T17:00:47Z",
+      "last_seen": "2026-09-10T17:00:47Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "0c2fa8bb4b5b1c6f",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_version_upgrades.py::test_feature_upgrades_inplace"
+      ]
+    },
+    {
+      "age_days": 0.4,
+      "configs_affected": [
+        "ubuntu:24.04/arm64/1.35-classic/edge"
+      ],
+      "exemplar_excerpt": "  File \"/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py\", line 48, in run\n    return subprocess.run(command, **kwargs)\n  File \"/usr/lib/python3.12/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['lxc', 'shell', 'k8s-integration-1-1a2081-registry', '--', 'bash', '-c', 'tar xzvf /tmp/registry_v2.8.3_linux_arm64.tar.gz -C /bin/ registry']' returned non-zero exit status 2.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34544940175/job/103095537037",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-11T00:40:49Z",
+      "last_seen": "2026-09-11T00:40:49Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "1dbdcafcc2d14ea8",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_gateway.py::test_gateway"
+      ]
+    },
+    {
+      "age_days": 0.7,
+      "configs_affected": [
+        "amd64"
+      ],
+      "exemplar_excerpt": "Waiting 18 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/backport-2815-to-release-1.35*:refs/remotes/origin/backport-2815-to-release-1.35* +refs/tags/backport-2815-to-release-1.35*:refs/tags/backport-2815-to-release-1.35*\nThe process '/usr/bin/git' failed with exit code 1\nWaiting 10 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/backport-2815-to-release-1.35*:refs/remotes/origin/backport-2815-to-release-1.35* +refs/tags/backport-2815-to-release-1.35*:refs/tags/backport-2815-to-release-1.35*\n##[error]The process '/usr/bin/git' failed with exit code 1",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34481731425/job/102966809204",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T17:04:55Z",
+      "last_seen": "2026-09-10T17:04:55Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "2c6a935ef7cd76bc",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_version_upgrades.py::test_version_upgrades"
+      ]
+    },
+    {
+      "age_days": 1.3,
+      "configs_affected": [
+        "ubuntu:22.04/amd64/1.35-classic/edge"
+      ],
+      "exemplar_excerpt": "  File \"/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py\", line 48, in run\n    return subprocess.run(command, **kwargs)\n  File \"/usr/lib/python3.12/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['lxc', 'shell', 'k8s-integration-1-34cdf4-registry', '--', 'bash', '-c', 'curl -L https://github.com/distribution/distribution/releases/download/v2.8.3/registry_2.8.3_linux_amd64.tar.gz -o /tmp/registry_v2.8.3_linux_amd64.tar.gz']' returned non-zero exit status 35.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34419715087/job/102692398573",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T01:10:10Z",
+      "last_seen": "2026-09-10T01:10:10Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "3730b48a87d5b1e8",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_gateway.py::test_gateway"
+      ]
+    },
+    {
+      "age_days": 1.4,
+      "configs_affected": [
+        "ubuntu:26.04/amd64/1.35-classic/edge"
+      ],
+      "exemplar_excerpt": "  File \"/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py\", line 48, in run\n    return subprocess.run(command, **kwargs)\n  File \"/usr/lib/python3.12/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['lxc', 'file', 'push', '/tmp/core22.assert', 'k8s-integration-1-ddb22e-registry/tmp/core22.assert']' returned non-zero exit status 1.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34419715087/job/102692398781",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T00:18:39Z",
+      "last_seen": "2026-09-10T00:18:39Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "3c70a86b1043c86a",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_clustering.py::test_etcd_learner_promotion"
+      ]
+    },
+    {
+      "age_days": 1.0,
+      "configs_affected": [
+        "unknown"
+      ],
+      "exemplar_excerpt": "-            ref.removeprefix(\"release-\")\n-            if ref and ref.startswith(\"release-\")\n-            else None\n+            ref.removeprefix(\"release-\") if ref and ref.startswith(\"release-\") else None\n         )\n         channels = snap.get_most_stable_channels(\n             int(num_channels),\n             config.FLAVOR,\n             cp.arch,\nwould reformat /home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_version_upgrades.py\nOh no! \ud83d\udca5 \ud83d\udc94 \ud83d\udca5\n1 file would be reformatted, 49 files would be left unchanged.\nlint: exit 1 (1.05 seconds) /home/runner/work/k8s-snap/k8s-snap/tests/integration> black /home/runner/work/k8s-snap/k8s-snap/tests/integration/tests --check --diff pid=3220\n  lint: FAIL code 1 (7.98=setup[6.03]+cmd[0.10,0.58,0.05,0.17,1.05] seconds)\n  evaluation failed :( (8.34 seconds)\n##[error]Process completed with exit code 1.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34452445160/job/102791025264",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T07:55:46Z",
+      "last_seen": "2026-09-10T07:55:46Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "47c677447284c0c9",
+      "subclass": null,
+      "tests_affected": []
+    },
+    {
+      "age_days": 0.0,
+      "configs_affected": [
+        "unknown"
+      ],
+      "exemplar_excerpt": "Get:24 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 libkrb5support0 amd64 1.17-6ubuntu4.11 [31.5 kB]\nGet:25 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 libk5crypto3 amd64 1.17-6ubuntu4.11 [80.3 kB]\nGet:26 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 libkeyutils1 amd64 1.6-6ubuntu1.1 [10.3 kB]\nGet:27 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 libkrb5-3 amd64 1.17-6ubuntu4.11 [330 kB]\nGet:28 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 libgssapi-krb5-2 amd64 1.17-6ubuntu4.11 [121 kB]\nGet:29 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 openssh-client amd64 1:8.2p1-4ubuntu0.13 [670 kB]\nGet:30 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 dbus-user-session amd64 1.12.16-2ubuntu2.3 [9424 B]\nGet:31 http://archive.ubuntu.com/ubuntu focal/main amd64 liblzo2-2 amd64 2.10-2 [50.8 kB]\nGet:32 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 squashfs-tools amd64 1:4.4-1ubuntu0.3 [117 kB]\nGet:33 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 snapd amd64 2.67.1+20.04 [26.1 MB]\nE: Failed to fetch http://archive.ubuntu.com/ubuntu/pool/main/s/systemd/systemd-timesyncd_245.4-4ubuntu3.24_amd64.deb  Connection failed [IP: 185.125.190.83 80]\nFetched 38.3 MB in 2min 27s (260 kB/s)\nE: Failed to fetch http://archive.ubuntu.com/ubuntu/pool/main/s/systemd/systemd-sysv_245.4-4ubuntu3.24_amd64.deb  Connection failed [IP: 91.189.92.22 80]\nE: Unable to fetch some archives, maybe run apt-get update or try with --fix-missing?\nAn error occurred when trying to execute 'apt-get install snapd sudo --yes' with 'LXD': returned exit code 100.\n##[error]Process completed with exit code 2.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34572286063/job/103203838769",
+      "failure_class": "external.dependency",
+      "first_seen": "2026-09-11T08:47:18Z",
+      "last_seen": "2026-09-11T08:47:18Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": "external-apt",
+      "runs_seen": 1,
+      "signature_id": "4d8238dae72dc386",
+      "subclass": "apt",
+      "tests_affected": []
+    },
+    {
+      "age_days": 0.0,
+      "configs_affected": [
+        "arm64"
+      ],
+      "exemplar_excerpt": ":: + cd /root/stage/static-dqlite-deps/.build/static\n:: + rm -rf musl\n:: + git clone https://git.launchpad.net/musl --depth 1 --branch v1.2.4 musl\n:: Cloning into 'musl'...\n:: fatal: unable to access 'https://git.launchpad.net/musl/': gnutls_handshake() failed: Error in the pull function.\n'override-build' in part 'dqlite' failed with code 128.\n:: + cd /root/stage/static-dqlite-deps/.build/static\n:: + rm -rf musl\n:: + git clone https://git.launchpad.net/musl --depth 1 --branch v1.2.4 musl\n:: Cloning into 'musl'...\n:: fatal: unable to access 'https://git.launchpad.net/musl/': gnutls_handshake() failed: Error in the pull function.\nReview the scriptlet and make sure it's correct.\nFailed to execute pack in instance.\nRecommended resolution: Run the same command again with --debug to shell into the environment if you wish to introspect this failure.\nFull execution log: '/home/runner/.local/state/snapcraft/log/snapcraft-20260911-084756.676822.log'\n##[error]Process completed with exit code 1.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34572294222/job/103203867392",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-11T08:47:13Z",
+      "last_seen": "2026-09-11T08:47:13Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "5ebb80c6814b5f0e",
+      "subclass": null,
+      "tests_affected": []
+    },
+    {
+      "age_days": 0.7,
+      "configs_affected": [
+        "arm64"
+      ],
+      "exemplar_excerpt": "Waiting 15 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/backport-2815-to-release-1.36*:refs/remotes/origin/backport-2815-to-release-1.36* +refs/tags/backport-2815-to-release-1.36*:refs/tags/backport-2815-to-release-1.36*\nThe process '/usr/bin/git' failed with exit code 1\nWaiting 12 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/backport-2815-to-release-1.36*:refs/remotes/origin/backport-2815-to-release-1.36* +refs/tags/backport-2815-to-release-1.36*:refs/tags/backport-2815-to-release-1.36*\n##[error]The process '/usr/bin/git' failed with exit code 1",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34481736770/job/102966823297",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T17:09:47Z",
+      "last_seen": "2026-09-10T17:09:47Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "627171b30904e029",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_version_upgrades.py::test_version_upgrades"
+      ]
+    },
+    {
+      "age_days": 0.8,
+      "configs_affected": [
+        "amd64"
+      ],
+      "exemplar_excerpt": "  Downloading certifi-2026.7.22-py3-none-any.whl.metadata (2.5 kB)\nDownloading pytest-7.3.1-py3-none-any.whl (320 kB)\n   \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501 320.5/320.5 kB 222.1 kB/s eta 0:00:00\nDownloading pytest_tagging-1.6.0-py3-none-any.whl (6.8 kB)\nDownloading pytest_benchmark-5.0.0-py3-none-any.whl (43 kB)\n   \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501 44.0/44.0 kB 240.9 kB/s eta 0:00:00\nDownloading PyYAML-6.0.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (724 kB)\n   \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501 725.0/725.0 kB 176.7 kB/s eta 0:00:00\nDownloading tenacity-8.2.3-py3-none-any.whl (24 kB)\nDownloading pylint-3.2.5-py3-none-any.whl (519 kB)\n   \u2501\u2501\u2501\u2501\u2501\u2501\u2501                                  92.2/519.6 kB 38.2 kB/s eta 0:00:12\nintegration: exit 2 (45.69 seconds) /home/runner/work/k8s-snap/k8s-snap/tests/integration> python -I -m pip install -r /home/runner/work/k8s-snap/k8s-snap/tests/integration/requirements-test.txt pid=4672\n  integration: FAIL code 2 (45.91 seconds)\n  evaluation failed :( (46.32 seconds)\n\u001b[39m\n##[error]Process completed with exit code 2.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34482003444/job/102894764283",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T13:50:22Z",
+      "last_seen": "2026-09-10T13:50:22Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "77488af9f0feb381",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_metrics_server.py::test_metrics_server"
+      ]
+    },
+    {
+      "age_days": 1.3,
+      "configs_affected": [
+        "ubuntu:26.04/amd64/1.36-classic/edge"
+      ],
+      "exemplar_excerpt": "  File \"/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py\", line 50, in run\n    return subprocess.run(command, **kwargs)\n  File \"/usr/lib/python3.12/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['lxc', 'shell', 'k8s-integration-2-eb17b2', '--', 'bash', '-c', 'k8s kubectl apply -f -']' returned non-zero exit status 1.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34419715087/job/102692414683",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T00:58:31Z",
+      "last_seen": "2026-09-10T00:58:31Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "79e3ab4a30e23149",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_external_certificates.py::test_vault_certificates"
+      ]
+    },
+    {
+      "age_days": 0.9,
+      "configs_affected": [
+        "arm64"
+      ],
+      "exemplar_excerpt": "  File \"/home/ubuntu/actions-runner/_work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py\", line 1388, in check_snap_services_ready\n    raise last_error\n  File \"/home/ubuntu/actions-runner/_work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py\", line 1365, in check_snap_services_ready\n    service_status[service] == \"active\"\nAssertionError: Service kubelet should be active, but it is inactive",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34464281672/job/102834397206",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T10:26:20Z",
+      "last_seen": "2026-09-10T10:26:20Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "7e0a389a7deb5372",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_version_upgrades.py::test_version_upgrades"
+      ]
+    },
+    {
+      "age_days": 0.7,
+      "configs_affected": [
+        "unknown"
+      ],
+      "exemplar_excerpt": "         pods = [\n             pod\n             for pod in json.loads(stdout)[\"items\"]\n-            if not pod[\"metadata\"].get(\"deletionTimestamp\") and pod[\"spec\"].get(\"nodeName\")\n+            if not pod[\"metadata\"].get(\"deletionTimestamp\")\n+            and pod[\"spec\"].get(\"nodeName\")\n         ]\n         return {pod[\"spec\"][\"nodeName\"] for pod in pods}\n     def _active_coredns_nodes():\n         result = initial_node.exec(\nOh no! \ud83d\udca5 \ud83d\udc94 \ud83d\udca5\n1 file would be reformatted, 49 files would be left unchanged.\nlint: exit 1 (0.86 seconds) /home/runner/work/k8s-snap/k8s-snap/tests/integration> black /home/runner/work/k8s-snap/k8s-snap/tests/integration/tests --check --diff pid=2357\n  lint: FAIL code 1 (8.87=setup[7.20]+cmd[0.08,0.56,0.04,0.14,0.86] seconds)\n  evaluation failed :( (9.21 seconds)\n##[error]Process completed with exit code 1.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34494881564/job/102930662537",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T15:19:29Z",
+      "last_seen": "2026-09-10T15:19:29Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "85726a531a8cd21a",
+      "subclass": null,
+      "tests_affected": []
+    },
+    {
+      "age_days": 0.7,
+      "configs_affected": [
+        "arm64"
+      ],
+      "exemplar_excerpt": "Waiting 17 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/backport-2815-to-release-1.35*:refs/remotes/origin/backport-2815-to-release-1.35* +refs/tags/backport-2815-to-release-1.35*:refs/tags/backport-2815-to-release-1.35*\nThe process '/usr/bin/git' failed with exit code 1\nWaiting 19 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/backport-2815-to-release-1.35*:refs/remotes/origin/backport-2815-to-release-1.35* +refs/tags/backport-2815-to-release-1.35*:refs/tags/backport-2815-to-release-1.35*\n##[error]The process '/usr/bin/git' failed with exit code 1",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34481731425/job/102966810752",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T17:00:46Z",
+      "last_seen": "2026-09-10T17:00:46Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "85d9d0112cf49e94",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_cleanup.py::test_node_cleanup_new_containerd_path"
+      ]
+    },
+    {
+      "age_days": 0.8,
+      "configs_affected": [
+        "unknown"
+      ],
+      "exemplar_excerpt": "libjansson-dev set to automatically installed.\nliblz4-dev set to automatically installed.\nlibnetfilter-conntrack-dev set to automatically installed.\nlibnetfilter-conntrack3 set to automatically installed.\nlibnfnetlink-dev set to automatically installed.\nlibseccomp-dev set to automatically installed.\nlibtool set to automatically installed.\npkg-config set to automatically installed.\npython3-yaml set to automatically installed.\nrsync set to automatically installed.\ntcl set to automatically installed.\nsnapd is not logged in, snap install commands will use sudo\ngo (1.25/stable) 1.25.14 from Canonical** installed\nIssue encountered while processing your request: [429] Too Many Requests.\nRun the same command again with --debug to shell into the environment if you wish to introspect this failure.\n##[error]Process completed with exit code 2.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34481467499/job/102885043285",
+      "failure_class": "external.dependency",
+      "first_seen": "2026-09-10T13:15:11Z",
+      "last_seen": "2026-09-10T13:15:11Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 1,
+      "retry_occurrences": 1,
+      "rule_id": "external-snap-store",
+      "runs_seen": 1,
+      "signature_id": "8ce069bf2bf6cfb8",
+      "subclass": "snap_store",
+      "tests_affected": []
+    },
+    {
+      "age_days": 0.7,
+      "configs_affected": [
+        "amd64"
+      ],
+      "exemplar_excerpt": "Waiting 12 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/backport-2815-to-release-1.36*:refs/remotes/origin/backport-2815-to-release-1.36* +refs/tags/backport-2815-to-release-1.36*:refs/tags/backport-2815-to-release-1.36*\nThe process '/usr/bin/git' failed with exit code 1\nWaiting 15 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/backport-2815-to-release-1.36*:refs/remotes/origin/backport-2815-to-release-1.36* +refs/tags/backport-2815-to-release-1.36*:refs/tags/backport-2815-to-release-1.36*\n##[error]The process '/usr/bin/git' failed with exit code 1",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34481736770/job/102966820872",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T17:13:19Z",
+      "last_seen": "2026-09-10T17:13:19Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "8d3fc8734c0ec33c",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_version_upgrades.py::test_version_downgrades_with_rollback"
+      ]
+    },
+    {
+      "age_days": 0.7,
+      "configs_affected": [
+        "amd64"
+      ],
+      "exemplar_excerpt": "Waiting 19 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/backport-2815-to-release-1.35*:refs/remotes/origin/backport-2815-to-release-1.35* +refs/tags/backport-2815-to-release-1.35*:refs/tags/backport-2815-to-release-1.35*\nThe process '/usr/bin/git' failed with exit code 1\nWaiting 16 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/backport-2815-to-release-1.35*:refs/remotes/origin/backport-2815-to-release-1.35* +refs/tags/backport-2815-to-release-1.35*:refs/tags/backport-2815-to-release-1.35*\n##[error]The process '/usr/bin/git' failed with exit code 1",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34481731425/job/102966809198",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T17:00:44Z",
+      "last_seen": "2026-09-10T17:00:44Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "8fd91c9143e4c34c",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_cilium_e2e.py::test_cilium_e2e"
+      ]
+    },
+    {
+      "age_days": 0.8,
+      "configs_affected": [
+        "amd64"
+      ],
+      "exemplar_excerpt": "    data = self.read(amt=amt, decode_content=decode_content)\n  File \"/home/runner/work/k8s-snap/k8s-snap/tests/integration/.tox/integration/lib/python3.12/site-packages/pip/_vendor/urllib3/response.py\", line 560, in read\n    with self._error_catcher():\n  File \"/usr/lib/python3.12/contextlib.py\", line 158, in __exit__\n    self.gen.throw(value)\n  File \"/home/runner/work/k8s-snap/k8s-snap/tests/integration/.tox/integration/lib/python3.12/site-packages/pip/_vendor/urllib3/response.py\", line 443, in _error_catcher\n    raise ReadTimeoutError(self._pool, None, \"Read timed out.\")\npip._vendor.urllib3.exceptions.ReadTimeoutError: HTTPSConnectionPool(host='files.pythonhosted.org', port=443): Read timed out.\nCollecting coverage==7.2.5 (from coverage[toml]==7.2.5->-r /home/runner/work/k8s-snap/k8s-snap/tests/integration/requirements-test.txt (line 1))\n  Downloading coverage-7.2.5.tar.gz (759 kB)\n     \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501         604.2/759.5 kB 139.0 kB/s eta 0:00:02\nintegration: exit 2 (21.26 seconds) /home/runner/work/k8s-snap/k8s-snap/tests/integration> python -I -m pip install -r /home/runner/work/k8s-snap/k8s-snap/tests/integration/requirements-test.txt pid=4706\n  integration: FAIL code 2 (21.52 seconds)\n  evaluation failed :( (21.88 seconds)\n\u001b[39m\n##[error]Process completed with exit code 2.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34482003444/job/102894764023",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T13:47:58Z",
+      "last_seen": "2026-09-10T13:47:58Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "9149a7349d096cc3",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_annotations.py::test_skip_services_stop_on_remove"
+      ]
+    },
+    {
+      "age_days": 1.1,
+      "configs_affected": [
+        "unknown"
+      ],
+      "exemplar_excerpt": "-            ref.lstrip(\"release-\")\n-            if ref and ref.startswith(\"release-\")\n-            else None\n+            ref.lstrip(\"release-\") if ref and ref.startswith(\"release-\") else None\n         )\n         channels = snap.get_most_stable_channels(\n             int(num_channels),\n             config.FLAVOR,\n             cp.arch,\nwould reformat /home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_version_upgrades.py\nOh no! \ud83d\udca5 \ud83d\udc94 \ud83d\udca5\n1 file would be reformatted, 49 files would be left unchanged.\nlint: exit 1 (0.88 seconds) /home/runner/work/k8s-snap/k8s-snap/tests/integration> black /home/runner/work/k8s-snap/k8s-snap/tests/integration/tests --check --diff pid=2428\n  lint: FAIL code 1 (10.12=setup[8.49]+cmd[0.08,0.51,0.04,0.12,0.88] seconds)\n  evaluation failed :( (10.56 seconds)\n##[error]Process completed with exit code 1.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34447869674/job/102776563668",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T07:00:59Z",
+      "last_seen": "2026-09-10T07:00:59Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "91c6347527f0244d",
+      "subclass": null,
+      "tests_affected": []
+    },
+    {
+      "age_days": 0.7,
+      "configs_affected": [
+        "arm64"
+      ],
+      "exemplar_excerpt": "Waiting 14 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/backport-2815-to-release-1.35*:refs/remotes/origin/backport-2815-to-release-1.35* +refs/tags/backport-2815-to-release-1.35*:refs/tags/backport-2815-to-release-1.35*\nThe process '/usr/bin/git' failed with exit code 1\nWaiting 11 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/backport-2815-to-release-1.35*:refs/remotes/origin/backport-2815-to-release-1.35* +refs/tags/backport-2815-to-release-1.35*:refs/tags/backport-2815-to-release-1.35*\n##[error]The process '/usr/bin/git' failed with exit code 1",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34481731425/job/102966810743",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T17:00:45Z",
+      "last_seen": "2026-09-10T17:00:45Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "97a24cd0dd8d3593",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_version_upgrades.py::test_version_upgrades"
+      ]
+    },
+    {
+      "age_days": 1.3,
+      "configs_affected": [
+        "amd64"
+      ],
+      "exemplar_excerpt": "Waiting 12 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/autoupdate/v1.38.0-alpha*:refs/remotes/origin/autoupdate/v1.38.0-alpha* +refs/tags/autoupdate/v1.38.0-alpha*:refs/tags/autoupdate/v1.38.0-alpha*\nThe process '/usr/bin/git' failed with exit code 1\nWaiting 19 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/autoupdate/v1.38.0-alpha*:refs/remotes/origin/autoupdate/v1.38.0-alpha* +refs/tags/autoupdate/v1.38.0-alpha*:refs/tags/autoupdate/v1.38.0-alpha*\n##[error]The process '/usr/bin/git' failed with exit code 1",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34422507815/job/102706161560",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T01:09:14Z",
+      "last_seen": "2026-09-10T01:09:14Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "9ed78fc1c4e6ed74",
+      "subclass": null,
+      "tests_affected": []
+    },
+    {
+      "age_days": 0.7,
+      "configs_affected": [
+        "arm64"
+      ],
+      "exemplar_excerpt": "Waiting 18 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/backport-2815-to-release-1.35*:refs/remotes/origin/backport-2815-to-release-1.35* +refs/tags/backport-2815-to-release-1.35*:refs/tags/backport-2815-to-release-1.35*\nThe process '/usr/bin/git' failed with exit code 1\nWaiting 17 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/backport-2815-to-release-1.35*:refs/remotes/origin/backport-2815-to-release-1.35* +refs/tags/backport-2815-to-release-1.35*:refs/tags/backport-2815-to-release-1.35*\n##[error]The process '/usr/bin/git' failed with exit code 1",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34481731425/job/102966810853",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T17:00:46Z",
+      "last_seen": "2026-09-10T17:00:46Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "a5b20f221efdfa69",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_snap_services.py::test_snap_services"
+      ]
+    },
+    {
+      "age_days": 0.0,
+      "configs_affected": [
+        "unknown"
+      ],
+      "exemplar_excerpt": "Get:10 http://archive.ubuntu.com/ubuntu focal-updates/universe amd64 Packages [1275 kB]\nGet:11 http://archive.ubuntu.com/ubuntu focal-updates/universe Translation-en [302 kB]\nFetched 10.9 MB in 4min 36s (39.5 kB/s)\nReading package lists...\nW: Failed to fetch http://security.ubuntu.com/ubuntu/dists/focal-security/InRelease  Connection failed [IP: 91.189.92.23 80]\nW: Failed to fetch http://archive.ubuntu.com/ubuntu/dists/focal/InRelease  Connection failed [IP: 91.189.91.82 80]\nW: Some index files failed to download. They have been ignored, or old ones used instead.\nReading package lists...\nBuilding dependency tree...\nReading state information...\nPackage fuse is not available, but is referred to by another package.\nThis may mean that the package is missing, has been obsoleted, or\nis only available from another source\nE: Package 'fuse' has no installation candidate\nAn error occurred when trying to execute 'apt-get install dirmngr udev fuse --yes' with 'LXD': returned exit code 100.\n##[error]Process completed with exit code 2.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34572282115/job/103203813823",
+      "failure_class": "external.dependency",
+      "first_seen": "2026-09-11T08:47:08Z",
+      "last_seen": "2026-09-11T08:47:08Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": "external-apt",
+      "runs_seen": 1,
+      "signature_id": "ae02f0ad3147d045",
+      "subclass": "apt",
+      "tests_affected": []
+    },
+    {
+      "age_days": 0.7,
+      "configs_affected": [
+        "arm64"
+      ],
+      "exemplar_excerpt": "Waiting 15 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/backport-2815-to-release-1.35*:refs/remotes/origin/backport-2815-to-release-1.35* +refs/tags/backport-2815-to-release-1.35*:refs/tags/backport-2815-to-release-1.35*\nThe process '/usr/bin/git' failed with exit code 1\nWaiting 14 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/backport-2815-to-release-1.35*:refs/remotes/origin/backport-2815-to-release-1.35* +refs/tags/backport-2815-to-release-1.35*:refs/tags/backport-2815-to-release-1.35*\n##[error]The process '/usr/bin/git' failed with exit code 1",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34481731425/job/102966810751",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T17:00:46Z",
+      "last_seen": "2026-09-10T17:00:46Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "b037f415998370a9",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_node_taints.py::test_node_taints"
+      ]
+    },
+    {
+      "age_days": 0.7,
+      "configs_affected": [
+        "amd64"
+      ],
+      "exemplar_excerpt": "Waiting 11 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/backport-2815-to-release-1.35*:refs/remotes/origin/backport-2815-to-release-1.35* +refs/tags/backport-2815-to-release-1.35*:refs/tags/backport-2815-to-release-1.35*\nThe process '/usr/bin/git' failed with exit code 1\nWaiting 11 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/backport-2815-to-release-1.35*:refs/remotes/origin/backport-2815-to-release-1.35* +refs/tags/backport-2815-to-release-1.35*:refs/tags/backport-2815-to-release-1.35*\n##[error]The process '/usr/bin/git' failed with exit code 1",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34481731425/job/102966809189",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T17:00:44Z",
+      "last_seen": "2026-09-10T17:00:44Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "b20c49969895f111",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_annotations.py::test_disable_separate_feature_upgrades"
+      ]
+    },
+    {
+      "age_days": 0.9,
+      "configs_affected": [
+        "amd64"
+      ],
+      "exemplar_excerpt": "  File \"/home/ubuntu/actions-runner/_work/k8s-snap/k8s-snap/tests/integration/tests/test_version_upgrades.py\", line 138, in test_version_upgrades\n    util.check_service_logs_for_panics(instance)\n  File \"/home/ubuntu/actions-runner/_work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py\", line 1483, in check_service_logs_for_panics\n    assert False, \"Panic/segfault traces found in service logs:\\n\" + \"\\n\".join(\nAssertionError: Panic/segfault traces found in service logs:",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34464291010/job/102834647013",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T10:36:26Z",
+      "last_seen": "2026-09-10T10:36:26Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "b2fdc843a67d0cf8",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_version_upgrades.py::test_version_upgrades"
+      ]
+    },
+    {
+      "age_days": 0.7,
+      "configs_affected": [
+        "amd64"
+      ],
+      "exemplar_excerpt": "Waiting 10 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/backport-2815-to-release-1.35*:refs/remotes/origin/backport-2815-to-release-1.35* +refs/tags/backport-2815-to-release-1.35*:refs/tags/backport-2815-to-release-1.35*\nThe process '/usr/bin/git' failed with exit code 1\nWaiting 19 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/backport-2815-to-release-1.35*:refs/remotes/origin/backport-2815-to-release-1.35* +refs/tags/backport-2815-to-release-1.35*:refs/tags/backport-2815-to-release-1.35*\n##[error]The process '/usr/bin/git' failed with exit code 1",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34481731425/job/102966809109",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T17:00:44Z",
+      "last_seen": "2026-09-10T17:00:44Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "b94bbe467e6259f7",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_node_availability_zone.py::test_node_availability_zone[k8s-dqlite-True]"
+      ]
+    },
+    {
+      "age_days": 0.7,
+      "configs_affected": [
+        "arm64"
+      ],
+      "exemplar_excerpt": "Waiting 19 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/backport-2815-to-release-1.36*:refs/remotes/origin/backport-2815-to-release-1.36* +refs/tags/backport-2815-to-release-1.36*:refs/tags/backport-2815-to-release-1.36*\nThe process '/usr/bin/git' failed with exit code 1\nWaiting 13 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/backport-2815-to-release-1.36*:refs/remotes/origin/backport-2815-to-release-1.36* +refs/tags/backport-2815-to-release-1.36*:refs/tags/backport-2815-to-release-1.36*\n##[error]The process '/usr/bin/git' failed with exit code 1",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34481736770/job/102966819662",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T17:00:48Z",
+      "last_seen": "2026-09-10T17:00:48Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "c4eb1051b0d4f447",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_snap_services.py::test_snap_services"
+      ]
+    },
+    {
+      "age_days": 0.7,
+      "configs_affected": [
+        "amd64"
+      ],
+      "exemplar_excerpt": "Waiting 15 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/backport-2815-to-release-1.36*:refs/remotes/origin/backport-2815-to-release-1.36* +refs/tags/backport-2815-to-release-1.36*:refs/tags/backport-2815-to-release-1.36*\nThe process '/usr/bin/git' failed with exit code 1\nWaiting 10 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/backport-2815-to-release-1.36*:refs/remotes/origin/backport-2815-to-release-1.36* +refs/tags/backport-2815-to-release-1.36*:refs/tags/backport-2815-to-release-1.36*\n##[error]The process '/usr/bin/git' failed with exit code 1",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34481736770/job/102966820790",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T17:13:05Z",
+      "last_seen": "2026-09-10T17:13:05Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "dc915cd37bc0f6f6",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_version_upgrades.py::test_version_upgrades"
+      ]
+    },
+    {
+      "age_days": 0.8,
+      "configs_affected": [
+        "unknown"
+      ],
+      "exemplar_excerpt": "  File \"/usr/lib/python3.12/subprocess.py\", line 466, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n  File \"/usr/lib/python3.12/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['git', 'ls-remote', '--heads', 'https://git.launchpad.net/k8s', 'release-1.32']' returned non-zero exit status 128.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34481460028/job/102885019275",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T13:15:04Z",
+      "last_seen": "2026-09-10T13:15:04Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "e4fbfc4ac76358a3",
+      "subclass": null,
+      "tests_affected": []
+    },
+    {
+      "age_days": 0.8,
+      "configs_affected": [
+        "amd64"
+      ],
+      "exemplar_excerpt": "Waiting 17 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/autoupdate/v1.38.0-alpha*:refs/remotes/origin/autoupdate/v1.38.0-alpha* +refs/tags/autoupdate/v1.38.0-alpha*:refs/tags/autoupdate/v1.38.0-alpha*\nThe process '/usr/bin/git' failed with exit code 1\nWaiting 18 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/autoupdate/v1.38.0-alpha*:refs/remotes/origin/autoupdate/v1.38.0-alpha* +refs/tags/autoupdate/v1.38.0-alpha*:refs/tags/autoupdate/v1.38.0-alpha*\n##[error]The process '/usr/bin/git' failed with exit code 1",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34482002280/job/102893587780",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T13:57:45Z",
+      "last_seen": "2026-09-10T13:57:45Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "f0bedae9b9b4a495",
+      "subclass": null,
+      "tests_affected": []
+    },
+    {
+      "age_days": 0.7,
+      "configs_affected": [
+        "arm64"
+      ],
+      "exemplar_excerpt": "Waiting 18 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/backport-2815-to-release-1.35*:refs/remotes/origin/backport-2815-to-release-1.35* +refs/tags/backport-2815-to-release-1.35*:refs/tags/backport-2815-to-release-1.35*\nThe process '/usr/bin/git' failed with exit code 1\nWaiting 11 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/backport-2815-to-release-1.35*:refs/remotes/origin/backport-2815-to-release-1.35* +refs/tags/backport-2815-to-release-1.35*:refs/tags/backport-2815-to-release-1.35*\n##[error]The process '/usr/bin/git' failed with exit code 1",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34481731425/job/102966810730",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T17:00:46Z",
+      "last_seen": "2026-09-10T17:00:46Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "f2a2163289fd2335",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_annotations.py::test_disable_separate_feature_upgrades"
+      ]
+    },
+    {
+      "age_days": 0.3,
+      "configs_affected": [
+        "amd64"
+      ],
+      "exemplar_excerpt": "Waiting 16 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/autoupdate/v1.38.0-alpha*:refs/remotes/origin/autoupdate/v1.38.0-alpha* +refs/tags/autoupdate/v1.38.0-alpha*:refs/tags/autoupdate/v1.38.0-alpha*\nThe process '/usr/bin/git' failed with exit code 1\nWaiting 12 seconds before trying again\n[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/autoupdate/v1.38.0-alpha*:refs/remotes/origin/autoupdate/v1.38.0-alpha* +refs/tags/autoupdate/v1.38.0-alpha*:refs/tags/autoupdate/v1.38.0-alpha*\n##[error]The process '/usr/bin/git' failed with exit code 1",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34547745419/job/103107625971",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-11T01:01:49Z",
+      "last_seen": "2026-09-11T01:01:49Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 0,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "f45076ee8da41a73",
+      "subclass": null,
+      "tests_affected": []
+    },
+    {
+      "age_days": 0.8,
+      "configs_affected": [
+        "arm64"
+      ],
+      "exemplar_excerpt": "  File \"/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py\", line 50, in run\n    return subprocess.run(command, **kwargs)\n  File \"/usr/lib/python3.12/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['lxc', 'shell', 'k8s-integration-2-215b9e', '--', 'bash', '-c', \"k8s kubectl get upgrade '-o=jsonpath={.items[0].status.upgradedNodes}'\"]' returned non-zero exit status 1.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34481486388/job/102891411540",
+      "failure_class": "unknown",
+      "first_seen": "2026-09-10T13:33:25Z",
+      "last_seen": "2026-09-10T13:33:25Z",
+      "occurrences": 1,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 1,
+      "rule_id": null,
+      "runs_seen": 1,
+      "signature_id": "fe0e71bd26391b89",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_version_upgrades.py::test_feature_upgrades_inplace"
+      ]
+    },
+    {
+      "age_days": null,
+      "configs_affected": [
+        "amd64"
+      ],
+      "exemplar_excerpt": "Starting instance\nInitializing parts lifecycle\nInstalling build-packages\nInstalling build-snaps\nPulling bash-utils\nFetching stage-packages\nDownloading package: coreutils\nDownloading package: members\nDownloading package: libnghttp2-14\nDownloading package: libcurl3-gnutls\nDownloading package: systemd-container\nFailed to fetch package: The item '/root/.cache/snapcraft/download/systemd-container_249.11-0ubuntu3.22_amd64.deb' could not be fetched: Connection failed [IP: 91.189.91.83 80].\nFailed to execute pack in instance.\nRecommended resolution: Run the same command again with --debug to shell into the environment if you wish to introspect this failure.\nFull execution log: '/home/runner/.local/state/snapcraft/log/snapcraft-20260911-070000.212496.log'\n##[error]Process completed with exit code 1.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34572290858/job/103176817243",
+      "failure_class": "unknown",
+      "first_seen": null,
+      "last_seen": null,
+      "occurrences": 0,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 1,
+      "rule_id": null,
+      "runs_seen": 0,
+      "signature_id": "0cbaa2fb7bdb3c4e",
+      "subclass": null,
+      "tests_affected": []
+    },
+    {
+      "age_days": null,
+      "configs_affected": [
+        "amd64"
+      ],
+      "exemplar_excerpt": "\u001b[36;1mecho \"snap-artifact=$out_snap\" >> \"$GITHUB_OUTPUT\"\u001b[0m\nshell: /usr/bin/bash -e {0}\nenv:\n  flavor:\n##[endgroup]\nRunning snapcraft without a command will not be possible in future releases. Use 'snapcraft pack' instead.\nLaunching instance...\nCreating new instance from remote\nCreating new base instance from remote\ncraft-providers error: Failed to update packages.\n* Command that failed: 'lxc --project snapcraft exec local:base-instance-snapcraft-buildd-base-v71--d799df4d4588b4abe861 -- env PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin CRAFT_MANAGED_MODE=1 DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true DEBIAN_PRIORITY=critical apt-get -y dist-upgrade'\n* Command exit code: 100\n* Command output: b'Reading package lists...\\nBuilding dependency tree...\\nReading state information...\\nCalculating upgrade...\\nThe following packages will be upgraded:\\n  advancecomp apt base-files bash binutils binutils-common\\n  binutils-x86-64-linux-gnu bsdutils bzip2 ca-certificates coreutils cpp-11\\n  diffutils dpkg dpkg-dev e2fsprogs g++-11 gcc-11 gcc-11-base gcc-12-base gpg\\n  gpg-agent gpgconf gpgv gzip libapparmor1 libapt-pkg6.0 libasan6 libatomic1\\n  libattr1 libbinutils libblkid1 libbz2-1.0 libc-bin libc-dev-bin libc6\\n  libc6-dev libcap2 libcc1-0 libcom-err2 libcryptsetup12 libctf-nobfd0 libctf0\\n  libdevmapper1.02.1 libdpkg-perl libext2fs2 libgcc-11-dev libgcc-s1\\n  libgcrypt20 libgnutls30 libgomp1 libgssapi-krb5-2 libip4tc2 libitm1\\n  libjson-c5 libk5crypto3 libkmod2 libkrb5-3 libkrb5support0 liblsan0 liblzma5\\n  libmount1 libncurses6 libncursesw6 libp11-kit0 libpam-modules\\n  libpam-modules-bin libpam-runtime libpam0g libpcre2-8-0 libpcre3 libperl5.34\\n  libpng16-16 libprocps8 libquadmath0 libseccomp2 libsmartcols1 libsqlite3-0\\n  libss2 libssl3 libstdc++-11-dev libstdc++6 libsystemd0 libtasn1-6 libtinfo6\\n  libtirpc-common libtirpc-dev libtirpc3 libtsan0 libubsan1 libudev1 libuuid1\\n  linux-libc-dev login logsave mount ncurses-base ncurses-bin openssl passwd\\n  perl perl-base perl-modules-5.34 pkgbinarymangler procps sed systemd\\n  systemd-sysv tar tzdata util-linux xz-utils zlib1g\\n113 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.\\nNeed to get 102 MB of archives.\\nAfter this operation, 1257 kB of additional disk space will be used.\\nIgn:1 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libc6-dev amd64 2.35-0ubuntu3.15\\nIgn:2 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libc-dev-bin amd64 2.35-0ubuntu3.15\\nGet:3 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 linux-libc-dev amd64 5.15.0-191.201 [1362 kB]\\nIgn:4 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libtirpc-common all 1.3.2-2ubuntu0.1\\nIgn:5 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libk5crypto3 amd64 1.19.2-2ubuntu0.8\\nIgn:6 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libkrb5support0 amd64 1.19.2-2ubuntu0.8\\nIgn:7 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libkrb5-3 amd64 1.19.2-2ubuntu0.8\\nIgn:8 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libgssapi-krb5-2 amd64 1.19.2-2ubuntu0.8\\nIgn:9 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libcom-err2 amd64 1.46.5-2ubuntu1.2\\nIgn:10 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libssl3 amd64 3.0.2-0ubuntu1.29\\nIgn:11 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libtirpc-dev amd64 1.3.2-2ubuntu0.1\\nIgn:12 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libtirpc3 amd64 1.3.2-2ubuntu0.1\\nIgn:13 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libubsan1 amd64 12.3.0-1ubuntu1~22.04.3\\nIgn:14 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libquadmath0 amd64 12.3.0-1ubuntu1~22.04.3\\nIgn:15 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 liblsan0 amd64 12.3.0-1ubuntu1~22.04.3\\nIgn:16 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libitm1 amd64 12.3.0-1ubuntu1~22.04.3\\nIgn:17 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 libgomp1 amd64 12.3.0-1ubuntu1~22.04.3\\nIgn:18 http://ar",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34572277733/job/103176777825",
+      "failure_class": "unknown",
+      "first_seen": null,
+      "last_seen": null,
+      "occurrences": 0,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 1,
+      "rule_id": null,
+      "runs_seen": 0,
+      "signature_id": "15ffbef78620e149",
+      "subclass": null,
+      "tests_affected": []
+    },
+    {
+      "age_days": null,
+      "configs_affected": [
+        "arm64"
+      ],
+      "exemplar_excerpt": "    data = self.read(amt=amt, decode_content=decode_content)\n  File \"/home/runner/work/k8s-snap/k8s-snap/tests/integration/.tox/integration/lib/python3.12/site-packages/pip/_vendor/urllib3/response.py\", line 560, in read\n    with self._error_catcher():\n  File \"/usr/lib/python3.12/contextlib.py\", line 158, in __exit__\n    self.gen.throw(value)\n  File \"/home/runner/work/k8s-snap/k8s-snap/tests/integration/.tox/integration/lib/python3.12/site-packages/pip/_vendor/urllib3/response.py\", line 443, in _error_catcher\n    raise ReadTimeoutError(self._pool, None, \"Read timed out.\")\npip._vendor.urllib3.exceptions.ReadTimeoutError: HTTPSConnectionPool(host='files.pythonhosted.org', port=443): Read timed out.\nCollecting coverage==7.2.5 (from coverage[toml]==7.2.5->-r /home/runner/work/k8s-snap/k8s-snap/tests/integration/requirements-test.txt (line 1))\n  Downloading coverage-7.2.5.tar.gz (759 kB)\n     \u2501\u2501\u2501\u2501\u2501\u2578                                 112.6/759.5 kB 67.2 kB/s eta 0:00:10\nintegration: exit 2 (18.64 seconds) /home/runner/work/k8s-snap/k8s-snap/tests/integration> python -I -m pip install -r /home/runner/work/k8s-snap/k8s-snap/tests/integration/requirements-test.txt pid=4592\n  integration: FAIL code 2 (18.87 seconds)\n  evaluation failed :( (19.25 seconds)\n\u001b[39m\n##[error]Process completed with exit code 2.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34481731425/job/102898632889",
+      "failure_class": "unknown",
+      "first_seen": null,
+      "last_seen": null,
+      "occurrences": 0,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 1,
+      "rule_id": null,
+      "runs_seen": 0,
+      "signature_id": "246dccc1180b00b6",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_cleanup.py::test_node_cleanup_new_containerd_path"
+      ]
+    },
+    {
+      "age_days": null,
+      "configs_affected": [
+        "ubuntu:24.04"
+      ],
+      "exemplar_excerpt": "  File \"/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py\", line 48, in run\n    return subprocess.run(command, **kwargs)\n  File \"/usr/lib/python3.12/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['lxc', 'shell', 'k8s-integration-3-a1ae77', '--', 'bash', '-c', 'snap install k8s --classic --channel latest/edge/classic']' returned non-zero exit status 1.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34481717251/job/102900148497",
+      "failure_class": "unknown",
+      "first_seen": null,
+      "last_seen": null,
+      "occurrences": 0,
+      "owner": null,
+      "recovered_on_retry": 1,
+      "retry_occurrences": 1,
+      "rule_id": null,
+      "runs_seen": 0,
+      "signature_id": "3fe83287df2c88bf",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_version_upgrades.py::test_feature_upgrades_inplace"
+      ]
+    },
+    {
+      "age_days": null,
+      "configs_affected": [
+        "arm64"
+      ],
+      "exemplar_excerpt": "   \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501 320.5/320.5 kB 287.6 kB/s eta 0:00:00\nDownloading pytest_tagging-1.6.0-py3-none-any.whl (6.8 kB)\nDownloading pytest_benchmark-5.0.0-py3-none-any.whl (43 kB)\n   \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501 44.0/44.0 kB 269.1 kB/s eta 0:00:00\nDownloading PyYAML-6.0.1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl (696 kB)\n   \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501 696.9/696.9 kB 263.2 kB/s eta 0:00:00\nDownloading tenacity-8.2.3-py3-none-any.whl (24 kB)\nDownloading pylint-3.2.5-py3-none-any.whl (519 kB)\n   \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501 519.6/519.6 kB 462.1 kB/s eta 0:00:00\nDownloading cryptography-44.0.1-cp39-abi3-manylinux_2_34_aarch64.whl (4.0 MB)\n   \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2578       3.3/4.0 MB 205.1 kB/s eta 0:00:03\nintegration: exit 2 (51.18 seconds) /home/runner/work/k8s-snap/k8s-snap/tests/integration> python -I -m pip install -r /home/runner/work/k8s-snap/k8s-snap/tests/integration/requirements-test.txt pid=4644\n  integration: FAIL code 2 (51.30 seconds)\n  evaluation failed :( (51.39 seconds)\n\u001b[39m\n##[error]Process completed with exit code 2.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34481731425/job/102898633213",
+      "failure_class": "unknown",
+      "first_seen": null,
+      "last_seen": null,
+      "occurrences": 0,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 1,
+      "rule_id": null,
+      "runs_seen": 0,
+      "signature_id": "56aa719dbd6f844f",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_node_taints.py::test_node_taints"
+      ]
+    },
+    {
+      "age_days": null,
+      "configs_affected": [
+        "amd64"
+      ],
+      "exemplar_excerpt": "  File \"/home/ubuntu/actions-runner/_work/k8s-snap/k8s-snap/k8s-operator/tests/integration/bundle.py\", line 153, in resolve\n    subprocess.run([\"charmcraft\", \"pack\", \"-p\", str(self.path)], check=True)\n  File \"/home/ubuntu/actions-runner/_work/_tool/Python/3.10.21/x64/lib/python3.10/subprocess.py\", line 526, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['charmcraft', 'pack', '-p', '/home/ubuntu/actions-runner/_work/k8s-snap/k8s-snap/k8s-operator/charms/worker/k8s']' returned non-zero exit status 1.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34481736770/job/102892037289",
+      "failure_class": "unknown",
+      "first_seen": null,
+      "last_seen": null,
+      "occurrences": 0,
+      "owner": null,
+      "recovered_on_retry": 3,
+      "retry_occurrences": 5,
+      "rule_id": null,
+      "runs_seen": 0,
+      "signature_id": "77c7780c052d6b44",
+      "subclass": null,
+      "tests_affected": []
+    },
+    {
+      "age_days": null,
+      "configs_affected": [
+        "amd64"
+      ],
+      "exemplar_excerpt": "\u001b[36;1mecho \"snap-artifact=$out_snap\" >> \"$GITHUB_OUTPUT\"\u001b[0m\nshell: /usr/bin/bash -e {0}\nenv:\n  flavor:\n##[endgroup]\nRunning snapcraft without a command will not be possible in future releases. Use 'snapcraft pack' instead.\nLaunching instance...\nCreating new instance from remote\nCreating new base instance from remote\ncraft-providers error: Failed to update apt cache.\n* Command that failed: 'lxc --project snapcraft exec local:base-instance-snapcraft-buildd-base-v71--d799df4d4588b4abe861 -- env PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin CRAFT_MANAGED_MODE=1 DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true DEBIAN_PRIORITY=critical apt-get update'\n* Command exit code: 100\n* Command output: b'Ign:1 http://archive.ubuntu.com/ubuntu jammy InRelease\\nIgn:2 http://security.ubuntu.com/ubuntu jammy-security InRelease\\nIgn:3 http://archive.ubuntu.com/ubuntu jammy-updates InRelease\\nIgn:2 http://security.ubuntu.com/ubuntu jammy-security InRelease\\nGet:4 http://archive.ubuntu.com/ubuntu jammy-backports InRelease [127 kB]\\nGet:1 http://archive.ubuntu.com/ubuntu jammy InRelease [270 kB]\\nIgn:2 http://security.ubuntu.com/ubuntu jammy-security InRelease\\nErr:2 http://security.ubuntu.com/ubuntu jammy-security InRelease\\n  Connection failed [IP: 91.189.91.83 80]\\nGet:3 http://archive.ubuntu.com/ubuntu jammy-updates InRelease [128 kB]\\nGet:5 http://archive.ubuntu.com/ubuntu jammy-backports/main amd64 Packages [70.2 kB]\\nGet:6 http://archive.ubuntu.com/ubuntu jammy-backports/main Translation-en [11.4 kB]\\nGet:7 http://archive.ubuntu.com/ubuntu jammy-backports/universe amd64 Packages [30.8 kB]\\nGet:8 http://archive.ubuntu.com/ubuntu jammy-backports/universe Translation-en [16.9 kB]\\nGet:9 http://archive.ubuntu.com/ubuntu jammy/main amd64 Packages [1395 kB]\\nGet:10 http://archive.ubuntu.com/ubuntu jammy/main Translation-en [510 kB]\\nGet:11 http://archive.ubuntu.com/ubuntu jammy/restricted amd64 Packages [129 kB]\\nGet:12 http://archive.ubuntu.com/ubuntu jammy/restricted Translation-en [18.6 kB]\\nGet:13 http://archive.ubuntu.com/ubuntu jammy/universe amd64 Packages [14.1 MB]\\nGet:14 http://archive.ubuntu.com/ubuntu jammy/universe Translation-en [5652 kB]\\nGet:15 http://archive.ubuntu.com/ubuntu jammy/multiverse amd64 Packages [217 kB]\\nGet:16 http://archive.ubuntu.com/ubuntu jammy/multiverse Translation-en [112 kB]\\nGet:17 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 Packages [3795 kB]\\nGet:18 http://archive.ubuntu.com/ubuntu jammy-updates/main Translation-en [563 kB]\\nGet:19 http://archive.ubuntu.com/ubuntu jammy-updates/restricted amd64 Packages [6542 kB]\\nGet:20 http://archive.ubuntu.com/ubuntu jammy-updates/restricted Translation-en [1256 kB]\\nGet:21 http://archive.ubuntu.com/ubuntu jammy-updates/universe amd64 Packages [1282 kB]\\nGet:22 http://archive.ubuntu.com/ubuntu jammy-updates/universe Translation-en [323 kB]\\nGet:23 http://archive.ubuntu.com/ubuntu jammy-updates/multiverse amd64 Packages [76.8 kB]\\nGet:24 http://archive.ubuntu.com/ubuntu jammy-updates/multiverse Translation-en [15.9 kB]\\nFetched 36.6 MB in 4min 10s (146 kB/s)\\nReading package lists...\\n'\n* Command standard error output: b'E: Failed to fetch http://security.ubuntu.com/ubuntu/dists/jammy-security/InRelease  Connection failed [IP: 91.189.91.83 80]\\nE: Some index files failed to download. They have been ignored, or old ones used instead.\\n'\nFull execution log: '/home/runner/.local/state/snapcraft/log/snapcraft-20260911-070004.434672.log'\n##[error]Process completed with exit code 1.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34572290392/job/103176818191",
+      "failure_class": "external.dependency",
+      "first_seen": null,
+      "last_seen": null,
+      "occurrences": 0,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 1,
+      "rule_id": "external-apt",
+      "runs_seen": 0,
+      "signature_id": "873a4b0fb3a64225",
+      "subclass": "apt",
+      "tests_affected": []
+    },
+    {
+      "age_days": null,
+      "configs_affected": [
+        "arm64"
+      ],
+      "exemplar_excerpt": "    data = self.read(amt=amt, decode_content=decode_content)\n  File \"/home/runner/work/k8s-snap/k8s-snap/tests/integration/.tox/integration/lib/python3.12/site-packages/pip/_vendor/urllib3/response.py\", line 560, in read\n    with self._error_catcher():\n  File \"/usr/lib/python3.12/contextlib.py\", line 158, in __exit__\n    self.gen.throw(value)\n  File \"/home/runner/work/k8s-snap/k8s-snap/tests/integration/.tox/integration/lib/python3.12/site-packages/pip/_vendor/urllib3/response.py\", line 443, in _error_catcher\n    raise ReadTimeoutError(self._pool, None, \"Read timed out.\")\npip._vendor.urllib3.exceptions.ReadTimeoutError: HTTPSConnectionPool(host='files.pythonhosted.org', port=443): Read timed out.\nCollecting coverage==7.2.5 (from coverage[toml]==7.2.5->-r /home/runner/work/k8s-snap/k8s-snap/tests/integration/requirements-test.txt (line 1))\n  Downloading coverage-7.2.5.tar.gz (759 kB)\n     \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2578            532.5/759.5 kB 59.6 kB/s eta 0:00:04\nintegration: exit 2 (27.11 seconds) /home/runner/work/k8s-snap/k8s-snap/tests/integration> python -I -m pip install -r /home/runner/work/k8s-snap/k8s-snap/tests/integration/requirements-test.txt pid=4660\n  integration: FAIL code 2 (27.24 seconds)\n  evaluation failed :( (27.34 seconds)\n\u001b[39m\n##[error]Process completed with exit code 2.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34483604687/job/102901223385",
+      "failure_class": "unknown",
+      "first_seen": null,
+      "last_seen": null,
+      "occurrences": 0,
+      "owner": null,
+      "recovered_on_retry": 1,
+      "retry_occurrences": 1,
+      "rule_id": null,
+      "runs_seen": 0,
+      "signature_id": "8bbe75f419474ccb",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_build.py::test_build"
+      ]
+    },
+    {
+      "age_days": null,
+      "configs_affected": [
+        "amd64"
+      ],
+      "exemplar_excerpt": "Downloading package: libsasl2-modules-db\nDownloading package: util-linux\nDownloading package: libldap-2.5-0\nDownloading package: diffutils\nDownloading package: conntrack\nDownloading package: libnss-mymachines\nDownloading package: libipset13\nDownloading package: net-tools\nDownloading package: hostname\nDownloading package: libnss-resolve\nDownloading package: procps\nFailed to fetch package: The item '/root/.cache/snapcraft/download/procps_3.3.17-6ubuntu2.1_amd64.deb' could not be fetched: Connection failed [IP: 185.125.190.82 80].\nFailed to execute pack in instance.\nRecommended resolution: Run the same command again with --debug to shell into the environment if you wish to introspect this failure.\nFull execution log: '/home/runner/.local/state/snapcraft/log/snapcraft-20260911-070146.236081.log'\n##[error]Process completed with exit code 1.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34572418645/job/103177214020",
+      "failure_class": "unknown",
+      "first_seen": null,
+      "last_seen": null,
+      "occurrences": 0,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 1,
+      "rule_id": null,
+      "runs_seen": 0,
+      "signature_id": "9f0bb9fda1e44c8e",
+      "subclass": null,
+      "tests_affected": []
+    },
+    {
+      "age_days": null,
+      "configs_affected": [
+        "amd64"
+      ],
+      "exemplar_excerpt": "env:\n  flavor:\n##[endgroup]\nRunning snapcraft without a command will not be possible in future releases. Use 'snapcraft pack' instead.\nLaunching instance...\nCreating new instance from remote\nCreating new base instance from remote\nCreating new instance from base instance\nStarting instance\nInitializing parts lifecycle\nInstalling build-packages\nFailed to refresh package list: failed to run apt update.\nFailed to execute pack in instance.\nRecommended resolution: Run the same command again with --debug to shell into the environment if you wish to introspect this failure.\nFull execution log: '/home/runner/.local/state/snapcraft/log/snapcraft-20260911-065957.414310.log'\n##[error]Process completed with exit code 1.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34572278574/job/103176779610",
+      "failure_class": "unknown",
+      "first_seen": null,
+      "last_seen": null,
+      "occurrences": 0,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 1,
+      "rule_id": null,
+      "runs_seen": 0,
+      "signature_id": "a2555afeb47d0614",
+      "subclass": null,
+      "tests_affected": []
+    },
+    {
+      "age_days": null,
+      "configs_affected": [
+        "unknown"
+      ],
+      "exemplar_excerpt": "  Connection failed [IP: 91.189.91.82 80]\nErr:3 http://archive.ubuntu.com/ubuntu focal-updates InRelease\n  Connection failed [IP: 91.189.91.81 80]\nReading package lists...\nW: Failed to fetch http://security.ubuntu.com/ubuntu/dists/focal-security/InRelease  Connection failed [IP: 91.189.91.82 80]\nW: Failed to fetch http://archive.ubuntu.com/ubuntu/dists/focal/InRelease  Connection failed [IP: 91.189.91.83 80]\nW: Failed to fetch http://archive.ubuntu.com/ubuntu/dists/focal-updates/InRelease  Connection failed [IP: 91.189.91.81 80]\nW: Some index files failed to download. They have been ignored, or old ones used instead.\nReading package lists...\nBuilding dependency tree...\nReading state information...\nE: Unable to locate package dirmngr\nE: Unable to locate package udev\nE: Unable to locate package fuse\nAn error occurred when trying to execute 'apt-get install dirmngr udev fuse --yes' with 'LXD': returned exit code 100.\n##[error]Process completed with exit code 2.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34572273601/job/103176764871",
+      "failure_class": "external.dependency",
+      "first_seen": null,
+      "last_seen": null,
+      "occurrences": 0,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 1,
+      "rule_id": "external-apt",
+      "runs_seen": 0,
+      "signature_id": "b3c3973eccdcc279",
+      "subclass": "apt",
+      "tests_affected": []
+    },
+    {
+      "age_days": null,
+      "configs_affected": [
+        "unknown"
+      ],
+      "exemplar_excerpt": "Get:17 http://archive.ubuntu.com/ubuntu focal-updates/restricted Translation-en [548 kB]\nGet:18 http://archive.ubuntu.com/ubuntu focal-updates/universe amd64 Packages [1275 kB]\nGet:19 http://archive.ubuntu.com/ubuntu focal-updates/universe Translation-en [302 kB]\nFetched 20.8 MB in 2min 9s (161 kB/s)\nReading package lists...\nW: Failed to fetch http://archive.ubuntu.com/ubuntu/dists/focal/InRelease  Connection failed [IP: 91.189.91.83 80]\nW: Some index files failed to download. They have been ignored, or old ones used instead.\nReading package lists...\nBuilding dependency tree...\nReading state information...\nPackage fuse is not available, but is referred to by another package.\nThis may mean that the package is missing, has been obsoleted, or\nis only available from another source\nE: Package 'fuse' has no installation candidate\nAn error occurred when trying to execute 'apt-get install dirmngr udev fuse --yes' with 'LXD': returned exit code 100.\n##[error]Process completed with exit code 2.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34572420183/job/103177219138",
+      "failure_class": "external.dependency",
+      "first_seen": null,
+      "last_seen": null,
+      "occurrences": 0,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 1,
+      "rule_id": "external-apt",
+      "runs_seen": 0,
+      "signature_id": "c24c19944ff11aae",
+      "subclass": "apt",
+      "tests_affected": []
+    },
+    {
+      "age_days": null,
+      "configs_affected": [
+        "amd64",
+        "arm64"
+      ],
+      "exemplar_excerpt": "  File \"/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py\", line 48, in run\n    return subprocess.run(command, **kwargs)\n  File \"/usr/lib/python3.12/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['snap', 'download', 'core22', '--basename=core22', '--target-directory=/tmp']' returned non-zero exit status 1.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34481731425/job/102896926069",
+      "failure_class": "unknown",
+      "first_seen": null,
+      "last_seen": null,
+      "occurrences": 0,
+      "owner": null,
+      "recovered_on_retry": 12,
+      "retry_occurrences": 13,
+      "rule_id": null,
+      "runs_seen": 0,
+      "signature_id": "c2ee02896490a527",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_node_availability_zone.py::test_node_availability_zone[k8s-dqlite-True]",
+        "tests/test_cleanup.py::test_containerd_path_cleanup_on_failed_init",
+        "tests/test_dns.py::test_dns",
+        "tests/test_dns.py::test_dns_cluster_dns_propagates_to_late_joiners",
+        "tests/test_networking.py::test_with_fan_networking",
+        "tests/test_loadbalancer.py::test_loadbalancer_ipv6_dualstack",
+        "tests/test_user_config.py::test_user_config",
+        "tests/test_annotations.py::test_skip_services_stop_on_remove",
+        "tests/test_clustering.py::test_disa_stig_clustering",
+        "tests/test_feature_controller.py::test_feature_controller",
+        "tests/test_loadbalancer.py::test_loadbalancer_bgp_single_peer",
+        "tests/test_loadbalancer.py::test_loadbalancer_bgp_multi_peer_annotation"
+      ]
+    },
+    {
+      "age_days": null,
+      "configs_affected": [
+        "unknown"
+      ],
+      "exemplar_excerpt": "  File \"/home/ubuntu/actions-runner/_work/k8s-snap/k8s-snap/k8s-operator/tests/integration/helpers.py\", line 106, in wait_active\n    return juju.wait(\n  File \"/home/ubuntu/actions-runner/_work/k8s-snap/k8s-snap/k8s-operator/.tox/integration/lib/python3.10/site-packages/jubilant/_juju.py\", line 1731, in wait\n    raise WaitError(f'error function {name} returned true\\n{status}')\njubilant._juju.WaitError: error function wait_active.<locals>.<lambda> returned true",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34481717251/job/102898109254",
+      "failure_class": "unknown",
+      "first_seen": null,
+      "last_seen": null,
+      "occurrences": 0,
+      "owner": null,
+      "recovered_on_retry": 1,
+      "retry_occurrences": 1,
+      "rule_id": null,
+      "runs_seen": 0,
+      "signature_id": "d33c47b42995f224",
+      "subclass": null,
+      "tests_affected": []
+    },
+    {
+      "age_days": null,
+      "configs_affected": [
+        "arm64"
+      ],
+      "exemplar_excerpt": ":: + export GOTOOLCHAIN=local\n:: + GOTOOLCHAIN=local\n:: + export GOEXPERIMENT=opensslcrypto\n:: + GOEXPERIMENT=opensslcrypto\n:: + go build -tags linux,cgo,ms_tls13kdf -o cni -ldflags '-linkmode external -s -w -X github.com/containernetworking/plugins/pkg/utils/buildversion.BuildVersion=v1.8.0' ./cni.go\n:: /root/project/build-scripts/components/cni/build.sh: line 16: go: command not found\n'override-build' in part 'cni' failed with code 127.\n:: + export GOEXPERIMENT=opensslcrypto\n:: + GOEXPERIMENT=opensslcrypto\n:: + go build -tags linux,cgo,ms_tls13kdf -o cni -ldflags '-linkmode external -s -w -X github.com/containernetworking/plugins/pkg/utils/buildversion.BuildVersion=v1.8.0' ./cni.go\n:: /root/project/build-scripts/components/cni/build.sh: line 16: go: command not found\nReview the scriptlet and make sure it's correct.\nFailed to execute pack in instance.\nRecommended resolution: Run the same command again with --debug to shell into the environment if you wish to introspect this failure.\nFull execution log: '/home/runner/.local/state/snapcraft/log/snapcraft-20260911-065956.838401.log'\n##[error]Process completed with exit code 1.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34572294222/job/103176828086",
+      "failure_class": "unknown",
+      "first_seen": null,
+      "last_seen": null,
+      "occurrences": 0,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 1,
+      "rule_id": null,
+      "runs_seen": 0,
+      "signature_id": "d8f08d7de672da57",
+      "subclass": null,
+      "tests_affected": []
+    },
+    {
+      "age_days": null,
+      "configs_affected": [
+        "ubuntu:24.04",
+        "amd64",
+        "arm64"
+      ],
+      "exemplar_excerpt": "  File \"/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py\", line 48, in run\n    return subprocess.run(command, **kwargs)\n  File \"/usr/lib/python3.12/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['snap', 'download', 'snapd', '--basename=snapd', '--target-directory=/tmp']' returned non-zero exit status 1.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34481717251/job/102900148450",
+      "failure_class": "unknown",
+      "first_seen": null,
+      "last_seen": null,
+      "occurrences": 0,
+      "owner": null,
+      "recovered_on_retry": 10,
+      "retry_occurrences": 10,
+      "rule_id": null,
+      "runs_seen": 0,
+      "signature_id": "e1544e6745b12a55",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_clustering_race.py::test_wrong_token_race",
+        "tests/test_gateway.py::test_gateway",
+        "tests/test_kubectl.py::test_kubectl",
+        "tests/test_node_availability_zone.py::test_node_availability_zone[True]",
+        "tests/test_version_upgrades.py::test_feature_upgrades_inplace",
+        "tests/test_cleanup.py::test_containerd_base_dir_cli_flag",
+        "tests/test_networking.py::test_with_fan_networking",
+        "tests/test_loadbalancer.py::test_loadbalancer_ipv6_only",
+        "tests/test_version_upgrades.py::test_version_upgrades"
+      ]
+    },
+    {
+      "age_days": null,
+      "configs_affected": [
+        "unknown"
+      ],
+      "exemplar_excerpt": "Get:14 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 libhx509-5-heimdal amd64 7.7.0+dfsg-1ubuntu1.4 [107 kB]\nGet:15 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 libkrb5-26-heimdal amd64 7.7.0+dfsg-1ubuntu1.4 [207 kB]\nGet:16 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 libheimntlm0-heimdal amd64 7.7.0+dfsg-1ubuntu1.4 [15.1 kB]\nGet:17 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 libgssapi3-heimdal amd64 7.7.0+dfsg-1ubuntu1.4 [96.5 kB]\nGet:18 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 libsasl2-modules-db amd64 2.1.27+dfsg-2ubuntu0.1 [14.7 kB]\nGet:19 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 libsasl2-2 amd64 2.1.27+dfsg-2ubuntu0.1 [49.3 kB]\nGet:20 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 libldap-common all 2.4.49+dfsg-2ubuntu1.10 [16.5 kB]\nGet:21 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 libldap-2.4-2 amd64 2.4.49+dfsg-2ubuntu1.10 [155 kB]\nGet:22 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 dirmngr amd64 2.2.19-3ubuntu2.5 [330 kB]\nE: Failed to fetch http://archive.ubuntu.com/ubuntu/pool/main/s/systemd/libudev1_245.4-4ubuntu3.24_amd64.deb  Connection failed [IP: 91.189.91.81 80]\nFetched 2339 kB in 3min 48s (10.2 kB/s)\nE: Failed to fetch http://archive.ubuntu.com/ubuntu/pool/main/s/systemd/udev_245.4-4ubuntu3.24_amd64.deb  Connection failed [IP: 91.189.91.81 80]\nE: Failed to fetch http://archive.ubuntu.com/ubuntu/pool/main/f/fuse/libfuse2_2.9.9-3_amd64.deb  Connection failed [IP: 185.125.190.83 80]\nE: Unable to fetch some archives, maybe run apt-get update or try with --fix-missing?\nAn error occurred when trying to execute 'apt-get install dirmngr udev fuse --yes' with 'LXD': returned exit code 100.\n##[error]Process completed with exit code 2.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34572286063/job/103176803435",
+      "failure_class": "external.dependency",
+      "first_seen": null,
+      "last_seen": null,
+      "occurrences": 0,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 1,
+      "rule_id": "external-apt",
+      "runs_seen": 0,
+      "signature_id": "e3044bee657f6ceb",
+      "subclass": "apt",
+      "tests_affected": []
+    },
+    {
+      "age_days": null,
+      "configs_affected": [
+        "amd64"
+      ],
+      "exemplar_excerpt": "env:\n  flavor:\n##[endgroup]\nRunning snapcraft without a command will not be possible in future releases. Use 'snapcraft pack' instead.\nLaunching instance...\nCreating new instance from remote\nCreating new base instance from remote\nCreating new instance from base instance\nStarting instance\nInitializing parts lifecycle\nInstalling build-packages\nCannot install all requested build packages: autoconf, automake, autopoint, autotools-dev, bison, btrfs-progs, build-essential, curl, flex, gcc, git, libbtrfs-dev, libjansson-dev, liblz4-dev, libnetfilter-conntrack-dev, libnetfilter-conntrack3, libnfnetlink-dev, libseccomp-dev, libssl-dev, libtool, patchelf, pkg-config, python3-pip, python3-yaml, rsync, sudo, tar, tcl\nFailed to execute pack in instance.\nRecommended resolution: Run the same command again with --debug to shell into the environment if you wish to introspect this failure.\nFull execution log: '/home/runner/.local/state/snapcraft/log/snapcraft-20260911-070002.180967.log'\n##[error]Process completed with exit code 1.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34572283283/job/103176794323",
+      "failure_class": "unknown",
+      "first_seen": null,
+      "last_seen": null,
+      "occurrences": 0,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 1,
+      "rule_id": null,
+      "runs_seen": 0,
+      "signature_id": "e74b35f1af23e8a3",
+      "subclass": null,
+      "tests_affected": []
+    },
+    {
+      "age_days": null,
+      "configs_affected": [
+        "unknown"
+      ],
+      "exemplar_excerpt": "Get:10 http://archive.ubuntu.com/ubuntu focal-updates/universe amd64 Packages [1275 kB]\nGet:11 http://archive.ubuntu.com/ubuntu focal-updates/universe Translation-en [302 kB]\nFetched 10.9 MB in 2min 14s (81.1 kB/s)\nReading package lists...\nW: Failed to fetch http://security.ubuntu.com/ubuntu/dists/focal-security/InRelease  Connection failed [IP: 185.125.190.82 80]\nW: Failed to fetch http://archive.ubuntu.com/ubuntu/dists/focal/InRelease  Connection failed [IP: 185.125.190.82 80]\nW: Some index files failed to download. They have been ignored, or old ones used instead.\nReading package lists...\nBuilding dependency tree...\nReading state information...\nPackage fuse is not available, but is referred to by another package.\nThis may mean that the package is missing, has been obsoleted, or\nis only available from another source\nE: Package 'fuse' has no installation candidate\nAn error occurred when trying to execute 'apt-get install dirmngr udev fuse --yes' with 'LXD': returned exit code 100.\n##[error]Process completed with exit code 2.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34572282115/job/103176791659",
+      "failure_class": "external.dependency",
+      "first_seen": null,
+      "last_seen": null,
+      "occurrences": 0,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 1,
+      "rule_id": "external-apt",
+      "runs_seen": 0,
+      "signature_id": "e8473ad70f2b04ef",
+      "subclass": "apt",
+      "tests_affected": []
+    },
+    {
+      "age_days": null,
+      "configs_affected": [
+        "amd64"
+      ],
+      "exemplar_excerpt": "Collecting charset_normalizer<4,>=2 (from requests<3.0.0,>=2.27.1->hvac==2.3.0->-r /home/runner/work/k8s-snap/k8s-snap/tests/integration/requirements-test.txt (line 9))\n  Downloading charset_normalizer-3.5.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (45 kB)\n     \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501 45.9/45.9 kB 6.5 MB/s eta 0:00:00\nCollecting idna<4,>=2.5 (from requests<3.0.0,>=2.27.1->hvac==2.3.0->-r /home/runner/work/k8s-snap/k8s-snap/tests/integration/requirements-test.txt (line 9))\n  Downloading idna-3.19-py3-none-any.whl.metadata (9.2 kB)\nCollecting urllib3<3,>=1.26 (from requests<3.0.0,>=2.27.1->hvac==2.3.0->-r /home/runner/work/k8s-snap/k8s-snap/tests/integration/requirements-test.txt (line 9))\n  Downloading urllib3-2.7.0-py3-none-any.whl.metadata (6.9 kB)\nCollecting certifi>=2023.5.7 (from requests<3.0.0,>=2.27.1->hvac==2.3.0->-r /home/runner/work/k8s-snap/k8s-snap/tests/integration/requirements-test.txt (line 9))\n  Downloading certifi-2026.7.22-py3-none-any.whl.metadata (2.5 kB)\nDownloading pytest-7.3.1-py3-none-any.whl (320 kB)\n   \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2578     286.7/320.5 kB 41.6 kB/s eta 0:00:01\nintegration: exit 2 (63.88 seconds) /home/runner/work/k8s-snap/k8s-snap/tests/integration> python -I -m pip install -r /home/runner/work/k8s-snap/k8s-snap/tests/integration/requirements-test.txt pid=4642\n  integration: FAIL code 2 (64.10 seconds)\n  evaluation failed :( (64.47 seconds)\n\u001b[39m\n##[error]Process completed with exit code 2.",
+      "exemplar_job_url": "https://github.com/canonical/k8s-snap/actions/runs/34481731425/job/102896925543",
+      "failure_class": "unknown",
+      "first_seen": null,
+      "last_seen": null,
+      "occurrences": 0,
+      "owner": null,
+      "recovered_on_retry": 0,
+      "retry_occurrences": 1,
+      "rule_id": null,
+      "runs_seen": 0,
+      "signature_id": "fea4ca5a5168bc64",
+      "subclass": null,
+      "tests_affected": [
+        "tests/test_cilium_e2e.py::test_cilium_e2e"
+      ]
+    }
+  ]
+}
