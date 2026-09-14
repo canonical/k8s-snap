@@ -15,6 +15,9 @@ protected_paths_regex:
   # next run is allowed to do.
   - "^\\.triage-config\\.yaml$"
   - "^\\.agents/"
+  # The orchestrator executes this on the self-hosted runner, with sudo and
+  # LXD in reach, so it is bot-executable code in the same sense as a workflow.
+  - "^hack/"
 ignored_users: ["github-actions[bot]"]
 maintainer_team: "canonical/kubernetes"
 triage_skill_dir: ".agents/skills/triage"

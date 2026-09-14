@@ -38,9 +38,20 @@ quietly change what is being asserted.
    scope for this pipeline by design.
 4. Rebuild the snap so the artefact under test actually contains your change,
    then re-run the one test. A change to a Go component reaches the cluster only
-   through a rebuild: a green run without one proves nothing. The build costs
-   tens of minutes, and it must run from the primary checkout rather than this
-   worktree.
+   through a rebuild: a green run without one proves nothing, and the build
+   costs tens of minutes.
+
+   Build from a **disposable clone of your own branch**, never from the primary
+   checkout: the primary tree does not have your commit, so a snap built there
+   contains the pre-fix code and the re-run would validate the wrong artefact.
+   A clone is an ordinary repository, so it does not hit the worktree-mount
+   failure `local-cluster` describes.
+   ```bash
+   git clone --shared --branch "triage/fix-<issue>" "$PWD" .triage/issue-<n>/build
+   (cd .triage/issue-<n>/build && snapcraft --use-lxd && mv k8s_*.snap k8s.snap)
+   hack/cluster-up.sh --prefix "$CLUSTER_PREFIX" --snap .triage/issue-<n>/build/k8s.snap
+   ```
+   Commit your fix **before** cloning, or the clone will not contain it.
 5. Commit the fix as its own commit, separate from the test. Stage only the
    files you changed: the checkout may carry unrelated work in progress, and
    `commit -a` would sweep it into the bot's PR.
