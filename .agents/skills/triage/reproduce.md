@@ -28,15 +28,20 @@ until you have seen the failure happen here.
    # name still redirects reads and writes outside the scratch directory.
    # mktemp, not a fixed path: triage jobs for different issues share this
    # host, and a listing another run overwrote proves nothing about yours.
-   members=$(mktemp)
-   tar -tvzf <tarball> > "$members"
-   if grep -qE '(^|/)\.\./|^[lh]' "$members" || grep -qE ' /' "$members"; then
+   # Two listings: names from the bare form (one path per line, so the
+   # patterns can anchor), member types from the verbose form. Matching
+   # names against `tar -tv` output does not work -- it prefixes each path
+   # with mode/owner/size, so a leading `../` is no longer at line start.
+   members=$(mktemp); types=$(mktemp)
+   tar -tzf <tarball> > "$members"
+   tar -tvzf <tarball> > "$types"
+   if grep -qE '^/|(^|/)\.\.(/|$)' "$members" || grep -qE '^[lh]' "$types"; then
      echo "UNSAFE: refusing to extract"
    else
      tar --no-absolute-names --no-same-owner --no-same-permissions \
          -xzf <tarball> -C .triage/issue-<n>/inspection
    fi
-   rm -f "$members"
+   rm -f "$members" "$types"
    ```
    If the listing shows unsafe members, do not extract it: say so in your
    reasoning and continue from the issue text alone.

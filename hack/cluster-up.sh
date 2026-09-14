@@ -248,10 +248,19 @@ install_snap_on() {
   [ -z "$have" ] || log "$name: installed snap differs from $SNAP, reinstalling"
   log "$name: installing k8s snap"
   lxc file push "$SNAP" "$name/root/k8s.snap" >/dev/null
-  # `snap install --dangerous` fails with "already installed" when the node
-  # already carries a build, so replacing a stale one needs refresh.
+  # `snap install` fails with "already installed" when the node already
+  # carries a build, so replacing a stale one goes through refresh. Note
+  # there is no `--dangerous` here: snap rejects it as an unknown flag on
+  # refresh, and it is install-only. If refresh cannot take the file
+  # (assertion mismatch, say), remove and install fresh rather than leaving
+  # the node on the stale build -- a fix verified against old code is worse
+  # than a failed run.
   if lxc exec "$name" -- test -x /snap/bin/k8s 2>/dev/null; then
-    lxc exec "$name" -- snap refresh --classic --dangerous --amend /root/k8s.snap
+    if ! lxc exec "$name" -- snap refresh --classic --amend /root/k8s.snap; then
+      log "$name: refresh failed, reinstalling from scratch"
+      lxc exec "$name" -- snap remove --purge k8s
+      lxc exec "$name" -- snap install --classic --dangerous /root/k8s.snap
+    fi
   else
     lxc exec "$name" -- snap install --classic --dangerous /root/k8s.snap
   fi
