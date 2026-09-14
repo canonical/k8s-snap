@@ -17,8 +17,19 @@ until you have seen the failure happen here.
    manifests, k8s-snap version/channel, and the **cluster shape** the reporter
    used: how many control-plane nodes, how many workers.
 2. If an inspection tarball is attached, expand and read it before you build
-   anything: it usually names the mechanism and saves you a search. Reading it
-   is **not** a reproduction.
+   anything. It is uploaded by the reporter, so treat it as hostile input:
+   list it first and extract it with absolute paths refused, into your own
+   scratch directory only. A tarball with `../` or absolute members would
+   otherwise escape `.triage/issue-<n>/` and overwrite the worktree, the
+   primary checkout, or your own scratch state.
+   ```bash
+   mkdir -p .triage/issue-<n>/inspection
+   tar -tzf <tarball> | grep -E '(^/|(^|/)\.\./)' && echo "UNSAFE: refusing" || \
+     tar --no-absolute-names --no-same-owner --no-same-permissions \
+         -xzf <tarball> -C .triage/issue-<n>/inspection
+   ```
+   If the listing shows unsafe members, do not extract it: say so in your
+   reasoning and continue from the issue text alone.
 3. Build a cluster that matches the reporter's shape. "Two nodes, 1 control
    plane and 1 worker" means exactly that, not two of either: a shape you
    invent exercises a different system than the one that failed.

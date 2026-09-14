@@ -21,6 +21,9 @@ protected_paths_regex:
   # AGENTS.md files are the agent's own project instructions, so a generated
   # fix must not be able to rewrite what the next run is told to do.
   - "(^|/)AGENTS\\.md$"
+  # Read by hack/cluster-up.sh when it creates the LXD profile, so it decides
+  # what the pipeline's containers are allowed to do.
+  - "^tests/integration/lxd-profile\\.yaml$"
 ignored_users: ["github-actions[bot]"]
 maintainer_team: "canonical/kubernetes"
 triage_skill_dir: ".agents/skills/triage"
