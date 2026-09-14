@@ -50,6 +50,7 @@ jobs:
                   ISSUE_NUM: ${{ github.event.issue.number }}
                   INPUT_ISSUE: ${{ inputs.issue }}
                   HEAD_REF: ${{ github.event.pull_request.head.ref }}
+                  COMMENT_BODY: ${{ github.event.comment.body }}
               run: |
                   action="$ACTION"
                   assoc="$ASSOC_ISSUE"
@@ -59,10 +60,24 @@ jobs:
                   if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
                     action="$INPUT_ACTION"
                   fi
+                  # The self-hosted pipeline job builds a snap and spins up an
+                  # LXD cluster, so it is reserved for an *explicit* request:
+                  # a maintainer commenting /reproduce or /triage, or a manual
+                  # dispatch. Opening or merely discussing an issue routes to
+                  # the cheap classify job -- the bot refuses to run the
+                  # pipeline for those anyway (router.is_explicit_trigger), so
+                  # scheduling a cluster runner for them only wastes capacity.
                   route=classify
+                  trusted=no
                   case "$assoc" in
-                    OWNER|MEMBER|COLLABORATOR) route=pipeline ;;
+                    OWNER|MEMBER|COLLABORATOR) trusted=yes ;;
                   esac
+                  if [[ "$EVENT_NAME" == "issue_comment" && "$trusted" == "yes" ]]; then
+                    body="${COMMENT_BODY#"${COMMENT_BODY%%[![:space:]]*}"}"
+                    case "$body" in
+                      /reproduce* | /triage*) route=pipeline ;;
+                    esac
+                  fi
                   # Manual dispatch is maintainer-gated by repo permissions.
                   if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
                     route=pipeline
