@@ -84,14 +84,35 @@ jobs:
 
       - name: Restore per-run records
         # Records live in an artifact rather than in git. Losing them costs a
-        # re-ingest, not the trend: rollups are committed and independent.
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
-        continue-on-error: true
-        with:
-          name: ci-metrics-records
-          path: .metrics/ci/metrics-data
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: ${{ github.event.workflow_run.id || github.run_id }}
+        # re-ingest, not the trend -- but only if the trend is safe, and it is
+        # not: `metrics rollup` writes a whole month's aggregate from whatever
+        # the store holds, so a failed restore would relabel one --since
+        # window as a month. Hence the explicit hunt for the previous run's
+        # artifact rather than an event-context run id: on workflow_run,
+        # `github.event.workflow_run.id` is the *triggering* run (Nightly,
+        # Weekly, ...), which has no records artifact, and `github.run_id` is
+        # this run, whose artifact does not exist yet. Both fail silently.
+        # `metrics rollup` refuses to shrink a rollup, so a miss here is loud.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p .metrics/ci/metrics-data
+          # --status=success excludes this run, which is still in progress.
+          prev=$(gh run list --repo "${{ github.repository }}" \
+                   --workflow ci-metrics.yaml --status success --limit 1 \
+                   --json databaseId --jq '.[0].databaseId // empty')
+          if [ -z "$prev" ]; then
+            echo "::notice::No previous successful ci-metrics run; cold start."
+            exit 0
+          fi
+          if gh run download "$prev" --repo "${{ github.repository }}" \
+               --name ci-metrics-records --dir .metrics/ci/metrics-data/runs; then
+            echo "Restored records from run $prev"
+          else
+            echo "::warning::No records artifact on run $prev (expired?);" \
+                 "rollups for periods this ingest cannot cover will be refused."
+          fi
 
       - name: Ingest
         working-directory: ci
@@ -159,16 +180,32 @@ jobs:
             echo "No metrics changes to commit"
             exit 0
           fi
-          git -c user.name=github-actions[bot] \
-              -c user.email=41898282+github-actions[bot]@users.noreply.github.com \
-              commit -s -m "chore(ci): update metrics rollups"
+          # Set on the repo, not just the commit: the retry below rebases, and
+          # a rebase re-creates the commit needing an identity of its own. With
+          # -c on the commit only, the fast-forward case passes and the
+          # contended case -- the only case the retry exists for -- aborts with
+          # "unable to auto-detect email address".
+          git config user.name 'github-actions[bot]'
+          git config user.email \
+            '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -s -m "chore(ci): update metrics rollups"
           # The cron and workflow_run paths can still interleave across
           # concurrency-group boundaries, so retry rather than fail the run.
+          # Push is inside the loop: a push losing a race against a commit
+          # landing after our pull is exactly the failure being retried.
+          pushed=
           for attempt in 1 2 3; do
-            git pull --rebase --quiet origin ci-metrics && break
+            if git pull --rebase --quiet origin ci-metrics &&
+               git push --quiet origin HEAD:ci-metrics; then
+              pushed=1
+              break
+            fi
             sleep $((attempt * 5))
           done
-          git push origin HEAD:ci-metrics
+          test -n "$pushed" || {
+            echo "::error::Could not push metrics after 3 attempts"
+            exit 1
+          }
 
       - name: Post digest
         # Only on the daily cron. Posting on every hourly reconciliation is
