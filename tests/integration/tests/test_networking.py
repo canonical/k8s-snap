@@ -399,3 +399,60 @@ def test_with_fan_networking(instances: List[harness.Instance]):
     main.exec(["k8s", "set", "annotations=k8sd/v1alpha1/cilium/tunnel-port=8473"])
 
     util.wait_until_k8s_ready(main, instances)
+
+
+@pytest.mark.node_count(1)
+@pytest.mark.tags(tags.NIGHTLY)
+def test_cilium_cluster_identity(instances: List[harness.Instance]):
+    main = instances[0]
+
+    util.wait_until_k8s_ready(main, instances)
+
+    main.exec(
+        [
+            "k8s",
+            "set",
+            "annotations=k8sd/v1alpha1/cilium/cluster-id=2,k8sd/v1alpha1/cilium/cluster-name=ck-test",
+        ]
+    )
+
+    # Wait for the ck-network release to reconcile and cilium to roll with
+    # the new cluster identity values rendered from the annotations.
+    main.exec(
+        [
+            "k8s",
+            "kubectl",
+            "rollout",
+            "status",
+            "daemonset/cilium",
+            "-n",
+            "kube-system",
+            "--timeout",
+            "10m",
+        ]
+    )
+
+    configmap = (
+        util.stubbornly(retries=5, delay_s=10)
+        .on(main)
+        .exec(
+            [
+                "k8s",
+                "kubectl",
+                "get",
+                "configmap",
+                "cilium-config",
+                "-n",
+                "kube-system",
+                "-o",
+                "json",
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        .stdout
+    )
+    data = json.loads(configmap)["data"]
+    assert data["cluster-name"] == "ck-test"
+    assert data["cluster-id"] == "2"
