@@ -88,6 +88,21 @@ jobs:
                       issue_num="${BASH_REMATCH[2]}"
                     fi
                   fi
+                  # inputs.issue is user-supplied text, so constrain the value
+                  # to a bare integer before it reaches $GITHUB_OUTPUT: it
+                  # feeds downstream shell, concurrency groups and artifact
+                  # names, and a newline would also forge extra step outputs.
+                  if [[ ! "$issue_num" =~ ^[0-9]+$ ]]; then
+                    issue_num=""
+                  fi
+                  # A dispatch names its target explicitly, so a rejected
+                  # value there is an operator error worth surfacing rather
+                  # than silently triaging nothing. Other routes tolerate an
+                  # empty value (e.g. an unrelated PR close, which no-ops).
+                  if [[ "$EVENT_NAME" == "workflow_dispatch" && -z "$issue_num" ]]; then
+                    echo "::error::--issue must be a positive integer" >&2
+                    exit 1
+                  fi
                   echo "route=$route" >> "$GITHUB_OUTPUT"
                   echo "issue=$issue_num" >> "$GITHUB_OUTPUT"
 
@@ -216,15 +231,26 @@ jobs:
             - name: Publish triage results
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  # Passed through the environment, never interpolated into the
+                  # script: a ${{ }} expansion inside run: is a template
+                  # injection sink. The gate already constrains this to digits.
+                  EXPECTED_ISSUE: ${{ needs.gate.outputs.issue }}
               run: |
                   source .venv/bin/activate
+                  # Fail closed rather than let an empty value reach argparse:
+                  # without a trusted issue number the publisher has nothing to
+                  # validate the artifact's own numbers against.
+                  if [[ -z "$EXPECTED_ISSUE" ]]; then
+                    echo "::error::no trusted issue number from gate; refusing to publish" >&2
+                    exit 1
+                  fi
                   # --expected-issue comes from the gate step (the triggering
                   # event), never from the artifact: the producing job is
                   # unprivileged, so its recorded issue/PR numbers are only
                   # applied after matching this trusted value.
                   ai-triage publish --config .triage-config.yaml --log-level DEBUG \
                     --artifact-dir triage-artifacts \
-                    --expected-issue "${{ needs.gate.outputs.issue }}"
+                    --expected-issue "$EXPECTED_ISSUE"
 
 
     classify:
