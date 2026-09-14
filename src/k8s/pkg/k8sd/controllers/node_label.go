@@ -34,7 +34,7 @@ func NewNodeLabelController(snap snap.Snap, waitReady func(), getNodeName func(c
 }
 
 func (c *NodeLabelController) Run(ctx context.Context, getDatastoreType func(ctx context.Context) (string, error)) {
-	ctx = log.NewContext(ctx, log.FromContext(ctx).WithValues("controller", "node-configuration"))
+	ctx = log.NewContext(ctx, log.FromContext(ctx).WithValues("controller", "node-label"))
 	log := log.FromContext(ctx)
 
 	log.Info("Waiting for node to be ready")

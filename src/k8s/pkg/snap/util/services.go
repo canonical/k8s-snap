@@ -39,6 +39,12 @@ var (
 	}
 )
 
+// WorkerServices returns the list of k8s services that run on a worker node.
+func WorkerServices() []string { return append([]string(nil), workerK8sServices...) }
+
+// ControlPlaneServices returns the list of k8s services that run on a control-plane node.
+func ControlPlaneServices() []string { return append([]string(nil), controlPlaneK8sServices...) }
+
 // RestartControlPlaneServices restarts the control plane services.
 // RestartControlPlaneServices will return on the first failing service.
 func RestartControlPlaneServices(ctx context.Context, snap snap.Snap, extraSnapArgs ...string) error {

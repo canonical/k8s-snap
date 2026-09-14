@@ -179,7 +179,11 @@ func TestConfigPropagation(t *testing.T) {
 		},
 	}
 
-	clientset := fake.NewSimpleClientset()
+	clientset := fake.NewSimpleClientset(
+		&corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{Name: "k8sd-config", Namespace: "kube-system"},
+		},
+	)
 	watcher := watch.NewFake()
 	clientset.PrependWatchReactor("configmaps", k8stesting.DefaultWatchReactor(watcher, nil))
 
@@ -194,12 +198,21 @@ func TestConfigPropagation(t *testing.T) {
 
 	g.Expect(setup.EnsureAllDirectories(s)).To(Succeed())
 
-	ctrl := controllers.NewNodeConfigurationController(s, func() {})
+	ctrl := controllers.NewNodeConfigurationController(s, func() {}, 2*time.Minute)
 
 	keyCh := make(chan *rsa.PublicKey)
 
 	go ctrl.Run(ctx, func(ctx context.Context) (*rsa.PublicKey, error) { return <-keyCh, nil })
 	defer watcher.Stop()
+
+	// WatchConfigMap now does an initial Get to seed the reconcile. Drain that
+	// seed reconcile (empty configmap, nil key → no-op) before the test loop.
+	keyCh <- nil
+	select {
+	case <-ctrl.ReconciledCh():
+	case <-time.After(channelSendTimeout):
+		g.Fail("Timed out waiting for seed reconcile to complete")
+	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {

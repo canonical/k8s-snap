@@ -57,6 +57,7 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.
 			"create": true,
 			"name":   "coredns",
 		},
+		"priorityClassName": "system-node-critical",
 		"deployment": map[string]any{
 			"name": "coredns",
 		},
@@ -81,6 +82,87 @@ func ApplyDNS(ctx context.Context, snap snap.Snap, dns types.DNS, kubelet types.
 					{"name": "loop"},
 					{"name": "reload"},
 					{"name": "loadbalance"},
+				},
+			},
+		},
+		// PodAntiAffinity: Preferably schedule CoreDNS pods on separate nodes.
+		"affinity": map[string]any{
+			"podAntiAffinity": map[string]any{
+				"preferredDuringSchedulingIgnoredDuringExecution": []map[string]any{
+					{
+						"weight": 100,
+						"podAffinityTerm": map[string]any{
+							"labelSelector": map[string]any{
+								"matchLabels": map[string]any{
+									"app.kubernetes.io/name":     "coredns",
+									"app.kubernetes.io/instance": "ck-dns",
+									"k8s-app":                    "coredns",
+								},
+							},
+							"topologyKey": "kubernetes.io/hostname",
+						},
+					},
+				},
+			},
+		},
+		// TopologySpreadConstraints: Evenly distribute CoreDNS pods across zones and nodes.
+		"topologySpreadConstraints": []map[string]any{
+			{
+				"maxSkew":           1,
+				"topologyKey":       "topology.kubernetes.io/zone",
+				"whenUnsatisfiable": "ScheduleAnyway",
+				"labelSelector": map[string]any{
+					"matchLabels": map[string]any{
+						"app.kubernetes.io/name":     "coredns",
+						"app.kubernetes.io/instance": "ck-dns",
+						"k8s-app":                    "coredns",
+					},
+				},
+				"matchLabelKeys": []string{"pod-template-hash"},
+			},
+			{
+				"maxSkew":           1,
+				"topologyKey":       "kubernetes.io/hostname",
+				"whenUnsatisfiable": "ScheduleAnyway",
+				"labelSelector": map[string]any{
+					"matchLabels": map[string]any{
+						"app.kubernetes.io/name":     "coredns",
+						"app.kubernetes.io/instance": "ck-dns",
+						"k8s-app":                    "coredns",
+					},
+				},
+				"matchLabelKeys": []string{"pod-template-hash"},
+			},
+		},
+		// PDB: Ensure availability of CoreDNS during maintenance.
+		"podDisruptionBudget": map[string]any{
+			"minAvailable": 1,
+		},
+		// HPA: Scale pods based on CPU+memory utilization.
+		"hpa": map[string]any{
+			"enabled":     true,
+			"minReplicas": 2,
+			"maxReplicas": 100,
+			"metrics": []map[string]any{
+				{
+					"type": "Resource",
+					"resource": map[string]any{
+						"name": "cpu",
+						"target": map[string]any{
+							"type":               "Utilization",
+							"averageUtilization": 80,
+						},
+					},
+				},
+				{
+					"type": "Resource",
+					"resource": map[string]any{
+						"name": "memory",
+						"target": map[string]any{
+							"type":               "Utilization",
+							"averageUtilization": 70,
+						},
+					},
 				},
 			},
 		},

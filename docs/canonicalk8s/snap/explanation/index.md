@@ -53,6 +53,7 @@ Understand the networking capabilities in {{product}}.
 :titlesonly:
 ingress
 load-balancer
+default-dns
 ```
 
 ## Security and compliance

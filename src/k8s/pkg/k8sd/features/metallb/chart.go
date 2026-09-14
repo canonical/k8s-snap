@@ -25,13 +25,13 @@ var (
 	controllerImageRepo = "ghcr.io/canonical/metallb-controller"
 
 	// ControllerImageTag is the tag to use for metallb-controller.
-	ControllerImageTag = "v0.14.9-ck0"
+	ControllerImageTag = "v0.14.9-ck8"
 
 	// speakerImageRepo is the image to use for metallb-speaker.
 	speakerImageRepo = "ghcr.io/canonical/metallb-speaker"
 
 	// speakerImageTag is the tag to use for metallb-speaker.
-	speakerImageTag = "v0.14.9-ck0"
+	speakerImageTag = "v0.14.9-ck8"
 
 	// frrImageRepo is the image to use for frrouting.
 	frrImageRepo = "ghcr.io/canonical/frr"

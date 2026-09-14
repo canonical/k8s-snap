@@ -1,0 +1,84 @@
+# Reference docs template
+
+> Reference guides are technical descriptions of the machinery.
+
+The reference section is distinct from the How to section in that it provides
+information without demonstrating in any depth how that information is to be used.
+What's the point of that?
+
+Often users may need to check some information - "What release included support
+for xxxx?" or "What options can I supply to yyyy". 
+
+The reference section is also distinct from the explanation section in that it
+does not attempt to give any detailed explanation of why this information
+exists or how it is to be used.
+
+Consider an application which deals with many different image formats. A useful
+reference page would list the filetypes supported and maybe a list of common
+file extensions and perhaps a brief decscription:
+
+| FileType | Extensions | Notes                                              |
+|----------|------------|----------------------------------------------------|
+| TIFF     | .tif,.tiff | Tag Image File Format - lossless bitmaps           |
+| JPEG     | .jpg,.jpeg | Compressed photo-quality images                    |
+| PNG      | .png       | Portable Network Graphics - lossless bitmaps        |
+
+This table gives some reference information. It doesn't try to tell you which
+format to use. It doesn't explain in great detail the differences between them.
+It doesn't guide you on how to use them. It is simply a reference. You could use
+it to check whether the application can import or export files in a particular
+format.
+
+## Presentation
+
+As the reference guide is usually about collections of small piece of data,
+there are some specific ways of formatting this information which can be useful
+
+We have already seen the table style. In other situations it may be more
+relevant to use a simple bullet list:
+
+
+- TIFF (.tif,.tiff)
+- PNG (.png)
+- JPEG (.jpg, .jpeg)
+
+Or definition lists:
+
+
+TIFF
+: Tag Image File Format
+
+JPEG
+: Joint Photographic Experts Group
+
+## Automation
+
+For some types of information it may be more expedient to generate details or
+text automatically through a script. there are a few ways this can then be used
+in documentation.
+
+For example, in the command reference we use:
+
+```{include} ../../_parts/commands/k8s_config.md
+   :end-before: '### SEE ALSO'
+```
+which automatically includes the contents of the file (note you can also use a
+simple :start-after: and :end-before: option to filter out parts of the
+original)
+
+Pages can filter information from other sources to, for example:
+
+``` {csv-table} Canonical Kubernetes public roadmap
+   :file: ../../assets/roadmap.csv
+   :widths: 30, 30
+   :header-rows: 1
+```
+
+This defines an input from a CSV file.
+
+## Tips
+
+- Remember this is about presenting information.
+- People are unlikely to read the entire page in one go - use headings, lists,
+  tables etc to direct them to the information they are looking for.
+- Resist the temptation to over-explain, but do provide links to documents which do!

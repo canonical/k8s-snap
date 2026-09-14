@@ -1,10 +1,20 @@
 package utils
 
 import (
+	"context"
+	"errors"
+	"os/exec"
 	"testing"
 
 	. "github.com/onsi/gomega"
 )
+
+func skipIfNoSystemctl(t *testing.T) {
+	t.Helper()
+	if _, err := exec.LookPath("systemctl"); err != nil {
+		t.Skip("systemctl not available")
+	}
+}
 
 func TestServiceArgsFromMap(t *testing.T) {
 	tests := []struct {
@@ -74,4 +84,84 @@ func TestServiceArgsFromMap(t *testing.T) {
 			g.Expect(deleteArgs).To(Equal(tt.expected.deleteArgs))
 		})
 	}
+}
+
+func TestGetUnitLoadState(t *testing.T) {
+	skipIfNoSystemctl(t)
+	ctx := context.Background()
+
+	t.Run("NotFound", func(t *testing.T) {
+		g := NewWithT(t)
+		state, err := getUnitLoadState(ctx, "snap.k8s.definitely-nonexistent-k8sd-test.service")
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(state).To(Equal(LoadState(LoadStateNotFound)))
+	})
+
+	t.Run("Loaded", func(t *testing.T) {
+		// init.scope is always loaded and active on any systemd system.
+		g := NewWithT(t)
+		state, err := getUnitLoadState(ctx, "init.scope")
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(state).To(Equal(LoadState(LoadStateLoaded)))
+	})
+}
+
+func TestGetUnitActiveState(t *testing.T) {
+	skipIfNoSystemctl(t)
+	ctx := context.Background()
+
+	t.Run("Active", func(t *testing.T) {
+		// init.scope is always loaded and active on any systemd system.
+		g := NewWithT(t)
+		state, err := getUnitActiveState(ctx, "init.scope")
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(state).To(Equal(ActiveStateActive))
+	})
+
+	t.Run("Inactive", func(t *testing.T) {
+		// A loaded-but-inactive unit: systemd ships plymouth-quit.service which
+		// is loaded but finishes quickly and stays inactive afterward.
+		// Use a unit that is guaranteed to be loaded but not running:
+		// systemd-ask-password-console.service is loaded but inactive on headless systems.
+		// Fall back to checking any not-found unit — systemctl returns "inactive" for those too.
+		g := NewWithT(t)
+		state, err := getUnitActiveState(ctx, "snap.k8s.definitely-nonexistent-k8sd-test.service")
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(state).To(Equal(ActiveStateInactive))
+	})
+}
+
+func TestGetUnitMainPID(t *testing.T) {
+	skipIfNoSystemctl(t)
+	ctx := context.Background()
+
+	t.Run("ActiveUnitHasNonZeroPID", func(t *testing.T) {
+		// systemd-journald is always running on any systemd system.
+		g := NewWithT(t)
+		pid, err := getUnitMainPID(ctx, "systemd-journald.service")
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(pid).To(BeNumerically(">", 0))
+	})
+
+	t.Run("InactiveUnitHasZeroPID", func(t *testing.T) {
+		g := NewWithT(t)
+		pid, err := getUnitMainPID(ctx, "snap.k8s.definitely-nonexistent-k8sd-test.service")
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(pid).To(Equal(0))
+	})
+}
+
+func TestRunningServiceArgs(t *testing.T) {
+	skipIfNoSystemctl(t)
+	ctx := context.Background()
+
+	t.Run("UnitNotFound", func(t *testing.T) {
+		// A completely unknown service name: LoadState=not-found.
+		// This is NOT wrapped in ErrUnitNotRunning — it's a different error class.
+		g := NewWithT(t)
+		_, err := RunningServiceArgs(ctx, "definitely-nonexistent-k8sd-test-unit")
+		g.Expect(err).To(HaveOccurred())
+		g.Expect(errors.Is(err, ErrUnitNotRunning)).To(BeFalse())
+		g.Expect(err.Error()).To(ContainSubstring("was not found"))
+	})
 }

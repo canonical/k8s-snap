@@ -19,7 +19,7 @@ jobs:
 
       - uses: DavidAnson/markdownlint-cli2-action@b4c9feab76d8025d1e83c653fa3990936df0e6c8 # v16
         with:
-          config: "docs/canonicalk8s/.sphinx/.markdownlint.json"
+          config: "docs/canonicalk8s/_dev/.markdownlint.json"
           globs: |
             docs/canonicalk8s/**/*.md
             !docs/canonicalk8s/_parts/**

@@ -85,7 +85,7 @@ Consult the official
 Use the following command to enable the proxy protocol:
 
 ```
-sudo k8s set ingress.enable-proxy-protocol=<new-enable-proxy-protocol>
+sudo k8s set ingress.enable-proxy-protocol=true
 ```
 
 Adjust the value of `<new-enable-proxy-protocol>` with your proxy protocol
