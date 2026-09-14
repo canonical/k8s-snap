@@ -161,6 +161,21 @@ def parse_job_name(name: str) -> ParsedJobName:
         # PR runs schedule a whole file per job rather than a single test.
         parsed.test_file = node_match.group("file")
 
+    # Substrate is only recoverable from the job name when the matrix carried
+    # an OS token, and several real shapes do not carry one -- the weekly
+    # "Spread tests across different datastores (amd64, latest/edge)" and the
+    # PR-side "Integration (amd64)" among them. That is not an unknown
+    # substrate though: e2e-tests.yaml declares `substrate` with
+    # `default: lxd`, and the FIPS/STIG weekly job is the only caller in the
+    # repository that overrides it -- and it does carry an OS token, so it is
+    # already resolved above. Anything that ran a test and got this far is
+    # therefore LXD by the workflow's own default, which matters because
+    # substrate-guarded rules treat a missing field as a non-match: left
+    # unset, 210 real failures in the backfill fell through to a rule that
+    # scored them as product bugs without ever establishing where they ran.
+    if parsed.substrate is None and (parsed.test_nodeid or parsed.test_file):
+        parsed.substrate = "lxd"
+
     return parsed
 
 

@@ -166,12 +166,19 @@ rules:
     signature_id: 8c531e6ba49b3382
     class: product.bug
     subclass: upgrade_failure
+    job:
+      substrate: '^lxd$'
     notes: >-
       The same "Failed to meet condition" signature on the LXD substrate,
       where it is concentrated in test_version_upgrades rather than sprayed
       across the suite: 12 occurrences in nightly run 34172139128 and 2 in the
       datastore spread tests. Here the cluster genuinely fails to reach the
-      expected state during an upgrade.
+      expected state during an upgrade. Guarded on substrate deliberately:
+      only the substrate separates this from the Multipass setup failure
+      above, so an occurrence whose substrate could not be parsed out of the
+      job name -- the weekly "Spread tests across different datastores
+      (amd64, latest/edge)" shape carries no OS token -- must fall through to
+      unknown and show up in M9, not be scored as a product bug on a guess.
 
   - id: product-service-restarts
     signature_id: 35b12bf41b664182

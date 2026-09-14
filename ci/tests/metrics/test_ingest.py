@@ -180,3 +180,41 @@ class TestSummariseJobs:
 
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-v"]))
+
+
+class TestSubstrateDefaultsToWorkflowDefault:
+    """A job name without an OS token is LXD, not an unknown substrate.
+
+    e2e-tests.yaml declares `substrate` with `default: lxd`, and the FIPS/STIG
+    weekly job is the only caller that overrides it. Leaving the field unset
+    is not neutral: substrate-guarded rules treat a missing field as a
+    non-match, so an unset substrate silently routes a failure to whichever
+    unguarded rule happens to pin the same signature.
+    """
+
+    def test_weekly_datastore_spread_shape_resolves_to_lxd(self):
+        parsed = parse_job_name(
+            "Spread tests across different datastores (amd64, latest/edge) "
+            "/ test_smoke.py::test_smoke"
+        )
+
+        assert parsed.substrate == "lxd"
+
+    def test_pr_integration_shape_resolves_to_lxd(self):
+        parsed = parse_job_name("Integration (amd64) / test_storage.py")
+
+        assert parsed.substrate == "lxd"
+
+    def test_an_explicit_multipass_os_token_still_wins(self):
+        """The default must not overwrite a substrate the name does carry."""
+        parsed = parse_job_name(
+            "FIPS and STIG tests (noble, amd64) / test_disa_stig.py::test_stig"
+        )
+
+        assert parsed.substrate == "multipass"
+
+    def test_non_test_jobs_get_no_substrate(self):
+        """Build jobs do not run on a test substrate; claiming lxd would lie."""
+        parsed = parse_job_name("Build k8s-snap  amd64 / Build snap")
+
+        assert parsed.substrate is None
