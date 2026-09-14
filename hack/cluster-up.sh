@@ -16,8 +16,11 @@ SNAP=""
 IMAGE="${TEST_LXD_IMAGE:-ubuntu:22.04}"
 # Wait for CNI to settle.
 READY_TIMEOUT="${READY_TIMEOUT:-10m}"
-# Disk budget per node for pre-flight check.
-PER_NODE_GB="${PER_NODE_GB:-8}"
+# Disk budget per node for the pre-flight check. A control-plane node carries
+# etcd on top of the snap, container images and logs, so it needs materially
+# more than a worker; 8G for either has been observed to run out under etcd.
+PER_CP_GB="${PER_CP_GB:-20}"
+PER_WORKER_GB="${PER_WORKER_GB:-10}"
 ACTION="up"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -85,8 +88,11 @@ esac
 case "$WORKERS" in
 '' | *[!0-9]*) die "--workers must be a non-negative integer, got '$WORKERS'" ;;
 esac
-case "$PER_NODE_GB" in
-'' | *[!0-9]*) die "PER_NODE_GB must be a non-negative integer, got '$PER_NODE_GB'" ;;
+case "$PER_CP_GB" in
+'' | *[!0-9]*) die "PER_CP_GB must be a non-negative integer, got '$PER_CP_GB'" ;;
+esac
+case "$PER_WORKER_GB" in
+'' | *[!0-9]*) die "PER_WORKER_GB must be a non-negative integer, got '$PER_WORKER_GB'" ;;
 esac
 [ "$CONTROL_PLANE" -ge 1 ] || die "--control-plane must be at least 1"
 # The prefix reaches a grep pattern and `lxc delete`, so constrain it to the
@@ -120,21 +126,31 @@ ensure_tooling() {
 }
 
 ensure_capacity() {
-  # Fail early if disk space is insufficient for nodes.
-  local want=$(((CONTROL_PLANE + WORKERS) * PER_NODE_GB))
+  # Fail early if disk space is insufficient. Only nodes that do not exist yet
+  # are counted: on a re-run the existing ones are already on disk, and
+  # charging for them again would refuse a resume that is actually fine.
+  local want=0 i
+  for i in $(seq 1 "$CONTROL_PLANE"); do
+    lxc info "${PREFIX}-cp${i}" >/dev/null 2>&1 || want=$((want + PER_CP_GB))
+  done
+  for i in $(seq 1 "$WORKERS"); do
+    lxc info "${PREFIX}-w${i}" >/dev/null 2>&1 || want=$((want + PER_WORKER_GB))
+  done
+  [ "$want" -gt 0 ] || return 0
   local where avail
   where="$(lxc storage get default source 2>/dev/null || true)"
   [ -d "$where" ] || where=/
   avail="$(df -BG --output=avail "$where" | tail -1 | tr -dc '0-9')"
   [ -n "$avail" ] || return 0
-  log "disk: ${avail}G free on ${where}, need ~${want}G"
+  log "disk: ${avail}G free on ${where}, need ~${want}G for new nodes"
   [ "$avail" -ge "$want" ] || die "$(
-    printf 'not enough disk for %d node(s): ~%dG needed, %dG free on %s.\n' \
-      "$((CONTROL_PLANE + WORKERS))" "$want" "$avail" "$where"
+    printf 'not enough disk: ~%dG needed for the nodes still to create, %dG free on %s.\n' \
+      "$want" "$avail" "$where"
     printf 'Grow the disk, delete old instances (lxc list), or lower the node '
-    printf 'count. Override the estimate with PER_NODE_GB.'
+    printf 'count. Override the estimate with PER_CP_GB / PER_WORKER_GB.'
   )"
 }
+
 
 ensure_snap() {
   if [ -n "$SNAP" ]; then

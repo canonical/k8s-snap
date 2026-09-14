@@ -47,7 +47,7 @@ so a flag you don't pass may not be the literal default printed above:
 
 Two more variables tune behaviour with no matching flag: `READY_TIMEOUT`
 (default `10m`) is how long the script waits for `k8s status --wait-ready`
-and for every node to reach `Ready`; `PER_NODE_GB` (default `8`) is the disk
+and for every node to reach `Ready`; `PER_CP_GB` (default `20`) and `PER_WORKER_GB` (default `10`) are the disk
 budget per node used only for a pre-flight capacity estimate.
 
 Map a described cluster shape onto the two counts directly: "two nodes, one
@@ -62,7 +62,8 @@ satisfied. In order:
   `lxd init --auto` (a no-op once already initialized), and confirms
   `lxc list` works.
 - `ensure_capacity`: refuses to continue when free disk is under
-  `(control-plane + workers) * PER_NODE_GB`, rather than let a node silently
+  `PER_CP_GB` per control-plane plus `PER_WORKER_GB` per worker, counting only
+  nodes that do not exist yet, rather than let a node silently
   fail with `DiskPressure` much later.
 - `ensure_snap`: resolves or builds `k8s.snap` (see "The snap build
   reality" below).
