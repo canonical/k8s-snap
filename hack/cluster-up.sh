@@ -101,6 +101,9 @@ esac
 # matches unrelated containers that --destroy would then delete.
 case "$PREFIX" in
 '' | *[!a-zA-Z0-9_-]*) die "--prefix must be non-empty [a-zA-Z0-9_-] only, got '$PREFIX'" ;;
+# A leading '-' makes every generated node name look like an option to lxc,
+# which parses it as a flag rather than an instance name.
+-*) die "--prefix must not start with '-', got '$PREFIX'" ;;
 esac
 
 FIRST="${PREFIX}-cp1"
@@ -252,9 +255,12 @@ install_snap_on() {
   else
     lxc exec "$name" -- snap install --classic --dangerous /root/k8s.snap
   fi
-  printf '%s' "$want" | lxc exec "$name" -- tee /root/k8s.snap.sha256 >/dev/null
   # Initialize interfaces and network prerequisites.
   lxc exec "$name" -- /snap/k8s/current/k8s/hack/init.sh >/dev/null
+  # Recorded only once init has succeeded too: marking the snap earlier would
+  # let a rerun skip both reinstall and initialisation on a node whose
+  # interfaces were never connected.
+  printf '%s' "$want" | lxc exec "$name" -- tee /root/k8s.snap.sha256 >/dev/null
 }
 
 joined() { lxc exec "$FIRST" -- k8s kubectl get node "$1" >/dev/null 2>&1; }
