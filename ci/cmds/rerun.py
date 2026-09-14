@@ -185,8 +185,8 @@ def _section_is_transient(
     hard_fail: list[re.Pattern],
 ) -> bool:
     """Return True if a failed step's log section looks like a transient flake."""
-    lines = [_strip_prefix(l) for l in section.splitlines()]
-    if not any(p.search(l) for l in lines for p in transient):
+    lines = [_strip_prefix(line) for line in section.splitlines()]
+    if not any(p.search(line) for line in lines for p in transient):
         LOG.info("no transient signature found in failed step section")
         return False
     for line in lines:

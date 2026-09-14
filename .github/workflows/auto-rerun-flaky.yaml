@@ -15,6 +15,11 @@ name: Auto-rerun flaky failures
 # This workflow intentionally only implements the rerun *action*. Detection,
 # classification and reporting of flaky failures are handled separately.
 on:
+  # This workflow only reads the triggering run's logs via the GitHub API and
+  # re-triggers that same run; it never checks out code or downloads artifacts
+  # produced by the triggering run, and the checkout below always fetches the
+  # default branch.
+  # zizmor: ignore[dangerous-triggers]
   workflow_run:
     workflows:
       - "Lint and integration"
@@ -53,7 +58,7 @@ jobs:
       MAX_DAILY_AUTO_RERUNS: 20
     steps:
       - name: Check out code
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           persist-credentials: false
 
@@ -68,13 +73,14 @@ jobs:
       - name: Auto-rerun failed jobs on known transient failures
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
           WORKFLOW_RUN_ID: >-
             ${{ github.event_name == 'workflow_dispatch' &&
                 inputs.run-id ||
                 github.event.workflow_run.id }}
           DRY_RUN: ${{ inputs.dry-run || 'false' }}
         run: |
-          ARGS=(--repo "${{ github.repository }}" --run-id "$WORKFLOW_RUN_ID" --max-daily "$MAX_DAILY_AUTO_RERUNS")
+          ARGS=(--repo "$REPO" --run-id "$WORKFLOW_RUN_ID" --max-daily "$MAX_DAILY_AUTO_RERUNS")
           if [[ "$DRY_RUN" == "true" ]]; then
             ARGS+=(--dry-run)
           fi
