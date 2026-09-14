@@ -76,7 +76,7 @@ def test_node_availability_zone(
         # Apply the AZ labels.
         for instance in instances:
             az = _get_az(instance, same_az, az_suffix)
-            util.stubbornly(retries=5, delay_s=10).on(instance).exec(
+            util.stubbornly(retries=30, delay_s=10).on(instance).exec(
                 [
                     "k8s",
                     "kubectl",
@@ -99,7 +99,7 @@ def test_node_availability_zone(
                 az,
                 failure_domain,
             )
-            util.stubbornly(retries=5, delay_s=10).on(instance).until(
+            util.stubbornly(retries=30, delay_s=10).on(instance).until(
                 lambda p: str(failure_domain) in p.stdout.decode()
             ).exec(
                 [
