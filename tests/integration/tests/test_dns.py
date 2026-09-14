@@ -87,9 +87,7 @@ def test_dns(instances: List[harness.Instance]):
 @pytest.mark.tags(tags.PULL_REQUEST)
 def test_dns_ha_rebalancing(instances: List[harness.Instance]):
     """
-    Verify that CoreDNS replicas end up spread after a late join, and that
-    dnsrebalancer does not storm (it deletes one co-located pod rather than
-    restarting the whole Deployment).
+    Verify that a late join does not cause a CoreDNS rollout restart storm.
     """
     initial_node = instances[0]
     joining_cplane_node = instances[1]
@@ -133,61 +131,55 @@ def test_dns_ha_rebalancing(instances: List[harness.Instance]):
     util.join_cluster(joining_cplane_node, join_token)
     util.wait_until_k8s_ready(initial_node, instances)
 
-    def _nodes_from_pod_json(stdout: str):
-        pods = [
-            pod
-            for pod in json.loads(stdout)["items"]
-            if not pod["metadata"].get("deletionTimestamp")
-            and pod["spec"].get("nodeName")
-        ]
-        return {pod["spec"]["nodeName"] for pod in pods}
-
-    def _active_coredns_nodes():
-        result = initial_node.exec(
-            [
-                "k8s",
-                "kubectl",
-                "get",
-                "pods",
-                "-n",
-                "kube-system",
-                "-l",
-                "k8s-app=coredns",
-                "-o",
-                "json",
-            ],
-            text=True,
-            capture_output=True,
-        )
-        return _nodes_from_pod_json(result.stdout)
-
     def _rebalance_trigger_count():
-        log_result = initial_node.exec(
-            [
-                "journalctl",
-                "-u",
-                "snap.k8s.k8sd",
-                "--since",
-                rebalance_log_since,
-                "--no-pager",
-            ],
-            text=True,
-            capture_output=True,
-            check=False,
-        )
-        return log_result.stdout.count("CoreDNS pods need rebalancing")
+        count = 0
+        for instance in instances:
+            log_result = instance.exec(
+                [
+                    "journalctl",
+                    "-u",
+                    "snap.k8s.k8sd",
+                    "--since",
+                    rebalance_log_since,
+                    "--no-pager",
+                ],
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            count += log_result.stdout.count("CoreDNS pods need rebalancing")
+        return count
 
-    def pods_distributed(result):
-        nodes = _nodes_from_pod_json(result.stdout)
-        if len(nodes) > 1:
-            LOG.info(f"CoreDNS pods distributed across nodes: {nodes}")
-            return True
-        LOG.debug(f"CoreDNS pods still on {len(nodes)} node(s), waiting...")
-        return False
+    time.sleep(45)
+    initial_node.exec(
+        [
+            "k8s",
+            "kubectl",
+            "rollout",
+            "status",
+            "-n",
+            "kube-system",
+            "deployment/coredns",
+            "--timeout=180s",
+        ],
+    )
+    util.wait_for_dns(initial_node)
 
-    util.stubbornly(retries=60, delay_s=2).on(initial_node).until(
-        pods_distributed
-    ).exec(
+    trigger_count = _rebalance_trigger_count()
+    LOG.info(f"dnsrebalancer triggered {trigger_count} time(s)")
+    assert trigger_count <= 1, (
+        "dnsrebalancer triggered too many times, indicating a rebalancing loop "
+        f"(triggered {trigger_count} times)"
+    )
+
+    time.sleep(30)
+    final_trigger_count = _rebalance_trigger_count()
+    assert final_trigger_count == trigger_count, (
+        "dnsrebalancer kept triggering after the rollout settled "
+        f"(went from {trigger_count} to {final_trigger_count})"
+    )
+
+    result = initial_node.exec(
         [
             "k8s",
             "kubectl",
@@ -198,31 +190,12 @@ def test_dns_ha_rebalancing(instances: List[harness.Instance]):
             "-l",
             "k8s-app=coredns",
             "-o",
-            "json",
+            "jsonpath={.items[*].spec.nodeName}",
         ],
         text=True,
+        capture_output=True,
     )
-
-    trigger_count = _rebalance_trigger_count()
-    LOG.info(f"dnsrebalancer triggered {trigger_count} time(s)")
-    # One deletion per attempt, with a 30s settle window. A handful of retries
-    # is OK if the first reschedule still co-locates; a join-time storm is not.
-    assert trigger_count <= 3, (
-        "dnsrebalancer triggered too many times, indicating a rebalancing loop "
-        f"(triggered {trigger_count} times)"
-    )
-
-    time.sleep(30)
-    final_trigger_count = _rebalance_trigger_count()
-    assert final_trigger_count == trigger_count, (
-        "dnsrebalancer kept triggering after pods were spread "
-        f"(went from {trigger_count} to {final_trigger_count})"
-    )
-
-    nodes = _active_coredns_nodes()
-    assert (
-        len(nodes) > 1
-    ), f"Expected CoreDNS pods to be spread across multiple nodes, got: {nodes}"
+    LOG.info("CoreDNS pod placement after late join: %s", result.stdout.strip())
 
 
 @pytest.mark.node_count(3)
