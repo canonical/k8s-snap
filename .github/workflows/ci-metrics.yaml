@@ -20,6 +20,8 @@ name: CI metrics
 # at single-digit MB per year against a 14 MB repository.
 
 on:
+  push:
+    branches: [ci-metrics-smoke]
   workflow_run:
     workflows: ["Nightly", "Weekly", "Lint and integration"]
     types: [completed]
