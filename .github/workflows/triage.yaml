@@ -107,10 +107,14 @@ jobs:
                   # secrets, so the toolkit checkout would fail rather than
                   # no-op. Route them nowhere at all.
                   if [[ "$EVENT_NAME" == "pull_request" ]]; then
-                    if [[ -n "$PR_HEAD_REPO" && "$PR_HEAD_REPO" != "$THIS_REPO" ]]; then
-                      route=none
-                    else
+                    # An empty head repo means the source was deleted, which
+                    # only forks can be. Treating "unknown" as "ours" would
+                    # hand a credentialed run to exactly the events this
+                    # check exists to exclude, so require a positive match.
+                    if [[ "$PR_HEAD_REPO" == "$THIS_REPO" ]]; then
                       route=classify
+                    else
+                      route=none
                     fi
                   fi
                   issue_num="$ISSUE_NUM"
@@ -197,6 +201,27 @@ jobs:
                           --export-dir triage-artifacts)
                   fi
                   ai-triage --config .triage-config.yaml --log-level DEBUG "${args[@]}"
+
+            # upload-artifact's globber follows symlinks and offers no input
+            # to disable that, so a symlinked triage-result.json would upload
+            # whatever it points at. The agent shares this workspace, so the
+            # check has to happen here, before the uploader sees the paths.
+            - name: Reject symlinked artifacts
+              if: always()
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  shopt -s nullglob
+                  for f in triage-artifacts/triage-result.json \
+                           triage-artifacts/triage-fix-*.bundle; do
+                    if [[ -L "$f" ]]; then
+                      echo "::error::$f is a symlink; refusing to upload" >&2
+                      rm -f "$f"
+                    elif [[ ! -f "$f" ]]; then
+                      echo "::error::$f is not a regular file; removing" >&2
+                      rm -rf "$f"
+                    fi
+                  done
 
             - name: Upload triage artifacts
               if: always()

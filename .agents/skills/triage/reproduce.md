@@ -26,14 +26,17 @@ until you have seen the failure happen here.
    mkdir -p .triage/issue-<n>/inspection
    # Names first, then member types: a symlink or hardlink with an innocent
    # name still redirects reads and writes outside the scratch directory.
-   tar -tvzf <tarball> > /tmp/members.txt
-   if grep -qE '(^|/)\.\./|^[lh]' /tmp/members.txt || grep -qE ' /' /tmp/members.txt
-   then
+   # mktemp, not a fixed path: triage jobs for different issues share this
+   # host, and a listing another run overwrote proves nothing about yours.
+   members=$(mktemp)
+   tar -tvzf <tarball> > "$members"
+   if grep -qE '(^|/)\.\./|^[lh]' "$members" || grep -qE ' /' "$members"; then
      echo "UNSAFE: refusing to extract"
    else
      tar --no-absolute-names --no-same-owner --no-same-permissions \
          -xzf <tarball> -C .triage/issue-<n>/inspection
    fi
+   rm -f "$members"
    ```
    If the listing shows unsafe members, do not extract it: say so in your
    reasoning and continue from the issue text alone.

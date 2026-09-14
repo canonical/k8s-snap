@@ -28,6 +28,10 @@ protected_paths_regex:
   # publisher pushes here, and never something a bug fix needs to touch.
   - "^ci/"
   - "^build-scripts/"
+  # Same build as build-scripts/: override-build and the part definitions
+  # run during snapcraft, so protecting only the scripts they call is half
+  # a fence.
+  - "^snap/"
   # The bot's job is to add a failing test case, not to change the harness
   # that runs one. Everything under tests/integration is protected except
   # test modules themselves -- so it can write tests/integration/tests/
