@@ -76,8 +76,14 @@ jobs:
                   esac
                   if [[ "$EVENT_NAME" == "issue_comment" && "$trusted" == "yes" ]]; then
                     body="${COMMENT_BODY#"${COMMENT_BODY%%[![:space:]]*}"}"
+                    # The command must be its own whitespace-delimited
+                    # token: a bare glob also fires on /reproduced and
+                    # /triagefoo, spending a self-hosted cluster run on a
+                    # typo. Mirrors router.is_explicit_trigger, which the
+                    # toolkit applies to the same text.
                     case "$body" in
-                      /reproduce* | /triage*) route=pipeline ;;
+                      /reproduce | /reproduce[[:space:]]* | \
+                      /triage | /triage[[:space:]]*) route=pipeline ;;
                     esac
                   fi
                   # Manual dispatch is maintainer-gated by repo permissions.
