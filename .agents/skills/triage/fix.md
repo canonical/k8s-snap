@@ -22,21 +22,20 @@ quietly change what is being asserted.
 2. Make the **smallest** change that addresses the root cause from the
    diagnosis. Match surrounding style; no unrelated refactors, no new
    dependencies. Self-explanatory code over comments.
-3. If the root cause is in an adjacent repository, change it there, in the clone
-   in your scratch directory, and point this build at that clone. This
-   repository is not a Go module, so there is no `replace` directive to add
-   here: the build resolves a component purely from its two pin files, so
-   temporarily aim them at your clone and rebuild.
-   ```bash
-   echo "$PWD/.triage/issue-<n>/k8sd" > build-scripts/components/k8sd/repository
-   git -C .triage/issue-<n>/k8sd rev-parse --abbrev-ref HEAD \
-     > build-scripts/components/k8sd/version
-   ```
-   Those two files are product code: never commit them pointing at a local path.
-   Restore them before you commit, and put the real change in a PR against that
-   repository, saying so in your reasoning so the orchestrator says so on the
-   issue. (`CONTRIBUTING.md`'s `replace` workflow is a different case: a Go
-   module edit *inside* `k8sd` to build it against a local `k8s-snap-api`.)
+3. If the root cause is in an adjacent repository (`k8sd`, `k8s-snap-api`, ...),
+   **stop here and do not attempt the fix.** Report `fixed: false` and name, in
+   your reasoning, the repository, the file, and the change you would make, so
+   the orchestrator can surface it for a human. The reproducer test you already
+   committed still gets published, which is the valuable artefact.
+
+   Do **not** repoint the component pins at a local clone to build such a fix.
+   The two pin files are product code and are hard-blocked: the orchestrator
+   refuses to push any branch that touches
+   `build-scripts/components/*/{repository,version}`, so the whole run would be
+   discarded. A fix committed only in an adjacent clone also cannot advance
+   this worktree, so it is reported as "no fix" and the clone is removed with
+   the scratch directory when the run ends. Cross-repository fixes are out of
+   scope for this pipeline by design.
 4. Rebuild the snap so the artefact under test actually contains your change,
    then re-run the one test. A change to a Go component reaches the cluster only
    through a rebuild: a green run without one proves nothing. The build costs

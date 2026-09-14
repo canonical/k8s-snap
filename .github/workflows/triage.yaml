@@ -116,15 +116,24 @@ jobs:
               with:
                   python-version: "3.12"
 
+            # Check the private toolkit out with a scoped token instead of
+            # writing a credential helper into the runner's global git config:
+            # that config outlives a failed step on a self-hosted runner, and
+            # persist-credentials:false keeps the token out of .git/config too.
+            - name: Check out AI Agent Toolkit
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              with:
+                  repository: canonical/k8s-ai-agent-toolkit
+                  ref: feat/triage-bot-toolkit
+                  token: ${{ secrets.BOT_TOKEN }}
+                  path: .toolkit
+                  persist-credentials: false
+
             - name: Install AI Agent Toolkit
-              env:
-                  GH_TOKEN: ${{ secrets.BOT_TOKEN }}
               run: |
                   python -m venv .venv
                   source .venv/bin/activate
-                  git config --global credential.https://github.com.helper '!f() { echo "username=x-access-token"; echo "password=$GH_TOKEN"; }; f'
-                  pip install "git+https://github.com/canonical/k8s-ai-agent-toolkit.git@feat/triage-bot-toolkit"
-                  git config --global --unset credential.https://github.com.helper
+                  pip install ./.toolkit
 
             - name: Run triage pipeline (unprivileged)
               env:
@@ -183,15 +192,20 @@ jobs:
               with:
                   python-version: "3.12"
 
+            - name: Check out AI Agent Toolkit
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              with:
+                  repository: canonical/k8s-ai-agent-toolkit
+                  ref: feat/triage-bot-toolkit
+                  token: ${{ secrets.BOT_TOKEN }}
+                  path: .toolkit
+                  persist-credentials: false
+
             - name: Install AI Agent Toolkit
-              env:
-                  GH_TOKEN: ${{ secrets.BOT_TOKEN }}
               run: |
                   python -m venv .venv
                   source .venv/bin/activate
-                  git config --global credential.https://github.com.helper '!f() { echo "username=x-access-token"; echo "password=$GH_TOKEN"; }; f'
-                  pip install "git+https://github.com/canonical/k8s-ai-agent-toolkit.git@feat/triage-bot-toolkit"
-                  git config --global --unset credential.https://github.com.helper
+                  pip install ./.toolkit
 
             - name: Download triage artifacts
               uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
@@ -204,7 +218,13 @@ jobs:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   source .venv/bin/activate
-                  ai-triage publish --config .triage-config.yaml --log-level DEBUG --artifact-dir triage-artifacts
+                  # --expected-issue comes from the gate step (the triggering
+                  # event), never from the artifact: the producing job is
+                  # unprivileged, so its recorded issue/PR numbers are only
+                  # applied after matching this trusted value.
+                  ai-triage publish --config .triage-config.yaml --log-level DEBUG \
+                    --artifact-dir triage-artifacts \
+                    --expected-issue "${{ needs.gate.outputs.issue }}"
 
 
     classify:
@@ -233,15 +253,20 @@ jobs:
               with:
                   python-version: "3.12"
 
+            - name: Check out AI Agent Toolkit
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              with:
+                  repository: canonical/k8s-ai-agent-toolkit
+                  ref: feat/triage-bot-toolkit
+                  token: ${{ secrets.BOT_TOKEN }}
+                  path: .toolkit
+                  persist-credentials: false
+
             - name: Install AI Agent Toolkit
-              env:
-                  GH_TOKEN: ${{ secrets.BOT_TOKEN }}
               run: |
                   python -m venv .venv
                   source .venv/bin/activate
-                  git config --global credential.https://github.com.helper '!f() { echo "username=x-access-token"; echo "password=$GH_TOKEN"; }; f'
-                  pip install "git+https://github.com/canonical/k8s-ai-agent-toolkit.git@feat/triage-bot-toolkit"
-                  git config --global --unset credential.https://github.com.helper
+                  pip install ./.toolkit
 
             - name: Run triage bot
               env:
@@ -276,15 +301,21 @@ jobs:
               with:
                   python-version: "3.12"
 
+            - name: Check out AI Agent Toolkit
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              with:
+                  repository: canonical/k8s-ai-agent-toolkit
+                  ref: feat/triage-bot-toolkit
+                  token: ${{ secrets.BOT_TOKEN }}
+                  path: .toolkit
+                  persist-credentials: false
+
             - name: Install AI Agent Toolkit
-              env:
-                  GH_TOKEN: ${{ secrets.BOT_TOKEN }}
               run: |
                   python -m venv .venv
                   source .venv/bin/activate
-                  git config --global credential.https://github.com.helper '!f() { echo "username=x-access-token"; echo "password=$GH_TOKEN"; }; f'
-                  pip install "git+https://github.com/canonical/k8s-ai-agent-toolkit.git@feat/triage-bot-toolkit"
-                  git config --global --unset credential.https://github.com.helper
+                  pip install ./.toolkit
+
             - name: Run triage bot
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

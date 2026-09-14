@@ -6,6 +6,10 @@ inspection_command: "sudo /snap/k8s/current/k8s/scripts/inspect.sh"
 cleanup_command: ["bash", "hack/cluster-up.sh", "--prefix", "{PREFIX}", "--destroy"]
 protected_paths_regex:
   - "^build-scripts/components/[^/]+/(repository|version)$"
+  # Anything CI executes: the producing agent is unprivileged, but the
+  # publish job pushes its branch, so a bundled workflow change would run
+  # with the publisher's permissions.
+  - "^\\.github/"
 ignored_users: ["github-actions[bot]"]
 maintainer_team: "canonical/kubernetes"
 triage_skill_dir: ".agents/skills/triage"

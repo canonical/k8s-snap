@@ -33,3 +33,4 @@ subunit.out
 # triage bot per-issue scratch (report.md, agent HOME, caches)
 /.triage/
 .lavish/
+.toolkit/
