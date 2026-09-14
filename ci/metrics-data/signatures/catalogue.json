@@ -1,4 +1,34 @@
 {
+  "01642ed04f31855c": {
+    "failure_class": "external.dependency",
+    "periods": {
+      "2026-09": 0
+    },
+    "rule_id": "external-apt",
+    "subclass": "apt",
+    "tests_affected": [],
+    "total_occurrences": 0
+  },
+  "0a7d38d398561dc3": {
+    "failure_class": "product.bug",
+    "first_seen": "2026-09-09T10:25:08Z",
+    "last_seen": "2026-09-11T11:24:33Z",
+    "periods": {
+      "2026-09": 24
+    },
+    "rule_id": "product-join-failure",
+    "subclass": "join_failure",
+    "tests_affected": [
+      "tests/test_annotations.py::test_skip_services_stop_on_remove",
+      "tests/test_annotations.py::test_no_remove",
+      "tests/test_config_propagation.py::test_config_propagation",
+      "tests/test_clustering_race.py::test_wrong_token_race",
+      "tests/test_external_certificates.py::test_vault_intermediate_ca",
+      "tests/test_restart.py::test_restart",
+      "tests/test_annotations.py::test_disable_separate_feature_upgrades"
+    ],
+    "total_occurrences": 24
+  },
   "0c2fa8bb4b5b1c6f": {
     "failure_class": "unknown",
     "first_seen": "2026-09-10T17:00:47Z",
@@ -11,15 +41,25 @@
     ],
     "total_occurrences": 1
   },
-  "0c4e7cc7cce4959c": {
+  "0c4b9b4b4d4bc86a": {
     "failure_class": "unknown",
-    "first_seen": "2026-09-10T00:45:04Z",
-    "last_seen": "2026-09-11T00:44:25Z",
+    "first_seen": "2026-09-09T00:37:41Z",
+    "last_seen": "2026-09-09T00:37:41Z",
     "periods": {
-      "2026-09": 5
+      "2026-09": 1
     },
     "tests_affected": [],
-    "total_occurrences": 5
+    "total_occurrences": 1
+  },
+  "0c4e7cc7cce4959c": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-07T00:49:43Z",
+    "last_seen": "2026-09-14T00:51:28Z",
+    "periods": {
+      "2026-09": 12
+    },
+    "tests_affected": [],
+    "total_occurrences": 12
   },
   "0cbaa2fb7bdb3c4e": {
     "failure_class": "unknown",
@@ -29,6 +69,32 @@
     "tests_affected": [],
     "total_occurrences": 0
   },
+  "1175cb94dda6e458": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-09T00:05:37Z",
+    "last_seen": "2026-09-14T00:18:33Z",
+    "periods": {
+      "2026-09": 2
+    },
+    "tests_affected": [
+      "tests/test_bootstrap.py::test_microk8s_installed"
+    ],
+    "total_occurrences": 2
+  },
+  "126052534aa4b668": {
+    "failure_class": "product.bug",
+    "first_seen": "2026-09-12T01:11:16Z",
+    "last_seen": "2026-09-12T01:13:45Z",
+    "periods": {
+      "2026-09": 4
+    },
+    "rule_id": "product-cncf-conformance",
+    "subclass": "api_error",
+    "tests_affected": [
+      "tests/test_cncf_conformance.py::test_cncf_conformance"
+    ],
+    "total_occurrences": 4
+  },
   "15ffbef78620e149": {
     "failure_class": "unknown",
     "periods": {
@@ -37,17 +103,39 @@
     "tests_affected": [],
     "total_occurrences": 0
   },
-  "1dbdcafcc2d14ea8": {
+  "1a949e3239ba7c8d": {
     "failure_class": "unknown",
-    "first_seen": "2026-09-11T00:40:49Z",
-    "last_seen": "2026-09-11T00:40:49Z",
+    "periods": {
+      "2026-09": 0
+    },
+    "tests_affected": [],
+    "total_occurrences": 0
+  },
+  "1b0cd0cd8e4caff6": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-07T00:08:21Z",
+    "last_seen": "2026-09-07T00:08:21Z",
     "periods": {
       "2026-09": 1
     },
     "tests_affected": [
-      "tests/test_gateway.py::test_gateway"
+      "tests/test_airgapped.py::test_airgapped_with_image_mirror"
     ],
     "total_occurrences": 1
+  },
+  "1dbdcafcc2d14ea8": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-09T00:38:57Z",
+    "last_seen": "2026-09-11T00:40:49Z",
+    "periods": {
+      "2026-09": 3
+    },
+    "tests_affected": [
+      "tests/test_gateway.py::test_gateway",
+      "tests/test_feature_controller.py::test_feature_controller",
+      "tests/test_networking.py::test_dualstack"
+    ],
+    "total_occurrences": 3
   },
   "246dccc1180b00b6": {
     "failure_class": "unknown",
@@ -56,6 +144,67 @@
     },
     "tests_affected": [
       "tests/test_cleanup.py::test_node_cleanup_new_containerd_path"
+    ],
+    "total_occurrences": 0
+  },
+  "257a3e41ccaa4dd7": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-09T00:15:31Z",
+    "last_seen": "2026-09-09T00:15:31Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [
+      "tests/test_clustering_dqlite.py::test_control_plane_nodes_dqlite"
+    ],
+    "total_occurrences": 1
+  },
+  "2a161cf64d11dc1b": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-08T01:06:16Z",
+    "last_seen": "2026-09-08T01:06:16Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [],
+    "total_occurrences": 1
+  },
+  "2aa7b2c90cc3da81": {
+    "failure_class": "product.bug",
+    "first_seen": "2026-09-08T08:37:13Z",
+    "last_seen": "2026-09-12T00:10:32Z",
+    "periods": {
+      "2026-09": 21
+    },
+    "rule_id": "product-join-failure",
+    "subclass": "join_failure",
+    "tests_affected": [
+      "tests/test_clustering.py::test_disa_stig_clustering",
+      "tests/test_cleanup.py::test_node_cleanup_new_containerd_path",
+      "tests/test_external_certificates.py::test_vault_certificates",
+      "tests/test_external_certificates.py::test_partial_refresh"
+    ],
+    "total_occurrences": 21
+  },
+  "2aa8ca706a1480ab": {
+    "failure_class": "external.dependency",
+    "first_seen": "2026-09-12T00:45:43Z",
+    "last_seen": "2026-09-12T00:45:43Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "rule_id": "external-docs-linkcheck",
+    "subclass": "dns",
+    "tests_affected": [],
+    "total_occurrences": 1
+  },
+  "2c1707415868a9aa": {
+    "failure_class": "unknown",
+    "periods": {
+      "2026-09": 0
+    },
+    "tests_affected": [
+      "tests/test_storage.py::test_storage"
     ],
     "total_occurrences": 0
   },
@@ -71,50 +220,84 @@
     ],
     "total_occurrences": 1
   },
-  "35868fe40d79058d": {
+  "2d3eca62bb5f74d9": {
+    "failure_class": "external.dependency",
+    "periods": {
+      "2026-09": 0
+    },
+    "rule_id": "external-apt",
+    "subclass": "apt",
+    "tests_affected": [],
+    "total_occurrences": 0
+  },
+  "31d5b5f103656878": {
+    "failure_class": "external.dependency",
+    "periods": {
+      "2026-09": 0
+    },
+    "rule_id": "external-apt",
+    "subclass": "apt",
+    "tests_affected": [],
+    "total_occurrences": 0
+  },
+  "32d18f8979f685af": {
     "failure_class": "unknown",
-    "first_seen": "2026-09-11T00:50:11Z",
+    "first_seen": "2026-09-09T15:16:55Z",
+    "last_seen": "2026-09-09T15:16:55Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [],
+    "total_occurrences": 1
+  },
+  "35868fe40d79058d": {
+    "failure_class": "product.bug",
+    "first_seen": "2026-09-07T00:30:42Z",
     "last_seen": "2026-09-11T01:05:01Z",
     "periods": {
-      "2026-09": 2
+      "2026-09": 4
     },
+    "rule_id": "product-service-not-active-text",
+    "subclass": "service_not_active",
     "tests_affected": [
       "tests/test_version_upgrades.py::test_version_upgrades"
     ],
-    "total_occurrences": 2
+    "total_occurrences": 4
   },
   "35b12bf41b664182": {
     "failure_class": "product.bug",
-    "first_seen": "2026-09-10T01:09:43Z",
-    "last_seen": "2026-09-11T02:07:26Z",
+    "first_seen": "2026-09-07T00:50:51Z",
+    "last_seen": "2026-09-14T05:52:31Z",
     "periods": {
-      "2026-09": 8
+      "2026-09": 40
     },
     "rule_id": "product-service-restarts",
     "subclass": "service_not_active",
     "tests_affected": [
       "tests/test_version_upgrades.py::test_version_upgrades"
     ],
-    "total_occurrences": 8
+    "total_occurrences": 40
   },
   "3730b48a87d5b1e8": {
     "failure_class": "unknown",
-    "first_seen": "2026-09-10T01:10:10Z",
+    "first_seen": "2026-09-08T19:09:37Z",
     "last_seen": "2026-09-10T01:10:10Z",
     "periods": {
-      "2026-09": 1
+      "2026-09": 2
     },
     "tests_affected": [
-      "tests/test_gateway.py::test_gateway"
+      "tests/test_gateway.py::test_gateway",
+      "tests/test_dns.py::test_dns_cluster_dns_propagates_to_late_joiners",
+      "tests/test_clustering.py::test_node_join_succeeds_when_original_control_plane_is_down"
     ],
-    "total_occurrences": 1
+    "total_occurrences": 2
   },
   "38c23bd3a1bab957": {
     "failure_class": "product.bug",
-    "first_seen": "2026-09-10T01:00:10Z",
-    "last_seen": "2026-09-11T03:07:40Z",
+    "first_seen": "2026-09-07T00:05:42Z",
+    "last_seen": "2026-09-14T06:35:58Z",
     "periods": {
-      "2026-09": 41
+      "2026-09": 148
     },
     "rule_id": "product-kube-proxy-inactive",
     "subclass": "service_not_active",
@@ -122,52 +305,57 @@
       "tests/test_annotations.py::test_disable_separate_feature_upgrades",
       "tests/test_version_upgrades.py::test_version_downgrades_with_rollback"
     ],
-    "total_occurrences": 41
+    "total_occurrences": 148
   },
   "3a51e6072640676d": {
-    "failure_class": "unknown",
-    "first_seen": "2026-09-10T10:25:01Z",
-    "last_seen": "2026-09-10T10:39:59Z",
+    "failure_class": "product.bug",
+    "first_seen": "2026-09-09T10:26:18Z",
+    "last_seen": "2026-09-11T11:24:32Z",
     "periods": {
-      "2026-09": 8
+      "2026-09": 16
     },
+    "rule_id": "product-wait-for-timeout",
+    "subclass": "wait_for_timeout",
     "tests_affected": [
       "tests/test_cleanup.py::test_node_cleanup",
       "tests/test_external_etcd.py::test_external_etcd"
     ],
-    "total_occurrences": 8
+    "total_occurrences": 16
   },
   "3a64943759434bc6": {
     "failure_class": "unknown",
-    "first_seen": "2026-09-10T10:25:01Z",
-    "last_seen": "2026-09-10T10:25:02Z",
+    "first_seen": "2026-09-09T10:25:48Z",
+    "last_seen": "2026-09-11T11:24:32Z",
     "periods": {
-      "2026-09": 2
+      "2026-09": 6
     },
     "tests_affected": [
       "tests/test_control_plane_taints.py::test_control_plane_taints"
     ],
-    "total_occurrences": 2
+    "total_occurrences": 6
   },
   "3c70a86b1043c86a": {
     "failure_class": "unknown",
-    "first_seen": "2026-09-10T00:18:39Z",
+    "first_seen": "2026-09-07T00:49:14Z",
     "last_seen": "2026-09-10T00:18:39Z",
     "periods": {
-      "2026-09": 1
+      "2026-09": 2
     },
     "tests_affected": [
-      "tests/test_clustering.py::test_etcd_learner_promotion"
+      "tests/test_clustering.py::test_etcd_learner_promotion",
+      "tests/test_version_upgrades.py::test_feature_upgrades_inplace"
     ],
-    "total_occurrences": 1
+    "total_occurrences": 2
   },
   "3f2108396bd179b8": {
-    "failure_class": "unknown",
-    "first_seen": "2026-09-10T10:25:01Z",
-    "last_seen": "2026-09-10T10:40:16Z",
+    "failure_class": "product.bug",
+    "first_seen": "2026-09-09T10:25:37Z",
+    "last_seen": "2026-09-11T11:24:32Z",
     "periods": {
-      "2026-09": 34
+      "2026-09": 74
     },
+    "rule_id": "product-wait-for-timeout",
+    "subclass": "wait_for_timeout",
     "tests_affected": [
       "tests/test_loadbalancer.py::test_loadbalancer_bgp_multi_peer_annotation",
       "tests/test_loadbalancer.py::test_loadbalancer_ipv6_dualstack",
@@ -177,17 +365,29 @@
       "tests/test_loadbalancer.py::test_loadbalancer_bgp_single_peer",
       "tests/test_loadbalancer.py::test_loadbalancer_bgp_advertise_all_pools_annotation"
     ],
-    "total_occurrences": 34
+    "total_occurrences": 74
   },
   "3fe83287df2c88bf": {
-    "failure_class": "unknown",
+    "failure_class": "product.bug",
     "periods": {
       "2026-09": 0
     },
+    "rule_id": "product-snap-install-failure",
+    "subclass": "snap_install_failure",
     "tests_affected": [
       "tests/test_version_upgrades.py::test_feature_upgrades_inplace"
     ],
     "total_occurrences": 0
+  },
+  "42ef0fe0828b51ac": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-09T01:11:25Z",
+    "last_seen": "2026-09-09T01:11:25Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [],
+    "total_occurrences": 1
   },
   "47c677447284c0c9": {
     "failure_class": "unknown",
@@ -204,10 +404,42 @@
     "first_seen": "2026-09-11T08:47:18Z",
     "last_seen": "2026-09-11T08:47:18Z",
     "periods": {
-      "2026-09": 1
+      "2026-09": 0
     },
     "rule_id": "external-apt",
     "subclass": "apt",
+    "tests_affected": [],
+    "total_occurrences": 0
+  },
+  "4ee255e1ca311bca": {
+    "failure_class": "unknown",
+    "periods": {
+      "2026-09": 0
+    },
+    "tests_affected": [
+      "tests/test_version_upgrades.py::test_version_upgrades"
+    ],
+    "total_occurrences": 0
+  },
+  "50e01257949b5cae": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-13T00:27:26Z",
+    "last_seen": "2026-09-13T00:27:26Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [
+      "tests/test_clustering.py::test_control_plane_nodes"
+    ],
+    "total_occurrences": 1
+  },
+  "55a92ef283f5d523": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-07T00:38:38Z",
+    "last_seen": "2026-09-07T00:38:38Z",
+    "periods": {
+      "2026-09": 1
+    },
     "tests_affected": [],
     "total_occurrences": 1
   },
@@ -222,24 +454,26 @@
     "total_occurrences": 0
   },
   "5be67c2063b467fe": {
-    "failure_class": "unknown",
-    "first_seen": "2026-09-10T10:25:27Z",
-    "last_seen": "2026-09-10T10:25:33Z",
+    "failure_class": "test.bug",
+    "first_seen": "2026-09-08T08:37:16Z",
+    "last_seen": "2026-09-11T11:19:23Z",
     "periods": {
-      "2026-09": 2
+      "2026-09": 9
     },
+    "rule_id": "test-timeout-too-short",
+    "subclass": "timeout_too_short",
     "tests_affected": [],
-    "total_occurrences": 2
+    "total_occurrences": 9
   },
   "5ebb80c6814b5f0e": {
     "failure_class": "unknown",
     "first_seen": "2026-09-11T08:47:13Z",
     "last_seen": "2026-09-11T08:47:13Z",
     "periods": {
-      "2026-09": 1
+      "2026-09": 0
     },
     "tests_affected": [],
-    "total_occurrences": 1
+    "total_occurrences": 0
   },
   "627171b30904e029": {
     "failure_class": "unknown",
@@ -252,6 +486,56 @@
       "tests/test_version_upgrades.py::test_version_upgrades"
     ],
     "total_occurrences": 1
+  },
+  "63b09fd3eb6c96cc": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-12T01:16:22Z",
+    "last_seen": "2026-09-12T01:16:22Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [],
+    "total_occurrences": 1
+  },
+  "6d63eaddbd2f81c3": {
+    "failure_class": "unknown",
+    "periods": {
+      "2026-09": 0
+    },
+    "tests_affected": [
+      "tests/test_loadbalancer.py::test_loadbalancer_ipv4"
+    ],
+    "total_occurrences": 0
+  },
+  "6db878c7625fb3fb": {
+    "failure_class": "external.dependency",
+    "first_seen": "2026-09-12T00:46:08Z",
+    "last_seen": "2026-09-12T00:46:08Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "rule_id": "external-docs-linkcheck",
+    "subclass": "dns",
+    "tests_affected": [],
+    "total_occurrences": 1
+  },
+  "72bbddf9865ca282": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-09T12:14:23Z",
+    "last_seen": "2026-09-09T12:14:23Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [],
+    "total_occurrences": 1
+  },
+  "74172f1b11f28ecc": {
+    "failure_class": "unknown",
+    "periods": {
+      "2026-09": 0
+    },
+    "tests_affected": [],
+    "total_occurrences": 0
   },
   "77488af9f0feb381": {
     "failure_class": "unknown",
@@ -267,48 +551,66 @@
   },
   "77c7780c052d6b44": {
     "failure_class": "unknown",
+    "first_seen": "2026-09-09T12:28:22Z",
+    "last_seen": "2026-09-09T13:28:42Z",
     "periods": {
-      "2026-09": 0
+      "2026-09": 4
     },
     "tests_affected": [],
-    "total_occurrences": 0
+    "total_occurrences": 4
   },
   "7812166adb4d179b": {
-    "failure_class": "unknown",
-    "first_seen": "2026-09-10T00:26:18Z",
-    "last_seen": "2026-09-10T13:41:13Z",
+    "failure_class": "product.bug",
+    "first_seen": "2026-09-09T10:25:42Z",
+    "last_seen": "2026-09-14T00:57:44Z",
     "periods": {
-      "2026-09": 11
+      "2026-09": 24
     },
+    "rule_id": "product-cluster-never-ready",
+    "subclass": "cluster_never_ready",
     "tests_affected": [
       "tests/test_feature_controller.py::test_feature_controller",
       "tests/test_smoke.py::test_smoke"
     ],
-    "total_occurrences": 11
+    "total_occurrences": 24
   },
   "79e3ab4a30e23149": {
     "failure_class": "unknown",
     "first_seen": "2026-09-10T00:58:31Z",
-    "last_seen": "2026-09-10T00:58:31Z",
+    "last_seen": "2026-09-13T00:43:18Z",
     "periods": {
-      "2026-09": 1
+      "2026-09": 4
     },
     "tests_affected": [
       "tests/test_external_certificates.py::test_vault_certificates"
     ],
-    "total_occurrences": 1
+    "total_occurrences": 4
   },
   "7e0a389a7deb5372": {
-    "failure_class": "unknown",
-    "first_seen": "2026-09-10T10:26:20Z",
+    "failure_class": "product.bug",
+    "first_seen": "2026-09-09T10:28:45Z",
     "last_seen": "2026-09-10T10:26:20Z",
     "periods": {
-      "2026-09": 1
+      "2026-09": 2
     },
+    "rule_id": "product-service-not-active-text",
+    "subclass": "service_not_active",
     "tests_affected": [
       "tests/test_version_upgrades.py::test_version_upgrades"
     ],
-    "total_occurrences": 1
+    "total_occurrences": 2
+  },
+  "8536057f8df23ddc": {
+    "failure_class": "external.dependency",
+    "periods": {
+      "2026-09": 0
+    },
+    "rule_id": "external-snap-store",
+    "subclass": "snap_store",
+    "tests_affected": [
+      "tests/test_version_upgrades.py::test_version_upgrades"
+    ],
+    "total_occurrences": 0
   },
   "85726a531a8cd21a": {
     "failure_class": "unknown",
@@ -332,19 +634,29 @@
     ],
     "total_occurrences": 1
   },
+  "866010b42579bd1b": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-09T12:59:02Z",
+    "last_seen": "2026-09-09T12:59:02Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [],
+    "total_occurrences": 1
+  },
   "867525576ccca976": {
     "failure_class": "product.bug",
-    "first_seen": "2026-09-10T02:54:53Z",
-    "last_seen": "2026-09-10T08:56:48Z",
+    "first_seen": "2026-09-08T01:55:43Z",
+    "last_seen": "2026-09-12T02:10:21Z",
     "periods": {
-      "2026-09": 2
+      "2026-09": 6
     },
     "rule_id": "product-service-restarts-rollback",
     "subclass": "upgrade_failure",
     "tests_affected": [
       "tests/test_version_upgrades.py::test_version_downgrades_with_rollback"
     ],
-    "total_occurrences": 2
+    "total_occurrences": 6
   },
   "873a4b0fb3a64225": {
     "failure_class": "external.dependency",
@@ -361,10 +673,24 @@
     "first_seen": "2026-09-10T08:13:01Z",
     "last_seen": "2026-09-10T13:37:56Z",
     "periods": {
-      "2026-09": 7
+      "2026-09": 5
     },
     "tests_affected": [],
-    "total_occurrences": 7
+    "total_occurrences": 5
+  },
+  "8b059e7678c34e52": {
+    "failure_class": "product.bug",
+    "first_seen": "2026-09-12T01:11:12Z",
+    "last_seen": "2026-09-12T01:11:39Z",
+    "periods": {
+      "2026-09": 2
+    },
+    "rule_id": "product-cncf-conformance",
+    "subclass": "api_error",
+    "tests_affected": [
+      "tests/test_cncf_conformace.py::test_cncf_conformance"
+    ],
+    "total_occurrences": 2
   },
   "8bbe75f419474ccb": {
     "failure_class": "unknown",
@@ -378,31 +704,36 @@
   },
   "8c531e6ba49b3382": {
     "failure_class": "product.bug",
-    "first_seen": "2026-09-10T00:43:51Z",
-    "last_seen": "2026-09-11T07:49:11Z",
+    "first_seen": "2026-09-07T00:47:58Z",
+    "last_seen": "2026-09-14T01:58:49Z",
     "periods": {
-      "2026-09": 52
+      "2026-09": 181
     },
     "rule_id": "product-retry-condition-never-met",
     "subclass": "upgrade_failure",
     "tests_affected": [
       "tests/test_version_upgrades.py::test_feature_upgrades_inplace",
       "tests/test_version_upgrades.py::test_version_upgrades",
-      "tests/test_clustering.py::test_node_removal_during_concurrent_join"
+      "tests/test_clustering.py::test_node_removal_during_concurrent_join",
+      "tests/test_feature_controller.py::test_feature_controller",
+      "tests/test_storage.py::test_storage",
+      "tests/test_smoke.py::test_smoke",
+      "tests/test_restart.py::test_restart",
+      "tests/test_user_config.py::test_no_unnecessary_helm_revisions"
     ],
-    "total_occurrences": 52
+    "total_occurrences": 181
   },
   "8ce069bf2bf6cfb8": {
     "failure_class": "external.dependency",
     "first_seen": "2026-09-10T13:15:11Z",
-    "last_seen": "2026-09-10T13:15:11Z",
+    "last_seen": "2026-09-14T06:38:01Z",
     "periods": {
-      "2026-09": 1
+      "2026-09": 2
     },
     "rule_id": "external-snap-store",
     "subclass": "snap_store",
     "tests_affected": [],
-    "total_occurrences": 1
+    "total_occurrences": 2
   },
   "8d3fc8734c0ec33c": {
     "failure_class": "unknown",
@@ -450,6 +781,32 @@
     "tests_affected": [],
     "total_occurrences": 1
   },
+  "95bbe48273569f20": {
+    "failure_class": "external.dependency",
+    "first_seen": "2026-09-11T09:54:24Z",
+    "last_seen": "2026-09-11T09:54:24Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "rule_id": "external-apt",
+    "subclass": "apt",
+    "tests_affected": [],
+    "total_occurrences": 1
+  },
+  "96001693f7bb9dbb": {
+    "failure_class": "product.bug",
+    "first_seen": "2026-09-08T00:40:28Z",
+    "last_seen": "2026-09-09T12:56:02Z",
+    "periods": {
+      "2026-09": 2
+    },
+    "rule_id": "product-containerd-image-import",
+    "subclass": "api_error",
+    "tests_affected": [
+      "tests/test_containerd.py::test_containerd"
+    ],
+    "total_occurrences": 2
+  },
   "97a24cd0dd8d3593": {
     "failure_class": "unknown",
     "first_seen": "2026-09-10T17:00:45Z",
@@ -462,6 +819,26 @@
     ],
     "total_occurrences": 1
   },
+  "9815ef8f0e6e7920": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-08T12:07:08Z",
+    "last_seen": "2026-09-08T12:07:08Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [],
+    "total_occurrences": 1
+  },
+  "99d2d714e27bfde8": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-09T12:14:23Z",
+    "last_seen": "2026-09-09T12:14:23Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [],
+    "total_occurrences": 1
+  },
   "9a7c3d72f4d2ceca": {
     "failure_class": "unknown",
     "first_seen": "2026-09-10T15:19:32Z",
@@ -472,10 +849,30 @@
     "tests_affected": [],
     "total_occurrences": 2
   },
+  "9e08660c9054cac1": {
+    "failure_class": "infra.runner",
+    "periods": {
+      "2026-09": 0
+    },
+    "rule_id": "infra-missing-tool",
+    "subclass": "missing_tool",
+    "tests_affected": [],
+    "total_occurrences": 0
+  },
   "9ed78fc1c4e6ed74": {
     "failure_class": "unknown",
     "first_seen": "2026-09-10T01:09:14Z",
     "last_seen": "2026-09-10T01:09:14Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [],
+    "total_occurrences": 1
+  },
+  "9f042c503134554d": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-09T12:13:08Z",
+    "last_seen": "2026-09-09T12:13:08Z",
     "periods": {
       "2026-09": 1
     },
@@ -498,6 +895,18 @@
     "tests_affected": [],
     "total_occurrences": 0
   },
+  "a5870749ec0c460d": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-08T12:10:08Z",
+    "last_seen": "2026-09-08T12:10:15Z",
+    "periods": {
+      "2026-09": 2
+    },
+    "tests_affected": [
+      "tests/test_multi_nic_loadbalancer.py::test_loadbalancer_multi_nic_policy_routing"
+    ],
+    "total_occurrences": 2
+  },
   "a5b20f221efdfa69": {
     "failure_class": "unknown",
     "first_seen": "2026-09-10T17:00:46Z",
@@ -510,16 +919,40 @@
     ],
     "total_occurrences": 1
   },
+  "a74e3768b8c531e1": {
+    "failure_class": "external.dependency",
+    "first_seen": "2026-09-12T00:45:59Z",
+    "last_seen": "2026-09-12T00:45:59Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "rule_id": "external-docs-linkcheck",
+    "subclass": "dns",
+    "tests_affected": [],
+    "total_occurrences": 1
+  },
   "ae02f0ad3147d045": {
     "failure_class": "external.dependency",
     "first_seen": "2026-09-11T08:47:08Z",
     "last_seen": "2026-09-11T08:47:08Z",
     "periods": {
-      "2026-09": 1
+      "2026-09": 0
     },
     "rule_id": "external-apt",
     "subclass": "apt",
     "tests_affected": [],
+    "total_occurrences": 0
+  },
+  "ae19f999206596f9": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-07T00:34:39Z",
+    "last_seen": "2026-09-07T00:34:39Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [
+      "tests/test_version_upgrades.py::test_version_upgrades"
+    ],
     "total_occurrences": 1
   },
   "b037f415998370a9": {
@@ -571,38 +1004,38 @@
   "b6127e3a84343105": {
     "failure_class": "unknown",
     "first_seen": "2026-09-10T17:18:25Z",
-    "last_seen": "2026-09-10T17:18:29Z",
+    "last_seen": "2026-09-14T06:59:37Z",
     "periods": {
-      "2026-09": 2
+      "2026-09": 6
     },
     "tests_affected": [
       "tests/test_clustering.py::test_join_cp_with_duplicate_name_rejected"
     ],
-    "total_occurrences": 2
+    "total_occurrences": 6
   },
   "b712c2f07d6919c1": {
     "failure_class": "external.dependency",
     "first_seen": "2026-09-11T08:47:11Z",
     "last_seen": "2026-09-11T08:47:11Z",
     "periods": {
-      "2026-09": 1
+      "2026-09": 0
     },
     "rule_id": "external-apt",
     "subclass": "apt",
     "tests_affected": [],
-    "total_occurrences": 1
+    "total_occurrences": 0
   },
   "b778769bf6b01620": {
     "failure_class": "unknown",
     "first_seen": "2026-09-10T17:18:24Z",
-    "last_seen": "2026-09-10T17:18:29Z",
+    "last_seen": "2026-09-14T06:59:37Z",
     "periods": {
-      "2026-09": 2
+      "2026-09": 6
     },
     "tests_affected": [
       "tests/test_clustering.py::test_join_worker_with_duplicate_name_rejected"
     ],
-    "total_occurrences": 2
+    "total_occurrences": 6
   },
   "b94bbe467e6259f7": {
     "failure_class": "unknown",
@@ -614,6 +1047,16 @@
     "tests_affected": [
       "tests/test_node_availability_zone.py::test_node_availability_zone[k8s-dqlite-True]"
     ],
+    "total_occurrences": 1
+  },
+  "bae6743853ea6363": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-13T01:10:34Z",
+    "last_seen": "2026-09-13T01:10:34Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [],
     "total_occurrences": 1
   },
   "c24c19944ff11aae": {
@@ -659,12 +1102,24 @@
     ],
     "total_occurrences": 1
   },
+  "c557aeefda98641d": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-12T01:12:05Z",
+    "last_seen": "2026-09-12T01:12:05Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [
+      "tests/test_restart.py::test_restart"
+    ],
+    "total_occurrences": 1
+  },
   "c55cefd2ca3f28e7": {
     "failure_class": "product.bug",
-    "first_seen": "2026-09-10T01:14:05Z",
-    "last_seen": "2026-09-11T07:49:10Z",
+    "first_seen": "2026-09-07T00:43:39Z",
+    "last_seen": "2026-09-14T02:02:08Z",
     "periods": {
-      "2026-09": 288
+      "2026-09": 720
     },
     "rule_id": "product-node-never-ready",
     "subclass": "service_not_active",
@@ -719,27 +1174,43 @@
       "tests/test_networking.py::test_ipv6_only_on_dualstack_infra",
       "tests/test_restart.py::test_restart"
     ],
-    "total_occurrences": 288
+    "total_occurrences": 720
   },
   "c9efa01b0ec91950": {
     "failure_class": "external.dependency",
     "first_seen": "2026-09-11T08:47:20Z",
     "last_seen": "2026-09-11T08:47:20Z",
     "periods": {
-      "2026-09": 1
+      "2026-09": 0
     },
     "rule_id": "external-apt",
     "subclass": "apt",
     "tests_affected": [],
-    "total_occurrences": 1
+    "total_occurrences": 0
+  },
+  "d31213b315abb3d8": {
+    "failure_class": "product.bug",
+    "first_seen": "2026-09-09T10:25:49Z",
+    "last_seen": "2026-09-11T11:24:32Z",
+    "periods": {
+      "2026-09": 4
+    },
+    "rule_id": "product-join-failure",
+    "subclass": "join_failure",
+    "tests_affected": [
+      "tests/test_cleanup.py::test_containerd_base_dir_cli_flag"
+    ],
+    "total_occurrences": 4
   },
   "d33c47b42995f224": {
     "failure_class": "unknown",
+    "first_seen": "2026-09-09T15:16:39Z",
+    "last_seen": "2026-09-14T06:49:29Z",
     "periods": {
-      "2026-09": 0
+      "2026-09": 2
     },
     "tests_affected": [],
-    "total_occurrences": 0
+    "total_occurrences": 2
   },
   "d6578f62ead4b19a": {
     "failure_class": "unknown",
@@ -751,13 +1222,57 @@
     "tests_affected": [],
     "total_occurrences": 2
   },
-  "d8f08d7de672da57": {
+  "d6b707b724ea3c19": {
     "failure_class": "unknown",
+    "first_seen": "2026-09-14T01:15:01Z",
+    "last_seen": "2026-09-14T01:15:01Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [],
+    "total_occurrences": 1
+  },
+  "d719e51def175ae6": {
+    "failure_class": "external.dependency",
     "periods": {
       "2026-09": 0
     },
+    "rule_id": "external-snap-store",
+    "subclass": "snap_store",
     "tests_affected": [],
     "total_occurrences": 0
+  },
+  "d8832e607c4e8755": {
+    "failure_class": "external.dependency",
+    "first_seen": "2026-09-12T00:46:08Z",
+    "last_seen": "2026-09-12T00:46:08Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "rule_id": "external-docs-linkcheck",
+    "subclass": "dns",
+    "tests_affected": [],
+    "total_occurrences": 1
+  },
+  "d8f08d7de672da57": {
+    "failure_class": "infra.runner",
+    "periods": {
+      "2026-09": 0
+    },
+    "rule_id": "infra-missing-tool",
+    "subclass": "missing_tool",
+    "tests_affected": [],
+    "total_occurrences": 0
+  },
+  "dc23130f92c92fd2": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-09T12:15:41Z",
+    "last_seen": "2026-09-09T12:15:41Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [],
+    "total_occurrences": 1
   },
   "dc915cd37bc0f6f6": {
     "failure_class": "unknown",
@@ -770,6 +1285,16 @@
       "tests/test_version_upgrades.py::test_version_upgrades"
     ],
     "total_occurrences": 1
+  },
+  "dc9b0334cc979a33": {
+    "failure_class": "external.dependency",
+    "periods": {
+      "2026-09": 0
+    },
+    "rule_id": "external-apt",
+    "subclass": "apt",
+    "tests_affected": [],
+    "total_occurrences": 0
   },
   "e1544e6745b12a55": {
     "failure_class": "unknown",
@@ -799,15 +1324,27 @@
     "tests_affected": [],
     "total_occurrences": 0
   },
+  "e4edc5154931072c": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-14T01:00:28Z",
+    "last_seen": "2026-09-14T01:00:28Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [
+      "tests/test_ingress.py::test_ingress"
+    ],
+    "total_occurrences": 1
+  },
   "e4fbfc4ac76358a3": {
     "failure_class": "unknown",
     "first_seen": "2026-09-10T13:15:04Z",
     "last_seen": "2026-09-10T13:15:04Z",
     "periods": {
-      "2026-09": 1
+      "2026-09": 0
     },
     "tests_affected": [],
-    "total_occurrences": 1
+    "total_occurrences": 0
   },
   "e74b35f1af23e8a3": {
     "failure_class": "unknown",
@@ -819,10 +1356,10 @@
   },
   "e78d17474b492b14": {
     "failure_class": "external.dependency",
-    "first_seen": "2026-09-10T09:09:22Z",
+    "first_seen": "2026-09-09T12:28:47Z",
     "last_seen": "2026-09-11T08:16:07Z",
     "periods": {
-      "2026-09": 9
+      "2026-09": 24
     },
     "rule_id": "external-snap-store",
     "subclass": "snap_store",
@@ -831,7 +1368,7 @@
       "tests/test_annotations.py::test_disable_separate_feature_upgrades",
       "tests/test_version_upgrades.py::test_version_upgrades"
     ],
-    "total_occurrences": 9
+    "total_occurrences": 24
   },
   "e8473ad70f2b04ef": {
     "failure_class": "external.dependency",
@@ -867,6 +1404,30 @@
     ],
     "total_occurrences": 25
   },
+  "edf53fb6fe774a8e": {
+    "failure_class": "external.dependency",
+    "periods": {
+      "2026-09": 0
+    },
+    "rule_id": "external-apt",
+    "subclass": "apt",
+    "tests_affected": [],
+    "total_occurrences": 0
+  },
+  "f006e7b5d39ba4d6": {
+    "failure_class": "product.bug",
+    "first_seen": "2026-09-09T10:27:00Z",
+    "last_seen": "2026-09-11T11:24:32Z",
+    "periods": {
+      "2026-09": 4
+    },
+    "rule_id": "product-join-failure",
+    "subclass": "join_failure",
+    "tests_affected": [
+      "tests/test_networking.py::test_ipv6_only_on_dualstack_infra"
+    ],
+    "total_occurrences": 4
+  },
   "f0bedae9b9b4a495": {
     "failure_class": "unknown",
     "first_seen": "2026-09-10T13:57:45Z",
@@ -899,17 +1460,37 @@
     "tests_affected": [],
     "total_occurrences": 1
   },
-  "fe0e71bd26391b89": {
+  "f832925e6ca49a40": {
     "failure_class": "unknown",
-    "first_seen": "2026-09-10T13:33:25Z",
-    "last_seen": "2026-09-10T13:33:25Z",
+    "first_seen": "2026-09-08T16:15:44Z",
+    "last_seen": "2026-09-08T16:15:44Z",
     "periods": {
       "2026-09": 1
+    },
+    "tests_affected": [],
+    "total_occurrences": 1
+  },
+  "f84c4cac77de6bfb": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-07T01:13:31Z",
+    "last_seen": "2026-09-07T01:13:31Z",
+    "periods": {
+      "2026-09": 1
+    },
+    "tests_affected": [],
+    "total_occurrences": 1
+  },
+  "fe0e71bd26391b89": {
+    "failure_class": "unknown",
+    "first_seen": "2026-09-07T00:45:33Z",
+    "last_seen": "2026-09-10T13:33:25Z",
+    "periods": {
+      "2026-09": 2
     },
     "tests_affected": [
       "tests/test_version_upgrades.py::test_feature_upgrades_inplace"
     ],
-    "total_occurrences": 1
+    "total_occurrences": 2
   },
   "fea4ca5a5168bc64": {
     "failure_class": "unknown",
