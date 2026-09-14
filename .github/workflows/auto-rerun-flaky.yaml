@@ -1,0 +1,81 @@
+name: Auto-rerun flaky failures
+
+# Automatically re-trigger failed workflow runs whose failures are caused
+# exclusively by known transient infrastructure issues (snap store 429s,
+# build-container network flakes, artifact upload timeouts, ...), instead of
+# requiring a human to click "Re-run failed jobs".
+#
+# Safety guardrails (enforced in ci/cmds/rerun.py):
+#   * only runs that concluded as 'failure' are considered
+#   * at most 2 automatic reruns per workflow run (run_attempt < 3)
+#   * at most MAX_DAILY_AUTO_RERUNS automatic reruns per UTC day
+#   * every line of every failed job's log must match a known transient
+#     signature -- a single unmatched line means no rerun
+#
+# This workflow intentionally only implements the rerun *action*. Detection,
+# classification and reporting of flaky failures are handled separately.
+on:
+  workflow_run:
+    workflows:
+      - "Lint and integration"
+      - "Nightly"
+      - "Weekly"
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      run-id:
+        description: Workflow run ID to evaluate for auto-rerun
+        required: true
+        type: number
+      dry-run:
+        description: Evaluate but do not trigger a rerun
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  auto-rerun:
+    name: Evaluate and rerun known transient failures
+    runs-on: ubuntu-latest
+    # Only react to failed runs (workflow_dispatch provides its own run ID).
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'failure'
+    permissions:
+      contents: read
+      actions: write # Needed to rerun failed jobs
+    env:
+      # Maximum number of automatic reruns per UTC day (repository-wide).
+      MAX_DAILY_AUTO_RERUNS: 20
+    steps:
+      - name: Check out code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+
+      - name: Install tox
+        run: sudo apt-get install -y tox
+
+      - name: Auto-rerun failed jobs on known transient failures
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WORKFLOW_RUN_ID: >-
+            ${{ github.event_name == 'workflow_dispatch' &&
+                inputs.run-id ||
+                github.event.workflow_run.id }}
+          DRY_RUN: ${{ inputs.dry-run || 'false' }}
+        run: |
+          ARGS=(--repo "${{ github.repository }}" --run-id "$WORKFLOW_RUN_ID" --max-daily "$MAX_DAILY_AUTO_RERUNS")
+          if [[ "$DRY_RUN" == "true" ]]; then
+            ARGS+=(--dry-run)
+          fi
+          tox -e k8s-ci -- rerun auto "${ARGS[@]}"
