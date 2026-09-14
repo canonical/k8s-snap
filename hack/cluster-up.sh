@@ -245,7 +245,13 @@ install_snap_on() {
   [ -z "$have" ] || log "$name: installed snap differs from $SNAP, reinstalling"
   log "$name: installing k8s snap"
   lxc file push "$SNAP" "$name/root/k8s.snap" >/dev/null
-  lxc exec "$name" -- snap install --classic --dangerous /root/k8s.snap
+  # `snap install --dangerous` fails with "already installed" when the node
+  # already carries a build, so replacing a stale one needs refresh.
+  if lxc exec "$name" -- test -x /snap/bin/k8s 2>/dev/null; then
+    lxc exec "$name" -- snap refresh --classic --dangerous --amend /root/k8s.snap
+  else
+    lxc exec "$name" -- snap install --classic --dangerous /root/k8s.snap
+  fi
   printf '%s' "$want" | lxc exec "$name" -- tee /root/k8s.snap.sha256 >/dev/null
   # Initialize interfaces and network prerequisites.
   lxc exec "$name" -- /snap/k8s/current/k8s/hack/init.sh >/dev/null

@@ -10,6 +10,11 @@ protected_paths_regex:
   # publish job pushes its branch, so a bundled workflow change would run
   # with the publisher's permissions.
   - "^\\.github/"
+  # The bot's own guardrails: its routing/prompt/protected-path policy. A
+  # prompt-injected run could otherwise propose a PR that widens what the
+  # next run is allowed to do.
+  - "^\\.triage-config\\.yaml$"
+  - "^\\.agents/"
 ignored_users: ["github-actions[bot]"]
 maintainer_team: "canonical/kubernetes"
 triage_skill_dir: ".agents/skills/triage"

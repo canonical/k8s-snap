@@ -84,9 +84,12 @@ jobs:
                   if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
                     route=pipeline
                   fi
-                  # Ignore PR comments.
+                  # A comment on a pull request is never triage input: the
+                  # bot Skips it anyway, so scheduling a job that checks out
+                  # the toolkit with BOT_TOKEN just to no-op hands a fork
+                  # contributor's comment a credentialed run for nothing.
                   if [[ "$PR" != "null" ]]; then
-                    route=classify
+                    route=none
                   fi
                   # Issue close cleans up branches.
                   if [[ "$action" == "closed" ]]; then
