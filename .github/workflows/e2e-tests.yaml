@@ -130,6 +130,9 @@ jobs:
       test-runners: ${{ steps.compute-test-runners.outputs.test_runners }}
       repo: ${{ steps.compute-ref.outputs.repo }}
       ref: ${{ steps.compute-ref.outputs.ref }}
+      version-upgrade-channels: ${{ steps.resolve-channels.outputs.TEST_VERSION_UPGRADE_CHANNELS }}
+      version-downgrade-channels: ${{ steps.resolve-channels.outputs.TEST_VERSION_DOWNGRADE_CHANNELS }}
+      strict-interface-channels: ${{ steps.resolve-channels.outputs.TEST_STRICT_INTERFACE_CHANNELS }}
     steps:
       - name: Compute ref for test collection
         id: compute-ref
@@ -207,6 +210,48 @@ jobs:
           JSON_ARRAY=$(printf '%s\n' "$TEST_FILES" | jq -R -s -c 'split("\n") | map(select(length > 0))')
           echo "tests=$JSON_ARRAY" >> $GITHUB_OUTPUT
           echo "Found test files: $TEST_FILES"
+      - name: Resolve test channels
+        id: resolve-channels
+        env:
+          ARCH: ${{ inputs.arch }}
+          FLAVOR: ${{ inputs.flavor }}
+          GH_REF_NAME: ${{ github.ref_name }}
+          GH_BASE_REF_NAME: ${{ github.base_ref }}
+          COLLECTED_TESTS: ${{ steps.collect-tests.outputs.tests }}
+        run: |
+          # Resolve dynamic 'recent <num> [flavour]' channel specifications into
+          # concrete channel lists exactly once per workflow run. Without this,
+          # every parallel matrix job running a version upgrade/downgrade or
+          # strict-interface test queries api.snapcraft.io independently, which
+          # stampedes the Snap Store info API and triggers 429 rate limiting.
+          #
+          # The resolved values are passed to the matrix jobs via job outputs.
+          # If resolution fails (e.g. the Snap Store is unreachable), the
+          # outputs stay empty and the matrix jobs fall back to the unresolved
+          # specifications, preserving the previous per-job resolution behavior.
+          cd tests/integration
+          # Skip resolution entirely when no collected test consumes the
+          # dynamic channel specs (e.g. pull_request runs don't include the
+          # nightly version upgrade/downgrade or strict-interface tests).
+          if ! grep -qE "test_version_upgrades|test_strict_interfaces" <<< "$COLLECTED_TESTS"; then
+            echo "No collected test resolves channels dynamically; skipping"
+            exit 0
+          fi
+          REF="${GH_BASE_REF_NAME:-$GH_REF_NAME}"
+          if ! RESOLVED=$(.tox/integration/bin/python resolve_test_channels.py \
+            --arch "$ARCH" \
+            --flavor "$FLAVOR" \
+            --ref "$REF" \
+            --min-release "1.32" \
+            --upgrade-channels "recent 6" \
+            --downgrade-channels "recent 6" \
+            --strict-channels "recent 6 strict"); then
+            echo "::warning::Failed to resolve test channels; matrix jobs will resolve them individually"
+            exit 0
+          fi
+          while IFS='=' read -r key value; do
+            [ -n "$key" ] && echo "$key=$value" >> "$GITHUB_OUTPUT"
+          done <<< "$RESOLVED"
 
   run-tests:
     name: ${{ matrix.test }}
@@ -281,10 +326,10 @@ jobs:
           TEST_MULTIPASS_IMAGE: ${{ inputs.os }}
           TEST_FLAVOR: ${{ inputs.flavor }}
           TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports/${{ inputs.parallel && env.test_name || '' }}
-          TEST_VERSION_UPGRADE_CHANNELS: "recent 6"
-          TEST_VERSION_DOWNGRADE_CHANNELS: "recent 6"
+          TEST_VERSION_UPGRADE_CHANNELS: ${{ needs.prepare.outputs.version-upgrade-channels || 'recent 6' }}
+          TEST_VERSION_DOWNGRADE_CHANNELS: ${{ needs.prepare.outputs.version-downgrade-channels || 'recent 6' }}
           TEST_VERSION_UPGRADE_MIN_RELEASE: "1.32"
-          TEST_STRICT_INTERFACE_CHANNELS: "recent 6 strict"
+          TEST_STRICT_INTERFACE_CHANNELS: ${{ needs.prepare.outputs.strict-interface-channels || 'recent 6 strict' }}
           TEST_MIRROR_LIST: '[{"name": "ghcr.io", "port": 5000, "remote": "https://ghcr.io", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}, {"name": "docker.io", "port": 5001, "remote": "https://registry-1.docker.io", "username": "", "password": ""}]'
           TEST_GH_REF: ${{ github.ref_name }}
           TEST_GH_BASE_REF: ${{ github.base_ref }}
