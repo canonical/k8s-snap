@@ -8,7 +8,7 @@ import subprocess
 from pathlib import Path
 from typing import List
 
-from test_util import config
+from test_util import config, ports
 from test_util.harness import Harness, HarnessError, Instance
 from test_util.util import run, stubbornly
 
@@ -104,7 +104,10 @@ class LXDHarness(Harness):
         )
 
     def new_instance(
-        self, network_type: str = "IPv4", name_suffix: str = ""
+        self,
+        network_type: str = "IPv4",
+        name_suffix: str = "",
+        required_ports: List[int] = None,
     ) -> Instance:
         instance_id = (
             f"k8s-integration-{self.next_id()}-{os.urandom(3).hex()}{name_suffix}"
@@ -182,6 +185,18 @@ class LXDHarness(Harness):
         stubbornly(retries=3, delay_s=5).on(instance).exec(
             ["snap", "wait", "system", "seed.loaded"]
         )
+
+        if config.ENABLE_DISA_STIG_HOST:
+            LOG.info(
+                "DISA-STIG hardening is enabled. Setting up instance %s", instance_id
+            )
+            self.setup_disa_stig(
+                instance_id,
+                config.UBUNTU_PRO_TOKEN,
+                tailoring_file_path=config.DISA_STIG_USG_TAILORING_FILE_PATH,
+                required_ports=required_ports,
+            )
+
         return instance
 
     def _configure_profile(self, profile_name: str, profile_config: str):
@@ -291,8 +306,62 @@ class LXDHarness(Harness):
         except subprocess.CalledProcessError as e:
             raise HarnessError(f"failed to restart instance {instance_id}") from e
 
+    def setup_disa_stig(
+        self,
+        instance_id: str,
+        ubuntu_pro_token: str,
+        tailoring_file_path: str,
+        required_ports: List[int] = None,
+    ):
+        """Set up DISA-STIG hardening on the instance.
+
+        :param instance_id: The instance_id, as returned by new_instance()
+        :param ubuntu_pro_token: The Ubuntu Pro token to use
+        :param tailoring_file_path: Path to the USG tailoring file
+        :param required_ports: Ports to open in the firewall
+        """
+        if instance_id not in self.instances:
+            raise HarnessError(f"unknown instance {instance_id}")
+
+        LOG.info("Setting up DISA-STIG hardening on instance %s", instance_id)
+
+        setup_script = config.DISA_STIG_DIR / "setup_host.sh"
+        if not setup_script.exists():
+            raise HarnessError(f"DISA-STIG setup script not found: {setup_script}")
+
+        self.send_file(instance_id, str(setup_script), "/tmp/setup_host.sh")
+        self.exec(instance_id, ["chmod", "+x", "/tmp/setup_host.sh"])
+
+        tailoring_file = Path(tailoring_file_path)
+        if not tailoring_file_path or not tailoring_file.exists():
+            raise HarnessError(f"DISA-STIG tailoring file not found: {tailoring_file}")
+        self.send_file(instance_id, str(tailoring_file), "/tmp/tailoring.xml")
+
+        fw_ports = required_ports if required_ports else ports.DEFAULT_OPEN_PORTS
+        ports_str = " ".join(str(p) for p in fw_ports)
+
+        LOG.info("Opening required firewall ports: %s", ports_str)
+        try:
+            self.exec(
+                instance_id,
+                [
+                    "bash",
+                    "-c",
+                    f"UBUNTU_PRO_TOKEN='{ubuntu_pro_token}' "
+                    f"TAILORING_FILE=/tmp/tailoring.xml "
+                    f"FIREWALL_PORTS='{ports_str}' "
+                    f"UBUNTU_PRO_CONTRACT_URL={config.UBUNTU_PRO_CONTRACT_SERVER_URL} "
+                    f"/tmp/setup_host.sh",
+                ],
+            )
+        except subprocess.CalledProcessError as e:
+            raise HarnessError(f"DISA-STIG setup failed on {instance_id}") from e
+
+        LOG.info("DISA-STIG setup completed successfully on %s", instance_id)
+
     def open_ports(self, instance_id: str, ports: List[int]):
-        # Note(Ben): We don't use a firewall in LXD containers, so this is a no-op for now.
+        # Note(Ben): We don't use a firewall in LXD containers, so this is a no-op.
+        # For DISA-STIG hardened instances, ports are opened via setup_disa_stig().
         pass
 
     def delete_instance(self, instance_id: str):
