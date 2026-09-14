@@ -593,3 +593,138 @@ def test_partial_refresh(instances: List[harness.Instance]):
 
     # Deploy the Pod again to verify the cluster functionality.
     check_nginx_pod_runs(instance)
+
+
+@pytest.mark.node_count(1)
+@pytest.mark.tags(tags.NIGHTLY, tags.PROMOTE_STABLE)
+def test_csr_client_certificate_authentication(instances: List[harness.Instance]):
+    instance = instances[0]
+    csr_name = "test-client-csr"
+    kubeconfig = "/tmp/test-client.conf"
+
+    instance.exec(["k8s", "kubectl", "delete", "csr", csr_name, "--ignore-not-found"])
+    instance.exec(
+        [
+            "rm",
+            "-f",
+            "/tmp/test-client.key",
+            "/tmp/test-client.csr",
+            "/tmp/test-client.crt",
+            kubeconfig,
+        ]
+    )
+    instance.exec(["openssl", "genrsa", "-out", "/tmp/test-client.key", "2048"])
+    instance.exec(
+        [
+            "openssl",
+            "req",
+            "-new",
+            "-key",
+            "/tmp/test-client.key",
+            "-out",
+            "/tmp/test-client.csr",
+            "-subj",
+            "/CN=test-client/O=system:masters",
+        ]
+    )
+
+    csr_b64 = (
+        instance.exec(["base64", "-w0", "/tmp/test-client.csr"], capture_output=True)
+        .stdout.decode()
+        .strip()
+    )
+    csr = {
+        "apiVersion": "certificates.k8s.io/v1",
+        "kind": "CertificateSigningRequest",
+        "metadata": {"name": csr_name},
+        "spec": {
+            "request": csr_b64,
+            "signerName": "kubernetes.io/kube-apiserver-client",
+            "expirationSeconds": 86400,
+            "usages": ["client auth"],
+        },
+    }
+    instance.exec(
+        ["k8s", "kubectl", "apply", "-f", "-"],
+        input=str.encode(yaml.dump(csr)),
+    )
+    instance.exec(["k8s", "kubectl", "certificate", "approve", csr_name])
+
+    cert_proc = (
+        util.stubbornly(retries=30, delay_s=2)
+        .on(instance)
+        .until(lambda p: p.stdout.strip())
+        .exec(
+            [
+                "k8s",
+                "kubectl",
+                "get",
+                "csr",
+                csr_name,
+                "-o",
+                "jsonpath={.status.certificate}",
+            ]
+        )
+    )
+    cert_b64 = cert_proc.stdout.decode().strip()
+    instance.exec(
+        ["bash", "-c", "base64 -d >/tmp/test-client.crt"],
+        input=cert_b64.encode(),
+    )
+
+    instance.exec(
+        [
+            "openssl",
+            "verify",
+            "-CAfile",
+            "/etc/kubernetes/pki/client-ca.crt",
+            "/tmp/test-client.crt",
+        ]
+    )
+    instance.exec(
+        [
+            "k8s",
+            "kubectl",
+            "config",
+            "set-cluster",
+            "k8s",
+            "--server=https://127.0.0.1:6443",
+            "--certificate-authority=/etc/kubernetes/pki/ca.crt",
+            f"--kubeconfig={kubeconfig}",
+        ]
+    )
+    instance.exec(
+        [
+            "k8s",
+            "kubectl",
+            "config",
+            "set-credentials",
+            "test-client",
+            "--client-certificate=/tmp/test-client.crt",
+            "--client-key=/tmp/test-client.key",
+            f"--kubeconfig={kubeconfig}",
+        ]
+    )
+    instance.exec(
+        [
+            "k8s",
+            "kubectl",
+            "config",
+            "set-context",
+            "test-client",
+            "--cluster=k8s",
+            "--user=test-client",
+            f"--kubeconfig={kubeconfig}",
+        ]
+    )
+    instance.exec(
+        [
+            "k8s",
+            "kubectl",
+            "config",
+            "use-context",
+            "test-client",
+            f"--kubeconfig={kubeconfig}",
+        ]
+    )
+    instance.exec(["k8s", "kubectl", "--kubeconfig", kubeconfig, "get", "nodes"])

@@ -3,4 +3,20 @@
 . "$SNAP/k8s/lib.sh"
 
 k8s::util::wait_kube_apiserver
-k8s::common::execute kube-controller-manager
+
+declare -a cluster_signing_args=()
+args_file="${SNAP_COMMON}/args/kube-controller-manager"
+
+if [[ ! -f "${args_file}" ]] ||
+  ! grep -Eq '(^|[[:space:]"'\''])--cluster-signing-cert-file=' "${args_file}" ||
+  grep -Eq '(^|[[:space:]"'\''])--cluster-signing-cert-file=/etc/kubernetes/pki/ca\.crt([[:space:]"'\'']|$)' "${args_file}"; then
+  cluster_signing_args+=("--cluster-signing-cert-file=/etc/kubernetes/pki/client-ca.crt")
+fi
+
+if [[ ! -f "${args_file}" ]] ||
+  ! grep -Eq '(^|[[:space:]"'\''])--cluster-signing-key-file=' "${args_file}" ||
+  grep -Eq '(^|[[:space:]"'\''])--cluster-signing-key-file=/etc/kubernetes/pki/ca\.key([[:space:]"'\'']|$)' "${args_file}"; then
+  cluster_signing_args+=("--cluster-signing-key-file=/etc/kubernetes/pki/client-ca.key")
+fi
+
+k8s::common::execute kube-controller-manager "${cluster_signing_args[@]}"
