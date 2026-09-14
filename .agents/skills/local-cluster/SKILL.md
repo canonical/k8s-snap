@@ -79,7 +79,9 @@ satisfied. In order:
   is refused rather than installed into, and `--destroy` only deletes nodes
   carrying that marker
   (`lxc launch <image> <node> -p default -p <prefix>`); the snap is then
-  installed on it (`snap install --classic --dangerous`, then
+  installed on it when its sha256 differs from the snap already there, so a
+  rerun after a rebuild replaces it rather than testing stale code
+  (`snap install --classic --dangerous`, then
   `/snap/k8s/current/k8s/hack/init.sh` to connect interfaces, exactly as
   `tests/integration` does after installing by path) only if
   `/snap/bin/k8s` isn't already present.

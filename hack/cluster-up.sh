@@ -232,14 +232,21 @@ launch_node() {
 }
 
 install_snap_on() {
-  local name="$1"
-  if lxc exec "$name" -- test -x /snap/bin/k8s 2>/dev/null; then
-    log "$name: k8s snap already installed"
+  local name="$1" want have
+  # Compare the artefact, not just "is something installed": a rerun after a
+  # rebuild (or with a different --snap) must not leave the old snap in the
+  # cluster, or the triage test validates stale code and a fix looks unproven.
+  want="$(sha256sum "$SNAP" | cut -d' ' -f1)"
+  have="$(lxc exec "$name" -- cat /root/k8s.snap.sha256 2>/dev/null || true)"
+  if [ "$want" = "$have" ] && lxc exec "$name" -- test -x /snap/bin/k8s 2>/dev/null; then
+    log "$name: k8s snap already installed (matching build)"
     return
   fi
+  [ -z "$have" ] || log "$name: installed snap differs from $SNAP, reinstalling"
   log "$name: installing k8s snap"
   lxc file push "$SNAP" "$name/root/k8s.snap" >/dev/null
   lxc exec "$name" -- snap install --classic --dangerous /root/k8s.snap
+  printf '%s' "$want" | lxc exec "$name" -- tee /root/k8s.snap.sha256 >/dev/null
   # Initialize interfaces and network prerequisites.
   lxc exec "$name" -- /snap/k8s/current/k8s/hack/init.sh >/dev/null
 }
