@@ -26,7 +26,7 @@ dropped. :func:`find_secrets` provides the audit path used by the release gate
 import re
 from typing import List, NamedTuple, Tuple
 
-SCRUBBER_VERSION = 2
+SCRUBBER_VERSION = 3
 
 REDACTED = "<redacted>"
 DROPPED = "<line dropped: possible secret>"
@@ -65,7 +65,29 @@ TOKEN_RULES: Tuple[Rule, ...] = (
     # line contains but below a real blob. Redacted in place rather than
     # dropping the line: the match *is* the payload boundary, so the command
     # around it survives and the failure stays classifiable.
-    Rule("base64-blob", _c(r"[A-Za-z0-9+/]{60,}={0,2}")),
+    #
+    # The class must include base64url's `-` and `_`. Without them a urlsafe
+    # payload is not one run but several, split at every separator, and each
+    # run shorter than 60 chars is left verbatim -- so the narrower class
+    # leaks more. Roughly 1 in 32 characters of a urlsafe payload is a
+    # separator, which makes sub-threshold fragments the common case.
+    #
+    # But `-` and `_` also join up long filesystem paths, and a self-hosted
+    # runner's path ("/home/ubuntu/actions-runner/_work/k8s-snap/...") clears
+    # 60 characters where a GitHub-hosted one does not -- redacting it would
+    # make the same failure hash differently by runner type, which is exactly
+    # what the signature must never do. The lookahead demands one uppercase
+    # character: base64 of random bytes essentially always has one
+    # (P(none in 60 chars) is about 1e-12), lowercase-and-slashes paths do
+    # not. Only one guard, and the cheapest one: every additional condition
+    # is another way for a real secret to slip through, and for a scrubber
+    # the expensive mistake is the miss, not the over-redaction. Compiled
+    # case-sensitively on purpose -- under the module default of IGNORECASE
+    # [A-Z] matches lowercase too and stops discriminating at all.
+    Rule(
+        "base64-blob",
+        re.compile(r"(?=[A-Za-z0-9+/_-]*[A-Z])[A-Za-z0-9+/_-]{60,}={0,2}"),
+    ),
     # Credentials embedded in a URL's userinfo section.
     Rule(
         "url-userinfo",

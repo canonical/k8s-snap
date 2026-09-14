@@ -14,6 +14,8 @@ A scrubber that passes only the first half is trivially satisfiable by
 returning the empty string, which is why the second half exists.
 """
 
+import re
+
 from metrics.scrub import DROPPED, REDACTED, find_secrets, scrub, scrub_line
 
 
@@ -176,3 +178,66 @@ class TestAuditPath:
 
     def test_redaction_marker_is_not_itself_a_finding(self):
         assert find_secrets(f"Authorization: {REDACTED}") == []
+
+
+class TestBase64UrlPayloads:
+    """base64url payloads must not survive in fragments.
+
+    Redacting in place rather than dropping the line is only safe if the
+    match covers the whole payload. A character class missing `-` and `_`
+    splits a urlsafe payload into runs and leaves every run under the
+    threshold verbatim -- so the narrower class leaks *more*.
+    """
+
+    def test_urlsafe_payload_is_removed_whole(self):
+        import base64
+
+        token = base64.urlsafe_b64encode(bytes(range(200))[:200]).decode()
+        assert "-" in token or "_" in token, "fixture must exercise urlsafe chars"
+
+        cleaned = scrub_line("k8s join-cluster " + token)
+
+        # No fragment of the payload survives. Checking against every
+        # separator-delimited run catches the partial-redaction case that a
+        # simple `token not in cleaned` would pass.
+        for run in re.split(r"[-_]", token):
+            if len(run) >= 8:
+                assert run not in cleaned, f"leaked {len(run)} chars of payload"
+
+    def test_the_surrounding_command_still_survives(self):
+        """The whole point of in-place redaction: the failure stays classifiable."""
+        import base64
+
+        token = base64.urlsafe_b64encode(bytes(range(200))[:200]).decode()
+
+        cleaned = scrub_line("k8s join-cluster " + token)
+
+        assert "k8s join-cluster" in cleaned
+
+    def test_audit_gate_agrees_with_the_scrubber(self):
+        """find_secrets is the release gate; it must not pass what scrub leaves."""
+        import base64
+
+        token = base64.urlsafe_b64encode(bytes(range(200))[:200]).decode()
+
+        assert find_secrets("k8s join-cluster " + token), "gate missed a raw payload"
+        assert not find_secrets(scrub_line("k8s join-cluster " + token))
+
+    def test_long_runner_paths_are_not_mistaken_for_payloads(self):
+        """A path must not redact, or the same failure hashes by runner type.
+
+        The self-hosted work directory clears 60 characters where the
+        GitHub-hosted one does not, so over-redaction here would split one
+        signature in two along an axis that has nothing to do with the bug.
+        """
+        selfhosted = (
+            '  File "/home/ubuntu/actions-runner/_work/k8s-snap/k8s-snap'
+            '/tests/integration/tests/test_version_upgrades.py", line 231'
+        )
+        hosted = (
+            '  File "/home/runner/work/k8s-snap/k8s-snap'
+            '/tests/integration/tests/test_version_upgrades.py", line 231'
+        )
+
+        assert scrub_line(selfhosted) == selfhosted
+        assert scrub_line(hosted) == hosted
