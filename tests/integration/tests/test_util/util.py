@@ -181,7 +181,8 @@ def download_preloaded_snaps():
 
     LOG.info(f"Downloading snaps for preloading: {config.PRELOADED_SNAPS}")
     for snap in config.PRELOADED_SNAPS:
-        run(
+        # Retry with backoff to survive transient network/Snap Store errors.
+        stubbornly(retries=5, delay_s=5).exec(
             [
                 "snap",
                 "download",
@@ -207,7 +208,7 @@ def preload_snaps(instance: harness.Instance):
         instance.send_file(source=ack.as_posix(), destination=remote.as_posix())
 
         LOG.info("Running snap ack for %s", remote.as_posix())
-        stubbornly(retries=3, delay_s=2).on(instance).exec(
+        stubbornly(retries=5, delay_s=5).on(instance).exec(
             ["snap", "ack", remote.as_posix()]
         )
 
@@ -219,7 +220,7 @@ def preload_snaps(instance: harness.Instance):
         LOG.info("Install snap file %s.", preloaded_snap)
         remote = remote_dir / snap.name
         instance.send_file(source=snap.as_posix(), destination=remote.as_posix())
-        stubbornly(retries=3, delay_s=5).on(instance).exec(
+        stubbornly(retries=5, delay_s=10).on(instance).exec(
             ["snap", "install", remote.as_posix()]
         )
 
