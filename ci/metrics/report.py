@@ -48,6 +48,22 @@ def _pct(value: Optional[float]) -> str:
     return "n/a" if value is None else f"{value:.1f}%"
 
 
+def _sample(n: Optional[int], noun: str) -> str:
+    """Render the denominator a rate was computed over.
+
+    Small samples are the easiest way for this report to mislead: a 0% green
+    rate over one run reads exactly like a 0% green rate over a hundred, and
+    the first is noise being quoted as a finding. Showing n costs one
+    parenthetical and makes the difference impossible to miss.
+    """
+    if not n:
+        return ""
+    if n == 1:
+        return f" (n=1 {noun})"
+    plural = f"{noun[:-1]}ies" if noun.endswith("y") else f"{noun}s"
+    return f" (n={n} {plural})"
+
+
 def _signed(value: Optional[float], lower_is_better: bool = True) -> str:
     """Render a delta with an explicit direction marker.
 
@@ -139,14 +155,17 @@ def render_mattermost(
     lines.append("**Headline**")
     lines.append(
         f"- scheduled green rate: {_pct(rollup.get('m1_scheduled_green_rate'))}"
+        f"{_sample(rollup.get('m1_scheduled_runs'), 'run')}"
         f"{_signed(delta(rollup, previous, 'm1_scheduled_green_rate'), False)}"
     )
     lines.append(
         f"- PR first-pass rate: {_pct(rollup.get('m2_pr_first_pass_rate'))}"
+        f"{_sample(rollup.get('m2_pr_runs'), 'run')}"
         f"{_signed(delta(rollup, previous, 'm2_pr_first_pass_rate'), False)}"
     )
     lines.append(
         f"- flake rate (recovered on retry): {_pct(rollup.get('m4_flake_rate'))}"
+        f"{_sample(rollup.get('retried_jobs'), 'retry')}"
         f"{_signed(delta(rollup, previous, 'm4_flake_rate'))}"
     )
 

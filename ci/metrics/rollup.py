@@ -321,8 +321,15 @@ def aggregate(
         "runs": runs,
         "runs_by_workflow": {k: dict(v) for k, v in sorted(runs_by_workflow.items())},
         # -- Tier 1: headline ------------------------------------------
+        # Rates are published alongside the denominator they were computed
+        # over. A green rate of 0% across one run and across a hundred runs
+        # are not the same claim, and rendered as a bare percentage they are
+        # indistinguishable -- which is exactly how an early, thin sample
+        # gets quoted as an established fact.
         "m1_scheduled_green_rate": _rate(scheduled_green, scheduled_total),
+        "m1_scheduled_runs": scheduled_total,
         "m2_pr_first_pass_rate": _rate(pr_first_pass, pr_total),
+        "m2_pr_runs": pr_total,
         "m3_job_failure_rate": _rate(jobs_failure, jobs_total),
         "m3_by_class": {
             k: {"count": v, "share": _rate(v, inspected)}

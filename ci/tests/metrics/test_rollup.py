@@ -472,3 +472,31 @@ class TestRetryAccounting:
         assert rollup["m4_flake_rate"] == 100.0
         assert rollup["retried_jobs"] == 1
         assert rollup["inconclusive_retries"] == 1
+
+
+class TestSampleSizeIsVisible:
+    """Rates must carry the denominator they were computed over.
+
+    A 0% green rate over one run and over a hundred runs are different
+    claims, and rendered as bare percentages they are indistinguishable --
+    which is how an early, thin sample ends up quoted as an established fact
+    in a planning discussion.
+    """
+
+    def test_thin_and_thick_samples_render_differently(self):
+        from metrics.report import _sample
+
+        assert _sample(1, "run") == " (n=1 run)"
+        assert _sample(111, "run") == " (n=111 runs)"
+
+    def test_retries_pluralise_as_english(self):
+        from metrics.report import _sample
+
+        assert _sample(131, "retry") == " (n=131 retries)"
+
+    def test_absent_denominator_renders_nothing(self):
+        """No sample is not a sample of zero; say nothing rather than "n=0"."""
+        from metrics.report import _sample
+
+        assert _sample(None, "run") == ""
+        assert _sample(0, "run") == ""
