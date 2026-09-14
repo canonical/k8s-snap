@@ -416,6 +416,13 @@ provisioning breaks badly enough. M10 and M11 exist so that "CI got better" can
 always be checked against "or did we just stop running things", and they are
 surfaced in the digest whenever they move.
 
+Every rate is published with the denominator it was computed over — "0.0%
+(n=11 runs)", not "0.0%" — and a rate with no denominator renders `n/a` rather
+than `0%`. A zero over one run and a zero over a hundred are different claims,
+and rendered identically the thin one gets quoted in a planning discussion as
+though it were the established finding. The denominators were already being
+computed; withholding them was the entire defect.
+
 #### Storage and volume
 
 | Data | Where | Retention |
@@ -430,6 +437,21 @@ window bounds how far `reclassify` can reach; that matches GitHub's own log
 retention, so nothing is really lost. Rollups older than the window are frozen
 under their original `ruleset_version` rather than retroactively rewritten.
 
+Keeping per-run records in an artifact rather than in git is what keeps the
+committed volume at that figure, but it buys the cheapness with a chain: each
+run restores the previous run's artifact, and a rollup is written from whatever
+the store holds *under the period's name*. A broken link therefore does not
+degrade gracefully — it relabels one `--since` window as a whole month and
+overwrites the aggregate that the expiring records can no longer reconstitute.
+This was not hypothetical; the first implementation of the restore step could
+not find its artifact under any trigger, and failed quietly.
+
+So `rollup` refuses to replace an aggregate with one covering fewer runs unless
+forced. The restore is best-effort and the refusal is the actual guarantee: a
+missing artifact should cost a loud error and a re-ingest, never a quietly
+falsified trend. If the chain proves fragile in practice, committing per-run
+metadata (without excerpts) is the escape hatch — more volume, no chain.
+
 #### Collection
 
 `workflow_run` events give low latency but are **best-effort and dropped under
@@ -439,6 +461,14 @@ is only an optimisation.
 
 The digest posts on one daily cron, never on reconciliation. Posting hourly is
 precisely how the existing nightly alert became background noise.
+
+Reconciliation only ingests runs GitHub reports as `completed`. A nightly runs
+for hours, so an hourly pass lands mid-flight by construction, and a run
+sampled while executing has a null conclusion and a partial job list — which,
+once stored, is never revisited. Every such sample would have joined the green
+rate's denominator and could never join its numerator, so the headline metric
+would have drifted downward and read as a regression in CI health rather than
+an artefact of when we happened to look.
 
 Pagination is parallelised: page 1 yields `total_count`, from which the
 remaining page count is computed and fetched concurrently, reassembled by page
