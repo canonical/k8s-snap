@@ -31,6 +31,7 @@ from metrics.gh import DEFAULT_REPO, GitHubClient
 from metrics.ingest import (
     annotate_retries_offline,
     ingest_run,
+    parse_job_name,
     record_month,
     workflow_slug,
 )
@@ -172,6 +173,11 @@ def add_metrics_cmds(parser: argparse.ArgumentParser) -> None:
     )
     rollup.add_argument("--workflow", help="Restrict to one workflow (alias or slug).")
     rollup.add_argument("--dry-run", action="store_true", help="Print without writing.")
+    rollup.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite a rollup even if the new one covers fewer runs.",
+    )
     rollup.set_defaults(func=cmd_rollup)
 
     report = metrics_sub.add_parser(
@@ -321,13 +327,24 @@ def cmd_ingest(args: argparse.Namespace) -> int:
         return 0
 
     LOG.info("Ingesting %s run(s)", len(runs))
-    ingested = skipped = 0
+    ingested = skipped = in_flight = 0
 
     for run in runs:
         run_id = run["id"]
         latest = run.get("run_attempt", 1)
         slug = workflow_slug_for(run)
         month = month_for(run)
+
+        # A run still executing has no conclusion, a partial job list and jobs
+        # with no completed_at. Ingesting it would freeze all of that as final
+        # -- has_run() then skips it forever -- and a nightly that takes hours
+        # guarantees the hourly reconciliation lands mid-flight. The visible
+        # symptom would be the green rate falling because a run was *sampled*
+        # early, not because anything got worse.
+        if run.get("status") != "completed":
+            in_flight += 1
+            LOG.debug("Skipping in-flight run %s (%s)", run_id, run.get("status"))
+            continue
 
         # Every attempt is ingested, not just the latest. Flake detection asks
         # "did this job pass on a *later* attempt", which is only answerable
@@ -372,9 +389,10 @@ def cmd_ingest(args: argparse.Namespace) -> int:
             )
 
     LOG.info(
-        "Done: %s ingested, %s skipped, %s API calls",
+        "Done: %s ingested, %s skipped, %s in flight, %s API calls",
         ingested,
         skipped,
+        in_flight,
         client.calls_made,
     )
     return 0
@@ -808,9 +826,35 @@ def cmd_rollup(args: argparse.Namespace) -> int:
     # Periods are merged oldest-first so the catalogue accumulates in
     # chronological order and the newest period wins on attribution.
     rollups = []
+    refused = []
     for period, records in sorted(by_period.items()):
         payload = aggregate(records, period)
         payload["ruleset_version"] = pack.version
+
+        # A rollup is the permanent record: per-run records expire at 90 days,
+        # so once a month's aggregate is lost it cannot be recomputed. If the
+        # records artifact fails to restore, the store holds only whatever
+        # --since re-ingested -- a week, say -- and writing that over a full
+        # month's aggregate silently relabels seven days as thirty. The same
+        # shrink would propagate into the catalogue, which stores occurrences
+        # per period rather than summing them. Refuse the period outright
+        # rather than trusting that the restore always works.
+        existing = store.read_rollup(period)
+        was = int((existing or {}).get("runs") or 0)
+        now = int(payload.get("runs") or 0)
+        if existing and not args.force and now < was:
+            LOG.error(
+                "%s: refusing to overwrite a rollup built from %s run(s) with "
+                "one built from %s -- the per-run records are probably "
+                "missing. Re-ingest the period, or pass --force if the shrink "
+                "is intended.",
+                period,
+                was,
+                now,
+            )
+            refused.append(period)
+            continue
+
         catalogue = merge_catalogue(catalogue, payload)
         rollups.append((period, payload))
 
@@ -828,6 +872,7 @@ def cmd_rollup(args: argparse.Namespace) -> int:
         if args.dry_run:
             print(json.dumps(payload, indent=2, sort_keys=True))
             continue
+
         path = store.write_rollup(period, payload)
         LOG.info(
             "%s: %s run(s), %s failure(s), %s signature(s) -> %s",
@@ -837,6 +882,10 @@ def cmd_rollup(args: argparse.Namespace) -> int:
             len(payload["signatures"]),
             path,
         )
+
+    if refused:
+        LOG.error("Refused %s period(s): %s", len(refused), ", ".join(refused))
+        return 1
     return 0
 
 
@@ -982,6 +1031,15 @@ def cmd_reclassify(args: argparse.Namespace) -> int:
         for failure in record.get("failures") or []:
             job = JobFailure.from_dict(failure)
             before = (job.failure_class, job.subclass, job.rule_id)
+            # Derived job fields are re-derived, not trusted. They are parsed
+            # from the job name, so a parser fix is exactly as retroactive as
+            # a rule fix -- and a rule guarded on a field the old parser left
+            # unset would otherwise never match the history it was written
+            # for. The name itself is stored verbatim, so this costs no API
+            # traffic and cannot drift from what actually ran.
+            reparsed = parse_job_name(job.job_name or "")
+            if reparsed.substrate and not job.substrate:
+                job.substrate = reparsed.substrate
             # Reset before replaying. Without this, a rule deleted from the
             # pack would leave its stale attribution behind forever, and
             # reclassification would only ever be additive.
