@@ -43,7 +43,21 @@ runs:
       env:
         INPUT_CHANNEL: ${{ inputs.channel }}
       run: |
-        snap download k8s --channel="$INPUT_CHANNEL" --basename k8s
+        # Retry with exponential backoff to survive transient network/Snap Store errors.
+        max_attempts=5
+        delay=5
+        for attempt in $(seq 1 "$max_attempts"); do
+          if snap download k8s --channel="$INPUT_CHANNEL" --basename k8s; then
+            break
+          fi
+          if [[ "$attempt" -eq "$max_attempts" ]]; then
+            echo "snap download failed after $max_attempts attempts"
+            exit 1
+          fi
+          echo "snap download failed (attempt $attempt/$max_attempts), retrying in ${delay}s..."
+          sleep "$delay"
+          delay=$((delay * 2))
+        done
         full_path=`realpath k8s.snap`
         echo "Downloaded snap: $full_path"
         ls -lh $full_path
