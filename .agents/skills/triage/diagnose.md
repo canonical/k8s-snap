@@ -45,6 +45,11 @@ is a command that fails, and its output is in the report. Start from that.
   - `high`: you identified a specific code path and the mechanism is clear.
   - `medium`: a plausible area is identified but the exact cause is unconfirmed.
   - `low`: the failure is real but the cause is still unclear.
+- `hypothesis`: where the root cause lives -- the file, and the
+  function/symbol when you know it.
+- `evidence`: what supports it: the log lines, code path or cluster state you
+  actually read.
 
-Record the hypothesis and the evidence in your reasoning so the fix step can
-build on it. Do not modify code in this step.
+Return both fields rather than leaving them in your reasoning: only the
+structured result is written to `report.md`, so anything you work out but do
+not return here never reaches the fix step. Do not modify code in this step.
