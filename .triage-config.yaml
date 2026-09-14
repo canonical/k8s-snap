@@ -24,6 +24,16 @@ protected_paths_regex:
   # Read by hack/cluster-up.sh when it creates the LXD profile, so it decides
   # what the pipeline's containers are allowed to do.
   - "^tests/integration/lxd-profile\\.yaml$"
+  # CI automation and the snap build: executed by workflows on the branch the
+  # publisher pushes here, and never something a bug fix needs to touch.
+  - "^ci/"
+  - "^build-scripts/"
+  # The bot's job is to add a failing test case, not to change the harness
+  # that runs one. Everything under tests/integration is protected except
+  # test modules themselves -- so it can write tests/integration/tests/
+  # test_*.py, but not conftest.py, test_util/, tox.ini or the fixtures every
+  # other test in the suite depends on.
+  - "^tests/integration/(?!tests/test_[^/]+\\.py$).*"
 ignored_users: ["github-actions[bot]"]
 maintainer_team: "canonical/kubernetes"
 triage_skill_dir: ".agents/skills/triage"
