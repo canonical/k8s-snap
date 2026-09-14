@@ -71,6 +71,7 @@ jobs:
         run: sudo apt-get install -y tox
 
       - name: Auto-rerun failed jobs on known transient failures
+        working-directory: ci
         env:
           # NOTE: must be GITHUB_TOKEN (not GH_TOKEN) so that it passes through
           # the `GITHUB_*` passenv glob of the tox k8s-ci env to the gh CLI.
