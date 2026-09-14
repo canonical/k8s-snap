@@ -161,10 +161,25 @@ ensure_snap() {
   log "snap under test: $SNAP"
 }
 
+# Marks a profile as created by this script, so a prefix that happens to
+# collide with a pre-existing profile is never silently overwritten -- and
+# --destroy never deletes a profile it did not create.
+PROFILE_MARKER="managed by hack/cluster-up.sh"
+
+profile_is_ours() {
+  [ "$(lxc profile get "$1" user.managed-by 2>/dev/null)" = "$PROFILE_MARKER" ]
+}
+
 ensure_profile() {
   [ -f "$PROFILE_YAML" ] || die "missing $PROFILE_YAML"
-  lxc profile show "$PREFIX" >/dev/null 2>&1 || lxc profile create "$PREFIX" >/dev/null
+  if lxc profile show "$PREFIX" >/dev/null 2>&1; then
+    profile_is_ours "$PREFIX" ||
+      die "LXD profile '$PREFIX' already exists and was not created by this script; choose another --prefix"
+  else
+    lxc profile create "$PREFIX" >/dev/null
+  fi
   lxc profile edit "$PREFIX" <"$PROFILE_YAML"
+  lxc profile set "$PREFIX" user.managed-by "$PROFILE_MARKER"
 }
 
 # --- nodes -------------------------------------------------------------------
@@ -262,9 +277,13 @@ destroy)
     log "nothing to delete"
   fi
   # The profile is created per prefix, so it leaks on a long-lived host once
-  # the nodes are gone. Removing it fails harmlessly while anything still
-  # references it.
-  lxc profile delete "$PREFIX" >/dev/null 2>&1 && log "deleted profile: $PREFIX" || true
+  # the nodes are gone. Only ever remove one this script created: a prefix
+  # can collide with an unrelated profile (including `default`), and deleting
+  # that would be someone else's outage. Removing fails harmlessly while
+  # anything still references it.
+  if profile_is_ours "$PREFIX"; then
+    lxc profile delete "$PREFIX" >/dev/null 2>&1 && log "deleted profile: $PREFIX" || true
+  fi
   exit 0
   ;;
 esac

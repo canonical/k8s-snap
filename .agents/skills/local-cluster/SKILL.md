@@ -210,18 +210,23 @@ cd tests/integration && tox -e integration -- tests/ -k <test_name>
 
 ## Tearing down
 
-`hack/cluster-up.sh --prefix <name> --destroy` deletes every LXD instance
-whose name starts with `<name>-` (`lxc delete --force`), control-plane and
-worker alike. It is idempotent: with nothing matching, it logs "nothing to
-delete" and exits 0, so it is always safe to run again, or unconditionally,
-as cleanup.
+`hack/cluster-up.sh --prefix <name> --destroy` deletes the LXD instances this
+script creates for that prefix -- exactly `<name>-cp<N>` and `<name>-w<N>`
+(`lxc delete --force`), control-plane and worker alike -- and then removes the
+prefix's own LXD profile. It is idempotent: with nothing matching, it logs
+"nothing to delete" and exits 0, so it is always safe to run again, or
+unconditionally, as cleanup. Anything else you happened to name with the same
+prefix is deliberately left alone, so do not rely on it to collect unrelated
+instances.
 
 Check what exists first with `hack/cluster-up.sh --prefix <name> --status`:
 with a matching cluster it lists the LXD instances and, best-effort, runs
 `k8s kubectl get nodes -o wide` from the first one.
 
-The prefix is also the isolation between concurrent clusters: the script
-escapes it before matching node names against it, specifically so that one
-prefix's `--destroy` can never match, and delete, another prefix's nodes.
+The prefix is also the isolation between concurrent clusters: it is validated
+and matched only against that exact node shape, specifically so that one
+prefix's `--destroy` can never match, and delete, another prefix's nodes --
+including a prefix that is a prefix of another (`k8s-triage` does not match
+`k8s-triage-42-cp1`).
 Give concurrent clusters different `--prefix` values (or `CLUSTER_PREFIX`)
 and neither can interfere with the other, including on cleanup.
