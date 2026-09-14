@@ -28,7 +28,9 @@ diagnosis; judge the behaviour, not the implementation.
   - `unclear`: the evidence does not support a confident call.
 - `confidence`: `high` | `medium` | `low` for that verdict.
 
-`intended-behavior` stops the pipeline and parks the issue at `triage/needs-human`.
-`bug` and `unclear` both continue to the reproducer step: capturing the
-behaviour in a failing test is useful either way, and a maintainer reviewing the
-draft PR sees the verdict and can judge whether the expectation is right.
+Only `bug` continues to the reproducer step. Both `intended-behavior` and
+`unclear` stop the pipeline and park the issue at `triage/needs-human` for a
+maintainer, so do not reach for `unclear` as a safe middle ground: it is the
+schema default, and treating it as "proceed anyway" would let an empty or
+malformed answer spend a cluster run and touch code on an unproven premise.
+Commit to `bug` when the evidence supports it, and say why in your reasoning.

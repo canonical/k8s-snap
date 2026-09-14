@@ -162,25 +162,39 @@ jobs:
               run: |
                   source .venv/bin/activate
                   mkdir -p triage-artifacts
+                  # An array, not a string: unquoted word splitting let a
+                  # dispatch input inject extra ai-triage flags (e.g. an issue
+                  # value of "1 --export-dir /elsewhere").
+                  args=()
                   if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
-                    args="--issue $DISPATCH_ISSUE --action $DISPATCH_ACTION"
+                    if [[ ! "$DISPATCH_ISSUE" =~ ^[0-9]+$ ]]; then
+                      echo "::error::--issue must be a positive integer" >&2
+                      exit 1
+                    fi
+                    args=(--issue "$DISPATCH_ISSUE" --action "$DISPATCH_ACTION")
                     if [[ "$DISPATCH_DRY_RUN" == "true" ]]; then
-                      args="$args --dry-run"
+                      args+=(--dry-run)
                     else
-                      args="$args --auto-pr --export-dir triage-artifacts"
+                      args+=(--auto-pr --export-dir triage-artifacts)
                     fi
                   else
-                    args="--event-file $GITHUB_EVENT_PATH --auto-pr --export-dir triage-artifacts"
+                    args=(--event-file "$GITHUB_EVENT_PATH" --auto-pr
+                          --export-dir triage-artifacts)
                   fi
-                  ai-triage --config .triage-config.yaml --log-level DEBUG $args
-
+                  ai-triage --config .triage-config.yaml --log-level DEBUG "${args[@]}"
 
             - name: Upload triage artifacts
               if: always()
               uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
               with:
                   name: triage-artifacts-${{ needs.gate.outputs.issue }}
-                  path: triage-artifacts/
+                  # Only the two files the publisher consumes. The agent shares
+                  # this workspace, so uploading the directory wholesale would
+                  # let it exfiltrate anything it dropped (or symlinked) there
+                  # into a downloadable artifact.
+                  path: |
+                      triage-artifacts/triage-result.json
+                      triage-artifacts/triage-fix-*.bundle
                   retention-days: 1
 
     publish:
@@ -191,8 +205,14 @@ jobs:
             group: triage-${{ needs.gate.outputs.issue || 'none' }}
             cancel-in-progress: false
         runs-on: ubuntu-latest
+        # This is the privileged half of the split: it pushes the bot's fix
+        # branch and opens/labels the PR. contents:write is required for the
+        # push -- without it the whole publish aborts before any mutation and
+        # the fix half of the design never works. The unprivileged producer
+        # stays read-only, and every artifact-supplied number and branch is
+        # bound to the triggering issue before it is acted on.
         permissions:
-            contents: read
+            contents: write
             issues: write
             pull-requests: write
         steps:

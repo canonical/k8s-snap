@@ -89,9 +89,22 @@ case "$PER_NODE_GB" in
 '' | *[!0-9]*) die "PER_NODE_GB must be a non-negative integer, got '$PER_NODE_GB'" ;;
 esac
 [ "$CONTROL_PLANE" -ge 1 ] || die "--control-plane must be at least 1"
+# The prefix reaches a grep pattern and `lxc delete`, so constrain it to the
+# shape a node name can actually have. Without this, an embedded newline
+# splits the pattern in two ("^x" plus a bare "-"), and the second pattern
+# matches unrelated containers that --destroy would then delete.
+case "$PREFIX" in
+'' | *[!a-zA-Z0-9_-]*) die "--prefix must be non-empty [a-zA-Z0-9_-] only, got '$PREFIX'" ;;
+esac
 
 FIRST="${PREFIX}-cp1"
-nodes() { lxc list --format=csv -c n | grep -- "^$(re_escape "$PREFIX")-" || true; }
+# Anchored to the exact node shape this script creates, so a parent prefix
+# cannot match (and --destroy cannot delete) another run's nodes: plain
+# "^k8s-triage-" would also match every "k8s-triage-<issue>-cp1".
+nodes() {
+  lxc list --format=csv -c n |
+    grep -E -- "^$(re_escape "$PREFIX")-(cp|w)[0-9]+$" || true
+}
 
 # --- tooling -----------------------------------------------------------------
 
@@ -241,13 +254,17 @@ status)
 destroy)
   ensure_tooling
   found="$(nodes)"
-  [ -n "$found" ] || {
+  if [ -n "$found" ]; then
+    # shellcheck disable=SC2086 # deliberate word splitting: one arg per node
+    lxc delete --force $found
+    log "deleted: $(echo "$found" | tr '\n' ' ')"
+  else
     log "nothing to delete"
-    exit 0
-  }
-  # shellcheck disable=SC2086 # deliberate word splitting: one arg per node
-  lxc delete --force $found
-  log "deleted: $(echo "$found" | tr '\n' ' ')"
+  fi
+  # The profile is created per prefix, so it leaks on a long-lived host once
+  # the nodes are gone. Removing it fails harmlessly while anything still
+  # references it.
+  lxc profile delete "$PREFIX" >/dev/null 2>&1 && log "deleted profile: $PREFIX" || true
   exit 0
   ;;
 esac

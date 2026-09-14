@@ -26,8 +26,10 @@ is a command that fails, and its output is in the report. Start from that.
      "$(cat build-scripts/components/k8sd/repository)" .triage/issue-<n>/k8sd
    ```
    Building `k8sd` locally needs `libdqlite-dev`; when that is missing, read the
-   source rather than fighting the build, and let the snap rebuild in the fix
-   step be your validation.
+   source rather than fighting the build. Cloning it is for *reading*: if the
+   root cause turns out to live there, the fix step will report it for a human
+   rather than attempt it, because a commit in an adjacent clone cannot be
+   built, verified or published by this pipeline (see `fix.md` step 3).
 3. Correlate what you have: log lines, service names, the args files under
    `/var/snap/k8s/common/args`, and the code path you just read. If the
    reproducer step did not destroy it, the cluster from the reproduction is
