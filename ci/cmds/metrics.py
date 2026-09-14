@@ -713,6 +713,15 @@ def cmd_audit_secrets(args: argparse.Namespace) -> int:
     This is the hard gate from the rollout plan. It runs over what was
     *actually persisted*, independently of the scrubber having been invoked,
     so a scrubber regression cannot hide behind its own output.
+
+    Two properties are deliberate. It walks **every** file under the data
+    root rather than a known extension list, because the gate's job is to
+    check what will be published and it must not depend on an assumption
+    about which files carry text -- reports are markdown, and a future
+    format would otherwise be published unscanned. And it **fails when it
+    scanned nothing**: "no secrets found in zero files" is not a pass, it is
+    a misconfigured path, and a security gate that cannot tell those apart
+    is not a gate.
     """
     _setup_logging(args.verbose)
     store = _store(args)
@@ -734,7 +743,11 @@ def cmd_audit_secrets(args: argparse.Namespace) -> int:
                     f"{path.name} job {failure['job_id']} line {line_no}: {rule}"
                 )
 
-    for path in sorted(store.root.rglob("*.json")):
+    # Everything else that will be committed: rollups, the catalogue, and
+    # rendered reports. Compressed run records are covered by the loop above.
+    for path in sorted(store.root.rglob("*")):
+        if not path.is_file() or path.suffix == ".gz":
+            continue
         text = path.read_text(encoding="utf-8", errors="replace")
         for line_no, rule in find_secrets(text):
             findings.append(f"{path.name} line {line_no}: {rule}")
@@ -745,6 +758,9 @@ def cmd_audit_secrets(args: argparse.Namespace) -> int:
         print(f"\nFAIL: {len(findings)} finding(s)")
         for finding in findings[:50]:
             print(f"  {finding}")
+        return 1
+    if scanned == 0:
+        print(f"FAIL: nothing to scan under {store.root} -- wrong --data-dir?")
         return 1
     print("PASS: no secrets found")
     return 0

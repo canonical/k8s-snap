@@ -16,7 +16,8 @@ import argparse
 import gzip
 import json
 
-from cmds.metrics import _iter_target_records, _workflow_slug
+from cmds.metrics import _iter_target_records, _workflow_slug, cmd_audit_secrets
+from metrics.gh import DEFAULT_REPO
 from metrics.store import MetricsStore
 
 
@@ -95,3 +96,45 @@ class TestTargetRecords:
             store, args(run_id=None, workflow=None, since="30d")
         )
         assert [p.name for p in found] == ["2-1.json.gz"]
+
+
+class TestAuditSecretsGate:
+    """The audit is the only thing between raw log text and a public branch.
+
+    It runs in CI as a hard gate before anything is committed or uploaded, so
+    its failure modes are worth pinning explicitly: a gate that cannot fail is
+    indistinguishable from no gate at all.
+    """
+
+    def audit(self, root):
+        return cmd_audit_secrets(
+            args(data_dir=str(root), repo=DEFAULT_REPO, verbose=False)
+        )
+
+    def test_empty_data_dir_fails_rather_than_passing_vacuously(self, tmp_path):
+        """ "No secrets in zero files" is a misconfigured path, not a pass.
+
+        The workflow points the audit at a path built from the checkout
+        layout. If that path were ever wrong the audit would scan nothing,
+        report success, and wave through whatever the commit step actually
+        committed.
+        """
+        assert self.audit(tmp_path / "nope") == 1
+
+    def test_secret_in_a_rendered_report_is_caught(self, tmp_path):
+        """Reports are committed as markdown, not JSON.
+
+        The scan used to glob '*.json', so every rendered report went to the
+        branch unscanned. Nothing renders excerpts into a report today; this
+        pins the gate so that staying true is not a precondition for safety.
+        """
+        report = tmp_path / "reports" / "latest.md"
+        report.parent.mkdir(parents=True)
+        report.write_text("top signature\nghp_" + "A" * 26 + "\n")
+        assert self.audit(tmp_path) == 1
+
+    def test_clean_data_passes(self, tmp_path):
+        rollup = tmp_path / "rollups" / "2026-09.json"
+        rollup.parent.mkdir(parents=True)
+        rollup.write_text('{"period": "2026-09", "m9_unclassified_rate": 3.3}\n')
+        assert self.audit(tmp_path) == 0
