@@ -107,9 +107,25 @@ FIRST="${PREFIX}-cp1"
 # Anchored to the exact node shape this script creates, so a parent prefix
 # cannot match (and --destroy cannot delete) another run's nodes: plain
 # "^k8s-triage-" would also match every "k8s-triage-<issue>-cp1".
+# Selects by name shape *and* this script's ownership marker, so a
+# pre-existing container that merely happens to be called <prefix>-cp1 is
+# never installed into, joined to the cluster, or deleted by --destroy.
+node_is_ours() {
+  [ "$(lxc config get "$1" user.managed-by 2>/dev/null)" = "$NODE_MARKER" ]
+}
+
 nodes() {
-  lxc list --format=csv -c n |
-    grep -E -- "^$(re_escape "$PREFIX")-(cp|w)[0-9]+$" || true
+  local name
+  while read -r name; do
+    [ -n "$name" ] || continue
+    if node_is_ours "$name"; then
+      printf '%s\n' "$name"
+    fi
+  done < <(lxc list --format=csv -c n |
+    grep -E -- "^$(re_escape "$PREFIX")-(cp|w)[0-9]+$" || true)
+  # Always succeed: with `set -e`, a trailing unowned container would
+  # otherwise make the whole function fail and abort the script.
+  return 0
 }
 
 # --- tooling -----------------------------------------------------------------
@@ -131,10 +147,10 @@ ensure_capacity() {
   # charging for them again would refuse a resume that is actually fine.
   local want=0 i
   for i in $(seq 1 "$CONTROL_PLANE"); do
-    lxc info "${PREFIX}-cp${i}" >/dev/null 2>&1 || want=$((want + PER_CP_GB))
+    node_is_ours "${PREFIX}-cp${i}" || want=$((want + PER_CP_GB))
   done
   for i in $(seq 1 "$WORKERS"); do
-    lxc info "${PREFIX}-w${i}" >/dev/null 2>&1 || want=$((want + PER_WORKER_GB))
+    node_is_ours "${PREFIX}-w${i}" || want=$((want + PER_WORKER_GB))
   done
   [ "$want" -gt 0 ] || return 0
   local where avail
@@ -181,6 +197,7 @@ ensure_snap() {
 # collide with a pre-existing profile is never silently overwritten -- and
 # --destroy never deletes a profile it did not create.
 PROFILE_MARKER="managed by hack/cluster-up.sh"
+NODE_MARKER="managed by hack/cluster-up.sh"
 
 profile_is_ours() {
   [ "$(lxc profile get "$1" user.managed-by 2>/dev/null)" = "$PROFILE_MARKER" ]
@@ -203,10 +220,13 @@ ensure_profile() {
 launch_node() {
   local name="$1"
   if lxc info "$name" >/dev/null 2>&1; then
+    node_is_ours "$name" ||
+      die "container '$name' already exists and was not created by this script; choose another --prefix"
     log "$name: already exists"
   else
     log "$name: launching $IMAGE"
     lxc launch "$IMAGE" "$name" -p default -p "$PREFIX" >/dev/null
+    lxc config set "$name" user.managed-by "$NODE_MARKER"
   fi
   lxc exec "$name" -- cloud-init status --wait >/dev/null 2>&1 || true
 }

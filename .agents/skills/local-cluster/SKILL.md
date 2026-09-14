@@ -67,10 +67,17 @@ satisfied. In order:
   fail with `DiskPressure` much later.
 - `ensure_snap`: resolves or builds `k8s.snap` (see "The snap build
   reality" below).
-- `ensure_profile`: creates (or overwrites) an LXD profile named after the
-  prefix, from `tests/integration/lxd-profile.yaml` -- the same profile
-  content `tests/integration` applies under its own profile name.
-- each node: launched only if `lxc info <node>` doesn't already find it
+- `ensure_profile`: creates an LXD profile named after the prefix, from
+  `tests/integration/lxd-profile.yaml` -- the same profile content
+  `tests/integration` applies under its own profile name. It updates that
+  profile only when it carries this script's ownership marker, and otherwise
+  refuses with "choose another --prefix", so a prefix that collides with an
+  unrelated profile (including `default`) can never overwrite it. `--destroy`
+  removes the profile on the same condition.
+- each node: launched only if it does not already exist, and marked as owned
+  by this script on creation -- a pre-existing container with a colliding name
+  is refused rather than installed into, and `--destroy` only deletes nodes
+  carrying that marker
   (`lxc launch <image> <node> -p default -p <prefix>`); the snap is then
   installed on it (`snap install --classic --dangerous`, then
   `/snap/k8s/current/k8s/hack/init.sh` to connect interfaces, exactly as

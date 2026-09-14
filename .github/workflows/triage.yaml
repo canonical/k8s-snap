@@ -50,6 +50,8 @@ jobs:
                   ISSUE_NUM: ${{ github.event.issue.number }}
                   INPUT_ISSUE: ${{ inputs.issue }}
                   HEAD_REF: ${{ github.event.pull_request.head.ref }}
+                  PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+                  THIS_REPO: ${{ github.repository }}
                   COMMENT_BODY: ${{ github.event.comment.body }}
               run: |
                   action="$ACTION"
@@ -91,8 +93,16 @@ jobs:
                     route=cleanup
                   fi
                   # PR close/merge routes to classify for fix verification.
+                  # A fork PR is never one of the bot's own fix PRs (those are
+                  # created in this repository), and fork events receive no
+                  # secrets, so the toolkit checkout would fail rather than
+                  # no-op. Route them nowhere at all.
                   if [[ "$EVENT_NAME" == "pull_request" ]]; then
-                    route=classify
+                    if [[ -n "$PR_HEAD_REPO" && "$PR_HEAD_REPO" != "$THIS_REPO" ]]; then
+                      route=none
+                    else
+                      route=classify
+                    fi
                   fi
                   issue_num="$ISSUE_NUM"
                   if [[ -z "$issue_num" ]]; then
