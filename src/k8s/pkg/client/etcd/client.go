@@ -10,6 +10,7 @@ import (
 
 type Client struct {
 	*clientv3.Client
+	pkiDir string
 }
 
 func NewClient(pkiDir string, endpoints []string) (*Client, error) {
@@ -31,8 +32,77 @@ func NewClient(pkiDir string, endpoints []string) (*Client, error) {
 	}
 
 	return &Client{
-		client,
+		Client: client,
+		pkiDir: pkiDir,
 	}, nil
+}
+
+// MoveLeaderIfNeeded transfers etcd leadership away from nodeName if it is currently the etcd leader.
+// MoveLeader must be issued to the leader itself, so this creates a targeted client directly to that
+// node. Returns nil if the node is not found or it is not the current leader.
+func (c *Client) MoveLeaderIfNeeded(ctx context.Context, nodeName string) error {
+	return c.moveLeader(ctx, nodeName, NewClient)
+}
+
+func (c *Client) moveLeader(ctx context.Context, nodeName string, createClient func(string, []string) (*Client, error)) error {
+	memberResp, err := c.MemberList(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to list etcd members: %w", err)
+	}
+
+	var targetID uint64
+	var targetClientURLs []string
+	for _, m := range memberResp.Members {
+		if m.Name == nodeName {
+			targetID = m.ID
+			targetClientURLs = m.ClientURLs
+			break
+		}
+	}
+	if targetID == 0 {
+		return nil
+	}
+
+	// Query Status from the target node to check if it is the current leader.
+	var leaderID uint64
+	for _, url := range targetClientURLs {
+		statusResp, err := c.Status(ctx, url)
+		if err == nil {
+			leaderID = statusResp.Leader
+			break
+		}
+	}
+	if leaderID == 0 {
+		return fmt.Errorf("failed to determine etcd leader via status calls to %q", nodeName)
+	}
+	if leaderID != targetID {
+		return nil
+	}
+
+	// Pick a non-learner, non-target voter as the transfer target.
+	var transfereeID uint64
+	for _, m := range memberResp.Members {
+		if m.ID != targetID && !m.IsLearner {
+			transfereeID = m.ID
+			break
+		}
+	}
+	if transfereeID == 0 {
+		return fmt.Errorf("no eligible etcd member to transfer leadership to")
+	}
+
+	// MoveLeader must be called from the leader; dial it directly.
+	leaderClient, err := createClient(c.pkiDir, targetClientURLs)
+	if err != nil {
+		return fmt.Errorf("failed to create etcd client for leader: %w", err)
+	}
+	defer leaderClient.Close()
+
+	if _, err := leaderClient.MoveLeader(ctx, transfereeID); err != nil {
+		return fmt.Errorf("failed to transfer etcd leadership from %q: %w", nodeName, err)
+	}
+
+	return nil
 }
 
 func (c *Client) RemoveNodeByName(ctx context.Context, name string) error {
