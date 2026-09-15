@@ -87,7 +87,7 @@ def test_dns(instances: List[harness.Instance]):
 @pytest.mark.tags(tags.PULL_REQUEST)
 def test_dns_ha_rebalancing(instances: List[harness.Instance]):
     """
-    Verify that a late join does not cause a CoreDNS rollout restart storm.
+    Verify that a late join spreads CoreDNS without a rollout restart storm.
     """
     initial_node = instances[0]
     joining_cplane_node = instances[1]
@@ -95,37 +95,75 @@ def test_dns_ha_rebalancing(instances: List[harness.Instance]):
     util.wait_until_k8s_ready(initial_node, [initial_node])
     util.wait_for_dns(initial_node)
 
-    rebalance_log_since = initial_node.exec(
-        ["date", "--iso-8601=seconds"],
-        text=True,
-        capture_output=True,
-    ).stdout.strip()
-
-    result = initial_node.exec(
-        [
-            "k8s",
-            "kubectl",
-            "get",
-            "pods",
-            "-n",
-            "kube-system",
-            "-l",
-            "k8s-app=coredns",
-            "-o",
-            "json",
-        ],
-        text=True,
-        capture_output=True,
-    )
-    initial_pods = [
-        pod
-        for pod in json.loads(result.stdout)["items"]
-        if not pod["metadata"].get("deletionTimestamp")
+    get_coredns = [
+        "k8s",
+        "kubectl",
+        "get",
+        "deployments,pods",
+        "-n",
+        "kube-system",
+        "-l",
+        "k8s-app=coredns",
+        "-o",
+        "json",
     ]
-    initial_nodes = {pod["spec"].get("nodeName") for pod in initial_pods}
+
+    def _settled_pods(result):
+        items = json.loads(result.stdout)["items"]
+        deployments = [item for item in items if item["kind"] == "Deployment"]
+        pods = [item for item in items if item["kind"] == "Pod"]
+        if len(deployments) != 1:
+            return []
+        deployment = deployments[0]
+        desired = deployment["spec"].get("replicas", 1)
+        status = deployment.get("status", {})
+        if (
+            desired < 2
+            or status.get("observedGeneration", 0)
+            < deployment["metadata"]["generation"]
+            or any(
+                status.get(field, 0) != desired
+                for field in (
+                    "replicas",
+                    "updatedReplicas",
+                    "readyReplicas",
+                    "availableReplicas",
+                )
+            )
+            or len(pods) != desired
+        ):
+            return []
+        for pod in pods:
+            if (
+                pod["metadata"].get("deletionTimestamp")
+                or not pod["spec"].get("nodeName")
+                or not any(
+                    condition["type"] == "Ready" and condition["status"] == "True"
+                    for condition in pod.get("status", {}).get("conditions", [])
+                )
+            ):
+                return []
+        hashes = {pod["metadata"]["labels"].get("pod-template-hash") for pod in pods}
+        return pods if len(hashes) == 1 and None not in hashes else []
+
+    result = (
+        util.stubbornly(retries=36, delay_s=5)
+        .on(initial_node)
+        .until(_settled_pods)
+        .exec(get_coredns, text=True)
+    )
+    initial_pods = _settled_pods(result)
+    initial_hash = initial_pods[0]["metadata"]["labels"]["pod-template-hash"]
+    initial_nodes = {pod["spec"]["nodeName"] for pod in initial_pods}
     assert (
         len(initial_nodes) == 1
     ), f"Expected all CoreDNS pods on one node initially, got {initial_nodes}"
+
+    rebalance_log_since = initial_node.exec(
+        ["date", "+@%s"],
+        text=True,
+        capture_output=True,
+    ).stdout.strip()
 
     join_token = util.get_join_token(initial_node, joining_cplane_node)
     util.join_cluster(joining_cplane_node, join_token)
@@ -145,57 +183,52 @@ def test_dns_ha_rebalancing(instances: List[harness.Instance]):
                 ],
                 text=True,
                 capture_output=True,
-                check=False,
             )
             count += log_result.stdout.count("CoreDNS pods need rebalancing")
         return count
 
-    time.sleep(45)
-    initial_node.exec(
-        [
-            "k8s",
-            "kubectl",
-            "rollout",
-            "status",
-            "-n",
-            "kube-system",
-            "deployment/coredns",
-            "--timeout=180s",
-        ],
+    def _is_rebalanced(result):
+        pods = _settled_pods(result)
+        return (
+            bool(pods)
+            and pods[0]["metadata"]["labels"]["pod-template-hash"] != initial_hash
+            and len({pod["spec"]["nodeName"] for pod in pods}) > 1
+        )
+
+    result = (
+        util.stubbornly(retries=60, delay_s=5)
+        .on(initial_node)
+        .until(_is_rebalanced)
+        .exec(get_coredns, text=True)
+    )
+    settled_pods = _settled_pods(result)
+    settled_uids = {pod["metadata"]["uid"] for pod in settled_pods}
+    LOG.info(
+        "CoreDNS pod placement after late join: %s",
+        {pod["spec"]["nodeName"] for pod in settled_pods},
     )
     util.wait_for_dns(initial_node)
 
     trigger_count = _rebalance_trigger_count()
     LOG.info(f"dnsrebalancer triggered {trigger_count} time(s)")
-    assert trigger_count <= 1, (
-        "dnsrebalancer triggered too many times, indicating a rebalancing loop "
+    assert trigger_count == 1, (
+        "Expected exactly one dnsrebalancer trigger "
         f"(triggered {trigger_count} times)"
     )
 
-    time.sleep(30)
-    final_trigger_count = _rebalance_trigger_count()
-    assert final_trigger_count == trigger_count, (
-        "dnsrebalancer kept triggering after the rollout settled "
-        f"(went from {trigger_count} to {final_trigger_count})"
-    )
-
-    result = initial_node.exec(
-        [
-            "k8s",
-            "kubectl",
-            "get",
-            "pods",
-            "-n",
-            "kube-system",
-            "-l",
-            "k8s-app=coredns",
-            "-o",
-            "jsonpath={.items[*].spec.nodeName}",
-        ],
-        text=True,
-        capture_output=True,
-    )
-    LOG.info("CoreDNS pod placement after late join: %s", result.stdout.strip())
+    for _ in range(6):
+        time.sleep(10)
+        result = initial_node.exec(get_coredns, text=True, capture_output=True)
+        assert _is_rebalanced(
+            result
+        ), f"CoreDNS did not remain spread and ready: {result.stdout}"
+        assert {
+            pod["metadata"]["uid"] for pod in _settled_pods(result)
+        } == settled_uids, "CoreDNS pods were replaced after the rollout settled"
+        assert (
+            _rebalance_trigger_count() == trigger_count
+        ), "dnsrebalancer kept triggering after the rollout settled"
+    util.wait_for_dns(initial_node)
 
 
 @pytest.mark.node_count(3)
