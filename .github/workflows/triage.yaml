@@ -1,0 +1,366 @@
+name: Issue Triage Bot
+
+on:
+    issues:
+        types: [opened, reopened, closed]
+    issue_comment:
+        types: [created]
+    # PR close on a fix branch is a fix verdict (router.GitHubEvent.pr_verdict).
+    pull_request:
+        types: [closed]
+    workflow_dispatch:
+        inputs:
+            issue:
+                description: Issue number to triage
+                type: string
+                required: true
+            action:
+                description: Simulated event action
+                type: choice
+                # Actions serviced via --issue/--action.
+                options: [opened, reopened]
+                default: opened
+            dry_run:
+                description: Compute transitions but write nothing
+                type: boolean
+                default: true
+
+# Default to read-only; each job elevates only what it needs.
+permissions:
+    contents: read
+
+jobs:
+    # Route events to the least-privileged job.
+    gate:
+        name: Decide route
+        runs-on: ubuntu-latest
+        outputs:
+            route: ${{ steps.decide.outputs.route }}
+            issue: ${{ steps.decide.outputs.issue }}
+        steps:
+            - name: Evaluate event
+              id: decide
+              env:
+                  EVENT_NAME: ${{ github.event_name }}
+                  ACTION: ${{ github.event.action }}
+                  INPUT_ACTION: ${{ inputs.action }}
+                  ASSOC_ISSUE: ${{ github.event.issue.author_association }}
+                  ASSOC_COMMENT: ${{ github.event.comment.author_association }}
+                  PR: ${{ toJson(github.event.issue.pull_request) }}
+                  ISSUE_NUM: ${{ github.event.issue.number }}
+                  INPUT_ISSUE: ${{ inputs.issue }}
+                  HEAD_REF: ${{ github.event.pull_request.head.ref }}
+                  PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+                  THIS_REPO: ${{ github.repository }}
+                  COMMENT_BODY: ${{ github.event.comment.body }}
+              run: |
+                  action="$ACTION"
+                  assoc="$ASSOC_ISSUE"
+                  if [[ "$EVENT_NAME" == "issue_comment" ]]; then
+                    assoc="$ASSOC_COMMENT"
+                  fi
+                  if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+                    action="$INPUT_ACTION"
+                  fi
+                  # The self-hosted pipeline job builds a snap and spins up an
+                  # LXD cluster, so it is reserved for an *explicit* request:
+                  # a maintainer commenting /reproduce or /triage, or a manual
+                  # dispatch. Opening or merely discussing an issue routes to
+                  # the cheap classify job -- the bot refuses to run the
+                  # pipeline for those anyway (router.is_explicit_trigger), so
+                  # scheduling a cluster runner for them only wastes capacity.
+                  route=classify
+                  trusted=no
+                  case "$assoc" in
+                    OWNER|MEMBER|COLLABORATOR) trusted=yes ;;
+                  esac
+                  if [[ "$EVENT_NAME" == "issue_comment" && "$trusted" == "yes" ]]; then
+                    body="${COMMENT_BODY#"${COMMENT_BODY%%[![:space:]]*}"}"
+                    # The command must be its own whitespace-delimited
+                    # token: a bare glob also fires on /reproduced and
+                    # /triagefoo, spending a self-hosted cluster run on a
+                    # typo. Mirrors router.is_explicit_trigger, which the
+                    # toolkit applies to the same text.
+                    case "$body" in
+                      /reproduce | /reproduce[[:space:]]* | \
+                      /triage | /triage[[:space:]]*) route=pipeline ;;
+                    esac
+                  fi
+                  # Manual dispatch is maintainer-gated by repo permissions.
+                  if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+                    route=pipeline
+                  fi
+                  # A comment on a pull request is never triage input: the
+                  # bot Skips it anyway, so scheduling a job that checks out
+                  # the toolkit with BOT_TOKEN just to no-op hands a fork
+                  # contributor's comment a credentialed run for nothing.
+                  if [[ "$PR" != "null" ]]; then
+                    route=none
+                  fi
+                  # Issue close cleans up branches.
+                  if [[ "$action" == "closed" ]]; then
+                    route=cleanup
+                  fi
+                  # PR close/merge routes to classify for fix verification.
+                  # A fork PR is never one of the bot's own fix PRs (those are
+                  # created in this repository), and fork events receive no
+                  # secrets, so the toolkit checkout would fail rather than
+                  # no-op. Route them nowhere at all.
+                  if [[ "$EVENT_NAME" == "pull_request" ]]; then
+                    # An empty head repo means the source was deleted, which
+                    # only forks can be. Treating "unknown" as "ours" would
+                    # hand a credentialed run to exactly the events this
+                    # check exists to exclude, so require a positive match.
+                    if [[ "$PR_HEAD_REPO" == "$THIS_REPO" ]]; then
+                      route=classify
+                    else
+                      route=none
+                    fi
+                  fi
+                  issue_num="$ISSUE_NUM"
+                  if [[ -z "$issue_num" ]]; then
+                    issue_num="$INPUT_ISSUE"
+                  fi
+                  if [[ "$EVENT_NAME" == "pull_request" ]]; then
+                    if [[ "$HEAD_REF" =~ ^(triage/fix|fix/issue)-([0-9]+)$ ]]; then
+                      issue_num="${BASH_REMATCH[2]}"
+                    fi
+                  fi
+                  # inputs.issue is user-supplied text, so constrain the value
+                  # to a bare integer before it reaches $GITHUB_OUTPUT: it
+                  # feeds downstream shell, concurrency groups and artifact
+                  # names, and a newline would also forge extra step outputs.
+                  if [[ ! "$issue_num" =~ ^[1-9][0-9]*$ ]]; then
+                    issue_num=""
+                  fi
+                  # A dispatch names its target explicitly, so a rejected
+                  # value there is an operator error worth surfacing rather
+                  # than silently triaging nothing. Other routes tolerate an
+                  # empty value (e.g. an unrelated PR close, which no-ops).
+                  if [[ "$EVENT_NAME" == "workflow_dispatch" && -z "$issue_num" ]]; then
+                    echo "::error::--issue must be a positive integer" >&2
+                    exit 1
+                  fi
+                  echo "route=$route" >> "$GITHUB_OUTPUT"
+                  echo "issue=$issue_num" >> "$GITHUB_OUTPUT"
+
+    pipeline:
+        name: Triage (maintainer-gated pipeline)
+        needs: gate
+        if: needs.gate.outputs.route == 'pipeline'
+        concurrency:
+            group: triage-${{ needs.gate.outputs.issue || 'none' }}
+            cancel-in-progress: false
+        # Maintainer pipeline runs cluster reproduction and fix drafting.
+        runs-on: [self-hosted, linux, noble, xlarge]
+        permissions:
+            contents: read
+            issues: read
+            pull-requests: read
+        steps:
+            - name: Check out code
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              with:
+                  persist-credentials: false
+                  fetch-depth: 0
+
+            - name: Set up AI Agent Toolkit
+              uses: ./.github/actions/setup-triage-toolkit
+              with:
+                  token: ${{ secrets.BOT_TOKEN }}
+
+            - name: Run triage pipeline (unprivileged)
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GOOGLE_API_KEY: ${{ secrets.TRIAGE_GOOGLE_API_KEY }}
+                  GITHUB_EVENT_PATH: ${{ github.event_path }}
+                  EVENT_NAME: ${{ github.event_name }}
+                  DISPATCH_ISSUE: ${{ inputs.issue }}
+                  DISPATCH_ACTION: ${{ inputs.action }}
+                  DISPATCH_DRY_RUN: ${{ inputs.dry_run }}
+              run: |
+                  source .venv/bin/activate
+                  mkdir -p triage-artifacts
+                  # An array, not a string: unquoted word splitting let a
+                  # dispatch input inject extra ai-triage flags (e.g. an issue
+                  # value of "1 --export-dir /elsewhere").
+                  args=()
+                  if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+                    if [[ ! "$DISPATCH_ISSUE" =~ ^[1-9][0-9]*$ ]]; then
+                      echo "::error::--issue must be a positive integer" >&2
+                      exit 1
+                    fi
+                    args=(--issue "$DISPATCH_ISSUE" --action "$DISPATCH_ACTION")
+                    if [[ "$DISPATCH_DRY_RUN" == "true" ]]; then
+                      args+=(--dry-run)
+                    else
+                      args+=(--auto-pr --export-dir triage-artifacts)
+                    fi
+                  else
+                    args=(--event-file "$GITHUB_EVENT_PATH" --auto-pr
+                          --export-dir triage-artifacts)
+                  fi
+                  ai-triage --config .triage-config.yaml --log-level DEBUG "${args[@]}"
+
+            # upload-artifact's globber follows symlinks and offers no input
+            # to disable that, so a symlinked triage-result.json would upload
+            # whatever it points at. The agent shares this workspace, so the
+            # check has to happen here, before the uploader sees the paths.
+            - name: Reject symlinked artifacts
+              if: always()
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  shopt -s nullglob
+                  for f in triage-artifacts/triage-result.json \
+                           triage-artifacts/triage-fix-*.bundle; do
+                    if [[ -L "$f" ]]; then
+                      echo "::error::$f is a symlink; refusing to upload" >&2
+                      rm -f "$f"
+                    elif [[ ! -f "$f" ]]; then
+                      echo "::error::$f is not a regular file; removing" >&2
+                      rm -rf "$f"
+                    fi
+                  done
+
+            - name: Upload triage artifacts
+              if: always()
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+              with:
+                  name: triage-artifacts-${{ needs.gate.outputs.issue }}
+                  # Only the two files the publisher consumes. The agent shares
+                  # this workspace, so uploading the directory wholesale would
+                  # let it exfiltrate anything it dropped (or symlinked) there
+                  # into a downloadable artifact.
+                  path: |
+                      triage-artifacts/triage-result.json
+                      triage-artifacts/triage-fix-*.bundle
+                  retention-days: 1
+
+    publish:
+        name: Triage (publish pipeline result)
+        needs: [gate, pipeline]
+        if: needs.gate.outputs.route == 'pipeline' && !inputs.dry_run
+        concurrency:
+            group: triage-${{ needs.gate.outputs.issue || 'none' }}
+            cancel-in-progress: false
+        runs-on: ubuntu-latest
+        # This is the privileged half of the split: it pushes the bot's fix
+        # branch and opens/labels the PR. contents:write is required for the
+        # push -- without it the whole publish aborts before any mutation and
+        # the fix half of the design never works. The unprivileged producer
+        # stays read-only, and every artifact-supplied number and branch is
+        # bound to the triggering issue before it is acted on.
+        permissions:
+            contents: write
+            issues: write
+            pull-requests: write
+        steps:
+            - name: Check out code
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              with:
+                  persist-credentials: false
+                  fetch-depth: 0
+
+            - name: Set up AI Agent Toolkit
+              uses: ./.github/actions/setup-triage-toolkit
+              with:
+                  token: ${{ secrets.BOT_TOKEN }}
+
+            - name: Download triage artifacts
+              uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+              with:
+                  name: triage-artifacts-${{ needs.gate.outputs.issue }}
+                  path: triage-artifacts
+
+            - name: Publish triage results
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  # Passed through the environment, never interpolated into the
+                  # script: a ${{ }} expansion inside run: is a template
+                  # injection sink. The gate already constrains this to digits.
+                  EXPECTED_ISSUE: ${{ needs.gate.outputs.issue }}
+              run: |
+                  source .venv/bin/activate
+                  # Fail closed rather than let an empty value reach argparse:
+                  # without a trusted issue number the publisher has nothing to
+                  # validate the artifact's own numbers against.
+                  if [[ -z "$EXPECTED_ISSUE" ]]; then
+                    echo "::error::no trusted issue number from gate; refusing to publish" >&2
+                    exit 1
+                  fi
+                  # --expected-issue comes from the gate step (the triggering
+                  # event), never from the artifact: the producing job is
+                  # unprivileged, so its recorded issue/PR numbers are only
+                  # applied after matching this trusted value.
+                  ai-triage publish --config .triage-config.yaml --log-level DEBUG \
+                    --artifact-dir triage-artifacts \
+                    --expected-issue "$EXPECTED_ISSUE"
+
+
+    classify:
+        name: Triage (unprivileged classify)
+        needs: gate
+        if: needs.gate.outputs.route == 'classify'
+        concurrency:
+            group: triage-${{ needs.gate.outputs.issue || 'none' }}
+            cancel-in-progress: false
+        # Untrusted events: label, dedup, and request missing info only.
+        runs-on: ubuntu-latest
+        permissions:
+            issues: write
+            contents: read
+            pull-requests: read
+        steps:
+            - name: Check out code
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              with:
+                  persist-credentials: false
+                  # PR close events default to PR merge ref; pin to main so bot runs trusted code.
+                  ref: ${{ github.event_name == 'pull_request' && 'main' || github.ref }}
+
+            - name: Set up AI Agent Toolkit
+              uses: ./.github/actions/setup-triage-toolkit
+              with:
+                  token: ${{ secrets.BOT_TOKEN }}
+
+            - name: Run triage bot
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GOOGLE_API_KEY: ${{ secrets.TRIAGE_GOOGLE_API_KEY }}
+                  GITHUB_EVENT_PATH: ${{ github.event_path }}
+              run: |
+                  source .venv/bin/activate
+                  ai-triage --config .triage-config.yaml --log-level DEBUG --event-file "$GITHUB_EVENT_PATH"
+
+
+    cleanup:
+        name: Triage (branch cleanup)
+        needs: gate
+        if: needs.gate.outputs.route == 'cleanup'
+        concurrency:
+            group: triage-${{ needs.gate.outputs.issue || 'none' }}
+            cancel-in-progress: false
+        # Delete dangling draft-fix branch for closed issue.
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+            issues: read
+        steps:
+            - name: Check out code
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              with:
+                  persist-credentials: false
+
+            - name: Set up AI Agent Toolkit
+              uses: ./.github/actions/setup-triage-toolkit
+              with:
+                  token: ${{ secrets.BOT_TOKEN }}
+
+            - name: Run triage bot
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GITHUB_EVENT_PATH: ${{ github.event_path }}
+              run: |
+                  source .venv/bin/activate
+                  ai-triage --config .triage-config.yaml --log-level DEBUG --event-file "$GITHUB_EVENT_PATH"
