@@ -7,3 +7,10 @@ k8s::common::setup_env
 # the sync will be enabled again after the refresh.
 echo "Disabling snapd config sync during snap refresh"
 k8s::cmd::k8s x-snapd-config disable
+
+# If this refresh downgrades etcd across a minor version boundary, run the etcd
+# downgrade protocol (validate + enable + wait for storage migration) while the
+# current, newer etcd binary is still running. The older etcd binary refuses to
+# start against a data directory stamped with a newer storage version, so this
+# must happen before the binary is swapped.
+k8s::etcd::prepare_downgrade

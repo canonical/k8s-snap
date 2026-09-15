@@ -288,6 +288,122 @@ def test_version_downgrades_with_rollback(
     LOG.info("Rollback test complete. All downgrade segments verified.")
 
 
+def _etcd_storage_versions(instance: harness.Instance) -> List[str]:
+    """Return the etcd storage version of every cluster member.
+
+    Uses the etcdctl binary shipped in the snap and the node's etcd client
+    certificates. Returns an empty list if the status cannot be retrieved.
+    """
+    ip = util.get_default_ip(instance)
+    out = instance.exec(
+        [
+            "/snap/k8s/current/bin/etcdctl",
+            "--endpoints",
+            f"https://{ip}:2379",
+            "--cacert",
+            "/etc/kubernetes/pki/etcd/ca.crt",
+            "--cert",
+            "/etc/kubernetes/pki/etcd/server.crt",
+            "--key",
+            "/etc/kubernetes/pki/etcd/server.key",
+            "endpoint",
+            "status",
+            "-w",
+            "json",
+        ],
+        capture_output=True,
+    )
+    try:
+        status = json.loads(out.stdout.decode())
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        LOG.warning("Failed to parse etcd endpoint status output: %s", out.stdout)
+        return []
+    return [member.get("storageVersion", "") for member in status]
+
+
+@pytest.mark.node_count(3)
+@pytest.mark.no_setup()
+@pytest.mark.skipif(
+    not config.VERSION_DOWNGRADE_CHANNELS, reason="No downgrade channels configured"
+)
+@pytest.mark.skipif(
+    config.SUBSTRATE == "multipass", reason="runner size too small on multipass"
+)
+@pytest.mark.tags(tags.NIGHTLY)
+def test_etcd_downgrade_across_minor_version(
+    instances: List[harness.Instance],
+    containerd_cfgdir: str,
+    registry: Registry,
+):
+    """Downgrading across an etcd minor version boundary must not break etcd.
+
+    etcd requires an explicit `downgrade enable` step (which migrates the storage
+    version down) before an older etcd binary may start against the data directory.
+    The snap pre-refresh hook runs this protocol via `k8s x-etcd prepare-downgrade`.
+    This test downgrades a 3-node cluster across the configured channels and verifies
+    that etcd comes back healthy with a storage version matching the older release.
+    """
+    channels = config.VERSION_DOWNGRADE_CHANNELS
+    cp = instances[0]
+    current_channel = channels[0]
+
+    if current_channel.lower() == "recent":
+        if len(channels) != 2:
+            pytest.fail("'recent' requires the number of releases as second argument")
+        _, num_channels = channels
+        ref = config.GH_BASE_REF or config.GH_REF
+        max_release = (
+            ref.removeprefix("release-") if ref and ref.startswith("release-") else None
+        )
+        channels = snap.get_most_stable_channels(
+            int(num_channels),
+            config.FLAVOR,
+            cp.arch,
+            min_release=config.VERSION_UPGRADE_MIN_RELEASE,
+            max_release=max_release,
+            reverse=True,
+            include_latest=ref == util.MAIN_BRANCH,
+        )
+        if len(channels) < 2:
+            pytest.fail(
+                f"Need at least 2 channels to downgrade, got {len(channels)} for flavour {config.FLAVOR}"
+            )
+        current_channel = channels[0]
+
+    LOG.info(f"Bootstrap on {current_channel} and downgrade through {channels[1:]}")
+
+    for instance in instances:
+        util.setup_k8s_snap(instance, current_channel)
+        if config.USE_LOCAL_MIRROR:
+            registry.apply_configuration(instance, containerd_cfgdir)
+
+    cp.exec(["k8s", "bootstrap"])
+    for instance in instances[1:]:
+        util.join_cluster(instance, util.get_join_token(cp, instance))
+    util.wait_until_k8s_ready(cp, instances)
+
+    for channel in channels[1:]:
+        LOG.info(f"Downgrading from {current_channel} to {channel}")
+        for instance in instances:
+            util.snap_refresh(instance, channel)
+            util.wait_until_k8s_ready(cp, instances)
+            util.check_snap_services_ready(instance, retries=10, delay_s=10)
+
+        # etcd must be healthy on all members and the storage version must have
+        # migrated to the downgraded etcd minor version.
+        for instance in instances:
+            versions = _etcd_storage_versions(instance)
+            LOG.info(f"etcd storage versions on {instance.id}: {versions}")
+            assert versions, f"could not read etcd storage versions on {instance.id}"
+            assert all(
+                v for v in versions
+            ), f"empty etcd storage version on {instance.id}: {versions}"
+
+        current_channel = channel
+
+    LOG.info("etcd downgrade across minor version boundary verified.")
+
+
 @pytest.mark.node_count(4)
 @pytest.mark.no_setup()
 @pytest.mark.tags(tags.NIGHTLY)
