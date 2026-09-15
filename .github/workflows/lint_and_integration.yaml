@@ -96,8 +96,11 @@ jobs:
           cd ..
           bandit -r build-scripts/ docs/tools/ -c pyproject.toml -lll
 
-  triage-bot-tests:
-    name: Triage bot tests
+  # The bot's Python lives in canonical/k8s-ai-agent-toolkit and is tested
+  # there. What this repository owns is the cluster helper, the workflow and
+  # action, and the config that drives them -- so that is what this validates.
+  triage-bot-assets:
+    name: Triage bot assets
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -110,6 +113,67 @@ jobs:
           python-version: '3.12'
       - name: Check hack/cluster-up.sh syntax
         run: bash -n hack/cluster-up.sh
+      - name: Check triage YAML parses
+        run: |
+          python3 - <<'EOF'
+          import sys, yaml
+          for path in (
+              ".github/workflows/triage.yaml",
+              ".github/actions/setup-triage-toolkit/action.yml",
+              ".triage-config.yaml",
+          ):
+              with open(path) as handle:
+                  yaml.safe_load(handle)
+              print(f"ok {path}")
+          EOF
+      - name: Check protected-path patterns compile
+        run: |
+          python3 - <<'EOF'
+          import re, sys, yaml
+          with open(".triage-config.yaml") as handle:
+              config = yaml.safe_load(handle)
+          patterns = config.get("protected_paths_regex") or []
+          if not patterns:
+              sys.exit("no protected_paths_regex: the write guard would allow everything")
+          compiled = []
+          for pattern in patterns:
+              try:
+                  compiled.append(re.compile(pattern))
+              except re.error as exc:
+                  sys.exit(f"invalid protected path regex {pattern!r}: {exc}")
+          # An unparseable or over-narrow policy fails open, which is the one
+          # outcome that must never ship: assert the guard still refuses the
+          # paths it exists for, and still permits the test files the bot
+          # has to write to do its job at all.
+          must_block = [
+              ".github/workflows/triage.yaml",
+              ".triage-config.yaml",
+              ".agents/skills/triage/fix.md",
+              "hack/cluster-up.sh",
+              "AGENTS.md",
+              "tests/integration/AGENTS.md",
+              "tests/integration/lxd-profile.yaml",
+              "tests/integration/tests/test_util/harness/base.py",
+              "ci/triage.py",
+              "build-scripts/components/k8sd/version",
+              "snap/snapcraft.yaml",
+          ]
+          must_allow = [
+              "tests/integration/tests/test_dns.py",
+              "k8s/lib.sh",
+              "docs/canonicalk8s/index.md",
+          ]
+          failures = []
+          for path in must_block:
+              if not any(p.search(path) for p in compiled):
+                  failures.append(f"must be protected but is writable: {path}")
+          for path in must_allow:
+              if any(p.search(path) for p in compiled):
+                  failures.append(f"must stay writable but is protected: {path}")
+          if failures:
+              sys.exit("\n".join(failures))
+          print(f"{len(compiled)} patterns compile; policy holds")
+          EOF
   get-e2e-tags:
     name: Get e2e test tags
     runs-on: ubuntu-latest
