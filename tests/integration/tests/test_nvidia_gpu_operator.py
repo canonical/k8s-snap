@@ -74,6 +74,67 @@ def _check_nvidia_drivers_loaded(instance: harness.Instance) -> Mapping[str, boo
     return modules_present
 
 
+def _dump_gpu_operator_diagnostics(instance: harness.Instance, namespace: str):
+    """Dump operator-wide state for post-mortem debugging."""
+    diagnostics = [
+        (["k8s", "kubectl", "-n", namespace, "get", "pods", "-o", "wide"], "pods"),
+        (
+            ["k8s", "kubectl", "-n", namespace, "get", "daemonsets"],
+            "daemonsets",
+        ),
+        (
+            [
+                "k8s",
+                "kubectl",
+                "-n",
+                namespace,
+                "get",
+                "clusterpolicy",
+                "-o",
+                "yaml",
+            ],
+            "clusterpolicy",
+        ),
+        (
+            [
+                "k8s",
+                "kubectl",
+                "-n",
+                namespace,
+                "logs",
+                "-l",
+                "app=gpu-operator",
+                "--tail=200",
+            ],
+            "gpu-operator controller logs",
+        ),
+        (
+            [
+                "k8s",
+                "kubectl",
+                "get",
+                "events",
+                "-n",
+                namespace,
+                "--sort-by=.lastTimestamp",
+            ],
+            "namespace events",
+        ),
+        (
+            ["k8s", "kubectl", "get", "nodes", "-o", "yaml"],
+            "node labels and status",
+        ),
+    ]
+    for cmd, label in diagnostics:
+        try:
+            result = instance.exec(cmd, capture_output=True, text=True, check=False)
+            LOG.warning("=== DIAG: %s ===\n%s", label, result.stdout)
+            if result.stderr:
+                LOG.warning("stderr: %s", result.stderr)
+        except Exception as exc:
+            LOG.warning("Failed to collect %s: %s", label, exc)
+
+
 _GPU_BOOTSTRAP_CONFIG = (
     f"containerd-base-dir: {config.CONTAINERD_BASE_DIR}\n"
     if config.CONTAINERD_BASE_DIR
@@ -184,13 +245,21 @@ def test_deploy_nvidia_gpu_operator(
     # on an AWS `g4dn.xlarge` instance (4 vCPUs/16GiB RAM), so we offer a
     # generous timeout of 15 minutes:
     for daemonset in daemonsets:
-        util.wait_for_daemonset(
-            instance,
-            daemonset,
-            namespace=test_namespace,
-            retry_times=15,
-            retry_delay_s=60,
-        )
+        try:
+            util.wait_for_daemonset(
+                instance,
+                daemonset,
+                namespace=test_namespace,
+                retry_times=15,
+                retry_delay_s=60,
+            )
+        except AssertionError:
+            LOG.warning(
+                "Daemonset '%s' never became ready — collecting diagnostics",
+                daemonset,
+            )
+            _dump_gpu_operator_diagnostics(instance, test_namespace)
+            raise
 
     # Wait for nvidia.com/gpu resources to be advertised on the node.
     # The device-plugin may be "Ready" but not yet registered GPU resources.
@@ -234,10 +303,9 @@ def test_deploy_nvidia_gpu_operator(
             ]
         )
     except Exception:
-        # Dump diagnostics before re-raising so we can see why the pod failed.
         LOG.warning("CUDA pod never became ready — collecting diagnostics")
-        for diag_cmd, label in [
-            (
+        try:
+            result = instance.exec(
                 [
                     "k8s",
                     "kubectl",
@@ -247,53 +315,12 @@ def test_deploy_nvidia_gpu_operator(
                     "pod",
                     NVIDIA_CUDA_VECTOR_ADDITION_TEST_POD_NAME,
                 ],
-                "pod describe",
-            ),
-            (
-                [
-                    "k8s",
-                    "kubectl",
-                    "-n",
-                    test_namespace,
-                    "get",
-                    "pod",
-                    NVIDIA_CUDA_VECTOR_ADDITION_TEST_POD_NAME,
-                    "-o",
-                    "wide",
-                ],
-                "pod status",
-            ),
-            (
-                [
-                    "k8s",
-                    "kubectl",
-                    "get",
-                    "events",
-                    "-n",
-                    test_namespace,
-                    "--sort-by=.lastTimestamp",
-                ],
-                "namespace events",
-            ),
-            (
-                [
-                    "k8s",
-                    "kubectl",
-                    "get",
-                    "nodes",
-                    "-o",
-                    "jsonpath={.items[*].status.allocatable}",
-                ],
-                "node allocatable",
-            ),
-        ]:
-            try:
-                result = instance.exec(
-                    diag_cmd, capture_output=True, text=True, check=False
-                )
-                LOG.warning("=== DIAG: %s ===\n%s", label, result.stdout)
-                if result.stderr:
-                    LOG.warning("stderr: %s", result.stderr)
-            except Exception as diag_exc:
-                LOG.warning("Failed to collect %s: %s", label, diag_exc)
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            LOG.warning("=== DIAG: cuda-vectoradd describe ===\n%s", result.stdout)
+        except Exception as diag_exc:
+            LOG.warning("Failed to describe CUDA pod: %s", diag_exc)
+        _dump_gpu_operator_diagnostics(instance, test_namespace)
         raise
