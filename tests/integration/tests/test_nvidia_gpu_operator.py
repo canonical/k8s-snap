@@ -209,6 +209,22 @@ def test_deploy_nvidia_gpu_operator(
     LOG.info("Waiting for k8s node to become Ready (CNI initialized)...")
     util.wait_until_k8s_ready(instance, instances)
 
+    if config.CONTAINERD_BASE_DIR:
+        # gpu-operator hard-codes hostPath volume mounts at /etc/containerd and
+        # /run/containerd; bind-mount so the defaults reach our relocated paths.
+        for target, source in (
+            ("/etc/containerd", f"{config.CONTAINERD_BASE_DIR}/etc/containerd"),
+            ("/run/containerd", f"{config.CONTAINERD_BASE_DIR}/run/containerd"),
+        ):
+            instance.exec(["mkdir", "-p", target])
+            instance.exec(
+                [
+                    "bash",
+                    "-c",
+                    f"mountpoint -q {target} || mount --bind {source} {target}",
+                ]
+            )
+
     # Add the upstream Nvidia GPU-operator Helm repo:
     instance.exec(
         ["k8s", "helm", "repo", "add", "nvidia", NVIDIA_GPU_OPERATOR_HELM_CHART_REPO]
@@ -229,21 +245,6 @@ def test_deploy_nvidia_gpu_operator(
     ]
     if host_drivers_present:
         helm_install_cmd.append("--set=driver.enabled=false")
-    if config.CONTAINERD_BASE_DIR:
-        containerd_config = f"{config.CONTAINERD_BASE_DIR}/etc/containerd/config.toml"
-        containerd_socket = (
-            f"{config.CONTAINERD_BASE_DIR}/run/containerd/containerd.sock"
-        )
-        helm_install_cmd += [
-            "--set=toolkit.env[0].name=CONTAINERD_CONFIG",
-            f"--set=toolkit.env[0].value={containerd_config}",
-            "--set=toolkit.env[1].name=CONTAINERD_SOCKET",
-            f"--set=toolkit.env[1].value={containerd_socket}",
-            "--set=toolkit.env[2].name=CONTAINERD_RUNTIME_CLASS",
-            "--set=toolkit.env[2].value=nvidia",
-            "--set=toolkit.env[3].name=CONTAINERD_SET_AS_DEFAULT",
-            "--set-string=toolkit.env[3].value=true",
-        ]
 
     instance.exec(helm_install_cmd)
 
