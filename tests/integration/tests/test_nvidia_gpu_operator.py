@@ -135,8 +135,19 @@ def _dump_gpu_operator_diagnostics(instance: harness.Instance, namespace: str):
             LOG.warning("Failed to collect %s: %s", label, exc)
 
 
+# Bootstrap YAML overrides cluster-config defaults, so we must re-enable the core
+# features (network/dns/local-storage) alongside the containerd-base-dir override.
 _GPU_BOOTSTRAP_CONFIG = (
-    f"containerd-base-dir: {config.CONTAINERD_BASE_DIR}\n"
+    (
+        f"containerd-base-dir: {config.CONTAINERD_BASE_DIR}\n"
+        "cluster-config:\n"
+        "  network:\n"
+        "    enabled: true\n"
+        "  dns:\n"
+        "    enabled: true\n"
+        "  local-storage:\n"
+        "    enabled: true\n"
+    )
     if config.CONTAINERD_BASE_DIR
     else None
 )
@@ -194,6 +205,9 @@ def test_deploy_nvidia_gpu_operator(
         )
         LOG.warning(msg)
         pytest.skip(msg)
+
+    LOG.info("Waiting for k8s node to become Ready (CNI initialized)...")
+    util.wait_until_k8s_ready(instance, instances)
 
     # Add the upstream Nvidia GPU-operator Helm repo:
     instance.exec(
