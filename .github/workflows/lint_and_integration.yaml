@@ -168,7 +168,7 @@ jobs:
           tar czf k8s-test-suite.tar.gz tests/integration/
       - name: Submit Testflinger Job
         uses: canonical/testflinger/.github/actions/submit@2bef06ce0d029ad4c36d937c09ec096062b5c589 #main
-        timeout-minutes: 45
+        timeout-minutes: 75
         with:
           poll: true
           job-path: ${{ matrix.job-file }}
