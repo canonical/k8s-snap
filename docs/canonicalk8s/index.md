@@ -31,11 +31,11 @@ your needs. If you would like to jump straight in, head to the
 ## In this documentation
 
 <!-- markdownlint-disable -->
-{{product}} can be deployed and managed as a standalone snap, as a charm as part of a
+<!-- {{product}} can be deployed and managed as a standalone snap, as a charm as part of a
 Juju cluster or with Cluster API. Find out more about which {{product}}
 deployment method is best for your
 project's needs with
-**[choosing a {{product}} installation method.](/snap/explanation/installation-methods.md)**
+**[choosing a {{product}} installation method.](/snap/explanation/installation-methods.md)** -->
 <!-- markdownlint-restore -->
 
 ```{toctree}
@@ -49,7 +49,7 @@ Deploy with Cluster API </capi/index.md>
 Community </community.md>
 Release notes </releases/index.md>
 ```
-
+<!-- 
 ````{grid} 3
 
 ```{grid-item-card}
@@ -73,6 +73,160 @@ The `k8s` charms take care of installing, configuring and managing {{product}} o
 Using Cluster API's declarative tooling, deploy and manage multiple {{product}} clusters.
 ```
 
+```` -->
+
+### Getting started
+
+````{domain}
+```{slice} Canonical Kubernetes
+{doc}`Tutorial <snap/tutorial/getting-started>`
+{doc}`What is Canonical Kubernetes? <about>`
+{doc}`Snap, charm or CAPI? <snap/explanation/installation-methods>`
+```
+````
+
+### Deployment
+
+````{domain}
+```{slice} Snap
+{doc}`k8s snap <snap/howto/install/snap>`
+{doc}`Custom bootstrap config <snap/howto/install/custom-bootstrap-config>` slice
+{doc}`Add a worker <snap/howto/install/custom-worker>` slice
+{doc}`Development environments <snap/howto/install/dev-env>`
+{doc}`Multipass <snap/howto/install/multipass>`
+{doc}`LXD <snap/howto/install/lxd>` slice
+```
+
+```{slice} Charm
+{doc}`k8s charms <charm/howto/install/charm>`
+{doc}`Custom bootstrap config <charm/howto/install/install-custom>` slice
+{doc}`Add a worker <charm/howto/install/custom-workers>` slice
+{doc}`LXD <charm/howto/install/install-lxd>` slice
+{doc}`Terraform <charm/howto/install/install-terraform>`
+```
+
+```{slice} CAPI
+{doc}`k8s CAPI <capi/howto/provision>`
+{doc}`Custom bootstrap config <capi/howto/custom-bootstrap-config>` slice
+{doc}`Custom Kubernetes version <capi/howto/custom-ck8s>`
+```
+````
+
+### Architecture and core features
+
+````{domain}
+```{slice} Architecture
+{doc}`Architecture overview <snap/explanation/architecture>`
+{doc}`Cluster API and Canonical Kubernetes <capi/explanation/capi-ck8s>`
+```
+
+```{slice} Networking
+{doc}`Overview <snap/explanation/networking>`
+{doc}`DNS <snap/howto/networking/default-dns>`
+{doc}`Network <snap/howto/networking/default-network>`
+{doc}`Load balancer <snap/howto/networking/default-loadbalancer>`
+{doc}`Ingress <snap/howto/networking/default-ingress>`
+{doc}`Gateway <snap/howto/networking/default-gateway>`
+{doc}`Dual stack <snap/howto/networking/dualstack>`
+{doc}`IPv6 only <snap/howto/networking/ipv6>`
+{doc}`Multi-peer BGP <snap/howto/networking/multi-peer-bgp>`
+{doc}`Ports and services <snap/reference/ports-and-services>`
+```
+
+```{slice} Proxied networking
+{doc}`Configure proxy <snap/howto/networking/proxy>`
+{doc}`Proxy environment variables <snap/reference/proxy>`
+```
+
+```{slice} Storage
+{doc}`Use default storage <snap/howto/storage/storage>`
+{doc}`etcd <snap/reference/etcd>` slice
+{doc}`Dqlite <snap/reference/dqlite>`
+{doc}`Use an external datastore <snap/howto/external-datastore>`
+{doc}`Backup and restore <snap/howto/backup-restore>`
+```
+
+```{slice} Monitoring
+{doc}`Observability <snap/howto/observability>`
+```
+
+```{slice} Scaling
+{doc}`High availability <snap/explanation/high-availability>`
+{doc}`Clustering <snap/explanation/clustering>`
+{doc}`Node roles <snap/explanation/roles>`
+```
+
+```{slice} Configuration
+{doc}`Configuration files <snap/reference/config-files/index>`
+{doc}`Annotations <snap/reference/annotations>`
+{doc}`Commands <snap/reference/commands>`
+{doc}`Availability zones <charm/reference/az>`
+{doc}`Actions <charm/reference/actions>`
+{doc}`Providers configs <capi/reference/configs>`
+```
+````
+
+### External integrations
+
+````{domain}
+```{slice} Charm integrations
+{doc}`OpenStack <charm/howto/openstack>`
+{doc}`etcd <charm/howto/etcd>` slice
+{doc}`Ceph-CSI <charm/howto/ceph-csi>`
+{doc}`COS Lite <charm/howto/cos-lite>`
+```
+````
+
+### Security
+
+````{domain}
+```{slice} Security
+{doc}`About <snap/explanation/security>`
+{doc}`Cluster hardening <snap/howto/security/hardening>`
+{doc}`Refresh certificates <snap/howto/security/refresh-certs>`
+{doc}`Air-gapped deployments <snap/howto/install/offline>`
+{doc}`Configure firewall <snap/howto/networking/ufw>`
+{doc}`Cluster certificates <snap/reference/certificates>`
+```
+
+```{slice} Compliance
+{doc}`DISA STIG <snap/howto/install/disa-stig>`
+{doc}`CIS <snap/howto/security/cis-assessment>`
+{doc}`FIPS <snap/howto/install/fips>`
+```
+````
+
+### Lifecycle management
+
+````{domain}
+```{slice} Installation
+{doc}`Choose a channel <snap/explanation/channels>`
+```
+
+```{slice} Troubleshooting
+{doc}`Troubleshoot your cluster <snap/howto/troubleshooting>`
+{doc}`Get support <snap/howto/support>`
+```
+
+```{slice} Disaster recovery
+{doc}`Recover after quorum loss <snap/howto/restore-quorum>`
+{doc}`Inspection reports <snap/reference/inspection-reports>`
+```
+
+```{slice} Upgrades
+{doc}`Explanation <snap/explanation/upgrade>`
+{doc}`Manage upgrades <snap/howto/upgrades>`
+{doc}`In place upgrades <capi/explanation/in-place-upgrades>`
+{doc}`Validate your cluster <charm/howto/validate>`
+```
+
+```{slice} Images
+{doc}`Manage images <snap/howto/image-management>`
+```
+
+```{slice} Migration
+{doc}`Migrate CAPI cluster <capi/howto/migrate-management>`
+```
 ````
 
 ---

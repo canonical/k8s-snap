@@ -13,9 +13,9 @@ the current How-to guides below.
 :glob:
 :titlesonly:
 
-... from a charm <charm.md>
-... in LXD <install-lxd.md>
-... with Terraform <install-terraform.md>
-... with a custom configuration <install-custom.md>
-... with custom worker configuration <custom-workers.md>
+k8s charm <charm.md>
+Customize configuration <install-custom.md>
+Add a worker <custom-workers.md>
+With LXD <install-lxd.md>
+With Terraform <install-terraform.md>
 ```
