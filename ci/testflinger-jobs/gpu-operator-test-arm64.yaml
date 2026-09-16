@@ -78,6 +78,8 @@ test_data:
 
     # Cleanup: device is non-provision so state persists between runs.
     echo "=== Cleaning up test artifacts ==="
+    sudo umount /etc/containerd 2>/dev/null || true
+    sudo umount /run/containerd 2>/dev/null || true
     sudo snap remove k8s --purge 2>/dev/null || true
     sudo rm -rf /tmp/k8s-arm64.snap /tmp/k8s-test-suite.tar.gz /tmp/tests 2>/dev/null || true
     sudo rm -rf /tmp/snapd.snap /tmp/snapd.assert /tmp/core22.snap /tmp/core22.assert 2>/dev/null || true
