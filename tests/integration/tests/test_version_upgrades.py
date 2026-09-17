@@ -344,31 +344,28 @@ def test_etcd_downgrade_across_minor_version(
     The snap pre-refresh hook runs this protocol via `k8s x-etcd prepare-downgrade`,
     and k8sd recovers an unprepared downgrade on startup.
 
-    This test bootstraps a 3-node cluster on the newest available channel (newer
-    etcd), then downgrades all nodes to the locally built snap (older etcd) and
-    verifies that etcd comes back healthy with a migrated storage version.
+    This test bootstraps a 3-node cluster on the locally built snap (which carries
+    the pre-refresh preparation), then downgrades all nodes to the previous stable
+    channel (older etcd) and verifies that etcd comes back healthy with a migrated
+    storage version. The pre-refresh hook on the source (local) snap runs the
+    downgrade protocol before snapd swaps the binary, so the older etcd on the
+    target channel starts against an already-migrated data directory.
     """
     cp = instances[0]
 
-    # The local snap is the downgrade target (older etcd). Bootstrap on the newest
-    # available channel, which carries the newer etcd.
-    start_channel = snap.get_most_stable_channels(
-        1,
-        config.FLAVOR,
-        cp.arch,
-        min_release=config.VERSION_UPGRADE_MIN_RELEASE,
-        include_latest=False,
-    )[0]
+    # The local snap is the downgrade *source* (newer etcd + the fix). The downgrade
+    # target is the previous stable channel (older etcd).
+    target_channel = util.previous_track(config.SNAP)
 
-    # Copy the local snap (downgrade target) into the instances.
+    # Copy the local snap (downgrade source) into the instances.
     snap_path = (tmp_path / "k8s.snap").as_posix()
     for instance in instances:
         instance.send_file(config.SNAP, snap_path)
 
-    LOG.info(f"Bootstrap on {start_channel} and downgrade to local snap {snap_path}")
+    LOG.info(f"Bootstrap on local snap {snap_path} and downgrade to {target_channel}")
 
     for instance in instances:
-        util.setup_k8s_snap(instance, start_channel)
+        util.setup_k8s_snap(instance, snap_path)
         if config.USE_LOCAL_MIRROR:
             registry.apply_configuration(instance, containerd_cfgdir)
 
@@ -377,9 +374,9 @@ def test_etcd_downgrade_across_minor_version(
         util.join_cluster(instance, util.get_join_token(cp, instance))
     util.wait_until_k8s_ready(cp, instances)
 
-    LOG.info(f"Downgrading all nodes from {start_channel} to local snap")
+    LOG.info(f"Downgrading all nodes from local snap to {target_channel}")
     for instance in instances:
-        instance.exec(["snap", "install", "--classic", "--dangerous", snap_path])
+        util.snap_refresh(instance, target_channel)
         util.wait_until_k8s_ready(cp, instances)
         util.check_snap_services_ready(instance, retries=10, delay_s=10)
 
