@@ -46,7 +46,7 @@ func (c *Client) RemoveNodeByAddress(ctx context.Context, address string) error 
 	}
 
 	if !memberExists {
-		return fmt.Errorf("cluster does not have a node with address %v", address)
+		return fmt.Errorf("%w: %s", ErrNotFound, address)
 	}
 
 	if !clusterHasOtherVoters {
