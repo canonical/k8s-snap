@@ -1,0 +1,141 @@
+name: Update patch notices
+
+on:
+  schedule:
+    - cron: "0 10 1 * *"
+  workflow_dispatch:
+  # TEMPORARY: testing this workflow on this PR; remove before merge.
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+env:
+  # -----------------------------------------------------------------------
+  # TRACKS — source, short version, and release notes path.
+  # To add 1.36 when it ships: append two lines (snap + charm).
+  # To retire a version at EOL: remove its two lines.
+  # -----------------------------------------------------------------------
+  TRACKS: |
+    snap  1.35  docs/canonicalk8s/releases/snap/1.35.md
+    snap  1.34  docs/canonicalk8s/releases/snap/1.34.md
+    snap  1.33  docs/canonicalk8s/releases/snap/1.33.md
+    snap  1.32  docs/canonicalk8s/releases/snap/1.32.md
+    charm 1.35  docs/canonicalk8s/releases/charm/1.35.md
+    charm 1.34  docs/canonicalk8s/releases/charm/1.34.md
+    charm 1.33  docs/canonicalk8s/releases/charm/1.33.md
+    charm 1.32  docs/canonicalk8s/releases/charm/1.32.md
+    # Add 1.36 when it ships:
+    # snap  1.36  docs/canonicalk8s/releases/snap/1.36.md
+    # charm 1.36  docs/canonicalk8s/releases/charm/1.36.md
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: Patch AI
+    permissions:
+      contents: read
+    outputs:
+      failures: ${{ steps.run_generate.outputs.failures }}
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+
+      - name: Install patch-notices
+        run: pip install -e docs/tools/patch-notices/
+
+      - name: Run generate for all tracks
+        id: run_generate
+        env:
+          OPENAI_API_KEY: ${{ secrets.PATCH_NOTICES_OPENAI_KEY }}
+          OPENAI_BASE_URL: https://openrouter.ai/api/v1
+          OPENAI_MODEL: gpt-4o
+          OPENAI_GROUP_MODEL: gpt-4o-mini
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/summaries
+          failures=0
+          while IFS= read -r line; do
+            [[ "$line" =~ ^[[:space:]]*# ]] && continue
+            [[ -z "${line// }" ]] && continue
+            read -r source version notes_path <<< "$line"
+            if ! patch-notices generate \
+              --source "$source" \
+              --track "$version" \
+              --release-notes "$notes_path" \
+              --summary-out "/tmp/summaries/${source}-${version}.json"; then
+              echo "::error::track $source $version failed to generate"
+              failures=$((failures + 1))
+            fi
+          done <<< "$TRACKS"
+          echo "failures=$failures" >> "$GITHUB_OUTPUT"
+
+      - name: Build PR body
+        run: patch-notices pr-body --summaries-dir /tmp/summaries > /tmp/pr_body.md
+
+      - name: Stage generated files for handoff
+        run: |
+          stage=/tmp/patch-notices-artifact
+          mkdir -p "$stage/docs/canonicalk8s/releases" "$stage/docs/tools/patch-notices/metadata"
+          cp -r docs/canonicalk8s/releases/. "$stage/docs/canonicalk8s/releases/"
+          cp docs/tools/patch-notices/metadata/patch-metadata.json "$stage/docs/tools/patch-notices/metadata/patch-metadata.json"
+          cp /tmp/pr_body.md "$stage/pr_body.md"
+
+      - name: Upload generated files
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: patch-notices-output
+          path: /tmp/patch-notices-artifact
+          if-no-files-found: error
+
+  open-pr:
+    needs: generate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Set run date
+        run: echo "TODAY=$(date +%Y-%m-%d)" >> "$GITHUB_ENV"
+
+      - name: Download generated files
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: patch-notices-output
+          path: /tmp/patch-notices-artifact
+
+      - name: Apply generated files to checkout
+        run: |
+          cp -r /tmp/patch-notices-artifact/docs/canonicalk8s/releases/. docs/canonicalk8s/releases/
+          cp /tmp/patch-notices-artifact/docs/tools/patch-notices/metadata/patch-metadata.json docs/tools/patch-notices/metadata/patch-metadata.json
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c # v6
+        with:
+          token: ${{ secrets.BOT_TOKEN }}
+          author: "K8s builder bot <k8s-bot@canonical.com>"
+          commit-message: "docs: Update patch notices ${{ env.TODAY }}"
+          title: "docs: Update patch notices ${{ env.TODAY }}"
+          body-path: /tmp/patch-notices-artifact/pr_body.md
+          branch: "auto/patch-notices-${{ env.TODAY }}"
+          delete-branch: true
+          # TEMPORARY: point at this PR's branch instead of main so the test PR is viewable; revert before merge.
+          base: ${{ github.head_ref }}
+
+      - name: Fail if any track errored
+        if: needs.generate.outputs.failures != '0'
+        run: exit 1
