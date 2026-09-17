@@ -30,14 +30,6 @@ your needs. If you would like to jump straight in, head to the
 
 ## In this documentation
 
-<!-- markdownlint-disable -->
-<!-- {{product}} can be deployed and managed as a standalone snap, as a charm as part of a
-Juju cluster or with Cluster API. Find out more about which {{product}}
-deployment method is best for your
-project's needs with
-**[choosing a {{product}} installation method.](/snap/explanation/installation-methods.md)** -->
-<!-- markdownlint-restore -->
-
 ```{toctree}
 :hidden:
 :titlesonly:
@@ -49,31 +41,6 @@ Deploy with Cluster API </capi/index.md>
 Community </community.md>
 Release notes </releases/index.md>
 ```
-<!-- 
-````{grid} 3
-
-```{grid-item-card}
-:link: snap/
-### [Canonical Kubernetes snap ›](/snap/index)
-
-The `k8s` snap is a self-contained, secure and dependency-free Linux app package used to deploy and manage a {{product}} cluster. If you are new to Kubernetes, start here.
-```
-
-```{grid-item-card}
-:link: charm/
-### [Canonical Kubernetes charms ›](/charm/index)
-
-The `k8s` charms take care of installing, configuring and managing {{product}} on cloud instances managed by Juju.
-```
-
-```{grid-item-card}
-:link: capi/
-### [Canonical Kubernetes and Cluster API ›](/capi/index)
-
-Using Cluster API's declarative tooling, deploy and manage multiple {{product}} clusters.
-```
-
-```` -->
 
 ### Getting started
 
