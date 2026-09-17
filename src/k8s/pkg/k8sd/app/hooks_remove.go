@@ -14,6 +14,7 @@ import (
 	snaputil "github.com/canonical/k8s/pkg/snap/util"
 	"github.com/canonical/k8s/pkg/snap/util/cleanup"
 	"github.com/canonical/k8s/pkg/utils/control"
+	"github.com/canonical/lxd/lxd/response"
 	"github.com/canonical/microcluster/v2/cluster"
 	"github.com/canonical/microcluster/v2/state"
 )
@@ -38,9 +39,13 @@ func (a *App) onPreRemove(ctx context.Context, s state.State, force bool) (rerr 
 		log.Info("Waiting for node to finish microcluster join before removing")
 		if err := s.Database().Transaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 			member, err := cluster.GetCoreClusterMember(ctx, tx, s.Name())
-			if err != nil {
-				log.Error(err, "Failed to get member")
+			if response.IsNotFoundError(err) {
+				// Node not found, no PENDING state to wait for.
+				notPending = true
 				return nil
+			}
+			if err != nil {
+				return err
 			}
 			notPending = member.Role != cluster.Pending
 			return nil
