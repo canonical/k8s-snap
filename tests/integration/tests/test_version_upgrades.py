@@ -324,7 +324,8 @@ def _etcd_storage_versions(instance: harness.Instance) -> List[str]:
 @pytest.mark.node_count(3)
 @pytest.mark.no_setup()
 @pytest.mark.skipif(
-    not config.VERSION_DOWNGRADE_CHANNELS, reason="No downgrade channels configured"
+    not config.SNAP,
+    reason="etcd downgrade test requires a local snap file (the downgrade target)",
 )
 @pytest.mark.skipif(
     config.SUBSTRATE == "multipass", reason="runner size too small on multipass"
@@ -332,6 +333,7 @@ def _etcd_storage_versions(instance: harness.Instance) -> List[str]:
 @pytest.mark.tags(tags.NIGHTLY)
 def test_etcd_downgrade_across_minor_version(
     instances: List[harness.Instance],
+    tmp_path,
     containerd_cfgdir: str,
     registry: Registry,
 ):
@@ -339,41 +341,34 @@ def test_etcd_downgrade_across_minor_version(
 
     etcd requires an explicit `downgrade enable` step (which migrates the storage
     version down) before an older etcd binary may start against the data directory.
-    The snap pre-refresh hook runs this protocol via `k8s x-etcd prepare-downgrade`.
-    This test downgrades a 3-node cluster across the configured channels and verifies
-    that etcd comes back healthy with a storage version matching the older release.
+    The snap pre-refresh hook runs this protocol via `k8s x-etcd prepare-downgrade`,
+    and k8sd recovers an unprepared downgrade on startup.
+
+    This test bootstraps a 3-node cluster on the newest available channel (newer
+    etcd), then downgrades all nodes to the locally built snap (older etcd) and
+    verifies that etcd comes back healthy with a migrated storage version.
     """
-    channels = config.VERSION_DOWNGRADE_CHANNELS
     cp = instances[0]
-    current_channel = channels[0]
 
-    if current_channel.lower() == "recent":
-        if len(channels) != 2:
-            pytest.fail("'recent' requires the number of releases as second argument")
-        _, num_channels = channels
-        ref = config.GH_BASE_REF or config.GH_REF
-        max_release = (
-            ref.removeprefix("release-") if ref and ref.startswith("release-") else None
-        )
-        channels = snap.get_most_stable_channels(
-            int(num_channels),
-            config.FLAVOR,
-            cp.arch,
-            min_release=config.VERSION_UPGRADE_MIN_RELEASE,
-            max_release=max_release,
-            reverse=True,
-            include_latest=ref == util.MAIN_BRANCH,
-        )
-        if len(channels) < 2:
-            pytest.fail(
-                f"Need at least 2 channels to downgrade, got {len(channels)} for flavour {config.FLAVOR}"
-            )
-        current_channel = channels[0]
+    # The local snap is the downgrade target (older etcd). Bootstrap on the newest
+    # available channel, which carries the newer etcd.
+    start_channel = snap.get_most_stable_channels(
+        1,
+        config.FLAVOR,
+        cp.arch,
+        min_release=config.VERSION_UPGRADE_MIN_RELEASE,
+        include_latest=False,
+    )[0]
 
-    LOG.info(f"Bootstrap on {current_channel} and downgrade through {channels[1:]}")
+    # Copy the local snap (downgrade target) into the instances.
+    snap_path = (tmp_path / "k8s.snap").as_posix()
+    for instance in instances:
+        instance.send_file(config.SNAP, snap_path)
+
+    LOG.info(f"Bootstrap on {start_channel} and downgrade to local snap {snap_path}")
 
     for instance in instances:
-        util.setup_k8s_snap(instance, current_channel)
+        util.setup_k8s_snap(instance, start_channel)
         if config.USE_LOCAL_MIRROR:
             registry.apply_configuration(instance, containerd_cfgdir)
 
@@ -382,24 +377,21 @@ def test_etcd_downgrade_across_minor_version(
         util.join_cluster(instance, util.get_join_token(cp, instance))
     util.wait_until_k8s_ready(cp, instances)
 
-    for channel in channels[1:]:
-        LOG.info(f"Downgrading from {current_channel} to {channel}")
-        for instance in instances:
-            util.snap_refresh(instance, channel)
-            util.wait_until_k8s_ready(cp, instances)
-            util.check_snap_services_ready(instance, retries=10, delay_s=10)
+    LOG.info(f"Downgrading all nodes from {start_channel} to local snap")
+    for instance in instances:
+        instance.exec(["snap", "install", "--classic", "--dangerous", snap_path])
+        util.wait_until_k8s_ready(cp, instances)
+        util.check_snap_services_ready(instance, retries=10, delay_s=10)
 
-        # etcd must be healthy on all members and the storage version must have
-        # migrated to the downgraded etcd minor version.
-        for instance in instances:
-            versions = _etcd_storage_versions(instance)
-            LOG.info(f"etcd storage versions on {instance.id}: {versions}")
-            assert versions, f"could not read etcd storage versions on {instance.id}"
-            assert all(
-                v for v in versions
-            ), f"empty etcd storage version on {instance.id}: {versions}"
-
-        current_channel = channel
+    # etcd must be healthy on all members and the storage version must have
+    # migrated to the downgraded etcd minor version.
+    for instance in instances:
+        versions = _etcd_storage_versions(instance)
+        LOG.info(f"etcd storage versions on {instance.id}: {versions}")
+        assert versions, f"could not read etcd storage versions on {instance.id}"
+        assert all(
+            v for v in versions
+        ), f"empty etcd storage version on {instance.id}: {versions}"
 
     LOG.info("etcd downgrade across minor version boundary verified.")
 
