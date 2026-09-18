@@ -208,11 +208,66 @@ Protection comes from **ordering + local state**, not new coordination state:
 Residual risk: pathological simultaneous-refresh interleavings on unhealthy clusters
 can still strand a member → rolling refreshes are the documented procedure.
 
-### 3.3 Gap & mitigation summary
+### 3.3 The aborted upgrade (auto-revert)
+
+The most likely *real-world* way to hit the panic — not an intentional downgrade,
+but snapd undoing a **failed upgrade** to 1.37:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant S as snapd
+    participant H as hooks
+    participant E as etcd on this node
+
+    Note over E: node on 1.36 (etcd 3.6), cv = 3.6
+    S->>H: pre-refresh hook (upgrade path: no-op)
+    S->>E: stop 3.6 → link 1.37 → start 3.7 ✓
+    Note over E: cv moves to 3.7 within seconds<br/>single-node: always · HA: when last node lands
+    S--xS: another service fails / configure hook fails
+    Note over S: UNDO path: no hooks run → no chance to prepare
+    S->>E: stop 3.7 → relink 1.36 → start 3.6
+    E--xE: PANIC — binary 3.6 below cv 3.7
+```
+
+Whether it bites depends on **cv timing** when the abort hits:
+
+| Situation at abort time | cv | Reverted 3.6 binary |
+|---|---|---|
+| single-node cluster | 3.7 (moves seconds after 3.7 starts) | **panic — stranded** |
+| HA, first/middle node upgraded | 3.6 (peers still on 3.6) | starts fine — lucky |
+| HA, last node upgraded | 3.7 (its start completed the set) | **panic — stranded** |
+
+Mitigation — **arm-before-fail**: when the abort is triggered by *our own*
+`configure` hook (e.g. a k8sd health gate), that hook arms the downgrade before
+exiting non-zero:
+
+```mermaid
+flowchart TD
+    F["configure hook on 1.37<br/>about to fail the refresh"] --> ARM["best-effort:<br/>downgrade enable 3.6<br/>before exiting non-zero"]
+    ARM --> R["snapd undo: revert to 1.36"]
+    R --> OK["etcd 3.6 starts:<br/>binary == cv == 3.6 ✓"]
+    style ARM fill:#ff9,stroke:#960
+    style OK fill:#9f9,stroke:#090
+```
+
+Honest limit: if the trigger is **another service failing at start-snap-services**,
+the chain unwinds before `configure` ever runs — arm-before-fail gets no chance.
+That sub-case falls back to the wrapper guard + always-working recovery:
+
+```mermaid
+flowchart LR
+    P["panic on reverted node"] --> G["wrapper guard:<br/>fail fast, print recovery"]
+    G --> REC["snap refresh --channel=1.37<br/>binary matches cv → starts ✓<br/>fix root cause → optionally downgrade<br/>via the prepared path"]
+    style REC fill:#9f9,stroke:#090
+```
+
+### 3.4 Gap & mitigation summary
 
 | Gap | Severity | Mitigation |
 |-----|----------|------------|
 | `snap revert` across boundary | unsupported path | wrapper guard + documented recovery (refresh-based) |
+| **Aborted 1.37 upgrade → auto-revert** | **likely real-world trigger** | arm-before-fail (hook-triggered aborts); wrapper guard + re-upgrade recovery (service-start aborts) |
 | Simultaneous all-node refresh | residual | docs: roll nodes; recovery always possible via re-upgrade |
 | Fix must ship in the **source** track | rollout constraint | backport to `release-1.37` **required**; release notes list min source revision |
 | Downgrades to pre-fix revisions | permanent | documented minimum revisions |
@@ -224,7 +279,7 @@ can still strand a member → rolling refreshes are the documented procedure.
 | Strict confinement readability (PKI, sibling revs) | open | PoC verification item before strict ships |
 | `snap change` parsing (fallback discovery) | fragility | fail-safe abort, never wrong action |
 
-### 3.4 Explicitly not building (for now)
+### 3.5 Explicitly not building (for now)
 
 - **Cross-node refresh coordination** (e.g. `gate-auto-refresh` + `snapctl refresh
   --hold`, or Upgrade CR sequencing) — possible future enhancement; only gates
