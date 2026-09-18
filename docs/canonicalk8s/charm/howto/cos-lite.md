@@ -2,6 +2,7 @@
 myst:
   html_meta:
     description: "How to integrate Canonical Kubernetes with COS Lite (Canonical Observability Stack) for cluster monitoring using Juju."
+relatedlinks: "[COS&#32;Lite&#32;bundle](https://documentation.ubuntu.com/observability/track-3.0/)"
 ---
 
 # How to integrate with COS Lite

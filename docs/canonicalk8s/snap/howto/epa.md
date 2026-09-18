@@ -2,6 +2,7 @@
 myst:
   html_meta:
     description: "How to set up Enhanced Platform Awareness (EPA) features in Canonical Kubernetes, including HugePages, real-time kernel, CPU pinning, and SR-IOV."
+relatedlinks: "[MAAS&#32;documentation](https://maas.io/docs/), [Ubuntu&#32;Pro&#32;documentation](https://ubuntu.com/pro/docs)"
 ---
 
 # How to set up Enhanced Platform Awareness
