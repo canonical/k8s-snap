@@ -9,6 +9,7 @@ import re
 import shlex
 import subprocess
 import time
+import urllib.error
 import urllib.request
 from datetime import datetime
 from functools import partial
@@ -20,9 +21,11 @@ from tenacity import (
     RetryCallState,
     Retrying,
     retry,
+    retry_if_exception,
     retry_if_exception_type,
     stop_after_attempt,
     stop_never,
+    wait_exponential,
     wait_fixed,
 )
 from test_util import config, harness
@@ -34,6 +37,40 @@ MAIN_BRANCH = "main"
 # kube-proxy was replaced by the Cilium kube-proxy replacement in 1.36. Snaps older
 # than this always run kube-proxy and ignore `network.kube-proxy-enabled`.
 KUBE_PROXY_REPLACEMENT_MIN_VERSION = (1, 36)
+
+
+def _is_retryable_http_error(exc: BaseException) -> bool:
+    """True for 429, 5xx, or network-level errors."""
+    if isinstance(exc, urllib.error.HTTPError):
+        return exc.code == 429 or 500 <= exc.code < 600
+    if isinstance(exc, urllib.error.URLError):
+        return True
+    return False
+
+
+def fetch_text(
+    url: str,
+    headers: Optional[dict] = None,
+    retries: int = 6,
+    min_wait_s: float = 1.0,
+    max_wait_s: float = 30.0,
+) -> str:
+    """GET url as text with exponential backoff on transient errors."""
+    req = urllib.request.Request(url, headers=headers or {})
+    for attempt in Retrying(
+        stop=stop_after_attempt(retries),
+        wait=wait_exponential(multiplier=min_wait_s, max=max_wait_s),
+        retry=retry_if_exception(_is_retryable_http_error),
+        reraise=True,
+    ):
+        with attempt:
+            with urllib.request.urlopen(req) as response:  # nosec
+                return response.read().decode()
+
+
+def fetch_json(url: str, headers: Optional[dict] = None, **kwargs) -> dict:
+    """Like fetch_text() but parses the response as JSON."""
+    return json.loads(fetch_text(url, headers=headers, **kwargs))
 
 
 def run(command: list, **kwargs) -> subprocess.CompletedProcess:
@@ -808,9 +845,7 @@ def tracks_least_risk(track: str, arch: str) -> str:
         "User-Agent": "Mozilla/5.0",
     }
 
-    req = urllib.request.Request(INFO_URL, headers=HEADERS)
-    with urllib.request.urlopen(req) as response:
-        snap_info = json.loads(response.read().decode())
+    snap_info = fetch_json(INFO_URL, headers=HEADERS)
 
     risks = [
         channel["channel"]["risk"]
@@ -858,16 +893,9 @@ def _major_minor_from_stable_upstream(maj: Optional[int] = None) -> Optional[tup
     addr = "https://dl.k8s.io/release/stable{dash_maj}.txt".format(
         dash_maj=f"-{maj}" if maj else ""
     )
-    for attempt in Retrying(stop=stop_after_attempt(3), wait=wait_fixed(2)):
-        with attempt:
-            LOG.info(
-                "Attempt %d: Fetching upstream version",
-                attempt.retry_state.attempt_number,
-            )
-            with urllib.request.urlopen(addr) as r:
-                stable = r.read().decode().strip()
-                LOG.info("Successfully fetched upstream version: %s", stable)
-                return major_minor(stable)
+    stable = fetch_text(addr).strip()
+    LOG.info("Successfully fetched upstream version: %s", stable)
+    return major_minor(stable)
 
 
 def _find_stable_track(major: int, minor: int, flavor: str) -> Optional[str]:
@@ -892,10 +920,8 @@ def _find_stable_track(major: int, minor: int, flavor: str) -> Optional[str]:
     }
 
     try:
-        req = urllib.request.Request(INFO_URL, headers=HEADERS)
-        with urllib.request.urlopen(req) as response:
-            snap_info = json.loads(response.read().decode())
-    except urllib.error.URLError:
+        snap_info = fetch_json(INFO_URL, headers=HEADERS)
+    except (urllib.error.HTTPError, urllib.error.URLError):
         LOG.warning(
             "Failed to query snap store for %s", config.SNAP_NAME, exc_info=True
         )
