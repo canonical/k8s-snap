@@ -5,6 +5,18 @@ myst:
 ---
 # {{product}} documentation
 
+```{toctree}
+:hidden:
+:titlesonly:
+:maxdepth: 6
+about.md
+Deploy from Snap package </snap/index.md>
+Deploy with Juju </charm/index.md>
+Deploy with Cluster API </capi/index.md>
+Community </community.md>
+Release notes </releases/index.md>
+```
+
 {{product}} is a performant, lightweight, secure and
 opinionated distribution of **Kubernetes** which includes everything needed to
 create and manage a scalable cluster suitable for all use cases.
@@ -29,18 +41,6 @@ your needs. If you would like to jump straight in, head to the
 ---
 
 ## In this documentation
-
-```{toctree}
-:hidden:
-:titlesonly:
-:maxdepth: 6
-about.md
-Deploy from Snap package </snap/index.md>
-Deploy with Juju </charm/index.md>
-Deploy with Cluster API </capi/index.md>
-Community </community.md>
-Release notes </releases/index.md>
-```
 
 ### Getting started
 
@@ -208,16 +208,16 @@ and constructive feedback.
 
 - [Canonical Kubernetes Slack]
 - [Canonical Kubernetes Discourse]
-- Our [community]
-- How to [contribute]
+- [Community]
+- [How to contribute]
 
 ### Releases 
 
-- Our [release notes][releases]
+- [Release notes][releases]
 
 ### Governance and policies
 
-- Our [Code of Conduct]
+- [Code of Conduct]
 
 ### Commercial support
 
@@ -231,7 +231,7 @@ Thinking about using {{product}} for your next project? [Get in touch!]
 
 [Code of Conduct]: https://ubuntu.com/community/ethos/code-of-conduct
 [community]: /community
-[contribute]: /snap/howto/contribute
+[How to contribute]: /snap/howto/contribute
 [releases]: /releases/index
 [Canonical Kubernetes Slack]: https://kubernetes.slack.com/archives/CG1V2CAMB
 [Canonical Kubernetes Discourse]: https://discourse.ubuntu.com/c/kubernetes/180
