@@ -3,11 +3,14 @@
 #
 import json
 import logging
+import subprocess
+import time
 from pathlib import Path
 from typing import List
 
 import pytest
 import yaml
+from tenacity import stop_after_delay
 from test_util import config, harness, snap, tags, util
 from test_util.registry import Registry
 
@@ -299,7 +302,9 @@ def test_version_downgrades_with_rollback(
     not config.SNAP,
     reason="Feature upgrades require a local snap file",
 )
-def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: Path):
+def test_feature_upgrades_inplace(
+    instances: List[harness.Instance], tmp_path: Path, request
+):
     """Verify that feature upgrades function correctly.
 
     Note: This is an interim test that will be expanded as feature upgrades mature.
@@ -336,6 +341,11 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
     token = util.get_join_token(bootstrap_cp, worker, "--worker")
     worker.exec(["k8s", "join-cluster", token])
 
+    initial_dns = _coredns_deployment(bootstrap_cp)
+    LOG.info("CoreDNS policy before upgrade: %s", initial_dns["spec"])
+    _wait_coredns_replicas(bootstrap_cp, initial_dns["spec"].get("replicas", 1))
+    _start_dns_upgrade_probe(bootstrap_cp, request)
+
     # Get initial helm releases to track if they are updated correctly.
     initial_releases = {
         release["name"]: release
@@ -363,6 +373,7 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
             continue
 
         util.setup_k8s_snap(instance, config.SNAP)
+        _assert_dns_upgrade_probe(bootstrap_cp)
 
         # The crd will be created once the node is up and ready, so we might need to wait for it.
         expected_instances = [instance.id for instance in instances[: idx + 1]]
@@ -425,13 +436,46 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
     # TODO(ben): Check that new fields are set in the feature config.
     # TODO(ben): Check that connectivity (e.g. for gateway) is working during the upgrade.
 
-    util.stubbornly(retries=15, delay_s=5).on(bootstrap_cp).until(
-        lambda p: p.stdout == "Completed",
-    ).exec(
-        "k8s kubectl get upgrade -o=jsonpath={.items[0].status.phase}".split(),
-        capture_output=True,
-        text=True,
-    )
+    try:
+        util.stubbornly(retries=15, delay_s=5, reraise=True).on(bootstrap_cp).until(
+            lambda result: _upgrade_completed(json.loads(result.stdout)),
+        ).exec(
+            ["k8s", "kubectl", "get", "upgrade", "-o=json", "--request-timeout=10s"],
+            text=True,
+            timeout=20,
+        )
+    except (AssertionError, subprocess.SubprocessError):
+        for instance in instances:
+            try:
+                result = instance.exec(
+                    [
+                        "journalctl",
+                        "-u",
+                        "snap.k8s.k8sd",
+                        "--since",
+                        "10 minutes ago",
+                        "--no-pager",
+                        "-n",
+                        "200",
+                    ],
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    timeout=20,
+                )
+                LOG.error(
+                    "Upgrade failure on %s:\n%s\n%s",
+                    instance.id,
+                    result.stdout,
+                    result.stderr,
+                )
+            except (OSError, subprocess.SubprocessError) as diagnostic_error:
+                LOG.warning(
+                    "Could not collect upgrade diagnostics from %s: %s",
+                    instance.id,
+                    diagnostic_error,
+                )
+        raise
 
     p = bootstrap_cp.exec(
         [
@@ -466,6 +510,367 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
     LOG.info("Waiting for all pods to be ready after upgrade")
     util.wait_for_pods_ready(bootstrap_cp)
     LOG.info("All pods are ready after upgrade")
+
+    upgraded_dns = _coredns_deployment(bootstrap_cp)
+    _assert_coredns_scheduling_policy(upgraded_dns)
+    _assert_dns_upgrade_probe(bootstrap_cp)
+    LOG.info(
+        "CoreDNS deployment generation before/after upgrade: %s -> %s",
+        initial_dns["metadata"]["generation"],
+        upgraded_dns["metadata"]["generation"],
+    )
+    _check_coredns_hpa_scaling(bootstrap_cp, instances)
+    _assert_dns_upgrade_probe(bootstrap_cp)
+
+
+def _start_dns_upgrade_probe(instance: harness.Instance, request):
+    probe = {
+        "apiVersion": "v1",
+        "kind": "Pod",
+        "metadata": {"name": "dns-upgrade-probe", "namespace": "default"},
+        "spec": {
+            "restartPolicy": "Never",
+            "activeDeadlineSeconds": 2700,
+            "containers": [
+                {
+                    "name": "probe",
+                    "image": "ghcr.io/containerd/busybox:1.28",
+                    "command": [
+                        "sh",
+                        "-c",
+                        "until timeout -t 3 nslookup kubernetes.default.svc.cluster.local "
+                        ">/tmp/dns-lookup.log 2>&1; do sleep 2; done; "
+                        "touch /tmp/ready; "
+                        "while true; do "
+                        "if timeout -t 3 nslookup kubernetes.default.svc.cluster.local >/tmp/dns-lookup.log 2>&1; "
+                        "then echo OK $(date +%s); else echo FAIL $(date +%s); exit 1; fi; sleep 2; done",
+                    ],
+                    "readinessProbe": {
+                        "exec": {"command": ["test", "-f", "/tmp/ready"]},
+                        "periodSeconds": 2,
+                    },
+                }
+            ],
+        },
+    }
+    request.addfinalizer(
+        lambda: instance.exec(
+            [
+                "k8s",
+                "kubectl",
+                "delete",
+                "pod",
+                "dns-upgrade-probe",
+                "--ignore-not-found",
+                "--wait=false",
+                "--request-timeout=10s",
+            ],
+            check=False,
+            timeout=20,
+        )
+    )
+    instance.exec(
+        ["k8s", "kubectl", "apply", "-f", "-", "--request-timeout=10s"],
+        input=json.dumps(probe),
+        text=True,
+        timeout=20,
+    )
+    try:
+        instance.exec(
+            [
+                "k8s",
+                "kubectl",
+                "wait",
+                "pod/dns-upgrade-probe",
+                "--for=condition=Ready",
+                "--timeout=120s",
+            ],
+            timeout=130,
+        )
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+        for arguments in (
+            ["describe", "pod", "dns-upgrade-probe"],
+            ["logs", "dns-upgrade-probe", "--tail=50"],
+            ["exec", "dns-upgrade-probe", "--", "cat", "/tmp/dns-lookup.log"],
+        ):
+            try:
+                result = instance.exec(
+                    ["k8s", "kubectl", "--request-timeout=10s", *arguments],
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    timeout=20,
+                )
+                LOG.error(
+                    "DNS probe diagnostics (%s):\n%s\n%s",
+                    arguments,
+                    result.stdout,
+                    result.stderr,
+                )
+            except (OSError, subprocess.SubprocessError) as diagnostic_error:
+                LOG.warning(
+                    "Could not collect DNS probe diagnostics: %s", diagnostic_error
+                )
+        raise
+    _assert_dns_upgrade_probe(instance)
+
+
+def _assert_dns_upgrade_probe(instance: harness.Instance):
+    result = (
+        util.stubbornly(
+            delay_s=2,
+            stop=stop_after_delay(60),
+            exceptions=(subprocess.CalledProcessError, subprocess.TimeoutExpired),
+            reraise=True,
+        )
+        .on(instance)
+        .exec(
+            ["k8s", "kubectl", "logs", "dns-upgrade-probe", "--request-timeout=10s"],
+            text=True,
+            timeout=20,
+        )
+    )
+    lines = result.stdout.splitlines()
+    assert lines and all(
+        line.startswith("OK ") for line in lines
+    ), f"DNS probe failed: {result.stdout}"
+    now = int(
+        instance.exec(
+            ["date", "+%s"], capture_output=True, text=True, timeout=10
+        ).stdout
+    )
+    assert (
+        now - int(lines[-1].split()[1]) < 15
+    ), f"DNS probe stopped producing results: {lines[-5:]}"
+
+
+def _coredns_state(instance: harness.Instance) -> dict:
+    result = instance.exec(
+        [
+            "k8s",
+            "kubectl",
+            "get",
+            "deployments,pods,hpa",
+            "-n",
+            "kube-system",
+            "-o",
+            "json",
+            "--request-timeout=10s",
+        ],
+        capture_output=True,
+        text=True,
+        timeout=20,
+    )
+    items = json.loads(result.stdout)["items"]
+    return {
+        "deployment": next(
+            item
+            for item in items
+            if item["kind"] == "Deployment" and item["metadata"]["name"] == "coredns"
+        ),
+        "pods": [
+            item
+            for item in items
+            if item["kind"] == "Pod"
+            and item["metadata"].get("labels", {}).get("k8s-app") == "coredns"
+        ],
+        "hpa": next(
+            item
+            for item in items
+            if item["kind"] == "HorizontalPodAutoscaler"
+            and item["spec"]["scaleTargetRef"]["name"] == "coredns"
+        ),
+    }
+
+
+def _coredns_replicas_ready(state: dict, replicas: int) -> bool:
+    deployment = state["deployment"]
+    status = deployment.get("status", {})
+    pods = state["pods"]
+    return (
+        deployment["spec"].get("replicas", 1) == replicas
+        and status.get("observedGeneration", 0) >= deployment["metadata"]["generation"]
+        and all(
+            status.get(field, 0) == replicas
+            for field in (
+                "replicas",
+                "updatedReplicas",
+                "readyReplicas",
+                "availableReplicas",
+            )
+        )
+        and len(pods) == replicas
+        and all(
+            not pod["metadata"].get("deletionTimestamp")
+            and pod["spec"].get("nodeName")
+            and any(
+                condition["type"] == "Ready" and condition["status"] == "True"
+                for condition in pod.get("status", {}).get("conditions", [])
+            )
+            for pod in pods
+        )
+    )
+
+
+def _wait_coredns_replicas(
+    instance: harness.Instance, replicas: int, *, check_hpa: bool = False
+) -> dict:
+    state = {}
+
+    def ready(_):
+        nonlocal state
+        state = _coredns_state(instance)
+        hpa_status = state["hpa"].get("status", {})
+        settled = _coredns_replicas_ready(state, replicas)
+        if check_hpa:
+            settled = settled and all(
+                hpa_status.get(field) == replicas
+                for field in ("currentReplicas", "desiredReplicas")
+            )
+        assert (
+            settled
+        ), f"CoreDNS has not reached {replicas} replicas: {json.dumps(state)}"
+        return True
+
+    util.stubbornly(delay_s=3, stop=stop_after_delay(180)).on(instance).until(
+        ready
+    ).exec(["true"], timeout=10)
+    return state
+
+
+def _check_coredns_hpa_scaling(
+    instance: harness.Instance, instances: List[harness.Instance]
+):
+    state = _coredns_state(instance)
+    hpa = state["hpa"]
+    original_spec = hpa["spec"]
+    hpa_name = hpa["metadata"]["name"]
+    baseline_template = state["deployment"]["spec"]["template"]
+    since = instance.exec(
+        ["date", "+@%s"], capture_output=True, text=True, timeout=10
+    ).stdout.strip()
+
+    def patch_hpa(spec):
+        instance.exec(
+            [
+                "k8s",
+                "kubectl",
+                "patch",
+                "hpa",
+                hpa_name,
+                "-n",
+                "kube-system",
+                "--type=json",
+                "-p",
+                json.dumps([{"op": "replace", "path": "/spec", "value": spec}]),
+                "--request-timeout=10s",
+            ],
+            timeout=20,
+        )
+
+    def trigger_counts():
+        return [
+            node.exec(
+                ["journalctl", "-u", "snap.k8s.k8sd", "--since", since, "--no-pager"],
+                capture_output=True,
+                text=True,
+                timeout=20,
+            ).stdout.count("CoreDNS pods need rebalancing")
+            for node in instances
+        ]
+
+    baseline_triggers = trigger_counts()
+    try:
+        for replicas in (len(instances) + 1, original_spec.get("minReplicas", 1)):
+            LOG.info("Checking HPA-controlled CoreDNS scaling to %s replicas", replicas)
+            spec = json.loads(json.dumps(original_spec))
+            spec.update(minReplicas=replicas, maxReplicas=replicas)
+            spec.setdefault("behavior", {}).setdefault("scaleDown", {})[
+                "stabilizationWindowSeconds"
+            ] = 0
+            patch_hpa(spec)
+            state = _wait_coredns_replicas(instance, replicas, check_hpa=True)
+            assert (
+                state["deployment"]["spec"]["template"] == baseline_template
+            ), "Scaling changed the CoreDNS pod template"
+            _assert_dns_upgrade_probe(instance)
+
+        stable_uids = {pod["metadata"]["uid"] for pod in state["pods"]}
+        until = time.monotonic() + 60
+        while True:
+            state = _coredns_state(instance)
+            assert _coredns_replicas_ready(state, replicas), json.dumps(state)
+            assert {
+                pod["metadata"]["uid"] for pod in state["pods"]
+            } == stable_uids, "CoreDNS pods were replaced after settling"
+            assert state["deployment"]["spec"]["template"] == baseline_template
+            _assert_dns_upgrade_probe(instance)
+            if time.monotonic() >= until:
+                break
+            time.sleep(3)
+        assert (
+            trigger_counts() == baseline_triggers
+        ), "dnsrebalancer restarted CoreDNS during scaling or observation"
+    finally:
+        patch_hpa(original_spec)
+
+
+def _coredns_deployment(instance: harness.Instance) -> dict:
+    result = instance.exec(
+        [
+            "k8s",
+            "kubectl",
+            "get",
+            "deployment",
+            "coredns",
+            "-n",
+            "kube-system",
+            "-o",
+            "json",
+            "--request-timeout=10s",
+        ],
+        capture_output=True,
+        text=True,
+        timeout=20,
+    )
+    return json.loads(result.stdout)
+
+
+def _assert_coredns_scheduling_policy(deployment: dict):
+    spec = deployment["spec"]
+    assert spec["strategy"]["rollingUpdate"] == {"maxSurge": 1, "maxUnavailable": 0}
+    pod_spec = spec["template"]["spec"]
+    preferences = pod_spec["affinity"]["podAntiAffinity"][
+        "preferredDuringSchedulingIgnoredDuringExecution"
+    ]
+    hostname_preferences = [
+        preference["podAffinityTerm"]
+        for preference in preferences
+        if preference["podAffinityTerm"]["topologyKey"] == "kubernetes.io/hostname"
+    ]
+    assert hostname_preferences, "Missing hostname anti-affinity preference"
+    assert all(
+        term.get("matchLabelKeys") == ["pod-template-hash"]
+        for term in hostname_preferences
+    )
+    constraints = {
+        item["topologyKey"]: item for item in pod_spec["topologySpreadConstraints"]
+    }
+    for topology in ("kubernetes.io/hostname", "topology.kubernetes.io/zone"):
+        assert constraints[topology]["whenUnsatisfiable"] == "ScheduleAnyway"
+        assert constraints[topology]["matchLabelKeys"] == ["pod-template-hash"]
+
+
+def _upgrade_completed(upgrades: dict) -> bool:
+    items = upgrades.get("items", [])
+    assert items, f"No Upgrade resources found: {json.dumps(upgrades)}"
+    upgrade = items[0]
+    status = upgrade.get("status", {})
+    LOG.info("Upgrade %s status: %s", upgrade["metadata"]["name"], json.dumps(status))
+    assert (
+        status.get("phase") == "Completed"
+    ), f"Upgrade not completed: {json.dumps(upgrade)}"
+    return True
 
 
 def _waiting_for_upgraded_nodes(upgraded_nodes, expected_nodes) -> bool:
