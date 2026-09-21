@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "How to configure MetalLB with multiple BGP peers in Canonical Kubernetes."
+---
+
 # How to configure multi-peer BGP
 
 ```{versionadded} release-1.36
