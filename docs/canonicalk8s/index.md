@@ -83,12 +83,12 @@ your needs. If you would like to jump straight in, head to the
 
 ````{domain}
 ```{slice} Architecture
-{doc}`Architecture overview <snap/explanation/architecture>`
+{doc}`Overview <snap/explanation/architecture>` slice
 {doc}`Cluster API and Canonical Kubernetes <capi/explanation/capi-ck8s>`
 ```
 
 ```{slice} Networking
-{doc}`Overview <snap/explanation/networking>`
+{doc}`Overview <snap/explanation/networking>` slice
 {doc}`DNS <snap/howto/networking/default-dns>`
 {doc}`Network <snap/howto/networking/default-network>`
 {doc}`Load balancer <snap/howto/networking/default-loadbalancer>`
@@ -129,7 +129,7 @@ your needs. If you would like to jump straight in, head to the
 {doc}`Commands <snap/reference/commands>`
 {doc}`Availability zones <charm/reference/az>`
 {doc}`Actions <charm/reference/actions>`
-{doc}`Providers configs <capi/reference/configs>`
+{doc}`Provider configuration <capi/reference/configs>`
 ```
 ````
 
@@ -148,7 +148,7 @@ your needs. If you would like to jump straight in, head to the
 
 ````{domain}
 ```{slice} Security
-{doc}`About <snap/explanation/security>`
+{doc}`Overview <snap/explanation/security>` slice
 {doc}`Cluster hardening <snap/howto/security/hardening>`
 {doc}`Refresh certificates <snap/howto/security/refresh-certs>`
 {doc}`Air-gapped deployments <snap/howto/install/offline>`
@@ -181,7 +181,7 @@ your needs. If you would like to jump straight in, head to the
 ```
 
 ```{slice} Upgrades
-{doc}`Explanation <snap/explanation/upgrade>`
+{doc}`Overview <snap/explanation/upgrade>` slice
 {doc}`Manage upgrades <snap/howto/upgrades>`
 {doc}`In place upgrades <capi/explanation/in-place-upgrades>`
 {doc}`Validate your cluster <charm/howto/validate>`
