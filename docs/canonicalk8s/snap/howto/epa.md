@@ -343,9 +343,9 @@ After a few seconds you can query the API server with:
 sudo k8s kubectl get all -A
 ```
 
-### Add a second k8s node as a worker
+### Add a second node as a worker
 
-1. Install the k8s snap on the second node
+1. Install the `k8s` snap on the second node
 
 ```{literalinclude} ../../_parts/install.md
 :start-after: <!-- snap start -->
