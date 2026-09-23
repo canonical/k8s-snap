@@ -17,7 +17,22 @@ mkdir -p "${INSTALL}"
 # Ensure `runc --version` prints the right commit hash from upstream
 export COMMIT="$(git describe --long --always "${VERSION}")"
 
-make BUILDTAGS="seccomp apparmor" EXTRA_LDFLAGS="-s -w" static
+# Go 1.25+ enables the OpenSSL backend by default, and it dlopens libcrypto,
+# which a statically linked binary cannot do
+export GOTOOLCHAIN=local
+export GOEXPERIMENT=nosystemcrypto
+
+# libpathrs is not in the core22 archive as a C library, so build it from
+# source the same way upstream's own release builds do
+RUST_BIN="$(ls -d /usr/lib/rust-*/bin 2>/dev/null | sort -V | tail -1 || true)"
+if [ -n "${RUST_BIN}" ]; then export PATH="${RUST_BIN}:${PATH}"; fi
+LIBPATHRS_VERSION="0.2.5"
+LIBPATHRS_DIR="$(mktemp -d)"
+./script/build-libpathrs.sh "${LIBPATHRS_VERSION}" "${LIBPATHRS_DIR}"
+export LD_LIBRARY_PATH="${LIBPATHRS_DIR}/lib"
+export PKG_CONFIG_PATH="${LIBPATHRS_DIR}/lib/pkgconfig"
+
+make BUILDTAGS="seccomp apparmor libpathrs" EXTRA_LDFLAGS="-s -w" static
 cp runc "${INSTALL}/runc"
 
 # Restore the initial Go snap revision

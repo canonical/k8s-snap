@@ -42,6 +42,7 @@ parts:
       - btrfs-progs
       - libbtrfs-dev
       - build-essential
+      - cargo-1.84
       - curl
       - flex
       - git
