@@ -134,6 +134,58 @@ def _dump_gpu_operator_diagnostics(instance: harness.Instance, namespace: str):
         except Exception as exc:
             LOG.warning("Failed to collect %s: %s", label, exc)
 
+    _dump_failing_pod_logs(instance, namespace)
+
+
+def _dump_failing_pod_logs(instance: harness.Instance, namespace: str):
+    """Dump current+previous container logs for every non-Running pod."""
+    try:
+        proc = instance.exec(
+            [
+                "k8s",
+                "kubectl",
+                "-n",
+                namespace,
+                "get",
+                "pods",
+                "-o",
+                "jsonpath={range .items[*]}{.metadata.name}|{.status.phase}\\n{end}",
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except Exception as exc:
+        LOG.warning("Failed to list pods for log collection: %s", exc)
+        return
+
+    for line in (proc.stdout or "").strip().splitlines():
+        if "|" not in line:
+            continue
+        pod_name, phase = line.split("|", 1)
+        if phase.strip() == "Running":
+            continue
+        for flag, label in ((None, "current"), ("--previous", "previous")):
+            cmd = [
+                "k8s",
+                "kubectl",
+                "-n",
+                namespace,
+                "logs",
+                pod_name,
+                "--all-containers=true",
+                "--tail=200",
+            ]
+            if flag:
+                cmd.append(flag)
+            try:
+                r = instance.exec(cmd, capture_output=True, text=True, check=False)
+                LOG.warning("=== DIAG: %s logs (%s) ===\n%s", pod_name, label, r.stdout)
+                if r.stderr:
+                    LOG.warning("stderr: %s", r.stderr)
+            except Exception as exc:
+                LOG.warning("Failed %s logs for %s: %s", label, pod_name, exc)
+
 
 # Bootstrap YAML overrides cluster-config defaults, so we must re-enable the core
 # features (network/dns/local-storage) alongside the containerd-base-dir override.
