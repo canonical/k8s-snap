@@ -59,6 +59,8 @@ parts:
       - rsync
       - tcl
       - python3-pip
+      - wget
+      - xz-utils
 
   etcd:
     plugin: nil
