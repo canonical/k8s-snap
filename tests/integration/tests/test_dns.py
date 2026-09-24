@@ -83,6 +83,108 @@ def test_dns(instances: List[harness.Instance]):
     ), "Expected coredns serviceaccount to be 'coredns', not {result.stdout}"
 
 
+_COREDNS_GET_COMMAND = [
+    "k8s",
+    "kubectl",
+    "get",
+    "deployments,pods",
+    "-n",
+    "kube-system",
+    "-l",
+    "k8s-app=coredns",
+    "-o",
+    "json",
+]
+
+
+def _settled_coredns_pods(result):
+    items = json.loads(result.stdout)["items"]
+    deployments = [item for item in items if item["kind"] == "Deployment"]
+    pods = [item for item in items if item["kind"] == "Pod"]
+    if len(deployments) != 1:
+        return []
+    deployment = deployments[0]
+    desired = deployment["spec"].get("replicas", 1)
+    status = deployment.get("status", {})
+    if (
+        desired < 2
+        or status.get("observedGeneration", 0) < deployment["metadata"]["generation"]
+        or any(
+            status.get(field, 0) != desired
+            for field in (
+                "replicas",
+                "updatedReplicas",
+                "readyReplicas",
+                "availableReplicas",
+            )
+        )
+        or len(pods) != desired
+    ):
+        return []
+    for pod in pods:
+        if (
+            pod["metadata"].get("deletionTimestamp")
+            or not pod["spec"].get("nodeName")
+            or not any(
+                condition["type"] == "Ready" and condition["status"] == "True"
+                for condition in pod.get("status", {}).get("conditions", [])
+            )
+        ):
+            return []
+    hashes = {pod["metadata"]["labels"].get("pod-template-hash") for pod in pods}
+    return pods if len(hashes) == 1 and None not in hashes else []
+
+
+def _wait_settled_coredns_pods(
+    node: harness.Instance, *, retries: int = 36
+) -> List[dict]:
+    result = (
+        util.stubbornly(retries=retries, delay_s=5)
+        .on(node)
+        .until(_settled_coredns_pods)
+        .exec(_COREDNS_GET_COMMAND, text=True)
+    )
+    return _settled_coredns_pods(result)
+
+
+def _log_since(node: harness.Instance) -> str:
+    return node.exec(["date", "+@%s"], text=True, capture_output=True).stdout.strip()
+
+
+def _rebalance_trigger_count(instances: List[harness.Instance], since: str) -> int:
+    return sum(util.dnsrebalancer_trigger_counts(instances, since))
+
+
+def _assert_rebalance_settled(
+    node: harness.Instance,
+    instances: List[harness.Instance],
+    *,
+    since: str,
+    trigger_count: int,
+    settled_uids: set,
+    stability_window_s: int = 60,
+    poll_interval_s: int = 10,
+) -> None:
+    """Assert CoreDNS stays spread, ready and untouched for stability_window_s."""
+    deadline = time.monotonic() + stability_window_s
+    while True:
+        result = node.exec(_COREDNS_GET_COMMAND, text=True, capture_output=True)
+        pods = _settled_coredns_pods(result)
+        assert (
+            bool(pods) and len({pod["spec"]["nodeName"] for pod in pods}) > 1
+        ), f"CoreDNS did not remain spread and ready: {result.stdout}"
+        assert {
+            pod["metadata"]["uid"] for pod in pods
+        } == settled_uids, "CoreDNS pods were replaced after the rollout settled"
+        assert (
+            _rebalance_trigger_count(instances, since) == trigger_count
+        ), "dnsrebalancer kept triggering after the rollout settled"
+        if time.monotonic() >= deadline:
+            break
+        time.sleep(poll_interval_s)
+    util.wait_for_dns(node)
+
+
 @pytest.mark.node_count(2)
 @pytest.mark.tags(tags.PULL_REQUEST)
 def test_dns_ha_rebalancing(instances: List[harness.Instance]):
@@ -95,100 +197,21 @@ def test_dns_ha_rebalancing(instances: List[harness.Instance]):
     util.wait_until_k8s_ready(initial_node, [initial_node])
     util.wait_for_dns(initial_node)
 
-    get_coredns = [
-        "k8s",
-        "kubectl",
-        "get",
-        "deployments,pods",
-        "-n",
-        "kube-system",
-        "-l",
-        "k8s-app=coredns",
-        "-o",
-        "json",
-    ]
-
-    def _settled_pods(result):
-        items = json.loads(result.stdout)["items"]
-        deployments = [item for item in items if item["kind"] == "Deployment"]
-        pods = [item for item in items if item["kind"] == "Pod"]
-        if len(deployments) != 1:
-            return []
-        deployment = deployments[0]
-        desired = deployment["spec"].get("replicas", 1)
-        status = deployment.get("status", {})
-        if (
-            desired < 2
-            or status.get("observedGeneration", 0)
-            < deployment["metadata"]["generation"]
-            or any(
-                status.get(field, 0) != desired
-                for field in (
-                    "replicas",
-                    "updatedReplicas",
-                    "readyReplicas",
-                    "availableReplicas",
-                )
-            )
-            or len(pods) != desired
-        ):
-            return []
-        for pod in pods:
-            if (
-                pod["metadata"].get("deletionTimestamp")
-                or not pod["spec"].get("nodeName")
-                or not any(
-                    condition["type"] == "Ready" and condition["status"] == "True"
-                    for condition in pod.get("status", {}).get("conditions", [])
-                )
-            ):
-                return []
-        hashes = {pod["metadata"]["labels"].get("pod-template-hash") for pod in pods}
-        return pods if len(hashes) == 1 and None not in hashes else []
-
-    result = (
-        util.stubbornly(retries=36, delay_s=5)
-        .on(initial_node)
-        .until(_settled_pods)
-        .exec(get_coredns, text=True)
-    )
-    initial_pods = _settled_pods(result)
+    initial_pods = _wait_settled_coredns_pods(initial_node)
     initial_hash = initial_pods[0]["metadata"]["labels"]["pod-template-hash"]
     initial_nodes = {pod["spec"]["nodeName"] for pod in initial_pods}
     assert (
         len(initial_nodes) == 1
     ), f"Expected all CoreDNS pods on one node initially, got {initial_nodes}"
 
-    rebalance_log_since = initial_node.exec(
-        ["date", "+@%s"],
-        text=True,
-        capture_output=True,
-    ).stdout.strip()
+    since = _log_since(initial_node)
 
     join_token = util.get_join_token(initial_node, joining_cplane_node)
     util.join_cluster(joining_cplane_node, join_token)
     util.wait_until_k8s_ready(initial_node, instances)
 
-    def _rebalance_trigger_count():
-        count = 0
-        for instance in instances:
-            log_result = instance.exec(
-                [
-                    "journalctl",
-                    "-u",
-                    "snap.k8s.k8sd",
-                    "--since",
-                    rebalance_log_since,
-                    "--no-pager",
-                ],
-                text=True,
-                capture_output=True,
-            )
-            count += log_result.stdout.count("CoreDNS pods need rebalancing")
-        return count
-
     def _is_rebalanced(result):
-        pods = _settled_pods(result)
+        pods = _settled_coredns_pods(result)
         return (
             bool(pods)
             and pods[0]["metadata"]["labels"]["pod-template-hash"] != initial_hash
@@ -199,9 +222,9 @@ def test_dns_ha_rebalancing(instances: List[harness.Instance]):
         util.stubbornly(retries=60, delay_s=5)
         .on(initial_node)
         .until(_is_rebalanced)
-        .exec(get_coredns, text=True)
+        .exec(_COREDNS_GET_COMMAND, text=True)
     )
-    settled_pods = _settled_pods(result)
+    settled_pods = _settled_coredns_pods(result)
     settled_uids = {pod["metadata"]["uid"] for pod in settled_pods}
     LOG.info(
         "CoreDNS pod placement after late join: %s",
@@ -209,26 +232,115 @@ def test_dns_ha_rebalancing(instances: List[harness.Instance]):
     )
     util.wait_for_dns(initial_node)
 
-    trigger_count = _rebalance_trigger_count()
+    trigger_count = _rebalance_trigger_count(instances, since)
     LOG.info(f"dnsrebalancer triggered {trigger_count} time(s)")
     assert trigger_count == 1, (
         "Expected exactly one dnsrebalancer trigger "
         f"(triggered {trigger_count} times)"
     )
 
-    for _ in range(6):
-        time.sleep(10)
-        result = initial_node.exec(get_coredns, text=True, capture_output=True)
-        assert _is_rebalanced(
-            result
-        ), f"CoreDNS did not remain spread and ready: {result.stdout}"
-        assert {
-            pod["metadata"]["uid"] for pod in _settled_pods(result)
-        } == settled_uids, "CoreDNS pods were replaced after the rollout settled"
-        assert (
-            _rebalance_trigger_count() == trigger_count
-        ), "dnsrebalancer kept triggering after the rollout settled"
-    util.wait_for_dns(initial_node)
+    _assert_rebalance_settled(
+        initial_node,
+        instances,
+        since=since,
+        trigger_count=trigger_count,
+        settled_uids=settled_uids,
+    )
+
+
+@pytest.mark.node_count(2)
+@pytest.mark.tags(tags.PULL_REQUEST)
+def test_dns_ha_rebalancing_cordon_uncordon(instances: List[harness.Instance]):
+    """
+    Verify that cordoning a node for maintenance consolidates CoreDNS onto the
+    remaining node, and uncordoning it triggers a rebalance back across both
+    nodes with a bounded number of dnsrebalancer triggers. No new cluster join
+    happens after setup: only the two already-joined nodes are used.
+    """
+    node_a, node_b = instances
+
+    util.wait_until_k8s_ready(node_a, [node_a])
+    util.wait_for_dns(node_a)
+
+    join_token = util.get_join_token(node_a, node_b)
+    util.join_cluster(node_b, join_token)
+    util.wait_until_k8s_ready(node_a, instances)
+
+    pods = _wait_settled_coredns_pods(node_a, retries=60)
+    assert (
+        len({pod["spec"]["nodeName"] for pod in pods}) > 1
+    ), f"Expected CoreDNS spread across both nodes before cordon: {pods}"
+
+    node_a_name = util.hostname(node_a)
+    node_b_name = util.hostname(node_b)
+    since = _log_since(node_a)
+
+    node_a.exec(["k8s", "kubectl", "cordon", node_b_name])
+    for pod in pods:
+        if pod["spec"]["nodeName"] == node_b_name:
+            node_a.exec(
+                [
+                    "k8s",
+                    "kubectl",
+                    "delete",
+                    "pod",
+                    pod["metadata"]["name"],
+                    "-n",
+                    "kube-system",
+                    "--wait=false",
+                ]
+            )
+
+    def _consolidated(result):
+        settled = _settled_coredns_pods(result)
+        return bool(settled) and {pod["spec"]["nodeName"] for pod in settled} == {
+            node_a_name
+        }
+
+    result = (
+        util.stubbornly(retries=36, delay_s=5)
+        .on(node_a)
+        .until(_consolidated)
+        .exec(_COREDNS_GET_COMMAND, text=True)
+    )
+    LOG.info(
+        "CoreDNS consolidated onto %s while %s was cordoned", node_a_name, node_b_name
+    )
+
+    node_a.exec(["k8s", "kubectl", "uncordon", node_b_name])
+
+    def _is_rebalanced(result):
+        pods = _settled_coredns_pods(result)
+        return bool(pods) and len({pod["spec"]["nodeName"] for pod in pods}) > 1
+
+    result = (
+        util.stubbornly(retries=60, delay_s=5)
+        .on(node_a)
+        .until(_is_rebalanced)
+        .exec(_COREDNS_GET_COMMAND, text=True)
+    )
+    settled_pods = _settled_coredns_pods(result)
+    settled_uids = {pod["metadata"]["uid"] for pod in settled_pods}
+    LOG.info(
+        "CoreDNS pod placement after uncordon: %s",
+        {pod["spec"]["nodeName"] for pod in settled_pods},
+    )
+    util.wait_for_dns(node_a)
+
+    trigger_count = _rebalance_trigger_count(instances, since)
+    LOG.info(f"dnsrebalancer triggered {trigger_count} time(s)")
+    assert trigger_count == 1, (
+        "Expected exactly one dnsrebalancer trigger after uncordon "
+        f"(triggered {trigger_count} times)"
+    )
+
+    _assert_rebalance_settled(
+        node_a,
+        instances,
+        since=since,
+        trigger_count=trigger_count,
+        settled_uids=settled_uids,
+    )
 
 
 @pytest.mark.node_count(3)

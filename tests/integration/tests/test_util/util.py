@@ -566,6 +566,21 @@ def wait_for_dns(instance: harness.Instance):
     instance.exec(["k8s", "x-wait-for", "dns", "--timeout", "20m"], capture_output=True)
 
 
+def dnsrebalancer_trigger_counts(
+    instances: List[harness.Instance], since: str
+) -> List[int]:
+    """Count 'CoreDNS pods need rebalancing' log lines per instance since `since`."""
+    return [
+        instance.exec(
+            ["journalctl", "-u", "snap.k8s.k8sd", "--since", since, "--no-pager"],
+            capture_output=True,
+            text=True,
+            timeout=20,
+        ).stdout.count("CoreDNS pods need rebalancing")
+        for instance in instances
+    ]
+
+
 def wait_for_network(instance: harness.Instance):
     LOG.info("Waiting for network to be ready")
     instance.exec(

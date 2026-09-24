@@ -539,7 +539,7 @@ def _start_dns_upgrade_probe(instance: harness.Instance, request):
                         "touch /tmp/ready; "
                         "while true; do "
                         "if timeout -t 3 nslookup kubernetes.default.svc.cluster.local >/tmp/dns-lookup.log 2>&1; "
-                        "then echo OK $(date +%s); else echo FAIL $(date +%s); exit 1; fi; sleep 2; done",
+                        "then echo OK $(date +%s); else echo FAIL $(date +%s); fi; sleep 2; done",
                     ],
                     "readinessProbe": {
                         "exec": {"command": ["test", "-f", "/tmp/ready"]},
@@ -765,15 +765,7 @@ def _check_coredns_hpa_scaling(
         )
 
     def trigger_counts():
-        return [
-            node.exec(
-                ["journalctl", "-u", "snap.k8s.k8sd", "--since", since, "--no-pager"],
-                capture_output=True,
-                text=True,
-                timeout=20,
-            ).stdout.count("CoreDNS pods need rebalancing")
-            for node in instances
-        ]
+        return util.dnsrebalancer_trigger_counts(instances, since)
 
     baseline_triggers = trigger_counts()
     try:
