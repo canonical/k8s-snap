@@ -107,9 +107,9 @@ all CLI commands are mapped to respective REST calls.
 - The **API**: The API over HTTP serves the CLI and is also used to
 programmatically drive the Kubernetes cluster.
 
-## Canonical K8s charms
+## Canonical Kubernetes charms
 
-Canonical `k8s` charms encompass two primary components: the [`k8s` charm][K8s
+Canonical Kubernetes charms encompass two primary components: the [`k8s` charm][K8s
 charm] and the [`k8s-worker` charm][K8s-worker charm].
 
 ![cluster4][]
