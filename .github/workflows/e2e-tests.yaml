@@ -269,6 +269,45 @@ jobs:
           fi
           SANITIZED_ARTIFACT_NAME=$(echo "$RAW_ARTIFACT_NAME_BASE" | sed 's/[\/:\.\]/-/g' | sed 's/\s//g')
           echo "test_name=${SANITIZED_ARTIFACT_NAME}" >> $GITHUB_ENV
+      - name: Collect run context
+        if: ${{ always() }}
+        env:
+          MATRIX_TEST: ${{ matrix.test }}
+          INPUT_CHANNEL: ${{ inputs.channel }}
+          INPUT_OS: ${{ inputs.os }}
+          INPUT_ARCH: ${{ inputs.arch }}
+          INPUT_SUBSTRATE: ${{ inputs.substrate }}
+          INPUT_FLAVOR: ${{ inputs.flavor }}
+          INPUT_ARTIFACT: ${{ inputs.artifact }}
+          SNAP_REVISION: ${{ steps.download-snap.outputs.snap-revision }}
+          TEST_COLLECTION_REPO: ${{ needs.prepare.outputs.repo }}
+          TEST_COLLECTION_REF: ${{ needs.prepare.outputs.ref }}
+        run: |
+          # Everything needed to identify and reproduce this job, resolved once
+          # so the log, the failure summary and result.json cannot disagree.
+          # Channel and revision stay raw here (empty for an artifact build);
+          # the failure summary is what renders the human-readable fallback.
+
+          # The tests run from the collection ref, which is not always the ref
+          # that triggered the workflow, so report the commit that actually ran.
+          ctx_sha=$(git rev-parse HEAD 2>/dev/null || echo unknown)
+          ctx_run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}"
+
+          {
+            echo "ctx_test=${MATRIX_TEST}"
+            echo "ctx_channel=${INPUT_CHANNEL}"
+            echo "ctx_revision=${SNAP_REVISION}"
+            echo "ctx_artifact=${INPUT_ARTIFACT}"
+            echo "ctx_os=${INPUT_OS}"
+            echo "ctx_arch=${INPUT_ARCH}"
+            echo "ctx_substrate=${INPUT_SUBSTRATE}"
+            echo "ctx_flavor=${INPUT_FLAVOR:-classic}"
+            echo "ctx_runner=${RUNNER_NAME} (${RUNNER_ENVIRONMENT}, ${RUNNER_OS}/${RUNNER_ARCH})"
+            echo "ctx_attempt=${GITHUB_RUN_ATTEMPT}"
+            echo "ctx_sha=${ctx_sha}"
+            echo "ctx_source=${TEST_COLLECTION_REPO}@${TEST_COLLECTION_REF}"
+            echo "ctx_run_url=${ctx_run_url}"
+          } >> "$GITHUB_ENV"
       - name: Performance flags
         if: ${{ contains(inputs.test-tags, 'performance') }}
         run: |
@@ -306,6 +345,30 @@ jobs:
           fi
 
           cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- $PARALLEL_TEST $PERFORMANCE_FLAGS --tags $INPUT_TEST_TAGS $EXTRA_TEST_ARGS
+      - name: Report failure context
+        if: ${{ failure() }}
+        run: |
+          # tee so the same block lands in the job log and the run summary.
+          {
+            echo "### :x: ${ctx_test}"
+            echo ""
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Test | \`${ctx_test}\` |"
+            echo "| Channel | ${ctx_channel:-n/a (artifact: ${ctx_artifact})} |"
+            echo "| Revision | ${ctx_revision:-n/a (locally built snap)} |"
+            echo "| OS | ${ctx_os} |"
+            echo "| Arch | ${ctx_arch} |"
+            echo "| Substrate | ${ctx_substrate} |"
+            echo "| Flavor | ${ctx_flavor} |"
+            echo "| Runner | ${ctx_runner} |"
+            echo "| Attempt | ${ctx_attempt} |"
+            echo "| SHA | \`${ctx_sha}\` |"
+            echo "| Test source | ${ctx_source} |"
+            echo "| Run | ${ctx_run_url} |"
+            echo "| Artifacts | inspection-reports-${test_name} |"
+            echo ""
+          } | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Prepare inspection reports
         if: failure()
         run: |
@@ -351,20 +414,28 @@ jobs:
       - name: Upload test metadata
         if: ${{ inputs.upload-results && always() }}
         env:
-          INPUT_OS: ${{ inputs.os }}
-          INPUT_ARCH: ${{ inputs.arch }}
-          INPUT_CHANNEL: ${{ inputs.channel }}
-          MATRIX_TEST: ${{ matrix.test }}
           JOB_STATUS: ${{ job.status }}
         run: |
           mkdir -p results
           jq -n \
-            --arg os "$INPUT_OS" \
-            --arg arch "$INPUT_ARCH" \
-            --arg channel "$INPUT_CHANNEL" \
-            --arg test "$MATRIX_TEST" \
+            --arg os "$ctx_os" \
+            --arg arch "$ctx_arch" \
+            --arg channel "$ctx_channel" \
+            --arg revision "$ctx_revision" \
+            --arg substrate "$ctx_substrate" \
+            --arg flavor "$ctx_flavor" \
+            --arg runner "$ctx_runner" \
+            --arg attempt "$ctx_attempt" \
+            --arg sha "$ctx_sha" \
+            --arg source "$ctx_source" \
+            --arg run_url "$ctx_run_url" \
+            --arg test "$ctx_test" \
             --arg status "$JOB_STATUS" \
-            '{os:$os, arch:$arch, channel:$channel, test:$test, status:$status}' > results/result.json
+            '{os:$os, arch:$arch, channel:$channel, revision:$revision,
+              substrate:$substrate, flavor:$flavor, runner:$runner,
+              attempt:$attempt, sha:$sha, source:$source, run_url:$run_url,
+              test:$test, status:$status}' > results/result.json
+          cat results/result.json
         shell: bash
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: ${{ inputs.upload-results && always() }}
