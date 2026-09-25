@@ -13,6 +13,11 @@ outputs:
   snap-path:
     description: The *.snap destination path.
     value: ${{ steps.retrieve-path.outputs.snap-path }}
+  snap-revision:
+    description: |
+      The store revision of the downloaded snap. Empty when the snap came from
+      a GH action artifact, since a locally built snap has no store revision.
+    value: ${{ steps.download-channel.outputs.snap-revision }}
 
 runs:
   using: "composite"
@@ -39,6 +44,7 @@ runs:
 
     - name: Download snap channel
       if: inputs.channel != ''
+      id: download-channel
       shell: bash
       env:
         INPUT_CHANNEL: ${{ inputs.channel }}
@@ -47,6 +53,12 @@ runs:
         full_path=`realpath k8s.snap`
         echo "Downloaded snap: $full_path"
         ls -lh $full_path
+
+        # The revision pins which build a channel actually served, so failures
+        # stay reproducible after the channel has moved on.
+        revision=$(awk '/^snap-revision: /{print $2; exit}' k8s.assert || true)
+        echo "Downloaded revision: ${revision:-unknown}"
+        echo "snap-revision=$revision" >> "$GITHUB_OUTPUT"
 
     - name: Retrieve resulting snap path
       shell: bash
