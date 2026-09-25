@@ -1,0 +1,101 @@
+From 1056e683a60460d24171d448b04076dcbf75294f Mon Sep 17 00:00:00 2001
+From: Kir Kolyshkin <kolyshkin@gmail.com>
+Date: Tue, 1 Sep 2026 21:13:19 -0700
+Subject: [PATCH] libct: don't reset selinux labels on init error path
+
+Both linuxStandardInit.Init and linuxSetnsInit.Init deferred a
+selinux.SetKeyLabel("") / selinux.SetExecLabel("") call to reset the
+labels on return. These deferred calls are useless: on success the
+function ends with execve(2) and never returns, and on failure runc init
+exits right after, so there is nothing left to reset.
+
+Worse, they are actively harmful. They run after utils.UnsafeCloseFrom,
+which closes every file descriptor that must not leak into the
+container, including the procfs handle cached internally by libpathrs.
+Writing the label then re-opens /proc, and libpathrs aborts the whole
+process:
+
+  thread '<unnamed>' (1) panicked at src/procfs.rs:349:22:
+  cached procfs handle should be valid: [...] Bad file descriptor
+  SIGABRT: abort
+
+So a plain execve failure (a bad ELF, or an exec denied by policy) was
+reported as a Rust panic plus a Go stack dump instead of the actual
+error.
+
+Drop the deferred calls, and add a test case.
+
+Fixes #5438
+
+Signed-off-by: Kir Kolyshkin <kolyshkin@gmail.com>
+---
+ libcontainer/setns_init_linux.go    |  2 --
+ libcontainer/standard_init_linux.go |  2 --
+ tests/integration/selinux.bats      | 17 +++++++++++++++++
+ 3 files changed, 17 insertions(+), 4 deletions(-)
+
+diff --git a/libcontainer/setns_init_linux.go b/libcontainer/setns_init_linux.go
+index 7f7c0771754..989e5ae23de 100644
+--- a/libcontainer/setns_init_linux.go
++++ b/libcontainer/setns_init_linux.go
+@@ -38,7 +38,6 @@ func (l *linuxSetnsInit) Init() error {
+ 			if err := selinux.SetKeyLabel(l.config.ProcessLabel); err != nil {
+ 				return err
+ 			}
+-			defer selinux.SetKeyLabel("") //nolint: errcheck
+ 		}
+ 		// Do not inherit the parent's session keyring.
+ 		if _, err := keys.JoinSessionKeyring(l.getSessionRingName()); err != nil {
+@@ -102,7 +101,6 @@ func (l *linuxSetnsInit) Init() error {
+ 		if err := selinux.SetExecLabel(l.config.ProcessLabel); err != nil {
+ 			return err
+ 		}
+-		defer selinux.SetExecLabel("") //nolint: errcheck
+ 	}
+ 	// Without NoNewPrivileges seccomp is a privileged operation, so we need to
+ 	// do this before dropping capabilities; otherwise do it as late as possible
+diff --git a/libcontainer/standard_init_linux.go b/libcontainer/standard_init_linux.go
+index 933c1de3441..33062f778cd 100644
+--- a/libcontainer/standard_init_linux.go
++++ b/libcontainer/standard_init_linux.go
+@@ -54,7 +54,6 @@ func (l *linuxStandardInit) Init() error {
+ 			if err := selinux.SetKeyLabel(l.config.ProcessLabel); err != nil {
+ 				return err
+ 			}
+-			defer selinux.SetKeyLabel("") //nolint: errcheck
+ 		}
+ 		ringname, keepperms, newperms := l.getSessionRingParams()
+ 
+@@ -185,7 +184,6 @@ func (l *linuxStandardInit) Init() error {
+ 		if err := selinux.SetExecLabel(l.config.ProcessLabel); err != nil {
+ 			return fmt.Errorf("can't set process label: %w", err)
+ 		}
+-		defer selinux.SetExecLabel("") //nolint: errcheck
+ 	}
+ 	// Without NoNewPrivileges seccomp is a privileged operation, so we need to
+ 	// do this before dropping capabilities; otherwise do it as late as possible
+diff --git a/tests/integration/selinux.bats b/tests/integration/selinux.bats
+index 66665c45059..848c74ddb9a 100644
+--- a/tests/integration/selinux.bats
++++ b/tests/integration/selinux.bats
+@@ -104,3 +104,20 @@ function enable_userns() {
+ 	enable_userns
+ 	exec_check_label
+ }
++
++# Check that an execve failure is reported as such, rather than aborting
++# runc init. See https://github.com/opencontainers/runc/issues/5438.
++@test "runc run (execve error + custom selinux label)" {
++	cat <<-EOF >rootfs/run.sh
++		#!/mmnnttbb foo bar
++		sh
++	EOF
++	chmod +x rootfs/run.sh
++
++	update_config '	  .process.selinuxLabel |= "system_u:system_r:container_t:s0:c4,c5"
++			| .process.args = ["/run.sh"]'
++	runc run tst
++	[ "$status" -ne 0 ]
++	[ ${#lines[@]} -eq 1 ]
++	[[ "${lines[0]}" = "exec /run.sh: no such file or directory" ]]
++}
