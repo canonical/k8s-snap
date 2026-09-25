@@ -74,72 +74,10 @@ def _check_nvidia_drivers_loaded(instance: harness.Instance) -> Mapping[str, boo
     return modules_present
 
 
-def _dump_gpu_operator_diagnostics(instance: harness.Instance, namespace: str):
-    """Dump operator-wide state for post-mortem debugging."""
-    diagnostics = [
-        (["k8s", "kubectl", "-n", namespace, "get", "pods", "-o", "wide"], "pods"),
-        (
-            ["k8s", "kubectl", "-n", namespace, "get", "daemonsets"],
-            "daemonsets",
-        ),
-        (
-            [
-                "k8s",
-                "kubectl",
-                "-n",
-                namespace,
-                "get",
-                "clusterpolicy",
-                "-o",
-                "yaml",
-            ],
-            "clusterpolicy",
-        ),
-        (
-            [
-                "k8s",
-                "kubectl",
-                "-n",
-                namespace,
-                "logs",
-                "-l",
-                "app=gpu-operator",
-                "--tail=200",
-            ],
-            "gpu-operator controller logs",
-        ),
-        (
-            [
-                "k8s",
-                "kubectl",
-                "get",
-                "events",
-                "-n",
-                namespace,
-                "--sort-by=.lastTimestamp",
-            ],
-            "namespace events",
-        ),
-        (
-            ["k8s", "kubectl", "get", "nodes", "-o", "yaml"],
-            "node labels and status",
-        ),
-    ]
-    for cmd, label in diagnostics:
-        try:
-            result = instance.exec(cmd, capture_output=True, text=True, check=False)
-            LOG.warning("=== DIAG: %s ===\n%s", label, result.stdout)
-            if result.stderr:
-                LOG.warning("stderr: %s", result.stderr)
-        except Exception as exc:
-            LOG.warning("Failed to collect %s: %s", label, exc)
-
-    _dump_failing_pod_logs(instance, namespace)
-
-
 def _dump_failing_pod_logs(instance: harness.Instance, namespace: str):
-    """Dump current+previous container logs for every non-Running pod."""
+    """Dump current+previous container logs for every pod that is not fully ready."""
     try:
+        # Check if the pod's Ready condition is false, or get container readiness
         proc = instance.exec(
             [
                 "k8s",
@@ -149,7 +87,7 @@ def _dump_failing_pod_logs(instance: harness.Instance, namespace: str):
                 "get",
                 "pods",
                 "-o",
-                "jsonpath={range .items[*]}{.metadata.name}|{.status.phase}\\n{end}",
+                "jsonpath={range .items[*]}{.metadata.name}|{.status.containerStatuses[*].ready}\\n{end}",
             ],
             capture_output=True,
             text=True,
@@ -162,9 +100,11 @@ def _dump_failing_pod_logs(instance: harness.Instance, namespace: str):
     for line in (proc.stdout or "").strip().splitlines():
         if "|" not in line:
             continue
-        pod_name, phase = line.split("|", 1)
-        if phase.strip() == "Running":
+        pod_name, readiness = line.split("|", 1)
+        # If any container in the pod is not ready ('false'), collect logs
+        if "false" not in readiness.lower():
             continue
+
         for flag, label in ((None, "current"), ("--previous", "previous")):
             cmd = [
                 "k8s",
