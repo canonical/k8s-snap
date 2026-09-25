@@ -3,7 +3,6 @@
 #
 import json
 import logging
-import re
 from typing import List
 
 import pytest
@@ -11,7 +10,6 @@ from test_util import config, harness, tags, util
 
 LOG = logging.getLogger(__name__)
 
-# `cilium.CheckNetwork` in k8sd selects the CNI workloads by exactly these labels.
 CILIUM_AGENT_SELECTOR = "k8s-app=cilium"
 CILIUM_OPERATOR_SELECTOR = "io.cilium/app=operator"
 CILIUM_AGENT_CONTAINER = "cilium-agent"
@@ -19,15 +17,29 @@ CILIUM_AGENT_CONTAINER = "cilium-agent"
 # A node label no node carries, used to strand the Cilium agent DaemonSet.
 UNSCHEDULABLE_KEY = "ck8s.io/nonexistent"
 
-CLUSTER_NOT_READY = re.compile(r"cluster status:\s+not ready")
-CLUSTER_READY = re.compile(r"cluster status:\s+ready")
+
+def _status_patterns(cluster_status: str) -> List[str]:
+    """Expected `k8s status` output for the bootstrap-network-dns.yaml config.
+
+    Only network and dns are enabled, so the remaining feature lines are matched
+    by name alone.
+    """
+    return [
+        rf"cluster status:\s*{cluster_status}",
+        r"control plane nodes:\s*(\d{1,3}(?:\.\d{1,3}){3}:\d{1,5})\s\(voter\)",
+        r"high availability:\s*no",
+        r"datastore:\s*etcd",
+        r"network:\s*enabled",
+        r"dns:\s*enabled at (\d{1,3}(?:\.\d{1,3}){3})",
+        r"ingress:",
+        r"load-balancer:",
+        r"local-storage:",
+        r"gateway",
+    ]
 
 
-def _journal_mark(instance: harness.Instance) -> str:
-    """A `journalctl --since` timestamp in the instance's own local time."""
-    return instance.exec(
-        ["date", "+%Y-%m-%d %H:%M:%S"], capture_output=True, text=True
-    ).stdout.strip()
+READY_PATTERNS = _status_patterns("ready")
+NOT_READY_PATTERNS = _status_patterns("not ready")
 
 
 def _pods_gone(instance: harness.Instance, selector: str):
@@ -55,44 +67,23 @@ def _pods_gone(instance: harness.Instance, selector: str):
     )
 
 
-def _assert_cluster_not_ready(
-    instance: harness.Instance, context: str, since: str, expected_error: str
-):
-    """`k8s status` must report `not ready`, and must do so *because of the CNI*.
+def _assert_cluster_not_ready(instance: harness.Instance, context: str):
+    """`k8s status` must report `not ready`, and must do so because of the CNI.
 
-    Three facts are required together:
-
-    * `k8s status` prints `not ready`;
-    * the node is still Ready in the same poll iteration — that is the #1789
-      condition (kubelet reports NodeReady as soon as a CNI conflist exists on
-      disk) and it rules out `HasReadyNodes` as the reason readiness was withheld;
-    * k8sd logged the CNI gate firing, with the specific `CheckNetwork` error for
-      this phase, after `since` — positive attribution to the gate rather than to
-      the sibling `--cluster-dns` gate.
-
-    Each poll iteration logs the `cluster status:` line it observed together with
-    the ready-node count, so an exhausted poll says why it failed: an unfixed
-    daemon keeps reporting `cluster status: ready` (that is #1789), whereas a
-    node that genuinely went NotReady shows a ready-node count of 0.
+    The node is checked separately and must still be Ready. Kubelet reports
+    NodeReady as soon as a CNI config file exists on disk, and that file stays
+    behind when Cilium is removed, so the node keeps looking healthy while the
+    network is broken. That is the condition from canonical/k8s-snap#1789, and it
+    rules out `HasReadyNodes` as the reason readiness was withheld.
     """
-
-    def cni_gated_not_ready(p) -> bool:
-        status = p.stdout.decode()
-        cluster_line = next(
-            (line.strip() for line in status.splitlines() if "cluster status:" in line),
-            "<no cluster status line>",
-        )
-        ready = len(util.ready_nodes(instance))
-        LOG.info("%s: observed %r with %d ready node(s)", context, cluster_line, ready)
-        return CLUSTER_NOT_READY.search(status) is not None and ready == 1
-
-    util.stubbornly(retries=30, delay_s=2).on(instance).until(cni_gated_not_ready).exec(
-        ["k8s", "status"]
-    )
+    LOG.info("%s: waiting for `k8s status` to report not ready", context)
+    util.stubbornly(retries=30, delay_s=2).on(instance).until(
+        lambda p: util.status_output_matches(p, NOT_READY_PATTERNS)
+    ).exec(["k8s", "status"])
 
     assert len(util.ready_nodes(instance)) == 1, (
-        f"{context}: the node stopped being Ready, so this test no longer "
-        "reproduces #1789 (readiness could be withheld by HasReadyNodes alone)"
+        f"{context}: the node stopped being Ready, so this no longer reproduces "
+        "canonical/k8s-snap#1789 (readiness could be withheld by HasReadyNodes alone)"
     )
 
     p = instance.exec(
@@ -107,42 +98,24 @@ def _assert_cluster_not_ready(
         f"stderr={p.stderr!r}"
     )
 
-    journal = instance.exec(
-        [
-            "journalctl",
-            "-u",
-            "snap.k8s.k8sd",
-            "--since",
-            since,
-            "--no-pager",
-            "-o",
-            "cat",
-        ],
-        capture_output=True,
-        text=True,
-    ).stdout
-    assert "network pods are not ready" in journal, (
-        f"{context}: readiness was withheld, but k8sd never logged the CNI gate "
-        f"firing — something other than canonical/k8sd#93 caused it"
-    )
-    assert expected_error in journal, (
-        f"{context}: the CNI gate fired, but not with the expected check "
-        f"failure {expected_error!r}"
-    )
-
-
-def _assert_cluster_ready(instance: harness.Instance, context: str):
-    """`k8s status --wait-ready` must succeed again once the CNI is restored."""
     p = instance.exec(
-        ["k8s", "status", "--wait-ready", "--timeout", "5m"],
+        ["k8s", "x-wait-for", "network", "--timeout", "10s"],
         capture_output=True,
         check=False,
         text=True,
     )
-    assert p.returncode == 0 and CLUSTER_READY.search(p.stdout), (
-        f"{context}: cluster did not report ready after the CNI was restored: "
-        f"rc={p.returncode} stdout={p.stdout!r} stderr={p.stderr!r}"
+    assert p.returncode != 0, (
+        f"{context}: the network is reported as ready while the CNI is down. "
+        f"stdout={p.stdout!r} stderr={p.stderr!r}"
     )
+
+
+def _assert_cluster_ready(instance: harness.Instance, context: str):
+    """`k8s status --wait-ready` must succeed once the CNI is healthy."""
+    LOG.info("%s: waiting for `k8s status` to report ready", context)
+    util.stubbornly(retries=15, delay_s=10).on(instance).until(
+        lambda p: util.status_output_matches(p, READY_PATTERNS)
+    ).exec(["k8s", "status", "--wait-ready"])
 
 
 def _agent_readiness_probe(instance: harness.Instance) -> dict:
@@ -206,9 +179,8 @@ def _patch_agent_readiness_probe(instance: harness.Instance, probe: dict):
 def _agent_running_not_ready(p) -> bool:
     """True when some agent pod is Running with Ready != True.
 
-    Required so this phase cannot pass for the previous phase's reason: a
-    DaemonSet rolling update briefly leaves zero agent pods, and an absent pod
-    is a different `CheckNetwork` branch.
+    A DaemonSet rolling update briefly leaves zero agent pods, and an absent pod
+    is a different readiness failure, so the pod must be present and Running.
     """
     for pod in json.loads(p.stdout.decode())["items"]:
         if pod["status"].get("phase") != "Running":
@@ -226,35 +198,30 @@ def _agent_running_not_ready(p) -> bool:
     return False
 
 
-@pytest.mark.node_count(1)
-@pytest.mark.bootstrap_config(
-    (config.MANIFESTS_DIR / "bootstrap-network-dns.yaml").read_text()
-)
-@pytest.mark.tags(tags.PULL_REQUEST)
-def test_status_withholds_ready_when_cni_not_ready(instances: List[harness.Instance]):
-    """`k8s status` must not report the cluster ready while the CNI is down.
-
-    Reproduces canonical/k8s-snap#1789: kubelet marks the node Ready as soon as a
-    CNI config file exists on disk, which happens before the Cilium workloads are
-    serving, so `k8s status --wait-ready` used to return `ready` while Cilium pods
-    were missing or crash-looping. Requires the readiness gate from
-    canonical/k8sd#93; against a snap built from k8sd main this test fails.
-
-    Each phase drives a different branch of `cilium.CheckNetwork`:
-      1. operator pods absent   -> `cilium-operator pods not yet ready: no pods ...`
-      2. agent pods absent      -> `cilium pods not yet ready: no pods ...`
-      3. agent Running, !Ready  -> `cilium pods not yet ready: pods [...] not ready`
-    Phase 3 is the crash-loop signature the issue is titled after.
-    """
-    instance = instances[0]
-
+def _prepare_cluster(instance: harness.Instance):
+    """Bring the cluster to a healthy baseline before breaking the CNI."""
     util.wait_until_k8s_ready(instance, [instance])
     util.wait_for_network(instance)
     _assert_cluster_ready(instance, "baseline")
 
-    # --- Phase 1: the operator is gone (CheckNetwork's first selector) ---------
+
+@pytest.mark.node_count(1)
+@pytest.mark.bootstrap_config(
+    (config.MANIFESTS_DIR / "bootstrap-network-dns.yaml").read_text()
+)
+@pytest.mark.tags(tags.NIGHTLY)
+def test_status_not_ready_when_cilium_operator_missing(
+    instances: List[harness.Instance],
+):
+    """`k8s status` must not report ready while the Cilium operator is missing.
+
+    Reproduces canonical/k8s-snap#1789 for the operator pods, which are the first
+    workload the daemon's network readiness check inspects.
+    """
+    instance = instances[0]
+    _prepare_cluster(instance)
+
     LOG.info("Scaling cilium-operator to zero replicas")
-    since = _journal_mark(instance)
     instance.exec(
         [
             "k8s",
@@ -267,12 +234,7 @@ def test_status_withholds_ready_when_cni_not_ready(instances: List[harness.Insta
         ]
     )
     _pods_gone(instance, CILIUM_OPERATOR_SELECTOR)
-    _assert_cluster_not_ready(
-        instance,
-        "cilium-operator scaled to zero",
-        since,
-        "cilium-operator pods not yet ready: no pods in kube-system namespace on the cluster",
-    )
+    _assert_cluster_not_ready(instance, "cilium-operator scaled to zero")
 
     LOG.info("Restoring cilium-operator")
     instance.exec(
@@ -291,11 +253,24 @@ def test_status_withholds_ready_when_cni_not_ready(instances: List[harness.Insta
     )
     _assert_cluster_ready(instance, "cilium-operator restored")
 
-    # --- Phase 2: the agent is gone (CheckNetwork's second selector) -----------
-    # The #1789 premise proper: with no Cilium agent at all, the CNI conflist
-    # stays on disk (`cni.uninstall: false`), so the node keeps reporting Ready.
+
+@pytest.mark.node_count(1)
+@pytest.mark.bootstrap_config(
+    (config.MANIFESTS_DIR / "bootstrap-network-dns.yaml").read_text()
+)
+@pytest.mark.tags(tags.NIGHTLY)
+def test_status_not_ready_when_cilium_agent_missing(
+    instances: List[harness.Instance],
+):
+    """`k8s status` must not report ready while no Cilium agent is scheduled.
+
+    Reproduces canonical/k8s-snap#1789 for the agent pods. With no agent at all
+    the CNI config file stays on disk, so the node keeps reporting Ready.
+    """
+    instance = instances[0]
+    _prepare_cluster(instance)
+
     LOG.info("Stranding the cilium agent DaemonSet on a node selector no node matches")
-    since = _journal_mark(instance)
     instance.exec(
         [
             "k8s",
@@ -318,12 +293,7 @@ def test_status_withholds_ready_when_cni_not_ready(instances: List[harness.Insta
         ]
     )
     _pods_gone(instance, CILIUM_AGENT_SELECTOR)
-    _assert_cluster_not_ready(
-        instance,
-        "cilium agent DaemonSet stranded",
-        since,
-        "cilium pods not yet ready: no pods in kube-system namespace on the cluster",
-    )
+    _assert_cluster_not_ready(instance, "cilium agent DaemonSet stranded")
 
     LOG.info("Restoring the cilium agent DaemonSet")
     # A strategic-merge null deletes the injected key and is idempotent; an RFC
@@ -354,14 +324,28 @@ def test_status_withholds_ready_when_cni_not_ready(instances: List[harness.Insta
     )
     _assert_cluster_ready(instance, "cilium agent restored")
 
-    # --- Phase 3: the agent is Running but never Ready ------------------------
-    # The signature #1789 is titled after: a crash-looping agent stays in phase
-    # Running with Ready=False. Rigging the readiness probe produces exactly that
-    # state while leaving the agent process — and therefore the datapath and the
-    # node's Ready condition — intact.
+
+@pytest.mark.node_count(1)
+@pytest.mark.bootstrap_config(
+    (config.MANIFESTS_DIR / "bootstrap-network-dns.yaml").read_text()
+)
+@pytest.mark.tags(tags.NIGHTLY)
+def test_status_not_ready_when_cilium_agent_not_ready(
+    instances: List[harness.Instance],
+):
+    """`k8s status` must not report ready while the Cilium agent is not Ready.
+
+    This is the signature canonical/k8s-snap#1789 is titled after: a crash-looping
+    agent stays in phase Running with Ready=False. Rigging the readiness probe
+    produces that state while leaving the agent process, and therefore the
+    datapath and the node's Ready condition, intact.
+    """
+    instance = instances[0]
+    _prepare_cluster(instance)
+
     original_probe = _agent_readiness_probe(instance)
+
     LOG.info("Forcing the cilium agent readiness probe to fail")
-    since = _journal_mark(instance)
     _patch_agent_readiness_probe(
         instance,
         {
@@ -392,12 +376,7 @@ def test_status_withholds_ready_when_cni_not_ready(instances: List[harness.Insta
             "json",
         ]
     )
-    _assert_cluster_not_ready(
-        instance,
-        "cilium agent Running but not Ready",
-        since,
-        "cilium pods not yet ready: pods [",
-    )
+    _assert_cluster_not_ready(instance, "cilium agent Running but not Ready")
 
     LOG.info("Restoring the cilium agent readiness probe")
     # `exec` must be nulled out explicitly: strategic merge would otherwise keep

@@ -1,9 +1,3 @@
-# Bootstrap configuration for the CNI readiness gate regression test
-# (canonical/k8s-snap#1789). Enables the two features whose state `k8s status`
-# actually gates readiness on — network (the CNI pods) and dns (the coredns
-# Service ClusterIP vs kubelet's --cluster-dns) — and leaves every other
-# feature at its bootstrap default, which keeps the cluster small and keeps
-# MetalLB out of a test that has nothing to do with load balancing.
 cluster-config:
   network:
     enabled: true

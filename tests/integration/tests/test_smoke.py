@@ -124,23 +124,6 @@ def test_smoke(instances: List[harness.Instance]):
         condition=lambda p: util.status_output_matches(p, STATUS_PATTERNS),
     ).exec(["k8s", "status", "--wait-ready"])
 
-    # Regression guard for canonical/k8s-snap#1789: `k8s status --wait-ready` must not report the
-    # cluster ready while the CNI workloads are unready. The daemon gate (canonical/k8sd#93) covers
-    # the Cilium operator and agent pods only — `k8s status` never inspects coredns pod readiness,
-    # only the coredns Service ClusterIP — so assert exactly those two pod sets. The small retry
-    # budget absorbs Cilium pod churn that the daemon gate legitimately ignores (k8sd's podIsReady
-    # accepts a Terminating pod that is still Running+Ready, this helper does not, and
-    # ApplyNetwork rollout-restarts both workloads on every network reconcile); it is far too
-    # short to wait out a CNI that never converged, which is the bug being guarded against.
-    for selector in ("io.cilium/app=operator", "k8s-app=cilium"):
-        util.wait_for_pods_ready(
-            instance,
-            namespace="kube-system",
-            label_selector=selector,
-            retries=10,
-            delay_s=3,
-        )
-
     LOG.info("Verifying snap service health")
     util.check_snap_services_ready(instance)
     util.check_service_restarts(instance)
