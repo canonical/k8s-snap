@@ -460,6 +460,7 @@ def wait_for_pods_ready(
     retries: int = config.DEFAULT_WAIT_RETRIES,
     delay_s: int = config.DEFAULT_WAIT_DELAY_S,
     expect_pods: bool = True,
+    label_selector: str = "",
 ):
     """
     Wait for all pods to be Running and Ready.
@@ -476,11 +477,14 @@ def wait_for_pods_ready(
         retries: number of retries
         delay_s: delay between retries in seconds
         expect_pods: if False, consider no pods as ready
+        label_selector: if set, only consider pods matching this label selector (kubectl -l syntax).
     """
     ns_args = ["-n", namespace] if namespace else ["--all-namespaces"]
+    selector_args = ["-l", label_selector] if label_selector else []
     LOG.info(
-        "Waiting for all pods to be ready%s",
+        "Waiting for all pods to be ready%s%s",
         f" in namespace {namespace}" if namespace else "",
+        f" matching {label_selector}" if label_selector else "",
     )
 
     def all_pods_ready(p: subprocess.CompletedProcess) -> bool:
@@ -558,7 +562,7 @@ def wait_for_pods_ready(
 
     stubbornly(retries=retries, delay_s=delay_s).on(instance).until(
         all_pods_ready
-    ).exec(["k8s", "kubectl", "get", "pods", *ns_args, "-o", "json"])
+    ).exec(["k8s", "kubectl", "get", "pods", *ns_args, *selector_args, "-o", "json"])
 
 
 def wait_for_dns(instance: harness.Instance):
