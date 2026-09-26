@@ -231,6 +231,73 @@ def test_worker_nodes(instances: List[harness.Instance]):
     ], f"only {cluster_node.id} should be left in cluster"
 
 
+@pytest.mark.node_count(2)
+@pytest.mark.tags(tags.PULL_REQUEST)
+def test_worker_join_with_anonymous_token(instances: List[harness.Instance]):
+    """A worker must be able to join using a join token created without a node name.
+
+    `k8s get-join-token --worker` (no positional name) produces an "anonymous"
+    token that can be consumed by any worker; the joining node's hostname is used
+    as the node name.
+    """
+    cluster_node = instances[0]
+    joining_worker = instances[1]
+
+    util.wait_until_k8s_ready(cluster_node, [cluster_node])
+
+    # Invoke `k8s get-join-token --worker` directly, bypassing util.get_join_token
+    # which always passes a positional node name.
+    out = (
+        util.stubbornly(retries=5, delay_s=3)
+        .on(cluster_node)
+        .until(lambda p: len(p.stdout.decode().strip()) > 0)
+        .exec(
+            ["k8s", "get-join-token", "--worker"],
+            capture_output=True,
+        )
+    )
+    join_token = out.stdout.decode().strip()
+
+    util.join_cluster(joining_worker, join_token)
+
+    util.wait_until_k8s_ready(cluster_node, instances)
+
+    assert "worker" in util.get_local_node_status(
+        joining_worker
+    ), f"{joining_worker.id} should be ready and in the cluster"
+
+    worker_hostname = util.hostname(joining_worker)
+    node_names = [node["metadata"]["name"] for node in util.ready_nodes(cluster_node)]
+    assert (
+        worker_hostname in node_names
+    ), f"worker should have joined under its hostname {worker_hostname}, got {node_names}"
+
+
+@pytest.mark.node_count(1)
+@pytest.mark.tags(tags.PULL_REQUEST)
+def test_control_plane_join_token_requires_name(instances: List[harness.Instance]):
+    """A control-plane join token cannot be issued without a node name.
+
+    Anonymous tokens are only supported for workers. The CLI enforces this and
+    microcluster additionally requires the token name to be a valid FQDN and to
+    match the joining server's cert SAN, so the CP path must always carry a name.
+    """
+    cluster_node = instances[0]
+
+    util.wait_until_k8s_ready(cluster_node, [cluster_node])
+
+    result = cluster_node.exec(
+        ["k8s", "get-join-token"],
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode != 0, "get-join-token without a name should fail for CP"
+    assert (
+        "node name is required for control-plane nodes"
+        in result.stderr.decode().lower()
+    )
+
+
 @pytest.mark.node_count(3)
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.tags(tags.PULL_REQUEST)
