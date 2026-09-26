@@ -13,7 +13,7 @@ import urllib.request
 from datetime import datetime
 from functools import partial
 from pathlib import Path
-from typing import Any, Callable, List, Mapping, Optional, Union
+from typing import Any, Callable, Dict, List, Mapping, Optional, Union
 
 import pytest
 from tenacity import (
@@ -1399,35 +1399,79 @@ def _get_enabled_services(instance: harness.Instance) -> List[str]:
     return services
 
 
-def check_service_restarts(
+def _get_service_restart_counts(
     instance: harness.Instance,
     services: Optional[List[str]] = None,
-    max_restarts: int = 0,
-):
-    """
-    Check that k8s snap services have not restarted excessively.
-    Uses systemctl show to read the NRestarts counter for each service.
-    By default, fails if any service has restarted at all (max_restarts=0).
-    """
+) -> Dict[str, int]:
+    """Read systemd's NRestarts counter per service. Lifetime counter,
+    never resets between steps."""
     if services is None:
         services = _get_enabled_services(instance)
 
-    violations = []
+    counts = {}
     for service in services:
         result = instance.exec(
             ["systemctl", "show", f"snap.k8s.{service}", "-p", "NRestarts"],
             capture_output=True,
             text=True,
         )
-        n_restarts = int(result.stdout.strip().split("=")[1])
-        if n_restarts > max_restarts:
-            violations.append((service, n_restarts))
+        counts[service] = int(result.stdout.strip().split("=")[1])
+    return counts
+
+
+def check_service_restarts(
+    instance: harness.Instance,
+    services: Optional[List[str]] = None,
+    max_restarts: int = 0,
+):
+    """Fail if any service restarted more than max_restarts times. Only
+    correct for a zero-restarts baseline (e.g. fresh bootstrap). For
+    upgrade/downgrade steps use check_no_service_restarts_after_stabilization()
+    instead."""
+    if services is None:
+        services = _get_enabled_services(instance)
+
+    counts = _get_service_restart_counts(instance, services)
+    violations = [
+        (service, n_restarts)
+        for service, n_restarts in counts.items()
+        if n_restarts > max_restarts
+    ]
 
     assert (
         not violations
     ), f"Services have restarted more than {max_restarts} time(s): " + ", ".join(
         f"{s} ({n} restarts)" for s, n in violations
     )
+
+
+def check_no_service_restarts_after_stabilization(
+    instance: harness.Instance,
+    services: Optional[List[str]] = None,
+    retries: int = 3,
+    delay_s: int = config.DEFAULT_WAIT_DELAY_S,
+):
+    """Fail if a service keeps restarting after this point (crash loop).
+    Uses a sliding baseline so one expected refresh-triggered restart
+    doesn't fail the check - only ongoing restarts do."""
+    if services is None:
+        services = _get_enabled_services(instance)
+
+    previous = _get_service_restart_counts(instance, services)
+    for attempt in Retrying(stop=stop_after_attempt(retries), wait=wait_fixed(delay_s)):
+        with attempt:
+            current = _get_service_restart_counts(instance, services)
+            violations = [
+                (service, previous[service], current[service])
+                for service in services
+                if current[service] > previous[service]
+            ]
+            previous = current
+            assert (
+                not violations
+            ), "Services still restarting (crash-loop suspected): " + ", ".join(
+                f"{s} ({b} -> {n})" for s, b, n in violations
+            )
 
 
 def check_service_logs_for_panics(

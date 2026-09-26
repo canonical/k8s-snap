@@ -134,7 +134,7 @@ def test_version_upgrades(
             util.wait_until_k8s_ready(cp, instances)
             LOG.info("Verifying snap service health")
             util.check_snap_services_ready(instance, retries=10, delay_s=10)
-            util.check_service_restarts(instance)
+            util.check_no_service_restarts_after_stabilization(instance)
             util.check_service_logs_for_panics(instance)
             LOG.info(f"Upgraded {instance.id} to channel {channel}")
 
@@ -249,7 +249,7 @@ def test_version_downgrades_with_rollback(
             util.wait_until_k8s_ready(cp, instances)
             LOG.info("Verifying snap service health")
             util.check_snap_services_ready(instance, retries=10, delay_s=10)
-            util.check_service_restarts(instance)
+            util.check_no_service_restarts_after_stabilization(instance)
             util.check_service_logs_for_panics(instance)
 
         last_channel = current_channel
@@ -261,7 +261,7 @@ def test_version_downgrades_with_rollback(
             util.wait_until_k8s_ready(cp, instances)
             LOG.info("Verifying snap service health")
             util.check_snap_services_ready(instance, retries=10, delay_s=10)
-            util.check_service_restarts(instance)
+            util.check_no_service_restarts_after_stabilization(instance)
             util.check_service_logs_for_panics(instance)
 
         for instance in instances:
@@ -272,7 +272,7 @@ def test_version_downgrades_with_rollback(
             util.wait_until_k8s_ready(cp, instances)
             LOG.info("Verifying snap service health")
             util.check_snap_services_ready(instance, retries=10, delay_s=10)
-            util.check_service_restarts(instance)
+            util.check_no_service_restarts_after_stabilization(instance)
             util.check_service_logs_for_panics(instance)
 
             LOG.info("Rollback segment complete. Proceeding to next downgrade segment.")
