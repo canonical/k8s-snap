@@ -1631,11 +1631,12 @@ def _installed_k8s_version(instance: harness.Instance) -> Optional[tuple]:
     if len(lines) < 2:
         return None
 
-    fields = lines[-1].split()
-    if len(fields) < 2:
-        return None
+    for line in lines[1:]:
+        fields = line.split()
+        if len(fields) >= 2 and fields[0] == "k8s":
+            return major_minor(fields[1])
 
-    return major_minor(fields[1])
+    return None
 
 
 def _is_kube_proxy_expected_active(instance: harness.Instance) -> Optional[bool]:
