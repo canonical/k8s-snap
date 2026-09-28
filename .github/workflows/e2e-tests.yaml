@@ -319,7 +319,7 @@ jobs:
           TEST_LXD_IMAGE: ${{ inputs.os }}
           TEST_MULTIPASS_IMAGE: ${{ inputs.os }}
           TEST_FLAVOR: ${{ inputs.flavor }}
-          TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports/${{ inputs.parallel && env.test_name || '' }}
+          TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports/${{ env.test_name }}
           TEST_VERSION_UPGRADE_CHANNELS: "recent 6"
           TEST_VERSION_DOWNGRADE_CHANNELS: "recent 6"
           TEST_VERSION_UPGRADE_MIN_RELEASE: "1.32"
@@ -349,26 +349,7 @@ jobs:
         if: ${{ failure() }}
         run: |
           # tee so the same block lands in the job log and the run summary.
-          {
-            echo "### :x: ${ctx_test}"
-            echo ""
-            echo "| Field | Value |"
-            echo "| --- | --- |"
-            echo "| Test | \`${ctx_test}\` |"
-            echo "| Channel | ${ctx_channel:-n/a (artifact: ${ctx_artifact})} |"
-            echo "| Revision | ${ctx_revision:-n/a (locally built snap)} |"
-            echo "| OS | ${ctx_os} |"
-            echo "| Arch | ${ctx_arch} |"
-            echo "| Substrate | ${ctx_substrate} |"
-            echo "| Flavor | ${ctx_flavor} |"
-            echo "| Runner | ${ctx_runner} |"
-            echo "| Attempt | ${ctx_attempt} |"
-            echo "| SHA | \`${ctx_sha}\` |"
-            echo "| Test source | ${ctx_source} |"
-            echo "| Run | ${ctx_run_url} |"
-            echo "| Artifacts | inspection-reports-${test_name} |"
-            echo ""
-          } | tee -a "$GITHUB_STEP_SUMMARY"
+          python3 ci/k8s-ci.py e2e print-failure-context | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Prepare inspection reports
         if: failure()
         run: |
@@ -415,27 +396,7 @@ jobs:
         if: ${{ inputs.upload-results && always() }}
         env:
           JOB_STATUS: ${{ job.status }}
-        run: |
-          mkdir -p results
-          jq -n \
-            --arg os "$ctx_os" \
-            --arg arch "$ctx_arch" \
-            --arg channel "$ctx_channel" \
-            --arg revision "$ctx_revision" \
-            --arg substrate "$ctx_substrate" \
-            --arg flavor "$ctx_flavor" \
-            --arg runner "$ctx_runner" \
-            --arg attempt "$ctx_attempt" \
-            --arg sha "$ctx_sha" \
-            --arg source "$ctx_source" \
-            --arg run_url "$ctx_run_url" \
-            --arg test "$ctx_test" \
-            --arg status "$JOB_STATUS" \
-            '{os:$os, arch:$arch, channel:$channel, revision:$revision,
-              substrate:$substrate, flavor:$flavor, runner:$runner,
-              attempt:$attempt, sha:$sha, source:$source, run_url:$run_url,
-              test:$test, status:$status}' > results/result.json
-          cat results/result.json
+        run: python3 ci/k8s-ci.py e2e write-result-json --output results/result.json
         shell: bash
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: ${{ inputs.upload-results && always() }}
