@@ -199,7 +199,7 @@ def test_deploy_nvidia_gpu_operator(
         pytest.skip(msg)
 
     LOG.info("Waiting for k8s node to become Ready (CNI initialized)...")
-    util.wait_until_k8s_ready(instance, instances)
+    util.wait_until_k8s_ready(instance, instances, retries=180, delay_s=5)
 
     if config.CONTAINERD_BASE_DIR:
         # gpu-operator hard-codes hostPath volume mounts at /etc/containerd and
