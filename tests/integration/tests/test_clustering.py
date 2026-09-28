@@ -325,6 +325,61 @@ def test_concurrent_cp_membership_operations(instances: List[harness.Instance]):
 
 
 @pytest.mark.node_count(3)
+@pytest.mark.tags(tags.PULL_REQUEST, tags.NIGHTLY)
+def test_concurrent_cp_join_race(instances: List[harness.Instance]):
+    """Regression test for the concurrent control-plane join race
+    (k8s-snap#2814, #2813).
+
+    etcd allows only one pending (un-promoted) learner at a time, and
+    after a promotion it requires a short (~5s) window of confirmed peer
+    connectivity before it will accept the next membership change. Two
+    control-plane nodes joining concurrently can therefore
+    transiently hit etcd's ErrTooManyLearners or ErrUnhealthy on
+    MemberAddAsLearner. k8sd should retry the join procedure when it
+    encounters those errors.
+
+    The concurrent join is repeated over several attempts so a pass does
+    not rest on a single attempt not hitting the race. Between
+    attempts the two joining nodes are removed from the cluster and their
+    snap is purged and reinstalled, so each attempt runs against a fresh,
+    unbootstrapped pair.
+    """
+    cluster_node = instances[0]
+    joining_cp_A = instances[1]
+    joining_cp_B = instances[2]
+    util.wait_until_k8s_ready(cluster_node, [cluster_node])
+
+    attempts = 5
+    for attempt in range(attempts):
+        join_token_A = util.get_join_token(cluster_node, joining_cp_A)
+        join_token_B = util.get_join_token(cluster_node, joining_cp_B)
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+            future_A = executor.submit(util.join_cluster, joining_cp_A, join_token_A)
+            future_B = executor.submit(util.join_cluster, joining_cp_B, join_token_B)
+            for future in concurrent.futures.as_completed([future_A, future_B]):
+                future.result()
+
+        util.wait_until_k8s_ready(cluster_node, [joining_cp_A, joining_cp_B])
+        assert "control-plane" in util.get_local_node_status(joining_cp_A)
+        assert "control-plane" in util.get_local_node_status(joining_cp_B)
+
+        if attempt == attempts - 1:
+            break
+
+        # Reset the joining pair for the next attempt.
+        # Purging and reinstalling the snap wipes each node's local k8sd
+        # state, so the next join starts from a genuinely fresh node.
+        for node in (joining_cp_A, joining_cp_B):
+            util.remove_node_with_retry(cluster_node, node.id)
+        util.wait_until_k8s_ready(cluster_node, [cluster_node])
+
+        for node in (joining_cp_A, joining_cp_B):
+            util.remove_k8s_snap(node)
+            util.setup_k8s_snap(node)
+
+
+@pytest.mark.node_count(3)
 @pytest.mark.tags(tags.NIGHTLY)
 def test_concurrent_worker_membership_operations(instances: List[harness.Instance]):
     cluster_node = instances[0]
