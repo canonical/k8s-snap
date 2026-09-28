@@ -214,7 +214,7 @@ jobs:
     runs-on: ${{ fromJson(needs.prepare.outputs.test-runners)[matrix.test] || (inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04') }}
     strategy:
       fail-fast: false
-      max-parallel: ${{ inputs.max-parallel }}
+      max-parallel: ${{ fromJson(inputs.max-parallel) }}
       matrix:
         test: ${{ inputs.parallel && fromJson(needs.prepare.outputs.tests) || fromJson('["e2e-tests"]') }}
     steps:
