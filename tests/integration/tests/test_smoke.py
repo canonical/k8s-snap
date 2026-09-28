@@ -30,6 +30,9 @@ STATUS_PATTERNS = [
 )
 @pytest.mark.tags(tags.PULL_REQUEST)
 def test_smoke(instances: List[harness.Instance]):
+    # TEMPORARY: intentional failure to validate PR #2850 failure-context
+    # reporting on real CI. Will be reverted before this branch is deleted.
+    assert False, "intentional failure to validate PR #2850 metadata reporting"
     instance = instances[0]
 
     # Verify the functionality of the k8s config command during the smoke test.
