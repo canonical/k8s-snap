@@ -326,7 +326,11 @@ def test_concurrent_cp_membership_operations(instances: List[harness.Instance]):
 
 @pytest.mark.node_count(3)
 @pytest.mark.tags(tags.PULL_REQUEST, tags.NIGHTLY)
-def test_concurrent_cp_join_race(instances: List[harness.Instance]):
+def test_concurrent_cp_join_race(
+    instances: List[harness.Instance],
+    registry,
+    containerd_cfgdir: str,
+):
     """Regression test for the concurrent control-plane join race
     (k8s-snap#2814, #2813).
 
@@ -377,6 +381,12 @@ def test_concurrent_cp_join_race(instances: List[harness.Instance]):
         for node in (joining_cp_A, joining_cp_B):
             util.remove_k8s_snap(node)
             util.setup_k8s_snap(node)
+            # remove_k8s_snap wipes /etc/containerd (incl. hosts.d), so the
+            # local registry mirror config must be re-applied after reinstall,
+            # otherwise the next join pulls images directly and is subject to
+            # registry rate limits.
+            if config.USE_LOCAL_MIRROR:
+                registry.apply_configuration(node, containerd_cfgdir)
 
 
 @pytest.mark.node_count(3)
