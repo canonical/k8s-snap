@@ -1,9 +1,5 @@
 name: 'Retry command'
-description: >-
-  Run a shell command, retrying it a bounded number of times on failure
-  (e.g. transient snap-store 429s or apt mirror blips), with a per-attempt
-  timeout so a hang fails fast into a retry instead of eating the whole job
-  budget.
+description: Run a shell command, retrying on failure with a per-attempt timeout.
 inputs:
   command:
     description: 'Shell command(s) to run.'
