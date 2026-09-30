@@ -2,6 +2,7 @@
 # Copyright 2026 Canonical, Ltd.
 #
 
+import json
 import logging
 from collections.abc import Mapping
 
@@ -181,34 +182,30 @@ def _dump_cluster_network_diagnostics(instance: harness.Instance):
 
 
 def _dump_failing_pod_logs(instance: harness.Instance, namespace: str):
-    """Dump current+previous container logs for every pod that is not fully ready."""
+    """Dump current+previous container logs for every pod that is not fully ready.
+
+    Uses `-o json` + Python parsing rather than a single combined `jsonpath`
+    query: kubectl's jsonpath `range` silently truncates output once it hits
+    any pod missing `.status.containerStatuses` (e.g. one still stuck in
+    `Init:`), which would hide every pod listed after it.
+    """
     try:
-        # Check if the pod's Ready condition is false, or get container readiness
         proc = instance.exec(
-            [
-                "k8s",
-                "kubectl",
-                "-n",
-                namespace,
-                "get",
-                "pods",
-                "-o",
-                "jsonpath={range .items[*]}{.metadata.name}|{.status.containerStatuses[*].ready}\\n{end}",
-            ],
+            ["k8s", "kubectl", "-n", namespace, "get", "pods", "-o", "json"],
             capture_output=True,
             text=True,
             check=False,
         )
+        pods = json.loads(proc.stdout or "{}").get("items", [])
     except Exception as exc:
         LOG.warning("Failed to list pods for log collection: %s", exc)
         return
 
-    for line in (proc.stdout or "").strip().splitlines():
-        if "|" not in line:
-            continue
-        pod_name, readiness = line.split("|", 1)
-        # If any container in the pod is not ready ('false'), collect logs
-        if "false" not in readiness.lower():
+    for pod in pods:
+        pod_name = pod.get("metadata", {}).get("name")
+        container_statuses = pod.get("status", {}).get("containerStatuses", [])
+        # If any container in the pod is not ready, collect logs
+        if not any(not c.get("ready") for c in container_statuses):
             continue
 
         for flag, label in ((None, "current"), ("--previous", "previous")):
