@@ -175,7 +175,12 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install tox
-        run: sudo apt-get install -y tox
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          retry_wait_seconds: 5
+          command: sudo apt-get install -y tox
       - name: Compute test runners
         id: compute-test-runners
         env:
@@ -247,7 +252,12 @@ jobs:
         if: ${{ inputs.substrate == 'multipass' }}
         uses: ./.github/actions/setup-multipass
       - name: Install tox
-        run: sudo apt-get install -y tox
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          retry_wait_seconds: 5
+          command: sudo apt-get install -y tox
       - name: Generate names for step and artifacts
         if: ${{ always() }}
         env:

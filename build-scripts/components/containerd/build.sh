@@ -4,10 +4,21 @@
 INITIAL_GO_REVISION=$(snap list go | grep -E '^go\s' | awk '{print $3}')
 echo "Current Go snap revision: ${INITIAL_GO_REVISION}"
 
-# Refresh to go fips stable channel
 maj_min=$(awk '/^go /{print $2}' go.mod | cut -d. -f1,2)
 echo "Refreshing to go ${maj_min}-fips/stable channel..."
-snap refresh go --channel=${maj_min}-fips/stable
+# Retry on transient snap-store failures (e.g. 429 rate limiting) instead of
+# failing the whole build outright.
+for i in $(seq 1 5); do
+  if snap refresh go --channel="${maj_min}"-fips/stable; then
+    break
+  elif [ "${i}" -eq 5 ]; then
+    echo "Failed to refresh go snap after 5 attempts"
+    exit 1
+  else
+    echo "Retrying go snap refresh (${i}/5) in 10s..."
+    sleep 10
+  fi
+done
 
 INSTALL="${1}/bin"
 mkdir -p "${INSTALL}"

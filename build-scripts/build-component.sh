@@ -27,7 +27,19 @@ if [ -d "${COMPONENT_BUILD_DIRECTORY}" ]; then
 fi
 
 if [ ! -d "${COMPONENT_BUILD_DIRECTORY}" ]; then
-  git clone "${GIT_REPOSITORY}" --depth 1 -b "${GIT_TAG}" "${COMPONENT_BUILD_DIRECTORY}"
+  # Retry clone on transient network failures (e.g. connection resets against
+  # the upstream git host) instead of failing the whole build outright.
+  for i in $(seq 1 5); do
+    if git clone "${GIT_REPOSITORY}" --depth 1 -b "${GIT_TAG}" "${COMPONENT_BUILD_DIRECTORY}"; then
+      break
+    elif [ "${i}" -eq 5 ]; then
+      echo "Failed to clone ${GIT_REPOSITORY} after 5 attempts"
+      exit 1
+    else
+      echo "Retrying clone of ${GIT_REPOSITORY} (${i}/5) in 5s..."
+      sleep 5
+    fi
+  done
 fi
 
 cd "${COMPONENT_BUILD_DIRECTORY}"

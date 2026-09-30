@@ -95,10 +95,15 @@ jobs:
       - name: Install tox with UV
         run: uv tool install tox --with tox-uv
       - name: Install charmcraft, juju, juju-crashdump
-        run: |
-          sudo snap install charmcraft --classic
-          sudo snap install juju --channel=3/stable --classic
-          sudo snap install juju-crashdump --classic
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          retry_wait_seconds: 5
+          command: |
+            sudo snap install charmcraft --classic
+            sudo snap install juju --channel=3/stable --classic
+            sudo snap install juju-crashdump --classic
       - name: Download charms ${{ inputs.charm-channel }} ${{ inputs.arch }}
         env:
           INPUT_ARCH: ${{ inputs.arch }}
