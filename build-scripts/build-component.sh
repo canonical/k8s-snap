@@ -2,6 +2,28 @@
 
 set -ex
 
+# Retry a command a bounded number of times on transient failures (e.g.
+# network blips against an upstream host or the snap store) instead of
+# failing the whole build outright. Exported so build.sh scripts invoked
+# below (as a separate bash process) can call it directly too.
+retry() {
+  local attempts="${1}" delay="${2}"
+  shift 2
+  local i
+  for i in $(seq 1 "${attempts}"); do
+    if "$@"; then
+      return 0
+    elif [ "${i}" -eq "${attempts}" ]; then
+      echo "Failed after ${attempts} attempts: $*" >&2
+      return 1
+    else
+      echo "Retrying (${i}/${attempts}) in ${delay}s: $*" >&2
+      sleep "${delay}"
+    fi
+  done
+}
+export -f retry
+
 DIR=`realpath $(dirname "${0}")`
 
 BUILD_DIRECTORY="${SNAPCRAFT_PART_BUILD:-${DIR}/.build}"
@@ -27,19 +49,7 @@ if [ -d "${COMPONENT_BUILD_DIRECTORY}" ]; then
 fi
 
 if [ ! -d "${COMPONENT_BUILD_DIRECTORY}" ]; then
-  # Retry clone on transient network failures (e.g. connection resets against
-  # the upstream git host) instead of failing the whole build outright.
-  for i in $(seq 1 5); do
-    if git clone "${GIT_REPOSITORY}" --depth 1 -b "${GIT_TAG}" "${COMPONENT_BUILD_DIRECTORY}"; then
-      break
-    elif [ "${i}" -eq 5 ]; then
-      echo "Failed to clone ${GIT_REPOSITORY} after 5 attempts"
-      exit 1
-    else
-      echo "Retrying clone of ${GIT_REPOSITORY} (${i}/5) in 5s..."
-      sleep 5
-    fi
-  done
+  retry 5 5 git clone "${GIT_REPOSITORY}" --depth 1 -b "${GIT_TAG}" "${COMPONENT_BUILD_DIRECTORY}"
 fi
 
 cd "${COMPONENT_BUILD_DIRECTORY}"
