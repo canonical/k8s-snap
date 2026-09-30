@@ -1,0 +1,42 @@
+name: 'Retry command'
+description: >-
+  Run a shell command, retrying it a bounded number of times on failure
+  (e.g. transient snap-store 429s or apt mirror blips), with a per-attempt
+  timeout so a hang fails fast into a retry instead of eating the whole job
+  budget.
+inputs:
+  command:
+    description: 'Shell command(s) to run.'
+    required: true
+  max_attempts:
+    description: 'Maximum number of attempts.'
+    required: true
+  timeout_minutes:
+    description: 'Per-attempt timeout, in minutes.'
+    required: true
+  retry_wait_seconds:
+    description: 'Seconds to wait between attempts.'
+    required: false
+    default: '5'
+runs:
+  using: 'composite'
+  steps:
+    - name: Run with retries
+      shell: bash
+      env:
+        RETRY_COMMAND: ${{ inputs.command }}
+        RETRY_MAX_ATTEMPTS: ${{ inputs.max_attempts }}
+        RETRY_TIMEOUT_MINUTES: ${{ inputs.timeout_minutes }}
+        RETRY_WAIT_SECONDS: ${{ inputs.retry_wait_seconds }}
+      run: |
+        for attempt in $(seq 1 "${RETRY_MAX_ATTEMPTS}"); do
+          if timeout "${RETRY_TIMEOUT_MINUTES}m" bash -c "${RETRY_COMMAND}"; then
+            exit 0
+          fi
+          if [ "${attempt}" -eq "${RETRY_MAX_ATTEMPTS}" ]; then
+            echo "::error::Failed after ${RETRY_MAX_ATTEMPTS} attempts"
+            exit 1
+          fi
+          echo "Attempt ${attempt}/${RETRY_MAX_ATTEMPTS} failed, retrying in ${RETRY_WAIT_SECONDS}s..."
+          sleep "${RETRY_WAIT_SECONDS}"
+        done

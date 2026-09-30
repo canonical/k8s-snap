@@ -95,7 +95,7 @@ jobs:
       - name: Install tox with UV
         run: uv tool install tox --with tox-uv
       - name: Install charmcraft, juju, juju-crashdump
-        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+        uses: ./.github/actions/retry-command
         with:
           timeout_minutes: 10
           max_attempts: 5
