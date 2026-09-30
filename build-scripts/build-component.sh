@@ -2,29 +2,9 @@
 
 set -ex
 
-# Retry a command a bounded number of times on transient failures (e.g.
-# network blips against an upstream host or the snap store) instead of
-# failing the whole build outright. Exported so build.sh scripts invoked
-# below (as a separate bash process) can call it directly too.
-retry() {
-  local attempts="${1}" delay="${2}"
-  shift 2
-  local i
-  for i in $(seq 1 "${attempts}"); do
-    if "$@"; then
-      return 0
-    elif [ "${i}" -eq "${attempts}" ]; then
-      echo "Failed after ${attempts} attempts: $*" >&2
-      return 1
-    else
-      echo "Retrying (${i}/${attempts}) in ${delay}s: $*" >&2
-      sleep "${delay}"
-    fi
-  done
-}
-export -f retry
-
-DIR=`realpath $(dirname "${0}")`
+DIR=$(realpath "$(dirname "${0}")")
+export BUILD_SCRIPTS_DIR="${DIR}"
+source "${DIR}/lib.sh"
 
 BUILD_DIRECTORY="${SNAPCRAFT_PART_BUILD:-${DIR}/.build}"
 INSTALL_DIRECTORY="${SNAPCRAFT_PART_INSTALL:-${DIR}/.install}"

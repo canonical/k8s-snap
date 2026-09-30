@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source "${BUILD_SCRIPTS_DIR}/lib.sh"
+
 # Store the current Go snap revision
 INITIAL_GO_REVISION=$(snap list go | grep -E '^go\s' | awk '{print $3}')
 echo "Current Go snap revision: ${INITIAL_GO_REVISION}"
