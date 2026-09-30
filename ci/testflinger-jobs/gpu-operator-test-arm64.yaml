@@ -55,7 +55,7 @@ test_data:
     # `containerd-base-dir` option (whose shim-socket path isn't relocated,
     # causing "mkdir /run/containerd/s: no such file or directory" and a
     # permanently NotReady node).
-    mkdir -p /home/ubuntu/etc/containerd /home/ubuntu/run/containerd
+    sudo mkdir -p /home/ubuntu/etc/containerd /home/ubuntu/run/containerd
     sudo mkdir -p /etc/containerd /run/containerd
     sudo mountpoint -q /etc/containerd || sudo mount --bind /home/ubuntu/etc/containerd /etc/containerd
     sudo mountpoint -q /run/containerd || sudo mount --bind /home/ubuntu/run/containerd /run/containerd
