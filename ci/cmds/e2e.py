@@ -5,11 +5,9 @@
 """
 e2e-tests.yaml subcommands for `k8s-ci`.
 
-This module turns the run context collected by the "Collect run context"
-step of `.github/workflows/e2e-tests.yaml` into the human-readable
-failure-context table and the machine-readable `result.json`, so the
-formatting logic lives in one place instead of being duplicated across bash
-heredocs.
+Turns the run context from the workflow's "Collect run context" step into
+the failure-context table and result.json, so the formatting logic lives
+in one place instead of duplicated bash heredocs.
 """
 
 import argparse
@@ -17,9 +15,7 @@ import json
 import os
 from typing import Any, Dict
 
-# Fields collected by the workflow's "Collect run context" step, exported to
-# GITHUB_ENV as ctx_<field>, and therefore already present as environment
-# variables by the time these commands run.
+# Set by the workflow's "Collect run context" step as ctx_<field> env vars.
 _CTX_FIELDS = (
     "test",
     "channel",
@@ -79,7 +75,7 @@ def build_failure_context_table(ctx: Dict[str, str], test_name: str) -> str:
         test_name: Sanitized name used for the inspection report artifact.
 
     Returns:
-        Markdown block, ending in a trailing blank line.
+        Markdown block.
     """
     channel = ctx["channel"] or f"n/a (artifact: {ctx['artifact']})"
     revision = ctx["revision"] or "n/a (locally built snap)"
