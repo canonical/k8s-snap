@@ -74,6 +74,112 @@ def _check_nvidia_drivers_loaded(instance: harness.Instance) -> Mapping[str, boo
     return modules_present
 
 
+def _dump_gpu_operator_diagnostics(instance: harness.Instance, namespace: str):
+    """Dump operator-wide state for post-mortem debugging."""
+    diagnostics = [
+        (["k8s", "kubectl", "-n", namespace, "get", "pods", "-o", "wide"], "pods"),
+        (
+            ["k8s", "kubectl", "-n", namespace, "get", "daemonsets"],
+            "daemonsets",
+        ),
+        (
+            [
+                "k8s",
+                "kubectl",
+                "-n",
+                namespace,
+                "get",
+                "clusterpolicy",
+                "-o",
+                "yaml",
+            ],
+            "clusterpolicy",
+        ),
+        (
+            [
+                "k8s",
+                "kubectl",
+                "-n",
+                namespace,
+                "logs",
+                "-l",
+                "app=gpu-operator",
+                "--tail=200",
+            ],
+            "gpu-operator controller logs",
+        ),
+        (
+            [
+                "k8s",
+                "kubectl",
+                "get",
+                "events",
+                "-n",
+                namespace,
+                "--sort-by=.lastTimestamp",
+            ],
+            "namespace events",
+        ),
+        (
+            ["k8s", "kubectl", "get", "nodes", "-o", "yaml"],
+            "node labels and status",
+        ),
+    ]
+    for cmd, label in diagnostics:
+        try:
+            result = instance.exec(cmd, capture_output=True, text=True, check=False)
+            LOG.warning("=== DIAG: %s ===\n%s", label, result.stdout)
+            if result.stderr:
+                LOG.warning("stderr: %s", result.stderr)
+        except Exception as exc:
+            LOG.warning("Failed to collect %s: %s", label, exc)
+
+    _dump_failing_pod_logs(instance, namespace)
+
+
+def _dump_cluster_network_diagnostics(instance: harness.Instance):
+    """Dump cluster/CNI-wide state when the node never reaches Ready.
+
+    Unlike `_dump_gpu_operator_diagnostics`, this runs before the gpu-operator
+    namespace even exists, so it looks at `kube-system` (network/dns) and the
+    node object itself instead.
+    """
+    diagnostics = [
+        (["k8s", "status"], "k8s status"),
+        (["k8s", "kubectl", "get", "nodes", "-o", "wide"], "nodes"),
+        (["k8s", "kubectl", "describe", "nodes"], "node describe"),
+        (
+            ["k8s", "kubectl", "-n", "kube-system", "get", "pods", "-o", "wide"],
+            "kube-system pods",
+        ),
+        (
+            ["k8s", "kubectl", "-n", "kube-system", "get", "daemonsets"],
+            "kube-system daemonsets",
+        ),
+        (
+            [
+                "k8s",
+                "kubectl",
+                "get",
+                "events",
+                "-A",
+                "--sort-by=.lastTimestamp",
+            ],
+            "cluster-wide events",
+        ),
+    ]
+    for cmd, label in diagnostics:
+        try:
+            result = instance.exec(cmd, capture_output=True, text=True, check=False)
+            LOG.warning("=== DIAG: %s ===\n%s", label, result.stdout)
+            if result.stderr:
+                LOG.warning("stderr: %s", result.stderr)
+        except Exception as exc:
+            LOG.warning("Failed to collect %s: %s", label, exc)
+
+    _dump_failing_pod_logs(instance, "kube-system")
+
+
 def _dump_failing_pod_logs(instance: harness.Instance, namespace: str):
     """Dump current+previous container logs for every pod that is not fully ready."""
     try:
@@ -199,7 +305,12 @@ def test_deploy_nvidia_gpu_operator(
         pytest.skip(msg)
 
     LOG.info("Waiting for k8s node to become Ready (CNI initialized)...")
-    util.wait_until_k8s_ready(instance, instances, retries=180, delay_s=5)
+    try:
+        util.wait_until_k8s_ready(instance, instances, retries=180, delay_s=5)
+    except Exception:
+        LOG.warning("Node never became Ready — collecting cluster/CNI diagnostics")
+        _dump_cluster_network_diagnostics(instance)
+        raise
 
     if config.CONTAINERD_BASE_DIR:
         # gpu-operator hard-codes hostPath volume mounts at /etc/containerd and
