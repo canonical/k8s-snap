@@ -269,6 +269,40 @@ jobs:
           fi
           SANITIZED_ARTIFACT_NAME=$(echo "$RAW_ARTIFACT_NAME_BASE" | sed 's/[\/:\.\]/-/g' | sed 's/\s//g')
           echo "test_name=${SANITIZED_ARTIFACT_NAME}" >> $GITHUB_ENV
+      - name: Collect run context
+        if: ${{ always() }}
+        env:
+          MATRIX_TEST: ${{ matrix.test }}
+          INPUT_CHANNEL: ${{ inputs.channel }}
+          INPUT_OS: ${{ inputs.os }}
+          INPUT_ARCH: ${{ inputs.arch }}
+          INPUT_SUBSTRATE: ${{ inputs.substrate }}
+          INPUT_FLAVOR: ${{ inputs.flavor }}
+          INPUT_ARTIFACT: ${{ inputs.artifact }}
+          SNAP_REVISION: ${{ steps.download-snap.outputs.snap-revision }}
+          TEST_COLLECTION_REPO: ${{ needs.prepare.outputs.repo }}
+          TEST_COLLECTION_REF: ${{ needs.prepare.outputs.ref }}
+        run: |
+          # Report the commit that actually ran (collection ref may differ
+          # from the triggering ref).
+          ctx_sha=$(git rev-parse HEAD 2>/dev/null || echo unknown)
+          ctx_run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}"
+
+          {
+            echo "ctx_test=${MATRIX_TEST}"
+            echo "ctx_channel=${INPUT_CHANNEL}"
+            echo "ctx_revision=${SNAP_REVISION}"
+            echo "ctx_artifact=${INPUT_ARTIFACT}"
+            echo "ctx_os=${INPUT_OS}"
+            echo "ctx_arch=${INPUT_ARCH}"
+            echo "ctx_substrate=${INPUT_SUBSTRATE}"
+            echo "ctx_flavor=${INPUT_FLAVOR:-classic}"
+            echo "ctx_runner=${RUNNER_NAME} (${RUNNER_ENVIRONMENT}, ${RUNNER_OS}/${RUNNER_ARCH})"
+            echo "ctx_attempt=${GITHUB_RUN_ATTEMPT}"
+            echo "ctx_sha=${ctx_sha}"
+            echo "ctx_source=${TEST_COLLECTION_REPO}@${TEST_COLLECTION_REF}"
+            echo "ctx_run_url=${ctx_run_url}"
+          } >> "$GITHUB_ENV"
       - name: Performance flags
         if: ${{ contains(inputs.test-tags, 'performance') }}
         run: |
@@ -280,7 +314,7 @@ jobs:
           TEST_LXD_IMAGE: ${{ inputs.os }}
           TEST_MULTIPASS_IMAGE: ${{ inputs.os }}
           TEST_FLAVOR: ${{ inputs.flavor }}
-          TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports/${{ inputs.parallel && env.test_name || '' }}
+          TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports/${{ env.test_name }}
           TEST_VERSION_UPGRADE_CHANNELS: "recent 6"
           TEST_VERSION_DOWNGRADE_CHANNELS: "recent 6"
           TEST_VERSION_UPGRADE_MIN_RELEASE: "1.32"
@@ -306,6 +340,11 @@ jobs:
           fi
 
           cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- $PARALLEL_TEST $PERFORMANCE_FLAGS --tags $INPUT_TEST_TAGS $EXTRA_TEST_ARGS
+      - name: Report failure context
+        if: ${{ failure() }}
+        run: |
+          # tee so the same block lands in the job log and the run summary.
+          python3 ci/k8s-ci.py e2e print-failure-context | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Prepare inspection reports
         if: failure()
         run: |
@@ -351,20 +390,8 @@ jobs:
       - name: Upload test metadata
         if: ${{ inputs.upload-results && always() }}
         env:
-          INPUT_OS: ${{ inputs.os }}
-          INPUT_ARCH: ${{ inputs.arch }}
-          INPUT_CHANNEL: ${{ inputs.channel }}
-          MATRIX_TEST: ${{ matrix.test }}
           JOB_STATUS: ${{ job.status }}
-        run: |
-          mkdir -p results
-          jq -n \
-            --arg os "$INPUT_OS" \
-            --arg arch "$INPUT_ARCH" \
-            --arg channel "$INPUT_CHANNEL" \
-            --arg test "$MATRIX_TEST" \
-            --arg status "$JOB_STATUS" \
-            '{os:$os, arch:$arch, channel:$channel, test:$test, status:$status}' > results/result.json
+        run: python3 ci/k8s-ci.py e2e write-result-json --output results/result.json
         shell: bash
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: ${{ inputs.upload-results && always() }}
