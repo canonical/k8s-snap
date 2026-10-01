@@ -20,12 +20,15 @@ evidence capture: every e2e job now emits a standardised context table plus
 flavor, runner, attempt, sha, source, run_url, status.
 
 Part two exists as a large proof of concept on
-`agents/ci-failure-classification-metrics-design` (~8,400 lines: proposal 003,
-`ci/metrics/*`, `ci/cmds/metrics.py`, `ci/failure_rules.yaml`,
-`.github/workflows/ci-metrics.yaml`, `ci/tests/metrics/*`) with data produced onto
-the `ci-metrics` branch. It classifies failures into fault domains, fingerprints
-them into 16-hex signatures, and rolls them up. It is unreviewed, unmerged, and
-stores everything as hand-rolled JSON.
+`agents/ci-failure-classification-metrics-design`, pinned for review at
+[`53e6b6a`](https://github.com/canonical/k8s-snap/tree/53e6b6a7ef73947b5d6aa085905e63c8f36f4a19)
+(~8,400 lines: proposal 003, `ci/metrics/*`, `ci/cmds/metrics.py`,
+`ci/failure_rules.yaml`, `.github/workflows/ci-metrics.yaml`,
+`ci/tests/metrics/*`) with data produced onto the `ci-metrics` branch. It
+classifies failures into fault domains, fingerprints them into 16-hex
+signatures, and rolls them up. It is unreviewed, unmerged, and stores everything
+as hand-rolled JSON. Every line reference below is against that commit, not the
+branch tip, which may move.
 
 Part three — the actual gap — is that none of this reaches a human or the
 autonomous triage bot (`.github/workflows/triage.yaml`,
@@ -99,8 +102,13 @@ attribution, ≥90% agreement on 20 manually audited failures, digest rendering,
 
 ## Movement 2 — SQLite store
 
-- Canonical store: `ci/metrics-data/metrics.db`, schema-versioned. Facts are
-  durable; only raw evidence expires — see the schema appendix.
+- Canonical store: `ci/metrics-data/metrics.db`, schema-versioned. Every *fact* is
+  durable; what expires is bulk raw evidence — full log excerpts and the
+  per-step detail table. The step facts that decide a classification
+  (`failed_step_name`, `failed_step_number`, `log_available`, and the
+  runner-lost tell) are promoted onto `jobs` and are durable, so the
+  interpretations that depend on them survive the artifact window. See the
+  schema appendix.
 - **Committed artefact is `metrics.sql`** — `sqlite3 .dump` of the durable tables
   with stable ordering — so review, `git diff`, and blame keep working and the
   repo does not accumulate binary churn. `metrics.db` is gitignored and rebuilt
@@ -120,19 +128,47 @@ attribution, ≥90% agreement on 20 manually audited failures, digest rendering,
 New module `ci/metrics/issues.py` and `metrics open-issues` subcommand, run from
 the daily digest cron (never from reconciliation).
 
-**Eligibility.** A signature is issue-worthy when all hold:
-- class is `product.bug` or `test.bug`;
-- occurrences ≥ threshold (start: ≥3 occurrences across ≥2 distinct runs);
-- not already tracked by an open issue, and not closed-as-resolved within a cooldown;
-- confidence is rule-derived, not `unknown`.
+**Eligibility.** The unit of eligibility is a **(signature, context)** pair, not a
+signature. This matters because the same fingerprint can carry different classes
+in different contexts — `8c531e6ba49b3382` is `infra.provisioning` on Multipass
+and `product.bug` on LXD — so eligibility evaluated per signature would file an
+infrastructure failure as a product bug. A pair is issue-worthy when all hold:
+- the class **for that context** is `product.bug` or `test.bug`;
+- occurrences *within that context* ≥ threshold (start: ≥3 across ≥2 distinct runs);
+- not already tracked by an open or claimed issue for that same pair, and not
+  closed-as-resolved within a cooldown;
+- confidence is rule-derived, not `unknown`;
+- the run's base is not stale (see Safety below).
 Plus a per-run budget (start: max 3 new issues/day) so a bad rule cannot flood the
 tracker.
 
-**Deduplication.** Each issue body carries a marker `<!-- ci-signature: <id> -->`
-and the `signatures` table stores `issue_number`/`issue_state`. On recurrence the
-bridge comments on the existing issue with updated counts and the newest run link
-instead of opening a second one. A signature recurring after its issue was closed
-reopens it with a "regressed" comment rather than opening a duplicate.
+**Deduplication.** Tracked in the `issues` table, keyed by signature *and
+classification context* (see below) — not on `signatures`, which carries no issue
+columns. On recurrence the bridge comments on the existing issue with updated
+counts and the newest run link instead of opening a second one. A signature
+recurring after its issue was closed reopens it with a "regressed" comment rather
+than opening a duplicate.
+
+**Idempotency — a local unique index cannot make a remote POST idempotent.** The
+partial unique index stops two rows existing; it cannot stop two GitHub issues
+existing. Two overlapping runs can both observe "no open issue", both POST, and
+only then collide locally — or a worker can crash after the POST but before the
+insert, losing the issue number entirely. So the bridge uses claim-then-post:
+
+1. **Claim.** Insert `issue_state='claiming'` with a deterministic
+   `idempotency_key` and commit, *before* any network call. The partial unique
+   index covers `claiming` as well as `open`, so a competing worker loses here —
+   locally, cheaply, before anything external happens.
+2. **Post.** Create the issue with the key embedded in the body marker:
+   `<!-- ci-signature: <id> ctx=<substrate> key=<idempotency_key> -->`.
+3. **Confirm.** Record the number and flip to `open`.
+
+Recovery is what the marker buys: a stale `claiming` row means step 2 or 3 may or
+may not have happened, so the bridge **searches GitHub for the key** before
+re-posting, and adopts the existing issue if it finds one. The key is in the
+issue body precisely so that recovery is a search rather than a guess. A claim
+that cannot be resolved after a bounded number of attempts flips to `failed` and
+is surfaced in the digest rather than retried forever.
 
 **Issue body** (so the triage skill has what `reproduce.md` needs without a human
 re-gathering it): signature ID and class, first/last seen, occurrence count and
@@ -418,6 +454,14 @@ PRAGMA foreign_keys = ON;
 CREATE TABLE schema_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 
 -- == dimensions: no JSON columns anywhere =============================
+--
+-- CONVENTION: dimension columns that participate in a UNIQUE or PRIMARY KEY
+-- are NOT NULL and use '' for "absent" (and '*' for "any"). SQLite treats
+-- NULLs as DISTINCT in UNIQUE constraints, so a nullable dimension silently
+-- stops deduplicating: artifact builds carry no channel, and nullable
+-- `channel` would mint a fresh configs row per run and inflate every
+-- configs_affected count. Sentinels, not NULLs, in every key.
+
 CREATE TABLE workflows (
     workflow_id INTEGER PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,
@@ -429,13 +473,17 @@ CREATE TABLE workflows (
 -- guard (one signature, two meanings) a first-class query.
 CREATE TABLE configs (
     config_id INTEGER PRIMARY KEY,
-    os TEXT, arch TEXT, channel TEXT, flavor TEXT, substrate TEXT,
+    os        TEXT NOT NULL DEFAULT '',
+    arch      TEXT NOT NULL DEFAULT '',
+    channel   TEXT NOT NULL DEFAULT '',   -- '' for artifact builds
+    flavor    TEXT NOT NULL DEFAULT '',
+    substrate TEXT NOT NULL DEFAULT '',   -- '' when unparseable => `unknown`
     UNIQUE (os, arch, channel, flavor, substrate)
 );
 
 CREATE TABLE tests (
     test_id INTEGER PRIMARY KEY,
-    nodeid  TEXT NOT NULL UNIQUE,
+    nodeid  TEXT NOT NULL UNIQUE,   -- seed row id 0, nodeid '' = no test
     file    TEXT,
     owner   TEXT            -- reserved for test-owners.yaml; NULL today
 );
@@ -449,6 +497,19 @@ CREATE TABLE runner_labels (
     runner_id INTEGER NOT NULL REFERENCES runners ON DELETE CASCADE,
     label     TEXT NOT NULL,
     PRIMARY KEY (runner_id, label)
+);
+
+-- Stage A verdicts, as a dimension rather than a parsed string. The class is
+-- stored, never derived from the rule id: ids are dotted (`infra.runner.lost`)
+-- and classes are dotted too, so splitting on the first '.' yields `infra`,
+-- which is not a valid failure_class at all. One CHECK, one place.
+CREATE TABLE router_rules (
+    router_rule_id TEXT PRIMARY KEY,
+    failure_class  TEXT NOT NULL,
+    subclass       TEXT,
+    router_version INTEGER NOT NULL,
+    CHECK (failure_class IN ('infra.runner','infra.provisioning',
+        'external.dependency','ci.config','product.bug','test.bug','unknown'))
 );
 
 -- == facts: durable ===================================================
@@ -497,7 +558,7 @@ CREATE TABLE jobs (
     job_id  INTEGER PRIMARY KEY,       -- globally unique in GitHub
     run_id  INTEGER NOT NULL, attempt INTEGER NOT NULL,
     config_id INTEGER NOT NULL REFERENCES configs,
-    test_id   INTEGER REFERENCES tests,
+    test_id   INTEGER NOT NULL DEFAULT 0 REFERENCES tests,  -- 0 = no test
     runner_id INTEGER REFERENCES runners,
     job_name TEXT NOT NULL, caller_job TEXT, html_url TEXT NOT NULL,
     started_at TEXT, completed_at TEXT, duration_s REAL,
@@ -508,7 +569,7 @@ CREATE TABLE jobs (
 
     -- Exactly one attribution path, or neither (deferred and unmatched).
     signature_id   TEXT REFERENCES signatures,   -- Stage B
-    router_rule_id TEXT,                         -- Stage A, metadata-only
+    router_rule_id TEXT REFERENCES router_rules, -- Stage A, metadata-only
     FOREIGN KEY (run_id, attempt) REFERENCES runs ON DELETE CASCADE,
     CHECK (signature_id IS NULL OR router_rule_id IS NULL)
 );
@@ -532,8 +593,22 @@ CREATE TABLE signatures (
 -- Append-only. Keeps the history of how a signature was classified as the
 -- rule pack evolved, which is what lets us measure automated-diagnosis
 -- accuracy against human triage decisions rather than assert it.
+--
+-- Keyed by signature AND CONTEXT, because a fingerprint is not always a
+-- diagnosis: 8c531e6ba49b3382 ("failed to meet condition") is
+-- infra.provisioning on Multipass and product.bug on LXD. Keying on the
+-- signature alone would let the bridge file an infrastructure failure as a
+-- product bug. `substrate='*'` means "any substrate" -- the common case --
+-- and a concrete substrate wins over it. The sentinel is deliberate: SQLite
+-- allows NULL in a PRIMARY KEY and treats NULLs as distinct, so a nullable
+-- context column would admit unlimited duplicate "any" rows.
+--
+-- Substrate is the only discriminator the evidence has so far demanded. If a
+-- second one appears, this generalises to a context_id FK into a contexts
+-- table; it does not generalise by adding more nullable columns here.
 CREATE TABLE signature_classifications (
     signature_id  TEXT NOT NULL REFERENCES signatures ON DELETE CASCADE,
+    substrate     TEXT NOT NULL DEFAULT '*',   -- '*' = any; else exact match
     ruleset_version INTEGER NOT NULL,
     failure_class TEXT NOT NULL,
     subclass      TEXT,
@@ -541,7 +616,7 @@ CREATE TABLE signature_classifications (
     confidence    REAL,
     classified_by TEXT NOT NULL,       -- rules|human  (never 'llm')
     classified_at TEXT NOT NULL,
-    PRIMARY KEY (signature_id, ruleset_version, classified_by),
+    PRIMARY KEY (signature_id, substrate, ruleset_version, classified_by),
     CHECK (failure_class IN ('infra.runner','infra.provisioning',
         'external.dependency','ci.config','product.bug','test.bug','unknown')),
     CHECK (classified_by IN ('rules','human'))
@@ -563,48 +638,95 @@ CREATE TABLE job_steps (
     PRIMARY KEY (job_id, number)
 );
 
+-- Positive retry evidence. `jobs` holds only FAILED jobs, so "absent from
+-- attempt N+1" is not proof of a pass -- it equally covers skipped, cancelled,
+-- and jobs that never ran because their matrix was blocked (M11). Deriving
+-- flakiness from absence would relabel every provisioning outage as a flake.
+-- Written only for cells that failed on a previous attempt, so volume is
+-- bounded by prior failures rather than by matrix size.
+CREATE TABLE retry_outcomes (
+    run_id    INTEGER NOT NULL,
+    attempt   INTEGER NOT NULL,        -- the RETRY attempt, i.e. N+1
+    config_id INTEGER NOT NULL REFERENCES configs,
+    test_id   INTEGER NOT NULL DEFAULT 0 REFERENCES tests,
+    conclusion TEXT NOT NULL,          -- only 'success' makes a flake
+    PRIMARY KEY (run_id, attempt, config_id, test_id),
+    FOREIGN KEY (run_id, attempt) REFERENCES runs ON DELETE CASCADE,
+    CHECK (conclusion IN ('success','failure','skipped','cancelled','not_run'))
+);
+
 -- == the issue bridge =================================================
+-- `claiming` exists because a local index cannot make a remote POST
+-- idempotent. The row is written and committed BEFORE the API call, so a
+-- competing worker loses the race locally and cheaply; `idempotency_key` is
+-- echoed into the issue body so a crash between POST and confirm is
+-- recoverable by SEARCHING GitHub for the key rather than guessing.
 CREATE TABLE issues (
+    claim_id     INTEGER PRIMARY KEY,
     signature_id TEXT NOT NULL REFERENCES signatures ON DELETE CASCADE,
-    issue_number INTEGER NOT NULL,
-    issue_state  TEXT NOT NULL,
-    opened_at TEXT NOT NULL, closed_at TEXT, closed_reason TEXT,
+    substrate    TEXT NOT NULL DEFAULT '*',  -- same context scope as the class
+    idempotency_key TEXT NOT NULL UNIQUE,
+    issue_number INTEGER,              -- NULL until the POST returns
+    issue_state  TEXT NOT NULL,        -- claiming|open|closed|failed
+    claimed_at TEXT NOT NULL,
+    opened_at TEXT, closed_at TEXT, closed_reason TEXT,
     reopened_count INTEGER NOT NULL DEFAULT 0,
+    post_attempts  INTEGER NOT NULL DEFAULT 0,
     last_comment_at TEXT,
     last_reported_occurrences INTEGER NOT NULL DEFAULT 0,
-    occurrences_at_open INTEGER NOT NULL,
-    opened_by_ruleset_version INTEGER NOT NULL,
-    PRIMARY KEY (signature_id, issue_number),
-    CHECK (issue_state IN ('open','closed'))
+    occurrences_at_open INTEGER,
+    opened_by_ruleset_version INTEGER,
+    CHECK (issue_state IN ('claiming','open','closed','failed')),
+    -- an issue that is live or settled must know its number
+    CHECK (issue_state IN ('claiming','failed') OR issue_number IS NOT NULL)
 );
--- Dedup enforced by the database, not by Python racing with itself.
-CREATE UNIQUE INDEX one_open_issue_per_signature
-    ON issues(signature_id) WHERE issue_state = 'open';
+-- One live issue per (signature, context). Covers `claiming` too -- that is
+-- the whole point: the claim, not the POST, is what gets serialised.
+CREATE UNIQUE INDEX one_live_issue_per_signature
+    ON issues(signature_id, substrate)
+    WHERE issue_state IN ('claiming','open');
+CREATE UNIQUE INDEX one_issue_number
+    ON issues(issue_number) WHERE issue_number IS NOT NULL;
 ```
 
 ## Views -- every metric derived, nothing frozen
 
 ```sql
--- Current class: latest ruleset, human override always wins.
+-- Current class per (signature, context). Human override always wins, then
+-- the newest ruleset. Specificity is resolved in v_job_class, not here.
 CREATE VIEW v_signature_class AS
-SELECT signature_id, failure_class, subclass, rule_id, confidence, classified_by
+SELECT signature_id, substrate, failure_class, subclass, rule_id,
+       confidence, classified_by
 FROM (SELECT *, ROW_NUMBER() OVER (
-          PARTITION BY signature_id
+          PARTITION BY signature_id, substrate
           ORDER BY (classified_by='human') DESC, ruleset_version DESC
       ) rn FROM signature_classifications)
 WHERE rn = 1;
 
 -- One class per failed job, whichever stage settled it.
+-- The signature join is CONTEXT-AWARE: an exact substrate match outranks the
+-- '*' fallback, so the Multipass/LXD split survives into every metric and
+-- into issue eligibility. Router class is read from router_rules, never
+-- parsed out of the rule id.
 CREATE VIEW v_job_class AS
-SELECT j.job_id, j.run_id, j.attempt, j.config_id, j.test_id, j.signature_id,
-       COALESCE(sc.failure_class,
-                CASE WHEN j.router_rule_id IS NOT NULL
-                     THEN substr(j.router_rule_id, 1, instr(j.router_rule_id,'.')-1)
-                END, 'unknown') AS failure_class,
-       CASE WHEN j.router_rule_id IS NOT NULL THEN 'router'
-            WHEN sc.signature_id IS NOT NULL THEN sc.classified_by
-            ELSE 'none' END AS classified_by
-FROM jobs j LEFT JOIN v_signature_class sc USING (signature_id);
+SELECT job_id, run_id, attempt, config_id, test_id, signature_id,
+       failure_class, subclass, classified_by
+FROM (
+  SELECT j.job_id, j.run_id, j.attempt, j.config_id, j.test_id, j.signature_id,
+         COALESCE(sc.failure_class, rr.failure_class, 'unknown') AS failure_class,
+         COALESCE(sc.subclass, rr.subclass)                      AS subclass,
+         CASE WHEN sc.signature_id IS NOT NULL THEN sc.classified_by
+              WHEN rr.router_rule_id IS NOT NULL THEN 'router'
+              ELSE 'none' END                                    AS classified_by,
+         ROW_NUMBER() OVER (PARTITION BY j.job_id
+                            ORDER BY (sc.substrate <> '*') DESC) AS rn
+  FROM jobs j
+  JOIN configs cfg USING (config_id)
+  LEFT JOIN router_rules rr USING (router_rule_id)
+  LEFT JOIN v_signature_class sc
+         ON sc.signature_id = j.signature_id
+        AND sc.substrate IN ('*', cfg.substrate)
+) WHERE rn = 1;
 
 -- Replaces the frozen signature_stats table entirely.
 CREATE VIEW v_signature_stats AS
@@ -617,16 +739,27 @@ SELECT j.signature_id,
 FROM jobs j JOIN runs r USING (run_id, attempt)
 WHERE j.signature_id IS NOT NULL GROUP BY j.signature_id;
 
--- Flake = failed on attempt N, absent on attempt N+1, same cell and test.
+-- Per-context stats, which is the grain issue eligibility actually uses.
+CREATE VIEW v_signature_context_stats AS
+SELECT j.signature_id, cfg.substrate,
+       COUNT(*) AS occurrences, COUNT(DISTINCT j.run_id) AS runs_seen,
+       MIN(r.started_at) AS first_seen, MAX(r.started_at) AS last_seen
+FROM jobs j JOIN runs r USING (run_id, attempt)
+JOIN configs cfg USING (config_id)
+WHERE j.signature_id IS NOT NULL GROUP BY j.signature_id, cfg.substrate;
+
+-- Flake = failed on attempt N and PROVABLY SUCCEEDED on N+1, same cell and
+-- test. Absence is not evidence: a cell that was skipped, cancelled, or never
+-- ran because its matrix was blocked is absent too, and treating that as a
+-- pass would relabel provisioning outages as flakes. Hence the explicit join
+-- to retry_outcomes rather than a NOT EXISTS over jobs.
 CREATE VIEW v_flakes AS
 SELECT j.signature_id, j.run_id, j.attempt, j.config_id, j.test_id
 FROM jobs j
-WHERE EXISTS (SELECT 1 FROM runs r2
-              WHERE r2.run_id=j.run_id AND r2.attempt=j.attempt+1)
-  AND NOT EXISTS (SELECT 1 FROM jobs j2
-              WHERE j2.run_id=j.run_id AND j2.attempt=j.attempt+1
-                AND j2.config_id=j.config_id
-                AND j2.test_id IS j.test_id);
+JOIN retry_outcomes ro
+  ON ro.run_id = j.run_id AND ro.attempt = j.attempt + 1
+ AND ro.config_id = j.config_id AND ro.test_id = j.test_id
+WHERE ro.conclusion = 'success';
 ```
 
 ## What changed against the PoC, and why
@@ -636,11 +769,14 @@ WHERE EXISTS (SELECT 1 FROM runs r2
 | `signature_stats` frozen table | `v_signature_stats` view | facts are durable, so aggregates cannot drift from them |
 | `rollups` committed, `runs_covered` guard | derived at report time, **not committed** | removes the "relabel a `--since` window as a month" failure mode entirely |
 | cross-`ruleset_version` comparison refused | recompute all history under the new ruleset | strictly more honest; git history of `metrics.sql` preserves what we believed |
-| class on `jobs` | class on `signatures` | matches the actual premise: we classify signatures, not jobs |
+| class on `jobs` | class on `signatures` **per context** | matches the premise (we classify signatures) without collapsing the Multipass/LXD split into one verdict |
 | single classification | `signature_classifications` append-only | enables "track diagnostic accuracy against human triage" from the vision |
 | 4 JSON array columns | `configs`, `tests`, `runner_labels`, `run_blocked_jobs` | the root cause of "ugly json" -- gone |
 | `conclusion` nullable | `NOT NULL` | the in-flight-run bug becomes unrepresentable |
-| `retried`/`retry_outcome` flags | `v_flakes` | a stored flag goes stale; a derivation cannot |
+| `retried`/`retry_outcome` flags | `v_flakes` over `retry_outcomes` | a stored flag goes stale; a derivation cannot -- but it needs *positive* pass evidence, not absence |
+| nullable dimension columns | `NOT NULL` + `''`/`'*'` sentinels | SQLite treats NULLs as distinct in UNIQUE, so nullable keys silently stop deduplicating |
+| router class parsed from rule id | `router_rules` lookup table | splitting `infra.runner.lost` on the first `.` yields `infra`, not a valid class |
+| `issues` keyed on `(signature, number)` | claim-then-post with `idempotency_key` | a local index cannot make a remote POST idempotent |
 
 ## Storage
 
@@ -649,7 +785,11 @@ WHERE EXISTS (SELECT 1 FROM runs r2
   the dump.
 - Generated exports, committed for humans: `reports/latest.md`,
   `signatures/catalogue.md`.
-- Excerpts and step detail stay in the 90-day Actions artifact; one exemplar per
-  signature is promoted into `signatures` forever, which is all reclassification
-  ever needed.
+- Excerpts and full step detail stay in the 90-day Actions artifact. What is
+  promoted and kept forever: one exemplar excerpt per signature (all that
+  reclassification ever needs), and the step facts a classification actually
+  turns on — `failed_step_name`, `failed_step_number`, `log_available` — which
+  live on `jobs`, not in `job_steps`. So the runner-lost and retry
+  interpretations survive the artifact window even though the table backing
+  them does not.
 - No migration path: data is regenerated with `metrics ingest --since 90d`.
