@@ -13,8 +13,6 @@ import os
 import sys
 from typing import Optional
 
-import requests
-
 
 def add_charm_cmds(parser: argparse.ArgumentParser) -> None:
     """
@@ -63,6 +61,11 @@ def _query_charm_info(charm_name: str, auth_token: Optional[str] = None) -> dict
     Returns:
         JSON response from the Charmhub API.
     """
+    # Imported lazily: `requests` is only needed for this command, and most
+    # `k8s-ci` invocations (e.g. the e2e-tests.yaml result reporting) run in
+    # environments that never install it.
+    import requests
+
     url = f"https://api.charmhub.io/v2/charms/info/{charm_name}?fields=channel-map"
     headers = {"Content-Type": "application/json"}
 

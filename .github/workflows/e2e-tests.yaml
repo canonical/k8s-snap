@@ -232,6 +232,14 @@ jobs:
         with:
           repository: ${{ needs.prepare.outputs.repo }}
           ref: ${{ needs.prepare.outputs.ref }}
+      - name: Check out CI tooling
+        # `ci/k8s-ci.py` is workflow infrastructure, not test content: it must
+        # come from the ref that is actually running this workflow, not the
+        # test-collection ref above (which, for a release channel, is an
+        # older release branch that may predate this script).
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          path: ci-tooling
       - name: Setup Python
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
@@ -354,7 +362,7 @@ jobs:
         if: ${{ failure() }}
         run: |
           # tee so the same block lands in the job log and the run summary.
-          python3 ci/k8s-ci.py e2e print-failure-context | tee -a "$GITHUB_STEP_SUMMARY"
+          python3 ci-tooling/ci/k8s-ci.py e2e print-failure-context | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Prepare inspection reports
         if: failure()
         run: |
@@ -401,7 +409,7 @@ jobs:
         if: ${{ inputs.upload-results && always() }}
         env:
           JOB_STATUS: ${{ job.status }}
-        run: python3 ci/k8s-ci.py e2e write-result-json --output results/result.json
+        run: python3 ci-tooling/ci/k8s-ci.py e2e write-result-json --output results/result.json
         shell: bash
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: ${{ inputs.upload-results && always() }}
