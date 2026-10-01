@@ -13,8 +13,6 @@ import os
 import sys
 from typing import Optional
 
-import requests
-
 
 def add_charm_cmds(parser: argparse.ArgumentParser) -> None:
     """
@@ -63,6 +61,8 @@ def _query_charm_info(charm_name: str, auth_token: Optional[str] = None) -> dict
     Returns:
         JSON response from the Charmhub API.
     """
+    import requests
+
     url = f"https://api.charmhub.io/v2/charms/info/{charm_name}?fields=channel-map"
     headers = {"Content-Type": "application/json"}
 
