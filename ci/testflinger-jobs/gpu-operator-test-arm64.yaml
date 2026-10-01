@@ -49,23 +49,14 @@ test_data:
     tar xzf k8s-test-suite.tar.gz
     cd tests/integration
 
-    # IGX Orin has a system-wide containerd already using the default paths.
-    # Bind-mount them to a scratch location *before* k8s's containerd starts,
-    # so it gets a clean /etc|/run/containerd without needing the
-    # `containerd-base-dir` option (whose shim-socket path isn't relocated,
-    # causing "mkdir /run/containerd/s: no such file or directory" and a
-    # permanently NotReady node).
-    sudo mkdir -p /home/ubuntu/etc/containerd /home/ubuntu/run/containerd
-    sudo mkdir -p /etc/containerd /run/containerd
-    sudo mountpoint -q /etc/containerd || sudo mount --bind /home/ubuntu/etc/containerd /etc/containerd
-    sudo mountpoint -q /run/containerd || sudo mount --bind /home/ubuntu/run/containerd /run/containerd
-
     # Run the GPU operator test directly on bare metal via SSH harness.
     export TEST_SNAP="/tmp/k8s-arm64.snap"
     export TEST_SUBSTRATE=bare_metal
     export TEST_BARE_METAL_SSH_HOST=localhost
     export TEST_BARE_METAL_SSH_USER=ubuntu
     export TEST_USE_LOCAL_MIRROR=0
+    # IGX Orin has a system-wide containerd at the default path; relocate ours to avoid conflict.
+    export TEST_CONTAINERD_BASE_DIR=/home/ubuntu
 
     # set +e: `set -e` would abort the script here on a non-zero tox exit,
     # skipping the diagnostics dump and the cleanup/unmount steps below.
@@ -94,7 +85,7 @@ test_data:
     sudo umount /etc/containerd 2>/dev/null || true
     sudo umount /run/containerd 2>/dev/null || true
     sudo snap remove k8s --purge 2>/dev/null || true
-    sudo rm -rf /home/ubuntu/etc/containerd /home/ubuntu/run/containerd 2>/dev/null || true
+    sudo rm -rf /home/ubuntu/etc/containerd /home/ubuntu/run/containerd /home/ubuntu/var/lib/containerd 2>/dev/null || true
     sudo rm -rf /tmp/k8s-arm64.snap /tmp/k8s-test-suite.tar.gz /tmp/tests 2>/dev/null || true
     sudo rm -rf /tmp/snapd.snap /tmp/snapd.assert /tmp/core22.snap /tmp/core22.assert 2>/dev/null || true
 
