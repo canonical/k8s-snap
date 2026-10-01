@@ -233,10 +233,6 @@ jobs:
           repository: ${{ needs.prepare.outputs.repo }}
           ref: ${{ needs.prepare.outputs.ref }}
       - name: Check out CI tooling
-        # `ci/k8s-ci.py` is workflow infrastructure, not test content: it must
-        # come from the ref that is actually running this workflow, not the
-        # test-collection ref above (which, for a release channel, is an
-        # older release branch that may predate this script).
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           path: ci-tooling
