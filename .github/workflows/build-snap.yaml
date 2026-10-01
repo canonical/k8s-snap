@@ -52,8 +52,12 @@ jobs:
       - name: Setup LXD
         uses: canonical/setup-lxd@a3c85fc6fb7fff43fcfeae87659e41a8f635b7dd # v0.1.3
       - name: Install snapcraft
-        run: |
-          sudo snap install snapcraft --classic
+        uses: ./.github/actions/retry-command
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          retry_wait_seconds: 5
+          command: sudo snap install snapcraft --classic
       - name: Build k8s snap
         id: build
         env:

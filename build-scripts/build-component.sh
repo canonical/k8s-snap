@@ -2,7 +2,9 @@
 
 set -ex
 
-DIR=`realpath $(dirname "${0}")`
+DIR=$(realpath "$(dirname "${0}")")
+export BUILD_SCRIPTS_DIR="${DIR}"
+source "${DIR}/lib.sh"
 
 BUILD_DIRECTORY="${SNAPCRAFT_PART_BUILD:-${DIR}/.build}"
 INSTALL_DIRECTORY="${SNAPCRAFT_PART_INSTALL:-${DIR}/.install}"
@@ -27,7 +29,7 @@ if [ -d "${COMPONENT_BUILD_DIRECTORY}" ]; then
 fi
 
 if [ ! -d "${COMPONENT_BUILD_DIRECTORY}" ]; then
-  git clone "${GIT_REPOSITORY}" --depth 1 -b "${GIT_TAG}" "${COMPONENT_BUILD_DIRECTORY}"
+  retry 5 5 git clone "${GIT_REPOSITORY}" --depth 1 -b "${GIT_TAG}" "${COMPONENT_BUILD_DIRECTORY}"
 fi
 
 cd "${COMPONENT_BUILD_DIRECTORY}"

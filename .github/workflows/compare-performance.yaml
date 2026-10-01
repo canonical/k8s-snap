@@ -94,7 +94,12 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install tox
-        run: sudo apt-get install -y tox
+        uses: ./.github/actions/retry-command
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          retry_wait_seconds: 5
+          command: sudo apt-get install -y tox
       - name: Generate test prefix
         env:
           INPUT_OS: ${{ inputs.os }}
