@@ -301,17 +301,15 @@ def test_deploy_nvidia_gpu_operator(
         LOG.warning(msg)
         pytest.skip(msg)
 
-    LOG.info("Waiting for k8s node to become Ready (CNI initialized)...")
-    try:
-        util.wait_until_k8s_ready(instance, instances, retries=180, delay_s=5)
-    except Exception:
-        LOG.warning("Node never became Ready — collecting cluster/CNI diagnostics")
-        _dump_cluster_network_diagnostics(instance)
-        raise
-
     if config.CONTAINERD_BASE_DIR:
-        # gpu-operator hard-codes hostPath volume mounts at /etc/containerd and
-        # /run/containerd; bind-mount so the defaults reach our relocated paths.
+        # containerd's runc shim creates its socket under the hard-coded
+        # /run/containerd/s, which `containerd-base-dir` does not relocate; if
+        # /run/containerd is missing every pod sandbox (incl. the CNI) fails with
+        # "mkdir /run/containerd/s: no such file or directory" and the node never
+        # becomes Ready. gpu-operator also hard-codes hostPath mounts at
+        # /etc/containerd and /run/containerd. Bind-mount the defaults onto our
+        # relocated paths *before* waiting for the node; kubelet retries failed
+        # sandboxes, so already-pending pods recover.
         for target, source in (
             ("/etc/containerd", f"{config.CONTAINERD_BASE_DIR}/etc/containerd"),
             ("/run/containerd", f"{config.CONTAINERD_BASE_DIR}/run/containerd"),
@@ -324,6 +322,14 @@ def test_deploy_nvidia_gpu_operator(
                     f"mountpoint -q {target} || mount --bind {source} {target}",
                 ]
             )
+
+    LOG.info("Waiting for k8s node to become Ready (CNI initialized)...")
+    try:
+        util.wait_until_k8s_ready(instance, instances, retries=180, delay_s=5)
+    except Exception:
+        LOG.warning("Node never became Ready — collecting cluster/CNI diagnostics")
+        _dump_cluster_network_diagnostics(instance)
+        raise
 
     # Add the upstream Nvidia GPU-operator Helm repo:
     instance.exec(
