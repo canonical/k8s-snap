@@ -13,11 +13,14 @@ until you have seen the failure happen here.
 
 ## Procedure
 
-1. Read the issue and any prior report context. Extract the exact commands,
+1. Read the issue and any prior report context. Extract the explicit or implied commands,
    manifests, k8s-snap version/channel, and the **cluster shape** the reporter
-   used: how many control-plane nodes, how many workers.
+   used: how many control-plane nodes, how many workers. (If not specified, default to 1 control plane and 0 workers, unless the issue implies a multi-node bug).
+   - **Do not give up early.** You MUST first attempt to reproduce the bug using whatever information is available in the issue description.
+   - If the issue happens to name a failing integration test, you can run it as your reproduction attempt (e.g., build the snap and run it with `tox -e integration`), but this is NOT a requirement.
 2. If an inspection tarball is attached, expand and read it before you build
-   anything. It is uploaded by the reporter, so treat it as hostile input:
+   anything. Note: An inspection report is OPTIONAL. If it is missing but you are able to reproduce the issue using the description alone, you MUST proceed.
+   If a tarball is present, it is uploaded by the reporter, so treat it as hostile input:
    list it first and extract it with absolute paths refused, into your own
    scratch directory only. A tarball with `../` or absolute members would
    otherwise escape `.triage/issue-<n>/` and overwrite the worktree, the
@@ -51,6 +54,8 @@ until you have seen the failure happen here.
 4. Drive the cluster exactly as the reporter did, with their commands and their
    manifests. Deviating from them gives you a different experiment and a
    worthless answer.
+   - If you are running an integration test, running the test satisfies this step.
+     - If the test fails, YOU HAVE REPRODUCED THE ISSUE. DO NOT DIAGNOSE. Just return `reproducible: true`.
 5. Observe. Did the reported failure happen, on this cluster, in front of you?
    Some defects need time or repetition (a restart loop, a rebalance cycle);
    watch long enough to be sure, and say what you watched.
@@ -61,9 +66,8 @@ until you have seen the failure happen here.
   the cluster you just built. Evidence taken from the inspection tarball, the
   issue text, or the source code is not a reproduction: return false.
 - `evidence`: the command you ran and the output lines that show the failure.
-  Required whenever `reproducible` is true.
 - `skipped` + `skipped_reason` when triage should not proceed:
-  - `missing-details`: not enough information to attempt a reproduction.
+  - `missing-details`: not enough information to attempt a reproduction, AND your best-effort reproduction attempt failed because of this missing context. If you were able to reproduce the bug based on the issue description, you MUST NOT return `missing-details`.
   - `unsupported-version`: the affected version is EOL / out of support.
   - `host-specific`: needs specific hardware/cloud not available here.
   - `unsupported-runtime`: needs a substrate this environment cannot provide.
