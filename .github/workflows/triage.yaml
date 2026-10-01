@@ -163,9 +163,6 @@ jobs:
                   if [[ "$EVENT_NAME" == "issue_comment" && -n "$COMMENT_ID" ]]; then
                     gh api -X POST /repos/${{ github.repository }}/issues/comments/$COMMENT_ID/reactions -F content='eyes'
                   fi
-                  if [[ -n "$ISSUE_NUM" ]]; then
-                    gh issue comment "$ISSUE_NUM" -R "${{ github.repository }}" -b "Automated triage reproduction started. [View CI Run]($RUN_URL)"
-                  fi
 
     pipeline:
         name: Triage (maintainer-gated pipeline)
