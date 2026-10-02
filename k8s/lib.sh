@@ -371,3 +371,57 @@ k8s::apiserver::sanitize_feature_gates() {
     sed -i '/^--feature-gates=/d' "$args_file"
   fi
 }
+
+# Detect the snap revision that an in-progress refresh of this snap is
+# refreshing to. Prints the revision number on success, nothing otherwise.
+# Example: 'target_rev="$(k8s::util::refresh_target_revision)"'
+k8s::util::refresh_target_revision() {
+  k8s::common::setup_env
+
+  # Find the in-progress refresh change for this snap.
+  local change_id=""
+  change_id="$(snap changes 2>/dev/null \
+    | awk -v snap="${SNAP_INSTANCE_NAME:-k8s}" \
+        '$2 == "Doing" && index($0, "Refresh snap \"" snap "\"") > 0 { print $1; exit }')"
+
+  if [ -z "$change_id" ]; then
+    return 0
+  fi
+
+  # The download task summary contains the target revision, e.g.
+  # 'Download snap "k8s" (1234) from channel "1.36-classic/stable"'.
+  snap change "$change_id" 2>/dev/null \
+    | grep -oE 'Download snap "[^"]+" \([0-9]+\)' \
+    | grep -oE '\([0-9]+\)' \
+    | tr -d '()' \
+    | head -n1
+}
+
+# Prepare the etcd cluster for a downgrade to the etcd version shipped in the
+# snap revision being refreshed to. This must run from the pre-refresh hook,
+# while the current (newer) etcd binary is still running: etcd requires the
+# downgrade to be validated and enabled (which migrates the storage version
+# down) before the older binary may start against the data directory.
+# Example: 'k8s::etcd::prepare_downgrade'
+k8s::etcd::prepare_downgrade() {
+  k8s::common::setup_env
+
+  # Nothing to prepare if this node does not run the managed etcd datastore.
+  if [ ! -d "$SNAP_COMMON/var/lib/etcd/data" ]; then
+    echo "No etcd data directory found, skipping etcd downgrade preparation"
+    return 0
+  fi
+
+  local target_rev=""
+  target_rev="$(k8s::util::refresh_target_revision)"
+
+  if [ -z "$target_rev" ]; then
+    # We could not determine the target revision. Do not block the refresh:
+    # k8sd recovers an unprepared etcd downgrade on startup if needed.
+    echo "WARNING: could not determine the target snap revision; skipping etcd downgrade preparation"
+    return 0
+  fi
+
+  echo "Preparing etcd downgrade for refresh to revision $target_rev"
+  k8s::cmd::k8s x-etcd prepare-downgrade --target-revision "$target_rev"
+}
