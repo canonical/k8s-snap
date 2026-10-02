@@ -144,6 +144,26 @@ jobs:
                   echo "route=$route" >> "$GITHUB_OUTPUT"
                   echo "issue=$issue_num" >> "$GITHUB_OUTPUT"
 
+    acknowledge:
+        name: Triage (acknowledge request)
+        needs: gate
+        if: needs.gate.outputs.route == 'pipeline'
+        runs-on: ubuntu-latest
+        permissions:
+            issues: write
+        steps:
+            - name: Acknowledge request
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  EVENT_NAME: ${{ github.event_name }}
+                  COMMENT_ID: ${{ github.event.comment.id }}
+                  ISSUE_NUM: ${{ needs.gate.outputs.issue }}
+                  RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              run: |
+                  if [[ "$EVENT_NAME" == "issue_comment" && -n "$COMMENT_ID" ]]; then
+                    gh api -X POST /repos/${{ github.repository }}/issues/comments/$COMMENT_ID/reactions -F content='eyes'
+                  fi
+
     pipeline:
         name: Triage (maintainer-gated pipeline)
         needs: gate
