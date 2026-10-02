@@ -91,6 +91,9 @@
                 "additionalProperties": {
                   "type": "string"
                 }
+              },
+              "bfdProfile": {
+                "type": "string"
               }
             },
             "required": [
