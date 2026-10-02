@@ -24,6 +24,9 @@ spec:
         {{ $k }}: {{ $v | quote }}
         {{- end }}
   {{- end }}
+  {{- if $n.bfdProfile }}
+  bfdProfile: {{ $n.bfdProfile }}
+  {{- end }}
 {{- end }}
 ---
 apiVersion: metallb.io/v1beta1
