@@ -191,6 +191,7 @@ def _dump_gpu_operator_diagnostics(instance: harness.Instance, namespace: str):
             LOG.warning("Failed to collect %s: %s", label, exc)
 
     _dump_failing_pod_logs(instance, namespace)
+    _dump_driver_validation_diagnostics(instance, namespace)
 
 
 def _dump_cluster_network_diagnostics(instance: harness.Instance):
@@ -264,6 +265,9 @@ def _dump_failing_pod_logs(instance: harness.Instance, namespace: str):
             continue
 
         for flag, label in ((None, "current"), ("--previous", "previous")):
+            # No `--tail`: a validator init container that retries every few
+            # seconds would push its first (most informative) lines out of
+            # the tail window. Keep the head and tail instead.
             cmd = [
                 "k8s",
                 "kubectl",
@@ -272,17 +276,109 @@ def _dump_failing_pod_logs(instance: harness.Instance, namespace: str):
                 "logs",
                 pod_name,
                 "--all-containers=true",
-                "--tail=200",
             ]
             if flag:
                 cmd.append(flag)
             try:
                 r = instance.exec(cmd, capture_output=True, text=True, check=False)
-                LOG.warning("=== DIAG: %s logs (%s) ===\n%s", pod_name, label, r.stdout)
+                LOG.warning(
+                    "=== DIAG: %s logs (%s) ===\n%s",
+                    pod_name,
+                    label,
+                    _head_and_tail(r.stdout),
+                )
                 if r.stderr:
                     LOG.warning("stderr: %s", r.stderr)
             except Exception as exc:
                 LOG.warning("Failed %s logs for %s: %s", label, pod_name, exc)
+
+
+def _head_and_tail(text: str, keep: int = 100) -> str:
+    """Return `text` unchanged if short, else its first and last `keep` lines."""
+    lines = (text or "").splitlines()
+    if len(lines) <= 2 * keep:
+        return text
+    omitted = len(lines) - 2 * keep
+    return "\n".join(
+        lines[:keep] + [f"... ({omitted} lines omitted) ..."] + lines[-keep:]
+    )
+
+
+def _dump_driver_validation_diagnostics(instance: harness.Instance, namespace: str):
+    """Explain why the operator-validator's `driver-validation` init container
+    can't validate a host-installed driver.
+
+    The validator first tries `chroot /host nvidia-smi`; if that fails for any
+    reason it silently falls back to waiting for a driver container under
+    /run/nvidia/driver, logging only "failed to validate the driver" forever.
+    Reproduce its checks, both on the host and inside the stuck init container.
+    """
+    host_checks = (
+        "ls -la /usr/bin/nvidia-smi; "
+        "nvidia-smi 2>&1 | head -n 15; "
+        "ls -la /dev/nvidia* 2>&1 | head -n 20; "
+        "lsmod | grep -i nvidia"
+    )
+    try:
+        r = instance.exec(
+            ["bash", "-c", host_checks], capture_output=True, text=True, check=False
+        )
+        LOG.warning("=== DIAG: host nvidia driver state ===\n%s", r.stdout)
+        if r.stderr:
+            LOG.warning("stderr: %s", r.stderr)
+    except Exception as exc:
+        LOG.warning("Failed to collect host nvidia driver state: %s", exc)
+
+    try:
+        proc = instance.exec(
+            ["k8s", "kubectl", "-n", namespace, "get", "pods", "-o", "json"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        pods = json.loads(proc.stdout or "{}").get("items", [])
+    except Exception as exc:
+        LOG.warning("Failed to list pods for driver-validation checks: %s", exc)
+        return
+
+    in_pod_checks = (
+        "ls -la /host/usr/bin/nvidia-smi; "
+        "command -v chroot; "
+        "chroot /host nvidia-smi 2>&1 | head -n 15; "
+        "ls -la /run/nvidia/driver /run/nvidia/validations 2>&1"
+    )
+    for pod in pods:
+        pod_name = pod.get("metadata", {}).get("name")
+        for status in pod.get("status", {}).get("initContainerStatuses", []):
+            if status.get("name") != "driver-validation":
+                continue
+            if "running" not in status.get("state", {}):
+                continue
+            cmd = [
+                "k8s",
+                "kubectl",
+                "-n",
+                namespace,
+                "exec",
+                pod_name,
+                "-c",
+                "driver-validation",
+                "--",
+                "sh",
+                "-c",
+                in_pod_checks,
+            ]
+            try:
+                r = instance.exec(cmd, capture_output=True, text=True, check=False)
+                LOG.warning(
+                    "=== DIAG: %s driver-validation in-container checks ===\n%s",
+                    pod_name,
+                    r.stdout,
+                )
+                if r.stderr:
+                    LOG.warning("stderr: %s", r.stderr)
+            except Exception as exc:
+                LOG.warning("Failed in-container checks for %s: %s", pod_name, exc)
 
 
 # Bootstrap YAML overrides cluster-config defaults, so we must re-enable the core
