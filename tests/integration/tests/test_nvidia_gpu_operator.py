@@ -19,7 +19,10 @@ NVIDIA_GPU_OPERATOR_HELM_CHART_REPO = "https://helm.ngc.nvidia.com/nvidia"
 # includes kernel drivers, its container image's release lifecycle is
 # strictly tied to the version of Ubuntu on the host.
 # https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/platform-support.html
-NVIDIA_GPU_OPERATOR_SUPPORTED_UBUNTU_VERSIONS = {"v24.9.1": ["20.04", "22.04", "24.04"]}
+# v25.10.0 is the first release whose container-toolkit (v1.18.0) understands
+# containerd config version 3 (containerd 2.x). v24.9.1 ships toolkit v1.17.3,
+# which fails with "unsupported config version: 3".
+NVIDIA_GPU_OPERATOR_SUPPORTED_UBUNTU_VERSIONS = {"v25.10.0": ["22.04", "24.04"]}
 
 NVIDIA_KERNEL_MODULE_NAMES = ["nvidia", "nvidia_uvm", "nvidia_modeset"]
 
@@ -75,8 +78,60 @@ def _check_nvidia_drivers_loaded(instance: harness.Instance) -> Mapping[str, boo
     return modules_present
 
 
+def _dump_containerd_config_diagnostics(instance: harness.Instance):
+    """Log which containerd config the gpu-operator toolkit will read.
+
+    The toolkit daemonset hostPath-mounts /etc/containerd and rewrites
+    config.toml in place, failing on config versions it doesn't understand.
+    Runners are non-interactive, so capture everything needed to tell whether
+    that file is the snap's (possibly bind-mounted from containerd-base-dir)
+    or a pre-existing system-wide containerd's.
+    """
+    base_dir = config.CONTAINERD_BASE_DIR
+    diagnostics = [
+        ("containerd mounts", "mount | grep -i containerd || echo none"),
+        ("running containerd processes", "pgrep -a containerd || echo none"),
+        ("/etc/containerd listing", "ls -la /etc/containerd"),
+        (
+            "/etc/containerd/config.toml",
+            "stat -c '%n inode=%i dev=%d size=%s mtime=%y' /etc/containerd/config.toml;"
+            " grep -n -m1 -E '^\\s*version\\s*=' /etc/containerd/config.toml;"
+            " head -n 30 /etc/containerd/config.toml",
+        ),
+        (
+            "snap containerd args",
+            "cat /var/snap/k8s/common/args/containerd 2>/dev/null || echo none",
+        ),
+    ]
+    if base_dir:
+        base_cfg = f"{base_dir}/etc/containerd/config.toml"
+        diagnostics.append(
+            (
+                base_cfg,
+                "; ".join(
+                    [
+                        f"ls -la {base_dir}/etc/containerd",
+                        f"stat -c '%n inode=%i dev=%d size=%s mtime=%y' {base_cfg}",
+                        f"grep -n -m1 -E '^\\s*version\\s*=' {base_cfg}",
+                    ]
+                ),
+            )
+        )
+    for label, cmd in diagnostics:
+        try:
+            result = instance.exec(
+                ["bash", "-c", cmd], capture_output=True, text=True, check=False
+            )
+            LOG.info("=== DIAG: %s ===\n%s", label, result.stdout)
+            if result.stderr:
+                LOG.info("stderr: %s", result.stderr)
+        except Exception as exc:
+            LOG.warning("Failed to collect %s: %s", label, exc)
+
+
 def _dump_gpu_operator_diagnostics(instance: harness.Instance, namespace: str):
     """Dump operator-wide state for post-mortem debugging."""
+    _dump_containerd_config_diagnostics(instance)
     diagnostics = [
         (["k8s", "kubectl", "-n", namespace, "get", "pods", "-o", "wide"], "pods"),
         (
@@ -330,6 +385,10 @@ def test_deploy_nvidia_gpu_operator(
         LOG.warning("Node never became Ready — collecting cluster/CNI diagnostics")
         _dump_cluster_network_diagnostics(instance)
         raise
+
+    # The toolkit daemonset reads the host's /etc/containerd/config.toml; log
+    # what it will see (and which file containerd itself uses) before it runs.
+    _dump_containerd_config_diagnostics(instance)
 
     # Add the upstream Nvidia GPU-operator Helm repo:
     instance.exec(
