@@ -1,10 +1,10 @@
 #!/bin/bash
 
 VERSION="3.14.0"
-DIR=$(realpath $(dirname "${0}"))
+DIR=$(realpath "$(dirname "${0}")")
 
 CHARTS_PATH="$DIR/../../k8s/manifests/charts"
 
-cd "$CHARTS_PATH"
+cd "$CHARTS_PATH" || exit
 
 helm pull --repo https://kubernetes-sigs.github.io/metrics-server/ metrics-server --version $VERSION
