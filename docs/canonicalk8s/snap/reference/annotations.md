@@ -101,6 +101,20 @@ v1alpha annotations are experimental and subject to change or removal in future 
 |**Values**| integer value port number|
 |**Description**|The port number cilium will for its VXLAN encapsulation protocol destination port.|
 
+## `k8sd/v1alpha1/cilium/cluster-id`
+
+|   |   |
+|---|---|
+|**Values**| integer value, 0-255 |
+|**Description**| Unique ID of the cluster. Must be unique across all connected clusters and in the range of 1 to 255 for Cluster Mesh. May be 0 if Cluster Mesh is not used. A non-zero ID requires a non-default cluster name (see `k8sd/v1alpha1/cilium/cluster-name`). |
+
+## `k8sd/v1alpha1/cilium/cluster-name`
+
+|   |   |
+|---|---|
+|**Values**| string |
+|**Description**| Name of the cluster. Only required for Cluster Mesh and mutual authentication with SPIRE. Must contain at most 32 characters, begin and end with a lower case alphanumeric character, and may contain lower case alphanumeric characters and dashes. The name "default" cannot be used with a non-zero cluster ID. |
+
 ## `k8sd/v1alpha1/metrics-server/image-repo`
 
 |                 |                                                               |
