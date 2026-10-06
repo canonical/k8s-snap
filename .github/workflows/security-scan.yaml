@@ -75,7 +75,7 @@ jobs:
           # and create alerts that can never be resolved.
           ref: ${{ inputs.checkout-ref && (startsWith(inputs.checkout-ref, 'refs/') && inputs.checkout-ref || format('refs/heads/{0}', inputs.checkout-ref)) || github.ref }}
           sha: ${{ inputs.checkout-ref && steps.scan-ref.outputs.sha || github.sha }}
-          category: trivy-repo-scan/${{ inputs.checkout-ref || github.ref_name }}
+          category: trivy-repo-scan${{ inputs.checkout-ref && format('/{0}', inputs.checkout-ref) || '' }}
       - name: Send vulnerability records
         if: ${{ inputs.upload-reports-to-jira == true }}
         uses: canonical/k8s-workflows/.github/actions/send-cve-reports@6b24c265636d618fb98d5f56231c5581a1b429ab # main
