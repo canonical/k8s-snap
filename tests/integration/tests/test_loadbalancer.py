@@ -3,6 +3,7 @@
 #
 import json
 import logging
+import textwrap
 from enum import Enum
 from pathlib import Path
 from typing import List
@@ -485,3 +486,118 @@ def test_loadbalancer_bgp_annotation_peers_with_advertise_all_pools(
     )
 
     LOG.info("BGPPeer CRs from annotation and no ipAddressPools restriction confirmed.")
+
+
+# BFD requires the frr-k8s backend. The peer is unreachable, so no BFD or BGP
+# session comes up; instead the test asserts the FRR running config that
+# frr-k8s reports in FRRNodeState, which proves the BFDProfile and its binding
+# to the peer made it from the annotations all the way into FRR.
+_BGP_BACKEND_ANNOTATION = "k8sd/v1alpha1/metallb/bgp-backend"
+_BFD_PROFILES_ANNOTATION = "k8sd/v1alpha1/metallb/bfd-profiles"
+
+# Non-default timers: FRR omits default values from its running config.
+_BFD_PROFILES_ANNOTATION_VALUE = """\
+- name: fast-failover
+  namespace: metallb-system
+  spec:
+    receiveInterval: 150
+    transmitInterval: 200
+    detectMultiplier: 5
+"""
+
+_BFD_PEERS_ANNOTATION_VALUE = """\
+- peerAddress: 192.0.2.1
+  peerASN: 65001
+  bfdProfile: fast-failover
+"""
+
+
+@pytest.mark.node_count(1)
+@pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.disable_k8s_bootstrapping()
+def test_loadbalancer_bgp_bfd_profiles_annotation(instances: List[harness.Instance]):
+    """bfd-profiles annotation creates BFDProfiles wired into FRR via the peer.
+
+    Verifies that k8sd creates the BFDProfile CR declared in the bfd-profiles
+    annotation, that the BGPPeer references it, and that frr-k8s renders both
+    the BFD profile timers and the peer's BFD binding into FRR's running config.
+    """
+    instance = instances[0]
+    instance.exec(["k8s", "bootstrap"])
+    util.wait_for_network(instance)
+
+    instance.exec(["k8s", "enable", "load-balancer"])
+    util.wait_for_load_balancer(instance)
+
+    annotations = (
+        f"{_BGP_BACKEND_ANNOTATION}: frr-k8s\n"
+        + f"{_BGP_PEERS_ANNOTATION}: |\n"
+        + textwrap.indent(_BFD_PEERS_ANNOTATION_VALUE, "  ")
+        + f"{_BFD_PROFILES_ANNOTATION}: |\n"
+        + textwrap.indent(_BFD_PROFILES_ANNOTATION_VALUE, "  ")
+    )
+    instance.exec(
+        [
+            "k8s",
+            "set",
+            "load-balancer.bgp-mode=true",
+            "load-balancer.bgp-local-asn=65000",
+            "load-balancer.cidrs=192.0.2.0/24",
+            f"annotations={annotations}",
+        ]
+    )
+
+    LOG.info("Waiting for the BFDProfile CR to appear ...")
+    p = (
+        util.stubbornly(retries=20, delay_s=5)
+        .on(instance)
+        .exec(
+            [
+                "k8s",
+                "kubectl",
+                "get",
+                "bfdprofile",
+                "fast-failover",
+                "-n",
+                "metallb-system",
+                "-o",
+                "json",
+            ]
+        )
+    )
+    spec = json.loads(p.stdout.decode())["spec"]
+    assert spec["receiveInterval"] == 150, f"receiveInterval mismatch: {spec}"
+    assert spec["transmitInterval"] == 200, f"transmitInterval mismatch: {spec}"
+    assert spec["detectMultiplier"] == 5, f"detectMultiplier mismatch: {spec}"
+
+    LOG.info("Waiting for the BGPPeer CR to reference the BFDProfile ...")
+    util.stubbornly(retries=20, delay_s=5).on(instance).until(
+        lambda p: [
+            peer["spec"].get("bfdProfile")
+            for peer in json.loads(p.stdout.decode()).get("items", [])
+        ]
+        == ["fast-failover"]
+    ).exec(["k8s", "kubectl", "get", "bgppeers", "-n", "metallb-system", "-o", "json"])
+
+    # frr-k8s pods pull their images on first enable, so allow a generous wait.
+    expected_config = [
+        "profile fast-failover",
+        "receive-interval 150",
+        "transmit-interval 200",
+        "detect-multiplier 5",
+        "neighbor 192.0.2.1 bfd profile fast-failover",
+    ]
+
+    def _frr_config_wired(p):
+        items = json.loads(p.stdout.decode()).get("items", [])
+        if not items:
+            return False
+        running_config = items[0].get("status", {}).get("runningConfig", "")
+        return all(line in running_config for line in expected_config)
+
+    LOG.info("Waiting for FRR running config to include the BFD wiring ...")
+    util.stubbornly(retries=60, delay_s=10).on(instance).until(_frr_config_wired).exec(
+        ["k8s", "kubectl", "get", "frrnodestates", "-o", "json"]
+    )
+
+    LOG.info("BFDProfile created and wired into FRR for the BGP peer.")
