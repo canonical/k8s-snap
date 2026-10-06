@@ -24,4 +24,13 @@ bgp:
   #   myASN: 64512                  # optional, defaults to .Values.bgp.localASN
   #   nodeSelector:                 # optional, omit for no node filtering
   #     topology.kubernetes.io/zone: i1
+  #   bfdProfile: fast-failover     # optional, name of a BFDProfile
   neighbors: []
+  # bfdProfiles: list of MetalLB BFDProfiles to create (requires the frr-k8s backend)
+  # - name: fast-failover           # required
+  #   namespace: metallb-system     # optional, defaults to the release namespace
+  #   spec:                         # optional, MetalLB BFDProfile spec
+  #     receiveInterval: 150
+  #     transmitInterval: 150
+  #     detectMultiplier: 3
+  bfdProfiles: []

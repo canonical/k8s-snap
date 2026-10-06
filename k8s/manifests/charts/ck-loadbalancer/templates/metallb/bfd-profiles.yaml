@@ -1,0 +1,16 @@
+{{- if and (eq .Values.driver "metallb") .Values.bgp.enabled }}
+{{- range .Values.bgp.bfdProfiles }}
+---
+apiVersion: metallb.io/v1beta1
+kind: BFDProfile
+metadata:
+  name: {{ .name }}
+  namespace: {{ .namespace | default $.Release.Namespace }}
+  labels:
+    {{- include "ck-loadbalancer.labels" $ | nindent 4 }}
+{{- with .spec }}
+spec:
+  {{- toYaml . | nindent 2 }}
+{{- end }}
+{{- end }}
+{{- end }}
