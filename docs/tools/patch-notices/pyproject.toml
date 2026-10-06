@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "patch-notices"
+version = "0.1.0"
+description = "Patch-notices updater for Canonical Kubernetes"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "openai>=1",
+    "requests>=2.31",
+    "rich>=13",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8",
+]
+
+[project.scripts]
+patch-notices = "patch_notices.cli:main"
+
+[tool.setuptools]
+packages = ["patch_notices"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+patch_notices = ["../metadata/patch-metadata.json"]
