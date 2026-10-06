@@ -101,6 +101,27 @@
               "peerASN"
             ]
           }
+        },
+        "bfdProfiles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "namespace": {
+                "type": "string"
+              },
+              "spec": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          }
         }
       },
       "required": [
