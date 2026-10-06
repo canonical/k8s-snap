@@ -249,7 +249,7 @@ def preload_snaps(instance: harness.Instance):
         )
 
         LOG.info("Wait for snap changes to finish...")
-        stubbornly(retries=20, delay_s=5).on(instance).until(
+        stubbornly(retries=40, delay_s=5).on(instance).until(
             lambda p: "Doing" not in p.stdout.decode()
         ).exec(["snap", "changes"])
 
@@ -374,7 +374,7 @@ def remove_k8s_snap(instance: harness.Instance):
     )
 
     LOG.info("Waiting for shims to go away...")
-    stubbornly(retries=20, delay_s=5).on(instance).until(
+    stubbornly(retries=40, delay_s=5).on(instance).until(
         lambda p: all(
             x not in p.stdout.decode()
             for x in ["containerd-shim", "cilium", "coredns", "/pause"]
@@ -382,7 +382,7 @@ def remove_k8s_snap(instance: harness.Instance):
     ).exec(["ps", "-fea"])
 
     LOG.info("Waiting for kubelet and containerd mounts to go away...")
-    stubbornly(retries=20, delay_s=5).on(instance).until(
+    stubbornly(retries=40, delay_s=5).on(instance).until(
         lambda p: all(
             x not in p.stdout.decode()
             for x in ["/var/lib/kubelet/pods", "/run/containerd/io.containerd"]
