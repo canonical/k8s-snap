@@ -270,6 +270,24 @@ def setup_core_dumps(instance: harness.Instance):
     instance.exec(["snap", "set", "system", "system.coredump.enable=true"])
 
 
+def configure_cpuset_controller(instance: harness.Instance):
+    """Make the cpuset controller available to system services."""
+    online_cpus = (
+        instance.exec(["cat", "/sys/devices/system/cpu/online"], capture_output=True)
+        .stdout.decode()
+        .strip()
+    )
+    instance.exec(
+        [
+            "systemctl",
+            "set-property",
+            "--runtime",
+            "system.slice",
+            f"AllowedCPUs={online_cpus}",
+        ]
+    )
+
+
 def setup_k8s_snap(
     instance: harness.Instance,
     tmp_path: Path,
@@ -296,6 +314,8 @@ def setup_k8s_snap(
             "Cannot install without either a channel, revision, or path to the snap "
             + f"argument {snap=} and {config.SNAP=}"
         )
+
+    configure_cpuset_controller(instance)
 
     if isinstance(which_snap, str) and which_snap.startswith("/"):
         LOG.info("Install k8s snap by path")
