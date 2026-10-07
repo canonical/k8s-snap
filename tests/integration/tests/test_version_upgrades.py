@@ -100,6 +100,9 @@ def test_version_upgrades(
             registry.apply_configuration(instance, containerd_cfgdir)
 
     cp.exec(["k8s", "bootstrap"])
+    # Avoid racing the bootstrap node's kubelet Node registration (join can
+    # fail with "the cluster has no nodes" otherwise).
+    util.wait_until_k8s_ready(cp, [cp])
 
     join_token_cp1 = util.get_join_token(cp, cp1)
     join_token_cp2 = util.get_join_token(cp, cp2)
@@ -221,7 +224,9 @@ def test_version_downgrades_with_rollback(
             registry.apply_configuration(instance, containerd_cfgdir)
 
     cp.exec(["k8s", "bootstrap"])
-
+    # Avoid racing the bootstrap node's kubelet Node registration (join can
+    # fail with "the cluster has no nodes" otherwise).
+    util.wait_until_k8s_ready(cp, [cp])
     join_token_cp1 = util.get_join_token(cp, cp1)
     join_token_cp2 = util.get_join_token(cp, cp2)
     # join_token_w0 = util.get_join_token(cp, w0, "--worker")
@@ -327,6 +332,9 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
         )
 
     bootstrap_cp.exec(["k8s", "bootstrap"])
+    # Avoid racing the bootstrap node's kubelet Node registration (join can
+    # fail with "the cluster has no nodes" otherwise).
+    util.wait_until_k8s_ready(bootstrap_cp, [bootstrap_cp])
     for instance in instances:
         if instance.id in [bootstrap_cp.id, worker.id]:
             continue
