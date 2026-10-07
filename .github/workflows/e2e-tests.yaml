@@ -92,7 +92,9 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install tox
-        run: sudo apt-get install -y tox
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tox
       - name: Compute test runners
         id: compute-test-runners
         run: |
@@ -151,7 +153,9 @@ jobs:
         with:
           bridges: "lxdbr0,dualstack-br0,ipv6-br0"
       - name: Install tox
-        run: sudo apt-get install -y tox
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tox
       - name: Setup tmate session
         uses: canonical/action-tmate@main
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.tmate_enabled }}
