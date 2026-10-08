@@ -111,11 +111,26 @@
                 "type": "string",
                 "minLength": 1
               },
-              "namespace": {
-                "type": "string"
+              "receiveInterval": {
+                "type": "integer"
               },
-              "spec": {
-                "type": "object"
+              "transmitInterval": {
+                "type": "integer"
+              },
+              "detectMultiplier": {
+                "type": "integer"
+              },
+              "echoInterval": {
+                "type": "integer"
+              },
+              "echoMode": {
+                "type": "boolean"
+              },
+              "passiveMode": {
+                "type": "boolean"
+              },
+              "minimumTtl": {
+                "type": "integer"
               }
             },
             "required": [
