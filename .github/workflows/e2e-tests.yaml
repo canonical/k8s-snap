@@ -222,6 +222,8 @@ jobs:
     name: ${{ matrix.test }}
     needs: prepare
     runs-on: ${{ fromJson(needs.prepare.outputs.test-runners)[matrix.test] || (inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04') }}
+    # Backstop below GitHub's silent 360min default.
+    timeout-minutes: 240
     strategy:
       fail-fast: false
       max-parallel: ${{ inputs.max-parallel }}
