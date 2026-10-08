@@ -495,14 +495,27 @@ def test_loadbalancer_bgp_annotation_peers_with_advertise_all_pools(
 _BGP_BACKEND_ANNOTATION = "k8sd/v1alpha1/metallb/bgp-backend"
 _BFD_PROFILES_ANNOTATION = "k8sd/v1alpha1/metallb/bfd-profiles"
 
-# Non-default timers: FRR omits default values from its running config.
+# Every BFDProfile field, all non-default: FRR omits default values from its
+# running config, and each field must be mapped into the CR spec by the chart.
+_BFD_PROFILE_SPEC = {
+    "receiveInterval": 150,
+    "transmitInterval": 200,
+    "detectMultiplier": 5,
+    "echoInterval": 60,
+    "echoMode": True,
+    "passiveMode": True,
+    "minimumTtl": 250,
+}
+
 _BFD_PROFILES_ANNOTATION_VALUE = """\
 - name: fast-failover
-  namespace: metallb-system
-  spec:
-    receiveInterval: 150
-    transmitInterval: 200
-    detectMultiplier: 5
+  receiveInterval: 150
+  transmitInterval: 200
+  detectMultiplier: 5
+  echoInterval: 60
+  echoMode: true
+  passiveMode: true
+  minimumTtl: 250
 """
 
 _BFD_PEERS_ANNOTATION_VALUE = """\
@@ -566,9 +579,7 @@ def test_loadbalancer_bgp_bfd_profiles_annotation(instances: List[harness.Instan
         )
     )
     spec = json.loads(p.stdout.decode())["spec"]
-    assert spec["receiveInterval"] == 150, f"receiveInterval mismatch: {spec}"
-    assert spec["transmitInterval"] == 200, f"transmitInterval mismatch: {spec}"
-    assert spec["detectMultiplier"] == 5, f"detectMultiplier mismatch: {spec}"
+    assert spec == _BFD_PROFILE_SPEC, f"BFDProfile spec mismatch: {spec}"
 
     LOG.info("Waiting for the BGPPeer CR to reference the BFDProfile ...")
     util.stubbornly(retries=20, delay_s=5).on(instance).until(
