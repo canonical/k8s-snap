@@ -20,14 +20,12 @@ NVIDIA_GPU_OPERATOR_HELM_CHART_REPO = "https://helm.ngc.nvidia.com/nvidia"
 # strictly tied to the version of Ubuntu on the host.
 # https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/platform-support.html
 # v25.10.0 is the first release whose container-toolkit (v1.18.0) understands
-# containerd config version 3 (containerd 2.x). v24.9.1 ships toolkit v1.17.3,
-# which fails with "unsupported config version: 3".
+# containerd config version 3 (containerd 2.x).
 NVIDIA_GPU_OPERATOR_SUPPORTED_UBUNTU_VERSIONS = {"v25.10.0": ["22.04", "24.04"]}
 
 NVIDIA_KERNEL_MODULE_NAMES = ["nvidia", "nvidia_uvm", "nvidia_modeset"]
 
-# Lifted 1:1 from:
-# https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/getting-started.html#cuda-vectoradd
+# Sourced from nvidia docs
 NVIDIA_CUDA_VECTOR_ADDITION_TEST_POD_NAME = "cuda-vectoradd"
 
 
@@ -43,7 +41,7 @@ _NVIDIA_GPU_PCI_CLASSES = [
 
 def _check_nvidia_gpu_present(instance: harness.Instance) -> bool:
     """Checks whether at least one discrete Nvidia GPU is available
-    by exec-ing `lspci` on the target instance.
+    by running `lspci` on the target instance.
 
     Only matches actual GPU device classes (VGA, 3D controller), not PCI bridges
     or other NVIDIA controllers. The GPU Operator requires discrete GPUs —
@@ -64,8 +62,7 @@ def _check_nvidia_gpu_present(instance: harness.Instance) -> bool:
 
 
 def _check_nvidia_drivers_loaded(instance: harness.Instance) -> Mapping[str, bool]:
-    """Ensures that Nvidia kernel modules are NOT loaded on
-    the given harness instance."""
+    """Determines what NVIDIA kernel modules are loaded on the given harness instance."""
 
     proc = instance.exec(["lsmod"], capture_output=True, text=True)
     modules_present = {m: False for m in NVIDIA_KERNEL_MODULE_NAMES}
