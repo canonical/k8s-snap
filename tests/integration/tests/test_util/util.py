@@ -128,8 +128,17 @@ class Retriable:
             LOG.warning(f"  stdout={stdout}")
             LOG.warning(f"  stderr={stderr}")
             raise
-        if self._condition:
-            assert self._condition(resp), "Failed to meet condition"
+        if self._condition and not self._condition(resp):
+            stdout = resp.stdout
+            stderr = resp.stderr
+            if isinstance(stdout, bytes):
+                stdout = stdout.decode(errors="replace")
+            if isinstance(stderr, bytes):
+                stderr = stderr.decode(errors="replace")
+            raise AssertionError(
+                f"Failed to meet condition: rc={resp.returncode} "
+                f"stdout={stdout!r} stderr={stderr!r}"
+            )
         return resp
 
     def on(self, instance: harness.Instance) -> "Retriable":
