@@ -79,6 +79,7 @@ Supported fields per peer entry:
 | `myASN` | no | Local ASN for this peer (defaults to `bgp-local-asn`) |
 | `peerPort` | no | TCP port (default: 179) |
 | `nodeSelector` | no | `matchLabels` selector; omit to select all nodes |
+| `bfdProfile` | no | Name of a `BFDProfile` to attach to this peer (requires `bgp-backend: frr-k8s`, see below) |
 
 ### Optionally advertise all pools
 
@@ -103,22 +104,71 @@ Or to set only the advertise flag without changing peers:
 sudo k8s set annotations="k8sd/v1alpha1/metallb/advertise-all-pools: \"true\""
 ```
 
+### Enable the FRR backend for BFD
+
+MetalLB's default BGP implementation (`native`) does not support BFD
+(Bidirectional Forwarding Detection). To use BFD, switch the speaker to the
+`frr-k8s` backend with the `k8sd/v1alpha1/metallb/bgp-backend` annotation,
+create a `BFDProfile`, and reference it from a peer's `bfdProfile` field:
+
+```bash
+cat > bgp-peers.yaml << 'EOF'
+k8sd/v1alpha1/metallb/bgp-backend: frr-k8s
+k8sd/v1alpha1/metallb/bgp-peers: |
+  - peerAddress: 10.116.3.164
+    peerASN: 65001
+    myASN: 65000
+    bfdProfile: fast-failover
+EOF
+sudo k8s set annotations="$(cat bgp-peers.yaml)"
+
+sudo k8s kubectl apply -f - << 'EOF'
+apiVersion: metallb.io/v1beta1
+kind: BFDProfile
+metadata:
+  name: fast-failover
+  namespace: metallb-system
+spec:
+  receiveInterval: 150
+  transmitInterval: 150
+  detectMultiplier: 3
+EOF
+```
+
+`bgp-backend` accepts `native` (default) or `frr-k8s`. Setting `bfdProfile`
+on any peer while the backend is `native` is rejected — `k8s status` shows a
+degraded `load-balancer` state until either the backend is switched to
+`frr-k8s` or the `bfdProfile` is removed.
+
+`BFDProfile` resources are not managed by {{product}} — create, update, and
+delete them directly with `k8s kubectl`, same as any other MetalLB CRD.
+
 ### Verify
 
 ```bash
 sudo k8s status
 ```
 
-The status line includes `(alpha)` when the annotation path is active:
+The status line includes `(alpha)` when the annotation path is active, and
+`frr-k8s backend` when the FRR backend is enabled:
 
 ```
-load-balancer: enabled, BGP mode (alpha)
+load-balancer: enabled, BGP mode (alpha), frr-k8s backend
 ```
 
 Inspect the resulting BGPPeer resources:
 
 ```bash
 sudo k8s kubectl get bgppeers -A
+```
+
+Check BFD session state (once the backend and peer are both up). The FRR
+process runs in its own `frr-k8s` DaemonSet, separate from the MetalLB
+speaker pods:
+
+```bash
+sudo k8s kubectl get bfdprofiles -A
+sudo k8s kubectl -n metallb-system logs -l app.kubernetes.io/component=frr-k8s -c frr | grep -i bfd
 ```
 
 ## Troubleshooting
@@ -135,7 +185,9 @@ Correct the annotation and the reconciler retries automatically.
 
 - The annotation value is write-only — inspect it directly with
   `k8s kubectl get node <node> -o yaml`.
-- No per-peer BFD or multi-hop support.
+- No multi-hop BGP support.
+- `BFDProfile` resources must be created and managed directly with
+  `k8s kubectl`; {{product}} only lets a peer reference one by name.
 
 ## Next steps
 
