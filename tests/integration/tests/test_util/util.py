@@ -270,6 +270,44 @@ def setup_core_dumps(instance: harness.Instance):
     instance.exec(["snap", "set", "system", "system.coredump.enable=true"])
 
 
+def snapshot_cgroup_subtree_controls(instance: harness.Instance) -> Mapping[str, str]:
+    """Return cgroup controller delegation state for the entire guest hierarchy."""
+    result = instance.exec(
+        [
+            "find",
+            "/sys/fs/cgroup",
+            "-name",
+            "cgroup.subtree_control",
+            "-print",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    snapshot = {}
+    for path in result.stdout.splitlines():
+        value = instance.exec(
+            ["cat", path], capture_output=True, text=True
+        ).stdout.strip()
+        snapshot[path.removeprefix("/sys/fs/cgroup") or "/"] = value
+    return snapshot
+
+
+def log_cgroup_subtree_control_changes(
+    before: Mapping[str, str], after: Mapping[str, str]
+):
+    """Log cgroup controller delegation changes between two snapshots."""
+    for path in sorted(before.keys() | after.keys()):
+        old_value = before.get(path, "<missing>")
+        new_value = after.get(path, "<missing>")
+        if old_value != new_value:
+            LOG.info(
+                "cgroup.subtree_control changed at %s: %r -> %r",
+                path,
+                old_value,
+                new_value,
+            )
+
+
 def setup_k8s_snap(
     instance: harness.Instance,
     tmp_path: Path,
@@ -312,7 +350,12 @@ def setup_k8s_snap(
         LOG.info("Install k8s snap by least risky channel: %s", channel)
         cmd += [config.SNAP_NAME, "--channel", channel]
 
+    cgroup_state_before_install = snapshot_cgroup_subtree_controls(instance)
     stubbornly(retries=3, delay_s=30).on(instance).exec(cmd)
+    cgroup_state_after_install = snapshot_cgroup_subtree_controls(instance)
+    log_cgroup_subtree_control_changes(
+        cgroup_state_before_install, cgroup_state_after_install
+    )
     if connect_interfaces:
         LOG.info("Ensure k8s interfaces and network requirements")
         instance.exec(["/snap/k8s/current/k8s/hack/init.sh"], stdout=subprocess.DEVNULL)
