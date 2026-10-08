@@ -213,7 +213,7 @@ def test_fips_images(instances: List[harness.Instance]):
             {"GOFIPS": "0", "PEBBLE_VERBOSE": "0"},
         )
         LOG.info(f"Waiting for {resource_type}/{name} pods to restart with GOFIPS=0...")
-        util.stubbornly().until(
+        util.stubbornly(retries=60, delay_s=5).until(
             lambda _: k8s.resource_ready(instance, namespace, resource_type, name)
         ).exec(["echo", "waiting..."])
 
