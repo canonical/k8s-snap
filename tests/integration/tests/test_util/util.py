@@ -1504,13 +1504,21 @@ def check_service_logs_for_panics(
         )
         filtered_lines = []
         skipping = False
+        # The diagnostic's continuation lines (including "Detected at:") are
+        # only ever preceded, after journald's own "unit[pid]: " prefix, by
+        # whitespace then ">" - a shape no normal journalctl line (which
+        # always starts at column 0 with a timestamp) or real Go panic/fatal
+        # error dump (which never uses a ">" separator) produces. Matching
+        # that shape directly, instead of first splitting out a "message"
+        # portion on an assumed-present "]: ", does not depend on journald's
+        # short-format prefix actually containing that exact substring.
+        continuation_re = re.compile(r"(?:^|\]:)\s*(?:>|Detected at:\s*$)")
         for line in result.stdout.split("\n"):
             if CTRL_RUNTIME_LOGGER_DIAG in line:
                 skipping = True
                 continue
             if skipping:
-                message = line.split("]: ", 1)[-1]
-                if message.strip().startswith(">") or message.strip() == "Detected at:":
+                if continuation_re.search(line):
                     continue
                 skipping = False
             filtered_lines.append(line)
