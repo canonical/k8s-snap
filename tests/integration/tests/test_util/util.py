@@ -430,7 +430,7 @@ def wait_until_k8s_ready(
             node_name = hostname(instance)
 
         for attempt in Retrying(
-            stop=stop_after_attempt(retries), wait=wait_fixed(delay_s)
+            stop=stop_after_attempt(retries), wait=wait_fixed(delay_s), reraise=True
         ):
             with attempt:
                 assert is_node_ready(control_node, node_name)
