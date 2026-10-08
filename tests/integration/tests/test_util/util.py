@@ -1466,14 +1466,9 @@ def check_service_logs_for_panics(
     Scans the last N lines of journalctl output for each service, looking for
     panic indicators and segmentation faults.
 
-    controller-runtime emits a benign diagnostic stack dump (not a crash) when
-    its package-level logger hasn't been set within the first 30s of process
-    lifetime (sigs.k8s.io/controller-runtime/pkg/log, eventuallyFulfillRoot).
-    Every continuation line of that specific dump is rendered with a ">"
-    prefix (after journald's own indentation) hard-coded by controller-runtime
-    itself - a signature a real Go panic or fatal error trace never produces -
-    so that exact block is filtered out below before the panic patterns are
-    applied.
+    Filters out controller-runtime's benign "logger never set" stack dump
+    (sigs.k8s.io/controller-runtime/pkg/log, eventuallyFulfillRoot) - not a
+    crash, but it looks like one to the patterns below.
     """
     PANIC_PATTERNS = [
         r"panic:",
@@ -1504,13 +1499,15 @@ def check_service_logs_for_panics(
         )
         filtered_lines = []
         skipping = False
+        # Matches the diagnostic's continuation lines ("Detected at:" and its
+        # ">"-prefixed stack), without assuming journald's exact prefix format.
+        continuation_re = re.compile(r"(?:^|\]:)\s*(?:>|Detected at:\s*$)")
         for line in result.stdout.split("\n"):
             if CTRL_RUNTIME_LOGGER_DIAG in line:
                 skipping = True
                 continue
             if skipping:
-                message = line.split("]: ", 1)[-1]
-                if message.strip().startswith(">") or message.strip() == "Detected at:":
+                if continuation_re.search(line):
                     continue
                 skipping = False
             filtered_lines.append(line)
