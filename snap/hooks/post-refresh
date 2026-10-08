@@ -3,6 +3,12 @@
 
 k8s::common::setup_env
 
+# Strip kubelet flags that were deprecated and removed in newer Kubernetes
+# versions from the persisted arguments file, before kubelet's systemd unit
+# is (re)started with the new binary. Best-effort: k8sd's own post-refresh
+# hook repeats this once it is up, as a fallback.
+k8s::cmd::k8s x-cleanup deprecated-kubelet-flags || true
+
 # Reject upgrade if deprecated k8s-dqlite datastore is used.
 # In older releases, the k8s-dqlite directory is created regardless
 # of whether k8s-dqlite is used or not. Therefore, we also check
