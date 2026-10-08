@@ -1514,7 +1514,9 @@ def check_service_logs_for_panics(
                     continue
                 skipping = False
             filtered_lines.append(line)
-        matching_lines = [line.strip() for line in filtered_lines if panic_re.search(line)]
+        matching_lines = [
+            line.strip() for line in filtered_lines if panic_re.search(line)
+        ]
         if matching_lines:
             panics_found[service] = matching_lines
 
