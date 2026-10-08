@@ -5,12 +5,30 @@ apiVersion: metallb.io/v1beta1
 kind: BFDProfile
 metadata:
   name: {{ .name }}
-  namespace: {{ .namespace | default $.Release.Namespace }}
+  namespace: {{ $.Release.Namespace }}
   labels:
     {{- include "ck-loadbalancer.labels" $ | nindent 4 }}
-{{- with .spec }}
 spec:
-  {{- toYaml . | nindent 2 }}
-{{- end }}
+  {{- if .receiveInterval }}
+  receiveInterval: {{ .receiveInterval }}
+  {{- end }}
+  {{- if .transmitInterval }}
+  transmitInterval: {{ .transmitInterval }}
+  {{- end }}
+  {{- if .detectMultiplier }}
+  detectMultiplier: {{ .detectMultiplier }}
+  {{- end }}
+  {{- if .echoInterval }}
+  echoInterval: {{ .echoInterval }}
+  {{- end }}
+  {{- if .echoMode }}
+  echoMode: {{ .echoMode }}
+  {{- end }}
+  {{- if .passiveMode }}
+  passiveMode: {{ .passiveMode }}
+  {{- end }}
+  {{- if .minimumTtl }}
+  minimumTtl: {{ .minimumTtl }}
+  {{- end }}
 {{- end }}
 {{- end }}
