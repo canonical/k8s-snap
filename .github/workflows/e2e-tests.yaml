@@ -361,17 +361,17 @@ jobs:
 
           cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- $PARALLEL_TEST $PERFORMANCE_FLAGS --tags $INPUT_TEST_TAGS $EXTRA_TEST_ARGS
       - name: Report failure context
-        if: ${{ failure() }}
+        if: ${{ failure() || cancelled() }}
         run: |
           # tee so the same block lands in the job log and the run summary.
           python3 ci-tooling/ci/k8s-ci.py e2e print-failure-context | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Prepare inspection reports
-        if: failure()
+        if: failure() || cancelled()
         run: |
           mkdir -p inspection-report-archives
           tar -czvf "inspection-report-archives/${test_name}.tar.gz" -C "$GITHUB_WORKSPACE" "inspection-reports/${test_name}" || true
       - name: Upload inspection report artifact
-        if: failure()
+        if: failure() || cancelled()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: inspection-reports-${{ env.test_name }}
@@ -390,7 +390,7 @@ jobs:
             subunit2html subunit.out subunit.html
           fi
       - name: Upload html test report
-        if: ${{ failure() && contains(inputs.extra-test-args, '--subunit-path') }}
+        if: ${{ (failure() || cancelled()) && contains(inputs.extra-test-args, '--subunit-path') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: subunit-${{ env.test_name }}.html
