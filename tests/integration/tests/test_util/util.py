@@ -270,6 +270,35 @@ def setup_core_dumps(instance: harness.Instance):
     instance.exec(["snap", "set", "system", "system.coredump.enable=true"])
 
 
+def log_containerd_cgroup_state(instance: harness.Instance, checkpoint: str):
+    """Log root controllers and containerd's systemd cgroup state."""
+    subtree_control = instance.exec(
+        ["cat", "/sys/fs/cgroup/cgroup.subtree_control"],
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    containerd_state = instance.exec(
+        [
+            "systemctl",
+            "show",
+            "snap.k8s.containerd.service",
+            "--property=ActiveState",
+            "--property=SubState",
+            "--property=Delegate",
+            "--property=ControlGroup",
+            "--property=Slice",
+        ],
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    LOG.info(
+        "Cgroup checkpoint %s: root subtree_control=%r; containerd:\n%s",
+        checkpoint,
+        subtree_control,
+        containerd_state,
+    )
+
+
 def setup_k8s_snap(
     instance: harness.Instance,
     tmp_path: Path,
@@ -313,6 +342,7 @@ def setup_k8s_snap(
         cmd += [config.SNAP_NAME, "--channel", channel]
 
     stubbornly(retries=3, delay_s=30).on(instance).exec(cmd)
+    log_containerd_cgroup_state(instance, "after snap install")
     if connect_interfaces:
         LOG.info("Ensure k8s interfaces and network requirements")
         instance.exec(["/snap/k8s/current/k8s/hack/init.sh"], stdout=subprocess.DEVNULL)

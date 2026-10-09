@@ -96,7 +96,9 @@ def test_version_upgrades(
         if config.USE_LOCAL_MIRROR:
             registry.apply_configuration(instance, containerd_cfgdir)
 
+    util.log_containerd_cgroup_state(cp, "immediately before bootstrap")
     cp.exec(["k8s", "bootstrap"])
+    util.log_containerd_cgroup_state(cp, "immediately after bootstrap")
 
     join_token_cp1 = util.get_join_token(cp, cp1)
     join_token_cp2 = util.get_join_token(cp, cp2)
