@@ -452,6 +452,19 @@ def test_deploy_nvidia_gpu_operator(
             instance.id,
             modules_loaded,
         )
+        # The operator-validator runs `chroot /host nvidia-smi` and, if that
+        # fails, silently waits for a driver container that never comes. A
+        # loaded kernel module whose userspace doesn't match (e.g. `Driver/
+        # library version mismatch` after a package upgrade without a reboot)
+        # would stall every operand for the full timeout, so fail fast.
+        smi = instance.exec(["nvidia-smi"], capture_output=True, text=True, check=False)
+        if smi.returncode != 0:
+            pytest.fail(
+                f"NVIDIA kernel modules are loaded on '{instance.id}' but host "
+                f"`nvidia-smi` fails, so the gpu-operator cannot validate the "
+                f"host driver. The host needs a reboot or module reload.\n"
+                f"stdout: {smi.stdout}\nstderr: {smi.stderr}"
+            )
 
     instance_release = util.get_os_version_id_for_instance(instance)
     if (
