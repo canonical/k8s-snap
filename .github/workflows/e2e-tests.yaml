@@ -150,6 +150,60 @@ jobs:
         uses: canonical/setup-lxd@a3c85fc6fb7fff43fcfeae87659e41a8f635b7dd # v0.1.3
         with:
           bridges: "lxdbr0,dualstack-br0,ipv6-br0"
+      - name: Probe LXD cgroup delegation
+        if: ${{ matrix.test == 'tests/test_version_upgrades.py::test_version_upgrades' }}
+        env:
+          CGROUP_PROBE_NAME: cgroup-probe-${{ github.run_id }}-${{ github.run_attempt }}
+          CGROUP_PROBE_PROFILE: cgroup-probe-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          cleanup() {
+            lxc delete "$CGROUP_PROBE_NAME" --force || true
+            lxc profile delete "$CGROUP_PROBE_PROFILE" || true
+          }
+          trap cleanup EXIT
+          cleanup
+
+          lxc profile create "$CGROUP_PROBE_PROFILE"
+          lxc profile edit "$CGROUP_PROBE_PROFILE" < tests/integration/lxd-profile.yaml
+          lxc launch --ephemeral "${{ inputs.os }}" "$CGROUP_PROBE_NAME" \
+            -p default -p "$CGROUP_PROBE_PROFILE"
+          lxc exec "$CGROUP_PROBE_NAME" -- snap wait system seed.loaded
+
+          echo "Host kernel:"
+          uname -a
+          echo "Host snap version:"
+          snap version
+          echo "Probe container kernel:"
+          lxc exec "$CGROUP_PROBE_NAME" -- uname -a
+          echo "Probe container snap version:"
+          lxc exec "$CGROUP_PROBE_NAME" -- snap version
+          echo "LXD version:"
+          lxc version
+          echo "Probe container systemd version:"
+          lxc exec "$CGROUP_PROBE_NAME" -- systemd --version
+          echo "Before Delegate=yes:"
+          lxc exec "$CGROUP_PROBE_NAME" -- \
+            cat /sys/fs/cgroup/cgroup.subtree_control
+
+          lxc exec "$CGROUP_PROBE_NAME" -- \
+            systemd-run --unit=delegate-probe --property=Delegate=yes sleep infinity
+
+          echo "After Delegate=yes:"
+          lxc exec "$CGROUP_PROBE_NAME" -- \
+            cat /sys/fs/cgroup/cgroup.subtree_control
+          lxc exec "$CGROUP_PROBE_NAME" -- \
+            systemctl show delegate-probe \
+              --property=ActiveState \
+              --property=Delegate \
+              --property=ControlGroup
+      - name: Clean up cgroup delegation probe
+        if: ${{ always() && matrix.test == 'tests/test_version_upgrades.py::test_version_upgrades' }}
+        env:
+          CGROUP_PROBE_NAME: cgroup-probe-${{ github.run_id }}-${{ github.run_attempt }}
+          CGROUP_PROBE_PROFILE: cgroup-probe-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          lxc delete "$CGROUP_PROBE_NAME" --force || true
+          lxc profile delete "$CGROUP_PROBE_PROFILE" || true
       - name: Install tox
         run: sudo apt-get install -y tox
       - name: Setup tmate session
