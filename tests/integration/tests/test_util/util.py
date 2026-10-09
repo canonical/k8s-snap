@@ -331,6 +331,19 @@ def setup_k8s_snap(
         cmd += [config.SNAP_NAME, "--channel", channel]
 
     stubbornly(retries=3, delay_s=30).on(instance).exec(cmd)
+    containerd_cgroup = instance.exec(
+        [
+            "systemctl",
+            "show",
+            "snap.k8s.containerd.service",
+            "--property=Delegate",
+            "--property=ControlGroup",
+            "--property=Slice",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    LOG.info("Containerd cgroup configuration:\n%s", containerd_cgroup.stdout.strip())
     if connect_interfaces:
         LOG.info("Ensure k8s interfaces and network requirements")
         instance.exec(["/snap/k8s/current/k8s/hack/init.sh"], stdout=subprocess.DEVNULL)
