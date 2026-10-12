@@ -202,6 +202,22 @@ Data therefore lands on an unprotected long-lived `ci-metrics` branch, cut from
 `main` rather than orphaned so that `git log`, `git diff` and cherry-pick behave
 normally and the tree deltas against `main` instead of duplicating it.
 
+**Git is not, by itself, the durability guarantee.** The branch is unprotected,
+so any principal with `contents: write` — including a compromised or merely
+buggy workflow — can force-update or delete it and erase the history that trend
+provenance and claim recovery depend on. Three things close that gap, in
+increasing order of cost:
+
+- the publisher pushes **fast-forward only** and never `--force`, so ordinary
+  bugs cannot rewrite history;
+- each daily commit is also uploaded as a dated `metrics.sql` **artifact**, so a
+  destroyed branch is reconstructible from retained artifacts plus the digest
+  record, bounded by the artifact retention window;
+- a **ruleset on `ci-metrics` blocking force-push and deletion**, with the
+  publisher identity as the only allowed writer, is requested from repository
+  admins. Until it exists the first two are the actual guarantee, and the
+  proposal does not claim stronger.
+
 ## Out of scope
 
 - **Ownership routing.** Mapping tests and classes to teams (`test-owners.yaml`)
@@ -246,8 +262,26 @@ None to the product. The metrics store is a SQLite database on the
 New workflow `.github/workflows/ci-metrics.yaml`, triggered by `workflow_run`
 on Nightly / Weekly / Lint and integration, plus an hourly reconciliation cron
 and a daily digest cron. Requires `actions: read` and `contents: write`, and
-reuses the existing `MATTERMOST_WEBHOOK_URL` secret. The issue bridge adds
-`issues: write`, and nothing else.
+reuses the existing `MATTERMOST_BOT_WEBHOOK_URL` secret — the same credential
+the Nightly and Weekly workflows already use. (`MATTERMOST_WEBHOOK_URL` is only
+the CLI's environment-variable fallback name, not a repository secret; wiring
+that one would hand the workflow an empty value and the digest would silently
+fail to post.) The issue bridge adds `issues: write`, and nothing else.
+
+**Trust boundary.** `workflow_run` runs privileged, in the context of the
+default branch, with access to secrets — while *Lint and integration* runs on
+pull-request heads, which are untrusted. The metrics workflow therefore:
+
+- checks out and executes **only default-branch code**, never
+  `workflow_run.head_sha` and never a PR merge ref;
+- treats downloaded logs, artifacts and run metadata strictly as **data** —
+  parsed, scrubbed and stored, never sourced, executed, or interpolated
+  unquoted into a shell;
+- keeps `contents: write` and `issues: write` out of any step that handles
+  attacker-controlled input where it can be avoided.
+
+Without this, a pull request from a fork could exfiltrate the token, rewrite
+`ci-metrics`, or open issues under the bot's identity.
 
 New file `ci/failure_rules.yaml` — the reviewable classification surface.
 
@@ -353,7 +387,21 @@ and collapsing them loses one.
 | `unknown` | Not yet attributable |
 
 *Axis B — reproducibility*: `systemic` (fails everywhere), `config-specific`
-(one OS/arch/channel), `flaky` (recovered on retry), `new`.
+(confined to one OS/arch/channel), `flaky` (recovered on retry).
+
+These overlap in reality — a failure can be confined to one matrix cell *and*
+recover on retry — so Axis B is recorded as a single enum resolved by
+precedence, `flaky` > `config-specific` > `systemic`. Recovery on retry is the
+most actionable fact about a failure and the only one backed by direct
+evidence, so it wins; breadth is a weaker statement and yields to it. Without a
+stated precedence, M4 and the issue labels would differ between implementations.
+
+`new` is deliberately *not* an Axis B value. It answers a different question —
+how old is this signature, not how does it reproduce — and a first-seen
+signature can perfectly well also be flaky. It is therefore a separate
+**novelty** dimension (`new` on first observation, `known` thereafter), which is
+also what makes "new vs known" usable in notifications independently of
+reproducibility.
 
 Axis B is measurable for free: GitHub exposes per-attempt job lists at
 `/runs/{id}/attempts/{n}/jobs`, which gives retry outcomes as ground truth
