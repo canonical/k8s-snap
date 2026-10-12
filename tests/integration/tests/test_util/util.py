@@ -1465,6 +1465,10 @@ def check_service_logs_for_panics(
     Check that k8s snap service logs do not contain Go panic traces or segfaults.
     Scans the last N lines of journalctl output for each service, looking for
     panic indicators and segmentation faults.
+
+    Filters out controller-runtime's benign "logger never set" stack dump
+    (sigs.k8s.io/controller-runtime/pkg/log, eventuallyFulfillRoot) - not a
+    crash, but it looks like one to the patterns below.
     """
     PANIC_PATTERNS = [
         r"panic:",
@@ -1474,6 +1478,7 @@ def check_service_logs_for_panics(
         r"segfault",
     ]
     panic_re = re.compile("|".join(PANIC_PATTERNS), flags=re.IGNORECASE)
+    CTRL_RUNTIME_LOGGER_DIAG = "log.SetLogger(...) was never called"
 
     if services is None:
         services = _get_enabled_services(instance)
@@ -1492,8 +1497,22 @@ def check_service_logs_for_panics(
             capture_output=True,
             text=True,
         )
+        filtered_lines = []
+        skipping = False
+        # Matches the diagnostic's continuation lines ("Detected at:" and its
+        # ">"-prefixed stack), without assuming journald's exact prefix format.
+        continuation_re = re.compile(r"(?:^|\]:)\s*(?:>|Detected at:\s*$)")
+        for line in result.stdout.split("\n"):
+            if CTRL_RUNTIME_LOGGER_DIAG in line:
+                skipping = True
+                continue
+            if skipping:
+                if continuation_re.search(line):
+                    continue
+                skipping = False
+            filtered_lines.append(line)
         matching_lines = [
-            line.strip() for line in result.stdout.split("\n") if panic_re.search(line)
+            line.strip() for line in filtered_lines if panic_re.search(line)
         ]
         if matching_lines:
             panics_found[service] = matching_lines
