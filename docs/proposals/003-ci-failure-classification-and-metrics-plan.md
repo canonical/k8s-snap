@@ -138,7 +138,7 @@ infrastructure failure as a product bug. A pair is issue-worthy when all hold:
 - not already tracked by an open or claimed issue for that same pair, and not
   closed-as-resolved within a cooldown;
 - confidence is rule-derived, not `unknown`;
-- the run's base is not stale (see Safety below).
+- the recurrence is not *provably* stale (see Safety below).
 Plus a per-run budget (start: max 3 new issues/day) so a bad rule cannot flood the
 tracker.
 
@@ -149,25 +149,51 @@ counts and the newest run link instead of opening a second one. A signature
 recurring after its issue was closed reopens it with a "regressed" comment rather
 than opening a duplicate.
 
-**Idempotency — a local unique index cannot make a remote POST idempotent.** The
-partial unique index stops two rows existing; it cannot stop two GitHub issues
-existing. Two overlapping runs can both observe "no open issue", both POST, and
-only then collide locally — or a worker can crash after the POST but before the
-insert, losing the issue number entirely. So the bridge uses claim-then-post:
+**Exclusion — a local unique index cannot serialise two runs.** The partial
+unique index stops two rows existing *in one database*; the deployment has no
+shared database. Every run rebuilds SQLite from `metrics.sql` at startup, so two
+runs starting from the same `ci-metrics` commit hold private copies, each of
+which accepts its own `claiming` row. The index serialises writers within a run
+and nothing between them. An earlier revision of this document claimed "a
+competing worker loses here" — it does not, and the correction is the whole
+point of this section.
 
-1. **Claim.** Insert `issue_state='claiming'` with a deterministic
-   `idempotency_key` and commit, *before* any network call. The partial unique
-   index covers `claiming` as well as `open`, so a competing worker loses here —
-   locally, cheaply, before anything external happens.
-2. **Post.** Create the issue with the key embedded in the body marker:
-   `<!-- ci-signature: <id> ctx=<substrate> key=<idempotency_key> -->`.
-3. **Confirm.** Record the number and flip to `open`.
+1. **A single writer job.** Every mutation of `ci-metrics` and every issue POST
+   happens in one job carrying
+   `concurrency: {group: ci-metrics-store, cancel-in-progress: false}`. A *job*,
+   not a workflow: workflow-level concurrency serialises runs while matrix
+   children inside an admitted run stay concurrent. Any writer omitting the
+   group bypasses the mutex. The one-queued-member behaviour is safe only
+   because eligibility is recomputed from durable facts each run, so a dropped
+   queued run is a no-op.
+2. **Reconcile before posting.** A mutex is not a transaction: nothing prevents
+   cancellation after the POST returns and before the push lands, leaving an
+   issue with no record. So before any POST the bridge lists open issues
+   carrying its marker and adopts any with no local row, verifying marker,
+   creator and context first.
+3. **Look up.** `GET /issues?labels=signature/<id>,substrate/<s>&state=all`, not
+   issue *search* — search is index-backed and can lag a fresh issue by minutes.
+   The list endpoint has no such lag but is not documented as linearisable, so
+   it is a strong check, never a mutual-exclusion primitive.
+4. **Claim, post, confirm.** Insert `issue_state='claiming'` with the
+   deterministic `idempotency_key`, create the issue with the key in its body
+   marker `<!-- ci-signature: <id> ctx=<substrate> key=<idempotency_key> -->`,
+   then record the number and flip to `open`.
+5. **Push by compare-and-swap.** A plain push, never `--force`. A
+   non-fast-forward rejection means another run committed first: re-fetch,
+   rebuild, re-derive, retry under a bounded attempt count.
 
-Recovery is what the marker buys: a stale `claiming` row means step 2 or 3 may or
-may not have happened, so the bridge **searches GitHub for the key** before
-re-posting, and adopts the existing issue if it finds one. The key is in the
-issue body precisely so that recovery is a search rather than a guess. A claim
-that cannot be resolved after a bounded number of attempts flips to `failed` and
+**Every lookup has three outcomes, never two:** absent → post; present *and*
+recorded → continue; present but **not** recorded → *adopt and persist*.
+Treating the third as "skip" is what makes a lost issue number permanent, and it
+is the easy mistake here.
+
+The body marker, not the label, is the identity of record: GitHub **silently
+drops** labels supplied at creation when the token lacks push access, so a `201`
+does not prove the dedup labels were attached — the returned issue is re-read
+and labels re-applied if absent. Labels are an index; the marker cannot be
+stripped. The `claiming` row remains, demoted to crash recovery within a single
+run. A claim unresolved after a bounded number of attempts flips to `failed` and
 is surfaced in the digest rather than retried forever.
 
 **Issue body** (so the triage skill has what `reproduce.md` needs without a human
@@ -177,8 +203,10 @@ outcome (flaky vs systemic), scrubbed excerpt, links to the runs and to the
 `inspection-reports-<test>` artifacts from part one, the failing test selector and
 source path, and the classifying rule with its `notes`.
 
-**Labels.** `ci-failure`, `signature/<id>`, class label (`product-bug` /
-`test-bug`), `kind/bug`, plus reproducibility (`flaky` / `systemic`). Area labels
+**Labels.** `ci-failure`, `signature/<id>`, `substrate/<s>`, class label
+(`product-bug` / `test-bug`), `kind/bug`, plus reproducibility (`flaky` /
+`systemic`). `signature/<id>` and `substrate/<s>` must exist before the POST —
+issue creation applies existing labels, it does not create them. Area labels
 are left to the existing classify route rather than guessed here.
 
 **Handover to the bot — two things that must be fixed or nothing triggers:**
@@ -199,17 +227,46 @@ untriaged indefinitely.
 issue body runs through the same scrubber and `audit-secrets` before posting;
 issue creation needs `issues: write` and nothing else.
 
-**A failure on a stale base is not evidence of a live bug.** Before attributing a
-failure, the bridge must check the run's SHA against the merge-base with current
-`main` and skip — or explicitly caveat — anything whose base predates a commit
-already touching the failing area. Without this the bridge will confidently file
-issues for bugs that were fixed days ago, because a signature recurring on an old
-base is indistinguishable from a real recurrence by fingerprint alone. Part one
-already captures `sha` and `source` per job, so the check is cheap; what it costs
-is remembering to make it. This was learned the hard way while writing this
-document: `linkcheck` failed on the first push of this very PR against an
-already-fixed broken link, purely because the branch was cut from a `main` eleven
-commits stale, and a duplicate fix PR was opened before the cause was spotted.
+**A failure on stale software is not evidence of a live bug.** A signature
+recurring on code cut before the fix landed is indistinguishable, by fingerprint
+alone, from a real recurrence. The obvious rule — compare the run's SHA against
+the merge-base with `main` — does not work, and an earlier revision of this
+document specified exactly that. Two reasons, both verifiable in part one's
+own context fields: `ctx_sha` is `git rev-parse HEAD` of the *test-collection
+checkout* and `ctx_source` is `${TEST_COLLECTION_REPO}@${TEST_COLLECTION_REF}`,
+so the SHA records where the tests came from — possibly a release branch — not
+what was tested; and Nightly/Weekly exercise a published channel, for which
+`channel` and `revision` are set and **no base commit exists at all**.
+
+Comparing snap revisions numerically does not rescue it either. Revisions are
+Store upload identifiers, not git ancestry: a channel can be rolled back to an
+older revision carrying a backported fix, a newer revision can be a rebuild or
+source revert that *lost* one, revisions are allocated per architecture so the
+numbers are not comparable across matrix cells, and the same revision is
+promoted across risk channels. Revision ordering is a hint, never a proof.
+
+A recurrence is **provably fresh** only when the tested artifact maps to a
+commit and the fix is an ancestor of it:
+
+| Run shape | Provable when | Test |
+| --- | --- | --- |
+| PR / artifact build | build provenance records the built commit | fix is an ancestor of that commit |
+| Scheduled / channel | `(channel, arch, revision)` maps to a built commit | same ancestry test, via that commit |
+| anything else | never | `freshness=unknown` |
+
+Recording build provenance is therefore a **prerequisite** of this rail, not an
+optimisation — without a revision-to-commit mapping the scheduled half cannot
+work at all. Precedence: **provably stale** → suppressed, recorded not reported;
+**provably fresh** → may reopen; **unknown** → *never* reopens, comments at most
+once per window and surfaces in the digest for a human. Filing on unknown would
+defeat the rail, because until provenance exists unknown is the common case and
+every channel promotion would resurrect resolved work.
+
+Without this the bridge will confidently file issues for bugs fixed days ago.
+This was learned the hard way while writing this document: `linkcheck` failed on
+the first push of this very PR against an already-fixed broken link, purely
+because the branch was cut from a `main` eleven commits stale, and a duplicate
+fix PR was opened before the cause was spotted.
 
 ## Notes and risks
 
@@ -567,11 +624,35 @@ CREATE TABLE jobs (
     failed_step_number INTEGER,
     log_available      INTEGER,
 
+    -- What was actually tested, kept apart from where the tests came from.
+    -- `sha`/`source` in part one are the TEST-COLLECTION checkout, not the
+    -- software under test; conflating them breaks the freshness rail.
+    tested_revision TEXT NOT NULL DEFAULT '',  -- snap revision, '' if artifact
+    tested_artifact TEXT NOT NULL DEFAULT '',  -- artifact name, '' if channel
+    collection_ref  TEXT NOT NULL DEFAULT '',  -- TEST_COLLECTION_REF
+    collection_sha  TEXT NOT NULL DEFAULT '',  -- rev-parse HEAD of that checkout
+
     -- Exactly one attribution path, or neither (deferred and unmatched).
     signature_id   TEXT REFERENCES signatures,   -- Stage B
     router_rule_id TEXT REFERENCES router_rules, -- Stage A, metadata-only
     FOREIGN KEY (run_id, attempt) REFERENCES runs ON DELETE CASCADE,
-    CHECK (signature_id IS NULL OR router_rule_id IS NULL)
+    CHECK (signature_id IS NULL OR router_rule_id IS NULL),
+    -- a job tests a channel revision or an artifact, never both
+    CHECK (tested_revision = '' OR tested_artifact = '')
+);
+
+-- Maps a published snap back to the commit it was built from. Without this the
+-- freshness rail cannot suppress anything on scheduled runs, because revision
+-- numbers are Store upload ids, not git ancestry: channels get rolled back to
+-- older revisions, newer revisions can be reverts, and revisions are allocated
+-- per architecture. Populated from the snap's own recorded version/commit.
+CREATE TABLE snap_provenance (
+    channel  TEXT NOT NULL,
+    arch     TEXT NOT NULL,
+    revision INTEGER NOT NULL,
+    built_sha TEXT NOT NULL,
+    observed_at TEXT NOT NULL,
+    PRIMARY KEY (channel, arch, revision)
 );
 CREATE INDEX jobs_by_signature ON jobs(signature_id);
 CREATE INDEX jobs_by_run       ON jobs(run_id, attempt);
@@ -656,11 +737,13 @@ CREATE TABLE retry_outcomes (
 );
 
 -- == the issue bridge =================================================
--- `claiming` exists because a local index cannot make a remote POST
--- idempotent. The row is written and committed BEFORE the API call, so a
--- competing worker loses the race locally and cheaply; `idempotency_key` is
--- echoed into the issue body so a crash between POST and confirm is
--- recoverable by SEARCHING GitHub for the key rather than guessing.
+-- `claiming` is crash recovery WITHIN a single run -- nothing more. It cannot
+-- serialise two runs: each rebuilds this database from the committed dump, so
+-- both hold private copies and both accept a claim. Cross-run exclusion comes
+-- from the single-writer job's `concurrency` group; correctness after a crash
+-- comes from the reconciliation sweep, which ADOPTS a live issue found with no
+-- local row. `idempotency_key` is echoed into the issue body because the body
+-- marker, not the label, is the identity of record.
 CREATE TABLE issues (
     claim_id     INTEGER PRIMARY KEY,
     signature_id TEXT NOT NULL REFERENCES signatures ON DELETE CASCADE,
@@ -670,6 +753,9 @@ CREATE TABLE issues (
     issue_state  TEXT NOT NULL,        -- claiming|open|closed|failed
     claimed_at TEXT NOT NULL,
     opened_at TEXT, closed_at TEXT, closed_reason TEXT,
+    -- the commit a fix landed in, so freshness is an ancestry test and never a
+    -- revision comparison; NULL means "closed, but we cannot prove freshness"
+    fixed_at_sha TEXT,
     reopened_count INTEGER NOT NULL DEFAULT 0,
     post_attempts  INTEGER NOT NULL DEFAULT 0,
     last_comment_at TEXT,
@@ -680,8 +766,8 @@ CREATE TABLE issues (
     -- an issue that is live or settled must know its number
     CHECK (issue_state IN ('claiming','failed') OR issue_number IS NOT NULL)
 );
--- One live issue per (signature, context). Covers `claiming` too -- that is
--- the whole point: the claim, not the POST, is what gets serialised.
+-- One live issue per (signature, context) WITHIN this database. Necessary but
+-- NOT sufficient: it cannot stop a second run posting, only a second row here.
 CREATE UNIQUE INDEX one_live_issue_per_signature
     ON issues(signature_id, substrate)
     WHERE issue_state IN ('claiming','open');
@@ -776,7 +862,7 @@ WHERE ro.conclusion = 'success';
 | `retried`/`retry_outcome` flags | `v_flakes` over `retry_outcomes` | a stored flag goes stale; a derivation cannot -- but it needs *positive* pass evidence, not absence |
 | nullable dimension columns | `NOT NULL` + `''`/`'*'` sentinels | SQLite treats NULLs as distinct in UNIQUE, so nullable keys silently stop deduplicating |
 | router class parsed from rule id | `router_rules` lookup table | splitting `infra.runner.lost` on the first `.` yields `infra`, not a valid class |
-| `issues` keyed on `(signature, number)` | claim-then-post with `idempotency_key` | a local index cannot make a remote POST idempotent |
+| `issues` keyed on `(signature, number)` | single-writer `concurrency` group + reconcile-and-adopt + CAS push | a local index cannot serialise runs that each rebuild the DB from the dump |
 
 ## Storage
 
