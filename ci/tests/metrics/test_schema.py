@@ -133,6 +133,105 @@ class SchemaTest(unittest.TestCase):
                 """
             )
 
+    def test_job_class_uses_substrate_context_and_exact_match_wins(self) -> None:
+        conn = _db()
+        conn.executemany(
+            """
+            INSERT INTO configs (config_id, os, arch, channel, flavor, substrate)
+            VALUES (?, '', '', '', '', ?)
+            """,
+            [(1, "lxd"), (2, "multipass")],
+        )
+        conn.execute(
+            """
+            INSERT INTO signatures (
+                signature_id, normalised_pattern, exemplar_excerpt,
+                normaliser_version, extractor_version
+            ) VALUES ('sig-context', 'pattern', 'excerpt', 1, 1)
+            """
+        )
+        conn.executemany(
+            """
+            INSERT INTO signature_classifications (
+                signature_id, substrate, ruleset_version, failure_class,
+                classified_by, classified_at
+            ) VALUES ('sig-context', ?, 1, ?, 'rules', '2026-10-12T00:00:00Z')
+            """,
+            [
+                ("*", "unknown"),
+                ("lxd", "product.bug"),
+                ("multipass", "infra.provisioning"),
+            ],
+        )
+        conn.executemany(
+            """
+            INSERT INTO jobs (
+                job_id, run_id, attempt, config_id, test_id, job_name, html_url,
+                signature_id
+            ) VALUES (?, 100, 1, ?, 0, ?, 'https://example.invalid', 'sig-context')
+            """,
+            [(10, 1, "lxd job"), (11, 2, "multipass job")],
+        )
+
+        rows = conn.execute(
+            "SELECT job_id, failure_class FROM v_job_class ORDER BY job_id"
+        ).fetchall()
+
+        self.assertEqual(rows, [(10, "product.bug"), (11, "infra.provisioning")])
+
+    def test_flakes_require_positive_success_retry_outcome(self) -> None:
+        conn = _db()
+        conn.execute(
+            """
+            INSERT INTO runs (
+                run_id, attempt, workflow_id, completed_at, conclusion, jobs_total,
+                jobs_success, jobs_failure, jobs_skipped, jobs_cancelled,
+                runner_minutes_total, runner_minutes_failed, ingest_version
+            ) VALUES (100, 2, 1, '2026-10-12T00:30:00Z', 'success', 4, 1, 0, 2, 1, 1.0, 0.0, 1)
+            """
+        )
+        conn.executemany(
+            """
+            INSERT INTO configs (config_id, os, arch, channel, flavor, substrate)
+            VALUES (?, '', ?, '', '', 'lxd')
+            """,
+            [(1, "amd64"), (2, "arm64"), (3, "ppc64el"), (4, "s390x")],
+        )
+        conn.executemany(
+            """
+            INSERT INTO signatures (
+                signature_id, normalised_pattern, exemplar_excerpt,
+                normaliser_version, extractor_version
+            ) VALUES (?, 'pattern', 'excerpt', 1, 1)
+            """,
+            [("sig-success",), ("sig-cancelled",), ("sig-skipped",), ("sig-absent",)],
+        )
+        conn.executemany(
+            """
+            INSERT INTO jobs (
+                job_id, run_id, attempt, config_id, test_id, job_name, html_url,
+                signature_id
+            ) VALUES (?, 100, 1, ?, 0, ?, 'https://example.invalid', ?)
+            """,
+            [
+                (20, 1, "success retry", "sig-success"),
+                (21, 2, "cancelled retry", "sig-cancelled"),
+                (22, 3, "skipped retry", "sig-skipped"),
+                (23, 4, "absent retry", "sig-absent"),
+            ],
+        )
+        conn.executemany(
+            """
+            INSERT INTO retry_outcomes (run_id, attempt, config_id, test_id, conclusion)
+            VALUES (100, 2, ?, 0, ?)
+            """,
+            [(1, "success"), (2, "cancelled"), (3, "skipped")],
+        )
+
+        rows = conn.execute("SELECT signature_id FROM v_flakes").fetchall()
+
+        self.assertEqual(rows, [("sig-success",)])
+
 
 if __name__ == "__main__":
     unittest.main()

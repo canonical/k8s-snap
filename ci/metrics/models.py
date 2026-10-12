@@ -208,6 +208,61 @@ CREATE UNIQUE INDEX one_live_issue_per_signature
     WHERE issue_state IN ('claiming','open');
 CREATE UNIQUE INDEX one_issue_number
     ON issues(issue_number) WHERE issue_number IS NOT NULL;
+
+CREATE VIEW v_signature_class AS
+SELECT signature_id, substrate, failure_class, subclass, rule_id,
+       confidence, classified_by
+FROM (SELECT *, ROW_NUMBER() OVER (
+          PARTITION BY signature_id, substrate
+          ORDER BY (classified_by='human') DESC, ruleset_version DESC
+      ) rn FROM signature_classifications)
+WHERE rn = 1;
+
+CREATE VIEW v_job_class AS
+SELECT job_id, run_id, attempt, config_id, test_id, signature_id,
+       failure_class, subclass, classified_by
+FROM (
+  SELECT j.job_id, j.run_id, j.attempt, j.config_id, j.test_id, j.signature_id,
+         COALESCE(sc.failure_class, rr.failure_class, 'unknown') AS failure_class,
+         COALESCE(sc.subclass, rr.subclass)                      AS subclass,
+         CASE WHEN sc.signature_id IS NOT NULL THEN sc.classified_by
+              WHEN rr.router_rule_id IS NOT NULL THEN 'router'
+              ELSE 'none' END                                    AS classified_by,
+         ROW_NUMBER() OVER (PARTITION BY j.job_id
+                            ORDER BY (sc.substrate <> '*') DESC) AS rn
+  FROM jobs j
+  JOIN configs cfg USING (config_id)
+  LEFT JOIN router_rules rr USING (router_rule_id)
+  LEFT JOIN v_signature_class sc
+         ON sc.signature_id = j.signature_id
+        AND sc.substrate IN ('*', cfg.substrate)
+) WHERE rn = 1;
+
+CREATE VIEW v_signature_stats AS
+SELECT j.signature_id,
+       COUNT(*)                    AS occurrences,
+       COUNT(DISTINCT j.run_id)    AS runs_seen,
+       COUNT(DISTINCT j.test_id)   AS tests_affected,
+       COUNT(DISTINCT j.config_id) AS configs_affected,
+       MIN(r.started_at) AS first_seen, MAX(r.started_at) AS last_seen
+FROM jobs j JOIN runs r USING (run_id, attempt)
+WHERE j.signature_id IS NOT NULL GROUP BY j.signature_id;
+
+CREATE VIEW v_signature_context_stats AS
+SELECT j.signature_id, cfg.substrate,
+       COUNT(*) AS occurrences, COUNT(DISTINCT j.run_id) AS runs_seen,
+       MIN(r.started_at) AS first_seen, MAX(r.started_at) AS last_seen
+FROM jobs j JOIN runs r USING (run_id, attempt)
+JOIN configs cfg USING (config_id)
+WHERE j.signature_id IS NOT NULL GROUP BY j.signature_id, cfg.substrate;
+
+CREATE VIEW v_flakes AS
+SELECT j.signature_id, j.run_id, j.attempt, j.config_id, j.test_id
+FROM jobs j
+JOIN retry_outcomes ro
+  ON ro.run_id = j.run_id AND ro.attempt = j.attempt + 1
+ AND ro.config_id = j.config_id AND ro.test_id = j.test_id
+WHERE ro.conclusion = 'success';
 """
 
 
