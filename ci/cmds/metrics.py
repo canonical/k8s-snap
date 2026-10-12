@@ -17,6 +17,8 @@ from typing import Optional
 
 from metrics.gh import DEFAULT_REPO, GitHubClient
 from metrics.ingest import dump_records, ingest_run
+from metrics.router import apply_router
+from metrics.rules import DEFAULT_RULES_PATH, classify_signatures, load_rules
 from metrics.scrub import find_secrets
 from metrics.store import dump_database, open_database, rebuild_database
 
@@ -123,7 +125,38 @@ def add_metrics_cmds(parser: argparse.ArgumentParser) -> None:
     )
     rebuild.set_defaults(func=cmd_rebuild)
 
-    for name in ("classify", "fetch-logs", "rollup", "report", "open-issues"):
+    classify = metrics_sub.add_parser(
+        "classify", help="Apply Stage A router and Stage B rules to stored failures."
+    )
+    classify.add_argument(
+        "--db",
+        default=DEFAULT_DB,
+        type=Path,
+        help=f"SQLite database path (default: {DEFAULT_DB})",
+    )
+    classify.add_argument(
+        "--rules",
+        default=DEFAULT_RULES_PATH,
+        type=Path,
+        help=f"Rule pack path (default: {DEFAULT_RULES_PATH})",
+    )
+    classify.add_argument(
+        "--sql",
+        default=DEFAULT_SQL,
+        type=Path,
+        help=f"SQL dump path to update after classification (default: {DEFAULT_SQL}).",
+    )
+    classify.add_argument(
+        "--no-dump",
+        action="store_true",
+        help="Do not update the deterministic SQL dump after classification.",
+    )
+    classify.add_argument(
+        "--json", action="store_true", help="Print classification summary as JSON."
+    )
+    classify.set_defaults(func=cmd_classify)
+
+    for name in ("fetch-logs", "rollup", "report", "open-issues"):
         stub = metrics_sub.add_parser(
             name, help="Stub for a later CI failure classification PR."
         )
@@ -209,6 +242,34 @@ def cmd_dump(args: argparse.Namespace) -> int:
 def cmd_rebuild(args: argparse.Namespace) -> int:
     rebuild_database(args.db, args.sql).close()
     print(f"rebuilt {args.db} from {args.sql}")
+    return 0
+
+
+def cmd_classify(args: argparse.Namespace) -> int:
+    """Apply metadata routing and the ordered Stage B rule pack."""
+
+    conn = open_database(args.db)
+    pack = load_rules(args.rules)
+    with conn:
+        router_summary = apply_router(conn)
+        rules_summary = classify_signatures(conn, pack)
+
+    summary = {
+        "router": router_summary,
+        "rules": {"ruleset_version": pack.version, **rules_summary},
+    }
+    if args.json:
+        print(json.dumps(summary, indent=2, sort_keys=True))
+    else:
+        print("router: {routed} routed, {deferred} deferred".format(**router_summary))
+        print(
+            "rules v{ruleset_version}: {matched} matched, {unmatched} unmatched".format(
+                **summary["rules"]
+            )
+        )
+
+    if not args.no_dump:
+        dump_database(conn, args.sql)
     return 0
 
 
