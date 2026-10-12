@@ -290,8 +290,11 @@ numbers trustworthy rather than merely present:
 - Issue eligibility is evaluated per (signature, substrate) — otherwise an
   infrastructure failure sharing a fingerprint with a product bug is filed as
   one.
-- The bridge never opens a second issue for a claim it already holds, including
-  after a crash between creating the issue and recording it.
+- The bridge never opens a second issue for a cause already tracked, and *adopts*
+  a live issue it finds but has no record of, rather than skipping it — otherwise
+  a crash between creating an issue and recording it loses the number forever.
+- A closed issue is only reopened on a recurrence that is provably fresh; an
+  unprovable one comments and surfaces in the digest instead.
 
 Beyond unit tests, a **validation gate** is run against live data before the
 workflow is enabled:
@@ -565,7 +568,7 @@ Multipass and a product bug on LXD. A pair is filed when:
   substrate;
 - it is not already tracked by an open or in-flight issue, and was not closed
   as resolved within a cooldown;
-- the run's base is not stale (below).
+- it is not *provably* stale (below).
 
 At most 3 new issues are filed per day, so a bad rule costs a bounded amount of
 tracker noise rather than a flood. Auto-filed issues are a credibility budget:
@@ -573,20 +576,66 @@ if the first ten are wrong, nobody reads the eleventh.
 
 **One issue per cause, forever.** The issue body carries a marker,
 `<!-- ci-signature: <id> ctx=<substrate> key=<idempotency key> -->`, and the
-`signature/<id>` label. A recurrence comments on the existing issue with
-updated counts and the newest run, rather than opening another. A signature
-that recurs after its issue was closed reopens it with a "regressed" comment —
-which is also how we learn that a fix did not hold.
+`signature/<id>` and `substrate/<s>` labels. The marker, not the labels, is the
+identity: labels are a lookup index and can be renamed, deleted, or — as below —
+silently dropped at creation time, whereas nothing strips a body comment. A
+recurrence comments on the existing issue with updated counts and the newest
+run, rather than opening another. A signature that recurs after its issue was
+closed reopens it with a "regressed" comment — but only when the recurrence is
+provably fresh, which the freshness rail below defines.
 
-**Claim, then post.** A local unique index cannot make a remote API call
-idempotent: two overlapping runs can both see "no issue" and both create one,
-and a crash between creating an issue and recording it loses the number. So the
-bridge records a `claiming` row and commits it *before* calling GitHub — a
-competing run loses there, locally — then creates the issue with the key in
-its marker, then records the number. A stale claim is resolved by searching
-GitHub for its key and adopting what it finds, never by re-posting blind. A
-claim that cannot be resolved after a bounded number of attempts is marked
-failed and surfaced in the digest.
+**Exclusion, repair, then post.** Two overlapping runs can both see "no issue"
+and both create one. The obvious guard — a local unique index — does not help,
+and it is worth being precise about why, because it looks like it should: there
+is no shared database. Every run rebuilds SQLite from `metrics.sql` at startup,
+so two runs starting from the same `ci-metrics` commit hold two private copies,
+each of which accepts its own `claiming` row quite happily. The index serialises
+writers *within* a run and nothing at all *between* them.
+
+Three mechanisms, each doing one job:
+
+*A single writer job.* Every mutation of `ci-metrics` and every issue POST
+happens in one job carrying
+`concurrency: {group: ci-metrics-store, cancel-in-progress: false}`. It must be
+a job, not a workflow: workflow-level concurrency serialises runs, so matrix
+children inside an admitted run would still be concurrent with each other. Any
+writer that omits the group bypasses the mutex, which is why the group name is
+specified here and not left to a workflow file. Actions keeps at most one
+running member and one queued one, cancelling the older queued run when a newer
+arrives; that is safe *only because* eligibility is recomputed from durable facts
+every time, so a dropped queued run is a no-op rather than lost data.
+
+*Repair, because a mutex is not a transaction.* Exclusivity cannot stop a run
+being cancelled, timing out, or losing its runner after the POST returns and
+before the push lands — GitHub and the branch cannot be committed atomically, so
+the issue exists while the record does not. The cure is not a better lock but a
+reconciliation sweep: before any POST, the bridge lists open issues carrying its
+marker and adopts any with no local row, verifying marker, creator and substrate
+before binding. Every lookup therefore has three outcomes, never two: **absent**
+→ post; **present and recorded** → continue; **present but unrecorded** →
+*adopt and persist*. Treating the third case as "skip" is what makes a lost
+record permanent, and it is the easy mistake here.
+
+*A strong pre-post check, not a guarantee.* The lookup is
+`GET /issues?labels=signature/<id>,substrate/<s>&state=all` rather than issue
+*search*, because search is index-backed and can lag a freshly created issue by
+minutes — it would report "no issue" for one that already exists. The issue-list
+endpoint has no such lag, but GitHub does not document it as linearisable
+either, so it is a strong check rather than a mutual-exclusion primitive, and it
+is never load-bearing alone. Labels add a further caveat: GitHub **silently
+drops** labels supplied at creation when the token lacks push access, and issue
+creation does not create missing labels. A `201` therefore does not prove the
+deduplication labels were attached, so the returned issue is re-read and its
+labels re-applied if absent. This is exactly why the body marker, not the label,
+is the identity of record.
+
+The `claiming` row stays, demoted to what it honestly is: crash recovery within
+a single run. The order is claim → reconcile → look up → post → record → push,
+with the record pushed promptly to keep the repair window short, and the branch
+updated by compare-and-swap — a plain push, never `--force`. A non-fast-forward
+rejection means another run committed first: re-fetch, rebuild, re-derive and
+retry under a bounded attempt count. A claim that cannot be resolved after that
+many attempts is marked failed and surfaced in the digest.
 
 **What the issue contains.** Everything the triage skill's reproduction step
 needs without a human re-gathering it: signature and class, the classifying
@@ -594,27 +643,68 @@ rule and its `notes`, first and last seen, occurrence and affected-test counts,
 the matrix cells hit, the retry outcome (flaky or systemic), the scrubbed
 exemplar excerpt, links to the runs and to their `inspection-reports-<test>`
 artifacts, and the failing test selector. Labels: `ci-failure`,
-`signature/<id>`, `product-bug` or `test-bug`, `kind/bug`, and `flaky` or
-`systemic`. Area labels are left to the existing classify pass rather than
-guessed.
+`signature/<id>`, `substrate/<s>`, `product-bug` or `test-bug`, `kind/bug`, and
+`flaky` or `systemic`. Area labels are left to the existing classify pass rather
+than guessed.
 
 **Handover to triage.** Opening an issue triggers the triage bot's cheap,
 unprivileged classify job only. The self-hosted reproduce pipeline stays
 behind a maintainer commenting `/triage` or `/reproduce`, and the issue body
 says so, so that the next move is obvious to whoever reads it.
 
-**A failure on a stale base is not evidence of a live bug.** A signature
-recurring on a branch cut before the fix landed is indistinguishable, by
-fingerprint alone, from a real recurrence. Every job already records its `sha`,
-so before filing, the bridge compares the run's base with current `main` and
-skips — or explicitly caveats — failures whose base predates a commit touching
-the failing area. Without this the bridge confidently files bugs that were
+**A failure on stale software is not evidence of a live bug.** A signature
+recurring on code cut before the fix landed is indistinguishable, by fingerprint
+alone, from a real recurrence. The tempting rule — compare the run's `sha`
+against `main` — does not work, for two reasons that only show up once you look
+at what the workflow records. `ctx_sha` is `git rev-parse HEAD` of the
+*test-collection checkout* and `ctx_source` is
+`${TEST_COLLECTION_REPO}@${TEST_COLLECTION_REF}`, so the SHA says where the
+tests came from — possibly a release branch — not what was tested. And Nightly
+and Weekly exercise a published channel, for which `channel` and `revision` are
+populated and no base commit exists at all.
+
+Freshness is therefore a property of *what was tested*, and the near-miss worth
+recording is that comparing snap revisions numerically does not establish it
+either. Revisions are Store upload identifiers, not git ancestry: a channel can
+be deliberately rolled back to an older revision that *does* carry a backported
+fix, a newer revision can be a rebuild or source revert that *lost* one,
+revisions are allocated per architecture so the numbers are not comparable
+across matrix cells, and the same revision is promoted across risk channels.
+Revision ordering is a hint, never a proof.
+
+A recurrence is provably fresh only when the tested artifact maps to a commit
+and the fix is an ancestor of it:
+
+| Run shape | Provable when | Test |
+| --- | --- | --- |
+| PR / artifact build | build provenance records the built commit | fix is an ancestor of that commit |
+| Scheduled / channel | `(channel, arch, revision)` maps to a built commit | same ancestry test, via that commit |
+| anything else | never | `freshness=unknown` |
+
+This makes recording build provenance a *prerequisite* of the rail rather than
+an optimisation: without a revision-to-commit mapping the scheduled half cannot
+work, so `issues` records the commit a fix landed in, never a bare revision.
+
+What happens to `unknown` matters more than what it is, and the safe-looking
+answer is the wrong one. Until provenance exists, unknown is the *common* case,
+so filing or reopening on unknown would resurrect resolved work on every channel
+promotion and exhaust the three-a-day budget — the rail would suppress nothing
+while appearing to work. The precedence is:
+
+1. **provably stale** — suppressed; recorded, not reported;
+2. **provably fresh** — may reopen the closed issue;
+3. **unknown** — *never* reopens; comments on the closed issue at most once per
+   window and appears in the digest as needing a human look.
+
+Only provable freshness earns a reopen. The rail fails toward a human rather
+than toward noise, and without it the bridge confidently files bugs that were
 fixed days ago.
 
 **Safety.** Every issue body passes through the same scrubber and
-`audit-secrets` gate as stored excerpts. The bridge runs from the daily digest
-cron, never from reconciliation, and in `--dry-run` until validation check 10
-passes.
+`audit-secrets` gate as stored excerpts. Issues are only ever *opened* from the
+daily digest cron — the ingest reconciliation workflow never files anything,
+though the bridge's own pre-post sweep does adopt existing issues as described
+above — and the bridge stays in `--dry-run` until validation check 10 passes.
 
 #### Phasing
 
