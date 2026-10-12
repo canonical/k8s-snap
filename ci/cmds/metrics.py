@@ -27,6 +27,8 @@ from metrics.store import dump_database, open_database, rebuild_database
 REPO_ROOT = Path(__file__).parent.parent.parent
 DEFAULT_DB = REPO_ROOT / "ci/metrics-data/metrics.db"
 DEFAULT_SQL = REPO_ROOT / "ci/metrics-data/metrics.sql"
+DEFAULT_REPORTS_DIR = REPO_ROOT / "ci/metrics-data/reports"
+DEFAULT_SIGNATURES_DIR = REPO_ROOT / "ci/metrics-data/signatures"
 WORKFLOW_ALIASES = {
     "nightly": "nightly-test.yaml",
     "weekly": "weekly-test.yaml",
@@ -186,15 +188,15 @@ def add_metrics_cmds(parser: argparse.ArgumentParser) -> None:
     )
     report.add_argument(
         "--reports-dir",
-        default=REPO_ROOT / "reports",
+        default=DEFAULT_REPORTS_DIR,
         type=Path,
-        help=f"Report output directory (default: {REPO_ROOT / 'reports'}).",
+        help=f"Report output directory (default: {DEFAULT_REPORTS_DIR}).",
     )
     report.add_argument(
         "--signatures-dir",
-        default=REPO_ROOT / "signatures",
+        default=DEFAULT_SIGNATURES_DIR,
         type=Path,
-        help=f"Signature output directory (default: {REPO_ROOT / 'signatures'}).",
+        help=f"Signature output directory (default: {DEFAULT_SIGNATURES_DIR}).",
     )
     report.set_defaults(func=cmd_report)
 

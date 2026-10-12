@@ -32,6 +32,10 @@ subunit.out
 
 /ci/metrics-data/metrics.db
 /ci/metrics-data/metrics.db-*
+/ci/metrics-data/reports/
+/ci/metrics-data/signatures/
+/reports/
+/signatures/
 
 # triage bot per-issue scratch (report.md, agent HOME, caches)
 /.triage/
