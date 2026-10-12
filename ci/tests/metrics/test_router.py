@@ -37,7 +37,31 @@ def _db() -> sqlite3.Connection:
         VALUES (1, '', 'amd64', '', '', '')
         """
     )
+    conn.execute(
+        """
+        INSERT INTO configs (config_id, os, arch, channel, flavor, substrate)
+        VALUES (2, '', 'amd64', '1.37-classic/edge', '', '')
+        """
+    )
     return conn
+
+
+def _insert_job(
+    conn: sqlite3.Connection,
+    job_id: int,
+    failed_step_name: str | None,
+    log_available: int,
+    config_id: int = 1,
+) -> None:
+    conn.execute(
+        """
+        INSERT INTO jobs (
+            job_id, run_id, attempt, config_id, test_id, job_name, html_url,
+            failed_step_name, log_available
+        ) VALUES (?, 100, 1, ?, 0, ?, 'https://example.invalid', ?, ?)
+        """,
+        (job_id, config_id, f"job {job_id}", failed_step_name, log_available),
+    )
 
 
 class RouterTest(unittest.TestCase):
@@ -66,16 +90,9 @@ class RouterTest(unittest.TestCase):
 
         self.assertTrue(verdict.defer)
 
-    def test_router_class_comes_from_lookup_table_not_rule_id_split(self) -> None:
+    def test_runner_lost_classification_uses_lookup_table(self) -> None:
         conn = _db()
-        conn.execute(
-            """
-            INSERT INTO jobs (
-                job_id, run_id, attempt, config_id, test_id, job_name, html_url,
-                failed_step_name, log_available
-            ) VALUES (1, 100, 1, 1, 0, 'lost runner', 'https://example.invalid', NULL, 0)
-            """
-        )
+        _insert_job(conn, 1, None, 0)
 
         apply_router(conn)
         row = conn.execute(
@@ -83,6 +100,43 @@ class RouterTest(unittest.TestCase):
         ).fetchone()
 
         self.assertEqual(row, ("infra.runner", "runner_lost", "router"))
+
+    def test_step_rule_lxd_setup_preserves_full_dotted_class(self) -> None:
+        verdict = route(
+            RouterJob(job_id=1, failed_step_name="Setup LXD", log_available=1)
+        )
+        self.assertEqual(verdict.failure_class, "infra.provisioning")
+
+        conn = _db()
+        _insert_job(conn, 1, "Setup LXD", 1)
+
+        apply_router(conn)
+        row = conn.execute(
+            "SELECT failure_class, subclass, classified_by FROM v_job_class WHERE job_id = 1"
+        ).fetchone()
+
+        self.assertEqual(row, ("infra.provisioning", "lxd_setup", "router"))
+
+    def test_step_rule_snap_download_preserves_full_dotted_class(self) -> None:
+        verdict = route(
+            RouterJob(
+                job_id=1,
+                failed_step_name="Download k8s-snap",
+                log_available=1,
+                channel="1.37-classic/edge",
+            )
+        )
+        self.assertEqual(verdict.failure_class, "external.dependency")
+
+        conn = _db()
+        _insert_job(conn, 1, "Download k8s-snap", 1, config_id=2)
+
+        apply_router(conn)
+        row = conn.execute(
+            "SELECT failure_class, subclass, classified_by FROM v_job_class WHERE job_id = 1"
+        ).fetchone()
+
+        self.assertEqual(row, ("external.dependency", "snap_store", "router"))
 
 
 if __name__ == "__main__":
