@@ -131,10 +131,15 @@ class GitHubIssueClient:
         self.repo = repo
         self.api_root = api_root.rstrip("/")
         self.token = (
-            token or os.environ.get("BOT_TOKEN") or os.environ.get("GITHUB_TOKEN")
+            token
+            or os.environ.get("GH_TOKEN")
+            or os.environ.get("BOT_TOKEN")
+            or os.environ.get("GITHUB_TOKEN")
         )
         if not self.token:
-            raise IssueBridgeError("metrics open-issues requires BOT_TOKEN or --token")
+            raise IssueBridgeError(
+                "metrics open-issues requires GH_TOKEN, BOT_TOKEN, or --token"
+            )
         self.session = session or requests.Session()
 
     def _headers(self) -> Dict[str, str]:

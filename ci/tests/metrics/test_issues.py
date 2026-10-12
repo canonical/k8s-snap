@@ -11,11 +11,13 @@ import tempfile
 import unittest
 from pathlib import Path
 from typing import Any, Dict, List, Sequence
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from metrics.issues import open_issues  # noqa: E402
+from metrics.issues import IssueBridgeError, open_issues  # noqa: E402
 from metrics.models import SCHEMA_SQL  # noqa: E402
+from metrics.scrub import SecretFinding  # noqa: E402
 
 
 def _db() -> sqlite3.Connection:
@@ -35,15 +37,16 @@ def _insert_candidate(
     failure_class: str = "product.bug",
     *,
     start_job: int = 1,
+    excerpt: str = "safe excerpt",
 ) -> None:
     conn.execute(
         """
         INSERT OR IGNORE INTO signatures (
             signature_id, normalised_pattern, exemplar_excerpt,
             normaliser_version, extractor_version
-        ) VALUES (?, 'pattern', 'safe excerpt', 1, 1)
+        ) VALUES (?, 'pattern', ?, 1, 1)
         """,
-        (signature_id,),
+        (signature_id, excerpt),
     )
     conn.execute(
         """
@@ -270,6 +273,59 @@ class IssueBridgeTest(unittest.TestCase):
         self.assertEqual(len(result.created), 3)
         self.assertEqual(len(client.created), 3)
         self.assertIn("daily budget exhausted", "\n".join(result.skipped))
+
+    def test_issue_body_scrubs_join_token_before_posting(self) -> None:
+        conn = _db()
+        _insert_candidate(
+            conn,
+            "dddddddddddddddd",
+            "lxd",
+            excerpt="k8s join failed with token abcdef.0123456789abcdef on worker",
+        )
+        client = FakeIssueClient()
+
+        with conn:
+            open_issues(conn, client, dry_run=False, issue_author="ci-bot")
+
+        self.assertEqual(len(client.created), 1)
+        body = client.created[0]["body"]
+        self.assertIn("k8s join failed with token <redacted> on worker", body)
+        self.assertNotIn("abcdef.0123456789abcdef", body)
+
+    def test_detected_secret_blocks_post_and_comment_calls(self) -> None:
+        conn = _db()
+        _insert_candidate(conn, "eeeeeeeeeeeeeeee", "lxd")
+        client = FakeIssueClient()
+
+        with patch(
+            "metrics.issues.find_secrets",
+            return_value=(SecretFinding(1, "forced-secret"),),
+        ):
+            with self.assertRaises(IssueBridgeError):
+                with conn:
+                    open_issues(conn, client, dry_run=False, issue_author="ci-bot")
+
+        self.assertEqual(client.created, [])
+        self.assertEqual(client.comments, [])
+
+    def test_body_uses_scrubbed_text_not_raw_assignment_secret(self) -> None:
+        conn = _db()
+        raw = "token=abc123def456"
+        _insert_candidate(
+            conn,
+            "ffffffffffffffff",
+            "lxd",
+            excerpt=f"setup failed after {raw} was printed",
+        )
+        client = FakeIssueClient()
+
+        with conn:
+            open_issues(conn, client, dry_run=False, issue_author="ci-bot")
+
+        self.assertEqual(len(client.created), 1)
+        body = client.created[0]["body"]
+        self.assertIn("setup failed after token=<redacted> was printed", body)
+        self.assertNotIn(raw, body)
 
     def test_eligibility_is_keyed_by_signature_and_substrate(self) -> None:
         conn = _db()

@@ -31,6 +31,7 @@ jobs:
       METRICS_POST_ISSUES: ${{ github.event.inputs.post_issues || 'false' }}
       MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }}
       BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+      GH_TOKEN: ${{ secrets.BOT_TOKEN }}
     steps:
       - name: Check out trusted default-branch code
         uses: actions/checkout@v4
@@ -75,7 +76,6 @@ jobs:
           fi
           python ci/k8s-ci.py metrics open-issues \
             --post \
-            --token "${BOT_TOKEN}" \
             --json
 
       - name: Compare-and-swap push metrics state
