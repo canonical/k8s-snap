@@ -1,6 +1,13 @@
 name: CI metrics issue bridge
 
 on:
+  # zizmor: ignore[dangerous-triggers]
+  # workflow_run is required: this job must read the *completed* run's jobs and
+  # logs, which is only possible after the fact. The usual workflow_run hazard is
+  # executing untrusted head code with a privileged token; that is avoided here by
+  # checking out the default branch only (never github.event.workflow_run.head_sha)
+  # and treating fetched logs and artifacts as inert data that is scrubbed before
+  # use. See docs/proposals/003 "trust boundary".
   workflow_run:
     workflows:
       - Nightly
@@ -15,14 +22,16 @@ on:
         required: false
         default: "false"
 
-permissions:
-  actions: read
-  contents: write
+permissions: {}
 
 jobs:
   open-issues:
     name: Reconcile CI metrics and open issues
     runs-on: ubuntu-24.04
+    permissions:
+      actions: read # read the triggering run's jobs, attempts and logs
+      contents: write # commit the regenerated metrics.sql to the ci-metrics branch
+      # Issues are filed with BOT_TOKEN, not GITHUB_TOKEN, so no issues: write here.
     concurrency:
       group: ci-metrics-store
       cancel-in-progress: false
@@ -34,7 +43,7 @@ jobs:
       GH_TOKEN: ${{ secrets.BOT_TOKEN }}
     steps:
       - name: Check out trusted default-branch code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.repository.default_branch }}
           fetch-depth: 0
