@@ -30,6 +30,9 @@ subunit.out
 
 .benchmark
 
+/ci/metrics-data/metrics.db
+/ci/metrics-data/metrics.db-*
+
 # triage bot per-issue scratch (report.md, agent HOME, caches)
 /.triage/
 .lavish/

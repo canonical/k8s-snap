@@ -14,9 +14,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
-from . import INGEST_VERSION, SCHEMA_VERSION
+from . import INGEST_VERSION
+from . import store as metrics_store
 from .gh import GitHubClient
-from .models import SCHEMA_SQL
+
+InFlightRunError = metrics_store.InFlightRunError
 
 NAME_SPLIT = " / "
 ARCHES = {"amd64", "arm64", "ppc64el", "s390x"}
@@ -28,10 +30,6 @@ CHANNEL_RE = re.compile(
 FLAVOR_RE = re.compile(r"^(classic|strict)$")
 PREPARE_JOB_NAME = "Prepare Environment"
 TEST_NODEID_RE = re.compile(r"^(?P<file>[\w/.\-]+\.py)(?:::(?P<test>.+))?$")
-
-
-class InFlightRunError(ValueError):
-    """Raised when a run cannot be frozen because it has no conclusion."""
 
 
 @dataclass(frozen=True)
@@ -444,213 +442,15 @@ def _attach_retry_outcomes(client: GitHubClient, records: List[RunRecord]) -> No
 
 
 def initialise_database(conn: sqlite3.Connection) -> None:
-    conn.executescript(SCHEMA_SQL)
-    conn.execute(
-        "INSERT OR REPLACE INTO schema_meta (key, value) VALUES (?, ?)",
-        ("schema_version", str(SCHEMA_VERSION)),
-    )
-    conn.execute(
-        "INSERT OR IGNORE INTO tests (test_id, nodeid, file, owner) VALUES (0, '', NULL, NULL)"
-    )
+    metrics_store.initialise_database(conn)
 
 
 def open_database(path: Path) -> sqlite3.Connection:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(path)
-    conn.execute("PRAGMA foreign_keys = ON")
-    exists = conn.execute(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='schema_meta'"
-    ).fetchone()
-    if exists is None:
-        initialise_database(conn)
-    return conn
-
-
-def _get_or_create_workflow(conn: sqlite3.Connection, record: RunRecord) -> int:
-    conn.execute(
-        "INSERT OR IGNORE INTO workflows (name, file) VALUES (?, ?)",
-        (record.workflow_name, record.workflow_file),
-    )
-    row = conn.execute(
-        "SELECT workflow_id FROM workflows WHERE name = ?", (record.workflow_name,)
-    ).fetchone()
-    return int(row[0])
-
-
-def _get_or_create_config(
-    conn: sqlite3.Connection, key: Tuple[str, str, str, str, str]
-) -> int:
-    conn.execute(
-        """
-        INSERT OR IGNORE INTO configs (os, arch, channel, flavor, substrate)
-        VALUES (?, ?, ?, ?, ?)
-        """,
-        key,
-    )
-    row = conn.execute(
-        """
-        SELECT config_id FROM configs
-        WHERE os = ? AND arch = ? AND channel = ? AND flavor = ? AND substrate = ?
-        """,
-        key,
-    ).fetchone()
-    return int(row[0])
-
-
-def _get_or_create_test(
-    conn: sqlite3.Connection, nodeid: str, file: Optional[str]
-) -> int:
-    if not nodeid:
-        return 0
-    conn.execute(
-        "INSERT OR IGNORE INTO tests (nodeid, file) VALUES (?, ?)",
-        (nodeid, file),
-    )
-    row = conn.execute(
-        "SELECT test_id FROM tests WHERE nodeid = ?", (nodeid,)
-    ).fetchone()
-    return int(row[0])
-
-
-def _get_or_create_runner(conn: sqlite3.Connection, job: JobRecord) -> Optional[int]:
-    if not job.runner_labels:
-        return None
-    label_key = _label_key(job.runner_labels)
-    conn.execute(
-        "INSERT OR IGNORE INTO runners (label_key, self_hosted) VALUES (?, ?)",
-        (label_key, int(job.self_hosted)),
-    )
-    row = conn.execute(
-        "SELECT runner_id FROM runners WHERE label_key = ?", (label_key,)
-    ).fetchone()
-    runner_id = int(row[0])
-    for label in job.runner_labels:
-        conn.execute(
-            "INSERT OR IGNORE INTO runner_labels (runner_id, label) VALUES (?, ?)",
-            (runner_id, label),
-        )
-    return runner_id
+    return metrics_store.open_database(path)
 
 
 def store_run_record(conn: sqlite3.Connection, record: RunRecord) -> None:
-    """Store one completed run attempt and its failed jobs."""
-
-    if not record.conclusion:
-        raise InFlightRunError(
-            f"Refusing to store in-flight run {record.run_id}: conclusion is empty"
-        )
-    workflow_id = _get_or_create_workflow(conn, record)
-    conn.execute(
-        """
-        INSERT OR REPLACE INTO runs (
-            run_id, attempt, workflow_id, event, head_branch, head_sha, pr_number,
-            created_at, started_at, completed_at, conclusion, jobs_total,
-            jobs_success, jobs_failure, jobs_skipped, jobs_cancelled,
-            runner_minutes_total, runner_minutes_failed, ingest_version
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            record.run_id,
-            record.attempt,
-            workflow_id,
-            record.event,
-            record.head_branch,
-            record.head_sha,
-            record.pr_number,
-            record.created_at,
-            record.started_at,
-            record.completed_at,
-            record.conclusion,
-            record.jobs_total,
-            record.jobs_success,
-            record.jobs_failure,
-            record.jobs_skipped,
-            record.jobs_cancelled,
-            record.runner_minutes_total,
-            record.runner_minutes_failed,
-            record.ingest_version,
-        ),
-    )
-
-    for key, count in record.tests_collected.items():
-        config_id = _get_or_create_config(conn, key)
-        conn.execute(
-            """
-            INSERT OR REPLACE INTO run_tests_collected
-            (run_id, attempt, config_id, count) VALUES (?, ?, ?, ?)
-            """,
-            (record.run_id, record.attempt, config_id, count),
-        )
-
-    for prepare_job_name, jobs_not_run in record.blocked_jobs.items():
-        conn.execute(
-            """
-            INSERT OR REPLACE INTO run_blocked_jobs
-            (run_id, attempt, prepare_job_name, jobs_not_run) VALUES (?, ?, ?, ?)
-            """,
-            (record.run_id, record.attempt, prepare_job_name, jobs_not_run),
-        )
-
-    for job in record.failed_jobs:
-        config_id = _get_or_create_config(conn, job.config_key)
-        test_id = _get_or_create_test(conn, job.test_nodeid, job.test_file)
-        runner_id = _get_or_create_runner(conn, job)
-        conn.execute(
-            """
-            INSERT OR REPLACE INTO jobs (
-                job_id, run_id, attempt, config_id, test_id, runner_id, job_name,
-                caller_job, html_url, started_at, completed_at, duration_s,
-                failed_step_name, failed_step_number, log_available,
-                tested_revision, tested_artifact, collection_ref, collection_sha
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                job.job_id,
-                job.run_id,
-                job.attempt,
-                config_id,
-                test_id,
-                runner_id,
-                job.job_name,
-                job.caller_job,
-                job.html_url,
-                job.started_at,
-                job.completed_at,
-                job.duration_s,
-                job.failed_step_name,
-                job.failed_step_number,
-                job.log_available,
-                job.tested_revision,
-                job.tested_artifact,
-                job.collection_ref,
-                job.collection_sha,
-            ),
-        )
-        for step in job.steps:
-            conn.execute(
-                """
-                INSERT OR REPLACE INTO job_steps
-                (job_id, number, name, conclusion, duration_s) VALUES (?, ?, ?, ?, ?)
-                """,
-                (
-                    job.job_id,
-                    step.number,
-                    step.name,
-                    step.conclusion,
-                    step.duration_s,
-                ),
-            )
-
-    for outcome in record.retry_outcomes:
-        config_id = _get_or_create_config(conn, outcome.config_key)
-        test_id = _get_or_create_test(conn, outcome.test_nodeid, outcome.test_file)
-        conn.execute(
-            """
-            INSERT OR REPLACE INTO retry_outcomes
-            (run_id, attempt, config_id, test_id, conclusion) VALUES (?, ?, ?, ?, ?)
-            """,
-            (outcome.run_id, outcome.attempt, config_id, test_id, outcome.conclusion),
-        )
+    metrics_store.store_run_record(conn, record)
 
 
 def ingest_run(

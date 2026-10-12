@@ -16,11 +16,13 @@ from pathlib import Path
 from typing import Optional
 
 from metrics.gh import DEFAULT_REPO, GitHubClient
-from metrics.ingest import dump_records, ingest_run, open_database
+from metrics.ingest import dump_records, ingest_run
 from metrics.scrub import find_secrets
+from metrics.store import dump_database, open_database, rebuild_database
 
 REPO_ROOT = Path(__file__).parent.parent.parent
 DEFAULT_DB = REPO_ROOT / "ci/metrics-data/metrics.db"
+DEFAULT_SQL = REPO_ROOT / "ci/metrics-data/metrics.sql"
 WORKFLOW_ALIASES = {
     "nightly": "nightly-test.yaml",
     "weekly": "weekly-test.yaml",
@@ -56,6 +58,17 @@ def add_metrics_cmds(parser: argparse.ArgumentParser) -> None:
     ingest.add_argument(
         "--json", action="store_true", help="Print ingested attempt summaries as JSON."
     )
+    ingest.add_argument(
+        "--sql",
+        default=DEFAULT_SQL,
+        type=Path,
+        help=f"SQL dump path to update after ingest (default: {DEFAULT_SQL}).",
+    )
+    ingest.add_argument(
+        "--no-dump",
+        action="store_true",
+        help="Do not update the deterministic SQL dump after ingest.",
+    )
     ingest.set_defaults(func=cmd_ingest)
 
     audit = metrics_sub.add_parser(
@@ -75,6 +88,40 @@ def add_metrics_cmds(parser: argparse.ArgumentParser) -> None:
         help="Files or directories to audit instead of the metrics database.",
     )
     audit.set_defaults(func=cmd_audit_secrets)
+
+    dump = metrics_sub.add_parser(
+        "dump", help="Write deterministic durable-table SQL dump."
+    )
+    dump.add_argument(
+        "--db",
+        default=DEFAULT_DB,
+        type=Path,
+        help=f"SQLite database path (default: {DEFAULT_DB})",
+    )
+    dump.add_argument(
+        "--sql",
+        default=DEFAULT_SQL,
+        type=Path,
+        help=f"SQL dump path (default: {DEFAULT_SQL})",
+    )
+    dump.set_defaults(func=cmd_dump)
+
+    rebuild = metrics_sub.add_parser(
+        "rebuild", help="Rebuild metrics.db from the deterministic SQL dump."
+    )
+    rebuild.add_argument(
+        "--db",
+        default=DEFAULT_DB,
+        type=Path,
+        help=f"SQLite database path (default: {DEFAULT_DB})",
+    )
+    rebuild.add_argument(
+        "--sql",
+        default=DEFAULT_SQL,
+        type=Path,
+        help=f"SQL dump path (default: {DEFAULT_SQL})",
+    )
+    rebuild.set_defaults(func=cmd_rebuild)
 
     for name in ("classify", "fetch-logs", "rollup", "report", "open-issues"):
         stub = metrics_sub.add_parser(
@@ -147,6 +194,21 @@ def cmd_ingest(args: argparse.Namespace) -> int:
                 "ingested run {run_id} attempt {attempt}: {jobs_failure} failed jobs, "
                 "{retry_outcomes} retry outcomes".format(**summary)
             )
+    if not args.no_dump:
+        dump_database(conn, args.sql)
+    return 0
+
+
+def cmd_dump(args: argparse.Namespace) -> int:
+    conn = open_database(args.db, dump_path=args.sql)
+    dump_database(conn, args.sql)
+    print(f"wrote {args.sql}")
+    return 0
+
+
+def cmd_rebuild(args: argparse.Namespace) -> int:
+    rebuild_database(args.db, args.sql).close()
+    print(f"rebuilt {args.db} from {args.sql}")
     return 0
 
 
