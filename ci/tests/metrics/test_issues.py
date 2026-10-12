@@ -9,6 +9,7 @@ import sqlite3
 import sys
 import tempfile
 import unittest
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Sequence
 from unittest.mock import patch
@@ -122,6 +123,41 @@ def _issue(
         ],
         "body": f"<!-- ci-signature: {signature_id} ctx={substrate} key={key} -->",
     }
+
+
+def _insert_opened_issue(
+    conn: sqlite3.Connection,
+    *,
+    signature_id: str,
+    substrate: str = "lxd",
+    issue_number: int,
+    opened_at: str,
+) -> None:
+    conn.execute(
+        """
+        INSERT OR IGNORE INTO signatures (
+            signature_id, normalised_pattern, exemplar_excerpt,
+            normaliser_version, extractor_version
+        ) VALUES (?, 'pattern', 'safe excerpt', 1, 1)
+        """,
+        (signature_id,),
+    )
+    conn.execute(
+        """
+        INSERT INTO issues (
+            signature_id, substrate, idempotency_key, issue_number, issue_state,
+            claimed_at, opened_at
+        ) VALUES (?, ?, ?, ?, 'open', ?, ?)
+        """,
+        (
+            signature_id,
+            substrate,
+            f"{signature_id}:{substrate}",
+            issue_number,
+            opened_at,
+            opened_at,
+        ),
+    )
 
 
 class FakeIssueClient:
@@ -273,6 +309,102 @@ class IssueBridgeTest(unittest.TestCase):
         self.assertEqual(len(result.created), 3)
         self.assertEqual(len(client.created), 3)
         self.assertIn("daily budget exhausted", "\n".join(result.skipped))
+
+    def test_daily_budget_already_consumed_today_blocks_new_invocation(self) -> None:
+        conn = _db()
+        _insert_candidate(conn, "1212121212121212", "lxd")
+        for index, signature_id in enumerate(
+            ("9000000000000001", "9000000000000002", "9000000000000003"),
+            start=1,
+        ):
+            _insert_opened_issue(
+                conn,
+                signature_id=signature_id,
+                issue_number=900 + index,
+                opened_at="2026-10-12T00:00:00+00:00",
+            )
+        client = FakeIssueClient()
+
+        with patch(
+            "metrics.issues._utc_now",
+            return_value=datetime(2026, 10, 12, 12, 0, tzinfo=timezone.utc),
+        ):
+            with conn:
+                result = open_issues(
+                    conn,
+                    client,
+                    dry_run=False,
+                    issue_author="ci-bot",
+                    daily_budget=3,
+                )
+
+        self.assertEqual(result.created, ())
+        self.assertEqual(client.created, [])
+        self.assertIn("daily budget exhausted", "\n".join(result.skipped))
+
+    def test_daily_budget_partially_consumed_allows_remaining_capacity(self) -> None:
+        conn = _db()
+        _insert_candidate(conn, "1313131313131313", "lxd", start_job=10)
+        _insert_candidate(conn, "1414141414141414", "lxd", start_job=20)
+        for index, signature_id in enumerate(
+            ("9000000000000011", "9000000000000012"),
+            start=1,
+        ):
+            _insert_opened_issue(
+                conn,
+                signature_id=signature_id,
+                issue_number=910 + index,
+                opened_at="2026-10-12T08:30:00+00:00",
+            )
+        client = FakeIssueClient()
+
+        with patch(
+            "metrics.issues._utc_now",
+            return_value=datetime(2026, 10, 12, 12, 0, tzinfo=timezone.utc),
+        ):
+            with conn:
+                result = open_issues(
+                    conn,
+                    client,
+                    dry_run=False,
+                    issue_author="ci-bot",
+                    daily_budget=3,
+                )
+
+        self.assertEqual(len(result.created), 1)
+        self.assertEqual(len(client.created), 1)
+        self.assertIn("daily budget exhausted", "\n".join(result.skipped))
+
+    def test_daily_budget_ignores_yesterday_utc_rows(self) -> None:
+        conn = _db()
+        _insert_candidate(conn, "1515151515151515", "lxd")
+        for index, signature_id in enumerate(
+            ("9000000000000021", "9000000000000022", "9000000000000023"),
+            start=1,
+        ):
+            _insert_opened_issue(
+                conn,
+                signature_id=signature_id,
+                issue_number=920 + index,
+                opened_at="2026-10-11T23:59:59+00:00",
+            )
+        client = FakeIssueClient()
+
+        with patch(
+            "metrics.issues._utc_now",
+            return_value=datetime(2026, 10, 12, 0, 0, tzinfo=timezone.utc),
+        ):
+            with conn:
+                result = open_issues(
+                    conn,
+                    client,
+                    dry_run=False,
+                    issue_author="ci-bot",
+                    daily_budget=3,
+                )
+
+        self.assertEqual(len(result.created), 1)
+        self.assertEqual(len(client.created), 1)
 
     def test_issue_body_scrubs_join_token_before_posting(self) -> None:
         conn = _db()
