@@ -17,6 +17,8 @@ from typing import Optional
 
 from metrics.gh import DEFAULT_REPO, GitHubClient
 from metrics.ingest import dump_records, ingest_run
+from metrics.report import build_catalogue, write_reports
+from metrics.rollup import derive_rollup, derive_rollups
 from metrics.router import apply_router
 from metrics.rules import DEFAULT_RULES_PATH, classify_signatures, load_rules
 from metrics.scrub import find_secrets
@@ -156,7 +158,47 @@ def add_metrics_cmds(parser: argparse.ArgumentParser) -> None:
     )
     classify.set_defaults(func=cmd_classify)
 
-    for name in ("fetch-logs", "rollup", "report", "open-issues"):
+    rollup = metrics_sub.add_parser(
+        "rollup",
+        help="Derive CI failure metrics from stored facts and print JSON.",
+    )
+    rollup.add_argument(
+        "--db",
+        default=DEFAULT_DB,
+        type=Path,
+        help=f"SQLite database path (default: {DEFAULT_DB})",
+    )
+    rollup.add_argument(
+        "--period",
+        help="Data month to derive, e.g. 2026-10. Defaults to every period.",
+    )
+    rollup.set_defaults(func=cmd_rollup)
+
+    report = metrics_sub.add_parser(
+        "report",
+        help="Write deterministic reports/latest.md and signatures/catalogue.md.",
+    )
+    report.add_argument(
+        "--db",
+        default=DEFAULT_DB,
+        type=Path,
+        help=f"SQLite database path (default: {DEFAULT_DB})",
+    )
+    report.add_argument(
+        "--reports-dir",
+        default=REPO_ROOT / "reports",
+        type=Path,
+        help=f"Report output directory (default: {REPO_ROOT / 'reports'}).",
+    )
+    report.add_argument(
+        "--signatures-dir",
+        default=REPO_ROOT / "signatures",
+        type=Path,
+        help=f"Signature output directory (default: {REPO_ROOT / 'signatures'}).",
+    )
+    report.set_defaults(func=cmd_report)
+
+    for name in ("fetch-logs", "open-issues"):
         stub = metrics_sub.add_parser(
             name, help="Stub for a later CI failure classification PR."
         )
@@ -270,6 +312,30 @@ def cmd_classify(args: argparse.Namespace) -> int:
 
     if not args.no_dump:
         dump_database(conn, args.sql)
+    return 0
+
+
+def cmd_rollup(args: argparse.Namespace) -> int:
+    """Derive rollup metrics without storing aggregates."""
+
+    conn = open_database(args.db)
+    payload = derive_rollup(conn, args.period) if args.period else derive_rollups(conn)
+    print(json.dumps(payload, indent=2, sort_keys=True))
+    return 0
+
+
+def cmd_report(args: argparse.Namespace) -> int:
+    """Write deterministic human-facing report exports."""
+
+    conn = open_database(args.db)
+    latest_path, catalogue_path = write_reports(
+        args.reports_dir,
+        args.signatures_dir,
+        derive_rollups(conn),
+        build_catalogue(conn),
+    )
+    print(f"wrote {latest_path}")
+    print(f"wrote {catalogue_path}")
     return 0
 
 
