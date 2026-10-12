@@ -1,0 +1,102 @@
+name: CI metrics issue bridge
+
+on:
+  workflow_run:
+    workflows:
+      - Nightly
+      - Weekly
+      - Lint and integration
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      post_issues:
+        description: "Post GitHub issues instead of dry-running"
+        required: false
+        default: "false"
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  open-issues:
+    name: Reconcile CI metrics and open issues
+    runs-on: ubuntu-24.04
+    concurrency:
+      group: ci-metrics-store
+      cancel-in-progress: false
+    env:
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      METRICS_POST_ISSUES: ${{ github.event.inputs.post_issues || 'false' }}
+      MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }}
+      BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+    steps:
+      - name: Check out trusted default-branch code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+          token: ${{ github.token }}
+
+      - name: Prepare ci-metrics branch with default-branch code
+        run: |
+          set -euo pipefail
+          git fetch origin "${DEFAULT_BRANCH}" ci-metrics
+          git switch --detach origin/ci-metrics
+          git read-tree --reset -u "origin/${DEFAULT_BRANCH}"
+          git checkout origin/ci-metrics -- ci/metrics-data/metrics.sql || true
+          mkdir -p ci/metrics-data
+
+      - name: Install CI dependencies
+        working-directory: ci
+        run: python -m pip install --requirement requirements-ci.txt
+
+      - name: Rebuild metrics database from durable dump
+        run: python ci/k8s-ci.py metrics rebuild
+
+      - name: Audit stored issue evidence for secrets
+        run: python ci/k8s-ci.py metrics audit-secrets
+
+      - name: Dry-run issue bridge
+        if: env.METRICS_POST_ISSUES != 'true'
+        run: |
+          python ci/k8s-ci.py metrics open-issues \
+            --dry-run \
+            --json
+
+      - name: Post issue bridge updates
+        if: env.METRICS_POST_ISSUES == 'true'
+        run: |
+          set -euo pipefail
+          if [ -z "${BOT_TOKEN}" ]; then
+            echo "BOT_TOKEN is required when posting issues" >&2
+            exit 1
+          fi
+          python ci/k8s-ci.py metrics open-issues \
+            --post \
+            --token "${BOT_TOKEN}" \
+            --json
+
+      - name: Compare-and-swap push metrics state
+        if: env.METRICS_POST_ISSUES == 'true'
+        run: |
+          set -euo pipefail
+          git config user.name "k8s CI metrics bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ci/metrics-data/metrics.sql
+          if git diff --cached --quiet; then
+            echo "No metrics state changes to push"
+            exit 0
+          fi
+          git commit -s -m "ci: update metrics issue bridge state"
+          for attempt in 1 2 3; do
+            if git push origin HEAD:ci-metrics; then
+              exit 0
+            fi
+            echo "ci-metrics push rejected; retry ${attempt}/3" >&2
+            git fetch origin ci-metrics
+            git rebase origin/ci-metrics
+          done
+          echo "Failed to push ci-metrics state after retries" >&2
+          exit 1

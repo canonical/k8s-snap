@@ -17,6 +17,7 @@ from typing import Optional
 
 from metrics.gh import DEFAULT_REPO, GitHubClient
 from metrics.ingest import dump_records, ingest_run
+from metrics.issues import GitHubIssueClient, open_issues
 from metrics.report import build_catalogue, write_reports
 from metrics.rollup import derive_rollup, derive_rollups
 from metrics.router import apply_router
@@ -200,7 +201,100 @@ def add_metrics_cmds(parser: argparse.ArgumentParser) -> None:
     )
     report.set_defaults(func=cmd_report)
 
-    for name in ("fetch-logs", "open-issues"):
+    open_issues_parser = metrics_sub.add_parser(
+        "open-issues", help="Open or update GitHub issues for eligible CI failures."
+    )
+    open_issues_parser.add_argument(
+        "--db",
+        default=DEFAULT_DB,
+        type=Path,
+        help=f"SQLite database path (default: {DEFAULT_DB})",
+    )
+    open_issues_parser.add_argument(
+        "--repo",
+        default=DEFAULT_REPO,
+        help="owner/repo whose issue tracker receives CI failure issues.",
+    )
+    open_issues_parser.add_argument(
+        "--token",
+        help="GitHub token used for issue creation; prefer BOT_TOKEN in CI.",
+    )
+    open_issues_parser.add_argument(
+        "--issue-author",
+        help="Expected login for adopted issues. Defaults to the token owner when posting.",
+    )
+    open_issues_parser.add_argument(
+        "--repo-path",
+        default=REPO_ROOT,
+        type=Path,
+        help="Git checkout used for freshness ancestry checks.",
+    )
+    open_issues_parser.add_argument(
+        "--rules",
+        default=DEFAULT_RULES_PATH,
+        type=Path,
+        help=f"Rule pack path used to add rule notes to issue bodies (default: {DEFAULT_RULES_PATH}).",
+    )
+    open_issues_parser.add_argument(
+        "--min-occurrences",
+        default=3,
+        type=int,
+        help="Minimum occurrences in a signature/substrate context.",
+    )
+    open_issues_parser.add_argument(
+        "--min-runs",
+        default=2,
+        type=int,
+        help="Minimum distinct runs in a signature/substrate context.",
+    )
+    open_issues_parser.add_argument(
+        "--daily-budget",
+        default=3,
+        type=int,
+        help="Maximum new issues to create per UTC day.",
+    )
+    open_issues_parser.add_argument(
+        "--resolved-cooldown-days",
+        default=14,
+        type=int,
+        help="Do not reopen issues closed as completed within this many days.",
+    )
+    open_issues_parser.add_argument(
+        "--reopen-comment-window-days",
+        default=7,
+        type=int,
+        help="Minimum days between unknown-freshness comments on a closed issue.",
+    )
+    open_issues_parser.add_argument(
+        "--sql",
+        default=DEFAULT_SQL,
+        type=Path,
+        help=f"SQL dump path to update after posting (default: {DEFAULT_SQL}).",
+    )
+    open_issues_parser.add_argument(
+        "--no-dump",
+        action="store_true",
+        help="Do not update the deterministic SQL dump after posting.",
+    )
+    open_issues_parser.add_argument(
+        "--dry-run",
+        dest="dry_run",
+        action="store_true",
+        default=True,
+        help="Preview actions without mutating GitHub or the issues table (default).",
+    )
+    open_issues_parser.add_argument(
+        "--post",
+        dest="dry_run",
+        action="store_false",
+        help="Create/update GitHub issues. Only use after the validation gate passes.",
+    )
+    open_issues_parser.add_argument(
+        "--json", action="store_true", help="Print issue bridge summary as JSON."
+    )
+    open_issues_parser.set_defaults(func=cmd_open_issues)
+
+    for name in ("fetch-logs",):
         stub = metrics_sub.add_parser(
             name, help="Stub for a later CI failure classification PR."
         )
@@ -417,6 +511,69 @@ def cmd_audit_secrets(args: argparse.Namespace) -> int:
         print(f"metrics audit-secrets: {findings} finding(s)", file=sys.stderr)
         return 1
     print("metrics audit-secrets: no findings")
+    return 0
+
+
+def cmd_open_issues(args: argparse.Namespace) -> int:
+    """Open/update GitHub issues for recurring classified CI failures."""
+
+    conn = open_database(args.db)
+    pack = load_rules(args.rules)
+    rule_notes = {rule.id: rule.notes for rule in pack.rules}
+    if args.dry_run:
+        client = (
+            GitHubIssueClient(repo=args.repo, token=args.token) if args.token else None
+        )
+    else:
+        client = GitHubIssueClient(repo=args.repo, token=args.token)
+    if client is None:
+
+        class DryRunClient:
+            def current_user(self) -> str:
+                return ""
+
+            def list_issues(self, labels: list[str], state: str = "open") -> list[dict]:
+                return []
+
+            def create_issue(self, title: str, body: str, labels: list[str]) -> dict:
+                raise AssertionError("dry run must not create issues")
+
+            def get_issue(self, number: int) -> dict:
+                raise AssertionError("dry run must not fetch issues")
+
+            def edit_issue(self, number: int, **fields: object) -> dict:
+                raise AssertionError("dry run must not edit issues")
+
+            def add_comment(self, number: int, body: str) -> dict:
+                raise AssertionError("dry run must not comment")
+
+        client = DryRunClient()
+
+    with conn:
+        result = open_issues(
+            conn,
+            client,
+            dry_run=args.dry_run,
+            issue_author=args.issue_author,
+            repo_path=args.repo_path,
+            min_occurrences=args.min_occurrences,
+            min_runs=args.min_runs,
+            daily_budget=args.daily_budget,
+            resolved_cooldown_days=args.resolved_cooldown_days,
+            reopen_comment_window_days=args.reopen_comment_window_days,
+            rule_notes=rule_notes,
+        )
+        if not args.dry_run and not args.no_dump:
+            dump_database(conn, args.sql)
+
+    summary = result.as_dict()
+    if args.json:
+        print(json.dumps(summary, indent=2, sort_keys=True))
+    else:
+        for key, value in summary.items():
+            print(f"{key}: {len(value)}")
+            for item in value:
+                print("    - " + str(item))
     return 0
 
 
