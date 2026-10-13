@@ -6,7 +6,7 @@ import logging
 import textwrap
 from enum import Enum
 from pathlib import Path
-from typing import List
+from typing import Any, Callable, Dict, List, Sequence
 
 import pytest
 from test_util import harness, tags, util
@@ -488,16 +488,31 @@ def test_loadbalancer_bgp_annotation_peers_with_advertise_all_pools(
     LOG.info("BGPPeer CRs from annotation and no ipAddressPools restriction confirmed.")
 
 
-# BFD requires the frr-k8s backend. The peer is unreachable, so no BFD or BGP
-# session comes up; instead the test asserts the FRR running config that
-# frr-k8s reports in FRRNodeState, which proves the BFDProfile and its binding
-# to the peer made it from the annotations all the way into FRR.
+# ---------------------------------------------------------------------------
+# frr-k8s backend and BFD integration tests
+# ---------------------------------------------------------------------------
+
 _BGP_BACKEND_ANNOTATION = "k8sd/v1alpha1/metallb/bgp-backend"
 _BFD_PROFILES_ANNOTATION = "k8sd/v1alpha1/metallb/bfd-profiles"
 
+_METALLB_NAMESPACE = "metallb-system"
+_FRR_K8S_POD_SELECTOR = "app.kubernetes.io/component=frr-k8s"
+# The frr-k8s subchart must run the Canonical rocks, never the upstream images.
+_FRR_K8S_IMAGE_PREFIXES = ("ghcr.io/canonical/frr-k8s:", "ghcr.io/canonical/frr:")
+
+_STATUS_CMD = ["k8s", "status", "--output-format", "json"]
+_FRR_NODE_STATES_CMD = ["k8s", "kubectl", "get", "frrnodestates", "-o", "json"]
+_FRR_K8S_STATUS_MSG = "enabled, BGP mode (alpha), frr-k8s backend"
+_NATIVE_STATUS_MSG = "enabled, BGP mode (alpha)"
+_DISABLED_STATUS_MSG = "disabled"
+
+_NODE_ASN = 65000
+_ROUTER_ASN = 65001
+_BFD_PORT = 3784
+
 # Every BFDProfile field, all non-default: FRR omits default values from its
 # running config, and each field must be mapped into the CR spec by the chart.
-_BFD_PROFILE_SPEC = {
+_FAST_FAILOVER_SPEC = {
     "receiveInterval": 150,
     "transmitInterval": 200,
     "detectMultiplier": 5,
@@ -507,7 +522,7 @@ _BFD_PROFILE_SPEC = {
     "minimumTtl": 250,
 }
 
-_BFD_PROFILES_ANNOTATION_VALUE = """\
+_FAST_FAILOVER_PROFILE = """\
 - name: fast-failover
   receiveInterval: 150
   transmitInterval: 200
@@ -518,22 +533,154 @@ _BFD_PROFILES_ANNOTATION_VALUE = """\
   minimumTtl: 250
 """
 
-_BFD_PEERS_ANNOTATION_VALUE = """\
+# FRR running config lines rendered from _FAST_FAILOVER_PROFILE.
+_FAST_FAILOVER_FRR_CONFIG = [
+    "profile fast-failover",
+    "receive-interval 150",
+    "transmit-interval 200",
+    "detect-multiplier 5",
+    "echo-mode",
+    "echo transmit-interval 60",
+    "passive-mode",
+    "minimum-ttl 250",
+]
+
+# One peer uses BFD, one uses a non-default port, and one selects no node so
+# it must not reach FRR at all. All share the local ASN: in FRR mode, MetalLB
+# requires peers on the same node to use the same myASN.
+_BFD_PEERS = """\
 - peerAddress: 192.0.2.1
   peerASN: 65001
   bfdProfile: fast-failover
+- peerAddress: 192.0.2.2
+  peerASN: 65002
+  peerPort: 1179
+- peerAddress: 192.0.2.3
+  peerASN: 65003
+  nodeSelector:
+    k8sd-test/no-such-label: "true"
 """
+
+# The same peers without BFD, so that switching between the two updates the
+# BGPPeers instead of deleting them.
+_NO_BFD_PEERS = _BFD_PEERS.replace("  bfdProfile: fast-failover\n", "")
+
+_BFD_PEERS_FRR_CONFIG = [
+    "neighbor 192.0.2.1 bfd profile fast-failover",
+    "neighbor 192.0.2.2 remote-as 65002",
+    "neighbor 192.0.2.2 port 1179",
+]
+_NO_FRR_CONFIG = ["neighbor 192.0.2.2 bfd", "neighbor 192.0.2.3"]
+
+
+def _annotations_arg(annotations: Dict[str, str]) -> str:
+    """Render annotations as a `k8s set annotations=...` argument.
+
+    Multi-line values become YAML block literals; a value of "-" removes the
+    annotation.
+    """
+    rendered = ""
+    for key, value in annotations.items():
+        if "\n" in value:
+            rendered += f"{key}: |\n" + textwrap.indent(value, "  ")
+        else:
+            rendered += f"{key}: {json.dumps(value)}\n"
+    return f"annotations={rendered}"
+
+
+def _set_bgp(instance: harness.Instance, annotations: Dict[str, str]):
+    """Enable BGP mode on the load balancer with the given annotations."""
+    instance.exec(
+        [
+            "k8s",
+            "set",
+            "load-balancer.bgp-mode=true",
+            f"load-balancer.bgp-local-asn={_NODE_ASN}",
+            "load-balancer.cidrs=192.0.2.0/24",
+            _annotations_arg(annotations),
+        ]
+    )
+
+
+def _wait_for_json(
+    instance: harness.Instance,
+    command: List[str],
+    condition: Callable[[Any], bool],
+    retries: int = 30,
+    delay_s: int = 10,
+) -> Any:
+    """Re-run command until condition holds on its JSON output, and return it."""
+    p = (
+        util.stubbornly(retries=retries, delay_s=delay_s)
+        .on(instance)
+        .until(lambda p: condition(json.loads(p.stdout.decode())))
+        .exec(command)
+    )
+    return json.loads(p.stdout.decode())
+
+
+def _kubectl_get(kind: str, *args: str) -> List[str]:
+    return [
+        "k8s",
+        "kubectl",
+        "get",
+        kind,
+        *args,
+        "-n",
+        _METALLB_NAMESPACE,
+        "-o",
+        "json",
+    ]
+
+
+def _lb_message(status: Dict[str, Any]) -> str:
+    return status.get("load-balancer", {}).get("message", "")
+
+
+def _frr_config_matches(
+    expected: Sequence[str], unexpected: Sequence[str] = ()
+) -> Callable[[Any], bool]:
+    """Check FRRNodeState's FRR running config for expected/unexpected lines."""
+
+    def check(node_states: Dict[str, Any]) -> bool:
+        items = node_states.get("items", [])
+        if not items:
+            return False
+        config = items[0].get("status", {}).get("runningConfig", "")
+        return all(line in config for line in expected) and not any(
+            line in config for line in unexpected
+        )
+
+    return check
+
+
+def _wait_for_valid_metallb_config(instance: harness.Instance):
+    """Wait until MetalLB's controller and speakers all accept the config.
+
+    k8s status cannot show this: MetalLB can reject a configuration k8sd
+    applied successfully, e.g. a leftover BFDProfile on the native backend.
+    """
+    _wait_for_json(
+        instance,
+        _kubectl_get("configurationstates"),
+        lambda d: bool(d["items"])
+        and all(s.get("status", {}).get("result") == "Valid" for s in d["items"]),
+    )
 
 
 @pytest.mark.node_count(1)
 @pytest.mark.tags(tags.NIGHTLY)
 @pytest.mark.disable_k8s_bootstrapping()
-def test_loadbalancer_bgp_bfd_profiles_annotation(instances: List[harness.Instance]):
-    """bfd-profiles annotation creates BFDProfiles wired into FRR via the peer.
+def test_loadbalancer_bgp_frr_k8s_bfd_lifecycle(instances: List[harness.Instance]):
+    """frr-k8s backend and BFD profiles through their whole lifecycle.
 
-    Verifies that k8sd creates the BFDProfile CR declared in the bfd-profiles
-    annotation, that the BGPPeer references it, and that frr-k8s renders both
-    the BFD profile timers and the peer's BFD binding into FRR's running config.
+    Covers invalid backend/BFD annotations, enabling the frr-k8s backend
+    (Canonical rocks, status message), BFDProfiles created from the
+    bfd-profiles annotation, their wiring into BGPPeers and FRR's running
+    config together with other peer fields, updating and removing profiles,
+    disabling BFD, switching to the native backend and back, and disabling
+    the load balancer with BFD configured. The peers are unreachable, so no
+    session comes up; FRRNodeState's running config shows what FRR runs.
     """
     instance = instances[0]
     instance.exec(["k8s", "bootstrap"])
@@ -542,73 +689,477 @@ def test_loadbalancer_bgp_bfd_profiles_annotation(instances: List[harness.Instan
     instance.exec(["k8s", "enable", "load-balancer"])
     util.wait_for_load_balancer(instance)
 
-    annotations = (
-        f"{_BGP_BACKEND_ANNOTATION}: frr-k8s\n"
-        + f"{_BGP_PEERS_ANNOTATION}: |\n"
-        + textwrap.indent(_BFD_PEERS_ANNOTATION_VALUE, "  ")
-        + f"{_BFD_PROFILES_ANNOTATION}: |\n"
-        + textwrap.indent(_BFD_PROFILES_ANNOTATION_VALUE, "  ")
-    )
-    instance.exec(
-        [
-            "k8s",
-            "set",
-            "load-balancer.bgp-mode=true",
-            "load-balancer.bgp-local-asn=65000",
-            "load-balancer.cidrs=192.0.2.0/24",
-            f"annotations={annotations}",
-        ]
-    )
-
-    LOG.info("Waiting for the BFDProfile CR to appear ...")
-    p = (
-        util.stubbornly(retries=20, delay_s=5)
-        .on(instance)
-        .exec(
-            [
-                "k8s",
-                "kubectl",
-                "get",
-                "bfdprofile",
-                "fast-failover",
-                "-n",
-                "metallb-system",
-                "-o",
-                "json",
-            ]
+    # Each case sets all three annotations so the previous one does not leak
+    # into it, and is rejected before anything is applied.
+    invalid_cases = [
+        (
+            {
+                _BGP_BACKEND_ANNOTATION: "frr",
+                _BGP_PEERS_ANNOTATION: _NO_BFD_PEERS,
+                _BFD_PROFILES_ANNOTATION: "-",
+            },
+            'invalid bgp-backend annotation "frr"',
+        ),
+        (
+            {
+                _BGP_BACKEND_ANNOTATION: "native",
+                _BGP_PEERS_ANNOTATION: _BFD_PEERS,
+                _BFD_PROFILES_ANNOTATION: "-",
+            },
+            'bfdProfile "fast-failover" requires',
+        ),
+        (
+            {
+                _BGP_BACKEND_ANNOTATION: "native",
+                _BGP_PEERS_ANNOTATION: _NO_BFD_PEERS,
+                _BFD_PROFILES_ANNOTATION: _FAST_FAILOVER_PROFILE,
+            },
+            f"{_BFD_PROFILES_ANNOTATION} requires",
+        ),
+        (
+            {
+                _BGP_BACKEND_ANNOTATION: "frr-k8s",
+                _BGP_PEERS_ANNOTATION: _BFD_PEERS,
+                _BFD_PROFILES_ANNOTATION: "- name: fast-failover\n  detectMultiplier: 1\n",
+            },
+            "detectMultiplier 1 out of range [2, 255]",
+        ),
+    ]
+    for annotations, error in invalid_cases:
+        _set_bgp(instance, annotations)
+        LOG.info("Waiting for load-balancer status to report %r ...", error)
+        status = _wait_for_json(
+            instance, _STATUS_CMD, lambda s: error in _lb_message(s)
         )
-    )
-    spec = json.loads(p.stdout.decode())["spec"]
-    assert spec == _BFD_PROFILE_SPEC, f"BFDProfile spec mismatch: {spec}"
+        assert not status["load-balancer"]["enabled"], f"not degraded: {status}"
 
-    LOG.info("Waiting for the BGPPeer CR to reference the BFDProfile ...")
-    util.stubbornly(retries=20, delay_s=5).on(instance).until(
-        lambda p: [
-            peer["spec"].get("bfdProfile")
-            for peer in json.loads(p.stdout.decode()).get("items", [])
-        ]
-        == ["fast-failover"]
-    ).exec(["k8s", "kubectl", "get", "bgppeers", "-n", "metallb-system", "-o", "json"])
+    _set_bgp(
+        instance,
+        {
+            _BGP_BACKEND_ANNOTATION: "frr-k8s",
+            _BGP_PEERS_ANNOTATION: _BFD_PEERS,
+            _BFD_PROFILES_ANNOTATION: _FAST_FAILOVER_PROFILE + "- name: spare\n",
+        },
+    )
+
+    LOG.info("Waiting for the frr-k8s backend to be reported ...")
+    _wait_for_json(
+        instance, _STATUS_CMD, lambda s: _lb_message(s) == _FRR_K8S_STATUS_MSG
+    )
+
+    images = instance.exec(
+        ["k8s", "list-images"], capture_output=True, text=True
+    ).stdout.splitlines()
+    for prefix in _FRR_K8S_IMAGE_PREFIXES:
+        assert any(
+            image.startswith(prefix) for image in images
+        ), f"no {prefix} image in k8s list-images: {images}"
 
     # frr-k8s pods pull their images on first enable, so allow a generous wait.
-    expected_config = [
-        "profile fast-failover",
-        "receive-interval 150",
-        "transmit-interval 200",
-        "detect-multiplier 5",
-        "neighbor 192.0.2.1 bfd profile fast-failover",
-    ]
+    LOG.info("Waiting for the frr-k8s pods to be ready ...")
+    util.stubbornly(retries=30, delay_s=10).on(instance).exec(
+        [
+            "k8s",
+            "kubectl",
+            "wait",
+            "--for=condition=ready",
+            "pod",
+            "-l",
+            _FRR_K8S_POD_SELECTOR,
+            "-n",
+            _METALLB_NAMESPACE,
+            "--timeout=60s",
+        ]
+    )
+    pods = json.loads(
+        instance.exec(
+            _kubectl_get("pods", "-l", _FRR_K8S_POD_SELECTOR), capture_output=True
+        ).stdout.decode()
+    )
+    pod_images = {
+        container["image"]
+        for pod in pods["items"]
+        for container in pod["spec"]["containers"]
+        + pod["spec"].get("initContainers", [])
+    }
+    assert all(
+        image.startswith(_FRR_K8S_IMAGE_PREFIXES) for image in pod_images
+    ), f"frr-k8s pods use non-Canonical images: {pod_images}"
 
-    def _frr_config_wired(p):
-        items = json.loads(p.stdout.decode()).get("items", [])
-        if not items:
-            return False
-        running_config = items[0].get("status", {}).get("runningConfig", "")
-        return all(line in running_config for line in expected_config)
+    LOG.info("Waiting for both BFDProfile CRs ...")
+    profiles = _wait_for_json(
+        instance, _kubectl_get("bfdprofiles"), lambda d: len(d["items"]) == 2
+    )
+    specs = {p["metadata"]["name"]: p.get("spec") or {} for p in profiles["items"]}
+    assert specs == {
+        "fast-failover": _FAST_FAILOVER_SPEC,
+        "spare": {},
+    }, f"BFDProfile specs mismatch: {specs}"
+
+    LOG.info("Waiting for the BGPPeer CRs ...")
+    peers = _wait_for_json(
+        instance, _kubectl_get("bgppeers"), lambda d: len(d["items"]) == 3
+    )
+    bfd_by_peer = {
+        p["spec"]["peerAddress"]: p["spec"].get("bfdProfile") for p in peers["items"]
+    }
+    assert bfd_by_peer == {
+        "192.0.2.1": "fast-failover",
+        "192.0.2.2": None,
+        "192.0.2.3": None,
+    }, f"BGPPeer bfdProfile mismatch: {bfd_by_peer}"
 
     LOG.info("Waiting for FRR running config to include the BFD wiring ...")
-    util.stubbornly(retries=60, delay_s=10).on(instance).until(_frr_config_wired).exec(
-        ["k8s", "kubectl", "get", "frrnodestates", "-o", "json"]
+    _wait_for_json(
+        instance,
+        _FRR_NODE_STATES_CMD,
+        _frr_config_matches(
+            expected=_FAST_FAILOVER_FRR_CONFIG
+            + _BFD_PEERS_FRR_CONFIG
+            + ["profile spare"],
+            unexpected=_NO_FRR_CONFIG,
+        ),
+        retries=60,
+    )
+    _wait_for_valid_metallb_config(instance)
+
+    # Update a field and drop the unreferenced profile.
+    _set_bgp(
+        instance,
+        {
+            _BFD_PROFILES_ANNOTATION: _FAST_FAILOVER_PROFILE.replace(
+                "detectMultiplier: 5", "detectMultiplier: 7"
+            )
+        },
     )
 
-    LOG.info("BFDProfile created and wired into FRR for the BGP peer.")
+    LOG.info("Waiting for the updated BFDProfile and the spare one to be gone ...")
+    _wait_for_json(
+        instance,
+        _kubectl_get("bfdprofiles"),
+        lambda d: [
+            (p["metadata"]["name"], p["spec"].get("detectMultiplier"))
+            for p in d["items"]
+        ]
+        == [("fast-failover", 7)],
+    )
+    _wait_for_json(
+        instance,
+        _FRR_NODE_STATES_CMD,
+        _frr_config_matches(
+            expected=["detect-multiplier 7"], unexpected=["profile spare"]
+        ),
+    )
+
+    # Disable BFD: the peers stay (they are updated, not deleted), so the
+    # profile they referenced can be deleted in the same change.
+    _set_bgp(
+        instance,
+        {_BGP_PEERS_ANNOTATION: _NO_BFD_PEERS, _BFD_PROFILES_ANNOTATION: "-"},
+    )
+
+    LOG.info("Waiting for BFD to be removed from the peers and FRR ...")
+    _wait_for_json(instance, _kubectl_get("bfdprofiles"), lambda d: not d["items"])
+    _wait_for_json(
+        instance,
+        _kubectl_get("bgppeers"),
+        lambda d: len(d["items"]) == 3
+        and not any(p["spec"].get("bfdProfile") for p in d["items"]),
+    )
+    _wait_for_json(
+        instance,
+        _FRR_NODE_STATES_CMD,
+        _frr_config_matches(
+            expected=["neighbor 192.0.2.1 remote-as 65001"],
+            unexpected=["profile fast-failover", "neighbor 192.0.2.1 bfd"],
+        ),
+    )
+
+    _set_bgp(instance, {_BGP_BACKEND_ANNOTATION: "native"})
+
+    LOG.info("Waiting for the native backend and the frr-k8s pods to be gone ...")
+    _wait_for_json(
+        instance, _STATUS_CMD, lambda s: _lb_message(s) == _NATIVE_STATUS_MSG
+    )
+    _wait_for_json(
+        instance,
+        _kubectl_get("pods", "-l", _FRR_K8S_POD_SELECTOR),
+        lambda d: not d["items"],
+    )
+    _wait_for_json(instance, _kubectl_get("bgppeers"), lambda d: len(d["items"]) == 3)
+    _wait_for_valid_metallb_config(instance)
+
+    # Switch back from native to frr-k8s with BFD in a single change.
+    _set_bgp(
+        instance,
+        {
+            _BGP_BACKEND_ANNOTATION: "frr-k8s",
+            _BGP_PEERS_ANNOTATION: _BFD_PEERS,
+            _BFD_PROFILES_ANNOTATION: _FAST_FAILOVER_PROFILE,
+        },
+    )
+
+    LOG.info("Waiting for frr-k8s and BFD to be back ...")
+    _wait_for_json(
+        instance, _STATUS_CMD, lambda s: _lb_message(s) == _FRR_K8S_STATUS_MSG
+    )
+    _wait_for_json(
+        instance,
+        _FRR_NODE_STATES_CMD,
+        _frr_config_matches(
+            expected=_FAST_FAILOVER_FRR_CONFIG + _BFD_PEERS_FRR_CONFIG,
+            unexpected=_NO_FRR_CONFIG,
+        ),
+        retries=60,
+    )
+    _wait_for_valid_metallb_config(instance)
+
+    # MetalLB rejects deleting the BFDProfile while the BGPPeer using it
+    # exists, so the first attempt may fail; the next reconcile finishes it.
+    instance.exec(["k8s", "disable", "load-balancer"])
+
+    LOG.info("Waiting for the load balancer to be disabled with BFD configured ...")
+    _wait_for_json(
+        instance,
+        _STATUS_CMD,
+        lambda s: _lb_message(s) == _DISABLED_STATUS_MSG,
+        retries=60,
+    )
+    _wait_for_json(
+        instance,
+        ["k8s", "kubectl", "get", "crds", "-o", "json"],
+        lambda d: not any(
+            crd["metadata"]["name"].endswith(".metallb.io") for crd in d["items"]
+        ),
+    )
+
+    LOG.info("frr-k8s and BFD lifecycle verified.")
+
+
+def _setup_frr_router(router: harness.Instance, router_ip: str, node_ip: str):
+    """Run FRR on router as an eBGP peer of node_ip with BFD enabled."""
+    # Fresh images may still hold the dpkg lock, and mirrors can be flaky.
+    apt = [
+        "env",
+        "DEBIAN_FRONTEND=noninteractive",
+        "apt-get",
+        "-o",
+        "DPkg::Lock::Timeout=600",
+    ]
+    util.stubbornly(retries=5, delay_s=10).on(router).exec(apt + ["update"])
+    util.stubbornly(retries=5, delay_s=10).on(router).exec(
+        apt + ["install", "-y", "frr", "iptables"]
+    )
+    router.exec(
+        [
+            "sed",
+            "-i",
+            "-e",
+            "s/^bgpd=no/bgpd=yes/",
+            "-e",
+            "s/^bfdd=no/bfdd=yes/",
+            "/etc/frr/daemons",
+        ]
+    )
+    router.exec(["systemctl", "restart", "frr"])
+
+    # vtysh fails until the daemons are up after the restart.
+    util.stubbornly(retries=10, delay_s=3).on(router).exec(
+        [
+            "vtysh",
+            "-c",
+            "configure terminal",
+            "-c",
+            f"router bgp {_ROUTER_ASN}",
+            "-c",
+            f"bgp router-id {router_ip}",
+            # Accept routes from the node without an explicit route-map.
+            "-c",
+            "no bgp ebgp-requires-policy",
+            "-c",
+            f"neighbor {node_ip} remote-as {_NODE_ASN}",
+            "-c",
+            f"neighbor {node_ip} bfd",
+        ]
+    )
+
+
+@pytest.mark.node_count(2)
+@pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.disable_k8s_bootstrapping()
+# HTTP to the service, BGP, and BFD control packets.
+@pytest.mark.required_ports(80, 179, f"{_BFD_PORT}/udp")
+def test_loadbalancer_bgp_bfd_session(instances: List[harness.Instance]):
+    """BGP and BFD sessions against a real FRR router, end to end.
+
+    The second instance runs FRR as the BGP peer. Verifies that the BGP
+    session establishes, that BFD comes up with the timers of the BFDProfile
+    declared in the annotation, that frr-k8s reports both sessions in
+    BGPSessionState, that the router learns the LoadBalancer IP over BGP and
+    reaches the service through it, that losing BFD tears the BGP session
+    down well before the hold timer, and that the service stays announced
+    after BFD is removed and the backend switched to native.
+    """
+    instance, router = instances
+    instance.exec(["k8s", "bootstrap"])
+    node_ip = util.get_default_ip(instance)
+    router_ip = util.get_default_ip(router)
+
+    _setup_frr_router(router, router_ip, node_ip)
+
+    util.wait_for_network(instance)
+    util.wait_for_dns(instance)
+
+    instance.exec(["k8s", "enable", "load-balancer"])
+    util.wait_for_load_balancer(instance)
+
+    peers = f"""\
+- peerAddress: {router_ip}
+  peerASN: {_ROUTER_ASN}
+  bfdProfile: fast-failover
+"""
+    _set_bgp(
+        instance,
+        {
+            _BGP_BACKEND_ANNOTATION: "frr-k8s",
+            _BGP_PEERS_ANNOTATION: peers,
+            _BFD_PROFILES_ANNOTATION: """\
+- name: fast-failover
+  receiveInterval: 150
+  transmitInterval: 200
+  detectMultiplier: 5
+""",
+        },
+    )
+
+    neighbor_cmd = ["vtysh", "-c", f"show bgp neighbors {node_ip} json"]
+    bfd_peers_cmd = ["vtysh", "-c", "show bfd peers json"]
+
+    def _established(d: Dict[str, Any]) -> bool:
+        return d.get(node_ip, {}).get("bgpState") == "Established"
+
+    def _bfd_peer(peers: List[Dict[str, Any]]) -> Dict[str, Any]:
+        return next((p for p in peers if p.get("peer") == node_ip), {})
+
+    # Right after coming up, BFD still runs its slow start timers, so wait for
+    # the negotiated profile timers rather than the first "up".
+    def _bfd_ready(peers: List[Dict[str, Any]]) -> bool:
+        p = _bfd_peer(peers)
+        return p.get("status") == "up" and (
+            p.get("remote-receive-interval"),
+            p.get("remote-transmit-interval"),
+            p.get("remote-detect-multiplier"),
+        ) == (150, 200, 5)
+
+    # frr-k8s pods pull their images on first enable, so allow a generous wait.
+    LOG.info("Waiting for the BGP session to be established ...")
+    _wait_for_json(router, neighbor_cmd, _established, retries=60)
+
+    LOG.info("Waiting for the BFD session to come up with the profile timers ...")
+    _wait_for_json(router, bfd_peers_cmd, _bfd_ready)
+
+    # frr-status polls FRR every 2 minutes.
+    LOG.info("Waiting for frr-k8s to report both sessions ...")
+    _wait_for_json(
+        instance,
+        ["k8s", "kubectl", "get", "bgpsessionstates", "-A", "-o", "json"],
+        lambda d: any(
+            s.get("status", {}).get("peer") == router_ip
+            and s["status"].get("bgpStatus") == "Established"
+            and s["status"].get("bfdStatus") == "Up"
+            for s in d["items"]
+        ),
+    )
+
+    manifest = MANIFESTS_DIR / "loadbalancer-test.yaml"
+    instance.exec(
+        ["k8s", "kubectl", "apply", "-f", "-"],
+        input=Path(manifest).read_bytes(),
+    )
+    service = _wait_for_json(
+        instance,
+        ["k8s", "kubectl", "get", "service", "my-nginx", "-o", "json"],
+        lambda d: d.get("status", {}).get("loadBalancer", {}).get("ingress"),
+        retries=20,
+        delay_s=5,
+    )
+    service_ip = service["status"]["loadBalancer"]["ingress"][0]["ip"]
+
+    def _route_learned(d: Dict[str, Any]) -> bool:
+        return f"{service_ip}/32" in d.get("routes", {})
+
+    def _reach_service():
+        util.stubbornly(retries=40, delay_s=5).on(router).until(
+            lambda p: "Welcome to nginx!" in p.stdout.decode()
+        ).exec(["curl", "--max-time", "5", service_ip])
+
+    LOG.info("Waiting for the router to learn %s over BGP ...", service_ip)
+    _wait_for_json(router, ["vtysh", "-c", "show ip bgp json"], _route_learned)
+    _reach_service()
+
+    # Drop BFD control packets on the router: BFD must detect the failure
+    # within its ~1.5s detection time and tear BGP down, long before the BGP
+    # hold timer (90s) would.
+    drop_bfd = ["INPUT", "-p", "udp", "--dport", str(_BFD_PORT), "-j", "DROP"]
+    router.exec(["iptables", "-I", *drop_bfd])
+
+    LOG.info("Waiting for BFD to bring the BGP session down ...")
+    _wait_for_json(
+        router,
+        bfd_peers_cmd,
+        lambda d: _bfd_peer(d).get("status") == "down",
+        retries=10,
+        delay_s=2,
+    )
+    _wait_for_json(
+        router,
+        neighbor_cmd,
+        lambda d: d.get(node_ip, {}).get("lastResetDueTo") == "BFD down received",
+        retries=10,
+        delay_s=2,
+    )
+
+    router.exec(["iptables", "-D", *drop_bfd])
+
+    LOG.info("Waiting for BGP and BFD to recover ...")
+    _wait_for_json(router, neighbor_cmd, _established)
+    _wait_for_json(router, bfd_peers_cmd, _bfd_ready)
+
+    # Stop using BFD on both ends first, then switch to the native backend
+    # with the session live.
+    router.exec(
+        [
+            "vtysh",
+            "-c",
+            "configure terminal",
+            "-c",
+            f"router bgp {_ROUTER_ASN}",
+            "-c",
+            f"no neighbor {node_ip} bfd",
+        ]
+    )
+    _set_bgp(
+        instance,
+        {
+            _BGP_PEERS_ANNOTATION: peers.replace("  bfdProfile: fast-failover\n", ""),
+            _BFD_PROFILES_ANNOTATION: "-",
+        },
+    )
+    _wait_for_json(instance, _kubectl_get("bfdprofiles"), lambda d: not d["items"])
+    _set_bgp(instance, {_BGP_BACKEND_ANNOTATION: "native"})
+
+    LOG.info("Waiting for the native backend to take over the session ...")
+    _wait_for_json(
+        instance, _STATUS_CMD, lambda s: _lb_message(s) == _NATIVE_STATUS_MSG
+    )
+    _wait_for_json(
+        instance,
+        _kubectl_get("pods", "-l", _FRR_K8S_POD_SELECTOR),
+        lambda d: not d["items"],
+    )
+    _wait_for_valid_metallb_config(instance)
+    _wait_for_json(router, neighbor_cmd, _established)
+    _wait_for_json(router, ["vtysh", "-c", "show ip bgp json"], _route_learned)
+    _reach_service()
+
+    LOG.info("BGP and BFD sessions, failover and backend switch verified.")
