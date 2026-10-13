@@ -21,8 +21,8 @@ fill out the sections below.
 
 ## Summary
 
-MetalLB's speaker currently always runs with the `native` (GoBGP) BGP
-implementation. This proposal adds an alpha annotation that switches the
+MetalLB's speaker currently always runs with the `native` (MetalLB's
+built-in) BGP implementation. This proposal adds an alpha annotation that switches the
 speaker to the `frr-k8s` backend, and extends the existing multi-peer BGP
 annotation (`k8sd/v1alpha1/metallb/bgp-peers`, introduced in release-1.36)
 so that individual peers can reference a `BFDProfile`. BFD (Bidirectional
@@ -64,19 +64,13 @@ k8sd/v1alpha1/metallb/bgp-peers: |
     peerASN: 65001
     myASN: 65000
     bfdProfile: fast-failover
+k8sd/v1alpha1/metallb/bfd-profiles: |
+  - name: fast-failover
+    receiveInterval: 150
+    transmitInterval: 150
+    detectMultiplier: 3
 EOF
 )"
-sudo k8s kubectl apply -f - <<'EOF'
-apiVersion: metallb.io/v1beta1
-kind: BFDProfile
-metadata:
-  name: fast-failover
-  namespace: metallb-system
-spec:
-  receiveInterval: 150
-  transmitInterval: 150
-  detectMultiplier: 3
-EOF
 ```
 
 ## User facing changes
@@ -94,10 +88,16 @@ EOF
   qualifier when `frr-k8s` is active, e.g.
   `enabled, BGP mode (alpha), frr-k8s backend`, mirroring the existing
   `(alpha)` suffix used for the peers annotation.
-- `BFDProfile` custom resources are **not** managed by k8sd/the chart. Users
-  create and manage them directly with `k8s kubectl apply`, and reference
-  them by name via `bfdProfile`. This keeps scope small and avoids
-  duplicating a CRD's full schema into our annotation YAML.
+- New annotation `k8sd/v1alpha1/metallb/bfd-profiles`: a YAML list of
+  `BFDProfile`s that k8sd keeps in sync in the `metallb-system` namespace
+  while BGP mode is enabled. Each entry has a required `name` and the
+  `BFDProfile` spec fields as flat, typed keys (`receiveInterval`,
+  `transmitInterval`, `detectMultiplier`, `echoInterval`, `echoMode`,
+  `passiveMode`, `minimumTtl`), validated against the CRD's ranges. Like
+  `bfdProfile`, it requires `bgp-backend: frr-k8s`.
+- With the `frr-k8s` backend, the frr-k8s DaemonSet runs the Canonical
+  `ghcr.io/canonical/frr-k8s` and `ghcr.io/canonical/frr` rocks instead of
+  the upstream images.
 - No change for users who don't set `bgp-backend` — behavior defaults to
   today's `native` backend.
 
@@ -112,16 +112,31 @@ EOF
   Rejected: upstream marks this deprecated and slated for removal in the
   vendored chart version already in the snap. Implementing against it would
   mean reverting the toggle shortly after a chart bump.
-- **Let k8sd manage `BFDProfile` resources declaratively (own annotation
-  with timers etc.), instead of reference-only.** Rejected for this
-  iteration: duplicates the CRD's schema in our own YAML dialect for
-  marginal benefit; users can already apply `BFDProfile` objects directly
-  with `k8s kubectl`. Can be revisited if there's demand for keeping BFD
-  profile config inside `k8s set`/annotations instead of raw manifests.
+- **Reference-only `bfdProfile`, with users applying `BFDProfile` objects
+  directly with `k8s kubectl`.** Rejected: BFD configuration would live
+  partly outside `k8s set`/annotations, unlike the rest of the BGP setup.
+- **Pass the `BFDProfile` spec through as a nested `spec` map.** Rejected in
+  favor of flat, typed fields mirroring `bgp-peers`, so k8sd validates them
+  and the chart renders each field explicitly.
+- **Create `BFDProfile`s from k8sd through the Kubernetes API instead of the
+  `ck-loadbalancer` chart.** Not chosen: the chart already owns the
+  `BGPPeer`s and handles updates and removal. The trade-off is the
+  limitation below.
+
+## Known limitations
+
+- Helm deletes `BFDProfile`s before `BGPPeer`s, and MetalLB's webhook
+  rejects deleting a `BFDProfile` still referenced by a `BGPPeer`. Removing a
+  peer (or turning `bgp-mode` off) in the same change as the profile it
+  references leaves the profile behind. The same happens when a profile is
+  removed from `bfd-profiles` while a peer still references it. Helm only
+  logs the failed deletion and drops the object from the release, so no later
+  reconcile retries it. That is harmless with `frr-k8s`, but MetalLB's
+  `native` backend rejects any configuration containing a `BFDProfile`. The how-to documents the symptom and the manual
+  `k8s kubectl delete bfdprofile` workaround.
 
 ## Out of scope
 
-- Declarative management of `BFDProfile` CRs (see Alternative solutions).
 - Cilium load balancer BGP backend (`pkg/k8sd/features/cilium/loadbalancer.go`)
   — Cilium's BGP control plane does not use MetalLB/FRR and is unaffected.
 - Removing/migrating the legacy `speaker.frr` value — it stays hardcoded to
@@ -143,6 +158,11 @@ New annotation keys in `k8s-snap-api`
 // speaker. Supported values: "native" (default) and "frr-k8s" (required
 // for BFD). Any other value is rejected.
 AnnotationBGPBackend = "k8sd/v1alpha1/metallb/bgp-backend"
+
+// AnnotationBFDProfiles holds a YAML-encoded list of MetalLB BFDProfile
+// configs that k8sd keeps present in the MetalLB namespace in BGP mode.
+// Requires AnnotationBGPBackend to be "frr-k8s".
+AnnotationBFDProfiles = "k8sd/v1alpha1/metallb/bfd-profiles"
 ```
 
 The `bgp-peers` YAML schema (parsed in `k8sd`, not part of the Go API
@@ -164,17 +184,29 @@ None.
 ## Configuration Changes
 
 - `pkg/k8sd/features/metallb/loadbalancer.go`:
-  - Add `backendFromAnnotations(annotations types.Annotations) (frrk8sEnabled bool, active bool, err error)`,
-    mirroring `neighborsFromAnnotations`. Validates the value is `""`,
-    `"native"`, or `"frr-k8s"`.
+  - Add `isNativeBGPBackend(annotations types.Annotations) (bool, error)`.
+    Validates the value is `""`, `"native"`, or `"frr-k8s"`.
   - Replace the hardcoded `"frrk8s": map[string]any{"enabled": false}` in
     `enableLoadBalancer`'s `metalLBValues` with the parsed value. Leave
     `speaker.frr.enabled` hardcoded `false` (legacy path untouched).
+  - Pin the `frr-k8s` subchart's images to the Canonical rocks
+    (`frr-k8s.frrk8s.image` and `frr-k8s.frrk8s.frr.image`) and register
+    them for `k8s list-images` (`chart.go`, `register.go`).
+  - Add `bfdProfilesFromAnnotations` and `validateBFDProfiles`: parse the
+    `bfd-profiles` annotation into typed profiles, require a `name`, check
+    each field against the CRD's range, and require the `frr-k8s` backend.
+    Pass the profiles to the `ck-loadbalancer` chart as `bgp.bfdProfiles`
+    (always set, so profiles removed from the annotation are removed from
+    the release), and wait for the `bfdprofiles` CRD when any are set.
   - Add `bfdProfile string` to the `bgpNeighbor` struct and to the
     `peerYAML` struct parsed from the `bgp-peers` annotation.
   - In `enableLoadBalancer`, after resolving `neighbors`, validate: if any
     neighbor has a non-empty `bfdProfile` and the backend is not
-    `frr-k8s`, return an error (`"bfdProfile requires bgp-backend: frr-k8s"`).
+    `frr-k8s`, return an error (`neighbor[0]: bfdProfile "fast-failover"
+    requires k8sd/v1alpha1/metallb/bgp-backend annotation set to "frr-k8s"`).
+    Validate everything before the first `helm.Apply`, so an invalid
+    configuration (e.g. a backend switch while peers still use BFD) is never
+    half-applied.
   - `buildLoadBalancerValues`: emit `"bfdProfile": n.bfdProfile` in the
     neighbor map when non-empty (same optional-field-omission pattern
     already used for `myASN` / `nodeSelector`).
@@ -185,7 +217,11 @@ None.
   (in this repo, `k8s-snap`): render `spec.bfdProfile` on the `BGPPeer`
   when `$n.bfdProfile` is set.
 - `k8s/manifests/charts/ck-loadbalancer/values.schema.json`: add
-  `bfdProfile: {"type": "string"}` to `bgp.neighbors.items.properties`.
+  `bfdProfile: {"type": "string"}` to `bgp.neighbors.items.properties`, and
+  a typed `bgp.bfdProfiles` list.
+- `k8s/manifests/charts/ck-loadbalancer/templates/metallb/bfd-profiles.yaml`:
+  render one `BFDProfile` per `bgp.bfdProfiles` entry in the release
+  namespace, mapping each set field into `spec` explicitly.
 
 Reference for current state (pre-change):
 [k8sd@2430e1b, pkg/k8sd/features/metallb/loadbalancer.go][impl-main].
@@ -195,28 +231,42 @@ Reference for current state (pre-change):
 - Extend `docs/canonicalk8s/snap/howto/networking/multi-peer-bgp.md`:
   - Document `bgp-backend` annotation and its two values.
   - Add `bfdProfile` to the peer field table.
-  - Add a worked example creating a `BFDProfile` and referencing it.
+  - Add a worked example declaring a `BFDProfile` through `bfd-profiles`
+    and referencing it, plus its field table.
   - Remove "No per-peer BFD or multi-hop support" from Limitations (keep
-    the multi-hop limitation, drop the BFD half).
+    the multi-hop limitation, drop the BFD half), and document the
+    leftover-`BFDProfile` limitation with its workaround.
 - No change needed to `default-loadbalancer.md` beyond the existing
   cross-link to the multi-peer-bgp how-to.
 
 ## Testing
 
 - `k8sd` unit tests in `pkg/k8sd/features/metallb/loadbalancer_test.go`:
-  - `backendFromAnnotations`: valid values (`""`, `native`, `frr-k8s`),
+  - `isNativeBGPBackend`: valid values (`""`, `native`, `frr-k8s`),
     invalid value error.
-  - `buildLoadBalancerValues`: neighbor map includes/omits `bfdProfile`.
+  - `buildLoadBalancerValues`: neighbor map includes/omits `bfdProfile`;
+    `bfdProfiles` includes set fields only and is always present.
+  - `bfdProfilesFromAnnotations` / `validateBFDProfiles`: every field,
+    wrong types, missing name, range boundaries, backend requirement.
   - `ApplyLoadBalancer` end-to-end (mirroring existing
     `TestApplyLoadBalancerWithAnnotations` cases): backend annotation flips
-    `frrk8s.enabled` in the first `helm.Apply` call's values; `bfdProfile`
-    without `frr-k8s` backend returns an error and a degraded status;
-    `bfdProfile` with `frr-k8s` backend renders on the neighbor map.
-- No new integration test is strictly required for the toggle itself (no
-  real FRR/BFD peer available in CI), but
-  `tests/integration/tests/test_loadbalancer.py` should get a smoke case
-  that sets `bgp-backend: frr-k8s` and asserts the `frr-k8s` speaker
-  container/pod comes up healthy (not full BFD session validation).
+    `frrk8s.enabled` and pins the rock images in the first `helm.Apply`
+    call's values; BFD configuration without the `frr-k8s` backend returns
+    an error and a degraded status; profiles and `bfdProfile` render in the
+    second call's values.
+- Integration tests in `tests/integration/tests/test_loadbalancer.py`:
+  - Lifecycle: invalid configurations degrade the load balancer; `frr-k8s`
+    backend with the Canonical rocks; `BFDProfile` creation from the
+    annotation (every field); `BGPPeer` references; FRR running config
+    (`FRRNodeState`) including peer port and node selection; MetalLB's
+    `ConfigurationState`; profile update and removal; disabling BFD;
+    switching to `native` and back; disabling the load balancer with BFD
+    configured.
+  - A real BGP + BFD session against FRR on a second node: session
+    establishment, negotiated BFD timers, `BGPSessionState`, the
+    LoadBalancer IP learned over BGP and the service reached through it,
+    BFD tearing BGP down on failure and recovering, and a live switch to the
+    `native` backend.
 
 ## Considerations for backwards compatibility
 
@@ -237,6 +287,8 @@ Reference for current state (pre-change):
   development, per this repo's root `AGENTS.md`) → `k8s-snap` (chart
   template + schema + docs). Remove the `replace` directive before merging
   the `k8sd` PR.
+- The `frr-k8s` and `frr` rocks (`metallb-rocks`) must be published before
+  the `k8sd` change ships, since k8sd pins their `-ck0` tags.
 - Current code pointers (pre-change):
   - [`k8sd@2430e1b`, `pkg/k8sd/features/metallb/loadbalancer.go`][impl-main]
   - [`k8s-snap-api@c23486a`, `api/annotations/metallb/metallb.go`][api-main]

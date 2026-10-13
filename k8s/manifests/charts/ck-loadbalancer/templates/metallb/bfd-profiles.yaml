@@ -4,7 +4,7 @@
 apiVersion: metallb.io/v1beta1
 kind: BFDProfile
 metadata:
-  name: {{ .name }}
+  name: {{ .name | quote }}
   namespace: {{ $.Release.Namespace }}
   labels:
     {{- include "ck-loadbalancer.labels" $ | nindent 4 }}
