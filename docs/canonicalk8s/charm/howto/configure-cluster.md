@@ -66,8 +66,10 @@ juju config k8s cluster-annotations="k8sd/v1alpha1/cilium/cni-exclusive=-"
 
 The [multi-peer BGP annotation][multi-peer-bgp] requires a list value.
 `cluster-annotations` parses space-separated `key=value` pairs, so the value
-must contain no spaces. A compact single-line JSON array satisfies this
-constraint:
+must contain no spaces. For readability, prefer the YAML-based `k8s` CLI
+method below. If you need to manage the annotation through Juju configuration,
+you can use this advanced workaround: a compact single-line JSON array
+satisfies the constraint.
 
 ```
 juju config k8s cluster-annotations='k8sd/v1alpha1/metallb/bgp-peers=[{"peerAddress":"10.116.3.164","peerASN":65001,"myASN":65000,"nodeSelector":{"topology.kubernetes.io/zone":"i1"}},{"peerAddress":"10.116.3.165","peerASN":65002,"myASN":65000,"nodeSelector":{"topology.kubernetes.io/zone":"i2"}}]'
