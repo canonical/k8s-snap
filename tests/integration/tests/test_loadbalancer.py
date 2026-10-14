@@ -866,12 +866,15 @@ def test_loadbalancer_bgp_frr_k8s_bfd_lifecycle(instances: List[harness.Instance
         lambda d: len(d["items"]) == 3
         and not any(p["spec"].get("bfdProfile") for p in d["items"]),
     )
+    # The unused "profile fast-failover" block stays in FRR: MetalLB's speaker
+    # skips syncing an empty set of BFD profiles, so the last one is not
+    # removed from the FRRConfiguration (metallb v0.16.1).
     _wait_for_json(
         instance,
         _FRR_NODE_STATES_CMD,
         _frr_config_matches(
             expected=["neighbor 192.0.2.1 remote-as 65001"],
-            unexpected=["profile fast-failover", "neighbor 192.0.2.1 bfd"],
+            unexpected=["neighbor 192.0.2.1 bfd"],
         ),
     )
 
@@ -1097,9 +1100,17 @@ def test_loadbalancer_bgp_bfd_session(instances: List[harness.Instance]):
     _wait_for_json(router, ["vtysh", "-c", "show ip bgp json"], _route_learned)
     _reach_service()
 
+    def _dropped(d: Dict[str, Any]) -> int:
+        return d.get(node_ip, {}).get("connectionsDropped", 0)
+
+    dropped = _dropped(
+        json.loads(router.exec(neighbor_cmd, capture_output=True).stdout.decode())
+    )
+
     # Drop BFD control packets on the router: BFD must detect the failure
     # within its ~1.5s detection time and tear BGP down, long before the BGP
-    # hold timer (90s) would.
+    # hold timer (90s) would. TCP is not blocked, so BGP reconnects right away
+    # and overwrites lastResetDueTo; count the dropped sessions instead.
     drop_bfd = ["INPUT", "-p", "udp", "--dport", str(_BFD_PORT), "-j", "DROP"]
     router.exec(["iptables", "-I", *drop_bfd])
 
@@ -1112,11 +1123,7 @@ def test_loadbalancer_bgp_bfd_session(instances: List[harness.Instance]):
         delay_s=2,
     )
     _wait_for_json(
-        router,
-        neighbor_cmd,
-        lambda d: d.get(node_ip, {}).get("lastResetDueTo") == "BFD down received",
-        retries=10,
-        delay_s=2,
+        router, neighbor_cmd, lambda d: _dropped(d) > dropped, retries=10, delay_s=2
     )
 
     router.exec(["iptables", "-D", *drop_bfd])
