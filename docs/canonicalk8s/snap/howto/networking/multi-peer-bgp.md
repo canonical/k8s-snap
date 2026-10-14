@@ -24,26 +24,10 @@ where each zone peers with a different top-of-rack router.
 
 ## Configure multi-peer BGP
 
-### Enable BGP mode
+### Define the peers
 
-First enable the load balancer:
-
-```bash
-sudo k8s enable load-balancer
-```
-
-Then configure BGP:
-
-```bash
-sudo k8s set \
-  load-balancer.bgp-mode=true \
-  load-balancer.bgp-local-asn=65000 \
-  load-balancer.cidrs=10.0.0.0/24
-```
-
-### Set the multi-peer annotation
-
-Define peers in a YAML file and pass the whole file via the `annotations` key:
+Define peers in a YAML file under the `k8sd/v1alpha1/metallb/bgp-peers`
+annotation:
 
 ```bash
 cat > bgp-peers.yaml << 'EOF'
@@ -64,22 +48,32 @@ k8sd/v1alpha1/metallb/bgp-peers: |
     nodeSelector:
       topology.kubernetes.io/zone: i3
 EOF
-sudo k8s set annotations="$(cat bgp-peers.yaml)"
 ```
 
-Setting this annotation **replaces** the single-peer typed keys. If both are
-present, the annotation takes precedence and a warning appears in `k8s status`.
+The supported fields per peer are listed in the
+[annotations reference][bgp-peers-reference].
 
-Supported fields per peer entry:
+### Enable BGP mode
 
-| Field | Required | Description |
-|---|---|---|
-| `peerAddress` | yes | IP address of the BGP peer router |
-| `peerASN` | yes | ASN of the peer router (1–4294967295) |
-| `myASN` | no | Local ASN for this peer (defaults to `bgp-local-asn`) |
-| `peerPort` | no | TCP port (default: 179) |
-| `nodeSelector` | no | `matchLabels` selector; omit to select all nodes |
-| `bfdProfile` | no | Name of a `BFDProfile` to attach to this peer (requires `bgp-backend: frr-k8s`, see below) |
+Enable the load balancer, then enable BGP mode and pass the peers file via the
+`annotations` key in the same command. BGP mode requires at least one peer, so
+it cannot be enabled before the peers are set:
+
+```bash
+sudo k8s enable load-balancer
+sudo k8s set \
+  load-balancer.bgp-mode=true \
+  load-balancer.bgp-local-asn=65000 \
+  load-balancer.cidrs=10.0.0.0/24 \
+  annotations="$(cat bgp-peers.yaml)"
+```
+
+Once BGP mode is enabled, update the peers by editing `bgp-peers.yaml` and
+running `sudo k8s set annotations="$(cat bgp-peers.yaml)"` again.
+
+The annotation **replaces** the single-peer typed keys
+(`load-balancer.bgp-peer-*`). If both are present, the annotation takes
+precedence and a warning appears in `k8s status`.
 
 ### Optionally advertise all pools
 
@@ -104,13 +98,21 @@ Or to set only the advertise flag without changing peers:
 sudo k8s set annotations="k8sd/v1alpha1/metallb/advertise-all-pools: \"true\""
 ```
 
-### Enable the FRR backend for BFD
+### Enable BFD
 
-MetalLB's default BGP implementation (`native`) does not support BFD
-(Bidirectional Forwarding Detection). To use BFD, switch the speaker to the
-`frr-k8s` backend with the `k8sd/v1alpha1/metallb/bgp-backend` annotation,
-declare a `BFDProfile` with the `k8sd/v1alpha1/metallb/bfd-profiles`
-annotation, and reference it from a peer's `bfdProfile` field:
+[Bidirectional Forwarding Detection (BFD)][bfd-rfc] detects a failed link to a
+peer within milliseconds, instead of waiting for the BGP hold timer to expire,
+so the peer stops routing traffic to the failed node sooner. See
+[MetalLB's BFD documentation][metallb-bfd] for details.
+
+MetalLB announces service IPs through its speaker, a DaemonSet that runs a pod
+on every node and holds the BGP sessions with the peers. The speaker's default
+BGP implementation, [`native`][metallb-bgp], does not support BFD. To use BFD,
+switch to the [`frr-k8s`][metallb-frr-k8s] backend, which runs the
+[FRR][frr-bfd] routing suite in a separate [frr-k8s][frr-k8s] DaemonSet. Set
+the backend with the `k8sd/v1alpha1/metallb/bgp-backend` annotation, declare a
+BFD profile with the `k8sd/v1alpha1/metallb/bfd-profiles` annotation, and
+reference it from a peer's `bfdProfile` field:
 
 ```bash
 cat > bgp-peers.yaml << 'EOF'
@@ -129,37 +131,32 @@ EOF
 sudo k8s set annotations="$(cat bgp-peers.yaml)"
 ```
 
-`bgp-backend` accepts `native` (default) or `frr-k8s`. Setting `bfdProfile`
-on any peer, or setting `bfd-profiles`, while the backend is `native` is
-rejected — `k8s status` shows a degraded `load-balancer` state until either
-the backend is switched to `frr-k8s` or the BFD configuration is removed.
+The supported profile fields are listed in the
+[annotations reference][bfd-profiles-reference].
 
-Supported fields per `bfd-profiles` entry (omitted fields use MetalLB's
-defaults):
+BFD settings require the `frr-k8s` backend. If `bfd-profiles` or a peer's
+`bfdProfile` is set while the backend is `native`, {{product}} rejects the
+configuration, keeps the previous one running, and `k8s status` reports the
+error, for example:
 
-| Field | Required | Description |
-|---|---|---|
-| `name` | yes | Unique `BFDProfile` name (lowercase DNS subdomain), referenced by a peer's `bfdProfile` |
-| `receiveInterval` | no | Minimum receive interval in ms (10–60000, default: 300) |
-| `transmitInterval` | no | Minimum transmit interval in ms (10–60000, default: 300) |
-| `detectMultiplier` | no | Missed packets before the session is declared down (2–255, default: 3) |
-| `echoInterval` | no | Minimum echo receive interval in ms (10–60000, default: 50) |
-| `echoMode` | no | Enable echo mode (default: false; not supported on multi-hop) |
-| `passiveMode` | no | Wait for the peer to start the session (default: false) |
-| `minimumTtl` | no | Minimum expected TTL, multi-hop only (1–254, default: 254) |
+```
+load-balancer: Failed to deploy MetalLB, the error was: failed to enable LoadBalancer: invalid BFD profiles: k8sd/v1alpha1/metallb/bfd-profiles requires k8sd/v1alpha1/metallb/bgp-backend annotation set to "frr-k8s"
+```
 
-{{product}} creates the profiles in the `metallb-system` namespace while
-`bgp-mode` is enabled, and keeps them in sync with the annotation: changed
-fields are applied, and entries removed from it are deleted once no peer
-references them. A peer may also reference a `BFDProfile` created directly
-with `k8s kubectl` in `metallb-system`, as long as its name does not collide
-with a profile in the annotation.
+{{product}} creates the profiles as `BFDProfile` resources in the
+`metallb-system` namespace while `bgp-mode` is enabled, and keeps them in sync
+with the annotation: changed fields are applied, and entries removed from it
+are deleted once no peer references them. A peer may also reference a
+`BFDProfile` created directly with `k8s kubectl` in `metallb-system`, as long
+as its name does not collide with a profile in the annotation.
 
 With the `frr-k8s` backend, MetalLB requires all peers that select the same
 node to use the same `myASN`.
 
-To stop using BFD, remove `bfdProfile` from the peers and remove the
-`bfd-profiles` annotation in the same change, keeping the peers themselves:
+### Stop using BFD
+
+Remove `bfdProfile` from the peers and remove the `bfd-profiles` annotation in
+the same change, keeping the peers themselves:
 
 ```bash
 cat > bgp-peers.yaml << 'EOF'
@@ -171,6 +168,11 @@ k8sd/v1alpha1/metallb/bfd-profiles: "-"
 EOF
 sudo k8s set annotations="$(cat bgp-peers.yaml)"
 ```
+
+Only then remove peers, disable `bgp-mode` or switch the backend back to
+`native`. MetalLB refuses to delete a `BFDProfile` while a peer still uses it,
+so doing these in one step leaves the profile behind (see
+[Troubleshooting](#troubleshooting)).
 
 ### Verify
 
@@ -191,9 +193,7 @@ Inspect the resulting BGPPeer resources:
 sudo k8s kubectl get bgppeers -A
 ```
 
-Check BFD session state (once the backend and peer are both up). The FRR
-process runs in its own `frr-k8s` DaemonSet, separate from the MetalLB
-speaker pods:
+With the `frr-k8s` backend, check the BFD profiles and session state:
 
 ```bash
 sudo k8s kubectl get bfdprofiles -n metallb-system
@@ -204,8 +204,8 @@ The `BGP` and `BFD` columns of `bgpsessionstates` show `Established` and `Up`
 once the sessions with the peer are running (`N/A` for peers without BFD).
 They are refreshed every 2 minutes, so they can lag behind.
 
-Check that MetalLB accepted the configuration. `k8s status` only reports
-whether {{product}} applied it, not whether MetalLB accepted it:
+`k8s status` only reports whether {{product}} applied the configuration, not
+whether MetalLB accepted it. Check that with:
 
 ```bash
 sudo k8s kubectl get configurationstates -n metallb-system
@@ -215,53 +215,23 @@ Every entry should show `Valid`; `Invalid` entries include an error summary.
 
 ## Troubleshooting
 
-If the annotation value is invalid, `k8s status` shows an error, for example:
+If an annotation is invalid, `k8s status` shows the error (see the example
+above). Correct the annotation and the reconciler retries automatically.
 
-```
-load-balancer: Failed to deploy MetalLB, the error was: failed to enable LoadBalancer: invalid BGP peers: neighbor[0]: peerASN 0 out of range [1, 4294967295]
-```
+If `configurationstates` shows `Invalid`, MetalLB rejected a configuration
+that {{product}} applied, for example peers on the same node with different
+`myASN` on the `frr-k8s` backend, or a `bfdProfile` naming a profile that does
+not exist. Fix the annotation accordingly.
 
-Correct the annotation and the reconciler retries automatically. Invalid
-annotations are rejected before anything is applied, so the previous
-configuration keeps running until then.
-
-MetalLB can also reject a configuration that {{product}} applied, for example
-peers on the same node with different `myASN` on the `frr-k8s` backend, or a
-`bfdProfile` naming a profile that does not exist. `k8s status` still reports
-the load balancer as enabled; check `configurationstates` (see Verify).
-
-### MetalLB rejects its configuration after switching to the native backend
-
-A `BFDProfile` can be left behind in two cases:
-
-- A peer that references it is removed in the same change as the profile,
-  for example when removing that peer or turning `bgp-mode` off.
-- The profile is removed from `bfd-profiles` while a peer still references
-  it.
-
-MetalLB refuses to delete a `BFDProfile` while a peer still uses it, and
-{{product}} does not retry the deletion.
-
-The leftover profile is harmless while the backend is `frr-k8s`. After
-switching to the `native` backend, MetalLB rejects its whole configuration:
-it stops announcing services, in BGP and L2 alike, and stops assigning IPs,
-while `k8s status` still reports the load balancer as enabled.
-`configurationstates` shows `Invalid` with the error:
-
-```
-bfd profiles section set
-```
-
-List the remaining profiles and delete them:
+If it shows `Invalid` with the error `bfd profiles section set` after switching
+to the `native` backend, a `BFDProfile` was left behind (see
+[Stop using BFD](#stop-using-bfd)). MetalLB then stops announcing services and
+assigning IPs until the profile is deleted:
 
 ```bash
 sudo k8s kubectl get bfdprofiles -n metallb-system
 sudo k8s kubectl delete bfdprofile <name> -n metallb-system
 ```
-
-MetalLB picks up the change immediately. To avoid this, remove the
-`bfdProfile` references from the peers first (see above), then remove the
-peers or switch backends.
 
 Disabling the load balancer while BFD is configured can report a failure
 mentioning `used by BGPPeer` once; the next reconcile removes MetalLB and its
@@ -272,14 +242,21 @@ remaining resources.
 - The annotation value is write-only — inspect it directly with
   `k8s kubectl get node <node> -o yaml`.
 - No multi-hop BGP support.
-- Removing a peer together with the `BFDProfile` it references, or removing a
-  profile that a peer still references, can leave the profile behind (see
-  Troubleshooting).
 
 ## Next steps
 
+- [Annotations reference][annotations-reference]
 - [Load-balancer explanation](/snap/explanation/networking.md#load-balancer)
 - [How to use the default load balancer](default-loadbalancer.md)
 
 <!-- LINKS -->
 [getting-started-guide]: /snap/tutorial/getting-started
+[annotations-reference]: /snap/reference/annotations
+[bgp-peers-reference]: /snap/reference/annotations.md#k8sdv1alpha1metallbbgp-peers
+[bfd-profiles-reference]: /snap/reference/annotations.md#k8sdv1alpha1metallbbfd-profiles
+[bfd-rfc]: https://datatracker.ietf.org/doc/html/rfc5880
+[metallb-bfd]: https://metallb.io/configuration/#enabling-bfd-support-for-bgp-sessions
+[metallb-bgp]: https://metallb.io/concepts/bgp/
+[metallb-frr-k8s]: https://metallb.io/concepts/bgp/#frr-k8s-mode
+[frr-k8s]: https://github.com/metallb/frr-k8s
+[frr-bfd]: https://docs.frrouting.org/en/latest/bfd.html
