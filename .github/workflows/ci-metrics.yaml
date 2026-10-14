@@ -47,7 +47,7 @@ jobs:
         with:
           ref: ${{ github.event.repository.default_branch }}
           fetch-depth: 0
-          token: ${{ github.token }}
+          persist-credentials: false
 
       - name: Prepare ci-metrics branch with default-branch code
         run: |
@@ -89,6 +89,8 @@ jobs:
 
       - name: Compare-and-swap push metrics state
         if: env.METRICS_POST_ISSUES == 'true'
+        env:
+          PUSH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           git config user.name "k8s CI metrics bot"
@@ -99,6 +101,11 @@ jobs:
             exit 0
           fi
           git commit -s -m "ci: update metrics issue bridge state"
+          # Credentials are configured here, just before the one step that needs
+          # to authenticate, rather than persisted for the whole job by
+          # actions/checkout (see persist-credentials: false above).
+          credential_header="AUTHORIZATION: basic $(printf 'x-access-token:%s' "${PUSH_TOKEN}" | base64)"
+          git config --local "http.https://github.com/.extraheader" "${credential_header}"
           for attempt in 1 2 3; do
             if git push origin HEAD:ci-metrics; then
               exit 0
