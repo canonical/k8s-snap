@@ -1,3 +1,9 @@
+---
+myst:
+  html_meta:
+    description: "Overview of Canonical Kubernetes charm integrations and supported charms for Juju-managed clusters."
+---
+
 # Charm integrations 
 
 Explore charms that work with Canonical Kubernetes. 
