@@ -71,6 +71,11 @@ on:
         description: Additional pytest arguments
         default: ""
         type: string
+      runner-tags:
+        description: Optional dictionary mapping test names to runner tags
+        type: string
+        required: false
+        default: '{"tests/test_version_upgrades.py::test_version_upgrades": ["self-hosted-linux-amd64-jammy-large"]}'
       tmate_enabled:
         type: boolean
         description: Start a tmate session before running the tests
@@ -92,7 +97,9 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install tox
-        run: sudo apt-get install -y tox
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tox
       - name: Compute test runners
         id: compute-test-runners
         run: |
@@ -150,11 +157,18 @@ jobs:
         uses: canonical/setup-lxd@a3c85fc6fb7fff43fcfeae87659e41a8f635b7dd # v0.1.3
         with:
           bridges: "lxdbr0,dualstack-br0,ipv6-br0"
-      - name: Install tox
-        run: sudo apt-get install -y tox
       - name: Setup tmate session
         uses: canonical/action-tmate@main
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.tmate_enabled }}
+        if: >-
+          ${{
+            github.event_name == 'workflow_dispatch' &&
+            inputs.tmate_enabled &&
+            matrix.test == 'tests/test_version_upgrades.py::test_version_upgrades'
+          }}
+      - name: Install tox
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tox
       - name: Generate names for step and artifacts
         run: |
           FULL_TEST_NODE_ID="${{ matrix.test }}"
