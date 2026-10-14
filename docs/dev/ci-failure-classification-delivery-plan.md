@@ -1,9 +1,15 @@
 # Delivery plan — CI failure classification, fingerprinting, and issue creation
 
-- **Status**: DRAFTING
+This is an engineering rollout plan, not a numbered design proposal — it has no
+user-facing changes, API, CLI, or database surface of its own, so it lives under
+`docs/dev/` rather than `docs/proposals/` (see
+[docs/AGENTS.md](/docs/AGENTS.md) on what the proposal template is for). It
+previously shared the `003` prefix with the design proposal below, which read as
+a duplicate; it is not one, and the two now have distinct names.
+
 - **Owner**: Louise Schmidtgen / [@louiseschmidtgen](https://github.com/louiseschmidtgen)
-- **Companion to**: `003-ci-failure-classification-and-metrics.md` (the design
-  proposal, which lands as the first PR of movement 1 below)
+- **Companion to**: `docs/proposals/003-ci-failure-classification-and-metrics.md`
+  (the design proposal, which lands as the first PR of movement 1 below)
 - **Builds on**: [#2850](https://github.com/canonical/k8s-snap/pull/2850) —
   standardised failure context and `result.json` in every e2e job
 
