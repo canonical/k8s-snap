@@ -3,7 +3,8 @@
 This is an engineering rollout plan, not a numbered design proposal — it has no
 user-facing changes, API, CLI, or database surface of its own, so it lives under
 `docs/dev/` rather than `docs/proposals/` (see
-[docs/AGENTS.md](/docs/AGENTS.md) on what the proposal template is for). It
+[docs/AGENTS.md](https://github.com/canonical/k8s-snap/blob/main/docs/AGENTS.md)
+on what the proposal template is for). It
 previously shared the `003` prefix with the design proposal below, which read as
 a duplicate; it is not one, and the two now have distinct names.
 
