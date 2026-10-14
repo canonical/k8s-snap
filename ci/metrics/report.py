@@ -77,6 +77,32 @@ def render_latest_markdown(rollups: Sequence[Dict[str, Any]]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def render_digest_markdown(
+    rollups: Sequence[Dict[str, Any]], report_url: Optional[str] = None
+) -> str:
+    """Render the short Mattermost digest body: attribution and delta first.
+
+    This is deliberately smaller than ``render_latest_markdown`` — a chat digest
+    is read in seconds, not reviewed like the committed report — but it reuses
+    the same attribution-and-delta section so the two never drift apart.
+    """
+
+    lines: List[str] = ["#### CI failure digest", ""]
+    if not rollups:
+        lines.append("_No CI metrics have been ingested yet._")
+        return "\n".join(lines) + "\n"
+
+    latest = rollups[-1]
+    previous = rollups[-2] if len(rollups) > 1 else None
+    lines.append(f"Data period: `{latest['period']}`")
+    lines.append("")
+    lines.extend(_attribution_and_delta(latest, previous))
+    if report_url:
+        lines.append("")
+        lines.append(f"[Full report and signature catalogue]({report_url})")
+    return "\n".join(lines) + "\n"
+
+
 def render_catalogue_markdown(catalogue: Sequence[Dict[str, Any]]) -> str:
     """Render the deterministic signature catalogue."""
 

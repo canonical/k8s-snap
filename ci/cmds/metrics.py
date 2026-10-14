@@ -18,7 +18,7 @@ from typing import Optional
 from metrics.gh import DEFAULT_REPO, GitHubClient
 from metrics.ingest import dump_records, ingest_run
 from metrics.issues import GitHubIssueClient, open_issues
-from metrics.report import build_catalogue, write_reports
+from metrics.report import build_catalogue, render_digest_markdown, write_reports
 from metrics.rollup import derive_rollup, derive_rollups
 from metrics.router import apply_router
 from metrics.rules import DEFAULT_RULES_PATH, classify_signatures, load_rules
@@ -200,6 +200,31 @@ def add_metrics_cmds(parser: argparse.ArgumentParser) -> None:
         help=f"Signature output directory (default: {DEFAULT_SIGNATURES_DIR}).",
     )
     report.set_defaults(func=cmd_report)
+
+    digest = metrics_sub.add_parser(
+        "digest",
+        help="Render the Mattermost digest payload (attribution and delta first).",
+    )
+    digest.add_argument(
+        "--db",
+        default=DEFAULT_DB,
+        type=Path,
+        help=f"SQLite database path (default: {DEFAULT_DB})",
+    )
+    digest.add_argument(
+        "--repo", default=DEFAULT_REPO, help="owner/repo the full report lives in."
+    )
+    digest.add_argument(
+        "--report-ref",
+        default="ci-metrics",
+        help="Branch the full report is committed to (default: ci-metrics).",
+    )
+    digest.add_argument(
+        "--report-path",
+        default="ci/metrics-data/reports/latest.md",
+        help="Path to the full report within --report-ref.",
+    )
+    digest.set_defaults(func=cmd_digest)
 
     open_issues_parser = metrics_sub.add_parser(
         "open-issues", help="Open or update GitHub issues for eligible CI failures."
@@ -432,6 +457,18 @@ def cmd_report(args: argparse.Namespace) -> int:
     )
     print(f"wrote {latest_path}")
     print(f"wrote {catalogue_path}")
+    return 0
+
+
+def cmd_digest(args: argparse.Namespace) -> int:
+    """Print a Mattermost ``{"text": ...}`` payload for the daily digest."""
+
+    conn = open_database(args.db)
+    report_url = (
+        f"https://github.com/{args.repo}/blob/{args.report_ref}/{args.report_path}"
+    )
+    text = render_digest_markdown(derive_rollups(conn), report_url)
+    print(json.dumps({"text": text}))
     return 0
 
 

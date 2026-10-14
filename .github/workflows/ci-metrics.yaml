@@ -15,12 +15,25 @@ on:
       - Lint and integration
     types:
       - completed
+  schedule:
+    # Hourly reconciliation: self-heals any workflow_run delivery GitHub dropped
+    # by re-ingesting a short backfill window for the two scheduled workflows.
+    # Ingest upserts on (run_id, attempt), so overlap with the per-run trigger
+    # above is harmless, not a duplicate write.
+    - cron: "17 * * * *"
+    # Daily digest: everything the hourly run does, plus one Mattermost post a
+    # day, timed after the Nightly run has landed.
+    - cron: "45 6 * * *"
   workflow_dispatch:
     inputs:
       post_issues:
         description: "Post GitHub issues instead of dry-running"
         required: false
         default: "false"
+      backfill_since:
+        description: "Optional historical backfill window, e.g. 90d. Leave empty to skip."
+        required: false
+        default: ""
 
 permissions: {}
 
@@ -29,8 +42,8 @@ jobs:
     name: Reconcile CI metrics and open issues
     runs-on: ubuntu-24.04
     permissions:
-      actions: read # read the triggering run's jobs, attempts and logs
-      contents: write # commit the regenerated metrics.sql to the ci-metrics branch
+      actions: read # read workflow runs, jobs, attempts and logs
+      contents: write # commit the regenerated metrics.sql/reports to the ci-metrics branch
       # Issues are filed with BOT_TOKEN, not GITHUB_TOKEN, so no issues: write here.
     concurrency:
       group: ci-metrics-store
@@ -38,6 +51,7 @@ jobs:
     env:
       DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
       METRICS_POST_ISSUES: ${{ github.event.inputs.post_issues || 'false' }}
+      METRICS_BACKFILL_SINCE: ${{ github.event.inputs.backfill_since || '' }}
       MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }}
       BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
       GH_TOKEN: ${{ secrets.BOT_TOKEN }}
@@ -65,6 +79,36 @@ jobs:
       - name: Rebuild metrics database from durable dump
         run: python ci/k8s-ci.py metrics rebuild
 
+      - name: Ingest triggering workflow run
+        if: github.event_name == 'workflow_run'
+        env:
+          TRIGGERING_RUN_ID: ${{ github.event.workflow_run.id }}
+        run: python ci/k8s-ci.py metrics ingest --run-id "${TRIGGERING_RUN_ID}"
+
+      - name: Ingest recent runs (scheduled reconciliation)
+        # Covers both the hourly self-heal and the daily-digest cron: both need
+        # a fresh backfill before classify/report/digest run below.
+        if: github.event_name == 'schedule'
+        run: |
+          set -euo pipefail
+          for workflow in nightly weekly; do
+            python ci/k8s-ci.py metrics ingest --workflow "${workflow}" --since 2d
+          done
+
+      - name: Backfill historical runs (manual dispatch)
+        if: github.event_name == 'workflow_dispatch' && env.METRICS_BACKFILL_SINCE != ''
+        run: |
+          set -euo pipefail
+          for workflow in nightly weekly pr; do
+            python ci/k8s-ci.py metrics ingest --workflow "${workflow}" --since "${METRICS_BACKFILL_SINCE}"
+          done
+
+      - name: Classify stored failures
+        run: python ci/k8s-ci.py metrics classify --json
+
+      - name: Derive rollups and write reports
+        run: python ci/k8s-ci.py metrics report
+
       - name: Audit stored issue evidence for secrets
         run: python ci/k8s-ci.py metrics audit-secrets
 
@@ -87,20 +131,34 @@ jobs:
             --post \
             --json
 
+      - name: Post digest to Mattermost
+        if: github.event_name == 'schedule' && github.event.schedule == '45 6 * * *'
+        run: |
+          set -euo pipefail
+          if [ -z "${MATTERMOST_WEBHOOK_URL}" ]; then
+            echo "MATTERMOST_WEBHOOK_URL is not set; skipping digest" >&2
+            exit 0
+          fi
+          python ci/k8s-ci.py metrics digest \
+            | python ci/k8s-ci.py mattermost post --file - --webhook "${MATTERMOST_WEBHOOK_URL}"
+
       - name: Compare-and-swap push metrics state
-        if: env.METRICS_POST_ISSUES == 'true'
         env:
           PUSH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           git config user.name "k8s CI metrics bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # reports/ and signatures/ are gitignored on main (so local `tox -e
+          # metrics` runs don't dirty a main checkout); they are generated
+          # exports this branch is meant to carry, so force-add them here.
           git add ci/metrics-data/metrics.sql
+          git add -f ci/metrics-data/reports ci/metrics-data/signatures
           if git diff --cached --quiet; then
             echo "No metrics state changes to push"
             exit 0
           fi
-          git commit -s -m "ci: update metrics issue bridge state"
+          git commit -s -m "ci: update metrics store state"
           # Credentials are configured here, just before the one step that needs
           # to authenticate, rather than persisted for the whole job by
           # actions/checkout (see persist-credentials: false above).

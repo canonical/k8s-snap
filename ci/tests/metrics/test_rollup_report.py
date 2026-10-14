@@ -10,7 +10,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from metrics.report import render_latest_markdown  # noqa: E402
+from metrics.report import render_digest_markdown, render_latest_markdown  # noqa: E402
 from metrics.rollup import derive_rollup, derive_rollups  # noqa: E402
 from metrics.store import initialise_database  # noqa: E402
 
@@ -201,6 +201,28 @@ class RollupReportTest(unittest.TestCase):
             forward.index("`1111111111111111`"),
             forward.index("`2222222222222222`"),
         )
+
+    def test_digest_renders_attribution_and_delta_before_report_link(self) -> None:
+        conn = _db()
+        _insert_run(conn, 100, jobs_total=10, jobs_success=9, jobs_failure=1)
+
+        digest = render_digest_markdown(
+            derive_rollups(conn), report_url="https://example.invalid/report"
+        )
+
+        self.assertIn("CI failure digest", digest)
+        self.assertIn("Attribution and delta", digest)
+        self.assertIn("[Full report and signature catalogue]", digest)
+        self.assertLess(
+            digest.index("Attribution and delta"),
+            digest.index("Full report and signature catalogue"),
+        )
+
+    def test_digest_handles_no_data_and_no_report_url(self) -> None:
+        digest = render_digest_markdown([])
+
+        self.assertIn("No CI metrics have been ingested yet.", digest)
+        self.assertNotIn("Full report", digest)
 
 
 if __name__ == "__main__":
