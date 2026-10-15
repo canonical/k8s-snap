@@ -176,7 +176,7 @@ jobs:
           # Credentials are configured here, just before the one step that needs
           # to authenticate, rather than persisted for the whole job by
           # actions/checkout (see persist-credentials: false above).
-          credential_header="AUTHORIZATION: basic $(printf 'x-access-token:%s' "${PUSH_TOKEN}" | base64)"
+          credential_header="AUTHORIZATION: basic $(printf 'x-access-token:%s' "${PUSH_TOKEN}" | base64 -w0)"
           git config --local "http.https://github.com/.extraheader" "${credential_header}"
           for attempt in 1 2 3; do
             if git push origin HEAD:ci-metrics; then
