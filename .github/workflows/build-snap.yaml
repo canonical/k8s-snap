@@ -34,7 +34,7 @@ jobs:
       snap-artifact: ${{ steps.build.outputs.snap-artifact }}
     steps:
       - name: Checking out repo
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Apply flavor-specific patches
         if: inputs.flavor != ''
         env:
@@ -52,8 +52,12 @@ jobs:
       - name: Setup LXD
         uses: canonical/setup-lxd@a3c85fc6fb7fff43fcfeae87659e41a8f635b7dd # v0.1.3
       - name: Install snapcraft
-        run: |
-          sudo snap install snapcraft --classic
+        uses: ./.github/actions/retry-command
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          retry_wait_seconds: 5
+          command: sudo snap install snapcraft --classic
       - name: Build k8s snap
         id: build
         env:

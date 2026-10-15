@@ -7,7 +7,9 @@ import sys
 from cmds.charm import add_charm_cmds
 from cmds.deps import add_deps_cmds
 from cmds.docs import add_docs_cmds
+from cmds.e2e import add_e2e_cmds
 from cmds.mattermost import add_mattermost_cmds
+from cmds.metrics import add_metrics_cmds
 
 
 def main(argv: list[str]) -> int:
@@ -18,7 +20,9 @@ def main(argv: list[str]) -> int:
     add_charm_cmds(subparsers)
     add_deps_cmds(subparsers)
     add_docs_cmds(subparsers)
+    add_e2e_cmds(subparsers)
     add_mattermost_cmds(subparsers)
+    add_metrics_cmds(subparsers)
 
     args = parser.parse_args(argv)
 

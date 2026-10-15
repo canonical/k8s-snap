@@ -2,6 +2,7 @@
 myst:
   html_meta:
     description: "How to set up observability on a Canonical Kubernetes cluster by installing Prometheus for metrics collection and alerting."
+relatedlinks: "[Prometheus&#32;documentation](https://prometheus.io/docs/)"
 ---
 
 # How to use Prometheus with {{product}}

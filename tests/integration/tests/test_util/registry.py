@@ -55,10 +55,11 @@ class Registry:
         self.instance: Instance = self.harness.new_instance(name_suffix="-registry")
 
         arch = self.instance.arch
-        self.instance.exec(
+        util.stubbornly(retries=5, delay_s=10).on(self.instance).exec(
             [
                 "curl",
                 "-L",
+                "--fail",
                 f"{self.registry_url}/{self.registry_version}/registry_{self.registry_version[1:]}_linux_{arch}.tar.gz",
                 "-o",
                 f"/tmp/registry_{self.registry_version}_linux_{arch}.tar.gz",

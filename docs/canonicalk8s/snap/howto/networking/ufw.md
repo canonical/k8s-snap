@@ -2,6 +2,7 @@
 myst:
   html_meta:
     description: "How to configure UFW (Uncomplicated Firewall) rules for Canonical Kubernetes."
+relatedlinks: "[Ubuntu&#32;UFW&#32;documentation](https://ubuntu.com/server/docs/security-firewall)"
 ---
 
 # How to configure Uncomplicated Firewall (UFW)

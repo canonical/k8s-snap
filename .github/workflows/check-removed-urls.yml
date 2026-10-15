@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout PR branch
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           # This implicitly gets the PR branch. Making it explicit causes problems
           # with private forks, but it is equivalent to the following:
@@ -24,7 +24,7 @@ jobs:
           fetch-depth: 0
           path: compare
       - name: Checkout base branch
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.pull_request.base.ref }}
           repository: ${{ github.event.pull_request.base.repo.full_name }}

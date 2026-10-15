@@ -2,6 +2,7 @@
 myst:
   html_meta:
     description: "How to install Canonical Kubernetes in LXD virtual machines using Juju."
+relatedlinks: "[LXD&#32;documentation](https://canonical.com/lxd/docs/default/)"
 ---
 
 # How to install {{product}} using localhost/LXD

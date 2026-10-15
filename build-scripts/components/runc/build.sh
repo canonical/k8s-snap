@@ -17,6 +17,11 @@ mkdir -p "${INSTALL}"
 # Ensure `runc --version` prints the right commit hash from upstream
 export COMMIT="$(git describe --long --always "${VERSION}")"
 
+# runc is statically linked, and the Go 1.25+ OpenSSL backend dlopens libcrypto, which a static binary cannot do
+export GOTOOLCHAIN=local
+export GOEXPERIMENT=nosystemcrypto  # Go <= 1.26 only; delete at Go 1.27, where an unknown GOEXPERIMENT is a hard error
+export MS_GO_NOSYSTEMCRYPTO=1       # Go >= 1.26; unknown env var, so harmless on older toolchains
+
 make BUILDTAGS="seccomp apparmor" EXTRA_LDFLAGS="-s -w" static
 cp runc "${INSTALL}/runc"
 

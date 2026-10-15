@@ -2,6 +2,7 @@
 myst:
   html_meta:
     description: "How to install Canonical Kubernetes from the k8s snap."
+relatedlinks: "[Snapcraft&#32;documentation](https://snapcraft.io/docs/)"
 ---
 
 # How to install {{product}} from a snap

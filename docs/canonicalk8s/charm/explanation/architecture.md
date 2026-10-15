@@ -7,7 +7,7 @@ myst:
 # Architecture
 
 ```{include} /snap/explanation/architecture.md
-:start-after: '## Canonical K8s charms'
+:start-after: '## Canonical Kubernetes charms'
 ```
 
 ## Further reading

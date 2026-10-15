@@ -2,6 +2,7 @@
 myst:
   html_meta:
     description: "How to assess CIS compliance for Canonical Kubernetes using kube-bench."
+relatedlinks: "[kube-bench](https://github.com/aquasecurity/kube-bench), [CIS&#32;Kubernetes&#32;Benchmark](https://www.cisecurity.org/benchmark/kubernetes)"
 ---
 
 # How to assess CIS compliance

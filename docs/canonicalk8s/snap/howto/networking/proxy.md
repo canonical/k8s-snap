@@ -18,7 +18,7 @@ trap 'sudo rm -rf /etc/systemd/system/snap.k8s.containerd.service.d; sudo system
 to fetch resources they expect to find on the internet. In a restricted
 network environment, such access is usually controlled through proxies.
 
-## Adding proxy configuration for the k8s snap
+## Adding proxy configuration for the `k8s` snap
 
 If necessary, create the `snap.k8s.containerd.service.d` directory:
 
@@ -73,7 +73,7 @@ Kubernetes service and pod CIDRs, respectively. If you are using different
 service or pod CIDRs, update this setting accordingly.
 ```
 
-## Adding proxy configuration for the k8s charms
+## Adding proxy configuration for the `k8s` charms
 
 Proxy configuration is handled by Juju when deploying the `k8s` charms. Please
 see the [documentation for adding proxy configuration via Juju][juju-proxy].

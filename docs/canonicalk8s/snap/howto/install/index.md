@@ -13,14 +13,14 @@ the current How-to guides below.
 :glob:
 :titlesonly:
 
-... from a snap <snap.md>
-... with a custom bootstrap configuration <custom-bootstrap-config>
-... with Multipass <multipass>
-... in LXD <lxd.md>
-... in air-gapped environments <offline.md>
-... in development environments <dev-env.md>
-... with custom worker configuration <custom-worker.md>
-... in FIPS mode <fips.md>
-... a DISA STIG hardened cluster <disa-stig.md>
+k8s snap <snap.md>
+Customize bootstrap configuration <custom-bootstrap-config>
+Add a worker <custom-worker.md>
+In development environments <dev-env.md>
+With Multipass <multipass>
+With LXD <lxd.md>
+In air-gapped environments <offline.md>
+In FIPS mode <fips.md>
+DISA STIG hardened cluster <disa-stig.md>
 Uninstall the snap <uninstall.md>
 ```
