@@ -613,7 +613,9 @@ def cmd_open_issues(args: argparse.Namespace) -> int:
             def current_user(self) -> str:
                 return ""
 
-            def list_issues(self, labels: list[str], state: str = "open") -> list[dict]:
+            def list_issues(
+                self, labels: list[str], state: str = "open", creator: str = ""
+            ) -> list[dict]:
                 return []
 
             def create_issue(self, title: str, body: str, labels: list[str]) -> dict:

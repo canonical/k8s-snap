@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import dataclasses
+import json
 import os
 import re
 import sqlite3
@@ -19,12 +20,15 @@ import requests
 from .gh import DEFAULT_API_ROOT, DEFAULT_REPO
 from .scrub import find_secrets, scrub
 
+MARKER_SUBSTRATE_RE = re.compile(r"[A-Za-z0-9_.-]+|\*")
 ISSUE_MARKER_RE = re.compile(
     r"<!-- ci-signature: (?P<signature>[0-9a-f]{16}) "
-    r"ctx=(?P<substrate>[A-Za-z0-9_.-]+|\*) "
+    rf"ctx=(?P<substrate>{MARKER_SUBSTRATE_RE.pattern}) "
     r"key=(?P<key>[^ ]+) -->"
 )
 SHA_RE = re.compile(r"^[0-9a-f]{7,40}$", re.IGNORECASE)
+
+ISSUES_PER_PAGE = 100
 
 ELIGIBLE_CLASSES = ("product.bug", "test.bug")
 DEFAULT_MIN_OCCURRENCES = 3
@@ -99,7 +103,10 @@ class IssueClient(Protocol):
         raise NotImplementedError
 
     def list_issues(
-        self, labels: Sequence[str], state: str = "open"
+        self,
+        labels: Sequence[str],
+        state: str = "open",
+        creator: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         raise NotImplementedError
 
@@ -179,14 +186,31 @@ class GitHubIssueClient:
         return str(payload["login"])
 
     def list_issues(
-        self, labels: Sequence[str], state: str = "open"
+        self,
+        labels: Sequence[str],
+        state: str = "open",
+        creator: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
-        payload = self._request(
-            "GET",
-            f"repos/{self.repo}/issues",
-            params={"state": state, "labels": ",".join(labels), "per_page": 100},
-        )
-        return list(payload or [])
+        """Return every matching issue (pull requests excluded), across all pages."""
+
+        params: Dict[str, Any] = {"state": state, "per_page": ISSUES_PER_PAGE}
+        if labels:
+            params["labels"] = ",".join(labels)
+        if creator:
+            params["creator"] = creator
+        issues: List[Dict[str, Any]] = []
+        page = 1
+        while True:
+            payload = list(
+                self._request(
+                    "GET", f"repos/{self.repo}/issues", params={**params, "page": page}
+                )
+                or []
+            )
+            issues.extend(item for item in payload if "pull_request" not in item)
+            if len(payload) < ISSUES_PER_PAGE:
+                return issues
+            page += 1
 
     def create_issue(
         self, title: str, body: str, labels: Sequence[str]
@@ -222,6 +246,8 @@ def idempotency_key(signature_id: str, substrate: str) -> str:
 
 
 def issue_marker(signature_id: str, substrate: str) -> str:
+    if not MARKER_SUBSTRATE_RE.fullmatch(substrate):
+        raise IssueBridgeError(f"substrate {substrate!r} cannot be carried in a marker")
     key = idempotency_key(signature_id, substrate)
     return f"<!-- ci-signature: {signature_id} ctx={substrate} key={key} -->"
 
@@ -500,21 +526,57 @@ def _verify_adoptable(
     return marker
 
 
+def _dedupe_issues(*batches: Iterable[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    seen = set()
+    out = []
+    for batch in batches:
+        for issue in batch:
+            number = int(issue["number"])
+            if number not in seen:
+                seen.add(number)
+                out.append(issue)
+    return out
+
+
 def reconcile_live_issues(
     conn: sqlite3.Connection,
     client: IssueClient,
     issue_author: str,
 ) -> Tuple[int, ...]:
-    """Adopt live CI issues with markers that are missing from local storage."""
+    """Adopt live CI issues with markers that are missing from local storage.
 
+    Issues are found by label and, when the bot author is known, by author too:
+    a ``201`` does not prove labels attached, and an unlabelled bot issue must
+    still be adopted rather than duplicated. The marker is what proves identity.
+    """
+
+    batches = [client.list_issues(["ci-failure"], state="open")]
+    if issue_author:
+        batches.append(client.list_issues([], state="open", creator=issue_author))
     adopted = []
-    for issue in client.list_issues(["ci-failure"], state="open"):
+    for issue in _dedupe_issues(*batches):
         marker = _verify_adoptable(issue, issue_author)
         if marker is None or _row_exists(conn, int(issue["number"])):
             continue
         _adopt_issue(conn, issue, marker)
         adopted.append(int(issue["number"]))
     return tuple(adopted)
+
+
+def _match_issue(
+    conn: sqlite3.Connection,
+    issues: Iterable[Dict[str, Any]],
+    candidate: Candidate,
+    issue_author: str,
+) -> Optional[Dict[str, Any]]:
+    for issue in issues:
+        marker = _verify_adoptable(issue, issue_author, candidate.substrate)
+        if marker is None or marker.signature_id != candidate.signature_id:
+            continue
+        if not _row_exists(conn, int(issue["number"])):
+            _adopt_issue(conn, issue, marker)
+        return issue
+    return None
 
 
 def _lookup_issue(
@@ -524,14 +586,18 @@ def _lookup_issue(
     issue_author: str,
 ) -> Optional[Dict[str, Any]]:
     labels = [candidate.signature_label, candidate.substrate_label]
-    for issue in client.list_issues(labels, state="all"):
-        marker = _verify_adoptable(issue, issue_author, candidate.substrate)
-        if marker is None or marker.signature_id != candidate.signature_id:
-            continue
-        if not _row_exists(conn, int(issue["number"])):
-            _adopt_issue(conn, issue, marker)
-        return issue
-    return None
+    issue = _match_issue(
+        conn, client.list_issues(labels, state="all"), candidate, issue_author
+    )
+    if issue is None and issue_author:
+        # Label-independent fallback: scan the bot's own issues by marker.
+        issue = _match_issue(
+            conn,
+            client.list_issues([], state="all", creator=issue_author),
+            candidate,
+            issue_author,
+        )
+    return issue
 
 
 def _ensure_labels(
@@ -564,6 +630,12 @@ def _resolved_in_cooldown(row: sqlite3.Row, now: datetime, cooldown_days: int) -
     return closed_at >= now - timedelta(days=cooldown_days)
 
 
+def _json_list(value: Optional[str]) -> Tuple[str, ...]:
+    """Decode a ``json_group_array`` column; values may themselves hold commas."""
+
+    return tuple(str(item) for item in json.loads(value or "[]") if item)
+
+
 def _candidate_rows(
     conn: sqlite3.Connection,
     *,
@@ -592,10 +664,10 @@ def _candidate_rows(
                COUNT(DISTINCT test_id) AS tests_affected,
                COUNT(DISTINCT config_id) AS configs_affected,
                MIN(started_at) AS first_seen, MAX(started_at) AS last_seen,
-               GROUP_CONCAT(DISTINCT html_url) AS run_urls,
-               GROUP_CONCAT(DISTINCT job_name) AS matrix_cells,
-               GROUP_CONCAT(DISTINCT nodeid) AS test_selectors,
-               GROUP_CONCAT(DISTINCT source_path) AS source_paths,
+               json_group_array(DISTINCT html_url) AS run_urls,
+               json_group_array(DISTINCT job_name) AS matrix_cells,
+               json_group_array(DISTINCT nodeid) AS test_selectors,
+               json_group_array(DISTINCT source_path) AS source_paths,
                EXISTS (
                    SELECT 1 FROM v_flakes vf
                    WHERE vf.signature_id = job_ctx.signature_id
@@ -632,10 +704,10 @@ def _candidate_rows(
             configs_affected=int(row[7]),
             first_seen=str(row[8]),
             last_seen=str(row[9]),
-            run_urls=tuple(filter(None, str(row[10] or "").split(","))),
-            matrix_cells=tuple(filter(None, str(row[11] or "").split(","))),
-            test_selectors=tuple(filter(None, str(row[12] or "").split(","))),
-            source_paths=tuple(filter(None, str(row[13] or "").split(","))),
+            run_urls=_json_list(row[10]),
+            matrix_cells=_json_list(row[11]),
+            test_selectors=_json_list(row[12]),
+            source_paths=_json_list(row[13]),
             flaky=bool(row[14]),
             rule_id=rule_id,
             confidence=float(class_row[1] if class_row[1] is not None else 0.0),
@@ -754,6 +826,11 @@ def open_issues(
         min_runs=min_runs,
         rule_notes=rule_notes,
     ):
+        if not MARKER_SUBSTRATE_RE.fullmatch(candidate.substrate):
+            # An unparsed substrate cannot carry a verifiable marker; filing it
+            # would orphan the issue and duplicate it next run. Leave it to M9.
+            skipped.append(f"{candidate.idempotency_key}: substrate not markable")
+            continue
         row = _recorded_issue(conn, candidate.signature_id, candidate.substrate)
         if row is not None and row["issue_state"] in ("open", "claiming"):
             skipped.append(f"{candidate.idempotency_key}: already tracked")

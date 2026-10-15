@@ -11,12 +11,17 @@ import tempfile
 import unittest
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Sequence
+from typing import Any, Dict, List, Optional, Sequence
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from metrics.issues import IssueBridgeError, open_issues  # noqa: E402
+from metrics.issues import (  # noqa: E402
+    GitHubIssueClient,
+    IssueBridgeError,
+    issue_marker,
+    open_issues,
+)
 from metrics.models import SCHEMA_SQL  # noqa: E402
 from metrics.scrub import SecretFinding  # noqa: E402
 
@@ -173,8 +178,23 @@ class FakeIssueClient:
         return "ci-bot"
 
     def list_issues(
-        self, labels: Sequence[str], state: str = "open"
+        self,
+        labels: Sequence[str],
+        state: str = "open",
+        creator: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
+        if creator:
+            pool = {
+                issue["number"]: issue
+                for issue in self.sweep_issues + self.lookup_issues + self.created
+            }
+            return [
+                dict(issue)
+                for issue in pool.values()
+                if issue["user"]["login"] == creator
+                and state in ("all", issue["state"])
+                and set(labels).issubset({label["name"] for label in issue["labels"]})
+            ]
         if list(labels) == ["ci-failure"]:
             return list(self.sweep_issues)
         required = set(labels)
@@ -485,6 +505,115 @@ class IssueBridgeTest(unittest.TestCase):
         self.assertNotIn("substrate/multipass", client.created[0]["requested_labels"])
         self.assertIn("- Occurrences: 3", client.created[0]["body"])
         self.assertNotIn("multipass job", client.created[0]["body"])
+
+
+class _PagedResponse:
+    def __init__(self, payload: List[Dict[str, Any]]) -> None:
+        self.status_code = 200
+        self.content = b"x"
+        self.text = ""
+        self._payload = payload
+
+    def json(self) -> List[Dict[str, Any]]:
+        return self._payload
+
+
+class _PagedSession:
+    def __init__(self, pages: List[List[Dict[str, Any]]]) -> None:
+        self.pages = pages
+        self.params: List[Dict[str, Any]] = []
+
+    def request(self, method: str, url: str, **kwargs: Any) -> _PagedResponse:
+        params = dict(kwargs["params"])
+        self.params.append(params)
+        return _PagedResponse(self.pages[params["page"] - 1])
+
+
+class IssueBridgeIdentityTest(unittest.TestCase):
+    def test_list_issues_reads_every_page_and_drops_pull_requests(self) -> None:
+        full_page = [{"number": n} for n in range(100)]
+        last_page = [{"number": 100}, {"number": 101, "pull_request": {}}]
+        session = _PagedSession([full_page, last_page])
+        client = GitHubIssueClient(repo="o/r", token="t", session=session)
+
+        issues = client.list_issues([], state="all", creator="ci-bot")
+
+        self.assertEqual([i["number"] for i in issues], list(range(101)))
+        self.assertEqual([p["page"] for p in session.params], [1, 2])
+        self.assertEqual(session.params[0]["creator"], "ci-bot")
+        self.assertNotIn("labels", session.params[0])
+
+    def test_unlabelled_bot_issue_is_found_by_marker_not_duplicated(self) -> None:
+        conn = _db()
+        _insert_candidate(conn, "dddddddddddddddd", "lxd")
+        client = FakeIssueClient()
+        unlabelled = _issue(77, "dddddddddddddddd", "lxd")
+        unlabelled["labels"] = []
+        unlabelled["state"] = "closed"
+        client.lookup_issues.append(unlabelled)
+
+        with conn:
+            result = open_issues(conn, client, dry_run=False, issue_author="ci-bot")
+
+        self.assertEqual(client.created, [])
+        self.assertEqual(
+            tuple(
+                conn.execute("SELECT issue_number, issue_state FROM issues").fetchone()
+            ),
+            (77, "closed"),
+        )
+        self.assertIn("dddddddddddddddd:lxd: already live", result.skipped)
+
+    def test_sweep_adopts_open_bot_issue_whose_labels_were_dropped(self) -> None:
+        conn = _db()
+        client = FakeIssueClient()
+        unlabelled = _issue(78, "eeeeeeeeeeeeeeee", "lxd")
+        unlabelled["labels"] = []
+        client.lookup_issues.append(unlabelled)
+        conn.execute(
+            """
+            INSERT INTO signatures (
+                signature_id, normalised_pattern, exemplar_excerpt,
+                normaliser_version, extractor_version
+            ) VALUES ('eeeeeeeeeeeeeeee', 'p', 'e', 1, 1)
+            """
+        )
+
+        with conn:
+            result = open_issues(conn, client, dry_run=False, issue_author="ci-bot")
+
+        self.assertEqual(result.adopted, (78,))
+
+    def test_empty_substrate_candidate_is_skipped_before_claim(self) -> None:
+        conn = _db()
+        _insert_candidate(conn, "ffffffffffffffff", "")
+        client = FakeIssueClient()
+
+        with conn:
+            result = open_issues(conn, client, dry_run=False, issue_author="ci-bot")
+
+        self.assertEqual(client.created, [])
+        self.assertIn("ffffffffffffffff:: substrate not markable", result.skipped)
+        self.assertEqual(conn.execute("SELECT COUNT(*) FROM issues").fetchone()[0], 0)
+        with self.assertRaises(IssueBridgeError):
+            issue_marker("ffffffffffffffff", "")
+
+    def test_matrix_cells_and_selectors_with_commas_render_intact(self) -> None:
+        conn = _db()
+        _insert_candidate(conn, "1111111111111111", "lxd")
+        conn.execute(
+            "UPDATE jobs SET job_name = 'Integration (noble, amd64) / ' || job_id"
+        )
+        conn.execute("UPDATE tests SET nodeid = nodeid || '[a,b]'")
+        client = FakeIssueClient()
+
+        with conn:
+            open_issues(conn, client, dry_run=False, issue_author="ci-bot")
+
+        body = client.created[0]["body"]
+        self.assertIn("- Integration (noble, amd64) / 1\n", body)
+        self.assertIn("- tests/test_lxd.py::test_1[a,b]\n", body)
+        self.assertNotIn("\n- amd64)", body)
 
 
 if __name__ == "__main__":
