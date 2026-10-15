@@ -7,6 +7,7 @@ import argparse
 import io
 import json
 import sqlite3
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -20,6 +21,25 @@ from metrics.store import initialise_database  # noqa: E402
 
 
 class MetricsCommandTest(unittest.TestCase):
+    def test_cli_loads_without_requests_installed(self) -> None:
+        # The e2e workflow runs `k8s-ci.py e2e ...` with a bare python3; loading
+        # the metrics commands must not require third-party packages.
+        script = Path(__file__).resolve().parents[2] / "k8s-ci.py"
+        code = "\n".join(
+            [
+                "import runpy, sys",
+                "sys.modules['requests'] = None",
+                "sys.argv = ['k8s-ci.py', 'e2e', '--help']",
+                f"runpy.run_path({str(script)!r}, run_name='__main__')",
+            ]
+        )
+
+        result = subprocess.run(  # noqa: S603
+            [sys.executable, "-c", code], capture_output=True, text=True, check=False
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_audit_secrets_exits_nonzero_on_file_finding(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "excerpt.txt"

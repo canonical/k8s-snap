@@ -12,9 +12,10 @@ import shutil
 import subprocess
 import time
 from concurrent import futures
-from typing import Any, Dict, Iterator, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, Iterator, List, Optional, Tuple
 
-import requests
+if TYPE_CHECKING:
+    import requests
 
 LOG = logging.getLogger(__name__)
 
@@ -69,6 +70,10 @@ class GitHubClient:
             LOG.warning(
                 "No GitHub token found; using unauthenticated read-only API access."
             )
+        # Imported lazily: k8s-ci.py loads every command module at startup, and
+        # the e2e workflow runs its commands with a bare python3 without requests.
+        import requests
+
         self.session = session or requests.Session()
         self.session.mount(
             "https://",
@@ -110,6 +115,8 @@ class GitHubClient:
         self, path: str, params: Optional[Dict[str, Any]] = None, raw: bool = False
     ) -> Tuple[int, Any]:
         """Perform a read-only GET request, retrying transient failures."""
+
+        import requests
 
         url = path if path.startswith("http") else f"{self.api_root}/{path.lstrip('/')}"
         last_exc: Optional[Exception] = None

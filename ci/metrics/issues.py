@@ -13,12 +13,23 @@ import sqlite3
 import subprocess
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Protocol, Sequence, Tuple
-
-import requests
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Protocol,
+    Sequence,
+    Tuple,
+)
 
 from .gh import DEFAULT_API_ROOT, DEFAULT_REPO
 from .scrub import find_secrets, scrub
+
+if TYPE_CHECKING:
+    import requests
 
 MARKER_SUBSTRATE_RE = re.compile(r"[A-Za-z0-9_.-]+|\*")
 ISSUE_MARKER_RE = re.compile(
@@ -179,6 +190,8 @@ class GitHubIssueClient:
             raise IssueBridgeError(
                 "metrics open-issues requires GH_TOKEN, BOT_TOKEN, or --token"
             )
+        import requests  # lazy, see GitHubClient.__init__
+
         self.session = session or requests.Session()
 
     def _headers(self) -> Dict[str, str]:
