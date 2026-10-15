@@ -134,6 +134,12 @@ def add_metrics_cmds(parser: argparse.ArgumentParser) -> None:
         type=Path,
         help=f"SQL dump path (default: {DEFAULT_SQL})",
     )
+    rebuild.add_argument(
+        "--init-if-missing",
+        action="store_true",
+        help="Start an empty database instead of failing when no dump exists yet "
+        "(first run against a fresh ci-metrics branch).",
+    )
     rebuild.set_defaults(func=cmd_rebuild)
 
     classify = metrics_sub.add_parser(
@@ -444,6 +450,12 @@ def cmd_dump(args: argparse.Namespace) -> int:
 
 
 def cmd_rebuild(args: argparse.Namespace) -> int:
+    if not args.sql.exists() and args.init_if_missing:
+        if args.db.exists():
+            args.db.unlink()
+        open_database(args.db, dump_path=args.sql).close()
+        print(f"no dump at {args.sql}, initialised empty {args.db}")
+        return 0
     rebuild_database(args.db, args.sql).close()
     print(f"rebuilt {args.db} from {args.sql}")
     return 0

@@ -16,7 +16,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from cmds.metrics import cmd_audit_secrets, cmd_digest, cmd_report  # noqa: E402
+from cmds.metrics import cmd_report  # noqa: E402
+from cmds.metrics import cmd_audit_secrets, cmd_digest, cmd_rebuild  # noqa: E402
 from metrics.store import initialise_database  # noqa: E402
 
 
@@ -39,6 +40,23 @@ class MetricsCommandTest(unittest.TestCase):
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_rebuild_without_dump_fails_unless_init_if_missing(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            db, sql = Path(tmp) / "metrics.db", Path(tmp) / "metrics.sql"
+            args = argparse.Namespace(db=db, sql=sql, init_if_missing=False)
+            with self.assertRaises(FileNotFoundError):
+                cmd_rebuild(args)
+
+            args.init_if_missing = True
+            with redirect_stdout(io.StringIO()):
+                self.assertEqual(cmd_rebuild(args), 0)
+
+            conn = sqlite3.connect(db)
+            self.assertEqual(
+                conn.execute("SELECT value FROM schema_meta").fetchone(), ("1",)
+            )
+            self.assertEqual(conn.execute("SELECT COUNT(*) FROM runs").fetchone(), (0,))
 
     def test_audit_secrets_exits_nonzero_on_file_finding(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

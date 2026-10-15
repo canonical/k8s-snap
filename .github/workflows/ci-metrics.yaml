@@ -34,6 +34,10 @@ on:
         description: "Optional historical backfill window, e.g. 90d. Leave empty to skip."
         required: false
         default: ""
+      post_digest:
+        description: "Also post the Mattermost digest now (otherwise only the 06:45 UTC cron posts)"
+        required: false
+        default: "false"
 
 permissions: {}
 
@@ -76,7 +80,8 @@ jobs:
         run: python -m pip install --requirement requirements-ci.txt
 
       - name: Rebuild metrics database from durable dump
-        run: python ci/k8s-ci.py metrics rebuild
+        # --init-if-missing: the very first run finds no metrics.sql on ci-metrics.
+        run: python ci/k8s-ci.py metrics rebuild --init-if-missing
 
       - name: Ingest triggering workflow run
         if: github.event_name == 'workflow_run'
@@ -128,6 +133,7 @@ jobs:
         if: env.METRICS_POST_ISSUES != 'true'
         run: |
           python ci/k8s-ci.py metrics open-issues \
+            --repo "${GITHUB_REPOSITORY}" \
             --dry-run \
             --json
 
@@ -142,6 +148,7 @@ jobs:
             exit 1
           fi
           python ci/k8s-ci.py metrics open-issues \
+            --repo "${GITHUB_REPOSITORY}" \
             --post \
             --json
 
@@ -188,7 +195,10 @@ jobs:
     # writer was cancelled.
     name: Post daily CI metrics digest
     needs: open-issues
-    if: always() && github.event_name == 'schedule' && github.event.schedule == '45 6 * * *'
+    if: >-
+      always() &&
+      ((github.event_name == 'schedule' && github.event.schedule == '45 6 * * *') ||
+       (github.event_name == 'workflow_dispatch' && github.event.inputs.post_digest == 'true'))
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -224,5 +234,5 @@ jobs:
             echo "MATTERMOST_WEBHOOK_URL is not set; skipping digest" >&2
             exit 0
           fi
-          python ci/k8s-ci.py metrics digest \
+          python ci/k8s-ci.py metrics digest --repo "${GITHUB_REPOSITORY}" \
             | python ci/k8s-ci.py mattermost post --file - --webhook "${MATTERMOST_WEBHOOK_URL}"
