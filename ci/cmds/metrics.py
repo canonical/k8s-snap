@@ -18,6 +18,7 @@ from typing import Optional
 from metrics.gh import DEFAULT_REPO, GitHubClient
 from metrics.ingest import InFlightRunError, dump_records, ingest_run
 from metrics.issues import GitHubIssueClient, open_issues
+from metrics.logs import fetch_and_fingerprint, pending_jobs
 from metrics.report import build_catalogue, render_digest_markdown, write_reports
 from metrics.rollup import derive_rollup, derive_rollups, open_issue_backlog
 from metrics.router import apply_router
@@ -75,6 +76,11 @@ def add_metrics_cmds(parser: argparse.ArgumentParser) -> None:
         "--no-dump",
         action="store_true",
         help="Do not update the deterministic SQL dump after ingest.",
+    )
+    ingest.add_argument(
+        "--skip-logs",
+        action="store_true",
+        help="Store run/job metadata only; leave log fingerprinting to fetch-logs.",
     )
     ingest.set_defaults(func=cmd_ingest)
 
@@ -319,11 +325,35 @@ def add_metrics_cmds(parser: argparse.ArgumentParser) -> None:
     )
     open_issues_parser.set_defaults(func=cmd_open_issues)
 
-    for name in ("fetch-logs",):
-        stub = metrics_sub.add_parser(
-            name, help="Stub for a later CI failure classification PR."
-        )
-        stub.set_defaults(func=_cmd_stub)
+    fetch_logs = metrics_sub.add_parser(
+        "fetch-logs",
+        help="Fetch and fingerprint logs for stored failed jobs not yet fingerprinted.",
+    )
+    _add_common_args(fetch_logs)
+    fetch_logs.add_argument(
+        "--run-id",
+        type=int,
+        action="append",
+        help="Only consider jobs from this workflow run ID (repeatable).",
+    )
+    fetch_logs.add_argument(
+        "--limit", type=int, help="Maximum number of pending jobs to consider."
+    )
+    fetch_logs.add_argument(
+        "--json", action="store_true", help="Print the fetch summary as JSON."
+    )
+    fetch_logs.add_argument(
+        "--sql",
+        default=DEFAULT_SQL,
+        type=Path,
+        help=f"SQL dump path to update after fetching (default: {DEFAULT_SQL}).",
+    )
+    fetch_logs.add_argument(
+        "--no-dump",
+        action="store_true",
+        help="Do not update the deterministic SQL dump after fetching.",
+    )
+    fetch_logs.set_defaults(func=cmd_fetch_logs)
 
 
 def _add_common_args(parser: argparse.ArgumentParser) -> None:
@@ -381,7 +411,7 @@ def cmd_ingest(args: argparse.Namespace) -> int:
     summaries = []
     for run_id in run_ids:
         try:
-            records = ingest_run(client, conn, run_id)
+            records = ingest_run(client, conn, run_id, fetch_logs=not args.skip_logs)
         except InFlightRunError as exc:
             # Belt-and-suspenders: the workflow-window path above already
             # requests status=completed, but a run can still be in-flight
@@ -628,9 +658,22 @@ def cmd_open_issues(args: argparse.Namespace) -> int:
     return 0
 
 
-def _cmd_stub(args: argparse.Namespace) -> int:
-    print(
-        f"metrics {args.metrics_command} is intentionally left for a later PR.",
-        file=sys.stderr,
-    )
-    return 2
+def cmd_fetch_logs(args: argparse.Namespace) -> int:
+    """Fingerprint stored failed jobs whose logs have not been fetched yet."""
+
+    client = GitHubClient(repo=args.repo, token=args.token)
+    conn = open_database(args.db)
+    jobs = pending_jobs(conn, run_ids=args.run_id, limit=args.limit)
+    summary = {"pending": len(jobs), **fetch_and_fingerprint(client, conn, jobs)}
+    if args.json:
+        print(json.dumps(summary, indent=2, sort_keys=True))
+    else:
+        print(
+            "fetch-logs: {pending} pending, {fingerprinted} fingerprinted into "
+            "{signatures} signatures, {log_missing} without log (runner-lost "
+            "evidence), {log_gone} log gone, {routed} routed by metadata, "
+            "{errors} errors".format(**summary)
+        )
+    if not args.no_dump:
+        dump_database(conn, args.sql)
+    return 0

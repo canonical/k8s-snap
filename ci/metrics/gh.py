@@ -150,8 +150,8 @@ class GitHubClient:
                 time.sleep(sleep_for)
                 continue
 
-            if response.status_code == 404:
-                return 404, None
+            if response.status_code in (404, 410):
+                return response.status_code, None
 
             if response.status_code >= 400:
                 raise GitHubError(
@@ -268,3 +268,13 @@ class GitHubClient:
     def list_run_jobs(self, run_id: int, attempt: int) -> List[Dict[str, Any]]:
         path = f"repos/{self.repo}/actions/runs/{run_id}/attempts/{attempt}/jobs"
         return self.paginate_all(path, "jobs")
+
+    def download_job_log(self, job_id: int) -> Tuple[int, Optional[str]]:
+        """Return ``(status, log)``; ``log`` is ``None`` when GitHub has none (404/410)."""
+
+        status, payload = self.request(
+            f"repos/{self.repo}/actions/jobs/{job_id}/logs", raw=True
+        )
+        if payload is None:
+            return status, None
+        return status, payload.decode("utf-8", errors="replace")

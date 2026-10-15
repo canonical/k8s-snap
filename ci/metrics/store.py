@@ -531,7 +531,7 @@ def _upsert_job(
             duration_s = excluded.duration_s,
             failed_step_name = excluded.failed_step_name,
             failed_step_number = excluded.failed_step_number,
-            log_available = excluded.log_available,
+            log_available = COALESCE(excluded.log_available, jobs.log_available),
             tested_revision = excluded.tested_revision,
             tested_artifact = excluded.tested_artifact,
             collection_ref = excluded.collection_ref,

@@ -95,6 +95,28 @@ class GitHubClientTest(unittest.TestCase):
 
         self.assertNotIn("status", session.calls[0]["params"])
 
+    def test_download_job_log_decodes_log_body(self) -> None:
+        session = FakeSession()
+        response = FakeResponse({})
+        response.content = "AssertionError: boom \u2713\n".encode("utf-8")
+        session.get = lambda url, **_: (session.calls.append(url), response)[1]
+        client = GitHubClient(repo="o/r", session=session, token="token")
+
+        log = client.download_job_log(42)
+
+        self.assertEqual(log, (200, "AssertionError: boom \u2713\n"))
+        self.assertTrue(session.calls[0].endswith("repos/o/r/actions/jobs/42/logs"))
+
+    def test_download_job_log_returns_none_when_log_is_gone(self) -> None:
+        for status in (404, 410):
+            session = FakeSession()
+            response = FakeResponse({})
+            response.status_code = status
+            session.get = lambda url, **_: response
+            client = GitHubClient(repo="o/r", session=session, token="token")
+
+            self.assertEqual(client.download_job_log(42), (status, None))
+
 
 if __name__ == "__main__":
     unittest.main()

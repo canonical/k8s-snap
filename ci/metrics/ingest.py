@@ -17,6 +17,7 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 from . import INGEST_VERSION
 from . import store as metrics_store
 from .gh import GitHubClient
+from .logs import fetch_and_fingerprint, pending_jobs
 
 InFlightRunError = metrics_store.InFlightRunError
 
@@ -454,15 +455,24 @@ def store_run_record(conn: sqlite3.Connection, record: RunRecord) -> None:
 
 
 def ingest_run(
-    client: GitHubClient, conn: sqlite3.Connection, run_id: int
+    client: GitHubClient,
+    conn: sqlite3.Connection,
+    run_id: int,
+    fetch_logs: bool = True,
 ) -> List[RunRecord]:
-    """Fetch and store every attempt of one completed workflow run."""
+    """Fetch and store every attempt of one completed workflow run.
+
+    With ``fetch_logs`` (the default), every failed job Stage A defers is then
+    fingerprinted from its log so ``signatures``/``jobs.signature_id`` fill in.
+    """
 
     run = client.get_run(run_id)
     records = build_run_records(client, run)
     with conn:
         for record in records:
             store_run_record(conn, record)
+    if fetch_logs:
+        fetch_and_fingerprint(client, conn, pending_jobs(conn, run_ids=[run_id]))
     return records
 
 
