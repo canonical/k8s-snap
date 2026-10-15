@@ -630,6 +630,9 @@ def cmd_open_issues(args: argparse.Namespace) -> int:
             def add_comment(self, number: int, body: str) -> dict:
                 raise AssertionError("dry run must not comment")
 
+            def closing_commit(self, number: int) -> Optional[str]:
+                raise AssertionError("dry run must not sync issue state")
+
         client = DryRunClient()
 
     with conn:

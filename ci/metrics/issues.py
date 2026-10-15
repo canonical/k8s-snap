@@ -29,6 +29,26 @@ ISSUE_MARKER_RE = re.compile(
 SHA_RE = re.compile(r"^[0-9a-f]{7,40}$", re.IGNORECASE)
 
 ISSUES_PER_PAGE = 100
+CLOSER_QUERY = """
+query($owner: String!, $name: String!, $number: Int!) {
+  repository(owner: $owner, name: $name) {
+    issue(number: $number) {
+      timelineItems(itemTypes: [CLOSED_EVENT], last: 1) {
+        nodes {
+          ... on ClosedEvent {
+            closer {
+              ... on PullRequest {
+                merged mergeCommit { oid } repository { nameWithOwner }
+              }
+              ... on Commit { oid repository { nameWithOwner } }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+"""
 
 ELIGIBLE_CLASSES = ("product.bug", "test.bug")
 DEFAULT_MIN_OCCURRENCES = 3
@@ -89,11 +109,20 @@ class BridgeResult:
     adopted: Tuple[int, ...] = ()
     reopened: Tuple[int, ...] = ()
     commented: Tuple[int, ...] = ()
+    closed_upstream: Tuple[int, ...] = ()
+    reopened_upstream: Tuple[int, ...] = ()
     skipped: Tuple[str, ...] = ()
     dry_run: Tuple[str, ...] = ()
 
     def as_dict(self) -> Dict[str, Any]:
         return dataclasses.asdict(self)
+
+
+@dataclasses.dataclass(frozen=True)
+class SyncResult:
+    closed: Tuple[int, ...] = ()
+    reopened: Tuple[int, ...] = ()
+    skipped: Tuple[str, ...] = ()
 
 
 class IssueClient(Protocol):
@@ -122,6 +151,9 @@ class IssueClient(Protocol):
         raise NotImplementedError
 
     def add_comment(self, number: int, body: str) -> Dict[str, Any]:
+        raise NotImplementedError
+
+    def closing_commit(self, number: int) -> Optional[str]:
         raise NotImplementedError
 
 
@@ -239,6 +271,43 @@ class GitHubIssueClient:
                 json={"body": _safe_body(body)},
             )
         )
+
+    def closing_commit(self, number: int) -> Optional[str]:
+        """Return the commit (or merged PR's merge commit) that closed ``number``."""
+
+        owner, name = self.repo.split("/", 1)
+        payload = self._request(
+            "POST",
+            "graphql",
+            json={
+                "query": CLOSER_QUERY,
+                "variables": {"owner": owner, "name": name, "number": number},
+            },
+        )
+        return _closer_sha(payload, self.repo)
+
+
+def _closer_sha(payload: Any, repo: str) -> Optional[str]:
+    """Extract the closing commit, only if it lives in ``repo``.
+
+    A cross-repo closer's SHA is not in this checkout, so the freshness rail
+    could not test ancestry against it.
+    """
+
+    issue = ((payload or {}).get("data") or {}).get("repository") or {}
+    nodes = (((issue.get("issue") or {}).get("timelineItems")) or {}).get("nodes")
+    closer = ((nodes or [{}])[-1] or {}).get("closer") or {}
+    if (closer.get("repository") or {}).get("nameWithOwner", "").lower() != (
+        repo.lower()
+    ):
+        return None
+    if "merged" in closer:
+        if not closer.get("merged"):
+            return None
+        sha = (closer.get("mergeCommit") or {}).get("oid")
+    else:
+        sha = closer.get("oid")
+    return str(sha) if sha and SHA_RE.match(str(sha)) else None
 
 
 def idempotency_key(signature_id: str, substrate: str) -> str:
@@ -563,6 +632,92 @@ def reconcile_live_issues(
     return tuple(adopted)
 
 
+def sync_issue_states(
+    conn: sqlite3.Connection, client: IssueClient, issue_author: str
+) -> SyncResult:
+    """Read every tracked issue's state back from GitHub into ``issues``.
+
+    A remote close records ``closed_at``/``closed_reason`` and, for a
+    ``completed`` close, the commit that closed it as ``fixed_at_sha`` (what
+    the freshness rail tests ancestry against). A remote reopen makes the row
+    live again. Without this every filed issue stays ``open`` locally forever.
+    """
+
+    conn.row_factory = sqlite3.Row
+    rows = conn.execute(
+        """
+        SELECT claim_id, issue_number, issue_state, closed_at, closed_reason,
+               fixed_at_sha
+        FROM issues
+        WHERE issue_number IS NOT NULL AND issue_state IN ('open', 'closed')
+        ORDER BY issue_number
+        """
+    ).fetchall()
+    if not rows:
+        return SyncResult()
+
+    remote: Dict[int, Dict[str, Any]] = {}
+    if issue_author:
+        for issue in client.list_issues([], state="all", creator=issue_author):
+            remote[int(issue["number"])] = issue
+
+    closed: List[int] = []
+    reopened: List[int] = []
+    skipped: List[str] = []
+    for row in rows:
+        number = int(row["issue_number"])
+        try:
+            issue = remote.get(number) or client.get_issue(number)
+        except IssueBridgeError as exc:
+            skipped.append(f"issue {number}: state unavailable ({exc})")
+            continue
+        state = issue.get("state")
+        if state == "closed":
+            closed_at = issue.get("closed_at")
+            reason = _state_reason(issue)
+            # fixed_at_sha: NULL = closer not looked up yet (e.g. adopted closed,
+            # or the lookup failed), '' = looked up, no in-repo closer.
+            if (
+                row["issue_state"] == "closed"
+                and row["closed_at"] == closed_at
+                and row["closed_reason"] == reason
+                and (reason != "completed" or row["fixed_at_sha"] is not None)
+            ):
+                continue
+            fixed_at_sha = None
+            if reason == "completed":
+                try:
+                    fixed_at_sha = client.closing_commit(number) or ""
+                except IssueBridgeError as exc:
+                    skipped.append(f"issue {number}: closing commit unknown ({exc})")
+            conn.execute(
+                """
+                UPDATE issues
+                SET issue_state = 'closed', closed_at = ?, closed_reason = ?,
+                    fixed_at_sha = ?
+                WHERE claim_id = ?
+                """,
+                (closed_at, reason, fixed_at_sha, row["claim_id"]),
+            )
+            closed.append(number)
+        elif state == "open" and row["issue_state"] == "closed":
+            try:
+                conn.execute(
+                    """
+                    UPDATE issues
+                    SET issue_state = 'open', closed_at = NULL, closed_reason = NULL,
+                        fixed_at_sha = NULL, reopened_count = reopened_count + 1
+                    WHERE claim_id = ?
+                    """,
+                    (row["claim_id"],),
+                )
+            except sqlite3.IntegrityError:
+                skipped.append(f"issue {number}: reopened but another issue is live")
+                continue
+            reopened.append(number)
+    return SyncResult(tuple(closed), tuple(reopened), tuple(skipped))
+
+
 def _match_issue(
     conn: sqlite3.Connection,
     issues: Iterable[Dict[str, Any]],
@@ -814,8 +969,11 @@ def open_issues(
     commented: List[int] = []
     skipped: List[str] = []
     dry_run_actions: List[str] = []
+    synced = SyncResult()
 
     if not dry_run:
+        synced = sync_issue_states(conn, client, author)
+        skipped.extend(synced.skipped)
         adopted.extend(reconcile_live_issues(conn, client, author))
 
     budget_remaining = max(0, daily_budget - _today_opened_count(conn, now))
@@ -931,6 +1089,8 @@ def open_issues(
         adopted=tuple(dict.fromkeys(adopted)),
         reopened=tuple(reopened),
         commented=tuple(commented),
+        closed_upstream=synced.closed,
+        reopened_upstream=synced.reopened,
         skipped=tuple(skipped),
         dry_run=tuple(dry_run_actions),
     )

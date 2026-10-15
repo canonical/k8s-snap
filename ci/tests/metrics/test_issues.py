@@ -12,15 +12,17 @@ import unittest
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from metrics.issues import (  # noqa: E402
     GitHubIssueClient,
     IssueBridgeError,
+    _closer_sha,
     issue_marker,
     open_issues,
+    sync_issue_states,
 )
 from metrics.models import SCHEMA_SQL  # noqa: E402
 from metrics.scrub import SecretFinding  # noqa: E402
@@ -172,6 +174,8 @@ class FakeIssueClient:
         self.created: List[Dict[str, Any]] = []
         self.edits: List[tuple[int, Dict[str, Any]]] = []
         self.comments: List[tuple[int, str]] = []
+        self.closers: Dict[int, str] = {}
+        self.closer_calls: List[int] = []
         self._next = 1000
 
     def current_user(self) -> str:
@@ -224,10 +228,17 @@ class FakeIssueClient:
         return dict(issue)
 
     def get_issue(self, number: int) -> Dict[str, Any]:
-        for issue in self.created:
+        for issue in self.created + self.lookup_issues + self.sweep_issues:
             if issue["number"] == number:
                 return dict(issue)
-        raise AssertionError(f"unknown issue {number}")
+        raise IssueBridgeError(f"GitHub GET issues/{number} failed with HTTP 404")
+
+    def closing_commit(self, number: int) -> Optional[str]:
+        self.closer_calls.append(number)
+        closer = self.closers.get(number)
+        if isinstance(closer, Exception):
+            raise closer
+        return closer
 
     def edit_issue(self, number: int, **fields: Any) -> Dict[str, Any]:
         self.edits.append((number, fields))
@@ -614,6 +625,230 @@ class IssueBridgeIdentityTest(unittest.TestCase):
         self.assertIn("- Integration (noble, amd64) / 1\n", body)
         self.assertIn("- tests/test_lxd.py::test_1[a,b]\n", body)
         self.assertNotIn("\n- amd64)", body)
+
+
+FIX_SHA = "a" * 40
+BUILT_SHA = "b" * 40
+
+
+def _closed(issue: Dict[str, Any], reason: str, closed_at: str) -> Dict[str, Any]:
+    issue.update({"state": "closed", "state_reason": reason, "closed_at": closed_at})
+    return issue
+
+
+class IssueStateSyncTest(unittest.TestCase):
+    def _tracked(self, client: FakeIssueClient, number: int = 42) -> sqlite3.Connection:
+        conn = _db()
+        _insert_opened_issue(
+            conn,
+            signature_id="abababababababab",
+            issue_number=number,
+            opened_at="2026-01-01T00:00:00+00:00",
+        )
+        client.lookup_issues.append(_issue(number, "abababababababab", "lxd"))
+        return conn
+
+    def _row(self, conn: sqlite3.Connection, number: int = 42) -> tuple:
+        return tuple(
+            conn.execute(
+                """
+                SELECT issue_state, closed_at, closed_reason, fixed_at_sha,
+                       reopened_count
+                FROM issues WHERE issue_number = ?
+                """,
+                (number,),
+            ).fetchone()
+        )
+
+    def test_completed_close_records_reason_and_fixing_commit(self) -> None:
+        client = FakeIssueClient()
+        conn = self._tracked(client)
+        _closed(client.lookup_issues[0], "completed", "2026-02-01T00:00:00Z")
+        client.closers[42] = FIX_SHA
+
+        with conn:
+            result = sync_issue_states(conn, client, "ci-bot")
+
+        self.assertEqual(result.closed, (42,))
+        self.assertEqual(
+            self._row(conn), ("closed", "2026-02-01T00:00:00Z", "completed", FIX_SHA, 0)
+        )
+
+    def test_not_planned_close_has_no_fixing_commit(self) -> None:
+        client = FakeIssueClient()
+        conn = self._tracked(client)
+        _closed(client.lookup_issues[0], "not_planned", "2026-02-01T00:00:00Z")
+
+        with conn:
+            sync_issue_states(conn, client, "ci-bot")
+
+        self.assertEqual(client.closer_calls, [])
+        self.assertEqual(self._row(conn)[:4], ("closed", ANY, "not_planned", None))
+
+    def test_unchanged_closed_issue_is_not_resynced(self) -> None:
+        client = FakeIssueClient()
+        conn = self._tracked(client)
+        _closed(client.lookup_issues[0], "completed", "2026-02-01T00:00:00Z")
+        client.closers[42] = FIX_SHA
+
+        with conn:
+            sync_issue_states(conn, client, "ci-bot")
+            second = sync_issue_states(conn, client, "ci-bot")
+
+        self.assertEqual(second.closed, ())
+        self.assertEqual(client.closer_calls, [42])
+
+    def test_already_closed_row_without_closer_gets_it_backfilled(self) -> None:
+        client = FakeIssueClient()
+        conn = self._tracked(client)
+        _closed(client.lookup_issues[0], "completed", "2026-02-01T00:00:00Z")
+        conn.execute(
+            """
+            UPDATE issues SET issue_state = 'closed',
+                closed_at = '2026-02-01T00:00:00Z', closed_reason = 'completed'
+            """
+        )
+        client.closers[42] = FIX_SHA
+
+        with conn:
+            sync_issue_states(conn, client, "ci-bot")
+
+        self.assertEqual(self._row(conn)[3], FIX_SHA)
+
+    def test_closer_lookup_retries_on_error_but_not_after_a_clean_miss(self) -> None:
+        client = FakeIssueClient()
+        conn = self._tracked(client)
+        _closed(client.lookup_issues[0], "completed", "2026-02-01T00:00:00Z")
+        client.closers[42] = IssueBridgeError("HTTP 502")
+
+        with conn:
+            first = sync_issue_states(conn, client, "ci-bot")
+        self.assertIsNone(self._row(conn)[3])
+        self.assertIn("closing commit unknown", first.skipped[0])
+
+        del client.closers[42]
+        with conn:
+            sync_issue_states(conn, client, "ci-bot")
+            sync_issue_states(conn, client, "ci-bot")
+
+        self.assertEqual(self._row(conn)[3], "")
+        self.assertEqual(client.closer_calls, [42, 42])
+
+    def test_human_reopen_makes_row_live_again(self) -> None:
+        client = FakeIssueClient()
+        conn = self._tracked(client)
+        _closed(client.lookup_issues[0], "completed", "2026-02-01T00:00:00Z")
+        client.closers[42] = FIX_SHA
+        with conn:
+            sync_issue_states(conn, client, "ci-bot")
+        client.lookup_issues[0].update(
+            {"state": "open", "state_reason": "reopened", "closed_at": None}
+        )
+
+        with conn:
+            result = sync_issue_states(conn, client, "ci-bot")
+
+        self.assertEqual(result.reopened, (42,))
+        self.assertEqual(self._row(conn), ("open", None, None, None, 1))
+
+    def test_unavailable_issue_is_skipped_not_fatal(self) -> None:
+        client = FakeIssueClient()
+        conn = _db()
+        _insert_opened_issue(
+            conn,
+            signature_id="abababababababab",
+            issue_number=404,
+            opened_at="2026-01-01T00:00:00+00:00",
+        )
+
+        with conn:
+            result = sync_issue_states(conn, client, "ci-bot")
+
+        self.assertIn("issue 404: state unavailable", result.skipped[0])
+        self.assertEqual(self._row(conn, 404)[0], "open")
+
+    def test_closed_upstream_then_fresh_recurrence_reopens(self) -> None:
+        client = FakeIssueClient()
+        conn = _db()
+        _insert_candidate(conn, "abababababababab", "lxd")
+        conn.execute(
+            """
+            INSERT INTO snap_provenance (channel, arch, revision, built_sha, observed_at)
+            SELECT channel, arch, 42, ?, '2026-10-12T00:00:00Z' FROM configs
+            """,
+            (BUILT_SHA,),
+        )
+        _insert_opened_issue(
+            conn,
+            signature_id="abababababababab",
+            issue_number=42,
+            opened_at="2026-01-01T00:00:00+00:00",
+        )
+        client.lookup_issues.append(
+            _closed(
+                _issue(42, "abababababababab", "lxd"),
+                "completed",
+                "2026-02-01T00:00:00Z",
+            )
+        )
+        client.closers[42] = FIX_SHA
+
+        with patch("metrics.issues._is_ancestor", return_value=True) as ancestor:
+            with conn:
+                result = open_issues(conn, client, dry_run=False, issue_author="ci-bot")
+
+        self.assertEqual(result.closed_upstream, (42,))
+        self.assertEqual(result.reopened, (42,))
+        self.assertEqual(client.edits, [(42, {"state": "open"})])
+        ancestor.assert_called_with(ANY, FIX_SHA, BUILT_SHA)
+        self.assertEqual(self._row(conn)[0], "open")
+
+    def test_closed_upstream_suppresses_recurrence_during_cooldown(self) -> None:
+        client = FakeIssueClient()
+        conn = _db()
+        _insert_candidate(conn, "abababababababab", "lxd")
+        _insert_opened_issue(
+            conn,
+            signature_id="abababababababab",
+            issue_number=42,
+            opened_at="2026-01-01T00:00:00+00:00",
+        )
+        client.lookup_issues.append(
+            _closed(
+                _issue(42, "abababababababab", "lxd"),
+                "completed",
+                datetime.now(timezone.utc).isoformat(),
+            )
+        )
+
+        with conn:
+            result = open_issues(conn, client, dry_run=False, issue_author="ci-bot")
+
+        self.assertIn("abababababababab:lxd: closed in cooldown", result.skipped)
+        self.assertEqual(client.edits, [])
+
+    def test_closer_sha_prefers_merged_pull_request_commit(self) -> None:
+        def payload(closer: Dict[str, Any]) -> Dict[str, Any]:
+            return {
+                "data": {
+                    "repository": {
+                        "issue": {"timelineItems": {"nodes": [{"closer": closer}]}}
+                    }
+                }
+            }
+
+        repo = {"repository": {"nameWithOwner": "o/r"}}
+        merged = {"merged": True, "mergeCommit": {"oid": FIX_SHA}, **repo}
+        self.assertEqual(_closer_sha(payload(merged), "o/r"), FIX_SHA)
+        self.assertIsNone(_closer_sha(payload(merged), "o/other"))
+        self.assertIsNone(
+            _closer_sha(payload({"merged": False, "mergeCommit": None, **repo}), "o/r")
+        )
+        self.assertEqual(
+            _closer_sha(payload({"oid": BUILT_SHA, **repo}), "o/r"), BUILT_SHA
+        )
+        self.assertIsNone(_closer_sha(payload({}), "o/r"))
+        self.assertIsNone(_closer_sha({"errors": [{"message": "nope"}]}, "o/r"))
 
 
 if __name__ == "__main__":
