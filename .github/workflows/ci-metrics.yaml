@@ -48,13 +48,12 @@ jobs:
     concurrency:
       group: ci-metrics-store
       cancel-in-progress: false
+    # Secrets are scoped to the individual steps that need them, never the job:
+    # reads use the job's actions:read GITHUB_TOKEN; only issue posting sees BOT_TOKEN.
     env:
       DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
       METRICS_POST_ISSUES: ${{ github.event.inputs.post_issues || 'false' }}
       METRICS_BACKFILL_SINCE: ${{ github.event.inputs.backfill_since || '' }}
-      MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }}
-      BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-      GH_TOKEN: ${{ secrets.BOT_TOKEN }}
     steps:
       - name: Check out trusted default-branch code
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -82,6 +81,7 @@ jobs:
       - name: Ingest triggering workflow run
         if: github.event_name == 'workflow_run'
         env:
+          GH_TOKEN: ${{ github.token }}
           TRIGGERING_RUN_ID: ${{ github.event.workflow_run.id }}
         run: python ci/k8s-ci.py metrics ingest --run-id "${TRIGGERING_RUN_ID}"
 
@@ -89,6 +89,8 @@ jobs:
         # Covers both the hourly self-heal and the daily-digest cron: both need
         # a fresh backfill before classify/report/digest run below.
         if: github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           for workflow in nightly weekly; do
@@ -97,6 +99,8 @@ jobs:
 
       - name: Backfill historical runs (manual dispatch)
         if: github.event_name == 'workflow_dispatch' && env.METRICS_BACKFILL_SINCE != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           for workflow in nightly weekly pr; do
@@ -107,6 +111,8 @@ jobs:
         # Ingest already fingerprints the runs it touches; this drains whatever
         # is still pending (a transient log-fetch error, or a --skip-logs
         # backfill) in bounded batches so one run never fetches thousands of logs.
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: python ci/k8s-ci.py metrics fetch-logs --limit 200 --json
 
       - name: Classify stored failures
@@ -127,6 +133,8 @@ jobs:
 
       - name: Post issue bridge updates
         if: env.METRICS_POST_ISSUES == 'true'
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
         run: |
           set -euo pipefail
           if [ -z "${BOT_TOKEN}" ]; then
@@ -136,17 +144,6 @@ jobs:
           python ci/k8s-ci.py metrics open-issues \
             --post \
             --json
-
-      - name: Post digest to Mattermost
-        if: github.event_name == 'schedule' && github.event.schedule == '45 6 * * *'
-        run: |
-          set -euo pipefail
-          if [ -z "${MATTERMOST_WEBHOOK_URL}" ]; then
-            echo "MATTERMOST_WEBHOOK_URL is not set; skipping digest" >&2
-            exit 0
-          fi
-          python ci/k8s-ci.py metrics digest \
-            | python ci/k8s-ci.py mattermost post --file - --webhook "${MATTERMOST_WEBHOOK_URL}"
 
       - name: Compare-and-swap push metrics state
         env:
@@ -180,3 +177,52 @@ jobs:
           done
           echo "Failed to push ci-metrics state after retries" >&2
           exit 1
+
+  digest:
+    # A separate, read-only job in its own concurrency group. GitHub cancels the
+    # older *pending* member of a group whenever a newer one queues, so if the
+    # daily post lived in the ci-metrics-store writer job, any workflow_run
+    # completion landing around 06:45 UTC could cancel that day's digest. This
+    # job never writes state, so it does not need the writer mutex; it waits for
+    # the writer when that runs and falls back to the last pushed state if the
+    # writer was cancelled.
+    name: Post daily CI metrics digest
+    needs: open-issues
+    if: always() && github.event_name == 'schedule' && github.event.schedule == '45 6 * * *'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    concurrency:
+      group: ci-metrics-digest
+      cancel-in-progress: false
+    steps:
+      - name: Check out trusted default-branch code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Fetch latest metrics state
+        run: |
+          set -euo pipefail
+          git fetch --depth=1 origin ci-metrics
+          git checkout FETCH_HEAD -- ci/metrics-data/metrics.sql
+
+      - name: Install CI dependencies
+        working-directory: ci
+        run: python -m pip install --requirement requirements-ci.txt
+
+      - name: Rebuild metrics database from durable dump
+        run: python ci/k8s-ci.py metrics rebuild
+
+      - name: Post digest to Mattermost
+        env:
+          MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "${MATTERMOST_WEBHOOK_URL}" ]; then
+            echo "MATTERMOST_WEBHOOK_URL is not set; skipping digest" >&2
+            exit 0
+          fi
+          python ci/k8s-ci.py metrics digest \
+            | python ci/k8s-ci.py mattermost post --file - --webhook "${MATTERMOST_WEBHOOK_URL}"
