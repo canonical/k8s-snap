@@ -40,6 +40,14 @@ on:
         description: "Also post the Mattermost digest now (otherwise only the 06:45 UTC cron posts)"
         required: false
         default: "false"
+      min_occurrences:
+        description: "Issue threshold: minimum occurrences of a signature/substrate"
+        required: false
+        default: "2"
+      min_runs:
+        description: "Issue threshold: minimum distinct runs of a signature/substrate"
+        required: false
+        default: "1"
 
 permissions: {}
 
@@ -59,6 +67,12 @@ jobs:
     env:
       METRICS_POST_ISSUES: ${{ github.event.inputs.post_issues || 'false' }}
       METRICS_BACKFILL_SINCE: ${{ github.event.inputs.backfill_since || '' }}
+      # Lowered from the design's 3 occurrences across 2 runs while the pipeline
+      # is being tested: on current data that gate files nothing, because the
+      # recurring signatures are not yet covered by rules. Restore 3/2 before
+      # enabling unattended posting.
+      METRICS_MIN_OCCURRENCES: ${{ github.event.inputs.min_occurrences || '2' }}
+      METRICS_MIN_RUNS: ${{ github.event.inputs.min_runs || '1' }}
     steps:
       - name: Check out trusted code
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -138,6 +152,8 @@ jobs:
         run: |
           python ci/k8s-ci.py metrics open-issues \
             --repo "${GITHUB_REPOSITORY}" \
+            --min-occurrences "${METRICS_MIN_OCCURRENCES}" \
+            --min-runs "${METRICS_MIN_RUNS}" \
             --dry-run \
             --json
 
@@ -153,6 +169,8 @@ jobs:
           fi
           python ci/k8s-ci.py metrics open-issues \
             --repo "${GITHUB_REPOSITORY}" \
+            --min-occurrences "${METRICS_MIN_OCCURRENCES}" \
+            --min-runs "${METRICS_MIN_RUNS}" \
             --post \
             --json
 
