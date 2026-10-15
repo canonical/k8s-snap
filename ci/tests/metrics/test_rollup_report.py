@@ -293,6 +293,39 @@ class RollupReportTest(unittest.TestCase):
 
         self.assertEqual(open_issue_backlog(conn), [])
 
+    def test_open_issue_backlog_falls_back_to_wildcard_classification(self) -> None:
+        # The bridge always files issues with a concrete substrate (e.g.
+        # 'lxd'), but most rules classify at the '*' wildcard unless they
+        # carry a substrate guard. The backlog must still resolve the class
+        # via that wildcard rather than reporting 'unknown'.
+        conn = _db()
+        _insert_signature(conn, "1111111111111111", 1001)
+        _insert_open_issue(conn, "1111111111111111", 7, substrate="lxd")
+
+        rows = open_issue_backlog(conn)
+
+        self.assertEqual(rows[0]["failure_class"], "product.bug")
+
+    def test_open_issue_backlog_prefers_specific_substrate_classification(
+        self,
+    ) -> None:
+        conn = _db()
+        _insert_signature(conn, "1111111111111111", 1001)
+        conn.execute(
+            """
+            INSERT INTO signature_classifications (
+                signature_id, substrate, ruleset_version, failure_class, subclass,
+                rule_id, confidence, classified_by, classified_at
+            ) VALUES ('1111111111111111', 'multipass', 1, 'infra.provisioning',
+                      'timeout', 'infra.timeout', 1.0, 'rules', '2026-10-12T00:00:00Z')
+            """
+        )
+        _insert_open_issue(conn, "1111111111111111", 7, substrate="multipass")
+
+        rows = open_issue_backlog(conn)
+
+        self.assertEqual(rows[0]["failure_class"], "infra.provisioning")
+
     def test_report_renders_open_issues_section(self) -> None:
         conn = _db()
         _insert_run(conn, 100)

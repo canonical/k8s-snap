@@ -244,18 +244,28 @@ def open_issue_backlog(
     rows = []
     for row in conn.execute(
         """
-        SELECT i.issue_number,
-               i.signature_id,
-               i.substrate,
-               i.opened_at,
-               i.last_reported_occurrences,
-               i.reopened_count,
-               COALESCE(vc.failure_class, 'unknown') AS failure_class
-        FROM issues i
-        LEFT JOIN v_signature_class vc
-          ON vc.signature_id = i.signature_id AND vc.substrate = i.substrate
-        WHERE i.issue_state = 'open'
-        ORDER BY i.opened_at, i.issue_number
+        SELECT issue_number, signature_id, substrate, opened_at,
+               last_reported_occurrences, reopened_count, failure_class
+        FROM (
+            SELECT i.issue_number     AS issue_number,
+                   i.signature_id     AS signature_id,
+                   i.substrate        AS substrate,
+                   i.opened_at        AS opened_at,
+                   i.last_reported_occurrences AS last_reported_occurrences,
+                   i.reopened_count   AS reopened_count,
+                   COALESCE(vc.failure_class, 'unknown') AS failure_class,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY i.issue_number
+                       ORDER BY (vc.substrate <> '*') DESC
+                   ) AS rn
+            FROM issues i
+            LEFT JOIN v_signature_class vc
+              ON vc.signature_id = i.signature_id
+             AND vc.substrate IN ('*', i.substrate)
+            WHERE i.issue_state = 'open'
+        )
+        WHERE rn = 1
+        ORDER BY opened_at, issue_number
         """
     ):
         payload = dict(row)

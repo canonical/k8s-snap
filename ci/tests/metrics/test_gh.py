@@ -79,6 +79,22 @@ class GitHubClientTest(unittest.TestCase):
             session.calls[0]["url"],
         )
 
+    def test_list_workflow_runs_passes_status_filter(self) -> None:
+        session = FakeSession()
+        client = GitHubClient(repo="o/r", session=session, token="token")
+
+        client.list_workflow_runs("nightly.yaml", status="completed")
+
+        self.assertEqual(session.calls[0]["params"].get("status"), "completed")
+
+    def test_list_workflow_runs_omits_status_when_unset(self) -> None:
+        session = FakeSession()
+        client = GitHubClient(repo="o/r", session=session, token="token")
+
+        client.list_workflow_runs("nightly.yaml")
+
+        self.assertNotIn("status", session.calls[0]["params"])
+
 
 if __name__ == "__main__":
     unittest.main()

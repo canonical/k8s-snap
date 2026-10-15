@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Optional
 
 from metrics.gh import DEFAULT_REPO, GitHubClient
-from metrics.ingest import dump_records, ingest_run
+from metrics.ingest import InFlightRunError, dump_records, ingest_run
 from metrics.issues import GitHubIssueClient, open_issues
 from metrics.report import build_catalogue, render_digest_markdown, write_reports
 from metrics.rollup import derive_rollup, derive_rollups, open_issue_backlog
@@ -373,13 +373,24 @@ def cmd_ingest(args: argparse.Namespace) -> int:
         runs = client.list_workflow_runs(
             workflow,
             created=_parse_since(args.since) if args.since else None,
+            status="completed",
             limit=args.limit,
         )
         run_ids.extend(run["id"] for run in runs)
 
     summaries = []
     for run_id in run_ids:
-        records = ingest_run(client, conn, run_id)
+        try:
+            records = ingest_run(client, conn, run_id)
+        except InFlightRunError as exc:
+            # Belt-and-suspenders: the workflow-window path above already
+            # requests status=completed, but a run can still be in-flight
+            # when passed via --run-id, or finish between listing and
+            # fetching. Skip it rather than failing the whole sweep — the
+            # next ingest (hourly reconciliation or the next workflow_run
+            # trigger) will pick it up once it is actually done.
+            print(f"skipping run {run_id}: {exc}", file=sys.stderr)
+            continue
         summaries.extend(dump_records(records))
 
     if args.json:

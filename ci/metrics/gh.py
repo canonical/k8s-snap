@@ -246,6 +246,7 @@ class GitHubClient:
         workflow_id: Any,
         created: Optional[str] = None,
         event: Optional[str] = None,
+        status: Optional[str] = None,
         limit: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
         params: Dict[str, Any] = {}
@@ -253,6 +254,8 @@ class GitHubClient:
             params["created"] = created
         if event:
             params["event"] = event
+        if status:
+            params["status"] = status
 
         runs: List[Dict[str, Any]] = []
         path = f"repos/{self.repo}/actions/workflows/{workflow_id}/runs"
