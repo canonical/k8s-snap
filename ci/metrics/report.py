@@ -26,12 +26,13 @@ def write_reports(
     signatures_dir: Path,
     rollups: Sequence[Dict[str, Any]],
     catalogue: Sequence[Dict[str, Any]],
+    open_issue_rows: Optional[Sequence[Dict[str, Any]]] = None,
 ) -> tuple[Path, Path]:
     """Write committed human-facing report exports."""
 
     latest_path = reports_dir / "latest.md"
     catalogue_path = signatures_dir / "catalogue.md"
-    _write_text(latest_path, render_latest_markdown(rollups))
+    _write_text(latest_path, render_latest_markdown(rollups, open_issue_rows))
     _write_text(catalogue_path, render_catalogue_markdown(catalogue))
     return latest_path, catalogue_path
 
@@ -42,7 +43,10 @@ def build_catalogue(conn: Any) -> List[Dict[str, Any]]:
     return signature_catalogue(conn)
 
 
-def render_latest_markdown(rollups: Sequence[Dict[str, Any]]) -> str:
+def render_latest_markdown(
+    rollups: Sequence[Dict[str, Any]],
+    open_issue_rows: Optional[Sequence[Dict[str, Any]]] = None,
+) -> str:
     """Render the latest trend report with attribution and integrity up front."""
 
     lines: List[str] = ["# CI failure report", ""]
@@ -71,6 +75,8 @@ def render_latest_markdown(rollups: Sequence[Dict[str, Any]]) -> str:
     lines.append("")
     lines.extend(_signature_section(latest))
     lines.append("")
+    lines.extend(_open_issues_section(open_issue_rows))
+    lines.append("")
     lines.append(
         f"_Derived from durable facts at report time. Rollup v{latest['rollup_version']}._"
     )
@@ -78,7 +84,9 @@ def render_latest_markdown(rollups: Sequence[Dict[str, Any]]) -> str:
 
 
 def render_digest_markdown(
-    rollups: Sequence[Dict[str, Any]], report_url: Optional[str] = None
+    rollups: Sequence[Dict[str, Any]],
+    report_url: Optional[str] = None,
+    open_issue_rows: Optional[Sequence[Dict[str, Any]]] = None,
 ) -> str:
     """Render the short Mattermost digest body: attribution and delta first.
 
@@ -97,6 +105,10 @@ def render_digest_markdown(
     lines.append(f"Data period: `{latest['period']}`")
     lines.append("")
     lines.extend(_attribution_and_delta(latest, previous))
+    lines.append("")
+    lines.extend(
+        _open_issues_section(open_issue_rows, heading="#### Open CI-filed issues")
+    )
     if report_url:
         lines.append("")
         lines.append(f"[Full report and signature catalogue]({report_url})")
@@ -174,6 +186,36 @@ def _attribution_and_delta(
             ),
         )
     )
+    return lines
+
+
+def _open_issues_section(
+    rows: Optional[Sequence[Dict[str, Any]]], heading: str = "## Open CI-filed issues"
+) -> List[str]:
+    """Render the open-issue-bridge backlog, oldest first, with age in days.
+
+    Surfaces anything the bridge has filed and not yet closed, so nothing sits
+    untriaged indefinitely (delivery plan, Movement 3, "Closing the loop").
+    """
+
+    lines = [heading, ""]
+    if not rows:
+        lines.append("_No open CI-filed issues._")
+        return lines
+    lines.append("| Issue | Signature | Substrate | Class | Age (days) | Occurrences |")
+    lines.append("|---|---|---|---|---:|---:|")
+    for row in rows:
+        age = row.get("age_days")
+        lines.append(
+            "| #{number} | `{signature}` | {substrate} | `{klass}` | {age} | {occurrences} |".format(
+                number=row["issue_number"],
+                signature=row["signature_id"],
+                substrate=row.get("substrate") or "*",
+                klass=row.get("failure_class") or "unknown",
+                age=age if age is not None else "n/a",
+                occurrences=row.get("last_reported_occurrences", 0),
+            )
+        )
     return lines
 
 
@@ -318,7 +360,7 @@ def _signature_section(latest: Dict[str, Any]) -> List[str]:
 
 
 def _ranked_classes(
-    rows: Dict[str, Dict[str, Any]]
+    rows: Dict[str, Dict[str, Any]],
 ) -> List[tuple[str, Dict[str, Any]]]:
     return sorted(rows.items(), key=lambda item: (-int(item[1]["count"]), item[0]))
 

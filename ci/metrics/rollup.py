@@ -230,6 +230,59 @@ def top_signatures(rollup: Dict[str, Any], limit: int = 15) -> List[Dict[str, An
     return list(rollup.get("signatures") or [])[:limit]
 
 
+def open_issue_backlog(
+    conn: sqlite3.Connection, *, now: Optional[str] = None
+) -> List[Dict[str, Any]]:
+    """Return open CI-filed issues, oldest first, with age in days.
+
+    Surfaced in the report and digest's "open CI-filed issues" section so
+    nothing sits untriaged indefinitely (delivery plan, Movement 3, "Closing
+    the loop").
+    """
+
+    _row_factory(conn)
+    rows = []
+    for row in conn.execute(
+        """
+        SELECT i.issue_number,
+               i.signature_id,
+               i.substrate,
+               i.opened_at,
+               i.last_reported_occurrences,
+               i.reopened_count,
+               COALESCE(vc.failure_class, 'unknown') AS failure_class
+        FROM issues i
+        LEFT JOIN v_signature_class vc
+          ON vc.signature_id = i.signature_id AND vc.substrate = i.substrate
+        WHERE i.issue_state = 'open'
+        ORDER BY i.opened_at, i.issue_number
+        """
+    ):
+        payload = dict(row)
+        payload["age_days"] = _issue_age_days(row["opened_at"], now)
+        rows.append(payload)
+    return rows
+
+
+def _issue_age_days(
+    opened_at: Optional[str], now: Optional[str] = None
+) -> Optional[int]:
+    if not opened_at:
+        return None
+    opened = _date_prefix(opened_at)
+    if opened is None:
+        return None
+    if now is not None:
+        current = _date_prefix(now)
+    else:
+        import datetime as dt
+
+        current = dt.datetime.now(dt.timezone.utc).date()
+    if current is None:
+        return None
+    return max((current - opened).days, 0)
+
+
 def _row_factory(conn: sqlite3.Connection) -> None:
     if conn.row_factory is not sqlite3.Row:
         conn.row_factory = sqlite3.Row

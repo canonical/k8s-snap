@@ -11,7 +11,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from metrics.report import render_digest_markdown, render_latest_markdown  # noqa: E402
-from metrics.rollup import derive_rollup, derive_rollups  # noqa: E402
+from metrics.rollup import (  # noqa: E402
+    derive_rollup,
+    derive_rollups,
+    open_issue_backlog,
+)
 from metrics.store import initialise_database  # noqa: E402
 
 
@@ -134,6 +138,34 @@ def _insert_failed_job(
     )
 
 
+def _insert_open_issue(
+    conn: sqlite3.Connection,
+    signature_id: str,
+    issue_number: int,
+    *,
+    substrate: str = "*",
+    opened_at: str = "2026-10-01T00:00:00Z",
+    occurrences: int = 5,
+) -> None:
+    conn.execute(
+        """
+        INSERT INTO issues (
+            signature_id, substrate, idempotency_key, issue_number, issue_state,
+            claimed_at, opened_at, last_reported_occurrences
+        ) VALUES (?, ?, ?, ?, 'open', ?, ?, ?)
+        """,
+        (
+            signature_id,
+            substrate,
+            f"key-{issue_number}",
+            issue_number,
+            opened_at,
+            opened_at,
+            occurrences,
+        ),
+    )
+
+
 class RollupReportTest(unittest.TestCase):
     def test_report_renders_zero_denominator_rates_as_na(self) -> None:
         conn = _db()
@@ -223,6 +255,76 @@ class RollupReportTest(unittest.TestCase):
 
         self.assertIn("No CI metrics have been ingested yet.", digest)
         self.assertNotIn("Full report", digest)
+
+    def test_open_issue_backlog_orders_oldest_first_with_age(self) -> None:
+        conn = _db()
+        _insert_signature(conn, "1111111111111111", 1001)
+        _insert_signature(conn, "2222222222222222", 1002)
+        _insert_open_issue(
+            conn,
+            "2222222222222222",
+            42,
+            opened_at="2026-10-10T00:00:00Z",
+            occurrences=3,
+        )
+        _insert_open_issue(
+            conn,
+            "1111111111111111",
+            7,
+            opened_at="2026-10-01T00:00:00Z",
+            occurrences=9,
+        )
+
+        rows = open_issue_backlog(conn, now="2026-10-12T00:00:00Z")
+
+        self.assertEqual([row["issue_number"] for row in rows], [7, 42])
+        self.assertEqual(rows[0]["age_days"], 11)
+        self.assertEqual(rows[0]["failure_class"], "product.bug")
+        self.assertEqual(rows[0]["last_reported_occurrences"], 9)
+
+    def test_open_issue_backlog_excludes_closed_and_claiming_issues(self) -> None:
+        conn = _db()
+        _insert_signature(conn, "1111111111111111", 1001)
+        _insert_open_issue(conn, "1111111111111111", 7)
+        conn.execute(
+            "UPDATE issues SET issue_state = 'closed', closed_at = '2026-10-11T00:00:00Z' "
+            "WHERE issue_number = 7"
+        )
+
+        self.assertEqual(open_issue_backlog(conn), [])
+
+    def test_report_renders_open_issues_section(self) -> None:
+        conn = _db()
+        _insert_run(conn, 100)
+        _insert_signature(conn, "1111111111111111", 1001)
+        _insert_open_issue(conn, "1111111111111111", 7, occurrences=4)
+
+        report = render_latest_markdown(
+            derive_rollups(conn), open_issue_backlog(conn, now="2026-10-12T00:00:00Z")
+        )
+
+        self.assertIn("Open CI-filed issues", report)
+        self.assertIn("#7", report)
+        self.assertIn("`1111111111111111`", report)
+
+    def test_report_renders_no_open_issues_fallback(self) -> None:
+        report = render_latest_markdown([derive_rollup(_db(), "2026-10")], [])
+
+        self.assertIn("_No open CI-filed issues._", report)
+
+    def test_digest_renders_open_issues_section(self) -> None:
+        conn = _db()
+        _insert_run(conn, 100, jobs_total=10, jobs_success=9, jobs_failure=1)
+        _insert_signature(conn, "1111111111111111", 1001)
+        _insert_open_issue(conn, "1111111111111111", 7)
+
+        digest = render_digest_markdown(
+            derive_rollups(conn),
+            open_issue_rows=open_issue_backlog(conn, now="2026-10-12T00:00:00Z"),
+        )
+
+        self.assertIn("Open CI-filed issues", digest)
+        self.assertIn("#7", digest)
 
 
 if __name__ == "__main__":

@@ -19,7 +19,7 @@ from metrics.gh import DEFAULT_REPO, GitHubClient
 from metrics.ingest import dump_records, ingest_run
 from metrics.issues import GitHubIssueClient, open_issues
 from metrics.report import build_catalogue, render_digest_markdown, write_reports
-from metrics.rollup import derive_rollup, derive_rollups
+from metrics.rollup import derive_rollup, derive_rollups, open_issue_backlog
 from metrics.router import apply_router
 from metrics.rules import DEFAULT_RULES_PATH, classify_signatures, load_rules
 from metrics.scrub import find_secrets
@@ -454,6 +454,7 @@ def cmd_report(args: argparse.Namespace) -> int:
         args.signatures_dir,
         derive_rollups(conn),
         build_catalogue(conn),
+        open_issue_backlog(conn),
     )
     print(f"wrote {latest_path}")
     print(f"wrote {catalogue_path}")
@@ -467,7 +468,9 @@ def cmd_digest(args: argparse.Namespace) -> int:
     report_url = (
         f"https://github.com/{args.repo}/blob/{args.report_ref}/{args.report_path}"
     )
-    text = render_digest_markdown(derive_rollups(conn), report_url)
+    text = render_digest_markdown(
+        derive_rollups(conn), report_url, open_issue_backlog(conn)
+    )
     print(json.dumps({"text": text}))
     return 0
 
