@@ -120,7 +120,9 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install tox
-        run: sudo apt-get install -y tox
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tox
       - name: Compute test runners
         id: compute-test-runners
         run: |
@@ -183,7 +185,9 @@ jobs:
         if: ${{ inputs.substrate == 'multipass' }}
         uses: ./.github/actions/setup-multipass
       - name: Install tox
-        run: sudo apt-get install -y tox
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tox
       - name: Generate names for step and artifacts
         run: |
           FULL_TEST_NODE_ID="${{ matrix.test }}"
