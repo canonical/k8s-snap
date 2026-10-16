@@ -1,0 +1,11 @@
+# frr-k8s backend with BFD towards the FRR router.
+k8sd/v1alpha1/metallb/bgp-backend: frr-k8s
+k8sd/v1alpha1/metallb/bfd-profiles: |
+  - name: fast-failover
+    receiveInterval: 150
+    transmitInterval: 200
+    detectMultiplier: 5
+k8sd/v1alpha1/metallb/bgp-peers: |
+  - peerAddress: $ROUTER_IP
+    peerASN: $ROUTER_ASN
+    bfdProfile: fast-failover
