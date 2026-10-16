@@ -17,7 +17,12 @@ from typing import Optional
 
 from metrics.gh import DEFAULT_REPO, GitHubClient
 from metrics.ingest import InFlightRunError, dump_records, ingest_run
-from metrics.issues import GitHubIssueClient, open_issues
+from metrics.issues import (
+    DEFAULT_QUIET_CLOSE_DAYS,
+    DEFAULT_QUIET_CLOSE_MIN_RUNS,
+    GitHubIssueClient,
+    open_issues,
+)
 from metrics.logs import fetch_and_fingerprint, pending_jobs, stale_jobs
 from metrics.precision import (
     DEFAULT_MAX_SUCCESS_HIT_RATE,
@@ -308,6 +313,24 @@ def add_metrics_cmds(parser: argparse.ArgumentParser) -> None:
         default=7,
         type=int,
         help="Minimum days between unknown-freshness comments on a closed issue.",
+    )
+    open_issues_parser.add_argument(
+        "--quiet-close-days",
+        default=DEFAULT_QUIET_CLOSE_DAYS,
+        type=int,
+        help=(
+            "Close a bridge issue whose signature has not recurred for this many "
+            f"days, or 0 to disable (default: {DEFAULT_QUIET_CLOSE_DAYS})."
+        ),
+    )
+    open_issues_parser.add_argument(
+        "--quiet-close-min-runs",
+        default=DEFAULT_QUIET_CLOSE_MIN_RUNS,
+        type=int,
+        help=(
+            "Runs that must have exercised the substrate during the quiet window "
+            f"before closing (default: {DEFAULT_QUIET_CLOSE_MIN_RUNS})."
+        ),
     )
     open_issues_parser.add_argument(
         "--sql",
@@ -739,6 +762,8 @@ def cmd_open_issues(args: argparse.Namespace) -> int:
             daily_budget=args.daily_budget,
             resolved_cooldown_days=args.resolved_cooldown_days,
             reopen_comment_window_days=args.reopen_comment_window_days,
+            quiet_close_days=args.quiet_close_days,
+            quiet_close_min_runs=args.quiet_close_min_runs,
             rule_notes=rule_notes,
         )
         if not args.dry_run and not args.no_dump:

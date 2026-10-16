@@ -9,7 +9,7 @@ import sqlite3
 import sys
 import tempfile
 import unittest
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
 from unittest.mock import ANY, patch
@@ -17,6 +17,7 @@ from unittest.mock import ANY, patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from metrics.issues import (  # noqa: E402
+    QUIET_CLOSE_REASON,
     GitHubIssueClient,
     IssueBridgeError,
     _closer_sha,
@@ -26,6 +27,8 @@ from metrics.issues import (  # noqa: E402
 )
 from metrics.models import SCHEMA_SQL  # noqa: E402
 from metrics.scrub import SecretFinding  # noqa: E402
+
+QUIET_CLOSED_AT = "2026-11-01T00:00:00Z"
 
 
 def _db() -> sqlite3.Connection:
@@ -248,6 +251,17 @@ class FakeIssueClient:
                     issue["labels"] = [{"name": label} for label in fields["labels"]]
                 issue.update(
                     {key: value for key, value in fields.items() if key != "labels"}
+                )
+                return dict(issue)
+        for issue in self.lookup_issues:
+            if issue["number"] == number and "state" in fields:
+                closing = fields["state"] == "closed"
+                issue.update(
+                    {
+                        "state": fields["state"],
+                        "state_reason": fields.get("state_reason"),
+                        "closed_at": QUIET_CLOSED_AT if closing else None,
+                    }
                 )
                 return dict(issue)
         return {"number": number, **fields}
@@ -849,6 +863,157 @@ class IssueStateSyncTest(unittest.TestCase):
         )
         self.assertIsNone(_closer_sha(payload({}), "o/r"))
         self.assertIsNone(_closer_sha({"errors": [{"message": "nope"}]}, "o/r"))
+
+
+SIG = "cdcdcdcdcdcdcdcd"
+
+
+def _at(day: int) -> datetime:
+    return datetime(2026, 10, 1, tzinfo=timezone.utc) + timedelta(days=day)
+
+
+class QuietCloseTest(unittest.TestCase):
+    """Candidate jobs run on 2026-10-12 (run completed_at); "now" is patched."""
+
+    def setUp(self) -> None:
+        self.client = FakeIssueClient()
+        self.conn = _db()
+        _insert_candidate(self.conn, SIG, "lxd")
+        _insert_opened_issue(
+            self.conn,
+            signature_id=SIG,
+            issue_number=42,
+            opened_at="2026-10-12T00:00:00+00:00",
+        )
+        self.client.lookup_issues.append(_issue(42, SIG, "lxd"))
+
+    def _exercise_lxd(self, *run_ids: int, day: int = 20) -> None:
+        """Record green-or-red runs that collected tests on the lxd substrate."""
+
+        for run_id in run_ids:
+            self.conn.execute(
+                """
+                INSERT INTO runs (
+                    run_id, attempt, workflow_id, started_at, completed_at,
+                    conclusion, jobs_total, jobs_success, jobs_failure, jobs_skipped,
+                    jobs_cancelled, ingest_version
+                ) VALUES (?, 1, 1, ?, ?, 'success', 1, 1, 0, 0, 0, 1)
+                """,
+                (
+                    run_id,
+                    f"2026-10-{day:02d}T00:00:00Z",
+                    f"2026-10-{day:02d}T01:00:00Z",
+                ),
+            )
+            self.conn.execute(
+                "INSERT INTO run_tests_collected VALUES (?, 1, 1, 10)", (run_id,)
+            )
+
+    def _run(self, day: int, **kwargs: Any) -> Any:
+        with patch("metrics.issues._utc_now", return_value=_at(day)):
+            with self.conn:
+                return open_issues(
+                    self.conn,
+                    self.client,
+                    issue_author="ci-bot",
+                    **{"dry_run": False, **kwargs},
+                )
+
+    def _row(self) -> tuple:
+        return tuple(
+            self.conn.execute(
+                "SELECT issue_state, closed_reason FROM issues WHERE issue_number = 42"
+            ).fetchone()
+        )
+
+    def test_quiet_issue_with_exposure_is_closed(self) -> None:
+        self._exercise_lxd(300, 301, 302)
+
+        result = self._run(31)
+
+        self.assertEqual(result.closed_quiet, (42,))
+        self.assertIn(
+            (42, {"state": "closed", "state_reason": "completed"}), self.client.edits
+        )
+        self.assertIn("no occurrence of this signature", self.client.comments[0][1])
+        self.assertEqual(self._row(), ("closed", QUIET_CLOSE_REASON))
+        # The bridge's own close survives the next sync and is not re-commented.
+        again = self._run(32)
+        self.assertEqual((again.closed_quiet, again.closed_upstream), ((), ()))
+        self.assertEqual(self._row(), ("closed", QUIET_CLOSE_REASON))
+        self.assertEqual(len(self.client.comments), 1)
+
+    def test_silence_without_runs_is_not_evidence(self) -> None:
+        self._exercise_lxd(300, 301)
+
+        result = self._run(31)
+
+        self.assertEqual(result.closed_quiet, ())
+        self.assertIn(
+            "issue 42: quiet 14d but only 2 runs on lxd since, not closing",
+            result.skipped[0],
+        )
+        self.assertEqual(self._row(), ("open", None))
+
+    def test_recent_issue_is_not_closed_and_zero_days_disables(self) -> None:
+        self._exercise_lxd(300, 301, 302)
+
+        self.assertEqual(self._run(20).closed_quiet, ())
+        self.assertEqual(self._run(31, quiet_close_days=0).closed_quiet, ())
+        self.assertEqual(self._row(), ("open", None))
+
+    def test_dry_run_only_reports_the_close(self) -> None:
+        self._exercise_lxd(300, 301, 302)
+
+        result = self._run(31, dry_run=True)
+
+        self.assertIn("would close quiet issue 42", result.dry_run)
+        self.assertEqual(self.client.edits, [])
+        self.assertEqual(self._row(), ("open", None))
+
+    def test_recurrence_reopens_a_quiet_closed_issue_without_freshness(self) -> None:
+        self._exercise_lxd(300, 301, 302)
+        self._run(31)
+        # The signature fails again in a later run (no provenance: freshness
+        # would be unknown, which never reopens a human-closed issue).
+        self.conn.execute(
+            """
+            INSERT INTO runs (
+                run_id, attempt, workflow_id, started_at, completed_at, conclusion,
+                jobs_total, jobs_success, jobs_failure, jobs_skipped,
+                jobs_cancelled, ingest_version
+            ) VALUES (400, 1, 1, '2026-11-02T00:00:00Z', '2026-11-02T01:00:00Z',
+                      'failure', 1, 0, 1, 0, 0, 1)
+            """
+        )
+        self.conn.execute(
+            """
+            INSERT INTO jobs (
+                job_id, run_id, attempt, config_id, test_id, job_name, html_url,
+                signature_id
+            ) VALUES (99, 400, 1, 1, 1, 'lxd job', 'https://example.invalid/99', ?)
+            """,
+            (SIG,),
+        )
+
+        result = self._run(33)
+
+        self.assertEqual(result.reopened, (42,))
+        self.assertEqual(self.client.edits[-1], (42, {"state": "open"}))
+        self.assertIn("recurred after a quiet close", self.client.comments[-1][1])
+        self.assertEqual(self._row(), ("open", None))
+
+    def test_closed_issue_without_recurrence_is_left_alone(self) -> None:
+        # A human closed it after the last occurrence; candidates count all
+        # history, so without a newer failure there is nothing to say.
+        self.client.lookup_issues[0] = _closed(
+            _issue(42, SIG, "lxd"), "not_planned", "2026-10-13T00:00:00Z"
+        )
+
+        result = self._run(40, quiet_close_days=0)
+
+        self.assertIn(f"{SIG}:lxd: no recurrence since close", result.skipped)
+        self.assertEqual(self.client.comments, [])
 
 
 if __name__ == "__main__":

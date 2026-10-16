@@ -67,6 +67,12 @@ DEFAULT_MIN_RUNS = 2
 DEFAULT_DAILY_BUDGET = 3
 DEFAULT_REOPEN_COMMENT_WINDOW_DAYS = 7
 DEFAULT_RESOLVED_COOLDOWN_DAYS = 14
+DEFAULT_QUIET_CLOSE_DAYS = 14
+DEFAULT_QUIET_CLOSE_MIN_RUNS = 3
+# Local-only closed_reason for an issue the bridge closed because its failure
+# stopped recurring. GitHub records it as "completed"; this marker is what
+# lets a recurrence reopen it without the freshness proof a human fix needs.
+QUIET_CLOSE_REASON = "quiet"
 
 
 class IssueBridgeError(RuntimeError):
@@ -122,6 +128,7 @@ class BridgeResult:
     commented: Tuple[int, ...] = ()
     closed_upstream: Tuple[int, ...] = ()
     reopened_upstream: Tuple[int, ...] = ()
+    closed_quiet: Tuple[int, ...] = ()
     skipped: Tuple[str, ...] = ()
     dry_run: Tuple[str, ...] = ()
 
@@ -688,6 +695,13 @@ def sync_issue_states(
         if state == "closed":
             closed_at = issue.get("closed_at")
             reason = _state_reason(issue)
+            if (
+                row["closed_reason"] == QUIET_CLOSE_REASON
+                and row["closed_at"] == closed_at
+            ):
+                # Still the bridge's own quiet close; keep the marker that lets
+                # a recurrence reopen it.
+                continue
             # fixed_at_sha: NULL = closer not looked up yet (e.g. adopted closed,
             # or the lookup failed), '' = looked up, no in-repo closer.
             if (
@@ -816,7 +830,8 @@ def _candidate_rows(
         WITH job_ctx AS (
             SELECT vjc.signature_id, cfg.substrate, vjc.failure_class,
                    s.exemplar_excerpt, j.job_id, j.run_id, j.test_id, j.config_id,
-                   j.html_url, j.job_name, r.started_at, t.nodeid,
+                   j.html_url, j.job_name,
+                   COALESCE(r.started_at, r.completed_at) AS started_at, t.nodeid,
                    COALESCE(t.file, '') AS source_path
             FROM v_job_class vjc
             JOIN jobs j USING (job_id)
@@ -957,6 +972,129 @@ def _comment_window_elapsed(row: sqlite3.Row, now: datetime, window_days: int) -
     return last is None or last <= now - timedelta(days=window_days)
 
 
+def _recurred_since_close(row: sqlite3.Row, candidate: Candidate) -> bool:
+    """Whether the signature failed again after its issue was closed.
+
+    Candidates are counted over all history, so a closed issue's signature
+    stays eligible forever; only a newer occurrence is evidence worth acting on.
+    """
+
+    closed_at = _parse_dt(row["closed_at"])
+    last_seen = _parse_dt(candidate.last_seen)
+    if closed_at is None or last_seen is None:
+        return closed_at is None
+    return last_seen > closed_at
+
+
+def _quiet_close_body(quiet_days: int, runs: int, last_seen: Optional[str]) -> str:
+    seen = f"last seen {last_seen}" if last_seen else "no recorded occurrence"
+    return _safe_body(
+        "\n".join(
+            [
+                f"CI metrics has seen no occurrence of this signature in the last "
+                f"{quiet_days} days ({seen}), across {runs} runs that kept "
+                "exercising this substrate. Closing it as no longer occurring.",
+                "",
+                "If the failure comes back, the bridge reopens this issue "
+                "automatically rather than filing a new one.",
+            ]
+        )
+    )
+
+
+def close_quiet_issues(
+    conn: sqlite3.Connection,
+    client: IssueClient,
+    *,
+    now: datetime,
+    quiet_days: int = DEFAULT_QUIET_CLOSE_DAYS,
+    min_runs: int = DEFAULT_QUIET_CLOSE_MIN_RUNS,
+    dry_run: bool = True,
+) -> Tuple[Tuple[int, ...], Tuple[str, ...], Tuple[str, ...]]:
+    """Close open bridge issues whose signature has stopped recurring.
+
+    Silence alone is not evidence: a disabled job or an ingest outage is also
+    silent. An issue closes only when at least ``min_runs`` stored runs
+    collected tests in its substrate since the signature was last seen (or
+    since the issue was opened or reopened, whichever is later). Returns
+    ``(closed, dry_run_actions, skipped)``.
+    """
+
+    if quiet_days <= 0:
+        return (), (), ()
+    conn.row_factory = sqlite3.Row
+    rows = conn.execute(
+        """
+        SELECT claim_id, issue_number, signature_id, substrate, opened_at,
+               last_comment_at
+        FROM issues
+        WHERE issue_state = 'open' AND issue_number IS NOT NULL
+        ORDER BY issue_number
+        """
+    ).fetchall()
+    closed: List[int] = []
+    actions: List[str] = []
+    skipped: List[str] = []
+    for row in rows:
+        last_seen = conn.execute(
+            """
+            SELECT MAX(COALESCE(r.started_at, r.completed_at))
+            FROM jobs j
+            JOIN configs cfg USING (config_id)
+            JOIN runs r ON r.run_id = j.run_id AND r.attempt = j.attempt
+            WHERE j.signature_id = ? AND (? = '*' OR cfg.substrate = ?)
+            """,
+            (row["signature_id"], row["substrate"], row["substrate"]),
+        ).fetchone()[0]
+        marks = [
+            _parse_dt(value)
+            for value in (last_seen, row["opened_at"], row["last_comment_at"])
+        ]
+        since = max((mark for mark in marks if mark is not None), default=None)
+        if since is None or since > now - timedelta(days=quiet_days):
+            continue
+        runs = conn.execute(
+            """
+            SELECT COUNT(DISTINCT r.run_id)
+            FROM runs r
+            JOIN run_tests_collected rtc
+              ON rtc.run_id = r.run_id AND rtc.attempt = r.attempt
+            JOIN configs cfg ON cfg.config_id = rtc.config_id
+            WHERE COALESCE(r.started_at, r.completed_at) > ?
+              AND (? = '*' OR cfg.substrate = ?)
+            """,
+            (since.strftime("%Y-%m-%dT%H:%M:%SZ"), row["substrate"], row["substrate"]),
+        ).fetchone()[0]
+        number = int(row["issue_number"])
+        if runs < min_runs:
+            skipped.append(
+                f"issue {number}: quiet {quiet_days}d but only {runs} runs on "
+                f"{row['substrate']} since, not closing"
+            )
+            continue
+        if dry_run:
+            actions.append(f"would close quiet issue {number}")
+            continue
+        client.add_comment(number, _quiet_close_body(quiet_days, runs, last_seen))
+        issue = client.edit_issue(number, state="closed", state_reason="completed")
+        conn.execute(
+            """
+            UPDATE issues
+            SET issue_state = 'closed', closed_at = ?, closed_reason = ?,
+                fixed_at_sha = '', last_comment_at = ?
+            WHERE claim_id = ?
+            """,
+            (
+                issue.get("closed_at") or now.isoformat(),
+                QUIET_CLOSE_REASON,
+                now.isoformat(),
+                row["claim_id"],
+            ),
+        )
+        closed.append(number)
+    return tuple(closed), tuple(actions), tuple(skipped)
+
+
 def open_issues(
     conn: sqlite3.Connection,
     client: IssueClient,
@@ -969,6 +1107,8 @@ def open_issues(
     daily_budget: int = DEFAULT_DAILY_BUDGET,
     resolved_cooldown_days: int = DEFAULT_RESOLVED_COOLDOWN_DAYS,
     reopen_comment_window_days: int = DEFAULT_REOPEN_COMMENT_WINDOW_DAYS,
+    quiet_close_days: int = DEFAULT_QUIET_CLOSE_DAYS,
+    quiet_close_min_runs: int = DEFAULT_QUIET_CLOSE_MIN_RUNS,
     rule_notes: Optional[Dict[str, str]] = None,
 ) -> BridgeResult:
     """Open or update GitHub issues for eligible signature/substrate pairs."""
@@ -989,6 +1129,17 @@ def open_issues(
         skipped.extend(synced.skipped)
         adopted.extend(reconcile_live_issues(conn, client, author))
 
+    closed_quiet, quiet_actions, quiet_skipped = close_quiet_issues(
+        conn,
+        client,
+        now=now,
+        quiet_days=quiet_close_days,
+        min_runs=quiet_close_min_runs,
+        dry_run=dry_run,
+    )
+    dry_run_actions.extend(quiet_actions)
+    skipped.extend(quiet_skipped)
+
     budget_remaining = max(0, daily_budget - _today_opened_count(conn, now))
 
     for candidate in _candidate_rows(
@@ -1008,6 +1159,35 @@ def open_issues(
             continue
         if row is not None and _resolved_in_cooldown(row, now, resolved_cooldown_days):
             skipped.append(f"{candidate.idempotency_key}: closed in cooldown")
+            continue
+        if row is not None and row["issue_state"] == "closed":
+            if not _recurred_since_close(row, candidate):
+                skipped.append(
+                    f"{candidate.idempotency_key}: no recurrence since close"
+                )
+                continue
+        if row is not None and row["closed_reason"] == QUIET_CLOSE_REASON:
+            # The bridge closed it for silence, not a fix: there is no fixing
+            # commit to be stale against, so a recurrence simply reopens it.
+            number = int(row["issue_number"])
+            if dry_run:
+                dry_run_actions.append(f"would reopen quiet-closed issue {number}")
+                continue
+            client.edit_issue(number, state="open")
+            client.add_comment(
+                number, _comment_body(candidate, "recurred after a quiet close")
+            )
+            conn.execute(
+                """
+                UPDATE issues
+                SET issue_state = 'open', closed_at = NULL, closed_reason = NULL,
+                    fixed_at_sha = NULL, reopened_count = reopened_count + 1,
+                    last_comment_at = ?
+                WHERE claim_id = ?
+                """,
+                (now.isoformat(), row["claim_id"]),
+            )
+            reopened.append(number)
             continue
         if row is not None and row["issue_state"] == "closed":
             freshness = _freshness(
@@ -1104,6 +1284,7 @@ def open_issues(
         commented=tuple(commented),
         closed_upstream=synced.closed,
         reopened_upstream=synced.reopened,
+        closed_quiet=closed_quiet,
         skipped=tuple(skipped),
         dry_run=tuple(dry_run_actions),
     )
