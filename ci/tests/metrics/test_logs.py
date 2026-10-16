@@ -305,6 +305,25 @@ class FetchAndFingerprintTest(unittest.TestCase):
         self.assertEqual(_job_row(conn, 1), (1, current, None))
         self.assertEqual(stale_jobs(conn), [])
 
+    def test_reextract_converges_when_new_version_reproduces_the_same_id(
+        self,
+    ) -> None:
+        client = FakeClient(
+            [_job(1, "tests/test_a.py::test_a"), _job(2, "tests/test_b.py::test_b")],
+            {1: _failure_log("10.1.2.3", 1), 2: _failure_log("10.1.2.4", 2)},
+        )
+        conn = _db()
+        ingest_run(client, conn, RUN_ID)
+        # Job 1 was signed by v1, whose text happened to normalise identically,
+        # so both jobs share one signature row that still says version 1.
+        conn.execute("UPDATE signatures SET normaliser_version = 1")
+        conn.execute("UPDATE job_excerpts SET extractor_version = 1 WHERE job_id = 1")
+        conn.commit()
+
+        fetch_and_fingerprint(client, conn, stale_jobs(conn))
+
+        self.assertEqual(stale_jobs(conn), [])
+
     def test_reextract_keeps_signature_when_log_has_expired(self) -> None:
         client = FakeClient(
             [_job(1, "tests/test_a.py::test_a")], {1: _failure_log("10.1.2.3", 1)}

@@ -144,7 +144,12 @@ def _missing_log_state(status: int, completed_at: Optional[str], now: datetime) 
 
 
 def store_fingerprint(conn: sqlite3.Connection, job_id: int, fp: Fingerprint) -> None:
-    """Record ``fp`` against ``job_id``; the first job seen is the exemplar."""
+    """Record ``fp`` against ``job_id``; the first job seen is the exemplar.
+
+    An existing row with the same ID has the same normalised text, so a newer
+    pipeline that reproduces it upgrades the row's versions; otherwise its
+    jobs would look stale to ``stale_jobs`` forever.
+    """
 
     conn.execute(
         """
@@ -152,7 +157,9 @@ def store_fingerprint(conn: sqlite3.Connection, job_id: int, fp: Fingerprint) ->
             signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id,
             normaliser_version, extractor_version
         ) VALUES (?, ?, ?, ?, ?, ?)
-        ON CONFLICT(signature_id) DO NOTHING
+        ON CONFLICT(signature_id) DO UPDATE SET
+            normaliser_version = MAX(normaliser_version, excluded.normaliser_version),
+            extractor_version = MAX(extractor_version, excluded.extractor_version)
         """,
         (
             fp.signature_id,

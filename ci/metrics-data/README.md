@@ -63,6 +63,10 @@ threshold and daily budget described in the delivery plan.
   `ci/metrics/signature.py` changes signature IDs; the workflow's
   `fetch-logs --reextract` re-fingerprints stored jobs while GitHub still
   retains their logs, and a job whose log has expired keeps its old signature.
+  Issues are not migrated: an issue filed against a pre-bump signature stays
+  as it is (quiet close skips it, since its signature no longer has jobs), and
+  the successor signature is a new candidate. Avoid bumping while bridge
+  issues are open, or retire them by hand.
 - **Rule precision.** `metrics check-rules` reports, per rule in
   `ci/failure_rules.yaml`, how many signatures and jobs it classifies and how
   often its `excerpt_pattern` also hits the error lines of *successful* jobs
@@ -73,9 +77,10 @@ threshold and daily budget described in the delivery plan.
   the report to its run summary.
 - **Quiet close.** An open bridge issue whose signature has not recurred for
   14 days (`--quiet-close-days`, `0` disables) is closed with a comment, but
-  only if at least 3 stored runs (`--quiet-close-min-runs`) collected tests in
-  its substrate during that window, so a disabled job or an ingest outage is
-  never mistaken for a fix. A recurrence reopens a quiet-closed issue
+  only if at least 3 stored runs (`--quiet-close-min-runs`) of the same
+  workflows collected tests in the same matrix configs during that window, so
+  a disabled workflow or an ingest outage is never mistaken for a fix. Only
+  per-config test counts are stored, so a single skipped test is not detected. A recurrence reopens a quiet-closed issue
   directly; an issue a human closed still needs the provable-freshness check
   from the proposal, and a closed issue is only ever touched after a *new*
   occurrence.

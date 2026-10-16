@@ -887,8 +887,10 @@ class QuietCloseTest(unittest.TestCase):
         )
         self.client.lookup_issues.append(_issue(42, SIG, "lxd"))
 
-    def _exercise_lxd(self, *run_ids: int, day: int = 20) -> None:
-        """Record green-or-red runs that collected tests on the lxd substrate."""
+    def _exercise_lxd(
+        self, *run_ids: int, day: int = 20, workflow_id: int = 1, config_id: int = 1
+    ) -> None:
+        """Record runs that collected tests in a matrix config (default: failing)."""
 
         for run_id in run_ids:
             self.conn.execute(
@@ -897,16 +899,18 @@ class QuietCloseTest(unittest.TestCase):
                     run_id, attempt, workflow_id, started_at, completed_at,
                     conclusion, jobs_total, jobs_success, jobs_failure, jobs_skipped,
                     jobs_cancelled, ingest_version
-                ) VALUES (?, 1, 1, ?, ?, 'success', 1, 1, 0, 0, 0, 1)
+                ) VALUES (?, 1, ?, ?, ?, 'success', 1, 1, 0, 0, 0, 1)
                 """,
                 (
                     run_id,
+                    workflow_id,
                     f"2026-10-{day:02d}T00:00:00Z",
                     f"2026-10-{day:02d}T01:00:00Z",
                 ),
             )
             self.conn.execute(
-                "INSERT INTO run_tests_collected VALUES (?, 1, 1, 10)", (run_id,)
+                "INSERT INTO run_tests_collected VALUES (?, 1, ?, 10)",
+                (run_id, config_id),
             )
 
     def _run(self, day: int, **kwargs: Any) -> Any:
@@ -950,10 +954,42 @@ class QuietCloseTest(unittest.TestCase):
 
         self.assertEqual(result.closed_quiet, ())
         self.assertIn(
-            "issue 42: quiet 14d but only 2 runs on lxd since, not closing",
+            "issue 42: quiet 14d but only 2 runs of its workflows and configs since",
             result.skipped[0],
         )
         self.assertEqual(self._row(), ("open", None))
+
+    def test_runs_of_other_workflows_or_configs_are_not_evidence(self) -> None:
+        # The failing workflow (1) stopped running; another workflow and an
+        # unrelated lxd matrix cell kept going.
+        self.conn.execute(
+            "INSERT INTO workflows (workflow_id, name, file) VALUES (2, 'pr', 'pr.yaml')"
+        )
+        self.conn.execute(
+            """
+            INSERT INTO configs (config_id, os, arch, channel, flavor, substrate)
+            VALUES (50, 'jammy', 'arm64', '1.36-classic/edge', 'classic', 'lxd')
+            """
+        )
+        self._exercise_lxd(300, 301, 302, workflow_id=2)
+        self._exercise_lxd(303, 304, 305, config_id=50)
+
+        result = self._run(31)
+
+        self.assertEqual(result.closed_quiet, ())
+        self.assertEqual(self._row(), ("open", None))
+
+    def test_issue_whose_signature_has_no_jobs_is_not_closed(self) -> None:
+        # e.g. every job was re-extracted onto a successor signature.
+        self.conn.execute("UPDATE jobs SET signature_id = NULL")
+        self._exercise_lxd(300, 301, 302)
+
+        result = self._run(31)
+
+        self.assertEqual(result.closed_quiet, ())
+        self.assertIn(
+            f"issue 42: signature {SIG} has no stored jobs", result.skipped[0]
+        )
 
     def test_recent_issue_is_not_closed_and_zero_days_disables(self) -> None:
         self._exercise_lxd(300, 301, 302)

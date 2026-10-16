@@ -986,14 +986,13 @@ def _recurred_since_close(row: sqlite3.Row, candidate: Candidate) -> bool:
     return last_seen > closed_at
 
 
-def _quiet_close_body(quiet_days: int, runs: int, last_seen: Optional[str]) -> str:
-    seen = f"last seen {last_seen}" if last_seen else "no recorded occurrence"
+def _quiet_close_body(quiet_days: int, runs: int, last_seen: str) -> str:
     return _safe_body(
         "\n".join(
             [
                 f"CI metrics has seen no occurrence of this signature in the last "
-                f"{quiet_days} days ({seen}), across {runs} runs that kept "
-                "exercising this substrate. Closing it as no longer occurring.",
+                f"{quiet_days} days (last seen {last_seen}), across {runs} runs of the same "
+                "workflows and matrix configs. Closing it as no longer occurring.",
                 "",
                 "If the failure comes back, the bridge reopens this issue "
                 "automatically rather than filing a new one.",
@@ -1013,10 +1012,12 @@ def close_quiet_issues(
 ) -> Tuple[Tuple[int, ...], Tuple[str, ...], Tuple[str, ...]]:
     """Close open bridge issues whose signature has stopped recurring.
 
-    Silence alone is not evidence: a disabled job or an ingest outage is also
-    silent. An issue closes only when at least ``min_runs`` stored runs
-    collected tests in its substrate since the signature was last seen (or
-    since the issue was opened or reopened, whichever is later). Returns
+    Silence alone is not evidence: a disabled workflow or an ingest outage is
+    also silent. An issue closes only when at least ``min_runs`` stored runs of
+    the workflows that produced its failures collected tests in the same
+    matrix configs since the signature was last seen (or since the issue was
+    opened or reopened, whichever is later). Only per-config test counts are
+    stored, so a single test being skipped is not detected. Returns
     ``(closed, dry_run_actions, skipped)``.
     """
 
@@ -1046,6 +1047,15 @@ def close_quiet_issues(
             """,
             (row["signature_id"], row["substrate"], row["substrate"]),
         ).fetchone()[0]
+        number = int(row["issue_number"])
+        if last_seen is None:
+            # Typically a signature-version bump moved every job to a successor
+            # ID; silence here says nothing about the failure itself.
+            skipped.append(
+                f"issue {number}: signature {row['signature_id']} has no stored "
+                "jobs, not closing"
+            )
+            continue
         marks = [
             _parse_dt(value)
             for value in (last_seen, row["opened_at"], row["last_comment_at"])
@@ -1055,21 +1065,32 @@ def close_quiet_issues(
             continue
         runs = conn.execute(
             """
+            WITH failing AS (
+                SELECT DISTINCT j.config_id, r.workflow_id
+                FROM jobs j
+                JOIN configs cfg USING (config_id)
+                JOIN runs r ON r.run_id = j.run_id AND r.attempt = j.attempt
+                WHERE j.signature_id = ? AND (? = '*' OR cfg.substrate = ?)
+            )
             SELECT COUNT(DISTINCT r.run_id)
             FROM runs r
             JOIN run_tests_collected rtc
               ON rtc.run_id = r.run_id AND rtc.attempt = r.attempt
-            JOIN configs cfg ON cfg.config_id = rtc.config_id
+            JOIN failing f
+              ON f.config_id = rtc.config_id AND f.workflow_id = r.workflow_id
             WHERE COALESCE(r.started_at, r.completed_at) > ?
-              AND (? = '*' OR cfg.substrate = ?)
             """,
-            (since.strftime("%Y-%m-%dT%H:%M:%SZ"), row["substrate"], row["substrate"]),
+            (
+                row["signature_id"],
+                row["substrate"],
+                row["substrate"],
+                since.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            ),
         ).fetchone()[0]
-        number = int(row["issue_number"])
         if runs < min_runs:
             skipped.append(
-                f"issue {number}: quiet {quiet_days}d but only {runs} runs on "
-                f"{row['substrate']} since, not closing"
+                f"issue {number}: quiet {quiet_days}d but only {runs} runs of its "
+                "workflows and configs since, not closing"
             )
             continue
         if dry_run:
