@@ -125,6 +125,7 @@ E: Unable to locate package tox
 
         self.assertIn("AssertionError: Failed to meet condition", lines)
         self.assertIn("Error: node not ready", lines)
+        self.assertIn("Attempt 1/40 failed. Error: Failed to meet condition", lines)
         self.assertNotIn("##[error]Process completed with exit code 1.", lines)
 
     def test_errors_block_precedes_summary_for_fixture_failures(self) -> None:

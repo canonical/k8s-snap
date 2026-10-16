@@ -226,6 +226,7 @@ jobs:
        (github.event_name == 'workflow_dispatch' && github.event.inputs.post_digest == 'true'))
     runs-on: ubuntu-24.04
     permissions:
+      actions: read # check-rules samples successful-job logs
       contents: read
     concurrency:
       group: ci-metrics-digest
@@ -261,3 +262,14 @@ jobs:
           fi
           python ci/k8s-ci.py metrics digest --repo "${GITHUB_REPOSITORY}" \
             | python ci/k8s-ci.py mattermost post --file - --webhook "${MATTERMOST_WEBHOOK_URL}"
+
+      - name: Report rule precision
+        # Flags rules that also fire on successful jobs (the elastic-recheck
+        # guideline: >10% green hits means a symptom, not a root cause) and
+        # rules that match nothing. Informational, so it never blocks the digest.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python ci/k8s-ci.py metrics check-rules --repo "${GITHUB_REPOSITORY}" \
+            >> "${GITHUB_STEP_SUMMARY}"

@@ -48,6 +48,12 @@ _DIAGNOSTIC_LINE = re.compile(
     r"|Command '.+' returned non-zero exit status \d+)"
 )
 _NON_DIAGNOSTIC = re.compile(r"^(?:ERROR|Error): Exception:?$")
+# Any line a healthy job may print while recovering from an error (retries,
+# probes). A rule whose pattern hits these on green jobs is not diagnostic.
+_ERRORISH_LINE = re.compile(
+    r"\b(?:error|errors|exception|failed|failure|fatal|panic|timed out|timeout)\b",
+    re.IGNORECASE,
+)
 
 _NORMALISERS: Tuple[Tuple[re.Pattern[str], str], ...] = (
     (re.compile(r"\bk8s-integration-\d+-[0-9a-f]{4,}(?:-[\w.-]+)?\b"), "<instance>"),
@@ -232,18 +238,21 @@ def diagnostic_lines(lines: Iterable[str]) -> Tuple[str, ...]:
 
 
 def error_lines(log: str) -> Tuple[str, ...]:
-    """Return every error-shaped line of a whole log, for rule precision checks."""
+    """Return every error-shaped line of a whole log, for rule precision checks.
 
-    lines = _prepare_lines(log)
-    markers = tuple(
-        line
-        for line in lines
-        if _ERROR_MARKER.match(line) and not _GENERIC_ERROR.match(line)
-    )
-    exceptions = tuple(
-        line.strip() for line in lines if _EXCEPTION_LINE.match(line.strip())
-    )
-    return tuple(dict.fromkeys(markers + exceptions + diagnostic_lines(lines)))
+    Deliberately broader than extraction: a passing job's retried-then-healed
+    errors are exactly the text a non-diagnostic rule would wrongly match.
+    """
+
+    out = []
+    for line in _prepare_lines(log):
+        stripped = line.strip()
+        if _GENERIC_ERROR.match(stripped):
+            continue
+        errorish = _ERRORISH_LINE.search(stripped) or _EXCEPTION_LINE.match(stripped)
+        if errorish or _DIAGNOSTIC_LINE.match(stripped):
+            out.append(stripped)
+    return tuple(dict.fromkeys(out))
 
 
 def normalise(text: str) -> str:
