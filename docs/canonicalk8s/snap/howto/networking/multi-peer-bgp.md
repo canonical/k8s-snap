@@ -55,12 +55,17 @@ The supported fields per peer are listed in the
 
 ### Enable BGP mode
 
-Enable the load balancer, then enable BGP mode and pass the peers file via the
-`annotations` key in the same command. BGP mode requires at least one peer, so
-it cannot be enabled before the peers are set:
+Enable the load balancer:
 
 ```bash
 sudo k8s enable load-balancer
+```
+
+Then enable BGP mode and pass the peers file via the `annotations` key in the
+same command. BGP mode requires at least one peer, so it cannot be enabled
+before the peers are set:
+
+```bash
 sudo k8s set \
   load-balancer.bgp-mode=true \
   load-balancer.bgp-local-asn=65000 \
@@ -71,28 +76,19 @@ sudo k8s set \
 Once BGP mode is enabled, update the peers by editing `bgp-peers.yaml` and
 running `sudo k8s set annotations="$(cat bgp-peers.yaml)"` again.
 
+Each annotation passed to `k8s set` replaces its previous value as a whole, so
+`bgp-peers` must always list every peer. Annotations left out of the command
+keep their current value.
+
 The annotation **replaces** the single-peer typed keys
 (`load-balancer.bgp-peer-*`). If both are present, the annotation takes
 precedence and a warning appears in `k8s status`.
 
 ### Optionally advertise all pools
 
-To advertise all IP address pools instead of only the named pool, add
-`k8sd/v1alpha1/metallb/advertise-all-pools: "true"` to the annotations file
-and re-apply:
-
-```bash
-cat > bgp-peers.yaml << 'EOF'
-k8sd/v1alpha1/metallb/bgp-peers: |
-  - peerAddress: 10.116.3.164
-    peerASN: 65001
-    myASN: 65000
-k8sd/v1alpha1/metallb/advertise-all-pools: "true"
-EOF
-sudo k8s set annotations="$(cat bgp-peers.yaml)"
-```
-
-Or to set only the advertise flag without changing peers:
+To advertise all IP address pools instead of only the named pool, set the
+`k8sd/v1alpha1/metallb/advertise-all-pools` annotation. The peers are left
+unchanged:
 
 ```bash
 sudo k8s set annotations="k8sd/v1alpha1/metallb/advertise-all-pools: \"true\""
@@ -112,27 +108,29 @@ switch to the [`frr-k8s`][metallb-frr-k8s] backend, which runs the
 [FRR][frr-bfd] routing suite in a separate [frr-k8s][frr-k8s] DaemonSet. Set
 the backend with the `k8sd/v1alpha1/metallb/bgp-backend` annotation, declare a
 BFD profile with the `k8sd/v1alpha1/metallb/bfd-profiles` annotation, and
-reference it from a peer's `bfdProfile` field:
+reference it from a peer's `bfdProfile` field. For brevity, the examples below
+show a single peer; list all of your peers:
 
 ```bash
 cat > bgp-peers.yaml << 'EOF'
 k8sd/v1alpha1/metallb/bgp-backend: frr-k8s
-k8sd/v1alpha1/metallb/bgp-peers: |
-  - peerAddress: 10.116.3.164
-    peerASN: 65001
-    myASN: 65000
-    bfdProfile: fast-failover
 k8sd/v1alpha1/metallb/bfd-profiles: |
   - name: fast-failover
     receiveInterval: 150
     transmitInterval: 150
     detectMultiplier: 3
+k8sd/v1alpha1/metallb/bgp-peers: |
+  - peerAddress: 10.116.3.164
+    peerASN: 65001
+    myASN: 65000
+    bfdProfile: fast-failover
 EOF
 sudo k8s set annotations="$(cat bgp-peers.yaml)"
 ```
 
 The supported profile fields are listed in the
-[annotations reference][bfd-profiles-reference].
+[annotations reference][bfd-profiles-reference]. A peer's `bfdProfile` must
+name a profile that exists, otherwise MetalLB rejects the configuration.
 
 BFD settings require the `frr-k8s` backend. If `bfd-profiles` or a peer's
 `bfdProfile` is set while the backend is `native`, {{product}} rejects the
@@ -160,11 +158,11 @@ the same change, keeping the peers themselves:
 
 ```bash
 cat > bgp-peers.yaml << 'EOF'
+k8sd/v1alpha1/metallb/bfd-profiles: "-"
 k8sd/v1alpha1/metallb/bgp-peers: |
   - peerAddress: 10.116.3.164
     peerASN: 65001
     myASN: 65000
-k8sd/v1alpha1/metallb/bfd-profiles: "-"
 EOF
 sudo k8s set annotations="$(cat bgp-peers.yaml)"
 ```
@@ -219,9 +217,9 @@ If an annotation is invalid, `k8s status` shows the error (see the example
 above). Correct the annotation and the reconciler retries automatically.
 
 If `configurationstates` shows `Invalid`, MetalLB rejected a configuration
-that {{product}} applied, for example peers on the same node with different
-`myASN` on the `frr-k8s` backend, or a `bfdProfile` naming a profile that does
-not exist. Fix the annotation accordingly.
+that {{product}} applied. The error summary names the cause, such as peers on
+the same node with different `myASN` on the `frr-k8s` backend. Fix the
+annotation accordingly.
 
 If it shows `Invalid` with the error `bfd profiles section set` after switching
 to the `native` backend, a `BFDProfile` was left behind (see

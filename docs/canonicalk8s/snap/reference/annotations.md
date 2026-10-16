@@ -163,9 +163,9 @@ Supported fields per profile (omitted fields use MetalLB's defaults):
 | `transmitInterval` | no | Minimum transmit interval in ms (10–60000, default: 300) |
 | `detectMultiplier` | no | Missed packets before the session is declared down (2–255, default: 3) |
 | `echoInterval` | no | Minimum echo receive interval in ms (10–60000, default: 50) |
-| `echoMode` | no | Enable echo mode (default: false; not supported on multi-hop) |
+| `echoMode` | no | Enable echo mode (default: false) |
 | `passiveMode` | no | Wait for the peer to start the session (default: false) |
-| `minimumTtl` | no | Minimum expected TTL, multi-hop only (1–254, default: 254) |
+| `minimumTtl` | no | Minimum expected TTL of incoming BFD packets (1–254, default: 254). Only applies to multi-hop sessions, which are not supported, so it has no effect |
 
 <script>
 const el = document.getElementsByTagName("h2");
