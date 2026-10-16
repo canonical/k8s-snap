@@ -28,6 +28,7 @@ import (
 	"github.com/canonical/microcluster/v2/state"
 	"go.etcd.io/etcd/api/v3/etcdserverpb"
 	"go.etcd.io/etcd/api/v3/v3rpc/rpctypes"
+	clientv3 "go.etcd.io/etcd/client/v3"
 	versionutil "k8s.io/apimachinery/pkg/util/version"
 )
 
@@ -273,9 +274,23 @@ func (a *App) onPostJoin(ctx context.Context, s state.State, initConfig map[stri
 		// Add the new member as a learner (non-voting) first.
 		// This prevents quorum loss when going from 1->2 members, since a
 		// learner does not count towards quorum until promoted.
-		memberAddResp, err := etcdClient.MemberAddAsLearner(ctx, []string{peerURL})
+		//
+		// etcd allows only one pending (un-promoted) learner at a time and
+		// a second concurrent control-plane join can
+		// transiently hit ErrTooManyLearners or ErrUnhealthy here. Both
+		// clear on their own once the other joiner finishes, so retry
+		// instead of failing the whole join on the first hit.
+		isRetryableAddLearnerErr := func(err error) bool {
+			return errors.Is(err, rpctypes.ErrTooManyLearners) || errors.Is(err, rpctypes.ErrUnhealthy)
+		}
+		var memberAddResp *clientv3.MemberAddResponse
+		err = control.RetryForIf(ctx, 15, 2*time.Second, isRetryableAddLearnerErr, func() error {
+			var addErr error
+			memberAddResp, addErr = etcdClient.MemberAddAsLearner(ctx, []string{peerURL})
+			return addErr
+		})
 		if err != nil {
-			if errors.Is(err, rpctypes.ErrMemberNotEnoughStarted) || errors.Is(err, rpctypes.ErrUnhealthy) {
+			if isRetryableAddLearnerErr(err) {
 				return fmt.Errorf("failed to add learner member %s to etcd cluster: cluster is unhealthy or another node is currently joining the cluster", s.Name())
 			}
 			return fmt.Errorf("failed to add learner member %s to etcd cluster: %w", s.Name(), err)
