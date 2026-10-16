@@ -109,7 +109,7 @@ These are report metrics, not appendix material: they show whether apparent impr
 |---|---:|---:|---|---|---:|---:|---|
 | `d87b7eabd6dd7094` | 81 | 4 | external.dependency/apt | external-apt | 2 | 24 | [job](https://github.com/canonical/k8s-snap/actions/runs/38724235406/job/116386376312) |
 | `da6ba7b982998d76` | 54 | 4 | unknown | _unowned_ | 1 | 30 | [job](https://github.com/canonical/k8s-snap/actions/runs/38724235406/job/116386405521) |
-| `b2fdc843a67d0cf8` | 25 | 3 | unknown | _unowned_ | 1 | 12 | [job](https://github.com/canonical/k8s-snap/actions/runs/38657906287/job/116172684836) |
+| `b2fdc843a67d0cf8` | 26 | 3 | unknown | _unowned_ | 1 | 12 | [job](https://github.com/canonical/k8s-snap/actions/runs/38657906287/job/116172684836) |
 | `53e161f93a3b80b6` | 6 | 1 | unknown | _unowned_ | 1 | 1 | [job](https://github.com/canonical/k8s-snap/actions/runs/38724191713/job/116385943967) |
 | `7296136bc38d37ff` | 5 | 4 | unknown | _unowned_ | 1 | 5 | [job](https://github.com/canonical/k8s-snap/actions/runs/38724235406/job/116386356369) |
 | `cfdad54817091717` | 3 | 1 | unknown | _unowned_ | 3 | 2 | [job](https://github.com/canonical/k8s-snap/actions/runs/38488046943/job/115606595549) |
@@ -121,7 +121,7 @@ These are report metrics, not appendix material: they show whether apparent impr
 | `0e90cd6fe44a85cb` | 1 | 1 | unknown | _unowned_ | 1 | 1 | [job](https://github.com/canonical/k8s-snap/actions/runs/38657906287/job/116172651379) |
 | `2968f86e61478acc` | 1 | 1 | unknown | _unowned_ | 1 | 1 | [job](https://github.com/canonical/k8s-snap/actions/runs/38488046943/job/115606486593) |
 | `2d7b7be43282962c` | 1 | 1 | product.bug/snap_install_failure | product-snap-install-failure | 1 | 1 | [job](https://github.com/canonical/k8s-snap/actions/runs/38325492624/job/115063247952) |
-| `36be75d243c93b39` | 1 | 1 | unknown | _unowned_ | 1 | 1 | [job](https://github.com/canonical/k8s-snap/actions/runs/38657906287/job/116172507965) |
+| `61f4723c5bc89911` | 1 | 1 | product.bug/snap_install_failure | product-snap-install-failure | 1 | 1 | [job](https://github.com/canonical/k8s-snap/actions/runs/38325492624/job/115063250347) |
 
 ## Open CI-filed issues
 

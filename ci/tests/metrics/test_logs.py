@@ -24,7 +24,12 @@ from metrics.ingest import build_run_records, ingest_run  # noqa: E402
 from metrics.logs import fetch_and_fingerprint, pending_jobs, stale_jobs  # noqa: E402
 from metrics.router import apply_router  # noqa: E402
 from metrics.store import store_run_record  # noqa: E402
-from metrics.store import initialise_database, open_database  # noqa: E402
+from metrics.store import (  # noqa: E402
+    dump_database,
+    initialise_database,
+    open_database,
+    rebuild_database,
+)
 
 RUN_ID = 100
 RECENT = (datetime.now(timezone.utc) - timedelta(hours=1)).strftime(
@@ -317,12 +322,30 @@ class FetchAndFingerprintTest(unittest.TestCase):
         # Job 1 was signed by v1, whose text happened to normalise identically,
         # so both jobs share one signature row that still says version 1.
         conn.execute("UPDATE signatures SET normaliser_version = 1")
-        conn.execute("UPDATE job_excerpts SET extractor_version = 1 WHERE job_id = 1")
         conn.commit()
 
         fetch_and_fingerprint(client, conn, stale_jobs(conn))
 
         self.assertEqual(stale_jobs(conn), [])
+
+    def test_current_jobs_are_not_stale_after_a_dump_rebuild(self) -> None:
+        client = FakeClient(
+            [_job(1, "tests/test_a.py::test_a")], {1: _failure_log("10.1.2.3", 1)}
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            db, sql = Path(tmp) / "metrics.db", Path(tmp) / "metrics.sql"
+            conn = open_database(db)
+            ingest_run(client, conn, RUN_ID)
+            dump_database(conn, sql)
+            conn.close()
+            # Rebuild drops ephemeral tables such as job_excerpts.
+            conn = rebuild_database(db, sql)
+
+            self.assertEqual(
+                conn.execute("SELECT COUNT(*) FROM job_excerpts").fetchone(), (0,)
+            )
+            self.assertEqual(stale_jobs(conn), [])
+            conn.close()
 
     def test_reextract_keeps_signature_when_log_has_expired(self) -> None:
         client = FakeClient(

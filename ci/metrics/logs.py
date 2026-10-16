@@ -94,6 +94,12 @@ def stale_jobs(
     IDs; without re-fingerprinting, old and new jobs of one failure would be
     split across two signatures. Newest first, so the jobs most likely to still
     have a retained log go first.
+
+    Staleness is read from the signature row, the only durable record of a
+    pipeline version (``job_excerpts`` is not in the dump, so it is empty after
+    every rebuild). A row reproduced by a newer pipeline is upgraded in place,
+    so a not-yet-re-extracted job sharing it is left as is: its excerpt text
+    is identical, so it classifies the same way.
     """
 
     sql = """
@@ -102,10 +108,9 @@ def stale_jobs(
         FROM jobs j
         JOIN configs cfg USING (config_id)
         JOIN signatures s ON s.signature_id = j.signature_id
-        LEFT JOIN job_excerpts je ON je.job_id = j.job_id
         WHERE j.log_available = ?
           AND j.router_rule_id IS NULL
-          AND (COALESCE(je.extractor_version, 0) < ? OR s.normaliser_version < ?)
+          AND (s.extractor_version < ? OR s.normaliser_version < ?)
     """
     params: List[int] = [LOG_FINGERPRINTED, EXTRACTOR_VERSION, NORMALISER_VERSION]
     run_ids = list(run_ids or [])
