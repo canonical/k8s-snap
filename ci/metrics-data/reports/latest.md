@@ -6,21 +6,21 @@ Data period: `2026-10` (through `2026-10-15T16:31:53Z`)
 
 - Observed failed jobs: 213/10557 = 2.0% (n=10557 jobs)
 - Failure pressure including blocked jobs: 2.0% (n=10557 jobs plus blocked)
-- Top attribution: `unknown` owned by unowned triage (90.1% (n=213 facts) of inspected failures).
+- Top attribution: `unknown` owned by unowned triage (52.1% (n=213 facts) of inspected failures).
 
 ## Headline metrics
 
 | Period | Runs | Failed jobs | Failure rate | Scheduled green | PR first-pass | Unclassified | M12 fact coverage |
 |---|---:|---:|---|---|---|---|---|
-| 2026-10 | 5 | 213 | 2.0% (n=10557 jobs) | 0.0% (n=5 runs) | n/a | 90.1% (n=213 facts) | 100.0% (n=213 expected failed jobs) |
+| 2026-10 | 5 | 213 | 2.0% (n=10557 jobs) | 0.0% (n=5 runs) | n/a | 52.1% (n=213 facts) | 100.0% (n=213 expected failed jobs) |
 
 ## Failure attribution
 
 | Class | Count | Share | Owner |
 |---|---:|---|---|
-| `unknown` | 192 | 90.1% (n=213 facts) | unowned triage |
+| `unknown` | 111 | 52.1% (n=213 facts) | unowned triage |
+| `external.dependency` | 87 | 40.8% (n=213 facts) | external dependency |
 | `product.bug` | 9 | 4.2% (n=213 facts) | product team |
-| `external.dependency` | 6 | 2.8% (n=213 facts) | external dependency |
 | `infra.provisioning` | 4 | 1.9% (n=213 facts) | CI/infra |
 | `infra.runner` | 2 | 0.9% (n=213 facts) | CI/infra |
 
@@ -28,7 +28,7 @@ Data period: `2026-10` (through `2026-10-15T16:31:53Z`)
 
 These are report metrics, not appendix material: they show whether apparent improvement came from running less.
 
-- M9 unclassified share: 90.1% (n=213 failed job facts)
+- M9 unclassified share: 52.1% (n=213 failed job facts)
 - M11 jobs blocked by failed `Prepare Environment`: 0 across 0 prepare job(s).
 - M12 failed-job fact coverage: 100.0% (n=213 expected failed jobs).
 - M12 log availability among failed job facts: 94.4% (n=213 failed job facts).
@@ -107,21 +107,21 @@ These are report metrics, not appendix material: they show whether apparent impr
 
 | Signature | Occurrences | Runs | Class | Rule | Tests | Configs | Example |
 |---|---:|---:|---|---|---:|---:|---|
-| `48188aba0f2b3176` | 81 | 4 | unknown | _unowned_ | 2 | 24 | [job](https://github.com/canonical/k8s-snap/actions/runs/38724235406/job/116386208355) |
-| `30f9c0739d5c01a3` | 56 | 4 | unknown | _unowned_ | 3 | 30 | [job](https://github.com/canonical/k8s-snap/actions/runs/38724235406/job/116386234043) |
-| `36be75d243c93b39` | 26 | 3 | unknown | _unowned_ | 1 | 12 | [job](https://github.com/canonical/k8s-snap/actions/runs/38657906287/job/116172507965) |
-| `12b87410a67e88a1` | 6 | 1 | unknown | _unowned_ | 1 | 1 | [job](https://github.com/canonical/k8s-snap/actions/runs/38724191713/job/116385933789) |
-| `52b477a901821adc` | 5 | 4 | unknown | _unowned_ | 1 | 5 | [job](https://github.com/canonical/k8s-snap/actions/runs/38724235406/job/116386237871) |
-| `2be89bfd2b409c9c` | 3 | 1 | unknown | _unowned_ | 3 | 2 | [job](https://github.com/canonical/k8s-snap/actions/runs/38488046943/job/115606587247) |
-| `611cf5b67506e5cf` | 3 | 1 | unknown | _unowned_ | 1 | 3 | [job](https://github.com/canonical/k8s-snap/actions/runs/38724191713/job/116386063634) |
-| `625ed3afafaceeaa` | 2 | 2 | unknown | _unowned_ | 2 | 2 | [job](https://github.com/canonical/k8s-snap/actions/runs/38488046943/job/115606540841) |
-| `7182be53fd6c8293` | 2 | 1 | product.bug/snap_install_failure | product-snap-install-failure | 1 | 2 | [job](https://github.com/canonical/k8s-snap/actions/runs/38325492624/job/115063228415) |
-| `86320dba2e89666c` | 2 | 2 | unknown | _unowned_ | 1 | 2 | [job](https://github.com/canonical/k8s-snap/actions/runs/38657906287/job/116172512657) |
-| `c6b1e9b8ae19cfed` | 2 | 2 | product.bug/snap_install_failure | product-snap-install-failure | 1 | 2 | [job](https://github.com/canonical/k8s-snap/actions/runs/38724235406/job/116386405428) |
-| `e32ac84cc9437b1f` | 2 | 1 | unknown | _unowned_ | 1 | 2 | [job](https://github.com/canonical/k8s-snap/actions/runs/38657906287/job/116172550701) |
-| `002ffa955d3a1a22` | 1 | 1 | unknown | _unowned_ | 1 | 1 | [job](https://github.com/canonical/k8s-snap/actions/runs/38657906287/job/116172651379) |
-| `257f79da332b464b` | 1 | 1 | unknown | _unowned_ | 1 | 1 | [job](https://github.com/canonical/k8s-snap/actions/runs/38657906287/job/116172538016) |
-| `2860635ab44b8e63` | 1 | 1 | unknown | _unowned_ | 1 | 1 | [job](https://github.com/canonical/k8s-snap/actions/runs/38724191713/job/116386139293) |
+| `d87b7eabd6dd7094` | 81 | 4 | external.dependency/apt | external-apt | 2 | 24 | [job](https://github.com/canonical/k8s-snap/actions/runs/38724235406/job/116386376312) |
+| `da6ba7b982998d76` | 54 | 4 | unknown | _unowned_ | 1 | 30 | [job](https://github.com/canonical/k8s-snap/actions/runs/38724235406/job/116386405521) |
+| `b2fdc843a67d0cf8` | 25 | 3 | unknown | _unowned_ | 1 | 12 | [job](https://github.com/canonical/k8s-snap/actions/runs/38657906287/job/116172684836) |
+| `53e161f93a3b80b6` | 6 | 1 | unknown | _unowned_ | 1 | 1 | [job](https://github.com/canonical/k8s-snap/actions/runs/38724191713/job/116385943967) |
+| `7296136bc38d37ff` | 5 | 4 | unknown | _unowned_ | 1 | 5 | [job](https://github.com/canonical/k8s-snap/actions/runs/38724235406/job/116386356369) |
+| `cfdad54817091717` | 3 | 1 | unknown | _unowned_ | 3 | 2 | [job](https://github.com/canonical/k8s-snap/actions/runs/38488046943/job/115606595549) |
+| `edd44007115ea059` | 3 | 1 | unknown | _unowned_ | 1 | 3 | [job](https://github.com/canonical/k8s-snap/actions/runs/38724191713/job/116386101876) |
+| `07c6112aab64f685` | 2 | 1 | unknown | _unowned_ | 1 | 2 | [job](https://github.com/canonical/k8s-snap/actions/runs/38657906287/job/116172569408) |
+| `1876eb4438ae5539` | 2 | 2 | product.bug/snap_install_failure | product-snap-install-failure | 1 | 2 | [job](https://github.com/canonical/k8s-snap/actions/runs/38724235406/job/116386405428) |
+| `e0ac6b603e274f49` | 2 | 2 | unknown | _unowned_ | 1 | 2 | [job](https://github.com/canonical/k8s-snap/actions/runs/38657906287/job/116172512657) |
+| `e5c836d564d13b3e` | 2 | 1 | product.bug/snap_install_failure | product-snap-install-failure | 1 | 2 | [job](https://github.com/canonical/k8s-snap/actions/runs/38325492624/job/115063241749) |
+| `0e90cd6fe44a85cb` | 1 | 1 | unknown | _unowned_ | 1 | 1 | [job](https://github.com/canonical/k8s-snap/actions/runs/38657906287/job/116172651379) |
+| `2968f86e61478acc` | 1 | 1 | unknown | _unowned_ | 1 | 1 | [job](https://github.com/canonical/k8s-snap/actions/runs/38488046943/job/115606486593) |
+| `2d7b7be43282962c` | 1 | 1 | product.bug/snap_install_failure | product-snap-install-failure | 1 | 1 | [job](https://github.com/canonical/k8s-snap/actions/runs/38325492624/job/115063247952) |
+| `36be75d243c93b39` | 1 | 1 | unknown | _unowned_ | 1 | 1 | [job](https://github.com/canonical/k8s-snap/actions/runs/38657906287/job/116172507965) |
 
 ## Open CI-filed issues
 

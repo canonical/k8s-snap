@@ -134,9 +134,12 @@ jobs:
         # Ingest already fingerprints the runs it touches; this drains whatever
         # is still pending (a transient log-fetch error, or a --skip-logs
         # backfill) in bounded batches so one run never fetches thousands of logs.
+        # --reextract then spends any leftover batch re-fingerprinting jobs
+        # signed by an older extractor/normaliser, so a version bump migrates
+        # stored history instead of splitting each failure across two IDs.
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python ci/k8s-ci.py metrics fetch-logs --limit 200 --json
+        run: python ci/k8s-ci.py metrics fetch-logs --limit 200 --reextract --json
 
       - name: Classify stored failures
         run: python ci/k8s-ci.py metrics classify --json
@@ -223,6 +226,7 @@ jobs:
        (github.event_name == 'workflow_dispatch' && github.event.inputs.post_digest == 'true'))
     runs-on: ubuntu-24.04
     permissions:
+      actions: read # check-rules samples successful-job logs
       contents: read
     concurrency:
       group: ci-metrics-digest
@@ -258,3 +262,14 @@ jobs:
           fi
           python ci/k8s-ci.py metrics digest --repo "${GITHUB_REPOSITORY}" \
             | python ci/k8s-ci.py mattermost post --file - --webhook "${MATTERMOST_WEBHOOK_URL}"
+
+      - name: Report rule precision
+        # Flags rules that also fire on successful jobs (the elastic-recheck
+        # guideline: >10% green hits means a symptom, not a root cause) and
+        # rules that match nothing. Informational, so it never blocks the digest.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python ci/k8s-ci.py metrics check-rules --repo "${GITHUB_REPOSITORY}" \
+            >> "${GITHUB_STEP_SUMMARY}"

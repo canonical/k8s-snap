@@ -2,26 +2,30 @@
 
 | Signature | Occurrences | Runs | Class | Rule | State | First seen | Last seen | Contexts |
 |---|---:|---:|---|---|---|---|---|---|
-| `48188aba0f2b3176` | 81 | 4 | unknown | _unowned_ | active | 2026-10-14T00:04:38Z | 2026-10-15T11:00:17Z | lxd:78, multipass:3 |
-| `30f9c0739d5c01a3` | 56 | 4 | unknown | _unowned_ | active | 2026-10-13T00:05:23Z | 2026-10-15T11:00:17Z | lxd:56 |
-| `36be75d243c93b39` | 26 | 3 | unknown | _unowned_ | active | 2026-10-13T00:05:23Z | 2026-10-15T00:04:42Z | lxd:26 |
-| `12b87410a67e88a1` | 6 | 1 | unknown | _unowned_ | active | 2026-10-15T10:59:57Z | 2026-10-15T10:59:57Z | :6 |
-| `52b477a901821adc` | 5 | 4 | unknown | _unowned_ | active | 2026-10-13T00:05:23Z | 2026-10-15T11:00:17Z | lxd:5 |
-| `2be89bfd2b409c9c` | 3 | 1 | unknown | _unowned_ | active | 2026-10-14T00:04:38Z | 2026-10-14T00:04:38Z | lxd:3 |
-| `611cf5b67506e5cf` | 3 | 1 | unknown | _unowned_ | active | 2026-10-15T10:59:57Z | 2026-10-15T10:59:57Z | lxd:3 |
-| `625ed3afafaceeaa` | 2 | 2 | unknown | _unowned_ | active | 2026-10-13T00:05:23Z | 2026-10-14T00:04:38Z | lxd:2 |
-| `7182be53fd6c8293` | 2 | 1 | product.bug/snap_install_failure | product-snap-install-failure | active | 2026-10-13T00:05:23Z | 2026-10-13T00:05:23Z | lxd:2 |
-| `86320dba2e89666c` | 2 | 2 | unknown | _unowned_ | active | 2026-10-13T00:05:23Z | 2026-10-15T00:04:42Z | lxd:2 |
-| `c6b1e9b8ae19cfed` | 2 | 2 | product.bug/snap_install_failure | product-snap-install-failure | active | 2026-10-13T00:05:23Z | 2026-10-15T11:00:17Z | lxd:2 |
-| `e32ac84cc9437b1f` | 2 | 1 | unknown | _unowned_ | active | 2026-10-15T00:04:42Z | 2026-10-15T00:04:42Z | lxd:2 |
-| `002ffa955d3a1a22` | 1 | 1 | unknown | _unowned_ | active | 2026-10-15T00:04:42Z | 2026-10-15T00:04:42Z | lxd:1 |
-| `257f79da332b464b` | 1 | 1 | unknown | _unowned_ | active | 2026-10-15T00:04:42Z | 2026-10-15T00:04:42Z | lxd:1 |
-| `2860635ab44b8e63` | 1 | 1 | unknown | _unowned_ | active | 2026-10-15T10:59:57Z | 2026-10-15T10:59:57Z | multipass:1 |
-| `3f67d1d6ddf0b4c6` | 1 | 1 | product.bug/snap_install_failure | product-snap-install-failure | active | 2026-10-13T00:05:23Z | 2026-10-13T00:05:23Z | lxd:1 |
-| `48953aa3948b65e4` | 1 | 1 | product.bug/snap_install_failure | product-snap-install-failure | active | 2026-10-13T00:05:23Z | 2026-10-13T00:05:23Z | lxd:1 |
-| `555bda53c89e0e82` | 1 | 1 | unknown | _unowned_ | active | 2026-10-14T00:04:38Z | 2026-10-14T00:04:38Z | lxd:1 |
-| `5dbf53faff6a3521` | 1 | 1 | product.bug/snap_install_failure | product-snap-install-failure | active | 2026-10-13T00:05:23Z | 2026-10-13T00:05:23Z | lxd:1 |
-| `6499c2f11365ee64` | 1 | 1 | product.bug/snap_install_failure | product-snap-install-failure | active | 2026-10-15T11:00:17Z | 2026-10-15T11:00:17Z | lxd:1 |
-| `66adee858b167618` | 1 | 1 | product.bug/networking | product-gateway-ip-missing | active | 2026-10-14T00:04:38Z | 2026-10-14T00:04:38Z | lxd:1 |
-| `b3bc028a2f006136` | 1 | 1 | unknown | _unowned_ | active | 2026-10-13T00:05:23Z | 2026-10-13T00:05:23Z | lxd:1 |
-| `b96bed0088c7dde6` | 1 | 1 | unknown | _unowned_ | active | 2026-10-15T10:59:57Z | 2026-10-15T10:59:57Z | multipass:1 |
+| `d87b7eabd6dd7094` | 81 | 4 | external.dependency/apt | external-apt | active | 2026-10-14T00:04:38Z | 2026-10-15T11:00:17Z | lxd:78, multipass:3 |
+| `da6ba7b982998d76` | 54 | 4 | unknown | _unowned_ | active | 2026-10-13T00:05:23Z | 2026-10-15T11:00:17Z | lxd:54 |
+| `b2fdc843a67d0cf8` | 25 | 3 | unknown | _unowned_ | active | 2026-10-13T00:05:23Z | 2026-10-15T00:04:42Z | lxd:25 |
+| `53e161f93a3b80b6` | 6 | 1 | unknown | _unowned_ | active | 2026-10-15T10:59:57Z | 2026-10-15T10:59:57Z | :6 |
+| `7296136bc38d37ff` | 5 | 4 | unknown | _unowned_ | active | 2026-10-13T00:05:23Z | 2026-10-15T11:00:17Z | lxd:5 |
+| `cfdad54817091717` | 3 | 1 | unknown | _unowned_ | active | 2026-10-14T00:04:38Z | 2026-10-14T00:04:38Z | lxd:3 |
+| `edd44007115ea059` | 3 | 1 | unknown | _unowned_ | active | 2026-10-15T10:59:57Z | 2026-10-15T10:59:57Z | lxd:3 |
+| `07c6112aab64f685` | 2 | 1 | unknown | _unowned_ | active | 2026-10-15T00:04:42Z | 2026-10-15T00:04:42Z | lxd:2 |
+| `1876eb4438ae5539` | 2 | 2 | product.bug/snap_install_failure | product-snap-install-failure | active | 2026-10-13T00:05:23Z | 2026-10-15T11:00:17Z | lxd:2 |
+| `e0ac6b603e274f49` | 2 | 2 | unknown | _unowned_ | active | 2026-10-13T00:05:23Z | 2026-10-15T00:04:42Z | lxd:2 |
+| `e5c836d564d13b3e` | 2 | 1 | product.bug/snap_install_failure | product-snap-install-failure | active | 2026-10-13T00:05:23Z | 2026-10-13T00:05:23Z | lxd:2 |
+| `0e90cd6fe44a85cb` | 1 | 1 | unknown | _unowned_ | active | 2026-10-15T00:04:42Z | 2026-10-15T00:04:42Z | lxd:1 |
+| `2968f86e61478acc` | 1 | 1 | unknown | _unowned_ | active | 2026-10-14T00:04:38Z | 2026-10-14T00:04:38Z | lxd:1 |
+| `2d7b7be43282962c` | 1 | 1 | product.bug/snap_install_failure | product-snap-install-failure | active | 2026-10-13T00:05:23Z | 2026-10-13T00:05:23Z | lxd:1 |
+| `36be75d243c93b39` | 1 | 1 | unknown | _unowned_ | active | 2026-10-13T00:05:23Z | 2026-10-13T00:05:23Z | lxd:1 |
+| `61f4723c5bc89911` | 1 | 1 | product.bug/snap_install_failure | product-snap-install-failure | active | 2026-10-13T00:05:23Z | 2026-10-13T00:05:23Z | lxd:1 |
+| `73cf55cac38adedf` | 1 | 1 | unknown | _unowned_ | active | 2026-10-15T11:00:17Z | 2026-10-15T11:00:17Z | lxd:1 |
+| `744894a2fd3c5e2c` | 1 | 1 | unknown | _unowned_ | active | 2026-10-15T10:59:57Z | 2026-10-15T10:59:57Z | multipass:1 |
+| `7c4a0bbf6eec3050` | 1 | 1 | unknown | _unowned_ | active | 2026-10-13T00:05:23Z | 2026-10-13T00:05:23Z | lxd:1 |
+| `7d6a50cfd6936b87` | 1 | 1 | unknown | _unowned_ | active | 2026-10-14T00:04:38Z | 2026-10-14T00:04:38Z | lxd:1 |
+| `cbb87f101d781266` | 1 | 1 | unknown | _unowned_ | active | 2026-10-13T00:05:23Z | 2026-10-13T00:05:23Z | lxd:1 |
+| `ce41aa9f5a1fbfa9` | 1 | 1 | unknown | _unowned_ | active | 2026-10-15T00:04:42Z | 2026-10-15T00:04:42Z | lxd:1 |
+| `d722795db15ed246` | 1 | 1 | product.bug/networking | product-gateway-ip-missing | active | 2026-10-14T00:04:38Z | 2026-10-14T00:04:38Z | lxd:1 |
+| `e444e8bbba287346` | 1 | 1 | unknown | _unowned_ | active | 2026-10-14T00:04:38Z | 2026-10-14T00:04:38Z | lxd:1 |
+| `f1ae9e093d594491` | 1 | 1 | unknown | _unowned_ | active | 2026-10-15T10:59:57Z | 2026-10-15T10:59:57Z | multipass:1 |
+| `f2730b03db60b443` | 1 | 1 | product.bug/snap_install_failure | product-snap-install-failure | active | 2026-10-15T11:00:17Z | 2026-10-15T11:00:17Z | lxd:1 |
+| `f860f86f49a4fc22` | 1 | 1 | product.bug/snap_install_failure | product-snap-install-failure | active | 2026-10-13T00:05:23Z | 2026-10-13T00:05:23Z | lxd:1 |

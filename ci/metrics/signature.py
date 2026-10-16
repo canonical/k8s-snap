@@ -8,42 +8,70 @@ from __future__ import annotations
 import hashlib
 import re
 from dataclasses import dataclass
-from typing import Optional, Tuple
+from typing import Iterable, Optional, Tuple
 
 from metrics.scrub import scrub
 
-NORMALISER_VERSION = 1
-EXTRACTOR_VERSION = 1
+# Bumping either version changes signature IDs; `fetch-logs --reextract`
+# migrates stored jobs whose logs are still retained.
+NORMALISER_VERSION = 2
+EXTRACTOR_VERSION = 2
 MAX_EXCERPT_BYTES = 4096
 SIGNATURE_LENGTH = 16
 
 _GH_TIMESTAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T[\d:.]+Z\s?")
+_STEP_HEADER = re.compile(r"^##\[group\]Run ")
 _FAILURES_HEADER = re.compile(r"^=+\s*FAILURES\s*=+$")
 _ERRORS_HEADER = re.compile(r"^=+\s*ERRORS\s*=+$")
 _SUMMARY_HEADER = re.compile(r"^=+\s*short test summary info\s*=+$", re.IGNORECASE)
 _SECTION_END = re.compile(r"^=+\s*\S.*=+$")
+_TEST_SECTION = re.compile(r"^_{3,} .+ _{3,}$")
 _TRACEBACK_START = re.compile(r"^Traceback \(most recent call last\):")
 _EXCEPTION_LINE = re.compile(
     r"^(?:[A-Za-z_][\w.]*(?:Error|Exception|Failure|Timeout)\b|AssertionError\b|E\s{3,})"
 )
 _FILE_FRAME = re.compile(r'^\s*File ".*", line \d+, in .+$')
+_TEST_FRAME = re.compile(r'^\s*File ".*", line \d+, in test_\w+$')
 _SUMMARY_LINE = re.compile(r"^(?:FAILED|ERROR)\s+\S+")
 _ERROR_MARKER = re.compile(r"^##\[error\]")
-_USELESS_ERROR = re.compile(r"^##\[error\]Process completed with exit code 1\.?$")
+# Wrapper verdicts that say *that* a step failed, never *why*.
+_GENERIC_ERROR = re.compile(
+    r"^##\[error\](?:Process completed with exit code \d+|Failed after \d+ attempts)\.?$"
+)
+# Error-shaped lines tools print before a generic wrapper verdict: apt `E:`,
+# CLI `Error:`/`fatal:`, Python exception lines, make and subprocess failures.
+_DIAGNOSTIC_LINE = re.compile(
+    r"^(?:E: \S"
+    r"|(?:error|fatal|panic|Error|Fatal|ERROR|FATAL)(?:\[\w+\])?: \S"
+    r"|[A-Za-z_][\w.]*(?:Error|Exception|Timeout)\b:? "
+    r"|make: \*\*\* "
+    r"|Command '.+' returned non-zero exit status \d+)"
+)
+_NON_DIAGNOSTIC = re.compile(r"^(?:ERROR|Error): Exception:?$")
+# Any line a healthy job may print while recovering from an error (retries,
+# probes). A rule whose pattern hits these on green jobs is not diagnostic.
+_ERRORISH_LINE = re.compile(
+    r"\b(?:error|errors|exception|failed|failure|fatal|panic|timed out|timeout)\b",
+    re.IGNORECASE,
+)
 
 _NORMALISERS: Tuple[Tuple[re.Pattern[str], str], ...] = (
     (re.compile(r"\bk8s-integration-\d+-[0-9a-f]{4,}(?:-[\w.-]+)?\b"), "<instance>"),
     (re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:[.,]\d+)?Z?"), "<ts>"),
+    (
+        re.compile(
+            r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b", re.I
+        ),
+        "<uuid>",
+    ),
+    (re.compile(r"\b0x[0-9a-f]{6,}\b", re.I), "0x<addr>"),
     (re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b"), "<ip>"),
     (re.compile(r"\b(?:[0-9a-f]{0,4}:){2,7}[0-9a-f]{0,4}\b"), "<ipv6>"),
-    (
-        re.compile(r"/home/runner/work/[\w.-]+/[\w.-]+(?:/[^\s:)]*)?"),
-        "<workspace>",
-    ),
-    (
-        re.compile(r"/home/ubuntu/actions-runner/_work/[\w.-]+/[\w.-]+(?:/[^\s:)]*)?"),
-        "<workspace>",
-    ),
+    # Only the runner-specific checkout prefix varies; the repo-relative path
+    # after it names the failing file and must survive.
+    (re.compile(r"/home/runner/work/[\w.-]+/[\w.-]+"), "<workspace>"),
+    (re.compile(r"/home/ubuntu/actions-runner/_work/[\w.-]+/[\w.-]+"), "<workspace>"),
+    (re.compile(r"\bpython3\.\d+\b"), "python3.<n>"),
     (re.compile(r"\bline \d+\b"), "line <n>"),
     (re.compile(r"\b\d+(\s+restarts?\b)"), r"<n>\1"),
     (re.compile(r"[ \t]+"), " "),
@@ -76,6 +104,34 @@ def _prepare_lines(log: str) -> Tuple[str, ...]:
     return tuple(lines)
 
 
+def _failed_step(lines: Tuple[str, ...]) -> Tuple[str, ...]:
+    """Slice a job log to the step that raised the first ``##[error]``.
+
+    Post-failure steps (artifact upload, cleanup) run under ``always()`` and
+    would otherwise supply the excerpt's tail and error markers.
+    """
+
+    first_error = next(
+        (index for index, line in enumerate(lines) if _ERROR_MARKER.match(line)), None
+    )
+    if first_error is None:
+        return lines
+    start = 0
+    for index in range(first_error, -1, -1):
+        if _STEP_HEADER.match(lines[index]):
+            start = index
+            break
+    end = next(
+        (
+            index
+            for index in range(first_error + 1, len(lines))
+            if _STEP_HEADER.match(lines[index])
+        ),
+        len(lines),
+    )
+    return lines[start:end]
+
+
 def _section(lines: Tuple[str, ...], header: re.Pattern[str]) -> Tuple[str, ...]:
     start: Optional[int] = None
     for index, line in enumerate(lines):
@@ -93,7 +149,18 @@ def _section(lines: Tuple[str, ...], header: re.Pattern[str]) -> Tuple[str, ...]
     return tuple(out)
 
 
+def _first_test(block: Tuple[str, ...]) -> Tuple[str, ...]:
+    """Return the first ``____ test_name ____`` section of a pytest block."""
+
+    starts = [index for index, line in enumerate(block) if _TEST_SECTION.match(line)]
+    if not starts:
+        return block
+    first, end = starts[0], starts[1] if len(starts) > 1 else len(block)
+    return block[first:end]
+
+
 def _innermost_exception(block: Tuple[str, ...]) -> Tuple[str, ...]:
+    block = _first_test(block)
     for index, line in enumerate(block):
         if not _EXCEPTION_LINE.match(line):
             continue
@@ -106,15 +173,24 @@ def _innermost_exception(block: Tuple[str, ...]) -> Tuple[str, ...]:
                     break
             cursor -= 1
         start = min(frame_indices) if frame_indices else index
-        end = index + 1
-        return tuple(block[start:end])
+        stop = index + 1
+        root = tuple(block[start:stop])
+        if any(_TEST_FRAME.match(frame) for frame in root):
+            return root
+        # A root cause raised inside a shared helper (a retry wrapper, util.run)
+        # is identical for every test using it; the test frame that reached it
+        # is what tells two such failures apart.
+        anchor = next(
+            (frame for frame in reversed(block) if _TEST_FRAME.match(frame)), None
+        )
+        return ((anchor.strip(),) if anchor else ()) + root
     return ()
 
 
 def extract(log: str) -> Excerpt:
     """Extract the most diagnostic failure text from a raw job log."""
 
-    lines = _prepare_lines(log)
+    lines = _failed_step(_prepare_lines(log))
     failures = _section(lines, _FAILURES_HEADER)
     if failures:
         root = _innermost_exception(failures)
@@ -136,14 +212,47 @@ def extract(log: str) -> Excerpt:
     informative_markers = [
         index
         for index, line in enumerate(lines)
-        if _ERROR_MARKER.match(line) and not _USELESS_ERROR.match(line)
+        if _ERROR_MARKER.match(line) and not _GENERIC_ERROR.match(line)
     ]
     if informative_markers:
         index = informative_markers[-1]
         return Excerpt(lines[index], "error-marker")
 
+    diagnostic = diagnostic_lines(lines)
+    if diagnostic:
+        return Excerpt(diagnostic[-1], "diagnostic-line")
+
     tail = tuple(line for line in lines if line.strip())[-15:]
     return Excerpt("\n".join(tail), "log-tail")
+
+
+def diagnostic_lines(lines: Iterable[str]) -> Tuple[str, ...]:
+    """Return the error-shaped lines in ``lines``, stripped of indentation."""
+
+    out = []
+    for line in lines:
+        stripped = line.strip()
+        if _DIAGNOSTIC_LINE.match(stripped) and not _NON_DIAGNOSTIC.match(stripped):
+            out.append(stripped)
+    return tuple(out)
+
+
+def error_lines(log: str) -> Tuple[str, ...]:
+    """Return every error-shaped line of a whole log, for rule precision checks.
+
+    Deliberately broader than extraction: a passing job's retried-then-healed
+    errors are exactly the text a non-diagnostic rule would wrongly match.
+    """
+
+    out = []
+    for line in _prepare_lines(log):
+        stripped = line.strip()
+        if _GENERIC_ERROR.match(stripped):
+            continue
+        errorish = _ERRORISH_LINE.search(stripped) or _EXCEPTION_LINE.match(stripped)
+        if errorish or _DIAGNOSTIC_LINE.match(stripped):
+            out.append(stripped)
+    return tuple(dict.fromkeys(out))
 
 
 def normalise(text: str) -> str:

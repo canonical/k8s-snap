@@ -53,3 +53,34 @@ The issue bridge itself (`metrics open-issues`) stays `--dry-run` by default
 on every trigger; only `workflow_dispatch` with `post_issues: true` can create
 or update real GitHub issues, and even then it is gated on the recurrence
 threshold and daily budget described in the delivery plan.
+
+## Signatures, rules and issue lifecycle
+
+- **Signature versions.** A signature is the hash of an excerpt taken from the
+  *failed step* of a job log (post-failure steps such as artifact upload are
+  ignored, and wrapper verdicts like `Failed after 5 attempts` give way to the
+  tool's own error line). Bumping `EXTRACTOR_VERSION` or `NORMALISER_VERSION` in
+  `ci/metrics/signature.py` changes signature IDs; the workflow's
+  `fetch-logs --reextract` re-fingerprints stored jobs while GitHub still
+  retains their logs, and a job whose log has expired keeps its old signature.
+  Issues are not migrated: an issue filed against a pre-bump signature stays
+  as it is (quiet close skips it, since its signature no longer has jobs), and
+  the successor signature is a new candidate. Avoid bumping while bridge
+  issues are open, or retire them by hand.
+- **Rule precision.** `metrics check-rules` reports, per rule in
+  `ci/failure_rules.yaml`, how many signatures and jobs it classifies and how
+  often its `excerpt_pattern` also hits the error lines of *successful* jobs
+  that ran the same tests. Following OpenStack elastic-recheck, more than 10%
+  green hits marks a rule `imprecise`: it is matching a symptom (typically
+  retry noise), not a root cause. Run it on any new rule before merging
+  (`--fail-on-imprecise` makes it a gate); the daily digest job also appends
+  the report to its run summary.
+- **Quiet close.** An open bridge issue whose signature has not recurred for
+  14 days (`--quiet-close-days`, `0` disables) is closed with a comment, but
+  only if at least 3 stored runs (`--quiet-close-min-runs`) of the same
+  workflows collected tests in the same matrix configs during that window, so
+  a disabled workflow or an ingest outage is never mistaken for a fix. Only
+  per-config test counts are stored, so a single skipped test is not detected. A recurrence reopens a quiet-closed issue
+  directly; an issue a human closed still needs the provable-freshness check
+  from the proposal, and a closed issue is only ever touched after a *new*
+  occurrence.

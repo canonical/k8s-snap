@@ -13,7 +13,12 @@ from typing import Dict, Iterable, List, Optional, Protocol, Tuple
 
 from metrics.gh import GitHubError
 from metrics.router import RouterJob, route
-from metrics.signature import Fingerprint, fingerprint
+from metrics.signature import (
+    EXTRACTOR_VERSION,
+    NORMALISER_VERSION,
+    Fingerprint,
+    fingerprint,
+)
 
 LOG = logging.getLogger(__name__)
 
@@ -78,6 +83,52 @@ def pending_jobs(
     ]
 
 
+def stale_jobs(
+    conn: sqlite3.Connection,
+    run_ids: Optional[Iterable[int]] = None,
+    limit: Optional[int] = None,
+) -> List[PendingJob]:
+    """Return fingerprinted jobs whose signature predates the current pipeline.
+
+    Bumping ``EXTRACTOR_VERSION`` or ``NORMALISER_VERSION`` changes signature
+    IDs; without re-fingerprinting, old and new jobs of one failure would be
+    split across two signatures. Newest first, so the jobs most likely to still
+    have a retained log go first.
+    """
+
+    sql = """
+        SELECT j.job_id, j.failed_step_name, j.log_available, j.duration_s,
+               cfg.channel, j.completed_at
+        FROM jobs j
+        JOIN configs cfg USING (config_id)
+        JOIN signatures s ON s.signature_id = j.signature_id
+        LEFT JOIN job_excerpts je ON je.job_id = j.job_id
+        WHERE j.log_available = ?
+          AND j.router_rule_id IS NULL
+          AND (COALESCE(je.extractor_version, 0) < ? OR s.normaliser_version < ?)
+    """
+    params: List[int] = [LOG_FINGERPRINTED, EXTRACTOR_VERSION, NORMALISER_VERSION]
+    run_ids = list(run_ids or [])
+    if run_ids:
+        sql += f" AND j.run_id IN ({', '.join('?' for _ in run_ids)})"
+        params.extend(run_ids)
+    sql += " ORDER BY j.job_id DESC"
+    if limit is not None:
+        sql += " LIMIT ?"
+        params.append(limit)
+    return [
+        PendingJob(
+            job_id=int(row[0]),
+            failed_step_name=row[1],
+            log_available=row[2],
+            duration_s=row[3],
+            channel=row[4] or "",
+            completed_at=row[5],
+        )
+        for row in conn.execute(sql, params)
+    ]
+
+
 def _missing_log_state(status: int, completed_at: Optional[str], now: datetime) -> int:
     """Decide whether an absent log is runner-lost evidence or just gone."""
 
@@ -93,7 +144,12 @@ def _missing_log_state(status: int, completed_at: Optional[str], now: datetime) 
 
 
 def store_fingerprint(conn: sqlite3.Connection, job_id: int, fp: Fingerprint) -> None:
-    """Record ``fp`` against ``job_id``; the first job seen is the exemplar."""
+    """Record ``fp`` against ``job_id``; the first job seen is the exemplar.
+
+    An existing row with the same ID has the same normalised text, so a newer
+    pipeline that reproduces it upgrades the row's versions; otherwise its
+    jobs would look stale to ``stale_jobs`` forever.
+    """
 
     conn.execute(
         """
@@ -101,7 +157,9 @@ def store_fingerprint(conn: sqlite3.Connection, job_id: int, fp: Fingerprint) ->
             signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id,
             normaliser_version, extractor_version
         ) VALUES (?, ?, ?, ?, ?, ?)
-        ON CONFLICT(signature_id) DO NOTHING
+        ON CONFLICT(signature_id) DO UPDATE SET
+            normaliser_version = MAX(normaliser_version, excluded.normaliser_version),
+            extractor_version = MAX(extractor_version, excluded.extractor_version)
         """,
         (
             fp.signature_id,
@@ -144,6 +202,7 @@ def fetch_and_fingerprint(
     now = now or datetime.now(timezone.utc)
     summary = {
         "fingerprinted": 0,
+        "reextracted": 0,
         "log_missing": 0,
         "log_gone": 0,
         "routed": 0,
@@ -162,7 +221,12 @@ def fetch_and_fingerprint(
             continue
         with conn:
             if log is None:
-                state = _missing_log_state(status, job.completed_at, now)
+                if job.log_available == LOG_FINGERPRINTED:
+                    # Re-extraction found the log expired: keep the signature
+                    # it already has rather than discard a known cause.
+                    state = LOG_GONE
+                else:
+                    state = _missing_log_state(status, job.completed_at, now)
                 conn.execute(
                     "UPDATE jobs SET log_available = ? WHERE job_id = ?",
                     (state, job.job_id),
@@ -173,5 +237,7 @@ def fetch_and_fingerprint(
             store_fingerprint(conn, job.job_id, fp)
         signatures.add(fp.signature_id)
         summary["fingerprinted"] += 1
+        if job.log_available == LOG_FINGERPRINTED:
+            summary["reextracted"] += 1
     summary["signatures"] = len(signatures)
     return summary

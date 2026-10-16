@@ -17,8 +17,20 @@ from typing import Optional
 
 from metrics.gh import DEFAULT_REPO, GitHubClient
 from metrics.ingest import InFlightRunError, dump_records, ingest_run
-from metrics.issues import GitHubIssueClient, open_issues
-from metrics.logs import fetch_and_fingerprint, pending_jobs
+from metrics.issues import (
+    DEFAULT_QUIET_CLOSE_DAYS,
+    DEFAULT_QUIET_CLOSE_MIN_RUNS,
+    GitHubIssueClient,
+    open_issues,
+)
+from metrics.logs import fetch_and_fingerprint, pending_jobs, stale_jobs
+from metrics.precision import (
+    DEFAULT_MAX_SUCCESS_HIT_RATE,
+    DEFAULT_RUNS,
+    DEFAULT_SAMPLE,
+    check_rules,
+    render_markdown,
+)
 from metrics.report import build_catalogue, render_digest_markdown, write_reports
 from metrics.rollup import derive_rollup, derive_rollups, open_issue_backlog
 from metrics.router import apply_router
@@ -303,6 +315,24 @@ def add_metrics_cmds(parser: argparse.ArgumentParser) -> None:
         help="Minimum days between unknown-freshness comments on a closed issue.",
     )
     open_issues_parser.add_argument(
+        "--quiet-close-days",
+        default=DEFAULT_QUIET_CLOSE_DAYS,
+        type=int,
+        help=(
+            "Close a bridge issue whose signature has not recurred for this many "
+            f"days, or 0 to disable (default: {DEFAULT_QUIET_CLOSE_DAYS})."
+        ),
+    )
+    open_issues_parser.add_argument(
+        "--quiet-close-min-runs",
+        default=DEFAULT_QUIET_CLOSE_MIN_RUNS,
+        type=int,
+        help=(
+            "Runs that must have exercised the substrate during the quiet window "
+            f"before closing (default: {DEFAULT_QUIET_CLOSE_MIN_RUNS})."
+        ),
+    )
+    open_issues_parser.add_argument(
         "--sql",
         default=DEFAULT_SQL,
         type=Path,
@@ -346,6 +376,14 @@ def add_metrics_cmds(parser: argparse.ArgumentParser) -> None:
         "--limit", type=int, help="Maximum number of pending jobs to consider."
     )
     fetch_logs.add_argument(
+        "--reextract",
+        action="store_true",
+        help=(
+            "Also re-fingerprint jobs signed by an older extractor/normaliser "
+            "version, while GitHub still retains their logs."
+        ),
+    )
+    fetch_logs.add_argument(
         "--json", action="store_true", help="Print the fetch summary as JSON."
     )
     fetch_logs.add_argument(
@@ -360,6 +398,48 @@ def add_metrics_cmds(parser: argparse.ArgumentParser) -> None:
         help="Do not update the deterministic SQL dump after fetching.",
     )
     fetch_logs.set_defaults(func=cmd_fetch_logs)
+
+    check = metrics_sub.add_parser(
+        "check-rules",
+        help="Report rule coverage and whether rules also fire on successful jobs.",
+    )
+    _add_common_args(check)
+    check.add_argument(
+        "--rules",
+        default=DEFAULT_RULES_PATH,
+        type=Path,
+        help=f"Rule pack path (default: {DEFAULT_RULES_PATH})",
+    )
+    check.add_argument(
+        "--offline",
+        action="store_true",
+        help="Only report coverage from the store; fetch no successful-job logs.",
+    )
+    check.add_argument(
+        "--sample",
+        type=int,
+        default=DEFAULT_SAMPLE,
+        help=f"Successful-job logs to test per rule (default: {DEFAULT_SAMPLE}).",
+    )
+    check.add_argument(
+        "--runs",
+        type=int,
+        default=DEFAULT_RUNS,
+        help=f"Newest stored runs to draw successful jobs from (default: {DEFAULT_RUNS}).",
+    )
+    check.add_argument(
+        "--max-success-hit-rate",
+        type=float,
+        default=DEFAULT_MAX_SUCCESS_HIT_RATE,
+        help="Green-job hit rate above which a rule is imprecise (default: 0.10).",
+    )
+    check.add_argument(
+        "--fail-on-imprecise",
+        action="store_true",
+        help="Exit 1 when any rule is imprecise.",
+    )
+    check.add_argument("--json", action="store_true", help="Print the report as JSON.")
+    check.set_defaults(func=cmd_check_rules)
 
 
 def _add_common_args(parser: argparse.ArgumentParser) -> None:
@@ -486,6 +566,29 @@ def cmd_classify(args: argparse.Namespace) -> int:
 
     if not args.no_dump:
         dump_database(conn, args.sql)
+    return 0
+
+
+def cmd_check_rules(args: argparse.Namespace) -> int:
+    """Report each rule's coverage and precision against successful jobs."""
+
+    conn = open_database(args.db)
+    pack = load_rules(args.rules)
+    client = None if args.offline else GitHubClient(repo=args.repo, token=args.token)
+    reports = check_rules(
+        conn,
+        pack,
+        client,
+        sample=args.sample,
+        runs=args.runs,
+        max_success_hit_rate=args.max_success_hit_rate,
+    )
+    if args.json:
+        print(json.dumps([report.as_dict() for report in reports], indent=2))
+    else:
+        print(render_markdown(reports, args.max_success_hit_rate), end="")
+    if args.fail_on_imprecise and any(r.verdict == "imprecise" for r in reports):
+        return 1
     return 0
 
 
@@ -659,6 +762,8 @@ def cmd_open_issues(args: argparse.Namespace) -> int:
             daily_budget=args.daily_budget,
             resolved_cooldown_days=args.resolved_cooldown_days,
             reopen_comment_window_days=args.reopen_comment_window_days,
+            quiet_close_days=args.quiet_close_days,
+            quiet_close_min_runs=args.quiet_close_min_runs,
             rule_notes=rule_notes,
         )
         if not args.dry_run and not args.no_dump:
@@ -681,15 +786,19 @@ def cmd_fetch_logs(args: argparse.Namespace) -> int:
     client = GitHubClient(repo=args.repo, token=args.token)
     conn = open_database(args.db)
     jobs = pending_jobs(conn, run_ids=args.run_id, limit=args.limit)
+    if args.reextract:
+        remaining = None if args.limit is None else max(0, args.limit - len(jobs))
+        if remaining != 0:
+            jobs += stale_jobs(conn, run_ids=args.run_id, limit=remaining)
     summary = {"pending": len(jobs), **fetch_and_fingerprint(client, conn, jobs)}
     if args.json:
         print(json.dumps(summary, indent=2, sort_keys=True))
     else:
         print(
             "fetch-logs: {pending} pending, {fingerprinted} fingerprinted into "
-            "{signatures} signatures, {log_missing} without log (runner-lost "
-            "evidence), {log_gone} log gone, {routed} routed by metadata, "
-            "{errors} errors".format(**summary)
+            "{signatures} signatures ({reextracted} re-extracted), {log_missing} "
+            "without log (runner-lost evidence), {log_gone} log gone, {routed} "
+            "routed by metadata, {errors} errors".format(**summary)
         )
     if not args.no_dump:
         dump_database(conn, args.sql)
