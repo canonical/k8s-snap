@@ -278,7 +278,7 @@ class LXDHarness(Harness):
             command_str = shlex.join(command)
 
         return run(
-            ["lxc", "shell", instance_id, "--", "bash", "-c", command_str],
+            ["lxc", "exec", instance_id, "--", "bash", "-c", command_str],
             **kwargs,
         )
 
