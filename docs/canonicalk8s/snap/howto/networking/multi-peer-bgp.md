@@ -43,6 +43,10 @@ sudo k8s set \
 
 ### Set the multi-peer annotation
 
+```{note}
+**Using the Juju charm?** See [Configure cluster annotations][charm-configure].
+```
+
 Define peers in a YAML file and pass the whole file via the `annotations` key:
 
 ```bash
@@ -144,3 +148,4 @@ Correct the annotation and the reconciler retries automatically.
 
 <!-- LINKS -->
 [getting-started-guide]: /snap/tutorial/getting-started
+[charm-configure]: /charm/howto/configure-cluster.md#cluster-annotations
