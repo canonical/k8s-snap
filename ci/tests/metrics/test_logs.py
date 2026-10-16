@@ -21,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from cmds.metrics import cmd_fetch_logs  # noqa: E402
 from metrics.gh import GitHubError  # noqa: E402
 from metrics.ingest import build_run_records, ingest_run  # noqa: E402
-from metrics.logs import fetch_and_fingerprint, pending_jobs  # noqa: E402
+from metrics.logs import fetch_and_fingerprint, pending_jobs, stale_jobs  # noqa: E402
 from metrics.router import apply_router  # noqa: E402
 from metrics.store import store_run_record  # noqa: E402
 from metrics.store import initialise_database, open_database  # noqa: E402
@@ -265,6 +265,63 @@ class FetchAndFingerprintTest(unittest.TestCase):
         )
         self.assertNotIn("abc123def456ghi789", stored)
 
+    def _age_signature(self, conn: sqlite3.Connection, job_id: int) -> str:
+        """Pretend ``job_id`` was fingerprinted by extractor/normaliser v1."""
+
+        old = "00000000000000aa"
+        conn.execute(
+            """
+            INSERT INTO signatures (
+                signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id,
+                normaliser_version, extractor_version
+            ) VALUES (?, 'old', 'old', ?, 1, 1)
+            """,
+            (old, job_id),
+        )
+        conn.execute("UPDATE jobs SET signature_id = ? WHERE job_id = ?", (old, job_id))
+        conn.execute(
+            "UPDATE job_excerpts SET extractor_version = 1 WHERE job_id = ?",
+            (job_id,),
+        )
+        conn.commit()
+        return old
+
+    def test_reextract_moves_old_version_jobs_to_current_signatures(self) -> None:
+        client = FakeClient(
+            [_job(1, "tests/test_a.py::test_a"), _job(2, "tests/test_b.py::test_b")],
+            {1: _failure_log("10.1.2.3", 1), 2: _failure_log("10.1.2.4", 2)},
+        )
+        conn = _db()
+        ingest_run(client, conn, RUN_ID)
+        current = _job_row(conn, 2)[1]
+        self._age_signature(conn, 1)
+
+        stale = stale_jobs(conn)
+        self.assertEqual([job.job_id for job in stale], [1])
+        self.assertEqual(pending_jobs(conn), [])
+        summary = fetch_and_fingerprint(client, conn, stale)
+
+        self.assertEqual(summary["reextracted"], 1)
+        self.assertEqual(_job_row(conn, 1), (1, current, None))
+        self.assertEqual(stale_jobs(conn), [])
+
+    def test_reextract_keeps_signature_when_log_has_expired(self) -> None:
+        client = FakeClient(
+            [_job(1, "tests/test_a.py::test_a")], {1: _failure_log("10.1.2.3", 1)}
+        )
+        conn = _db()
+        ingest_run(client, conn, RUN_ID)
+        old = self._age_signature(conn, 1)
+        client.logs[1] = 404
+
+        summary = fetch_and_fingerprint(client, conn, stale_jobs(conn))
+
+        self.assertEqual(summary["log_gone"], 1)
+        self.assertEqual(summary["log_missing"], 0)
+        # Recent 404 on a job we once had a log for is expiry, not a lost runner.
+        self.assertEqual(_job_row(conn, 1), (2, old, None))
+        self.assertEqual(stale_jobs(conn), [])
+
 
 class FetchLogsCommandTest(unittest.TestCase):
     def test_fetch_logs_drains_pending_jobs_and_dumps(self) -> None:
@@ -284,6 +341,7 @@ class FetchLogsCommandTest(unittest.TestCase):
                 token="t",
                 run_id=None,
                 limit=None,
+                reextract=False,
                 json=True,
                 sql=sql,
                 no_dump=False,

@@ -134,9 +134,12 @@ jobs:
         # Ingest already fingerprints the runs it touches; this drains whatever
         # is still pending (a transient log-fetch error, or a --skip-logs
         # backfill) in bounded batches so one run never fetches thousands of logs.
+        # --reextract then spends any leftover batch re-fingerprinting jobs
+        # signed by an older extractor/normaliser, so a version bump migrates
+        # stored history instead of splitting each failure across two IDs.
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python ci/k8s-ci.py metrics fetch-logs --limit 200 --json
+        run: python ci/k8s-ci.py metrics fetch-logs --limit 200 --reextract --json
 
       - name: Classify stored failures
         run: python ci/k8s-ci.py metrics classify --json

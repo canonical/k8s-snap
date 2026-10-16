@@ -18,7 +18,7 @@ from typing import Optional
 from metrics.gh import DEFAULT_REPO, GitHubClient
 from metrics.ingest import InFlightRunError, dump_records, ingest_run
 from metrics.issues import GitHubIssueClient, open_issues
-from metrics.logs import fetch_and_fingerprint, pending_jobs
+from metrics.logs import fetch_and_fingerprint, pending_jobs, stale_jobs
 from metrics.report import build_catalogue, render_digest_markdown, write_reports
 from metrics.rollup import derive_rollup, derive_rollups, open_issue_backlog
 from metrics.router import apply_router
@@ -344,6 +344,14 @@ def add_metrics_cmds(parser: argparse.ArgumentParser) -> None:
     )
     fetch_logs.add_argument(
         "--limit", type=int, help="Maximum number of pending jobs to consider."
+    )
+    fetch_logs.add_argument(
+        "--reextract",
+        action="store_true",
+        help=(
+            "Also re-fingerprint jobs signed by an older extractor/normaliser "
+            "version, while GitHub still retains their logs."
+        ),
     )
     fetch_logs.add_argument(
         "--json", action="store_true", help="Print the fetch summary as JSON."
@@ -681,15 +689,19 @@ def cmd_fetch_logs(args: argparse.Namespace) -> int:
     client = GitHubClient(repo=args.repo, token=args.token)
     conn = open_database(args.db)
     jobs = pending_jobs(conn, run_ids=args.run_id, limit=args.limit)
+    if args.reextract:
+        remaining = None if args.limit is None else max(0, args.limit - len(jobs))
+        if remaining != 0:
+            jobs += stale_jobs(conn, run_ids=args.run_id, limit=remaining)
     summary = {"pending": len(jobs), **fetch_and_fingerprint(client, conn, jobs)}
     if args.json:
         print(json.dumps(summary, indent=2, sort_keys=True))
     else:
         print(
             "fetch-logs: {pending} pending, {fingerprinted} fingerprinted into "
-            "{signatures} signatures, {log_missing} without log (runner-lost "
-            "evidence), {log_gone} log gone, {routed} routed by metadata, "
-            "{errors} errors".format(**summary)
+            "{signatures} signatures ({reextracted} re-extracted), {log_missing} "
+            "without log (runner-lost evidence), {log_gone} log gone, {routed} "
+            "routed by metadata, {errors} errors".format(**summary)
         )
     if not args.no_dump:
         dump_database(conn, args.sql)
