@@ -1,16 +1,20 @@
 ---
 myst:
   html_meta:
-    description: "Reference documentation for Canonical Kubernetes charm actions, with links to the k8s and k8s-worker action pages on Charmhub."
+    description: "Reference documentation for Canonical Kubernetes k8s and k8s-worker charm actions and their parameters."
 ---
 
 # Charm actions reference
 
-The up-to-date list of actions are available on Charmhub:
+This reference lists the actions declared by the `k8s` and `k8s-worker` charms
+and their parameters. They are also available on [Charmhub](https://charmhub.io/k8s/actions).
 
-* For the `k8s` charm, see [k8s actions page]
-* For the `k8s-worker` charm, see [k8s-worker actions page]
+## Actions for `k8s` charm
 
-<!-- LINKS -->
-[k8s actions page]: https://charmhub.io/k8s/actions
-[k8s-worker actions page]: https://charmhub.io/k8s-worker/actions
+```{include} /_parts/charms/k8s-actions.md
+```
+
+## Actions for `k8s-worker` charm
+
+```{include} /_parts/charms/k8s-worker-actions.md
+```
