@@ -627,6 +627,23 @@ def wait_for_load_balancer(instance: harness.Instance):
     )
 
 
+def wait_for_json(
+    instance: harness.Instance,
+    command: List[str],
+    condition: Callable[[Any], bool],
+    retries: int = 30,
+    delay_s: int = 10,
+) -> Any:
+    """Re-run command until condition holds on its JSON output, and return it."""
+    p = (
+        stubbornly(retries=retries, delay_s=delay_s)
+        .on(instance)
+        .until(lambda p: condition(json.loads(p.stdout.decode())))
+        .exec(command)
+    )
+    return json.loads(p.stdout.decode())
+
+
 def hostname(instance: harness.Instance) -> str:
     """Return the hostname for a given instance."""
     resp = instance.exec(["hostname"], capture_output=True)
