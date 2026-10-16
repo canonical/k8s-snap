@@ -43,6 +43,10 @@ sudo k8s set \
 
 ### Set the multi-peer annotation
 
+```{note}
+**Using the Juju charm?** See [Configure cluster annotations][charm-configure].
+```
+
 Define peers in a YAML file and pass the whole file via the `annotations` key:
 
 ```bash
@@ -136,6 +140,9 @@ Correct the annotation and the reconciler retries automatically.
 - The annotation value is write-only — inspect it directly with
   `k8s kubectl get node <node> -o yaml`.
 - No per-peer BFD or multi-hop support.
+- `BGPPeer.spec.password` authenticates BGP sessions using TCP-MD5 (RFC 2385),
+  which is not approved under FIPS 140-3. Do not set a peer password in FIPS
+  environments.
 
 ## Next steps
 
@@ -144,3 +151,4 @@ Correct the annotation and the reconciler retries automatically.
 
 <!-- LINKS -->
 [getting-started-guide]: /snap/tutorial/getting-started
+[charm-configure]: /charm/howto/configure-cluster.md#cluster-annotations
