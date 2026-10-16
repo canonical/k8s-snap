@@ -1,0 +1,258 @@
+##
+## Copyright 2026 Canonical, Ltd.
+##
+
+version: 1
+
+rules:
+  - id: infra-disk-full
+    failure_class: infra.runner
+    subclass: disk_space
+    excerpt_pattern: 'no space left on device|disk quota exceeded'
+    notes: >-
+      Runner storage exhaustion can surface through any command. It is
+      infrastructure regardless of which product-shaped error printed last.
+
+  - id: infra-oom
+    failure_class: infra.runner
+    subclass: oom
+    excerpt_pattern: 'Out of memory: Killed process|oom-kill|Cannot allocate memory'
+    notes: >-
+      The host kernel killed a process for memory pressure. The victim process
+      is incidental, so this intentionally matches on host-level text.
+
+  - id: infra-missing-tool
+    failure_class: infra.runner
+    subclass: missing_tool
+    excerpt_pattern: ": command not found|FileNotFoundError: \\[Errno 2\\] No such file or directory: '(lxc|lxd|multipass|snap|zip|jq|kubectl)'"
+    notes: >-
+      A binary expected on the runner image is absent. The workflow reached the
+      machine but the machine was incomplete, so this is runner infrastructure.
+
+  - id: infra-lxd-setup
+    failure_class: infra.provisioning
+    subclass: lxd_setup
+    job:
+      failed_step_name: '^(Setup LXD|Install LXD|Configure LXD)'
+    notes: >-
+      LXD setup happens before the product under test exists. Failures here are
+      provisioning failures, not product failures.
+
+  - id: infra-multipass-setup
+    failure_class: infra.provisioning
+    subclass: multipass_setup
+    job:
+      failed_step_name: '^(Setup Multipass|Install Multipass|Launch .*(VM|instance))'
+    notes: >-
+      Multipass instance launch and setup are substrate provisioning work. A
+      failure here means the test machine was not prepared.
+
+  - id: infra-multipass-fixture-never-ready
+    signature_id: 8c531e6ba49b3382
+    failure_class: infra.provisioning
+    subclass: multipass_setup
+    job:
+      substrate: '^multipass$'
+    notes: >-
+      The generic "Failed to meet condition" signature means Multipass setup
+      did not converge when the substrate is Multipass. The same signature has
+      a different meaning on LXD, so the substrate guard is load-bearing.
+
+  - id: external-snap-store
+    failure_class: external.dependency
+    subclass: snap_store
+    excerpt_pattern: 'cannot install "?k8s"?|snap "k8s" is not available|too many requests|cannot refresh .* store'
+    notes: >-
+      Snap Store availability or throttling failures are external dependencies.
+      They sit above product install rules so visible store causes win.
+
+  - id: external-registry
+    failure_class: external.dependency
+    subclass: registry
+    excerpt_pattern: '(ghcr\.io|docker\.io|registry\.k8s\.io|quay\.io).{0,80}(timeout|TLS handshake|no such host|connection refused|toomanyrequests|denied|500 Internal)'
+    notes: >-
+      Image pulls from third-party registries failed. The registry hostname is
+      required so in-cluster pull symptoms are not swept into this class.
+
+  - id: external-apt
+    failure_class: external.dependency
+    subclass: apt
+    excerpt_pattern: 'Failed to fetch http.{0,120}(archive|security)\.ubuntu\.com|E: Unable to locate package|Could not get lock /var/lib/dpkg'
+    notes: >-
+      Ubuntu archive access or dpkg lock contention prevented setup from
+      completing, so the failure belongs to an external dependency.
+
+  - id: ci-test-collection
+    failure_class: ci.config
+    subclass: test_collection
+    job:
+      failed_step_name: '^Collect tests'
+    notes: >-
+      Test collection runs before the matrix executes. A collection failure
+      means CI selected or collected the suite incorrectly.
+
+  - id: ci-missing-artifact
+    failure_class: ci.config
+    subclass: missing_artifact
+    excerpt_pattern: 'Unable to (find|download) artifact|Artifact not found for name|no files were found with the provided path'
+    notes: >-
+      The job expected an artifact that was not available. That is CI wiring or
+      an upstream job failure, not evidence about the product.
+
+  - id: product-node-never-ready
+    signature_id: c55cefd2ca3f28e7
+    failure_class: product.bug
+    subclass: service_not_active
+    excerpt_pattern: 'wait_until_k8s_ready'
+    notes: >-
+      The harness waited for Kubernetes readiness and the node never became
+      Ready. The extra excerpt guard prevents reusing a bare assertion hash for
+      unrelated assertion failures.
+
+  - id: product-kube-proxy-inactive
+    signature_id: 38c23bd3a1bab957
+    failure_class: product.bug
+    subclass: service_not_active
+    notes: >-
+      "Service kube-proxy should be active, but it is inactive" points at
+      product service lifecycle during upgrade and rollback tests.
+
+  - id: product-retry-condition-never-met
+    signature_id: 8c531e6ba49b3382
+    failure_class: product.bug
+    subclass: upgrade_failure
+    job:
+      substrate: '^lxd$'
+    notes: >-
+      The generic "Failed to meet condition" signature is a product upgrade
+      failure on LXD, where observed failures cluster in upgrade tests. Without
+      a parsed LXD substrate this rule must not match.
+
+  - id: product-service-restarts
+    signature_id: 35b12bf41b664182
+    failure_class: product.bug
+    subclass: service_not_active
+    notes: >-
+      Kubelet restarted during version-upgrade coverage. A product service
+      restarting mid-upgrade is attributed to the product.
+
+  - id: product-service-restarts-rollback
+    signature_id: '867525576ccca976'
+    failure_class: product.bug
+    subclass: upgrade_failure
+    notes: >-
+      The kubelet-restart symptom during downgrade with rollback exercises a
+      distinct upgrade path, so it is kept as its own pinned rule.
+
+  - id: product-containerd-image-import
+    signature_id: '96001693f7bb9dbb'
+    failure_class: product.bug
+    subclass: api_error
+    notes: >-
+      `ctr image import` exits non-zero inside the instance during containerd
+      coverage, after the product has been installed.
+
+  - id: product-bootstrap-failure
+    failure_class: product.bug
+    subclass: bootstrap_failure
+    excerpt_pattern: 'k8s bootstrap'
+    notes: >-
+      The integration harness wraps commands through `util.run`; when the
+      wrapped command is `k8s bootstrap`, bootstrap itself failed and downstream
+      readiness symptoms are not the primary fault.
+
+  - id: product-join-failure
+    failure_class: product.bug
+    subclass: join_failure
+    excerpt_pattern: 'k8s join-cluster'
+    notes: >-
+      A node failed to join the cluster. This rule relies on the scrubber
+      preserving the command while redacting the join token.
+
+  - id: product-wait-for-timeout
+    failure_class: product.bug
+    subclass: wait_for_timeout
+    excerpt_pattern: 'k8s x-wait-for (network|dns|kube-system-ready|[a-z-]+).{0,40}--timeout'
+    notes: >-
+      `k8s x-wait-for` exhausted the product's own readiness timeout. The
+      subsystem failed to converge within the requested time.
+
+  - id: product-cluster-never-ready
+    failure_class: product.bug
+    subclass: cluster_never_ready
+    excerpt_pattern: 'k8s status --wait-ready'
+    notes: >-
+      The aggregate product readiness command returned non-zero, so the cluster
+      never reached ready state.
+
+  - id: product-snap-install-failure
+    failure_class: product.bug
+    subclass: snap_install_failure
+    excerpt_pattern: 'snap (install|refresh) k8s'
+    notes: >-
+      Installing or refreshing the k8s snap failed after external store errors
+      had the chance to match above. The wrapped command is the remaining
+      discriminator left by the harness.
+
+  - id: product-service-should-be-inactive
+    failure_class: product.bug
+    subclass: service_not_active
+    excerpt_pattern: 'Unexpected service \S+ is active but should be inactive'
+    notes: >-
+      A product-managed service that should have stopped remained active,
+      indicating service lifecycle drift.
+
+  - id: product-service-not-active-text
+    failure_class: product.bug
+    subclass: service_not_active
+    excerpt_pattern: 'Service \S+ should be active, but it is inactive'
+    notes: >-
+      The text form of product service inactivity catches equivalent failures
+      whose surrounding frames produce a new signature.
+
+  - id: product-gateway-ip-missing
+    failure_class: product.bug
+    subclass: networking
+    excerpt_pattern: 'No Gateway IP found|AssertionError: No LoadBalancer IP'
+    notes: >-
+      The gateway or load balancer did not get an address, so the networking
+      feature failed to converge.
+
+  - id: product-upgrade-crd
+    failure_class: product.bug
+    subclass: upgrade_failure
+    excerpt_pattern: 'upgrade CRD should (not )?be created|AssertionError: upgrade .{0,40}(CRD|custom resource)'
+    notes: >-
+      The upgrade custom resource is in the wrong state, which belongs to the
+      upgrade controller or product bookkeeping.
+
+  - id: product-fips-not-enforced
+    failure_class: product.bug
+    subclass: api_error
+    excerpt_pattern: 'k8sd should fail with FIPS enabled|Expected pods .{0,60}to fail with FIPS error'
+    notes: >-
+      The product accepted a configuration it was expected to reject under FIPS,
+      so this is product enforcement failure.
+
+  - id: test-empty-command-output
+    failure_class: test.bug
+    subclass: bad_assumption
+    excerpt_pattern: 'json\.decoder\.JSONDecodeError: Expecting value: line 1 column 1 \(char 0\)'
+    notes: >-
+      The test parsed empty stdout as JSON and discarded the product's useful
+      stderr or exit information. The fix is to improve the test evidence path.
+
+  - id: test-harness-bug
+    failure_class: test.bug
+    subclass: harness_bug
+    excerpt_pattern: 'tests/test_util/.*\n.*\n?.*(TypeError|AttributeError|NameError|ImportError)|BaseRetrying\.__init__\(\) got an unexpected keyword'
+    notes: >-
+      The test harness raised before product behavior could be evaluated.
+
+  - id: test-timeout-too-short
+    failure_class: test.bug
+    subclass: timeout_too_short
+    excerpt_pattern: 'Failed: Timeout >\d+\.\d+s|tenacity\.RetryError.*stop_after_delay|TimeoutError: wait timed out after \d+s'
+    notes: >-
+      Pytest or the harness timed out without surfacing a product assertion, so
+      the actionable fix is in test timing or evidence capture.
