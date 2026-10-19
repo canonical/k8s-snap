@@ -176,6 +176,41 @@ def _restart_etcd_and_wait_for_write(instance: harness.Instance, what: str):
     )
 
 
+def _join_control_planes(cp1: harness.Instance, joiners: List[harness.Instance]):
+    """Join control-plane nodes to cp1 and wait until all of them are etcd voters."""
+    control_planes = [cp1, *joiners]
+    util.wait_until_k8s_ready(cp1, [cp1])
+    for joiner in joiners:
+        util.join_cluster(joiner, util.get_join_token(cp1, joiner))
+    util.wait_until_k8s_ready(cp1, control_planes)
+    assert util.get_datastore_type(cp1) == "etcd", "test needs the etcd datastore"
+    _wait_for(
+        lambda: sorted(_etcd_started_voters(cp1))
+        == sorted(cp.id for cp in control_planes),
+        timeout_s=180,
+        interval_s=5,
+        what="all control-plane nodes to be started etcd voters",
+    )
+
+
+def _dqlite_spare(
+    cp1: harness.Instance, control_planes: List[harness.Instance]
+) -> harness.Instance:
+    """Return the control-plane node that holds the dqlite spare role."""
+    status = json.loads(
+        cp1.exec(
+            ["k8s", "status", "--output-format", "json"],
+            capture_output=True,
+            text=True,
+        ).stdout
+    )
+    roles = {m["name"]: m["datastore-role"] for m in status["members"]}
+    LOG.info("dqlite roles: %s", roles)
+    spares = [cp for cp in control_planes if roles.get(cp.id) == "spare"]
+    assert len(spares) == 1, f"expected exactly one dqlite spare, got roles {roles}"
+    return spares[0]
+
+
 @pytest.mark.node_count(2)
 @pytest.mark.tags(tags.NIGHTLY)
 def test_remove_force_keeps_etcd_member_without_quorum(
@@ -194,30 +229,9 @@ def test_remove_force_keeps_etcd_member_without_quorum(
     succeed.
     """
     cp1, cp2 = instances
+    _join_control_planes(cp1, [cp2])
 
-    util.wait_until_k8s_ready(cp1, [cp1])
-    util.join_cluster(cp2, util.get_join_token(cp1, cp2))
-    util.wait_until_k8s_ready(cp1, [cp1, cp2])
-    assert util.get_datastore_type(cp1) == "etcd", "test needs the etcd datastore"
-    _wait_for(
-        lambda: sorted(_etcd_started_voters(cp1)) == sorted([cp1.id, cp2.id]),
-        timeout_s=180,
-        interval_s=5,
-        what="cp1 and cp2 to be started etcd voters",
-    )
-
-    status = json.loads(
-        cp1.exec(
-            ["k8s", "status", "--output-format", "json"],
-            capture_output=True,
-            text=True,
-        ).stdout
-    )
-    roles = {m["name"]: m["datastore-role"] for m in status["members"]}
-    LOG.info("dqlite roles: %s", roles)
-    spares = [cp for cp in (cp1, cp2) if roles.get(cp.id) == "spare"]
-    assert len(spares) == 1, f"expected exactly one dqlite spare, got roles {roles}"
-    spare = spares[0]
+    spare = _dqlite_spare(cp1, [cp1, cp2])
     survivor = cp2 if spare is cp1 else cp1
     spare_name = spare.id
 
@@ -236,11 +250,12 @@ def test_remove_force_keeps_etcd_member_without_quorum(
     # and exited 0, while the dead node stayed an etcd voter.
     result = _remove_node_force(survivor, spare_name)
     assert result.returncode != 0, (
-        "remove-node --force must fail while the node is still an etcd member "
+        "remove-node --force must fail while the node may still be an etcd member "
         "and etcd has no quorum (canonical/k8sd#161)"
     )
     assert (
-        "still an etcd member" in result.stderr
+        "may still be an etcd member" in result.stderr
+        and "--force-new-cluster" in result.stderr
     ), f"unexpected remove-node error: {result.stderr}"
     assert spare_name in _microcluster_members(
         survivor
@@ -288,3 +303,101 @@ def test_remove_force_keeps_etcd_member_without_quorum(
         interval_s=5,
         what=f"cluster memberships to converge on {survivor.id}",
     )
+
+
+@pytest.mark.node_count(3)
+@pytest.mark.tags(tags.NIGHTLY)
+def test_remove_force_rejected_by_etcd_keeps_member(
+    instances: List[harness.Instance],
+):
+    """`remove-node --force` must not drop a node whose removal etcd rejects.
+
+    On a 3-node control plane, cp2 dies permanently. etcd keeps its quorum
+    (cp1 and cp3), but its strict reconfiguration check rejects removing the
+    live cp3, because only 1 of the remaining 2 voters would be started. The
+    removal must fail, keep cp3 in microcluster, and must not point at
+    --force-new-cluster, which would drop the healthy cp3. Removing the dead
+    cp2 first, as the error suggests, must then let cp3 be removed.
+    """
+    cp1, cp2, cp3 = instances
+    _join_control_planes(cp1, [cp2, cp3])
+    cp2_name, cp3_name = cp2.id, cp3.id
+
+    LOG.info("Deleting %s", cp2_name)
+    cp2.delete()
+    _wait_for(
+        lambda: _etcd_put(cp1, "/integration-test/remove-force-quorum"),
+        timeout_s=120,
+        interval_s=3,
+        what="an etcd write on cp1 with 2 of 3 voters up",
+    )
+    # etcd only counts a peer as started if it was connected within the last
+    # 5s (its health interval). Give it time to notice that cp2 is gone.
+    time.sleep(15)
+
+    result = _remove_node_force(cp1, cp3_name)
+    assert (
+        result.returncode != 0
+    ), "remove-node --force must fail while etcd refuses to remove the node"
+    assert (
+        "etcd did not remove" in result.stderr
+    ), f"unexpected remove-node error: {result.stderr}"
+    assert (
+        "--force-new-cluster" not in result.stderr
+    ), "etcd has quorum, so the error must not suggest --force-new-cluster"
+    assert cp3_name in _microcluster_members(
+        cp1
+    ), "the node must stay in microcluster so that a retry can still remove it from etcd"
+    assert cp3_name in [m.get("name") for m in _etcd_members(cp1)]
+    assert _etcd_put(cp1, "/integration-test/remove-force-quorum")
+
+    # Remove the dead peer first, then the original removal goes through.
+    result = _remove_node_force(cp1, cp2_name)
+    assert result.returncode == 0, f"removal of the dead {cp2_name} failed"
+    result = _remove_node_force(cp1, cp3_name)
+    assert result.returncode == 0, f"retry of the removal of {cp3_name} failed"
+    assert cp3_name not in _microcluster_members(cp1)
+    assert [m.get("name") for m in _etcd_members(cp1)] == [cp1.id]
+    util.wait_until_k8s_ready(cp1, [cp1])
+    _wait_for(
+        lambda: not util.diverged_cluster_memberships(cp1, [cp1]),
+        timeout_s=180,
+        interval_s=5,
+        what="cluster memberships to converge on cp1",
+    )
+
+
+@pytest.mark.node_count(3)
+@pytest.mark.tags(tags.NIGHTLY)
+def test_remove_force_worker_without_etcd_quorum(
+    instances: List[harness.Instance],
+):
+    """`remove-node --force` of a dead worker stays best-effort without etcd quorum.
+
+    A worker is never an etcd member. Whether a node is a worker is decided
+    from the microcluster membership (dqlite), which still works when etcd has
+    lost its quorum. So removing a dead worker must still succeed.
+    """
+    cp1, cp2, worker = instances
+    _join_control_planes(cp1, [cp2])
+    util.join_cluster(worker, util.get_join_token(cp1, worker, "--worker"))
+    util.wait_until_k8s_ready(cp1, [cp1, cp2, worker])
+
+    spare = _dqlite_spare(cp1, [cp1, cp2])
+    survivor = cp2 if spare is cp1 else cp1
+    worker_name = worker.id
+
+    LOG.info("Deleting the dqlite spare %s and the worker %s", spare.id, worker_name)
+    spare.delete()
+    worker.delete()
+    _wait_for(
+        lambda: _etcd_has_no_quorum(survivor),
+        timeout_s=120,
+        interval_s=5,
+        what=f"etcd on {survivor.id} to lose quorum",
+    )
+
+    result = _remove_node_force(survivor, worker_name)
+    assert (
+        result.returncode == 0
+    ), f"removal of a dead worker must stay best-effort: {result.stderr}"
