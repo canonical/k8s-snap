@@ -457,12 +457,19 @@ def test_deploy_nvidia_gpu_operator(
         # loaded kernel module whose userspace doesn't match (e.g. `Driver/
         # library version mismatch` after a package upgrade without a reboot)
         # would stall every operand for the full timeout, so fail fast.
+        #
+        # A GPU that "requires reset" (NVRM `NV_ERR_GPU_IN_FULLCHIP_RESET`)
+        # still makes `nvidia-smi` exit 0 and the validator pass; the table
+        # just shows `ERR!` fields. Every NVML consumer (device-plugin, GFD,
+        # DCGM, CUDA) then fails with "GPU requires reset", so catch it here.
         smi = instance.exec(["nvidia-smi"], capture_output=True, text=True, check=False)
-        if smi.returncode != 0:
+        smi_out = f"{smi.stdout}\n{smi.stderr}"
+        if smi.returncode != 0 or "ERR!" in smi_out or "requires reset" in smi_out:
             pytest.fail(
                 f"NVIDIA kernel modules are loaded on '{instance.id}' but host "
-                f"`nvidia-smi` fails, so the gpu-operator cannot validate the "
-                f"host driver. The host needs a reboot or module reload.\n"
+                f"`nvidia-smi` fails or reports a GPU in an error state "
+                f"(rc={smi.returncode}), so the gpu-operator cannot use the "
+                f"GPU. The host needs a reboot, GPU reset or module reload.\n"
                 f"stdout: {smi.stdout}\nstderr: {smi.stderr}"
             )
 
