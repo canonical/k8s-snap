@@ -26,8 +26,9 @@ class CharmGeneratorTests(unittest.TestCase):
         options["absent"] = {"type": "string", "description": "First\n\nSecond"}
         output = render_reference(self.data)["k8s-config.md"]
         for default in ["0", "false", '""', "null"]:
-            self.assertIn(f"**Default:** ``{default}``", output)
-        self.assertEqual(output.count("**Default:**"), 4)
+            self.assertIn(f"default ``{default}``", output)
+        self.assertEqual(output.count("default ``"), 4)
+        self.assertIn("`string` · default ``0``", output)
         self.assertIn("First\n\nSecond", output)
         self.assertLess(output.index("### `absent`"), output.index("### `zero`"))
 
@@ -52,15 +53,17 @@ class CharmGeneratorTests(unittest.TestCase):
         }
         output = render_reference(self.data)["k8s-actions.md"]
         self.assertIn("(k8s-action-run)=", output)
-        self.assertIn("(k8s-action-run-settings)=", output)
-        self.assertIn("**Required:** yes", output)
-        self.assertIn("**Required:** no", output)
+        self.assertEqual(output.count("\nParameters:\n"), 1)
+        self.assertIn("- `optional` (`boolean`, optional, default ``false``)", output)
+        self.assertIn("- `settings` (`object`, required): Settings to apply.", output)
+        self.assertNotIn("(k8s-action-run-settings)=", output)
+        self.assertNotIn("#### ", output)
+        self.assertIn("  ````yaml\n  properties:", output)
         self.assertIn("Run checks.", output)
-        self.assertIn("Settings to apply.", output)
         self.assertIn("additionalProperties: false", output)
         self.assertIn("minimum: 0", output)
         self.assertIn("maximum: 10", output)
-        self.assertIn("required:\n- level", output)
+        self.assertIn("required:\n  - level", output)
 
 
 if __name__ == "__main__":

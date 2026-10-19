@@ -15,6 +15,8 @@ bootstrap process, while others can be modified at any time. Options restricted
 to bootstrap are explicitly noted in their descriptions and prefixed with
 `bootstrap-`.
 
+See the {ref}`How to configure your cluster <charm-configure-cluster>` how-to guide to see how to apply these configurations.
+
 ## Configuration options for `k8s` charm
 
 ```{include} /_parts/charms/k8s-config.md
