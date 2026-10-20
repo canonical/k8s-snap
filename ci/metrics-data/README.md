@@ -67,6 +67,19 @@ threshold and daily budget described in the delivery plan.
   as it is (quiet close skips it, since its signature no longer has jobs), and
   the successor signature is a new candidate. Avoid bumping while bridge
   issues are open, or retire them by hand.
+- **Rule pack.** `ci/failure_rules.yaml` is ordered (first match wins) and
+  grouped by tier so an environment cause beats the product command it
+  broke. Rules match excerpt text and job metadata, never signature IDs, and
+  every rule carries real `examples` that loading verifies are classified by
+  that rule. Each `classify` run recomputes the current ruleset from scratch
+  and records its `version` in `schema_meta`; rows from earlier versions stay
+  as history but no longer count, so narrowing or deleting a rule
+  un-classifies what it matched. `.agents/skills/ci-failure-rules/` is the
+  authoring guide.
+- **Failed commands.** A `subprocess.CalledProcessError` excerpt ends with a
+  `stderr: ...` line carrying the failed command's own error, taken from the
+  harness log record pytest replays. Without it an unreachable Snap Store and
+  a broken refresh hook produce the same excerpt.
 - **Rule precision.** `metrics check-rules` reports, per rule in
   `ci/failure_rules.yaml`, how many signatures and jobs it classifies and how
   often its `excerpt_pattern` also hits the error lines of *successful* jobs
