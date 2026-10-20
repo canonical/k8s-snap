@@ -10,6 +10,7 @@ import tempfile
 import textwrap
 import unittest
 from pathlib import Path
+from typing import Optional
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
@@ -218,6 +219,28 @@ class RulesTest(unittest.TestCase):
         )
 
         self.assertEqual(pack.match(context).failure_class, "infra.runner")
+
+    def test_default_pack_leaves_causeless_snap_failures_unknown(self) -> None:
+        pack = load_rules(DEFAULT_PACK)
+        command = (
+            "subprocess.CalledProcessError: Command '['lxc', 'shell', 'i', '--', "
+            "'bash', '-c', 'snap refresh --classic k8s --channel 1.35-classic/stable"
+            " --amend']' returned non-zero exit status 1."
+        )
+
+        def rule_for(excerpt: str) -> Optional[str]:
+            rule = pack.match(RuleContext(signature_id="0" * 16, excerpt=excerpt))
+            return rule.id if rule else None
+
+        self.assertIsNone(rule_for(command))
+        self.assertEqual(
+            rule_for(command + "\nstderr: error: unable to contact snap store"),
+            "external-snap-store",
+        )
+        self.assertEqual(
+            rule_for(command + '\nstderr: error: cannot perform: Run hook "configure"'),
+            "product-snap-install-failure",
+        )
 
     def test_example_must_be_classified_by_its_own_rule(self) -> None:
         typo = _write_rules(

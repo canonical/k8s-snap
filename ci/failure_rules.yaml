@@ -270,14 +270,20 @@ rules:
   - id: product-snap-install-failure
     failure_class: product.bug
     subclass: snap_install_failure
-    excerpt_pattern: 'snap (install|refresh) k8s'
+    # Two lines on purpose: the command, then its recorded stderr. A failure
+    # whose stderr was not logged is left unknown (see notes), and the
+    # precision check cannot test a pattern that spans lines.
+    excerpt_pattern: "snap (install|refresh) [^'\\n]*\\bk8s\\b[^\\n]*\\nstderr: "
     examples:
       - |-
-        subprocess.CalledProcessError: Command '['lxc', 'shell', 'k8s-integration-2-abcdef', '--', 'bash', '-c', 'snap refresh k8s --channel 1.34-classic/stable --classic']' returned non-zero exit status 1.
+        subprocess.CalledProcessError: Command '['lxc', 'shell', 'k8s-integration-2-abcdef', '--', 'bash', '-c', 'snap refresh --classic k8s --channel 1.34-classic/stable']' returned non-zero exit status 1.
         stderr: error: cannot perform the following tasks: Run post-refresh hook of "k8s" snap
     notes: >-
-      Installing or refreshing the k8s snap failed for a reason other than the
-      store, which external-snap-store above has already ruled out.
+      Installing or refreshing the k8s snap failed with an error snapd
+      reported, after external-snap-store above ruled out the store. Without
+      the command's stderr the cause is unknowable from the log: every such
+      failure with a recorded cause so far was a store outage, so those stay
+      unknown rather than being filed as product bugs.
 
   - id: product-service-should-be-inactive
     failure_class: product.bug
