@@ -17,9 +17,41 @@ test_data:
     # IGX Orin noprovision devices ship with default ubuntu/ubuntu creds and no
     # pre-installed SSH keys, so we authenticate with sshpass.
     command -v sshpass >/dev/null 2>&1 || sudo apt-get install -y sshpass
-    SSHPASS_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PubkeyAuthentication=no -o PreferredAuthentications=password"
+    SSHPASS_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PubkeyAuthentication=no -o PreferredAuthentications=password -o ConnectTimeout=10"
     SSH="sshpass -p ubuntu ssh $SSHPASS_OPTS ubuntu@$DEVICE_IP"
     SCP="sshpass -p ubuntu scp $SSHPASS_OPTS"
+
+    # 0. Make sure the device's GPU stack is healthy before using it.
+    # The device is non-provision, so state persists between runs: the loaded
+    # NVIDIA kernel module can drift from the installed userspace driver
+    # (`Driver/library version mismatch`) or the GPU can be left needing a
+    # reset (`nvidia-smi` exits 0 but shows `ERR!`). Reboot once if unhealthy.
+    # This MUST run before the attachments are copied: /tmp is cleared on boot.
+    # The test's own preflight still fails if the GPU is bad after the reboot.
+    gpu_healthy() {
+        local out
+        out=$($SSH 'sudo nvidia-smi 2>&1') || return 1
+        ! grep -qE 'ERR!|requires reset' <<<"$out"
+    }
+
+    if ! gpu_healthy; then
+        echo "WARNING: GPU unhealthy on $DEVICE_IP before the test; rebooting the device once"
+        $SSH 'sudo nvidia-smi 2>&1 | head -n 5; cat /proc/driver/nvidia/version; modinfo -F version nvidia' || true
+        OLD_BOOT_ID=$($SSH 'cat /proc/sys/kernel/random/boot_id')
+        $SSH 'sudo systemctl reboot' || true
+        # Wait (up to ~10 min) for the device to come back with a new boot id.
+        for _ in $(seq 1 60); do
+            sleep 10
+            NEW_BOOT_ID=$($SSH 'cat /proc/sys/kernel/random/boot_id' 2>/dev/null) || continue
+            [ "$NEW_BOOT_ID" != "$OLD_BOOT_ID" ] && break
+        done
+        $SSH 'sudo systemctl is-system-running --wait' || true
+        if gpu_healthy; then
+            echo "GPU healthy after reboot"
+        else
+            echo "WARNING: GPU still unhealthy after reboot; the test preflight will fail"
+        fi
+    fi
 
     # 1. Copy attachments to the device
     $SCP attachments/test/k8s-arm64.snap ubuntu@$DEVICE_IP:/tmp/
