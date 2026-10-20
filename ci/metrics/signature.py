@@ -15,11 +15,23 @@ from metrics.scrub import scrub
 # Bumping either version changes signature IDs; `fetch-logs --reextract`
 # migrates stored jobs whose logs are still retained.
 NORMALISER_VERSION = 2
-EXTRACTOR_VERSION = 2
+EXTRACTOR_VERSION = 3
 MAX_EXCERPT_BYTES = 4096
 SIGNATURE_LENGTH = 16
 
 _GH_TIMESTAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T[\d:.]+Z\s?")
+# pytest and the harness logger colour their output; left in, the codes stop
+# section headers such as "short test summary info" from matching.
+_ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
+_CAPTURED_SECTION = re.compile(
+    r"^-+ Captured (?P<stream>stdout|stderr|log) (?P<phase>setup|call|teardown) -+$"
+)
+_CALLED_PROCESS_ERROR = re.compile(r"^subprocess\.CalledProcessError\b")
+# Harness log record for a failed command, e.g.
+# "2026-10-13 02:40:01 [ WARNING]   stderr=error: unable to contact snap store".
+_HARNESS_STDERR = re.compile(
+    r"^\d{4}-\d{2}-\d{2} [\d:,.]+\s+\[?\s*[A-Z]+\]?\s+stderr=(?P<text>\S.*)$"
+)
 _STEP_HEADER = re.compile(r"^##\[group\]Run ")
 _FAILURES_HEADER = re.compile(r"^=+\s*FAILURES\s*=+$")
 _ERRORS_HEADER = re.compile(r"^=+\s*ERRORS\s*=+$")
@@ -97,7 +109,7 @@ class Fingerprint:
 def _prepare_lines(log: str) -> Tuple[str, ...]:
     lines = []
     for line in log.splitlines():
-        stripped = _GH_TIMESTAMP.sub("", line).rstrip()
+        stripped = _ANSI_ESCAPE.sub("", _GH_TIMESTAMP.sub("", line)).rstrip()
         if stripped.strip() and set(stripped.strip()) == {"^"}:
             continue
         lines.append(stripped)
@@ -187,6 +199,56 @@ def _innermost_exception(block: Tuple[str, ...]) -> Tuple[str, ...]:
     return ()
 
 
+def _captured(block: Tuple[str, ...], stream: str) -> Tuple[str, ...]:
+    """Return a test's ``Captured <stream> call`` lines."""
+
+    out = []
+    inside = False
+    for line in block:
+        header = _CAPTURED_SECTION.match(line.strip())
+        if header:
+            inside = header.group("stream", "phase") == (stream, "call")
+            continue
+        if inside:
+            out.append(line)
+    return tuple(out)
+
+
+def _command_stderr(block: Tuple[str, ...]) -> Optional[str]:
+    """Return the failed command's own error line from a pytest test section.
+
+    The harness logs a failed command's stderr before raising, and pytest
+    replays it under "Captured log call"; older harness versions let it reach
+    "Captured stderr call" instead.
+    """
+
+    logged = []
+    for line in _captured(block, "log"):
+        record = _HARNESS_STDERR.match(line.strip())
+        if record:
+            logged.append(record.group("text"))
+    for source in (logged, _captured(block, "stderr")):
+        diagnostic = diagnostic_lines(source)
+        if diagnostic:
+            return diagnostic[-1]
+    return None
+
+
+def _with_cause(root: Tuple[str, ...], block: Tuple[str, ...]) -> str:
+    """Join ``root`` and, for a failed command, append the stderr that says why.
+
+    ``CalledProcessError`` names the command but not the reason, so without
+    this an unreachable snap store and a broken refresh hook look identical.
+    """
+
+    text = "\n".join(root)
+    if _CALLED_PROCESS_ERROR.match(root[-1].strip()):
+        cause = _command_stderr(_first_test(block))
+        if cause:
+            text += "\nstderr: " + cause
+    return text
+
+
 def extract(log: str) -> Excerpt:
     """Extract the most diagnostic failure text from a raw job log."""
 
@@ -195,13 +257,13 @@ def extract(log: str) -> Excerpt:
     if failures:
         root = _innermost_exception(failures)
         if root:
-            return Excerpt("\n".join(root), "failures-block")
+            return Excerpt(_with_cause(root, failures), "failures-block")
 
     errors = _section(lines, _ERRORS_HEADER)
     if errors:
         root = _innermost_exception(errors)
         if root:
-            return Excerpt("\n".join(root), "errors-block")
+            return Excerpt(_with_cause(root, errors), "errors-block")
 
     summary = tuple(
         line for line in _section(lines, _SUMMARY_HEADER) if _SUMMARY_LINE.match(line)

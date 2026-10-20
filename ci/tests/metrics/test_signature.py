@@ -128,6 +128,85 @@ E: Unable to locate package tox
         self.assertIn("Attempt 1/40 failed. Error: Failed to meet condition", lines)
         self.assertNotIn("##[error]Process completed with exit code 1.", lines)
 
+    def test_ansi_colour_does_not_hide_section_boundaries(self) -> None:
+        log = (
+            "=== FAILURES ===\n"
+            "\x1b[31m\x1b[1m____ test_a ____\x1b[0m\n"
+            '  File "/home/runner/work/k8s-snap/k8s-snap/tests/test_a.py", '
+            "line 3, in test_a\n"
+            "AssertionError: first\n"
+            "\x1b[31m\x1b[1m____ test_b ____\x1b[0m\n"
+            "AssertionError: second\n"
+            "\x1b[36m\x1b[1m=== short test summary info ===\x1b[0m\n"
+            "FAILED tests/test_a.py::test_a\n"
+        )
+
+        excerpt = extract(log)
+
+        self.assertEqual(excerpt.source, "failures-block")
+        self.assertIn("AssertionError: first", excerpt.text)
+        self.assertNotIn("\x1b", excerpt.text)
+
+    def test_failed_command_excerpt_carries_the_command_stderr(self) -> None:
+        def log(captured: str) -> str:
+            return (
+                """
+=== FAILURES ===
+____ test_upgrade ____
+Traceback (most recent call last):
+  File "/home/runner/work/k8s-snap/k8s-snap/tests/test_upgrade.py", line 9, in test_upgrade
+    util.run(cmd)
+subprocess.CalledProcessError: Command '['snap', 'refresh', 'k8s']' returned non-zero exit status 1.
+"""
+                + captured
+                + "\n=== short test summary info ===\n"
+            )
+
+        harness = log(
+            "------ Captured stderr call ------\n"
+            "error: stale stderr from an earlier command\n"
+            "------ Captured log call ------\n"
+            "2026-10-13 02:40:01 \x1b[33mWARNING\x1b[0m   stderr=WARNING: noise\n"
+            "2026-10-13 02:41:01 [ WARNING]   stderr=error: unable to contact snap store\n"
+            "2026-10-13 02:41:02 INFO Attempt 3/3 failed."
+        )
+        bare_stderr = log(
+            "------ Captured stderr call ------\n"
+            "WARNING: There is 1 new warning. See 'snap warnings'.\n"
+            "error: unable to contact snap store\n"
+            "------ Captured log call ------\n"
+            "2026-10-13 02:41:02 INFO nothing logged about stderr"
+        )
+        hook_failure = log(
+            "------ Captured stderr call ------\n"
+            'error: cannot perform the following tasks: Run hook "configure"'
+        )
+
+        harness_excerpt = extract(harness).text
+        self.assertTrue(
+            harness_excerpt.endswith("\nstderr: error: unable to contact snap store")
+        )
+        self.assertEqual(
+            fingerprint(harness).signature_id, fingerprint(bare_stderr).signature_id
+        )
+        self.assertNotEqual(
+            fingerprint(harness).signature_id, fingerprint(hook_failure).signature_id
+        )
+        self.assertNotIn("stderr:", extract(log("")).text)
+
+    def test_assertion_failures_do_not_borrow_polled_command_stderr(self) -> None:
+        log = """
+=== FAILURES ===
+____ test_upgrade ____
+  File "/home/runner/work/k8s-snap/k8s-snap/tests/test_util/util.py", line 133, in _exec
+AssertionError: Failed to meet condition
+------ Captured log call ------
+2026-10-13 02:40:01 WARNING   stderr=error: the server doesn't have a resource type "upgrade"
+=== short test summary info ===
+"""
+
+        self.assertNotIn("stderr:", extract(log).text)
+
     def test_errors_block_precedes_summary_for_fixture_failures(self) -> None:
         log = """
 === ERRORS ===
