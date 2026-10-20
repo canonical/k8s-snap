@@ -22,6 +22,9 @@ LOG = logging.getLogger(__name__)
 DEFAULT_API_ROOT = "https://api.github.com"
 DEFAULT_REPO = "canonical/k8s-snap"
 PER_PAGE = 100
+# Deep pages of very large runs (Nightly lists ~2,500 jobs) intermittently
+# 502 at 100 per page while the same items load fine in smaller pages.
+FALLBACK_PER_PAGE = 25
 RATE_LIMIT_FLOOR = 200
 RETRY_STATUSES = (500, 502, 503, 504)
 MAX_RETRIES = 4
@@ -29,6 +32,10 @@ MAX_RETRIES = 4
 
 class GitHubError(RuntimeError):
     """Raised when the GitHub API returns an unrecoverable error."""
+
+
+class GitHubUnavailable(GitHubError):
+    """Raised when a request still fails after every retry."""
 
 
 def _token_from_gh_cli() -> Optional[str]:
@@ -169,7 +176,7 @@ class GitHubClient:
                 return response.status_code, response.content
             return response.status_code, response.json()
 
-        raise GitHubError(f"Exhausted retries for {url}: {last_exc}")
+        raise GitHubUnavailable(f"Exhausted retries for {url}: {last_exc}")
 
     def get(self, path: str, params: Optional[Dict[str, Any]] = None) -> Any:
         _, payload = self.request(path, params=params)
@@ -231,15 +238,43 @@ class GitHubClient:
         results: Dict[int, List[Dict[str, Any]]] = {}
         with futures.ThreadPoolExecutor(max_workers=workers) as pool:
             calls = {
-                pool.submit(self.get, path, {**params, "page": page}): page
+                pool.submit(self._page_items, path, key, params, page): page
                 for page in pages
             }
             for future in futures.as_completed(calls):
-                page = calls[future]
-                results[page] = (future.result() or {}).get(key, [])
+                results[calls[future]] = future.result()
 
         for page in pages:
             items.extend(results.get(page, []))
+        return items
+
+    def _page_items(
+        self, path: str, key: str, params: Dict[str, Any], page: int
+    ) -> List[Dict[str, Any]]:
+        """Fetch one page, re-fetching its items in smaller pages if it fails."""
+
+        try:
+            return (self.get(path, {**params, "page": page}) or {}).get(key, [])
+        except GitHubUnavailable:
+            size = int(params["per_page"])
+            if size <= FALLBACK_PER_PAGE or size % FALLBACK_PER_PAGE:
+                raise
+        factor = size // FALLBACK_PER_PAGE
+        LOG.warning(
+            "Page %s of %s failed at %s per page; retrying as %s pages of %s",
+            page,
+            path,
+            size,
+            factor,
+            FALLBACK_PER_PAGE,
+        )
+        items: List[Dict[str, Any]] = []
+        first = (page - 1) * factor + 1
+        for sub_page in range(first, first + factor):
+            payload = self.get(
+                path, {**params, "per_page": FALLBACK_PER_PAGE, "page": sub_page}
+            )
+            items.extend((payload or {}).get(key, []))
         return items
 
     def get_run(self, run_id: int) -> Dict[str, Any]:
