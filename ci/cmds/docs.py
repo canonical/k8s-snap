@@ -87,7 +87,7 @@ def _resolve_operator_ref(ref: str) -> str:
     # Exit code 2 means the remote is reachable but has no matching ref.
     if result.returncode == 2:
         print(
-            f"k8s-operator has no branch or tag '{ref}'; "
+            f"k8s-operator has no branch or tag '{ref}', "
             f"falling back to '{K8S_OPERATOR_DEFAULT_REF}'"
         )
         return K8S_OPERATOR_DEFAULT_REF
