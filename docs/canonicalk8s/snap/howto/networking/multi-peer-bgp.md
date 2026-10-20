@@ -43,10 +43,6 @@ sudo k8s set \
 
 ### Set the multi-peer annotation
 
-```{note}
-**Using the Juju charm?** See [Configure cluster annotations][charm-configure].
-```
-
 Define peers in a YAML file and pass the whole file via the `annotations` key:
 
 ```bash
@@ -145,6 +141,7 @@ Correct the annotation and the reconciler retries automatically.
 
 - [Load-balancer explanation](/snap/explanation/networking.md#load-balancer)
 - [How to use the default load balancer](default-loadbalancer.md)
+- [Configure multi-peer BGP with the Juju charm][charm-configure]
 
 <!-- LINKS -->
 [getting-started-guide]: /snap/tutorial/getting-started
