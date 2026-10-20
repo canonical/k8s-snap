@@ -67,6 +67,25 @@ threshold and daily budget described in the delivery plan.
   as it is (quiet close skips it, since its signature no longer has jobs), and
   the successor signature is a new candidate. Avoid bumping while bridge
   issues are open, or retire them by hand.
+- **Rule pack.** `ci/failure_rules.yaml` is ordered (first match wins) and
+  grouped by tier so an environment cause beats the product command it
+  broke. Rules match excerpt text and job metadata, never signature IDs, and
+  every rule carries real `examples` that loading verifies are classified by
+  that rule. Each `classify` run recomputes the current ruleset from scratch
+  and records its `version` in `schema_meta`; rows from earlier versions stay
+  as history but no longer count, so narrowing or deleting a rule
+  un-classifies what it matched. `.agents/skills/ci-failure-rules/` is the
+  authoring guide.
+- **Failed commands.** A `subprocess.CalledProcessError` excerpt ends with a
+  `stderr: ...` line carrying the failed command's own error. It comes from
+  the harness's `stderr=` record for the *last* command executed in the
+  failing test phase (setup, call or teardown), never from an earlier retry
+  that recovered. Commands run outside the retry wrapper log no such record;
+  for those, the last line of pytest's captured stderr is used if it is
+  error-shaped, which can misattribute when the failed command captured its
+  own stderr and printed nothing. Without this line an unreachable Snap Store
+  and a broken refresh hook produce the same excerpt. Generated pod names
+  are normalised so a timed-out `kubectl wait` stays one signature.
 - **Rule precision.** `metrics check-rules` reports, per rule in
   `ci/failure_rules.yaml`, how many signatures and jobs it classifies and how
   often its `excerpt_pattern` also hits the error lines of *successful* jobs

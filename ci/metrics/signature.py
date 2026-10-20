@@ -14,12 +14,27 @@ from metrics.scrub import scrub
 
 # Bumping either version changes signature IDs; `fetch-logs --reextract`
 # migrates stored jobs whose logs are still retained.
-NORMALISER_VERSION = 2
-EXTRACTOR_VERSION = 2
+NORMALISER_VERSION = 3
+EXTRACTOR_VERSION = 3
 MAX_EXCERPT_BYTES = 4096
 SIGNATURE_LENGTH = 16
 
 _GH_TIMESTAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T[\d:.]+Z\s?")
+# pytest and the harness logger colour their output; left in, the codes stop
+# section headers such as "short test summary info" from matching.
+_ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
+_CAPTURED_SECTION = re.compile(
+    r"^-+ Captured (?P<stream>stdout|stderr|log) (?P<phase>setup|call|teardown) -+$"
+)
+_ERROR_PHASE = re.compile(r"^_{3,} ERROR at (?P<phase>setup|teardown) of ")
+_CALLED_PROCESS_ERROR = re.compile(r"^subprocess\.CalledProcessError\b")
+# Harness log records, e.g.
+# "2026-10-13 02:40:01 [ WARNING]   stderr=error: unable to contact snap store".
+_LOG_RECORD = re.compile(
+    r"^\d{4}-\d{2}-\d{2} [\d:,.]+\s+\[?\s*[A-Z]+\]?\s+(?P<message>.*)$"
+)
+_EXECUTE_RECORD = re.compile(r"^Execute command ")
+_STDERR_RECORD = re.compile(r"^stderr=(?P<text>.*)$")
 _STEP_HEADER = re.compile(r"^##\[group\]Run ")
 _FAILURES_HEADER = re.compile(r"^=+\s*FAILURES\s*=+$")
 _ERRORS_HEADER = re.compile(r"^=+\s*ERRORS\s*=+$")
@@ -65,6 +80,16 @@ _NORMALISERS: Tuple[Tuple[re.Pattern[str], str], ...] = (
         "<uuid>",
     ),
     (re.compile(r"\b0x[0-9a-f]{6,}\b", re.I), "0x<addr>"),
+    # Generated pod names (<deployment>-<template hash>-<suffix>, or
+    # <daemonset>-<suffix> after "pod/"). Kubernetes draws these from an
+    # alphabet without vowels, which keeps ordinary words out.
+    (
+        re.compile(
+            r"-[bcdfghjklmnpqrstvwxz2456789]{6,10}-[bcdfghjklmnpqrstvwxz2456789]{5}\b"
+        ),
+        "-<pod>",
+    ),
+    (re.compile(r"\b(pods?/[\w.-]+?)-[bcdfghjklmnpqrstvwxz2456789]{5}\b"), r"\1-<pod>"),
     (re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b"), "<ip>"),
     (re.compile(r"\b(?:[0-9a-f]{0,4}:){2,7}[0-9a-f]{0,4}\b"), "<ipv6>"),
     # Only the runner-specific checkout prefix varies; the repo-relative path
@@ -97,7 +122,7 @@ class Fingerprint:
 def _prepare_lines(log: str) -> Tuple[str, ...]:
     lines = []
     for line in log.splitlines():
-        stripped = _GH_TIMESTAMP.sub("", line).rstrip()
+        stripped = _ANSI_ESCAPE.sub("", _GH_TIMESTAMP.sub("", line)).rstrip()
         if stripped.strip() and set(stripped.strip()) == {"^"}:
             continue
         lines.append(stripped)
@@ -187,6 +212,89 @@ def _innermost_exception(block: Tuple[str, ...]) -> Tuple[str, ...]:
     return ()
 
 
+def _captured(block: Tuple[str, ...], stream: str, phase: str) -> Tuple[str, ...]:
+    """Return a test's ``Captured <stream> <phase>`` lines."""
+
+    out = []
+    inside = False
+    for line in block:
+        header = _CAPTURED_SECTION.match(line.strip())
+        if header:
+            inside = header.group("stream", "phase") == (stream, phase)
+            continue
+        if inside:
+            out.append(line)
+    return tuple(out)
+
+
+def _last_command_stderr(records: Tuple[str, ...]) -> Optional[Tuple[str, ...]]:
+    """Return the stderr the harness logged for the last command it executed.
+
+    ``None`` means the log does not say: no command was logged, or the last
+    one ran outside the retry wrapper that records stderr. An earlier
+    command's stderr is never used, since that is typically a retry which
+    later recovered.
+    """
+
+    last_execute = None
+    for index, line in enumerate(records):
+        record = _LOG_RECORD.match(line.strip())
+        if record and _EXECUTE_RECORD.match(record.group("message")):
+            last_execute = index
+    if last_execute is None:
+        return None
+    for index in range(last_execute + 1, len(records)):
+        record = _LOG_RECORD.match(records[index].strip())
+        stderr = record and _STDERR_RECORD.match(record.group("message"))
+        if not stderr:
+            continue
+        text = [stderr.group("text")]
+        continuation = index + 1
+        for line in records[continuation:]:
+            if _LOG_RECORD.match(line.strip()):
+                break
+            text.append(line)
+        return tuple(text)
+    return None
+
+
+def _command_stderr(block: Tuple[str, ...]) -> Optional[str]:
+    """Return the failed command's own error line from a pytest test section.
+
+    The harness logs a retried command's stderr before raising and pytest
+    replays it under "Captured log <phase>". Older harness versions let the
+    command's stderr through to "Captured stderr <phase>" instead; there only
+    the final line can be attributed to the command that failed last.
+    """
+
+    header = next((line for line in block if _TEST_SECTION.match(line)), "")
+    phase_match = _ERROR_PHASE.match(header)
+    phase = phase_match.group("phase") if phase_match else "call"
+
+    logged = _last_command_stderr(_captured(block, "log", phase))
+    if logged is not None:
+        diagnostic = diagnostic_lines(logged)
+        return diagnostic[-1] if diagnostic else None
+    stderr = [line for line in _captured(block, "stderr", phase) if line.strip()]
+    diagnostic = diagnostic_lines(stderr[-1:])
+    return diagnostic[0] if diagnostic else None
+
+
+def _with_cause(root: Tuple[str, ...], block: Tuple[str, ...]) -> str:
+    """Join ``root`` and, for a failed command, append the stderr that says why.
+
+    ``CalledProcessError`` names the command but not the reason, so without
+    this an unreachable snap store and a broken refresh hook look identical.
+    """
+
+    text = "\n".join(root)
+    if _CALLED_PROCESS_ERROR.match(root[-1].strip()):
+        cause = _command_stderr(_first_test(block))
+        if cause:
+            text += "\nstderr: " + cause
+    return text
+
+
 def extract(log: str) -> Excerpt:
     """Extract the most diagnostic failure text from a raw job log."""
 
@@ -195,13 +303,13 @@ def extract(log: str) -> Excerpt:
     if failures:
         root = _innermost_exception(failures)
         if root:
-            return Excerpt("\n".join(root), "failures-block")
+            return Excerpt(_with_cause(root, failures), "failures-block")
 
     errors = _section(lines, _ERRORS_HEADER)
     if errors:
         root = _innermost_exception(errors)
         if root:
-            return Excerpt("\n".join(root), "errors-block")
+            return Excerpt(_with_cause(root, errors), "errors-block")
 
     summary = tuple(
         line for line in _section(lines, _SUMMARY_HEADER) if _SUMMARY_LINE.match(line)

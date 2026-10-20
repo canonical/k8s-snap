@@ -70,6 +70,7 @@ class Rule:
     signature_ids: tuple[str, ...] = ()
     excerpt_pattern: Optional[Pattern[str]] = None
     job_patterns: Dict[str, Pattern[str]] = dataclasses.field(default_factory=dict)
+    examples: tuple[RuleContext, ...] = ()
 
     @property
     def substrate_guard(self) -> Optional[str]:
@@ -141,7 +142,9 @@ def load_rules(path: Optional[Path] = None) -> RulePack:
         rules.append(rule)
 
     _warn_on_shadowed_rules(rules, rules_path)
-    return RulePack(version=version, rules=tuple(rules), source=rules_path)
+    pack = RulePack(version=version, rules=tuple(rules), source=rules_path)
+    _check_examples(pack)
+    return pack
 
 
 def _parse_rule(raw: Any, index: int, path: Path) -> Rule:
@@ -188,7 +191,62 @@ def _parse_rule(raw: Any, index: int, path: Path) -> Rule:
         signature_ids=signature_ids,
         excerpt_pattern=excerpt_pattern,
         job_patterns=job_patterns,
+        examples=_parse_examples(raw.get("examples"), where, rule_id),
     )
+
+
+def _parse_examples(raw: Any, where: str, rule_id: str) -> tuple[RuleContext, ...]:
+    """Parse a rule's ``examples``: excerpts, or mappings with job metadata."""
+
+    if raw is None:
+        return ()
+    if not isinstance(raw, list) or not raw:
+        raise RulePackError(f"{where} ({rule_id}): examples must be a non-empty list")
+    examples = []
+    for index, item in enumerate(raw):
+        here = f"{where} ({rule_id}): examples[{index}]"
+        if isinstance(item, str):
+            item = {"excerpt": item}
+        if not isinstance(item, dict):
+            raise RulePackError(f"{here} must be a string or a mapping")
+        unknown = set(item) - {"excerpt", "signature_id", "job"}
+        if unknown:
+            raise RulePackError(f"{here}: unsupported keys {sorted(unknown)}")
+        job = item.get("job") or {}
+        if not isinstance(job, dict) or set(job) - MATCHABLE_JOB_FIELDS:
+            raise RulePackError(
+                f"{here}: job must map fields from {sorted(MATCHABLE_JOB_FIELDS)}"
+            )
+        values = {"excerpt": item.get("excerpt", ""), **job}
+        if not all(isinstance(value, str) for value in values.values()):
+            raise RulePackError(f"{here}: excerpt and job values must be strings")
+        examples.append(
+            RuleContext(
+                signature_id=str(item.get("signature_id", "0" * 16)),
+                **values,
+            )
+        )
+    return tuple(examples)
+
+
+def _check_examples(pack: RulePack) -> None:
+    """Fail unless every example is classified by the rule that lists it.
+
+    This is what makes the pack safe to edit mechanically: a typo in a
+    pattern, or a new rule that shadows an older one, breaks loading instead of
+    silently moving failures between classes.
+    """
+
+    for rule in pack.rules:
+        for index, example in enumerate(rule.examples):
+            winner = pack.match(example)
+            if winner is rule:
+                continue
+            got = f"rule {winner.id!r}" if winner else "no rule"
+            raise RulePackError(
+                f"{pack.source}: rule {rule.id!r} examples[{index}] is "
+                f"classified by {got}"
+            )
 
 
 def _required_string(raw: Dict[str, Any], key: str, where: str) -> str:
@@ -311,6 +369,20 @@ def classify_signatures(conn: sqlite3.Connection, pack: RulePack) -> Dict[str, i
     by_rule: Dict[str, int] = {}
     written_global = set()
     now = datetime.now(timezone.utc).isoformat()
+
+    # The current ruleset is recomputed from scratch so that narrowing or
+    # deleting a rule un-classifies what it used to match. Earlier rulesets
+    # keep their rows as history; v_signature_class reads only the version
+    # recorded here, even when it matches nothing.
+    conn.execute(
+        "DELETE FROM signature_classifications "
+        "WHERE classified_by = ? AND ruleset_version = ?",
+        (ClassifiedBy.RULES.value, pack.version),
+    )
+    conn.execute(
+        "INSERT OR REPLACE INTO schema_meta (key, value) VALUES ('ruleset_version', ?)",
+        (str(pack.version),),
+    )
 
     for context in _contexts(conn):
         if context.signature_id in written_global:

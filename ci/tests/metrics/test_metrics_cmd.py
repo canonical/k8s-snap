@@ -11,13 +11,16 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
+from cmds.metrics import cmd_ingest  # noqa: E402
 from cmds.metrics import cmd_report  # noqa: E402
 from cmds.metrics import cmd_audit_secrets, cmd_digest, cmd_rebuild  # noqa: E402
+from metrics.gh import GitHubUnavailable  # noqa: E402
 from metrics.store import initialise_database  # noqa: E402
 
 
@@ -40,6 +43,39 @@ class MetricsCommandTest(unittest.TestCase):
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_ingest_skips_a_run_the_api_keeps_failing_on(self) -> None:
+        root = Path(tempfile.mkdtemp())
+        args = argparse.Namespace(
+            run_id=[1, 2],
+            workflow=None,
+            since=None,
+            limit=None,
+            repo="o/r",
+            token="token",
+            db=root / "metrics.db",
+            sql=root / "metrics.sql",
+            skip_logs=True,
+            json=False,
+            no_dump=True,
+        )
+        ingested = []
+
+        def ingest(client, conn, run_id, fetch_logs):
+            if run_id == 1:
+                raise GitHubUnavailable("Exhausted retries")
+            ingested.append(run_id)
+            return []
+
+        stderr = io.StringIO()
+        with mock.patch("cmds.metrics.GitHubClient"), mock.patch(
+            "cmds.metrics.ingest_run", side_effect=ingest
+        ), redirect_stderr(stderr):
+            code = cmd_ingest(args)
+
+        self.assertEqual(code, 0)
+        self.assertEqual(ingested, [2])
+        self.assertIn("skipping run 1 for now", stderr.getvalue())
 
     def test_rebuild_without_dump_fails_unless_init_if_missing(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

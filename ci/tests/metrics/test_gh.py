@@ -7,6 +7,7 @@ import sys
 import unittest
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
@@ -94,6 +95,40 @@ class GitHubClientTest(unittest.TestCase):
         client.list_workflow_runs("nightly.yaml")
 
         self.assertNotIn("status", session.calls[0]["params"])
+
+    def test_failing_page_is_refetched_in_smaller_pages(self) -> None:
+        for failing_page, expected in ((1, [1, 2, 3, 4]), (2, [5, 6, 7, 8])):
+            with self.subTest(failing_page=failing_page):
+                self._assert_page_fallback(failing_page, expected)
+
+    def _assert_page_fallback(self, failing_page: int, expected: List[int]) -> None:
+        session = FakeSession()
+        jobs = [{"id": index} for index in range(1, 151)]
+
+        def get(url: str, params: Optional[Dict[str, Any]] = None, **_: Any):
+            params = dict(params or {})
+            session.calls.append({"url": url, "params": params})
+            size, page = int(params["per_page"]), int(params["page"])
+            if size == 100 and page == failing_page:
+                response = FakeResponse({})
+                response.status_code = 502
+                return response
+            start = (page - 1) * size
+            return FakeResponse({"total_count": len(jobs), "jobs": jobs[start:][:size]})
+
+        session.get = get
+        client = GitHubClient(repo="o/r", session=session, token="token")
+
+        with mock.patch("metrics.gh.time.sleep"):
+            items = client.list_run_jobs(123, attempt=1)
+
+        self.assertEqual(items, jobs)
+        fallback = [
+            call["params"]["page"]
+            for call in session.calls
+            if call["params"]["per_page"] == 25
+        ]
+        self.assertEqual(fallback, expected)
 
     def test_download_job_log_decodes_log_body(self) -> None:
         session = FakeSession()
