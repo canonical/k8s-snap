@@ -14,7 +14,7 @@ from metrics.scrub import scrub
 
 # Bumping either version changes signature IDs; `fetch-logs --reextract`
 # migrates stored jobs whose logs are still retained.
-NORMALISER_VERSION = 2
+NORMALISER_VERSION = 3
 EXTRACTOR_VERSION = 3
 MAX_EXCERPT_BYTES = 4096
 SIGNATURE_LENGTH = 16
@@ -26,12 +26,15 @@ _ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
 _CAPTURED_SECTION = re.compile(
     r"^-+ Captured (?P<stream>stdout|stderr|log) (?P<phase>setup|call|teardown) -+$"
 )
+_ERROR_PHASE = re.compile(r"^_{3,} ERROR at (?P<phase>setup|teardown) of ")
 _CALLED_PROCESS_ERROR = re.compile(r"^subprocess\.CalledProcessError\b")
-# Harness log record for a failed command, e.g.
+# Harness log records, e.g.
 # "2026-10-13 02:40:01 [ WARNING]   stderr=error: unable to contact snap store".
-_HARNESS_STDERR = re.compile(
-    r"^\d{4}-\d{2}-\d{2} [\d:,.]+\s+\[?\s*[A-Z]+\]?\s+stderr=(?P<text>\S.*)$"
+_LOG_RECORD = re.compile(
+    r"^\d{4}-\d{2}-\d{2} [\d:,.]+\s+\[?\s*[A-Z]+\]?\s+(?P<message>.*)$"
 )
+_EXECUTE_RECORD = re.compile(r"^Execute command ")
+_STDERR_RECORD = re.compile(r"^stderr=(?P<text>.*)$")
 _STEP_HEADER = re.compile(r"^##\[group\]Run ")
 _FAILURES_HEADER = re.compile(r"^=+\s*FAILURES\s*=+$")
 _ERRORS_HEADER = re.compile(r"^=+\s*ERRORS\s*=+$")
@@ -77,6 +80,16 @@ _NORMALISERS: Tuple[Tuple[re.Pattern[str], str], ...] = (
         "<uuid>",
     ),
     (re.compile(r"\b0x[0-9a-f]{6,}\b", re.I), "0x<addr>"),
+    # Generated pod names (<deployment>-<template hash>-<suffix>, or
+    # <daemonset>-<suffix> after "pod/"). Kubernetes draws these from an
+    # alphabet without vowels, which keeps ordinary words out.
+    (
+        re.compile(
+            r"-[bcdfghjklmnpqrstvwxz2456789]{6,10}-[bcdfghjklmnpqrstvwxz2456789]{5}\b"
+        ),
+        "-<pod>",
+    ),
+    (re.compile(r"\b(pods?/[\w.-]+?)-[bcdfghjklmnpqrstvwxz2456789]{5}\b"), r"\1-<pod>"),
     (re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b"), "<ip>"),
     (re.compile(r"\b(?:[0-9a-f]{0,4}:){2,7}[0-9a-f]{0,4}\b"), "<ipv6>"),
     # Only the runner-specific checkout prefix varies; the repo-relative path
@@ -199,39 +212,72 @@ def _innermost_exception(block: Tuple[str, ...]) -> Tuple[str, ...]:
     return ()
 
 
-def _captured(block: Tuple[str, ...], stream: str) -> Tuple[str, ...]:
-    """Return a test's ``Captured <stream> call`` lines."""
+def _captured(block: Tuple[str, ...], stream: str, phase: str) -> Tuple[str, ...]:
+    """Return a test's ``Captured <stream> <phase>`` lines."""
 
     out = []
     inside = False
     for line in block:
         header = _CAPTURED_SECTION.match(line.strip())
         if header:
-            inside = header.group("stream", "phase") == (stream, "call")
+            inside = header.group("stream", "phase") == (stream, phase)
             continue
         if inside:
             out.append(line)
     return tuple(out)
 
 
+def _last_command_stderr(records: Tuple[str, ...]) -> Optional[Tuple[str, ...]]:
+    """Return the stderr the harness logged for the last command it executed.
+
+    ``None`` means the log does not say: no command was logged, or the last
+    one ran outside the retry wrapper that records stderr. An earlier
+    command's stderr is never used, since that is typically a retry which
+    later recovered.
+    """
+
+    last_execute = None
+    for index, line in enumerate(records):
+        record = _LOG_RECORD.match(line.strip())
+        if record and _EXECUTE_RECORD.match(record.group("message")):
+            last_execute = index
+    if last_execute is None:
+        return None
+    for index in range(last_execute + 1, len(records)):
+        record = _LOG_RECORD.match(records[index].strip())
+        stderr = record and _STDERR_RECORD.match(record.group("message"))
+        if not stderr:
+            continue
+        text = [stderr.group("text")]
+        continuation = index + 1
+        for line in records[continuation:]:
+            if _LOG_RECORD.match(line.strip()):
+                break
+            text.append(line)
+        return tuple(text)
+    return None
+
+
 def _command_stderr(block: Tuple[str, ...]) -> Optional[str]:
     """Return the failed command's own error line from a pytest test section.
 
-    The harness logs a failed command's stderr before raising, and pytest
-    replays it under "Captured log call"; older harness versions let it reach
-    "Captured stderr call" instead.
+    The harness logs a retried command's stderr before raising and pytest
+    replays it under "Captured log <phase>". Older harness versions let the
+    command's stderr through to "Captured stderr <phase>" instead; there only
+    the final line can be attributed to the command that failed last.
     """
 
-    logged = []
-    for line in _captured(block, "log"):
-        record = _HARNESS_STDERR.match(line.strip())
-        if record:
-            logged.append(record.group("text"))
-    for source in (logged, _captured(block, "stderr")):
-        diagnostic = diagnostic_lines(source)
-        if diagnostic:
-            return diagnostic[-1]
-    return None
+    header = next((line for line in block if _TEST_SECTION.match(line)), "")
+    phase_match = _ERROR_PHASE.match(header)
+    phase = phase_match.group("phase") if phase_match else "call"
+
+    logged = _last_command_stderr(_captured(block, "log", phase))
+    if logged is not None:
+        diagnostic = diagnostic_lines(logged)
+        return diagnostic[-1] if diagnostic else None
+    stderr = [line for line in _captured(block, "stderr", phase) if line.strip()]
+    diagnostic = diagnostic_lines(stderr[-1:])
+    return diagnostic[0] if diagnostic else None
 
 
 def _with_cause(root: Tuple[str, ...], block: Tuple[str, ...]) -> str:

@@ -148,32 +148,50 @@ E: Unable to locate package tox
         self.assertNotIn("\x1b", excerpt.text)
 
     def test_failed_command_excerpt_carries_the_command_stderr(self) -> None:
-        def log(captured: str) -> str:
+        def log(captured: str, header: str = "test_upgrade") -> str:
+            block = "ERRORS" if "ERROR at" in header else "FAILURES"
             return (
                 """
-=== FAILURES ===
-____ test_upgrade ____
+=== BLOCK ===
+____ HEADER ____
 Traceback (most recent call last):
   File "/home/runner/work/k8s-snap/k8s-snap/tests/test_upgrade.py", line 9, in test_upgrade
     util.run(cmd)
 subprocess.CalledProcessError: Command '['snap', 'refresh', 'k8s']' returned non-zero exit status 1.
-"""
+""".replace(
+                    "BLOCK", block
+                ).replace(
+                    "HEADER", header
+                )
                 + captured
                 + "\n=== short test summary info ===\n"
             )
 
+        def attempt(stderr: str, when: str = "02:41:01") -> str:
+            return (
+                (
+                    "2026-10-13 WHEN DEBUG Execute command snap refresh k8s\n"
+                    "2026-10-13 WHEN \x1b[33mWARNING\x1b[0m   rc=1\n"
+                    "2026-10-13 WHEN [ WARNING]   stdout=\n"
+                    "2026-10-13 WHEN [ WARNING]   stderr=STDERR\n"
+                )
+                .replace("WHEN", when)
+                .replace("STDERR", stderr)
+            )
+
+        store = "error: unable to contact snap store"
         harness = log(
             "------ Captured stderr call ------\n"
             "error: stale stderr from an earlier command\n"
             "------ Captured log call ------\n"
-            "2026-10-13 02:40:01 \x1b[33mWARNING\x1b[0m   stderr=WARNING: noise\n"
-            "2026-10-13 02:41:01 [ WARNING]   stderr=error: unable to contact snap store\n"
-            "2026-10-13 02:41:02 INFO Attempt 3/3 failed."
+            + attempt("WARNING: noise\nmore noise", "02:40:01")
+            + "2026-10-13 02:40:30 INFO Attempt 2/3 failed.\n"
+            + attempt(f"WARNING: noise\n{store}")
         )
         bare_stderr = log(
             "------ Captured stderr call ------\n"
             "WARNING: There is 1 new warning. See 'snap warnings'.\n"
-            "error: unable to contact snap store\n"
+            f"{store}\n"
             "------ Captured log call ------\n"
             "2026-10-13 02:41:02 INFO nothing logged about stderr"
         )
@@ -181,18 +199,50 @@ subprocess.CalledProcessError: Command '['snap', 'refresh', 'k8s']' returned non
             "------ Captured stderr call ------\n"
             'error: cannot perform the following tasks: Run hook "configure"'
         )
-
-        harness_excerpt = extract(harness).text
-        self.assertTrue(
-            harness_excerpt.endswith("\nstderr: error: unable to contact snap store")
+        setup_failure = log(
+            "------ Captured log setup ------\n" + attempt(store),
+            header="ERROR at setup of test_upgrade",
         )
+
+        self.assertTrue(extract(harness).text.endswith(f"\nstderr: {store}"))
         self.assertEqual(
             fingerprint(harness).signature_id, fingerprint(bare_stderr).signature_id
+        )
+        self.assertEqual(
+            fingerprint(harness).signature_id, fingerprint(setup_failure).signature_id
         )
         self.assertNotEqual(
             fingerprint(harness).signature_id, fingerprint(hook_failure).signature_id
         )
         self.assertNotIn("stderr:", extract(log("")).text)
+
+    def test_only_the_last_command_supplies_the_stderr(self) -> None:
+        def log(captured: str) -> str:
+            return (
+                """
+=== FAILURES ===
+____ test_upgrade ____
+  File "/home/runner/work/k8s-snap/k8s-snap/tests/test_upgrade.py", line 9, in test_upgrade
+subprocess.CalledProcessError: Command '['snap', 'refresh', 'k8s']' returned non-zero exit status 1.
+------ Captured log call ------
+2026-10-13 02:40:01 DEBUG Execute command snap refresh k8s
+2026-10-13 02:40:01 WARNING   stderr=error: unable to contact snap store
+2026-10-13 02:40:30 INFO Attempt 1/3 failed.
+2026-10-13 02:41:01 DEBUG Execute command snap refresh k8s
+"""
+                + captured
+                + "=== short test summary info ===\n"
+            )
+
+        not_diagnostic = log(
+            "2026-10-13 02:41:01 WARNING   rc=1\n"
+            "2026-10-13 02:41:01 WARNING   stderr=Job for snap.k8s.kubelite.service failed\n"
+        )
+        not_retried = log("")
+
+        self.assertNotIn("snap store", extract(not_diagnostic).text)
+        self.assertNotIn("stderr:", extract(not_diagnostic).text)
+        self.assertNotIn("snap store", extract(not_retried).text)
 
     def test_assertion_failures_do_not_borrow_polled_command_stderr(self) -> None:
         log = """
@@ -267,6 +317,16 @@ FAILED tests/test_smoke.py::test_smoke - AssertionError: bad
             first.replace("exit code 1", "exit code <x>"),
             second.replace("exit code 2", "exit code <x>"),
         )
+
+    def test_normalise_folds_generated_pod_names(self) -> None:
+        first = "stderr: error: timed out waiting for the condition on pods/nginx-5d8f7c9b4-q2x7z"
+        second = "stderr: error: timed out waiting for the condition on pods/nginx-6c7f8b5d9-k8m2p"
+        daemonset = "pod/cilium-x7k2q and pod/cilium-bm4vt"
+
+        self.assertEqual(normalise(first), normalise(second))
+        self.assertIn("pods/nginx-<pod>", normalise(first))
+        self.assertEqual(normalise(daemonset), "pod/cilium-<pod> and pod/cilium-<pod>")
+        self.assertEqual(normalise("k8s-ready-check"), "k8s-ready-check")
 
     def test_normalise_keeps_the_repo_relative_file_name(self) -> None:
         hosted = normalise(
