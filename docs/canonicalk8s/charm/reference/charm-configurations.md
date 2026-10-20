@@ -7,7 +7,7 @@ myst:
 # Charm configuration options reference
 
 This reference lists the configuration options for the `k8s` and `k8s-worker`
-charms. They are also available on [Charmhub](https://charmhub.io/k8s/configurations).
+charms. They are also available on [Charmhub for `k8s`](https://charmhub.io/k8s/configurations) and [Charmhub for `k8s-worker`](https://charmhub.io/k8s-worker/configurations).
 
 These options can be set at
 various points during the charm's lifecycle. Some options are limited to the

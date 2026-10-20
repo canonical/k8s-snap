@@ -5,6 +5,7 @@ myst:
 ---
 
 (charm-configure-cluster)=
+
 # How to configure a {{ product }} cluster using Juju
 
 This guide provides instructions for configuring a {{ product }} cluster using
