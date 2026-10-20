@@ -92,7 +92,9 @@ differs from a broken refresh hook. Extractor changes go in
 - **Single-line patterns.** Patterns are case-insensitive and multiline (`^`
   and `$` match per line). The precision check tests line by line, so a
   pattern spanning lines is never checked. To scope a generic message to one
-  test, add a `job.test_nodeid` guard instead.
+  test, add a `job.test_nodeid` guard instead. The one deliberate exception is
+  a rule that must see a failed command *and* its `stderr:` line, such as
+  `product-snap-install-failure`; say why in a comment.
 - **No symptom rules.** `Failed to meet condition`, `exit status 1` or a bare
   `AssertionError` on their own say *that* something failed, not why. Retry
   noise in passing jobs prints the same text.
