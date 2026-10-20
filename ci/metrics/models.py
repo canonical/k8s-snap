@@ -215,7 +215,13 @@ SELECT signature_id, substrate, failure_class, subclass, rule_id,
 FROM (SELECT *, ROW_NUMBER() OVER (
           PARTITION BY signature_id, substrate
           ORDER BY (classified_by='human') DESC, ruleset_version DESC
-      ) rn FROM signature_classifications)
+      ) rn FROM signature_classifications
+      WHERE classified_by <> 'rules'
+         OR ruleset_version = COALESCE(
+              (SELECT CAST(value AS INTEGER) FROM schema_meta
+               WHERE key = 'ruleset_version'),
+              (SELECT MAX(ruleset_version) FROM signature_classifications
+               WHERE classified_by = 'rules')))
 WHERE rn = 1;
 
 CREATE VIEW v_job_class AS
