@@ -15,7 +15,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
 
-from metrics.gh import DEFAULT_REPO, GitHubClient
+from metrics.gh import DEFAULT_REPO, GitHubClient, GitHubUnavailable
 from metrics.ingest import InFlightRunError, dump_records, ingest_run
 from metrics.issues import (
     DEFAULT_QUIET_CLOSE_DAYS,
@@ -506,6 +506,11 @@ def cmd_ingest(args: argparse.Namespace) -> int:
             # next ingest (hourly reconciliation or the next workflow_run
             # trigger) will pick it up once it is actually done.
             print(f"skipping run {run_id}: {exc}", file=sys.stderr)
+            continue
+        except GitHubUnavailable as exc:
+            # Nothing is written until a run's records are complete, so a run
+            # the API keeps failing on is simply picked up by a later ingest.
+            print(f"skipping run {run_id} for now: {exc}", file=sys.stderr)
             continue
         summaries.extend(dump_records(records))
 

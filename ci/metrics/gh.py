@@ -220,7 +220,7 @@ class GitHubClient:
         params = dict(params or {})
         params.setdefault("per_page", PER_PAGE)
         params["page"] = 1
-        first = self.get(path, params=params)
+        first = self._page(path, key, params, 1)
         if not first:
             return []
 
@@ -238,23 +238,22 @@ class GitHubClient:
         results: Dict[int, List[Dict[str, Any]]] = {}
         with futures.ThreadPoolExecutor(max_workers=workers) as pool:
             calls = {
-                pool.submit(self._page_items, path, key, params, page): page
-                for page in pages
+                pool.submit(self._page, path, key, params, page): page for page in pages
             }
             for future in futures.as_completed(calls):
-                results[calls[future]] = future.result()
+                results[calls[future]] = (future.result() or {}).get(key, [])
 
         for page in pages:
             items.extend(results.get(page, []))
         return items
 
-    def _page_items(
+    def _page(
         self, path: str, key: str, params: Dict[str, Any], page: int
-    ) -> List[Dict[str, Any]]:
+    ) -> Optional[Dict[str, Any]]:
         """Fetch one page, re-fetching its items in smaller pages if it fails."""
 
         try:
-            return (self.get(path, {**params, "page": page}) or {}).get(key, [])
+            return self.get(path, {**params, "page": page})
         except GitHubUnavailable:
             size = int(params["per_page"])
             if size <= FALLBACK_PER_PAGE or size % FALLBACK_PER_PAGE:
@@ -268,14 +267,18 @@ class GitHubClient:
             factor,
             FALLBACK_PER_PAGE,
         )
-        items: List[Dict[str, Any]] = []
+        merged: Dict[str, Any] = {key: []}
         first = (page - 1) * factor + 1
         for sub_page in range(first, first + factor):
             payload = self.get(
                 path, {**params, "per_page": FALLBACK_PER_PAGE, "page": sub_page}
             )
-            items.extend((payload or {}).get(key, []))
-        return items
+            if not payload:
+                break
+            if "total_count" in payload:
+                merged["total_count"] = payload["total_count"]
+            merged[key].extend(payload.get(key, []))
+        return merged
 
     def get_run(self, run_id: int) -> Dict[str, Any]:
         return self.get(f"repos/{self.repo}/actions/runs/{run_id}")

@@ -97,6 +97,11 @@ class GitHubClientTest(unittest.TestCase):
         self.assertNotIn("status", session.calls[0]["params"])
 
     def test_failing_page_is_refetched_in_smaller_pages(self) -> None:
+        for failing_page, expected in ((1, [1, 2, 3, 4]), (2, [5, 6, 7, 8])):
+            with self.subTest(failing_page=failing_page):
+                self._assert_page_fallback(failing_page, expected)
+
+    def _assert_page_fallback(self, failing_page: int, expected: List[int]) -> None:
         session = FakeSession()
         jobs = [{"id": index} for index in range(1, 151)]
 
@@ -104,7 +109,7 @@ class GitHubClientTest(unittest.TestCase):
             params = dict(params or {})
             session.calls.append({"url": url, "params": params})
             size, page = int(params["per_page"]), int(params["page"])
-            if size == 100 and page == 2:
+            if size == 100 and page == failing_page:
                 response = FakeResponse({})
                 response.status_code = 502
                 return response
@@ -123,7 +128,7 @@ class GitHubClientTest(unittest.TestCase):
             for call in session.calls
             if call["params"]["per_page"] == 25
         ]
-        self.assertEqual(fallback, [5, 6, 7, 8])
+        self.assertEqual(fallback, expected)
 
     def test_download_job_log_decodes_log_body(self) -> None:
         session = FakeSession()
