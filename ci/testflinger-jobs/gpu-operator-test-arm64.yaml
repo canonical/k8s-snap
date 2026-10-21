@@ -25,7 +25,8 @@ test_data:
     # The device is non-provision, so state persists between runs: the loaded
     # NVIDIA kernel module can drift from the installed userspace driver
     # (`Driver/library version mismatch`) or the GPU can be left needing a
-    # reset (`nvidia-smi` exits 0 but shows `ERR!`). Reboot once if unhealthy.
+    # reset (`nvidia-smi` exits 0 but shows `ERR!`). Try an in-place GPU reset
+    # first, then reboot once if still unhealthy.
     # This MUST run before the attachments are copied: /tmp is cleared on boot.
     # The test's own preflight still fails if the GPU is bad after the reboot.
     gpu_healthy() {
@@ -35,21 +36,48 @@ test_data:
     }
 
     if ! gpu_healthy; then
-        echo "WARNING: GPU unhealthy on $DEVICE_IP before the test; rebooting the device once"
+        echo "WARNING: GPU unhealthy on $DEVICE_IP before the test"
         $SSH 'sudo nvidia-smi 2>&1 | head -n 5; cat /proc/driver/nvidia/version; modinfo -F version nvidia' || true
-        OLD_BOOT_ID=$($SSH 'cat /proc/sys/kernel/random/boot_id')
-        $SSH 'sudo systemctl reboot' || true
-        # Wait (up to ~10 min) for the device to come back with a new boot id.
-        for _ in $(seq 1 60); do
-            sleep 10
-            NEW_BOOT_ID=$($SSH 'cat /proc/sys/kernel/random/boot_id' 2>/dev/null) || continue
-            [ "$NEW_BOOT_ID" != "$OLD_BOOT_ID" ] && break
-        done
-        $SSH 'sudo systemctl is-system-running --wait' || true
+
+        # A warm reboot does not always recover a GPU that fell off the PCIe
+        # bus, so try an in-place reset first. Best effort: it can fail when
+        # the GPU is busy or the reset is unsupported.
+        echo "Attempting in-place GPU reset (nvidia-smi -r)"
+        $SSH 'sudo timeout 60 nvidia-smi -r 2>&1' || true
         if gpu_healthy; then
-            echo "GPU healthy after reboot"
+            echo "GPU healthy after in-place reset; no reboot needed"
         else
-            echo "WARNING: GPU still unhealthy after reboot; the test preflight will fail"
+            echo "GPU still unhealthy after reset; rebooting the device once"
+            OLD_BOOT_ID=$($SSH 'cat /proc/sys/kernel/random/boot_id') || {
+                echo "ERROR: cannot read boot_id from $DEVICE_IP; device unreachable before reboot" >&2
+                exit 1
+            }
+            $SSH 'sudo systemctl reboot' || true
+
+            # Wait (up to ~10 min) for the device to come back with a new boot id.
+            # SSH stderr is deliberately NOT discarded so a timeout, auth failure
+            # and no-route are distinguishable in the job log.
+            BACK=0
+            for _ in $(seq 1 60); do
+                sleep 10
+                NEW_BOOT_ID=$($SSH 'cat /proc/sys/kernel/random/boot_id') || continue
+                if [ -n "$NEW_BOOT_ID" ] && [ "$NEW_BOOT_ID" != "$OLD_BOOT_ID" ]; then
+                    BACK=1
+                    break
+                fi
+            done
+            if [ "$BACK" -ne 1 ]; then
+                echo "ERROR: $DEVICE_IP did not come back after reboot within ~10 min" >&2
+                echo "ERROR: the device is likely hung or its GPU needs a full power cycle; manual intervention required" >&2
+                exit 1
+            fi
+
+            $SSH 'sudo systemctl is-system-running --wait' || true
+            if gpu_healthy; then
+                echo "GPU healthy after reboot"
+            else
+                echo "WARNING: GPU still unhealthy after reboot (device is reachable); the test preflight will fail"
+            fi
         fi
     fi
 

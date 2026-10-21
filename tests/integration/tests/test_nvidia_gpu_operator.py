@@ -465,12 +465,30 @@ def test_deploy_nvidia_gpu_operator(
         smi = instance.exec(["nvidia-smi"], capture_output=True, text=True, check=False)
         smi_out = f"{smi.stdout}\n{smi.stderr}"
         if smi.returncode != 0 or "ERR!" in smi_out or "requires reset" in smi_out:
+            # Show loaded module vs on-disk module vs installed userspace so a
+            # `Driver/library version mismatch` is attributable without ssh.
+            versions = instance.exec(
+                [
+                    "bash",
+                    "-c",
+                    "echo '--- loaded module (/proc/driver/nvidia/version) ---'; "
+                    "cat /proc/driver/nvidia/version 2>&1; "
+                    "echo '--- on-disk module (modinfo) ---'; "
+                    "modinfo -F version nvidia 2>&1; "
+                    "echo '--- installed packages ---'; "
+                    "dpkg -l 2>/dev/null | grep -i nvidia | awk '{print $2, $3}'",
+                ],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
             pytest.fail(
                 f"NVIDIA kernel modules are loaded on '{instance.id}' but host "
                 f"`nvidia-smi` fails or reports a GPU in an error state "
                 f"(rc={smi.returncode}), so the gpu-operator cannot use the "
                 f"GPU. The host needs a reboot, GPU reset or module reload.\n"
-                f"stdout: {smi.stdout}\nstderr: {smi.stderr}"
+                f"stdout: {smi.stdout}\nstderr: {smi.stderr}\n"
+                f"{versions.stdout}"
             )
 
     instance_release = util.get_os_version_id_for_instance(instance)
