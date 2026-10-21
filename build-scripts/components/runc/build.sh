@@ -4,10 +4,9 @@
 INITIAL_GO_REVISION=$(snap list go | grep -E '^go\s' | awk '{print $3}')
 echo "Current Go snap revision: ${INITIAL_GO_REVISION}"
 
-# Refresh to go fips stable channel
-maj_min=$(awk '/^go /{print $2}' go.mod | cut -d. -f1,2)
-echo "Refreshing to go ${maj_min}-fips/stable channel..."
-snap refresh go --channel=${maj_min}-fips/stable
+# Pin runc to Go 1.27 FIPS rather than the minimum Go version in go.mod.
+echo "Refreshing to go 1.27-fips/stable channel..."
+snap refresh go --channel=1.27-fips/stable
 
 VERSION="${2}"
 
@@ -17,10 +16,9 @@ mkdir -p "${INSTALL}"
 # Ensure `runc --version` prints the right commit hash from upstream
 export COMMIT="$(git describe --long --always "${VERSION}")"
 
-# runc is statically linked, and the Go 1.25+ OpenSSL backend dlopens libcrypto, which a static binary cannot do
+# Keep runc's static build independent of the Go toolchain's OpenSSL backend.
 export GOTOOLCHAIN=local
-export GOEXPERIMENT=nosystemcrypto  # Go <= 1.26 only; delete at Go 1.27, where an unknown GOEXPERIMENT is a hard error
-export MS_GO_NOSYSTEMCRYPTO=1       # Go >= 1.26; unknown env var, so harmless on older toolchains
+export MS_GO_NOSYSTEMCRYPTO=1
 
 make BUILDTAGS="seccomp apparmor" EXTRA_LDFLAGS="-s -w" static
 cp runc "${INSTALL}/runc"

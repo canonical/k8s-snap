@@ -24,6 +24,18 @@ build-scripts/
                 ...
 ```
 
+## Runc toolchain
+
+Runc is built with the Go snap from `1.27-fips/stable`, independently of the
+minimum Go version in upstream's `go.mod` and the shared build toolchain. Its
+build script restores the initial Go snap revision afterward. Keep the explicit
+FIPS channel pin until a newer FIPS toolchain is available and validated.
+
+The static runc build disables the toolchain's system/OpenSSL crypto backend with
+`MS_GO_NOSYSTEMCRYPTO=1`. Do not set `GOEXPERIMENT=nosystemcrypto`: Go 1.27 rejects
+that removed experiment. Using the FIPS toolchain does not make runc's crypto
+FIPS-compliant when the system crypto backend is disabled.
+
 ## Applying patches
 
 Most K8s components are retrieved from an upstream source (specified in the `repository`), with a specific tag (specified in `version`), have some patches applied to them (from the `patches/` directory) and are then built (using `build.sh`).
