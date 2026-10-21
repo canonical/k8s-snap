@@ -178,11 +178,10 @@ so doing these in one step leaves the profile behind (see
 sudo k8s status
 ```
 
-The status line includes `(alpha)` when the annotation path is active, and
-`frr-k8s backend` when the FRR backend is enabled:
+The status line includes `(alpha)` when the annotation path is active:
 
 ```
-load-balancer: enabled, BGP mode (alpha), frr-k8s backend
+load-balancer: enabled, BGP mode (alpha)
 ```
 
 Inspect the resulting BGPPeer resources:
@@ -191,9 +190,11 @@ Inspect the resulting BGPPeer resources:
 sudo k8s kubectl get bgppeers -A
 ```
 
-With the `frr-k8s` backend, check the BFD profiles and session state:
+With the `frr-k8s` backend, check that the `frr-k8s` pods are running, then
+check the BFD profiles and session state:
 
 ```bash
+sudo k8s kubectl get pods -n metallb-system -l app.kubernetes.io/component=frr-k8s
 sudo k8s kubectl get bfdprofiles -n metallb-system
 sudo k8s kubectl get bgpsessionstates -A
 ```
