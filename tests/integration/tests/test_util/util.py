@@ -128,8 +128,17 @@ class Retriable:
             LOG.warning(f"  stdout={stdout}")
             LOG.warning(f"  stderr={stderr}")
             raise
-        if self._condition:
-            assert self._condition(resp), "Failed to meet condition"
+        if self._condition and not self._condition(resp):
+            stdout = resp.stdout
+            stderr = resp.stderr
+            if isinstance(stdout, bytes):
+                stdout = stdout.decode(errors="replace")
+            if isinstance(stderr, bytes):
+                stderr = stderr.decode(errors="replace")
+            raise AssertionError(
+                f"Failed to meet condition: rc={resp.returncode} "
+                f"stdout={stdout!r} stderr={stderr!r}"
+            )
         return resp
 
     def on(self, instance: harness.Instance) -> "Retriable":
@@ -430,10 +439,12 @@ def wait_until_k8s_ready(
             node_name = hostname(instance)
 
         for attempt in Retrying(
-            stop=stop_after_attempt(retries), wait=wait_fixed(delay_s)
+            stop=stop_after_attempt(retries), wait=wait_fixed(delay_s), reraise=True
         ):
             with attempt:
-                assert is_node_ready(control_node, node_name)
+                assert is_node_ready(
+                    control_node, node_name
+                ), f"Node {node_name} did not reach Ready state (see log above for condition detail)"
                 check_snap_services_ready(instance, skip_services=skip_services)
 
     LOG.info("Successfully checked Kubelet registered on all harness instances.")

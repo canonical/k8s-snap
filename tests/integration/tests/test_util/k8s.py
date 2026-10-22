@@ -256,23 +256,32 @@ def resource_ready(
         LOG.error(f"Failed to get {resource_type}/{name} in {namespace}")
         return False
 
-    resource_def = json.loads(result.stdout)
+    try:
+        resource_def = json.loads(result.stdout)
+    except json.JSONDecodeError:
+        LOG.info(f"Could not parse status for {resource_type}/{name}, not ready yet")
+        return False
 
-    if resource_type == "deployment":
-        desired = resource_def["status"].get("replicas", 0)
-        available = resource_def["status"].get("availableReplicas", 0)
-        return desired == available
-    elif resource_type == "daemonset":
-        desired = resource_def["status"].get("desiredNumberScheduled", 0)
-        available = resource_def["status"].get("numberReady", 0)
-        return desired == available
-    elif resource_type == "statefulset":
-        desired = resource_def["status"].get("replicas", 0)
-        ready = resource_def["status"].get("readyReplicas", 0)
-        return desired == ready
-    elif resource_type == "pod":
-        phase = resource_def["status"].get("phase", "")
-        return phase == "Running"
-    else:
-        LOG.error(f"Unsupported resource type: {resource_type}")
+    try:
+        if resource_type == "deployment":
+            desired = resource_def["status"].get("replicas", 0)
+            available = resource_def["status"].get("availableReplicas", 0)
+            return desired == available
+        elif resource_type == "daemonset":
+            desired = resource_def["status"].get("desiredNumberScheduled", 0)
+            available = resource_def["status"].get("numberReady", 0)
+            return desired == available
+        elif resource_type == "statefulset":
+            desired = resource_def["status"].get("replicas", 0)
+            ready = resource_def["status"].get("readyReplicas", 0)
+            return desired == ready
+        elif resource_type == "pod":
+            phase = resource_def["status"].get("phase", "")
+            return phase == "Running"
+        else:
+            LOG.error(f"Unsupported resource type: {resource_type}")
+            return False
+    except KeyError:
+        # Status subresource not populated yet (object just recreated).
+        LOG.info(f"{resource_type}/{name} has no status yet, not ready yet")
         return False

@@ -22,7 +22,8 @@ CILIUM_CLI_TAR_GZ = f"https://github.com/cilium/cilium-cli/releases/download/{CI
 )
 @pytest.mark.skipif(
     os.getenv("TEST_CILIUM_E2E") in ["false", None],
-    reason="Test is known to be flaky on GitHub Actions",
+    reason="Known flaky on GitHub Actions; requires manual "
+    "TEST_CILIUM_E2E=true opt-in, no workflow sets it",
 )
 @pytest.mark.tags(tags.WEEKLY)
 def test_cilium_e2e(instances: List[harness.Instance]):

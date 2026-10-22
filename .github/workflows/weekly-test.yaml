@@ -46,8 +46,7 @@ jobs:
       channel: ${{ matrix.channel }}
       test-tags: "up_to_nightly"
       parallel: true
-      # We need to reduce the max parallelism here to avoid occupying all runners.
-      # os * arch * channel * max-parallel = 160 jobs
+      # 2 arch * 1 channel = 2 cells, capped by max-parallel below.
       max-parallel: 10
 
   cncf:
