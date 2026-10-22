@@ -357,8 +357,8 @@ useful.
 
 <!-- LINKS -->
 [intermediate-ca]: /snap/howto/security/intermediate-ca.md
-[openssl]: https://packages.ubuntu.com/jammy/openssl
-[linux-generic]: https://packages.ubuntu.com/jammy/linux-generic
+[openssl]: https://launchpad.net/ubuntu/jammy/+package/openssl
+[linux-generic]: https://launchpad.net/ubuntu/jammy/+package/linux-generic
 [x509]: https://pkg.go.dev/crypto/x509
 [rsa]: https://pkg.go.dev/crypto/rsa
 [sha256]: https://pkg.go.dev/crypto/sha256
