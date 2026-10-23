@@ -65,8 +65,11 @@ jobs:
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v9
+        env:
+          GOTOOLCHAIN: local
         with:
-          version: v2.7.2
+          version: v2.14.0
+          install-mode: goinstall
           working-directory: src/k8s
 
   test-binary:
