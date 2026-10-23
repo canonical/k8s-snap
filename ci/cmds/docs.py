@@ -36,7 +36,10 @@ def add_docs_cmds(parser: argparse.ArgumentParser) -> None:
     # update-k8sd-api command
     p = docs_sub.add_parser(
         "update-k8sd-api",
-        help="Check if k8sd API documentation is up to date.",
+        help=(
+            "Regenerate k8sd API documentation in place and fail if it differs "
+            "from what is committed."
+        ),
     )
     p.add_argument(
         "--k8sd-version-file",
@@ -109,7 +112,7 @@ def cmd_update_k8sd_api(args: argparse.Namespace) -> int:
             print(f"Error downloading Go dependencies: {result.stderr}")
             return 1
 
-        # Run make go.doc
+        # Run make go.doc and set output to _parts/ dir
         print("Generating API documentation...")
         env = os.environ.copy()
         docs_path = Path(args.docs_output_path)
@@ -124,18 +127,40 @@ def cmd_update_k8sd_api(args: argparse.Namespace) -> int:
             print(f"Error generating documentation: {result.stderr}")
             return 1
 
-        # Check if there are any changes
-        result = subprocess.run(
-            ["git", "diff"], cwd=k8sd_repo, capture_output=True, text=True
-        )
+    # Compare docs generated in _parts/ to what is committed
+    # `git status` also reports new and deleted files
+    docs_dir = docs_path.resolve()
+    result = subprocess.run(
+        ["git", "status", "--porcelain", "--untracked-files=all", "--", "."],
+        cwd=docs_dir,
+        capture_output=True,
+        text=True,
+    )
 
-        if result.stdout.strip():
-            print("\nError: Detected docs changes in k8sd API documentation.")
-            print("Please run the following to regenerate the docs:")
-            print("  python3 ci/k8s-ci.py docs update-k8sd-api")
+    if result.returncode != 0:
+        print(f"Error checking for docs changes: {result.stderr}")
+        return 1
+
+    # Find diff and report findings
+    status = result.stdout.rstrip()
+    if status:
+        diff = subprocess.run(
+            ["git", "diff", "--", "."], cwd=docs_dir, capture_output=True, text=True
+        )
+        try:
+            display_dir = docs_dir.relative_to(K8S_SNAP_ROOT.resolve())
+        except ValueError:
+            display_dir = docs_dir
+        print(f"\nError: k8sd API documentation in {display_dir} is out of date.")
+        print("To fix, run the following locally and commit the resulting changes:")
+        print("  python3 ci/k8s-ci.py docs update-k8sd-api")
+        print(f"  git add {display_dir}")
+        print("\ngit status:")
+        print(status)
+        if diff.stdout.strip():
             print("\ngit diff:")
-            print(result.stdout)
-            return 1
+            print(diff.stdout)
+        return 1
 
     print("✓ k8sd API documentation is up to date")
     return 0
