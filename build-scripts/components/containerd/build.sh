@@ -1,14 +1,5 @@
 #!/bin/bash
 
-# Store the current Go snap revision
-INITIAL_GO_REVISION=$(snap list go | grep -E '^go\s' | awk '{print $3}')
-echo "Current Go snap revision: ${INITIAL_GO_REVISION}"
-
-# Refresh to go fips stable channel
-maj_min=$(awk '/^go /{print $2}' go.mod | cut -d. -f1,2)
-echo "Refreshing to go ${maj_min}-fips/stable channel..."
-snap refresh go --channel=${maj_min}-fips/stable
-
 INSTALL="${1}/bin"
 mkdir -p "${INSTALL}"
 
@@ -19,7 +10,10 @@ sed -i "s,^VERSION.*$,VERSION=${VERSION}," Makefile
 sed -i "s,^REVISION.*$,REVISION=${REVISION}," Makefile
 
 export GOTOOLCHAIN=local
-export GOEXPERIMENT=opensslcrypto
+# Only needed for Go < 1.27
+if [[ "$(go env GOVERSION)" < "go1.27" ]]; then
+	export GOEXPERIMENT=opensslcrypto
+fi
 export CGO_ENABLED=1
 export GO_BUILDTAGS="linux cgo ms_tls13kdf"
 export SHIM_CGO_ENABLED=1
@@ -28,9 +22,3 @@ for bin in containerd ctr containerd-shim-runc-v2; do
   make "bin/${bin}"
   cp "bin/${bin}" "${INSTALL}/${bin}"
 done
-
-# Restore the initial Go snap revision
-echo "Restoring Go snap to initial revision: ${INITIAL_GO_REVISION}"
-
-# Snap revert fails if the revision is already the current one, so we ignore errors
-snap revert go --revision="${INITIAL_GO_REVISION}" || true

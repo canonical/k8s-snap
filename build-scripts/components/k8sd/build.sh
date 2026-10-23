@@ -7,7 +7,10 @@ mkdir -p "${INSTALL}"
 
 export CGO_ENABLED=1
 export GOTOOLCHAIN=local
-export GOEXPERIMENT=opensslcrypto
+# Only needed for Go < 1.27
+if [[ "$(go env GOVERSION)" < "go1.27" ]]; then
+	export GOEXPERIMENT=opensslcrypto
+fi
 
 make dynamic -j
 
