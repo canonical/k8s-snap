@@ -288,6 +288,111 @@ def test_version_downgrades_with_rollback(
     LOG.info("Rollback test complete. All downgrade segments verified.")
 
 
+def _etcd_storage_versions(instance: harness.Instance) -> List[str]:
+    """Return the etcd storage version of every cluster member.
+
+    Uses the etcdctl binary shipped in the snap and the node's etcd client
+    certificates. Returns an empty list if the status cannot be retrieved.
+    """
+    ip = util.get_default_ip(instance)
+    out = instance.exec(
+        [
+            "/snap/k8s/current/bin/etcdctl",
+            "--endpoints",
+            f"https://{ip}:2379",
+            "--cacert",
+            "/etc/kubernetes/pki/etcd/ca.crt",
+            "--cert",
+            "/etc/kubernetes/pki/etcd/server.crt",
+            "--key",
+            "/etc/kubernetes/pki/etcd/server.key",
+            "endpoint",
+            "status",
+            "-w",
+            "json",
+        ],
+        capture_output=True,
+    )
+    try:
+        status = json.loads(out.stdout.decode())
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        LOG.warning("Failed to parse etcd endpoint status output: %s", out.stdout)
+        return []
+    return [member.get("storageVersion", "") for member in status]
+
+
+@pytest.mark.node_count(3)
+@pytest.mark.no_setup()
+@pytest.mark.skipif(
+    not config.SNAP,
+    reason="etcd downgrade test requires a local snap file (the downgrade target)",
+)
+@pytest.mark.skipif(
+    config.SUBSTRATE == "multipass", reason="runner size too small on multipass"
+)
+@pytest.mark.tags(tags.NIGHTLY)
+def test_etcd_downgrade_across_minor_version(
+    instances: List[harness.Instance],
+    tmp_path,
+    containerd_cfgdir: str,
+    registry: Registry,
+):
+    """Downgrading across an etcd minor version boundary must not break etcd.
+
+    etcd requires an explicit `downgrade enable` step (which migrates the storage
+    version down) before an older etcd binary may start against the data directory.
+    The snap pre-refresh hook runs this protocol via `k8s x-etcd prepare-downgrade`,
+    and k8sd recovers an unprepared downgrade on startup.
+
+    This test bootstraps a 3-node cluster on the locally built snap (which carries
+    the pre-refresh preparation), then downgrades all nodes to the previous stable
+    channel (older etcd) and verifies that etcd comes back healthy with a migrated
+    storage version. The pre-refresh hook on the source (local) snap runs the
+    downgrade protocol before snapd swaps the binary, so the older etcd on the
+    target channel starts against an already-migrated data directory.
+    """
+    cp = instances[0]
+
+    # The local snap is the downgrade *source* (newer etcd + the fix). The downgrade
+    # target is the previous stable channel (older etcd).
+    target_channel = util.previous_track(config.SNAP)
+
+    # Copy the local snap (downgrade source) into the instances.
+    snap_path = (tmp_path / "k8s.snap").as_posix()
+    for instance in instances:
+        instance.send_file(config.SNAP, snap_path)
+
+    LOG.info(f"Bootstrap on local snap {snap_path} and downgrade to {target_channel}")
+
+    for instance in instances:
+        util.setup_k8s_snap(instance, snap_path)
+        if config.USE_LOCAL_MIRROR:
+            registry.apply_configuration(instance, containerd_cfgdir)
+
+    cp.exec(["k8s", "bootstrap"])
+    for instance in instances[1:]:
+        util.join_cluster(instance, util.get_join_token(cp, instance))
+    util.wait_until_k8s_ready(cp, instances)
+
+    LOG.info(f"Downgrading all nodes from local snap to {target_channel}")
+    for instance in instances:
+        util.snap_refresh(instance, target_channel)
+        util.wait_until_k8s_ready(cp, instances)
+        util.check_snap_services_ready(instance, retries=10, delay_s=10)
+
+    # etcd must be healthy on all members and the storage version must have
+    # migrated to the downgraded etcd minor version.
+    for instance in instances:
+        versions = _etcd_storage_versions(instance)
+        LOG.info(f"etcd storage versions on {instance.id}: {versions}")
+        assert versions, f"could not read etcd storage versions on {instance.id}"
+        assert all(
+            v for v in versions
+        ), f"empty etcd storage version on {instance.id}: {versions}"
+
+    LOG.info("etcd downgrade across minor version boundary verified.")
+
+
 @pytest.mark.node_count(4)
 @pytest.mark.no_setup()
 @pytest.mark.tags(tags.NIGHTLY)
