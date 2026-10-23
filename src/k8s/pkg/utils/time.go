@@ -23,11 +23,11 @@ const (
 // number of seconds.
 func SecondsToExpirationDate(now time.Time, seconds int) time.Time {
 	switch {
-	case seconds%(yearSeconds) == 0:
+	case seconds%yearSeconds == 0:
 		return now.AddDate(seconds/yearSeconds, 0, 0)
-	case seconds%(monthSeconds) == 0:
+	case seconds%monthSeconds == 0:
 		return now.AddDate(0, seconds/monthSeconds, 0)
-	case seconds%(daySeconds) == 0:
+	case seconds%daySeconds == 0:
 		return now.AddDate(0, 0, seconds/daySeconds)
 	default:
 		return now.Add(time.Duration(seconds) * time.Second)
