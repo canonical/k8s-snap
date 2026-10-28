@@ -8,6 +8,10 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "0 0 * * 6" # Runs every saturday at midnight
+  # TODO: remove once ginkgo verbose fix is validated
+  pull_request:
+    paths:
+      - "tests/integration/tests/test_cncf_conformance.py"
 permissions:
   contents: read
   actions: read
