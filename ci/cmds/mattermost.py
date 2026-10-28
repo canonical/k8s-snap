@@ -64,6 +64,19 @@ def add_mattermost_cmds(parser: argparse.ArgumentParser) -> None:
     p.add_argument(
         "--webhook", "-w", help="Incoming webhook URL (or MATTERMOST_WEBHOOK_URL)"
     )
+    p.add_argument(
+        "--bot-token",
+        dest="bot_token",
+        default=None,
+        help="Bot account token (or MATTERMOST_BOT_TOKEN), used when --webhook is omitted.",
+    )
+    p.add_argument("--server", default=None, help="Server URL (or MATTERMOST_SERVER)")
+    p.add_argument(
+        "--channel-id",
+        dest="channel_id",
+        default=None,
+        help="Channel ID (or MATTERMOST_CHANNEL_ID), used when --webhook is omitted.",
+    )
     p.add_argument("--dry-run", action="store_true", help="Print payload and exit")
     p.set_defaults(func=cmd_post)
 
