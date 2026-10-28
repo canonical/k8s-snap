@@ -61,8 +61,12 @@ func WithState(t *testing.T, f func(context.Context, state.State)) {
 
 	stateChan := make(chan state.State, 1)
 	doneCh := make(chan error, 1)
-	defer close(stateChan)
-	defer close(doneCh)
+	// stateChan and doneCh are intentionally never closed: they are single-use,
+	// buffered (cap 1) signal channels read at most once via select, never
+	// ranged over. The background goroutine below may still be writing to them
+	// after WithState returns via one of the t.Fatalf paths; closing here would
+	// race with that write and panic with "send on closed channel". An unread
+	// buffered value is garbage collected once the channel goes out of scope.
 
 	// app.Run() is blocking, so we get the state handle through a channel
 	go func() {
