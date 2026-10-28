@@ -3,6 +3,7 @@ package testenv
 import (
 	"context"
 	"fmt"
+	"net"
 	"testing"
 	"time"
 
@@ -18,8 +19,24 @@ const (
 	microclusterDatabaseShutdownTimeout = 3 * time.Second
 )
 
-// nextIdx is used to pick different listen ports for each microcluster instance.
+// nextIdx is used to give each microcluster instance a unique member name.
 var nextIdx int
+
+// freeLocalPort returns a TCP port on 127.0.0.1 that is currently unused.
+// The kernel picks it, so it does not collide with ports in use by other
+// test binaries running in parallel or by ephemeral client sockets.
+func freeLocalPort(t *testing.T) int {
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("failed to find a free port: %v", err)
+	}
+	defer l.Close()
+	addr, ok := l.Addr().(*net.TCPAddr)
+	if !ok {
+		t.Fatalf("unexpected listener address type %T", l.Addr())
+	}
+	return addr.Port
+}
 
 // WithState can be used to run isolated tests against the microcluster database.
 // The Database() can be accessed by calling s.Database().
@@ -86,7 +103,7 @@ func WithState(t *testing.T, f func(context.Context, state.State)) {
 	}
 
 	nextIdx++
-	if err := app.MicroCluster().NewCluster(ctx, fmt.Sprintf("test-%d", nextIdx), fmt.Sprintf("127.0.0.1:%d", 51030+nextIdx), nil); err != nil {
+	if err := app.MicroCluster().NewCluster(ctx, fmt.Sprintf("test-%d", nextIdx), fmt.Sprintf("127.0.0.1:%d", freeLocalPort(t)), nil); err != nil {
 		t.Fatalf("microcluster app failed to bootstrap: %v", err)
 	}
 
