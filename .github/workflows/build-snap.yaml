@@ -17,7 +17,10 @@ on:
 jobs:
   build-snap:
     name: Build snap
-    runs-on: ubuntu-latest
+    # core20 builds run snapd in a focal LXD container. Focal's AppArmor 2.13
+    # parser cannot load policy on kernel 7.0 hosts (LP: #2148193), which
+    # GitHub-hosted ubuntu-24.04 runners now use, so build on a jammy kernel.
+    runs-on: ["self-hosted", "linux", "jammy", "large", "amd64"]
     outputs:
       snap-artifact: ${{ steps.build.outputs.snap-artifact }}
     steps:
