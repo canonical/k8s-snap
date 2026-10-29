@@ -8,10 +8,7 @@ if [ -d "${SNAPCRAFT_STAGE}/dynamic-dqlite-deps" ]; then
 fi
 
 export GOTOOLCHAIN=local
-# Only needed for Go < 1.27
-if [[ "$(go env GOVERSION)" < "go1.27" ]]; then
-  export GOEXPERIMENT=opensslcrypto
-fi
+export GOEXPERIMENT=opensslcrypto
 export CGO_ENABLED=1
 export TAGS="libsqlite3,ms_tls13kdf"
 make dynamic -j

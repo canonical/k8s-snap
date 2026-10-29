@@ -7,10 +7,7 @@ export KUBE_GIT_VERSION_FILE="${PWD}/.version.sh"
 
 for app in kubernetes; do
   export GOTOOLCHAIN=local
-	# Only needed for Go < 1.27
-	if [[ "$(go env GOVERSION)" < "go1.27" ]]; then
-		export GOEXPERIMENT=opensslcrypto
-	fi
+  export GOEXPERIMENT=opensslcrypto
   export CGO_ENABLED=1
   make WHAT="cmd/${app}" KUBE_CGO_OVERRIDES="${app}" GOFLAGS="-tags=providerless,linux,cgo,ms_tls13kdf"
   cp _output/bin/"${app}" "${INSTALL}/${app}"
