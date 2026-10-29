@@ -1,5 +1,15 @@
 #!/bin/bash
 
+source "${BUILD_SCRIPTS_DIR}/lib.sh"
+
+# Store the current Go snap revision
+INITIAL_GO_REVISION=$(snap list go | grep -E '^go\s' | awk '{print $3}')
+echo "Current Go snap revision: ${INITIAL_GO_REVISION}"
+
+maj_min=$(awk '/^go /{print $2}' go.mod | cut -d. -f1,2)
+echo "Refreshing to go ${maj_min}-fips/stable channel..."
+retry 5 10 snap refresh go --channel="${maj_min}"-fips/stable
+
 INSTALL="${1}/bin"
 mkdir -p "${INSTALL}"
 
@@ -22,3 +32,9 @@ for bin in containerd ctr containerd-shim-runc-v2; do
   make "bin/${bin}"
   cp "bin/${bin}" "${INSTALL}/${bin}"
 done
+
+# Restore the initial Go snap revision
+echo "Restoring Go snap to initial revision: ${INITIAL_GO_REVISION}"
+
+# Snap revert fails if the revision is already the current one, so we ignore errors
+snap revert go --revision="${INITIAL_GO_REVISION}" || true
