@@ -21,6 +21,7 @@ package proxy
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -110,6 +111,9 @@ func (tp *tcpproxy) Run() error {
 	for {
 		in, err := tp.Listener.Accept()
 		if err != nil {
+			if errors.Is(err, net.ErrClosed) {
+				return nil
+			}
 			return err
 		}
 
