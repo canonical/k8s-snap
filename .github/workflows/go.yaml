@@ -66,7 +66,7 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.7.2
+          version: v2.15.0
           working-directory: src/k8s
 
   test-binary:
