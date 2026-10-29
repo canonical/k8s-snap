@@ -53,7 +53,7 @@ linters:
     exhaustive:
       check:
         - switch
-        - map
+        - mapliteral
     exhaustruct:
       exclude:
         - ^net/http.Client$
