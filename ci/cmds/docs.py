@@ -19,6 +19,8 @@ from pathlib import Path
 K8S_SNAP_ROOT = Path(__file__).parent.parent.parent
 K8SD_VERSION_FILE = K8S_SNAP_ROOT / "build-scripts/components/k8sd/version"
 DOCS_OUTPUT_PATH = K8S_SNAP_ROOT / "docs/canonicalk8s/_parts"
+K8S_OPERATOR_URL = "https://github.com/canonical/k8s-operator.git"
+K8S_OPERATOR_DEFAULT_REF = "main"
 
 
 def add_docs_cmds(parser: argparse.ArgumentParser) -> None:
@@ -52,6 +54,131 @@ def add_docs_cmds(parser: argparse.ArgumentParser) -> None:
         help=f"Path for DOCS_OUTPUT_PATH environment variable (default: {DOCS_OUTPUT_PATH})",
     )
     p.set_defaults(func=cmd_update_k8sd_api)
+
+    p = docs_sub.add_parser(
+        "update-charm-reference",
+        help="Regenerate charm references and fail if they differ from what is committed.",
+    )
+    p.add_argument(
+        "--operator-ref",
+        default="main",
+        help=(
+            "k8s-operator branch or tag (default: main; use release-1.xx for release docs). "
+            "Falls back to main if it does not exist."
+        ),
+    )
+    p.set_defaults(func=cmd_update_charm_reference)
+
+
+def _resolve_operator_ref(ref: str) -> str:
+    """Return ref if it exists on k8s-operator, otherwise the default branch."""
+    result = subprocess.run(
+        [
+            "git",
+            "ls-remote",
+            "--exit-code",
+            K8S_OPERATOR_URL,
+            f"refs/heads/{ref}",
+            f"refs/tags/{ref}",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    # Exit code 2 means the remote is reachable but has no matching ref.
+    if result.returncode == 2:
+        print(
+            f"k8s-operator has no branch or tag '{ref}', "
+            f"falling back to '{K8S_OPERATOR_DEFAULT_REF}'"
+        )
+        return K8S_OPERATOR_DEFAULT_REF
+    result.check_returncode()
+    return ref
+
+
+def cmd_update_charm_reference(args: argparse.Namespace) -> int:
+    """Generate references from the matching operator branch and detect drift."""
+    output = K8S_SNAP_ROOT / "docs/canonicalk8s/_parts/charms"
+    try:
+        operator_ref = _resolve_operator_ref(args.operator_ref)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            operator = Path(tmpdir) / "k8s-operator"
+            subprocess.run(
+                [
+                    "git",
+                    "clone",
+                    "--depth",
+                    "1",
+                    "--branch",
+                    operator_ref,
+                    "--",
+                    K8S_OPERATOR_URL,
+                    str(operator),
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            revision = subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                cwd=operator,
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout.strip()
+            print(f"Using k8s-operator {operator_ref} at {revision}")
+            subprocess.run(
+                [
+                    sys.executable,
+                    str(K8S_SNAP_ROOT / "docs/tools/generate_charms_reference.py"),
+                    str(operator / "charms/worker/k8s/charmcraft.yaml"),
+                    str(operator / "charms/worker/charmcraft.yaml"),
+                    "--output-dir",
+                    str(output),
+                ],
+                check=True,
+            )
+        status = subprocess.run(
+            [
+                "git",
+                "status",
+                "--porcelain",
+                "--untracked-files=all",
+                "--",
+                str(output),
+            ],
+            cwd=K8S_SNAP_ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        if status:
+            diff = subprocess.run(
+                ["git", "--no-pager", "diff", "HEAD", "--", str(output)],
+                cwd=K8S_SNAP_ROOT,
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout
+            print("Error: charm reference differs from what is committed.")
+            print("Regenerate locally and commit the resulting files:")
+            print(
+                "  python3 ci/k8s-ci.py docs update-charm-reference"
+                f" --operator-ref {operator_ref}"
+            )
+            print("  git add docs/canonicalk8s/_parts/charms")
+            print(status)
+            print(diff)
+            return 1
+    except subprocess.CalledProcessError as error:
+        print(f"Error updating charm reference: {error}")
+        if error.stderr:
+            print(error.stderr)
+        return 1
+    except OSError as error:
+        print(f"Error updating charm reference: {error}")
+        return 1
+    print("Charm reference is up to date")
+    return 0
 
 
 def cmd_update_k8sd_api(args: argparse.Namespace) -> int:
@@ -127,11 +254,13 @@ def cmd_update_k8sd_api(args: argparse.Namespace) -> int:
             print(f"Error generating documentation: {result.stderr}")
             return 1
 
-    # Compare docs generated in _parts/ to what is committed
-    # `git status` also reports new and deleted files
+    # Compare docs generated in _parts/ to what is committed. The charms
+    # directory is generated by update-charm-reference, so it is excluded.
+    # `git status` also reports new and deleted files.
     docs_dir = docs_path.resolve()
+    pathspec = ["--", ".", ":(exclude)charms"]
     result = subprocess.run(
-        ["git", "status", "--porcelain", "--untracked-files=all", "--", "."],
+        ["git", "status", "--porcelain", "--untracked-files=all", *pathspec],
         cwd=docs_dir,
         capture_output=True,
         text=True,
@@ -141,11 +270,13 @@ def cmd_update_k8sd_api(args: argparse.Namespace) -> int:
         print(f"Error checking for docs changes: {result.stderr}")
         return 1
 
-    # Find diff and report findings
     status = result.stdout.rstrip()
     if status:
         diff = subprocess.run(
-            ["git", "diff", "--", "."], cwd=docs_dir, capture_output=True, text=True
+            ["git", "diff", "HEAD", *pathspec],
+            cwd=docs_dir,
+            capture_output=True,
+            text=True,
         )
         try:
             display_dir = docs_dir.relative_to(K8S_SNAP_ROOT.resolve())
