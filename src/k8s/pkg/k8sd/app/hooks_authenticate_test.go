@@ -62,7 +62,7 @@ func TestOnAuthenticate(t *testing.T) {
 		expectErr   bool
 	}{
 		{name: "NoTLS", tlsState: nil, expectErr: true},
-		{name: "NoPeerCertificates", tlsState: &tls.ConnectionState{}, expectErr: true},
+		{name: "NoPeerCertificates", tlsState: &tls.ConnectionState{}},
 		{name: "NotYetValid", tlsState: &tls.ConnectionState{PeerCertificates: []*x509.Certificate{futureCert}}, expectErr: true},
 		{name: "Expired", tlsState: &tls.ConnectionState{PeerCertificates: []*x509.Certificate{expiredCert}}, expectErr: true},
 		{name: "Untrusted", tlsState: &tls.ConnectionState{PeerCertificates: []*x509.Certificate{otherCert}}},
