@@ -242,7 +242,14 @@ jobs:
   run-testflinger-tests:
     name: GPU Operator (Testflinger) - ${{ matrix.arch }}
     runs-on: self-hosted-linux-amd64-noble-private-endpoint-small
-    needs: build-snap
+    needs: [build-snap, get-e2e-tags]
+    # Dedicated, shared GPU devices behind a queue, and secrets that fork PRs
+    # don't get. Run with the weekly-tier tests this test is tagged for: after
+    # every push, and on same-repo PRs that change tests, features or backports.
+    if: >-
+      github.event_name == 'push' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+      needs.get-e2e-tags.outputs.test-tags == 'up_to_weekly')
     strategy:
       fail-fast: false
       matrix:
@@ -265,6 +272,7 @@ jobs:
         run: |
           tar czf k8s-test-suite.tar.gz tests/integration/
       - name: Submit Testflinger Job
+        id: testflinger
         uses: canonical/testflinger/.github/actions/submit@2bef06ce0d029ad4c36d937c09ec096062b5c589 #main
         timeout-minutes: 75
         with:
@@ -273,6 +281,28 @@ jobs:
           attachments-relative-to: .
           client-id: ${{ secrets.TESTFLINGER_USERNAME }}
           secret-key: ${{ secrets.TESTFLINGER_PASSWORD }}
+      # The job files copy the JUnit report and inspection reports into the
+      # job's `artifacts` directory, which Testflinger uploads after the job
+      # ends whether or not the test passed.
+      - name: Download Testflinger artifacts
+        if: ${{ always() && steps.testflinger.outputs.id != '' }}
+        continue-on-error: true
+        env:
+          TESTFLINGER_CLIENT_ID: ${{ secrets.TESTFLINGER_USERNAME }}
+          TESTFLINGER_SECRET_KEY: ${{ secrets.TESTFLINGER_PASSWORD }}
+          JOB_ID: ${{ steps.testflinger.outputs.id }}
+        run: |
+          mkdir -p testflinger-artifacts
+          testflinger artifacts --filename testflinger-artifacts/artifacts.tgz "$JOB_ID"
+          tar xzf testflinger-artifacts/artifacts.tgz -C testflinger-artifacts
+          rm testflinger-artifacts/artifacts.tgz
+      - name: Upload Testflinger artifacts
+        if: ${{ always() && steps.testflinger.outputs.id != '' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: testflinger-gpu-${{ matrix.arch }}
+          path: testflinger-artifacts
+          if-no-files-found: warn
   security-scan:
     name: Security scan
     needs: build-snap
