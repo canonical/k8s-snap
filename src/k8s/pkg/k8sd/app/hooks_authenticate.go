@@ -19,7 +19,8 @@ func (a *App) onAuthenticate(ctx context.Context, s state.State, r *http.Request
 	}
 
 	if len(r.TLS.PeerCertificates) == 0 {
-		return false, errors.New("no certificate present in request")
+		// A request without a client certificate is untrusted, not invalid: AllowUntrusted endpoints authorize it via their own access handler.
+		return false, nil
 	}
 
 	peerCertificate := r.TLS.PeerCertificates[0]
