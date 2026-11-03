@@ -8,12 +8,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/canonical/k8sd/pkg/log"
-	mctypes "github.com/canonical/microcluster/v3/microcluster/types"
+	"github.com/canonical/k8s/pkg/log"
+	"github.com/canonical/microcluster/v2/state"
 )
 
 // onAuthenticate verifies that the request's client certificate is valid and present in the truststore.
-func (a *App) onAuthenticate(ctx context.Context, s mctypes.State, r *http.Request, trustedCerts map[string]x509.Certificate) (bool, error) {
+func (a *App) onAuthenticate(ctx context.Context, s state.State, r *http.Request, trustedCerts map[string]x509.Certificate) (bool, error) {
 	if r.TLS == nil {
 		return false, errors.New("no TLS connection state")
 	}
