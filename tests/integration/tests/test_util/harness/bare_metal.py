@@ -5,6 +5,7 @@ import logging
 import shlex
 import shutil
 import subprocess
+import time
 from pathlib import Path
 from typing import List
 
@@ -44,15 +45,15 @@ class BareMetalHarness(Harness):
 
         self.ssh_host = config.BARE_METAL_SSH_HOST
         self.ssh_user = config.BARE_METAL_SSH_USER
-        self._is_local = self.ssh_host in ("localhost", "127.0.0.1", "")
-
-        if not self._is_local and not self.ssh_host:
+        if not self.ssh_host:
             raise HarnessError(
-                "TEST_BARE_METAL_SSH_HOST must be set when using the bare_metal substrate"
+                "TEST_BARE_METAL_SSH_HOST must be set when using the bare_metal "
+                "substrate (use 'localhost' to run on this machine)"
             )
+        self._is_local = self.ssh_host in ("localhost", "127.0.0.1")
 
         self.instances = set()
-        self._instance_id = f"bare-metal-{self.ssh_host or 'localhost'}"
+        self._instance_id = f"bare-metal-{self.ssh_host}"
 
         LOG.debug(
             "Configured bare_metal substrate (host=%s, user=%s, local=%s)",
@@ -175,7 +176,10 @@ class BareMetalHarness(Harness):
                     "sudo",
                     "bash",
                     "-c",
-                    command_str,
+                    # ssh joins its arguments with spaces and hands them to the
+                    # remote shell, so the script must reach `bash -c` as a
+                    # single quoted word.
+                    shlex.quote(command_str),
                 ],
                 **kwargs,
             )
@@ -199,8 +203,6 @@ class BareMetalHarness(Harness):
             pass
 
         # Wait for the machine to come back.
-        import time
-
         for _ in range(60):
             try:
                 run(

@@ -208,9 +208,15 @@ def _dump_failing_pod_logs(instance: harness.Instance, namespace: str):
 
     for pod in pods:
         pod_name = pod.get("metadata", {}).get("name")
-        container_statuses = pod.get("status", {}).get("containerStatuses", [])
-        # If any container in the pod is not ready, collect logs
-        if not any(not c.get("ready") for c in container_statuses):
+        status = pod.get("status", {})
+        # Include init containers: a pod stuck in `Init:` has no
+        # `containerStatuses` yet, but its init container status says why.
+        container_statuses = status.get("initContainerStatuses", []) + status.get(
+            "containerStatuses", []
+        )
+        # Collect logs unless the pod is demonstrably ready. A pod without any
+        # container status (e.g. still Pending) is not ready either.
+        if container_statuses and all(c.get("ready") for c in container_statuses):
             continue
 
         for flag, label in ((None, "current"), ("--previous", "previous")):
@@ -394,6 +400,63 @@ def _dump_driver_container_diagnostics(instance: harness.Instance, namespace: st
             LOG.warning("Failed in-container checks for %s: %s", pod_name, exc)
 
 
+def _skip_or_fail(msg: str):
+    """Skip the test, or fail it when `TEST_REQUIRE_GPU=1`.
+
+    CI jobs that run on dedicated GPU hardware set `TEST_REQUIRE_GPU`, so a
+    missing GPU or an unsupported OS release shows up red instead of as a
+    green skip that tested nothing.
+    """
+    LOG.warning(msg)
+    if config.REQUIRE_GPU:
+        pytest.fail(msg)
+    pytest.skip(f"{msg} Skipping gpu-operator test.")
+
+
+@pytest.fixture
+def containerd_bind_mounts(instances: list[harness.Instance]):
+    """Bind-mount the default containerd paths onto the relocated ones, and
+    unmount them on teardown.
+
+    Only active with `TEST_CONTAINERD_BASE_DIR`. containerd's runc shim creates
+    its socket under the hard-coded /run/containerd/s, which `containerd-base-dir`
+    does not relocate; if /run/containerd is missing every pod sandbox (incl. the
+    CNI) fails with "mkdir /run/containerd/s: no such file or directory" and the
+    node never becomes Ready. gpu-operator also hard-codes hostPath mounts at
+    /etc/containerd and /run/containerd. The mounts hide a system-wide
+    containerd's config and socket, so they must not outlive the test.
+
+    Requesting `instances` makes this run after bootstrap and unmount before
+    the instance is torn down. Kubelet retries failed sandboxes, so pods that
+    were already pending recover once the mounts exist.
+    """
+    if not config.CONTAINERD_BASE_DIR:
+        yield
+        return
+
+    instance = instances[0]
+    mounted = []
+    try:
+        for target, source in (
+            ("/etc/containerd", f"{config.CONTAINERD_BASE_DIR}/etc/containerd"),
+            ("/run/containerd", f"{config.CONTAINERD_BASE_DIR}/run/containerd"),
+        ):
+            instance.exec(["mkdir", "-p", target])
+            is_mountpoint = instance.exec(
+                ["mountpoint", "-q", target], capture_output=True, check=False
+            )
+            if is_mountpoint.returncode == 0:
+                LOG.warning("%s is already a mountpoint, leaving it alone", target)
+                continue
+            instance.exec(["mount", "--bind", source, target])
+            mounted.append(target)
+        yield
+    finally:
+        for target in reversed(mounted):
+            # Lazy: pods may still hold the bind mount in their own namespaces.
+            instance.exec(["umount", "-l", target], capture_output=True, check=False)
+
+
 # Bootstrap YAML overrides cluster-config defaults, so we must re-enable the core
 # features (network/dns/local-storage) alongside the containerd-base-dir override.
 _GPU_BOOTSTRAP_CONFIG = (
@@ -416,6 +479,7 @@ _GPU_BOOTSTRAP_CONFIG = (
 @pytest.mark.tags(tags.WEEKLY)
 @pytest.mark.tags(tags.GPU)
 @pytest.mark.bootstrap_config(_GPU_BOOTSTRAP_CONFIG)
+@pytest.mark.usefixtures("containerd_bind_mounts")
 @pytest.mark.parametrize(
     "gpu_operator_version", NVIDIA_GPU_OPERATOR_SUPPORTED_UBUNTU_VERSIONS.keys()
 )
@@ -431,12 +495,7 @@ def test_deploy_nvidia_gpu_operator(
 
     # Prechecks to ensure the test instance is valid.
     if not _check_nvidia_gpu_present(instance):
-        msg = (
-            f"No Nvidia GPU present on harness instance '{instance.id}'. "
-            "Skipping GPU-operator test."
-        )
-        LOG.warning(msg)
-        pytest.skip(msg)
+        _skip_or_fail(f"No Nvidia GPU present on harness instance '{instance.id}'.")
 
     # Check if drivers are already loaded on the instance.
     # When running inside LXD containers with GPU passthrough, the host's
@@ -496,34 +555,10 @@ def test_deploy_nvidia_gpu_operator(
         instance_release
         not in NVIDIA_GPU_OPERATOR_SUPPORTED_UBUNTU_VERSIONS[gpu_operator_version]
     ):
-        msg = (
+        _skip_or_fail(
             f"Unsupported Ubuntu release '{instance_release}' for `gpu-operator` "
-            f"version '{gpu_operator_version}'. Skipping gpu-operator test."
+            f"version '{gpu_operator_version}'."
         )
-        LOG.warning(msg)
-        pytest.skip(msg)
-
-    if config.CONTAINERD_BASE_DIR:
-        # containerd's runc shim creates its socket under the hard-coded
-        # /run/containerd/s, which `containerd-base-dir` does not relocate; if
-        # /run/containerd is missing every pod sandbox (incl. the CNI) fails with
-        # "mkdir /run/containerd/s: no such file or directory" and the node never
-        # becomes Ready. gpu-operator also hard-codes hostPath mounts at
-        # /etc/containerd and /run/containerd. Bind-mount the defaults onto our
-        # relocated paths *before* waiting for the node; kubelet retries failed
-        # sandboxes, so already-pending pods recover.
-        for target, source in (
-            ("/etc/containerd", f"{config.CONTAINERD_BASE_DIR}/etc/containerd"),
-            ("/run/containerd", f"{config.CONTAINERD_BASE_DIR}/run/containerd"),
-        ):
-            instance.exec(["mkdir", "-p", target])
-            instance.exec(
-                [
-                    "bash",
-                    "-c",
-                    f"mountpoint -q {target} || mount --bind {source} {target}",
-                ]
-            )
 
     LOG.info("Waiting for k8s node to become Ready (CNI initialized)...")
     try:

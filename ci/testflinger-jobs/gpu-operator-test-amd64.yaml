@@ -19,6 +19,26 @@ test_data:
     SSH="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@$DEVICE_IP"
     SCP="scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
+    # Directory on the device that collects the JUnit report and inspection
+    # reports. `finish` copies it into ./artifacts, which Testflinger uploads
+    # after the job ends, whether or not the test passed.
+    REMOTE_ARTIFACTS=/tmp/gpu-test-artifacts
+
+    finish() {
+        local rc=$?
+        trap - EXIT
+        set +e
+        echo "=== Collecting artifacts from $DEVICE_IP ==="
+        if $SSH "test -d $REMOTE_ARTIFACTS" </dev/null; then
+            mkdir -p artifacts
+            $SSH "tar cf - -C $REMOTE_ARTIFACTS ." </dev/null | tar xf - -C artifacts
+        else
+            echo "No artifacts found at $REMOTE_ARTIFACTS"
+        fi
+        exit $rc
+    }
+    trap finish EXIT
+
     # 1. Copy attachments to the device
     $SCP attachments/test/k8s-amd64.snap ubuntu@$DEVICE_IP:/tmp/
     $SCP attachments/test/k8s-test-suite.tar.gz ubuntu@$DEVICE_IP:/tmp/
@@ -26,7 +46,7 @@ test_data:
     # 2. Set up test environment on the device
     # Use 'bash -s' to avoid login shell — .bash_logout can override
     # the exit code when clear_console fails over SSH with set -e.
-    $SSH bash -s << 'REMOTE'
+    $SSH env ARTIFACTS_DIR="$REMOTE_ARTIFACTS" bash -s << 'REMOTE'
     set -eux
     export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH"
 
@@ -47,19 +67,27 @@ test_data:
     tar xzf k8s-test-suite.tar.gz
     cd tests/integration
 
-    # Run the GPU operator test directly on bare metal via SSH harness.
-    # The bare_metal substrate SSHes back into localhost ($DEVICE_IP) to
-    # run commands, giving the test framework full control of the device
+    rm -rf "$ARTIFACTS_DIR"
+    mkdir -p "$ARTIFACTS_DIR"
+
+    # Run the GPU operator test directly on the device. The harness runs with
+    # TEST_BARE_METAL_SSH_HOST=localhost, so it executes commands locally with
+    # sudo (no SSH hop), giving the test framework full control of the device
     # including kernel module loading for the gpu-operator.
     export TEST_SNAP="/tmp/k8s-amd64.snap"
     export TEST_SUBSTRATE=bare_metal
     export TEST_BARE_METAL_SSH_HOST=localhost
     export TEST_BARE_METAL_SSH_USER=ubuntu
     export TEST_USE_LOCAL_MIRROR=0
+    # This queue has GPUs, so a missing GPU or unsupported OS is a failure,
+    # not a skip.
+    export TEST_REQUIRE_GPU=1
+    # The harness writes one inspection report per instance here before it
+    # purges the k8s snap.
+    export TEST_INSPECTION_REPORTS_DIR="$ARTIFACTS_DIR/inspection-reports"
 
+    # `set -e` propagates tox's exit status as this script's own.
     tox -e integration -- \
-        --tags gpu
-    RC=$?
-
-    exit $RC
+        --tags gpu \
+        --junitxml="$ARTIFACTS_DIR/junit.xml"
     REMOTE

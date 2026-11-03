@@ -56,6 +56,10 @@ BARE_METAL_SSH_HOST = os.getenv("TEST_BARE_METAL_SSH_HOST") or ""
 # BARE_METAL_SSH_USER is the SSH user for the bare_metal substrate.
 BARE_METAL_SSH_USER = os.getenv("TEST_BARE_METAL_SSH_USER") or "ubuntu"
 
+# REQUIRE_GPU makes the GPU tests fail instead of skip when the host has no
+# usable GPU. Set it in CI jobs that run on dedicated GPU hardware.
+REQUIRE_GPU = (os.getenv("TEST_REQUIRE_GPU") or "") == "1"
+
 # CONTAINERD_BASE_DIR relocates containerd files (needed when a system-wide
 # containerd is already installed at the default path, e.g. on non-provision arm64 IGX devices).
 CONTAINERD_BASE_DIR = os.getenv("TEST_CONTAINERD_BASE_DIR") or ""
