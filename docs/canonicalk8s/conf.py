@@ -63,6 +63,9 @@ html_context = {
     # Brand configuration for the leftmost entry in the banner
     # TODO: If your project falls under a different product page, update the title, URL,
     #       and logo if necessary.
+    "repo_default_branch": "main",
+    # Docs location in the repo; used in links for viewing the source files
+    "repo_folder": "/docs/canonicalk8s/",
     "logo_title": "Canonical",
     "logo_link_URL": "https://canonical.com",
     "logo_img_URL": "https://assets.ubuntu.com/v1/82818827-CoF_white.svg",
