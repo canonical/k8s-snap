@@ -12,16 +12,15 @@ import yaml
 # A complete list of built-in Sphinx configuration values:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 #
-# The Sphinx Stack uses the Canonical Sphinx theme to keep all documentation consistent
-# and on brand:
-# https://github.com/canonical/canonical-sphinx
+# The Sphinx Stack uses the Ulwazi theme:
+# https://github.com/canonical/ulwazi
 
 #######################
 # Project information #
 #######################
 
 # Project name
-# TODO: Update with the official name of your project or product (e.g., "Ubuntu Server")
+# TODO: Update with the official name of your project (e.g., "LXD documentation")
 project = "Canonical Kubernetes"
 
 # Author name; used in the default copyright statement in the page footer
@@ -30,9 +29,8 @@ author = "Canonical Ltd."
 # The year in the copyright statement
 copyright = f"{datetime.date.today().year}"
 
-# Sidebar documentation title
-# To disable the title, set it to an empty string.
-html_title = project + " documentation"
+# String appended to the title of individual HTML pages
+html_title = project
 
 # Documentation website URL
 ogp_site_url = "https://documentation.ubuntu.com/canonical-kubernetes/latest/"
@@ -43,55 +41,45 @@ ogp_site_name = project
 
 # Preview image URL
 # TODO: To customise the preview image, update the next line.
-ogp_image = "https://assets.ubuntu.com/v1/253da317-image-document-ubuntudocs.svg"
+ogp_image = "https://assets.ubuntu.com/v1/cc828679-docs_illustration.svg"
 
 # Product favicon; shown in bookmarks, browser tabs, etc.
 # TODO: To customise the favicon, uncomment and update the next line.
-# html_favicon = ".sphinx/_static/favicon.png"
+# html_favicon = "_static/favicon.png"
 
-# Dictionary of values to pass into the Sphinx context for all pages:
-# https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-html_context
+# The theme for the HTML output
+html_theme = "ulwazi"
+
+# Dictionary of values to pass into every page's template.
 html_context = {
-    # Product page URL; can be different from product docs URL
-    # TODO: Change to your product website URL, dropping the 'https://' prefix (e.g.,
-    #       'ubuntu.com/lxd'). If there's no such website, remove the {{ product_page }}
-    #       link from the _templates/header.html file.
-    "product_page": "ubuntu.com/kubernetes",
+    # The header links the project name to the documentation root. Don't set
+    # 'product_page', as it replaces that link with the product website.
     # Product tag image; the orange part of your logo, shown in the page header
     # TODO: To add a tag image, uncomment and update as needed.
     # 'product_tag': '_static/tag.png',
-    # Your Discourse instance URL
-    # TODO: Change to your Discourse instance URL or leave empty.
+    # Feedback and edit/view links require a valid `github_url`.
+    # TODO: Set to False to hide feedback and page controls.
+    "feedback": True,
+    # Brand configuration for the leftmost entry in the banner
+    # TODO: If your project falls under a different product page, update the title, URL,
+    #       and logo if necessary.
+    "logo_title": "Canonical",
+    "logo_link_URL": "https://canonical.com",
+    "logo_img_URL": "https://assets.ubuntu.com/v1/82818827-CoF_white.svg",
     "discourse": "https://discourse.ubuntu.com/c/kubernetes/180",
-    # Your Mattermost channel URL
-    # TODO: Change to your Mattermost channel URL or leave empty.
-    # "mattermost": "https://chat.canonical.com/canonical/channels/documentation",
-    # Your Matrix channel URL
-    # TODO: Change to your Matrix channel URL or leave empty.
-    # "matrix": "https://matrix.to/#/#documentation:ubuntu.com",
-    # Your documentation GitHub repository URL If set, links for viewing the
-    # documentation source files and creating GitHub issues are added at the bottom of
-    # each page.
-
     # Adding slack channel
     'slack': 'https://kubernetes.slack.com/archives/CG1V2CAMB',
     #
     # TODO: Change to your documentation GitHub repository URL or leave empty.
     "github_url": "https://github.com/canonical/k8s-snap",
     # Docs branch in the repo; used in links for viewing the source files
-    "repo_default_branch": "main",
-    # Docs location in the repo; used in links for viewing the source files
-    "repo_folder": "/docs/canonicalk8s/",
     # TODO: To enable or disable the Previous / Next buttons at the bottom of pages
     # Valid options: none, prev, next, both
     # "sequential_nav": "",
-    # TODO: To enable listing contributors on individual pages, set to True
-    "display_contributors": False,
     # Required for feedback button
     "github_issues": "enabled",
-    # Passes the top-level 'author' value to the theme
+    # License information to be rendered in the footer
     "author": author,
-    # Documentation license information
     "license": {
         # TODO: Specify your project's license.
         # For the name, we recommend using the standard shorthand identifier from
@@ -101,22 +89,6 @@ html_context = {
         "url": "https://github.com/canonical/k8s-snap/blob/main/LICENSE",
     },
 }
-
-# TODO: To enable the edit button on pages, uncomment and change the link to a
-# public repository on GitHub or Launchpad. Any of the following link domains
-# are accepted:
-# - https://github.com/example-org/example"
-# - https://launchpad.net/example
-# - https://git.launchpad.net/example
-#
-html_theme_options = {
- 'source_edit_link': 'https://github.com/canonical/k8s-snap',
-}
-
-# Project slug
-# TODO: If your documentation is hosted on https://documentation.ubuntu.com/,
-#       uncomment and set to the RTD slug.
-slug = 'canonical-kubernetes'
 
 #######################
 # Sitemap configuration: https://sphinx-sitemap.readthedocs.io/
@@ -146,7 +118,7 @@ sitemap_excludes = [
 ################################
 
 html_static_path = ["_static"]
-templates_path = ["_templates"]
+# templates_path = ["_templates"]
 
 #############
 # Redirects #
@@ -177,6 +149,12 @@ llms_txt_description = textwrap.dedent(
     This is the documentation for the Canonical Kubernetes, a performant, lightweight, secure and opinionated distribution of Kubernetes which includes everything needed to create and manage a scalable cluster suitable for all use cases.
     """
 )
+
+# Generate an 'llms-full.txt' file containing all of the documentation content
+llms_txt_full_build = True
+
+# Suppress warnings from upstream markdown builder
+llms_txt_suppress_unknown_node_warnings = True
 
 # The base URL for references built by sphinx-markdown-builder.
 if os.environ.get("READTHEDOCS"):
@@ -232,36 +210,23 @@ linkcheck_retries = 3
 # Configuration extras #
 ########################
 
-# Custom MyST syntax extensions; see
-# https://myst-parser.readthedocs.io/en/latest/syntax/optional.html
-# NOTE: By default, the following MyST extensions are enabled:
-#   - substitution
-#   - deflist
-#   - linkify
-# myst_enable_extensions = set()
-
 # Custom Sphinx extensions; see
 # https://www.sphinx-doc.org/en/master/usage/extensions/index.html
 extensions = [
-    "canonical_sphinx",
-    "notfound.extension",
+    "ulwazi",
+    "myst_parser",
     "sphinx_design",
     "sphinx_rerediraffe",
-    "sphinx_reredirects",
-    "sphinx_tabs.tabs",
     "sphinxcontrib.jquery",
     "sphinxext.opengraph",
     "sphinx_config_options",
-    "sphinx_contributor_listing",
-    "sphinx_filtered_toctree",
     "sphinx_llm.txt",
+    "sphinx_modern_pdf_style",
     "sphinx_related_links",
     "sphinx_roles",
     "sphinx_terminal",
-    "sphinx_ubuntu_images",
     "sphinx_youtube_links",
     "sphinxcontrib.cairosvgconverter",
-    "sphinx_last_updated_by_git",
     "sphinx.ext.intersphinx",
     "sphinx_sitemap",
     "sphinx_structured_toc",
@@ -272,13 +237,14 @@ exclude_patterns = [
     "doc-cheat-sheet*",
     ".venv*",
     '_parts/*',
-    '/_parts'
+    '/_parts',
+    "_dev",
 ]
 
 # Adds custom CSS files, located remotely or in 'html_static_path'.
 html_css_files = [
     "https://assets.ubuntu.com/v1/d86746ef-cookie_banner.css",
-    "domain-list-override.css"
+    "domain-list-override.css",
 ]
 
 # Adds custom JavaScript files, located remotely or in 'html_static_path'.
@@ -289,26 +255,28 @@ html_js_files = [
 myst_heading_anchors = 3
 
 # Appends extra markup to the end of every document written in reST
-rst_epilog = """
-"""
+# rst_epilog = """
+# """
 
-# Feedback button at the top; enabled by default
-# TODO: Disable the button if your project is unsuitable for public feedback.
-# disable_feedback_button = True
+# Project slug
+# TODO: Set to your project slug. If your docs were hosted at
+# https://canonical.com/juju/docs/ops, you'd set this to "juju/docs/ops".
+slug = "canonical-kubernetes"
+
+# Apply modern PDF styling and configuration
+set_modern_pdf_config = True
 
 # Your manpage URL
 # TODO: To enable manpage links, uncomment and replace {codename} with required
 #       release, preferably an LTS release (e.g. noble). Do *not* substitute
 #       {section} or {page}; these will be replaced by sphinx at build time
 #
-# NOTE: If set, adding ':manpage:' to an .rst file
-#       adds a link to the corresponding man section at the bottom of the page.
+# If set, the :manpage: role creates an inline link to the manual page.
 # manpages_url = 'https://manpages.ubuntu.com/manpages/{codename}/en/' + \
 #     'man{section}/{page}.{section}.html'
 
 # Specifies a reST snippet to be prepended to each .rst file
 # This defines a :center: role that centers table cell content.
-# This defines a :h2: role that styles content for use with PDF generation.
 rst_prolog = """
 .. role:: center
    :class: align-center
@@ -326,9 +294,10 @@ intersphinx_mapping = {
     "snap": ("https://snapcraft.io/docs/", None),
 }
 
-if os.path.exists('./reuse/substitutions.yaml'):
-    with open('./reuse/substitutions.yaml', 'r') as fd:
+# Canonical Kubernetes-specific: load MyST substitutions ({{product}}, {{version}},
+# ...) from reuse/substitutions.yaml. The Sphinx Stack no longer provides this.
+if os.path.exists("./reuse/substitutions.yaml"):
+    with open("./reuse/substitutions.yaml", "r") as fd:
         myst_substitutions = yaml.safe_load(fd.read())
 else:
-    myst_substitutions = {
-    }
+    myst_substitutions = {}

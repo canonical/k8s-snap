@@ -49,13 +49,4 @@ jobs:
             popd
           done
       - name: Compare URLs
-        run: |
-          BASE_URLS_PATH="base/docs/canonicalk8s/urls.txt"
-          COMPARE_URLS_PATH="compare/docs/canonicalk8s/urls.txt"
-          removed=$(comm -23 ${BASE_URLS_PATH} ${COMPARE_URLS_PATH} )
-          if [ -n "$removed" ]; then
-            echo "The following URLs were removed:"
-            echo "$removed"
-            echo "Please ensure removed pages are redirected"
-            exit 1
-          fi
+        run: python3 compare/docs/canonicalk8s/_dev/check_removed_urls.py

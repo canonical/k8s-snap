@@ -1,8 +1,6 @@
-/* Override sphinx-structured-toc separator color to Ubuntu orange */
-.domain-list > ul > li > ul > li {
-    border-left: 1px solid #E95420;
-}
-
-.domain-list > ul > li > ul > li:first-child {
-    border-left: none;
+/* Keep the sphinx-structured-toc separator Ubuntu orange in light and dark mode.
+   Ulwazi defaults to white in dark mode; see its structured-toc.css. */
+nav.domain-list,
+.is-dark nav.domain-list {
+    --ulwazi-structured-toc-separator-color: #E95420;
 }
