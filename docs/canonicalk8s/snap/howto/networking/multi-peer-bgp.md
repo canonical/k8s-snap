@@ -141,6 +141,8 @@ Correct the annotation and the reconciler retries automatically.
 
 - [Load-balancer explanation](/snap/explanation/networking.md#load-balancer)
 - [How to use the default load balancer](default-loadbalancer.md)
+- [Configure multi-peer BGP with the Juju charm][charm-configure]
 
 <!-- LINKS -->
 [getting-started-guide]: /snap/tutorial/getting-started
+[charm-configure]: /charm/howto/configure-cluster.md#cluster-annotations

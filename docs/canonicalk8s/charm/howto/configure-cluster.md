@@ -64,14 +64,28 @@ set its value to `-`:
 juju config k8s cluster-annotations="k8sd/v1alpha1/cilium/cni-exclusive=-"
 ```
 
-The [multi-peer BGP annotation][multi-peer-bgp] is the only annotation that
-requires nested YAML, which `cluster-annotations` cannot express — it cannot
-be set via `juju deploy` or `juju config`. Set it by running the `k8s` CLI
-on a unit instead:
+The [multi-peer BGP annotation][multi-peer-bgp] requires a list value.
+`cluster-annotations` parses space-separated `key=value` pairs, so the value
+must contain no spaces. A compact single-line JSON array satisfies this
+constraint:
+
+```
+juju config k8s cluster-annotations='k8sd/v1alpha1/metallb/bgp-peers=[{"peerAddress":"10.116.3.164","peerASN":65001,"myASN":65000,"nodeSelector":{"topology.kubernetes.io/zone":"i1"}},{"peerAddress":"10.116.3.165","peerASN":65002,"myASN":65000,"nodeSelector":{"topology.kubernetes.io/zone":"i2"}}]'
+```
+
+```{caution}
+Any space inside the JSON splits the value into multiple tokens; any token
+without `=` causes a `ReconcilerError` and blocks the unit. Do not use pretty-printed JSON.
+```
+
+For configurations that are easier to read as YAML, set the annotation
+directly using the `k8s` CLI on a unit instead:
 
 ```
 juju exec --unit <k8s/unit#> -- sudo k8s set annotations="$(cat bgp-peers.yaml)"
 ```
+
+See [multi-peer BGP][multi-peer-bgp] for an example YAML peers file.
 
 ## Apply the configuration
 
