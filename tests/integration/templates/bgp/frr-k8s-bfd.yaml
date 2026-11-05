@@ -1,0 +1,28 @@
+# frr-k8s backend with two BFD profiles, and three peers sharing the local ASN
+# (with frr-k8s, MetalLB requires all peers of a node to use the same myASN):
+# 192.0.2.1 uses BFD, 192.0.2.2 a non-default port, and 192.0.2.3 selects no
+# node, so it must not reach FRR. fast-failover sets every field to a
+# non-default value, as FRR omits defaults from its running config. spare is
+# not used by any peer.
+k8sd/v1alpha1/metallb/bgp-backend: frr-k8s
+k8sd/v1alpha1/metallb/bfd-profiles: |
+  - name: fast-failover
+    receiveInterval: 150
+    transmitInterval: 200
+    detectMultiplier: 5
+    echoInterval: 60
+    echoMode: true
+    passiveMode: true
+    minimumTtl: 250
+  - name: spare
+k8sd/v1alpha1/metallb/bgp-peers: |
+  - peerAddress: 192.0.2.1
+    peerASN: 65001
+    bfdProfile: fast-failover
+  - peerAddress: 192.0.2.2
+    peerASN: 65002
+    peerPort: 1179
+  - peerAddress: 192.0.2.3
+    peerASN: 65003
+    nodeSelector:
+      k8sd-test/no-such-label: "true"

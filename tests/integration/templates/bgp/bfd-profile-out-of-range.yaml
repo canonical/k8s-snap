@@ -1,0 +1,9 @@
+# Rejected: detectMultiplier must be in [2, 255].
+k8sd/v1alpha1/metallb/bgp-backend: frr-k8s
+k8sd/v1alpha1/metallb/bfd-profiles: |
+  - name: fast-failover
+    detectMultiplier: 1
+k8sd/v1alpha1/metallb/bgp-peers: |
+  - peerAddress: 192.0.2.1
+    peerASN: 65001
+    bfdProfile: fast-failover

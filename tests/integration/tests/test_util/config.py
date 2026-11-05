@@ -15,6 +15,9 @@ COMMON_ETC_DIR = "/var/snap/k8s/common/etc"
 MANIFESTS_DIR = DIR / ".." / ".." / "templates"
 CLOUD_INIT_DIR = MANIFESTS_DIR / "cloud-init"
 
+# BGP_DIR contains the load balancer BGP annotations used by the BGP tests.
+BGP_DIR = MANIFESTS_DIR / "bgp"
+
 # ETCD_DIR contains all templates required to setup an etcd database.
 ETCD_DIR = MANIFESTS_DIR / "etcd"
 
