@@ -1,0 +1,389 @@
+##
+## Copyright 2026 Canonical, Ltd.
+##
+## Stage B rule pack: ordered, first match wins. Read
+## .agents/skills/ci-failure-rules/SKILL.md before editing; in short:
+##
+## - Keep rules grouped by tier, in this order: infra.runner,
+##   infra.provisioning, external.dependency, ci.config, product.bug, test.bug.
+##   An environment cause must win over the product command it broke.
+## - Match on excerpt text (`excerpt_pattern`) and job metadata (`job`), never
+##   on `signature_id`: signature IDs change whenever the extractor does.
+## - Prefer single-line patterns. `metrics check-rules` tests patterns line by
+##   line against successful jobs, so a multi-line pattern is never checked.
+## - Every rule needs `notes` (why this class) and at least one real excerpt
+##   under `examples`. Loading fails unless each example is classified by the
+##   rule that lists it, which catches typos and shadowing.
+## - Bump `version` with every change to what the rules match. Earlier
+##   versions stay in the store as history; reports use only this one.
+## - Step-name routing (Setup LXD, Collect tests, Upload ...) belongs to the
+##   Stage A router in metrics/router.py, which runs before these rules.
+##
+
+version: 2
+
+rules:
+  # --- infra.runner: the runner machine itself was unhealthy ---------------
+
+  - id: infra-disk-full
+    failure_class: infra.runner
+    subclass: disk_space
+    excerpt_pattern: 'no space left on device|disk quota exceeded'
+    examples:
+      - "OSError: [Errno 28] No space left on device: '/tmp/k8s-snap'"
+    notes: >-
+      Runner storage exhaustion can surface through any command. It is
+      infrastructure regardless of which product-shaped error printed last.
+
+  - id: infra-oom
+    failure_class: infra.runner
+    subclass: oom
+    excerpt_pattern: 'Out of memory: Killed process|oom-kill|Cannot allocate memory'
+    examples:
+      - 'Out of memory: Killed process 4242 (kube-apiserver)'
+    notes: >-
+      The host kernel killed a process for memory pressure. The victim process
+      is incidental, so this intentionally matches on host-level text.
+
+  - id: infra-missing-tool
+    failure_class: infra.runner
+    subclass: missing_tool
+    excerpt_pattern: ": command not found|FileNotFoundError: \\[Errno 2\\] No such file or directory: '(lxc|lxd|multipass|snap|zip|jq|kubectl)'"
+    examples:
+      - 'bash: jq: command not found'
+    notes: >-
+      A binary expected on the runner image is absent. The workflow reached the
+      machine but the machine was incomplete, so this is runner infrastructure.
+
+  - id: infra-dpkg-lock
+    failure_class: infra.runner
+    subclass: apt_lock
+    excerpt_pattern: 'Could not get lock /var/lib/dpkg'
+    examples:
+      - 'E: Could not get lock /var/lib/dpkg/lock-frontend. It is held by process 1234 (unattended-upgr)'
+    notes: >-
+      Another process on the runner, usually unattended-upgrades, held the
+      dpkg lock. That is runner state, not the Ubuntu archive.
+
+  # --- external.dependency: a service outside our control failed -----------
+
+  - id: external-snap-store
+    failure_class: external.dependency
+    subclass: snap_store
+    excerpt_pattern: 'unable to contact snap store|cannot install "?k8s"?|snap "k8s" is not available|too many requests|cannot refresh .* store'
+    examples:
+      - |-
+        subprocess.CalledProcessError: Command '['lxc', 'shell', 'k8s-integration-2-eb0b76', '--', 'bash', '-c', 'snap refresh k8s --channel 1.34-classic/stable --classic']' returned non-zero exit status 1.
+        stderr: error: unable to contact snap store
+    notes: >-
+      snapd could not reach or was throttled by the Snap Store. Upgrade tests
+      refresh between store channels, so a store outage fails them all at
+      once; this sits above product snap rules so the visible cause wins.
+
+  - id: external-registry
+    failure_class: external.dependency
+    subclass: registry
+    excerpt_pattern: '(ghcr\.io|docker\.io|registry\.k8s\.io|quay\.io).{0,80}(timeout|TLS handshake|no such host|connection refused|toomanyrequests|denied|500 Internal)'
+    examples:
+      - 'failed to resolve reference "ghcr.io/canonical/coredns:1.12.0": dial tcp: lookup ghcr.io: no such host'
+    notes: >-
+      Image pulls from third-party registries failed. The registry hostname is
+      required so in-cluster pull symptoms are not swept into this class.
+
+  - id: external-apt-archive
+    failure_class: external.dependency
+    subclass: apt
+    excerpt_pattern: 'Failed to fetch http.{0,120}(archive|security|ports)\.ubuntu\.com'
+    examples:
+      - 'E: Failed to fetch http://archive.ubuntu.com/ubuntu/pool/main/t/tox/tox_4.11.3-1_all.deb  Connection timed out'
+    notes: >-
+      The Ubuntu archive could not be reached. A missing package index is a
+      different fault, handled by ci-apt-index-missing below.
+
+  - id: external-pypi
+    failure_class: external.dependency
+    subclass: pypi
+    excerpt_pattern: '(files\.pythonhosted\.org|pypi\.org).{0,120}(Read timed out|timed out|Max retries exceeded|Temporary failure in name resolution)'
+    examples:
+      - "pip._vendor.urllib3.exceptions.ReadTimeoutError: HTTPSConnectionPool(host='files.pythonhosted.org', port=443): Read timed out."
+    notes: >-
+      pip could not download from PyPI while building a tox environment.
+      Nothing in this repository is wrong; retrying the job is the fix.
+
+  - id: external-docs-linkcheck
+    failure_class: external.dependency
+    subclass: docs_links
+    confidence: 0.8
+    excerpt_pattern: "Command 'make -f Makefile linkcheck' returned non-zero exit status"
+    examples:
+      - "Command 'make -f Makefile linkcheck' returned non-zero exit status 2."
+    notes: >-
+      Sphinx linkcheck found unreachable links. In every observed failure the
+      targets were external sites timing out or refusing the checker
+      (canonical.com timeouts, Slack 403s), not links our docs broke. A link a
+      PR really broke lands here too, hence confidence below 1.
+
+  # --- ci.config: our workflow wiring was wrong ----------------------------
+
+  - id: ci-apt-index-missing
+    failure_class: ci.config
+    subclass: apt_index_missing
+    excerpt_pattern: '^E: Unable to locate package '
+    examples:
+      - 'E: Unable to locate package tox'
+    notes: >-
+      apt has no package index for the package. The workflows run
+      `apt-get install` without `apt-get update`, which only works while the
+      runner image ships a warm index; the fix belongs in the workflow.
+
+  - id: ci-missing-artifact
+    failure_class: ci.config
+    subclass: missing_artifact
+    excerpt_pattern: 'Unable to (find|download) artifact|Artifact not found for name|no files were found with the provided path'
+    examples:
+      - 'Unable to download artifact(s): Artifact not found for name: e2e-snap-amd64'
+    notes: >-
+      The job expected an artifact that was not available. That is CI wiring or
+      an upstream job failure, not evidence about the product.
+
+  # --- product.bug: Canonical Kubernetes misbehaved ------------------------
+
+  - id: product-service-panic
+    failure_class: product.bug
+    subclass: service_panic
+    excerpt_pattern: 'Panic/segfault traces found in service logs'
+    examples:
+      - |-
+        File "/home/ubuntu/actions-runner/_work/k8s-snap/k8s-snap/tests/integration/tests/test_version_upgrades.py", line 138, in test_version_upgrades
+          util.check_service_logs_for_panics(instance)
+        AssertionError: Panic/segfault traces found in service logs:
+    notes: >-
+      A Kubernetes service panicked or segfaulted; the harness found the trace
+      in the journal after the test body passed.
+
+  - id: product-service-restarts
+    failure_class: product.bug
+    subclass: service_restart
+    excerpt_pattern: 'Services have restarted more than \d+ time\(s\)'
+    examples:
+      - 'AssertionError: Services have restarted more than 0 time(s): kubelet (2 restarts)'
+    notes: >-
+      A product service restarted when the test required it to stay up,
+      typically kubelet during an upgrade or a rollback.
+
+  - id: product-apiserver-unreachable
+    failure_class: product.bug
+    subclass: apiserver_unreachable
+    excerpt_pattern: '^stderr: .*(127\.0\.0\.1|localhost):6443.{0,80}connection refused'
+    examples:
+      - |-
+        subprocess.CalledProcessError: Command '['lxc', 'shell', 'k8s-integration-2-1cdcb1', '--', 'bash', '-c', 'k8s kubectl apply -f -']' returned non-zero exit status 1.
+        stderr: error: error validating "STDIN": error validating data: failed to download openapi: Get "https://127.0.0.1:6443/openapi/v2?timeout=32s": dial tcp 127.0.0.1:6443: connect: connection refused
+    notes: >-
+      kubectl on the node could not reach the local kube-apiserver: the API
+      server was down when the test needed it.
+
+  - id: product-feature-upgrade-incomplete
+    failure_class: product.bug
+    subclass: upgrade_failure
+    confidence: 0.7
+    excerpt_pattern: '^AssertionError: Failed to meet condition$'
+    job:
+      test_nodeid: '::test_feature_upgrades_inplace\b'
+    examples:
+      - excerpt: |-
+          File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_version_upgrades.py", line 454, in test_feature_upgrades_inplace
+            assert self._condition(resp), "Failed to meet condition"
+          AssertionError: Failed to meet condition
+        job:
+          test_nodeid: tests/test_version_upgrades.py::test_feature_upgrades_inplace
+    notes: >-
+      The in-place feature upgrade never reported phase "Completed" on the
+      Upgrade resource within the test's 15 x 5s poll. Either the upgrade
+      controller stalled or the poll is too short; confidence stays below 1
+      until a human has looked.
+
+  - id: product-node-never-ready
+    failure_class: product.bug
+    subclass: node_not_ready
+    excerpt_pattern: 'in wait_until_k8s_ready$'
+    examples:
+      - |-
+        File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_clustering.py", line 568, in test_join_with_custom_token_name
+          File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 436, in wait_until_k8s_ready
+            assert is_node_ready(control_node, node_name)
+        AssertionError
+    notes: >-
+      The harness waited for every node to become Ready and one never did.
+
+  - id: product-containerd-image-import
+    failure_class: product.bug
+    subclass: containerd
+    excerpt_pattern: 'ctr -n k8s\.io image import'
+    examples:
+      - "subprocess.CalledProcessError: Command '['lxc', 'shell', 'k8s-integration-2-c75fa5', '--', 'bash', '-c', '/snap/k8s/current/bin/ctr -n k8s.io image import /tmp/nginx-export.tar']' returned non-zero exit status 1."
+    notes: >-
+      The bundled containerd rejected an image import inside the instance,
+      after the product had been installed.
+
+  - id: product-bootstrap-failure
+    failure_class: product.bug
+    subclass: bootstrap_failure
+    excerpt_pattern: 'k8s bootstrap'
+    examples:
+      - "subprocess.CalledProcessError: Command '['lxc', 'shell', 'k8s-integration-1-abcdef', '--', 'bash', '-c', 'k8s bootstrap --file /root/config.yaml']' returned non-zero exit status 1."
+    notes: >-
+      The integration harness wraps commands through `util.run`; when the
+      wrapped command is `k8s bootstrap`, bootstrap itself failed and downstream
+      readiness symptoms are not the primary fault.
+
+  - id: product-join-failure
+    failure_class: product.bug
+    subclass: join_failure
+    excerpt_pattern: 'k8s join-cluster'
+    examples:
+      - "subprocess.CalledProcessError: Command '['lxc', 'shell', 'k8s-integration-2-abcdef', '--', 'bash', '-c', 'k8s join-cluster <redacted>']' returned non-zero exit status 1."
+    notes: >-
+      A node failed to join the cluster. This rule relies on the scrubber
+      preserving the command while redacting the join token.
+
+  - id: product-wait-for-timeout
+    failure_class: product.bug
+    subclass: wait_for_timeout
+    excerpt_pattern: 'k8s x-wait-for (network|dns|kube-system-ready|[a-z-]+).{0,40}--timeout'
+    examples:
+      - "subprocess.CalledProcessError: Command '['lxc', 'shell', 'k8s-integration-1-abcdef', '--', 'bash', '-c', 'k8s x-wait-for dns --timeout 5m']' returned non-zero exit status 1."
+    notes: >-
+      `k8s x-wait-for` exhausted the product's own readiness timeout. The
+      subsystem failed to converge within the requested time.
+
+  - id: product-cluster-never-ready
+    failure_class: product.bug
+    subclass: cluster_never_ready
+    excerpt_pattern: 'k8s status --wait-ready'
+    examples:
+      - "subprocess.CalledProcessError: Command '['lxc', 'shell', 'k8s-integration-1-abcdef', '--', 'bash', '-c', 'k8s status --wait-ready --timeout 10m']' returned non-zero exit status 1."
+    notes: >-
+      The aggregate product readiness command returned non-zero, so the cluster
+      never reached ready state.
+
+  - id: product-snap-install-failure
+    failure_class: product.bug
+    subclass: snap_install_failure
+    # Two lines on purpose: the command, then its recorded stderr. A failure
+    # whose stderr was not logged is left unknown (see notes), and the
+    # precision check cannot test a pattern that spans lines.
+    excerpt_pattern: "snap (install|refresh) [^'\\n]*\\bk8s\\b[^\\n]*\\nstderr: "
+    examples:
+      - |-
+        subprocess.CalledProcessError: Command '['lxc', 'shell', 'k8s-integration-2-abcdef', '--', 'bash', '-c', 'snap refresh --classic k8s --channel 1.34-classic/stable']' returned non-zero exit status 1.
+        stderr: error: cannot perform the following tasks: Run post-refresh hook of "k8s" snap
+    notes: >-
+      Installing or refreshing the k8s snap failed with an error snapd
+      reported, after external-snap-store above ruled out the store. Without
+      the command's stderr the cause is unknowable from the log: every such
+      failure with a recorded cause so far was a store outage, so those stay
+      unknown rather than being filed as product bugs.
+
+  - id: product-service-should-be-inactive
+    failure_class: product.bug
+    subclass: service_not_active
+    excerpt_pattern: 'Unexpected service \S+ is active but should be inactive'
+    examples:
+      - 'AssertionError: Unexpected service k8s-dqlite is active but should be inactive'
+    notes: >-
+      A product-managed service that should have stopped remained active,
+      indicating service lifecycle drift.
+
+  - id: product-service-not-active
+    failure_class: product.bug
+    subclass: service_not_active
+    excerpt_pattern: 'Service \S+ should be active, but it is inactive'
+    examples:
+      - 'AssertionError: Service kube-proxy should be active, but it is inactive'
+    notes: >-
+      A product service that should be running was inactive, typically after
+      an upgrade or rollback.
+
+  - id: product-gateway-ip-missing
+    failure_class: product.bug
+    subclass: networking
+    excerpt_pattern: 'No Gateway IP found|AssertionError: No LoadBalancer IP'
+    examples:
+      - 'AssertionError: No Gateway IP found.'
+    notes: >-
+      The gateway or load balancer did not get an address, so the networking
+      feature failed to converge.
+
+  - id: product-upgrade-crd
+    failure_class: product.bug
+    subclass: upgrade_failure
+    excerpt_pattern: 'upgrade CRD should (not )?be created|AssertionError: upgrade .{0,40}(CRD|custom resource)'
+    examples:
+      - 'AssertionError: upgrade CRD should be created'
+    notes: >-
+      The upgrade custom resource is in the wrong state, which belongs to the
+      upgrade controller or product bookkeeping.
+
+  - id: product-fips-not-enforced
+    failure_class: product.bug
+    subclass: fips
+    excerpt_pattern: 'k8sd should fail with FIPS enabled|Expected pods .{0,60}to fail with FIPS error'
+    examples:
+      - 'AssertionError: k8sd should fail with FIPS enabled'
+    notes: >-
+      The product accepted a configuration it was expected to reject under FIPS,
+      so this is product enforcement failure.
+
+  - id: product-cncf-conformance
+    failure_class: product.bug
+    subclass: conformance
+    confidence: 0.7
+    excerpt_pattern: '^AssertionError: \d+ tests failed$'
+    job:
+      test_nodeid: '::test_cncf_conformance\b'
+    examples:
+      - excerpt: |-
+          File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_cncf_conformance.py", line 47, in test_cncf_conformance
+            assert failed_tests == 0, f"{failed_tests} tests failed"
+          AssertionError: 4 tests failed
+        job:
+          test_nodeid: tests/test_cncf_conformance.py::test_cncf_conformance
+    notes: >-
+      Upstream Kubernetes conformance tests failed against the cluster. The
+      excerpt does not say which, and upstream e2e tests can flake, so
+      confidence stays below 1; the sonobuoy report in the job has the detail.
+
+  # --- test.bug: the test or its harness was wrong -------------------------
+
+  - id: test-empty-command-output
+    failure_class: test.bug
+    subclass: bad_assumption
+    excerpt_pattern: 'json\.decoder\.JSONDecodeError: Expecting value: line 1 column 1 \(char 0\)'
+    examples:
+      - 'json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)'
+    notes: >-
+      The test parsed empty stdout as JSON and discarded the product's useful
+      stderr or exit information. The fix is to improve the test evidence path.
+
+  - id: test-harness-bug
+    failure_class: test.bug
+    subclass: harness_bug
+    excerpt_pattern: 'tests/test_util/.*\n.*\n?.*(TypeError|AttributeError|NameError|ImportError)|BaseRetrying\.__init__\(\) got an unexpected keyword'
+    examples:
+      - |-
+        File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 90, in run
+          return result.stdout.strip()
+        AttributeError: 'NoneType' object has no attribute 'strip'
+    notes: >-
+      The test harness raised before product behavior could be evaluated.
+
+  - id: test-timeout-too-short
+    failure_class: test.bug
+    subclass: timeout_too_short
+    excerpt_pattern: 'Failed: Timeout >\d+\.\d+s|tenacity\.RetryError.*stop_after_delay|TimeoutError: wait timed out after \d+s'
+    examples:
+      - 'Failed: Timeout >1800.0s'
+    notes: >-
+      Pytest or the harness timed out without surfacing a product assertion, so
+      the actionable fix is in test timing or evidence capture.

@@ -54,6 +54,10 @@ repository, so read the relevant one before starting:
 - **`inspection-report/`**: the layout of an inspection report tarball and the
   order to read it in to find a fault, including the traps that make an absent
   file look like a healthy one.
+- **`ci-failure-rules/`**: adding and maintaining the CI failure
+  classification rules in `ci/failure_rules.yaml`: pulling the real metrics
+  store, deciding a class from the evidence, and proving a rule precise
+  before shipping it.
 - **`triage/`**: the bot's own pipeline (`reproduce -> verify -> reproducer ->
   diagnose -> fix`), one file per step. These encode the contract with the
   orchestrator, so they are only directly useful when running that pipeline;
