@@ -84,11 +84,12 @@ jobs:
         run: |
           gh pr comment "$PR_NUMBER" \
             --repo "$REPO" \
-            --body "❌ Invalid change detected in PR diff. Please remove it.
-Label this PR with 'skip-component-version-check' to ignore
+            --body-file - <<EOF
+          ❌ Invalid change detected in PR diff. Please remove it.
+          Label this PR with 'skip-component-version-check' to ignore
 
-$VALIDATION_STDERR
-"
+          $VALIDATION_STDERR
+          EOF
 
       # Fail the job if invalid
       - name: Fail job if invalid
