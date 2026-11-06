@@ -13,6 +13,13 @@ Configuration options for the network feature.
 Determines if the feature should be enabled.
 If omitted defaults to `true`
 
+### cluster-config.network.kube-proxy-enabled
+**Type:** `bool`<br>
+
+Determines if kube-proxy should be enabled.
+When network is enabled, this is implicitly false.
+If omitted defaults to `true`.
+
 ### cluster-config.dns
 **Type:** `object`<br>
 
@@ -395,26 +402,24 @@ If omitted defaults to an auto generated key.
 ### kube-proxy-client-crt
 **Type:** `string`<br>
 
-```{deprecated} 1.36
-This field is no longer used. {{product}} uses Cilium's kube-proxy replacement
-and does not run kube-proxy. This field is accepted for backward compatibility
-and used when the default CNI (Cilium) is not used.
-```
-
 The client certificate to be used for the kube-proxy.
 If omitted defaults to an auto generated certificate.
+
+Deprecated: As of Canonical Kubernetes 1.36, this field is not used with the
+default CNI (Cilium), which uses kube-proxy replacement instead of kube-proxy.
+It remains accepted for backward compatibility and is used when the default
+CNI is not used.
 
 ### kube-proxy-client-key
 **Type:** `string`<br>
 
-```{deprecated} 1.36
-This field is no longer used. {{product}} uses Cilium's kube-proxy replacement
-and does not run kube-proxy. This field is accepted for backward compatibility
-and used when the default CNI (Cilium) is not used.
-```
-
 The client key to be used for the kube-proxy.
 If omitted defaults to an auto generated key.
+
+Deprecated: As of Canonical Kubernetes 1.36, this field is not used with the
+default CNI (Cilium), which uses kube-proxy replacement instead of kube-proxy.
+It remains accepted for backward compatibility and is used when the default
+CNI is not used.
 
 ### kube-scheduler-client-crt
 **Type:** `string`<br>
@@ -515,15 +520,14 @@ The format is `map[<--flag-name>]<value>`.
 ### extra-node-kube-proxy-args
 **Type:** `map[string]string`<br>
 
-```{deprecated} 1.36
-This field is no longer used. {{product}} uses Cilium's kube-proxy replacement
-and does not run kube-proxy. This field is accepted for backward compatibility
-and used when the default CNI (Cilium) is not in use.
-```
-
 Additional arguments that are passed to the `kube-proxy` only for that specific node.
 A parameter that is explicitly set to `null` is deleted.
 The format is `map[<--flag-name>]<value>`.
+
+Deprecated: As of Canonical Kubernetes 1.36, this field is not used with the
+default CNI (Cilium), which uses kube-proxy replacement instead of kube-proxy.
+It remains accepted for backward compatibility and is used when the default
+CNI is not used.
 
 ### extra-node-kubelet-args
 **Type:** `map[string]string`<br>
