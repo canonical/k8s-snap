@@ -33,7 +33,7 @@ jobs:
 
   test-branches:
     name: Test Branch Management
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out code
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -80,7 +80,7 @@ jobs:
           tox -c tests/branch_management -e test
   python-lint:
     name: Python lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out code
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -112,7 +112,7 @@ jobs:
   # action, and the config that drives them -- so that is what this validates.
   triage-bot-assets:
     name: Triage bot assets
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out code
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -191,7 +191,7 @@ jobs:
           EOF
   get-e2e-tags:
     name: Get e2e test tags
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       test-tags: ${{ steps.get-e2e-tags.outputs.test-tags }}
     needs: [build-snap, python-lint]
@@ -256,7 +256,7 @@ jobs:
     name: Determine the charm channel
     outputs:
       charm-channel: ${{ steps.parse-branch.outputs.charm-channel }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Parse branch name
         id: parse-branch
