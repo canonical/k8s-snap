@@ -49,4 +49,8 @@ jobs:
             popd
           done
       - name: Compare URLs
-        run: python3 compare/docs/canonicalk8s/_dev/check_removed_urls.py
+        run: |
+          python3 compare/ci/k8s-ci.py docs check-removed-urls \
+            --base-urls base/docs/canonicalk8s/urls.txt \
+            --compare-urls compare/docs/canonicalk8s/urls.txt \
+            --redirects compare/docs/canonicalk8s/redirects.txt
