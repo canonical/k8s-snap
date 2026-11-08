@@ -59,7 +59,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install pip-tools
-        run: pip install "pip-tools==8.3.0" "requests==2.33.1"
+        run: pip install "pip-tools==7.5.3" "requests==2.33.1"
 
       - name: Update pip lock files
         id: check
