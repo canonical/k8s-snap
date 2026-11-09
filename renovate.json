@@ -2,5 +2,10 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended"
+  ],
+  "ignorePaths": [
+    "ci/requirements-bandit.txt",
+    "ci/requirements-ci.txt",
+    "ci/requirements-semgrep.txt"
   ]
 }
