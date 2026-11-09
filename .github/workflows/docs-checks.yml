@@ -82,12 +82,8 @@ jobs:
         working-directory: docs/canonicalk8s
 
   reference-docs:
-    # Pinned (not ubuntu-latest): this job clones and fully builds
-    # canonical/k8sd@main (via 'docs update-k8sd-api'), including its static
-    # dqlite/libtirpc C dependency chain. ubuntu-latest can resolve to
-    # ubuntu-26.04, whose newer GCC defaults to -std=gnu23, which breaks
-    # libtirpc 1.3.3's old-style K&R function-pointer declarations (e.g.
-    # getpublickey.c).
+    # ubuntu-latest can resolve to ubuntu-26.04, whose GCC default
+    # (-std=gnu23) breaks canonical/k8sd's libtirpc 1.3.3 build.
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
