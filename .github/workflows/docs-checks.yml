@@ -68,14 +68,14 @@ jobs:
     - id: spell-check
       name: Spell Check
       if: success() || failure()
-      uses: canonical/documentation-workflows/spellcheck@aaeaf091e8f55145184ad897cb9834f224bd31de # main
+      uses: canonical/documentation-workflows/spellcheck@e2998cc659396f43165fefde2d01c39b1a88d64c # main
       with:
         working-directory: docs/canonicalk8s
 
     - name: Inclusive Language Check
       id: woke-step
       if: success() || failure()
-      uses: canonical/documentation-workflows/inclusive-language@aaeaf091e8f55145184ad897cb9834f224bd31de # main
+      uses: canonical/documentation-workflows/inclusive-language@e2998cc659396f43165fefde2d01c39b1a88d64c # main
       with:
         working-directory: docs/canonicalk8s
 
