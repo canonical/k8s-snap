@@ -98,10 +98,12 @@ jobs:
           go-version: 'stable'
 
       - name: Install Python dependencies
-        run: pip install --require-hashes -r ci/requirements-ci.txt
+        run: |
+          pip install --require-hashes -r ci/requirements-ci.txt
+          pip install tox
 
       - name: Test charm reference generation
-        run: python3 docs/tools/test_generate_charms_reference.py
+        run: cd ci && tox -e test
 
       - name: Check k8sd API documentation
         if: success() || failure()
