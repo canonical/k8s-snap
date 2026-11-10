@@ -209,6 +209,50 @@ scp <user>@<node>:/home/<user>/inspection-report.tar.gz ./
 
 See the [inspection report reference page] for more details.
 
+## Troubleshoot AWS deployments
+
+The following issues are specific to clusters deployed on AWS with the
+{{product}} `aws` cluster template.
+
+### Nodes fail to bootstrap
+
+If nodes fail to bootstrap {{product}}, you can retry by adding the following
+`preRunCommands` to `CK8sControlPlane` and `CK8sConfigTemplate` in the
+generated `cluster.yaml`:
+
+```yaml
+preRunCommands:
+  - rm -rf /run/containerd
+```
+
+This removes the containerd directory that the AMI creates on boot, ensuring a
+clean state with no conflicts. It does not necessarily resolve the original
+cause of the bootstrap failure.
+
+### Control plane nodes fail to join the cluster
+
+Add the following entry to the existing `cniIngressRules` list under
+`network.cni` in `AWSCluster` in `cluster.yaml`, to allow port 2381 for etcd's
+peer-to-peer communication:
+
+```yaml
+network:
+  cni:
+    cniIngressRules:
+    - description: etcd-peer-join
+      protocol: tcp
+      toPort: 2381
+```
+
+Manually updating the AWS security group rule does not persist, because the
+CAPA reconciliation loop removes it.
+
+### Provisioning fails because of the bastion host
+
+If no AMI images are available in your region for the bastion host, set
+`AWS_CREATE_BASTION` to `false` in `./templates/aws/template-variables.rc` to
+avoid provisioning failures.
+
 ## Report a bug
 
 If you cannot solve your issue and believe that the fault may lie in
