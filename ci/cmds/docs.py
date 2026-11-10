@@ -9,6 +9,8 @@ This module provides functionality for documentation management.
 """
 
 import argparse
+import csv
+import io
 import os
 import subprocess
 import sys
@@ -19,6 +21,7 @@ from pathlib import Path
 K8S_SNAP_ROOT = Path(__file__).parent.parent.parent
 K8SD_VERSION_FILE = K8S_SNAP_ROOT / "build-scripts/components/k8sd/version"
 DOCS_OUTPUT_PATH = K8S_SNAP_ROOT / "docs/canonicalk8s/_parts"
+REDIRECTS_FILE = K8S_SNAP_ROOT / "docs/canonicalk8s/redirects.txt"
 
 
 def add_docs_cmds(parser: argparse.ArgumentParser) -> None:
@@ -52,6 +55,28 @@ def add_docs_cmds(parser: argparse.ArgumentParser) -> None:
         help=f"Path for DOCS_OUTPUT_PATH environment variable (default: {DOCS_OUTPUT_PATH})",
     )
     p.set_defaults(func=cmd_update_k8sd_api)
+
+    # check-removed-urls command
+    p = docs_sub.add_parser(
+        "check-removed-urls",
+        help="Check that no page URLs were removed without a client-side redirect.",
+    )
+    p.add_argument(
+        "--base-urls",
+        required=True,
+        help="Path to the urls.txt generated from the base branch build.",
+    )
+    p.add_argument(
+        "--compare-urls",
+        required=True,
+        help="Path to the urls.txt generated from the branch under test.",
+    )
+    p.add_argument(
+        "--redirects",
+        default=REDIRECTS_FILE,
+        help=f"Path to the redirects.txt file (default: {REDIRECTS_FILE})",
+    )
+    p.set_defaults(func=cmd_check_removed_urls)
 
 
 def cmd_update_k8sd_api(args: argparse.Namespace) -> int:
@@ -163,6 +188,105 @@ def cmd_update_k8sd_api(args: argparse.Namespace) -> int:
         return 1
 
     print("✓ k8sd API documentation is up to date")
+    return 0
+
+
+def _read_urls(path: Path) -> set[str]:
+    """Read a newline-separated list of URLs into a set, ignoring blanks."""
+    return {
+        line.strip()
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    }
+
+
+def _read_redirect_sources(path: Path) -> set[str]:
+    """Return the set of source paths 'redirects.txt' redirects from."""
+    sources: set[str] = set()
+
+    if not path.exists():
+        return sources
+
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+
+        fields = next(
+            csv.reader(
+                io.StringIO(line),
+                delimiter=" ",
+                quotechar='"',
+                skipinitialspace=True,
+            ),
+            [],
+        )
+        if fields:
+            sources.add(fields[0])
+
+    return sources
+
+
+def _source_candidates_for_url(url: str) -> set[str]:
+    """Return the source paths in 'redirects.txt' that could redirect this URL."""
+    clean_path = url.strip()
+    clean_path = clean_path.removeprefix("./")
+    clean_path = clean_path.removeprefix("/")
+    clean_path = clean_path.removesuffix(".html")
+    clean_path = clean_path.rstrip("/")
+
+    if not clean_path:
+        return {"index.md"}
+
+    # Directory redirects are stored with a trailing slash; include that form too.
+    return {
+        clean_path,
+        f"{clean_path}.md",
+        f"{clean_path}/index.md",
+        f"{clean_path}/",
+    }
+
+
+def cmd_check_removed_urls(args: argparse.Namespace) -> int:
+    """
+    Check that no page URLs were removed without a client-side redirect.
+
+    Args:
+        args: Parsed command-line arguments.
+
+    Returns:
+        0 if every removed URL has a redirect, 1 otherwise.
+    """
+    base_urls_path = Path(args.base_urls)
+    compare_urls_path = Path(args.compare_urls)
+    redirects_path = Path(args.redirects)
+
+    if not base_urls_path.exists():
+        print(f"Error: Base URLs file not found at {base_urls_path}")
+        return 1
+    if not compare_urls_path.exists():
+        print(f"Error: Compare URLs file not found at {compare_urls_path}")
+        return 1
+
+    removed_urls = sorted(_read_urls(base_urls_path) - _read_urls(compare_urls_path))
+    redirect_sources = _read_redirect_sources(redirects_path)
+
+    missing_redirects = [
+        url
+        for url in removed_urls
+        if _source_candidates_for_url(url).isdisjoint(redirect_sources)
+    ]
+
+    if missing_redirects:
+        print("The following URLs were removed without redirects:")
+        print("\n".join(missing_redirects))
+        print("Please ensure removed pages are redirected")
+        return 1
+
+    if removed_urls:
+        print("Removed URLs have redirects:")
+        print("\n".join(removed_urls))
+
     return 0
 
 

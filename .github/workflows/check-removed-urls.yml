@@ -50,12 +50,7 @@ jobs:
           done
       - name: Compare URLs
         run: |
-          BASE_URLS_PATH="base/docs/canonicalk8s/urls.txt"
-          COMPARE_URLS_PATH="compare/docs/canonicalk8s/urls.txt"
-          removed=$(comm -23 ${BASE_URLS_PATH} ${COMPARE_URLS_PATH} )
-          if [ -n "$removed" ]; then
-            echo "The following URLs were removed:"
-            echo "$removed"
-            echo "Please ensure removed pages are redirected"
-            exit 1
-          fi
+          python3 compare/ci/k8s-ci.py docs check-removed-urls \
+            --base-urls base/docs/canonicalk8s/urls.txt \
+            --compare-urls compare/docs/canonicalk8s/urls.txt \
+            --redirects compare/docs/canonicalk8s/redirects.txt

@@ -18,7 +18,7 @@ This guide assumes an existing {{product}} cluster.
 See the [charm installation] guide for more details.
 
 In case of localhost/LXD Juju clouds, please make sure that the K8s units are
-configured to use VM containers with Ubuntu 22.04 as the base and adding the
+configured to use VM containers with Ubuntu 22.04 LTS as the base and adding the
 ``virt-type=virtual-machine`` constraint. In order for K8s to function properly,
 an adequate amount of resources must be allocated:
 

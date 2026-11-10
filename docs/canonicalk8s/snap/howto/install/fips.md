@@ -19,7 +19,7 @@ set up a FIPS compliant Kubernetes cluster using the {{ product }} snap.
 
 This guide assumes the following:
 
-- Ubuntu 22.04 machine with at least 8GB of RAM and 40 GB disk storage
+- Ubuntu 22.04 LTS machine with at least 8GB of RAM and 40 GB disk storage
 - You have root or sudo access to the machine
 - Internet access on the machine
 
