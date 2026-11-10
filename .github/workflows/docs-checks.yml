@@ -5,6 +5,8 @@ on:
     paths:
       - 'docs/**'
       - 'build-scripts/components/k8sd/**'
+      - 'ci/cmds/docs.py'
+      - 'docs/tools/test_generate_charms_reference.py'
 permissions:
   contents: read
 
@@ -79,8 +81,10 @@ jobs:
       with:
         working-directory: docs/canonicalk8s
 
-  k8sd-api-docs:
-    runs-on: ubuntu-latest
+  reference-docs:
+    # ubuntu-latest can resolve to ubuntu-26.04, whose GCC default
+    # (-std=gnu23) breaks canonical/k8sd's libtirpc 1.3.3 build.
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -96,7 +100,19 @@ jobs:
           go-version: 'stable'
 
       - name: Install Python dependencies
-        run: pip install --require-hashes -r ci/requirements-ci.txt
+        run: |
+          pip install --require-hashes -r ci/requirements-ci.txt
+          pip install tox
+
+      - name: Test charm reference generation
+        run: cd ci && tox -e test
 
       - name: Check k8sd API documentation
+        if: success() || failure()
         run: python3 ci/k8s-ci.py docs update-k8sd-api
+
+      - name: Check charm reference
+        if: success() || failure()
+        env:
+          OPERATOR_REF: ${{ github.base_ref || github.ref_name }}
+        run: python3 ci/k8s-ci.py docs update-charm-reference --operator-ref "$OPERATOR_REF"

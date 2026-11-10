@@ -6,25 +6,23 @@ myst:
 
 # Charm configuration options reference
 
-This reference section provides the sites where you can find the configuration
-options for the `k8s` and `k8s-worker` charms. These options can be set at
+This reference lists the configuration options for the `k8s` and `k8s-worker`
+charms. They are also available on [Charmhub for `k8s`](https://charmhub.io/k8s/configurations) and [Charmhub for `k8s-worker`](https://charmhub.io/k8s-worker/configurations).
+
+These options can be set at
 various points during the charm's lifecycle. Some options are limited to the
 bootstrap process, while others can be modified at any time. Options restricted
 to bootstrap are explicitly noted in their descriptions and prefixed with
 `bootstrap-`.
 
+See the {ref}`How to configure your cluster <charm-configure-cluster>` how-to guide to see how to apply these configurations.
+
 ## Configuration options for `k8s` charm
 
-The configuration options for the `k8s` charm are available on the
-Charmhub configurations [page][k8s charmhub configurations].
+```{include} /_parts/charms/k8s-config.md
+```
 
 ## Configuration options for `k8s-worker` charm
 
-The configuration options for the `k8s-worker` charm are available on the
-Charmhub configurations [page][k8s-worker charmhub configurations].
-
-
-<!-- LINKS -->
-
-[k8s charmhub configurations]: https://charmhub.io/k8s/configurations
-[k8s-worker charmhub configurations]: https://charmhub.io/k8s-worker/configurations
+```{include} /_parts/charms/k8s-worker-config.md
+```

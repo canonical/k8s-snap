@@ -202,6 +202,10 @@ linkcheck_ignore = [
     'https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/',
     'https://developer.hashicorp.com/vault/docs',
     'https://assets.ubuntu.com/v1/843c77b6-juju-at-a-glace.svg',
+    r'https?://myregistry.*',
+    r'https?://my.registry.*',
+    'http://10.10.10.10:8000',
+    'https://registry.example.com',
 ]
 
 # A regex list of URLs where anchors are ignored by 'make linkcheck'
