@@ -179,7 +179,7 @@ jobs:
             pull-requests: read
         steps:
             - name: Check out code
-              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
               with:
                   persist-credentials: false
                   fetch-depth: 0
@@ -277,7 +277,7 @@ jobs:
             pull-requests: write
         steps:
             - name: Check out code
-              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
               with:
                   persist-credentials: false
                   fetch-depth: 0
@@ -333,7 +333,7 @@ jobs:
             pull-requests: read
         steps:
             - name: Check out code
-              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
               with:
                   persist-credentials: false
                   # PR close events default to PR merge ref; pin to main so bot runs trusted code.
@@ -368,7 +368,7 @@ jobs:
             issues: read
         steps:
             - name: Check out code
-              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
               with:
                   persist-credentials: false
 
