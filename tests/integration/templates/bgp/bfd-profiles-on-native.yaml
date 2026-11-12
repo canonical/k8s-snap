@@ -1,0 +1,7 @@
+# Rejected: BFD profiles on the native backend.
+k8sd/v1alpha1/metallb/bgp-backend: native
+k8sd/v1alpha1/metallb/bfd-profiles: |
+  - name: fast-failover
+k8sd/v1alpha1/metallb/bgp-peers: |
+  - peerAddress: 192.0.2.1
+    peerASN: 65001

@@ -1,0 +1,10 @@
+# frr-k8s-bfd.yaml with a different detectMultiplier and without spare.
+k8sd/v1alpha1/metallb/bfd-profiles: |
+  - name: fast-failover
+    receiveInterval: 150
+    transmitInterval: 200
+    detectMultiplier: 7
+    echoInterval: 60
+    echoMode: true
+    passiveMode: true
+    minimumTtl: 250
