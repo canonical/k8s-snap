@@ -15,7 +15,7 @@ Overview <self>
 :hidden:
 :titlesonly:
 :maxdepth: 6
-tutorial/index.md
+Tutorial <tutorial/getting-started.md>
 howto/index.md
 explanation/index.md
 reference/index.md
