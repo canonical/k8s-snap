@@ -48,7 +48,7 @@ backends:
         sudo systemctl restart ssh
 
       # Get the IP from the instance
-      ip=$(multipass info --format csv "$instance_name" | tail -1 | cut -d\, -f3)
+      ip=$(multipass info --format csv "$instance_name" | awk -F',' 'NR==1 {for (i=1; i<=NF; i++) if (tolower($i)=="ipv4") col=i} NR==2 {print $col}')
       ADDRESS "$ip"
     discard: |
       instance_name=$(multipass list --format csv | awk -F',' -v ip="$SPREAD_SYSTEM_ADDRESS" '$3==ip {print $1}' || true)

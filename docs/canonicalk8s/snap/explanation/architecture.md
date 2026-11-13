@@ -4,6 +4,8 @@ myst:
     description: Learn about Canonical Kubernetes architectural design.
 ---
 
+(snap-architecture)=
+
 # Architecture
 
 A system architecture document is the starting point for many interested

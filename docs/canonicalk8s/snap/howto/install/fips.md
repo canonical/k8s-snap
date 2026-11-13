@@ -143,7 +143,7 @@ Then you may wait for the node to be ready, by running:
 sudo k8s status --wait-ready
 ```
 
-Otherwise, you can [add it] to an existing cluster.
+Otherwise, you can {ref}`add it <k8s-join-cluster>` to an existing cluster.
 
 <!-- LINKS -->
 [Federal Information Processing Standard (FIPS) 140-3]:
@@ -154,4 +154,3 @@ https://csrc.nist.gov/pubs/fips/140-3/final
 [core22]: https://snapcraft.io/core22
 [`fips-updates` track]:
 https://documentation.ubuntu.com/pro-client/en/latest/howtoguides/enable_fips
-[add it]: /snap/tutorial/add-remove-nodes

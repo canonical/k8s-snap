@@ -352,6 +352,5 @@ to the cluster.
 [proxy]: /snap/howto/networking/proxy.md
 [regsync]: https://github.com/regclient/regclient/blob/main/docs/regsync.md
 [regctl]: https://github.com/regclient/regclient/blob/main/docs/regctl.md
-[nodes]: /snap/tutorial/add-remove-nodes.md
 [squid]: https://www.squid-cache.org/
 [how-to-containerd]: /snap/howto/install/dev-env.md/#containerd
