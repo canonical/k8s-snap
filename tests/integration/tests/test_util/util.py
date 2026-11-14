@@ -1,6 +1,12 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
+# Postponed annotation evaluation is required: `test_util.harness` imports
+# `bare_metal` first (isort order), which imports this module while the
+# `harness` package is still half-initialised, so annotations such as
+# `harness.Instance` can't be evaluated at definition time.
+from __future__ import annotations
+
 import ipaddress
 import json
 import logging
@@ -1139,7 +1145,7 @@ def get_os_version_id_for_instance(instance: harness.Instance) -> str:
     for line in proc.stdout.split(b"\n"):
         line = line.decode()
         if line.startswith(var):
-            release = line.lstrip(f"{var}=")
+            release = line.lstrip(f"{var}=").strip('"')
             break
 
     if not release:
@@ -1166,22 +1172,30 @@ def wait_for_daemonset(
         # NOTE: we can't reliably use `rollout status` on Daemonsets unless
         # they have `RollingUpdate` strategy, so we must go by the number of
         # pods which are Ready.
-        proc = instance.exec(
-            [
-                "k8s",
-                "kubectl",
-                "-n",
-                namespace,
-                "get",
-                "daemonset",
-                name,
-                "-o",
-                "jsonpath={.status.numberReady}",
-            ],
-            check=True,
-            capture_output=True,
-        )
-        if int(proc.stdout.decode()) >= expected_pods_ready:
+        try:
+            proc = instance.exec(
+                [
+                    "k8s",
+                    "kubectl",
+                    "-n",
+                    namespace,
+                    "get",
+                    "daemonset",
+                    name,
+                    "-o",
+                    "jsonpath={.status.numberReady}",
+                ],
+                check=True,
+                capture_output=True,
+            )
+        except subprocess.CalledProcessError:
+            LOG.info(
+                f"Daemonset '{name}' not found yet. "
+                f"Waiting {retry_delay_s} seconds..."
+            )
+            time.sleep(retry_delay_s)
+            continue
+        if int(proc.stdout.decode() or "0") >= expected_pods_ready:
             LOG.info(
                 f"Successfully waited for daemonset '{name}' after "
                 f"{(i+1)*retry_delay_s} seconds"
