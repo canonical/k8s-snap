@@ -66,7 +66,7 @@ jobs:
         id: scan-ref
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - name: Upload Trivy scan results to Github Security tab
-        uses: github/codeql-action/upload-sarif@5c8a8a642e79153f5d047b10ec1cba1d1cc65699 # v3.35.1
+        uses: github/codeql-action/upload-sarif@9418214df1f2c4b8128c770156c409013b07d6b9 # v3.39.3
         with:
           sarif_file: ./.trivy/sarifs/trivy-k8s-repo-scan--results.sarif
           # Attribute results to the branch that was actually scanned,
