@@ -1,7 +1,7 @@
 coverage[toml]==7.2.5
 pytest==9.2.0
 PyYAML==6.0.1
-tenacity==8.2.3
+tenacity==8.5.0
 pylint==3.2.5
 requests==2.33.1
 semver==3.0.2

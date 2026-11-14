@@ -3,7 +3,7 @@ pytest==9.2.0
 pytest_tagging==1.6.0
 pytest-benchmark==5.0.0
 PyYAML==6.0.1
-tenacity==8.2.3
+tenacity==8.5.0
 pylint==3.2.5
 cryptography==50.0.2
 hvac==2.4.0
