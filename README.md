@@ -100,3 +100,4 @@ take a look at our
 Canonical Kubernetes is released under the [GPL-3.0 license](LICENSE).
 
 © 2015-2026 Canonical Ltd.
+
