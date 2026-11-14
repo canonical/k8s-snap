@@ -38,7 +38,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       # Need to fetch the GH actions first.
       - name: Checking out repo
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Save trivy-scan.sh script
         run: |
           # We'll need to scan other branches, let's create a copy of
@@ -51,7 +51,7 @@ jobs:
           channel: ${{ inputs.channel }}
           artifact: ${{ inputs.artifact }}
       - name: Checking out tested repo branch
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ inputs.checkout-ref }}
           # Persist downloaded artifacts
