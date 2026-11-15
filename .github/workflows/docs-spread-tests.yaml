@@ -118,7 +118,7 @@ jobs:
           mkdir -p tests/spread_generated/{snap_clean,snap_bootstrapped}
 
       - name: Set up Go
-        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
           go-version: "1.27"
 
