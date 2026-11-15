@@ -40,7 +40,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Setup Astral UV
-        uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
       - name: Install tox with UV
         run: uv tool install tox --with tox-uv
       - name: Check charm channel availability
@@ -89,7 +89,7 @@ jobs:
           mv "$SNAP_PATH" snap_installation/k8s.snap
           tar cvzf snap_installation.tar.gz -C snap_installation/ .
       - name: Setup Astral UV
-        uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           python-version: ${{ env.python-version }}
       - name: Install tox with UV
