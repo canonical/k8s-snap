@@ -2,6 +2,7 @@
 myst:
   html_meta:
     description: "How to configure Canonical Kubernetes to use an intermediate Certificate Authority (CA) via the bootstrap configuration file."
+relatedlinks: "[Vault&#32;documentation](https://developer.hashicorp.com/vault/docs)"
 ---
 
 # How to use intermediate CAs with Vault

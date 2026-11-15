@@ -2,6 +2,7 @@
 myst:
   html_meta:
     description: Deploy a Canonical Kubernetes cluster using the Cluster API and execute typical cluster operations in this how-to guide.
+relatedlinks: "[Cluster&#32;API&#32;documentation](https://cluster-api.sigs.k8s.io/)"
 ---
 
 # Provision a {{product}} cluster with CAPI

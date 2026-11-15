@@ -2,6 +2,7 @@
 myst:
   html_meta:
     description: "How to back up and restore a Canonical Kubernetes cluster."
+relatedlinks: "[Velero&#32;documentation](https://velero.io/docs/)"
 ---
 
 # How to backup and restore a {{product}} cluster

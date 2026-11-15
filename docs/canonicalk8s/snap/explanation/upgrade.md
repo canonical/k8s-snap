@@ -70,7 +70,7 @@ manually updated by running a [targeted snap refresh], but all upgrades should
 be done through Juju. The `juju refresh`command instructs the Juju controller
 to use the new charm revision within the current charm channel or to upgrade to
 the next channel based on the parameters provided. The charm code
-is simultaneously replaced on each unit. Then, the k8s snap is updated
+is simultaneously replaced on each unit. Then, the `k8s` snap is updated
 unit-by-unit. This is in order to maintain a highly-available kube-api-server
 endpoint, starting with the Juju leader unit for the application. To ensure a
 smooth upgrade process, the mandatory pre-upgrade-check is run before

@@ -145,7 +145,7 @@ sitemap_excludes = [
 # Template and asset locations #
 ################################
 
-# html_static_path = ["_static"]
+html_static_path = ["_static"]
 templates_path = ["_templates"]
 
 #############
@@ -202,6 +202,10 @@ linkcheck_ignore = [
     'https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/',
     'https://developer.hashicorp.com/vault/docs',
     'https://assets.ubuntu.com/v1/843c77b6-juju-at-a-glace.svg',
+    r'https?://myregistry.*',
+    r'https?://my.registry.*',
+    'http://10.10.10.10:8000',
+    'https://registry.example.com',
 ]
 
 # A regex list of URLs where anchors are ignored by 'make linkcheck'
@@ -264,6 +268,7 @@ extensions = [
     "sphinx_last_updated_by_git",
     "sphinx.ext.intersphinx",
     "sphinx_sitemap",
+    "sphinx_structured_toc",
 ]
 
 # Excludes files or directories from processing
@@ -277,6 +282,7 @@ exclude_patterns = [
 # Adds custom CSS files, located remotely or in 'html_static_path'.
 html_css_files = [
     "https://assets.ubuntu.com/v1/d86746ef-cookie_banner.css",
+    "domain-list-override.css"
 ]
 
 # Adds custom JavaScript files, located remotely or in 'html_static_path'.

@@ -2,6 +2,7 @@
 myst:
   html_meta:
     description: "How to install Canonical Kubernetes with DISA STIG hardening, meeting U.S. DoD security guidelines for Kubernetes and the host operating system."
+relatedlinks: "[DISA&#32;STIG&#32;documentation](https://public.cyber.mil/stigs/), [Ubuntu&#32;Pro&#32;documentation](https://ubuntu.com/pro/docs)"
 ---
 
 # How to install {{ product }} with DISA STIG hardening

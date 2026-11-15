@@ -9,20 +9,23 @@ import re
 import shlex
 import subprocess
 import time
+import urllib.error
 import urllib.request
 from datetime import datetime
 from functools import partial
 from pathlib import Path
-from typing import Any, Callable, List, Mapping, Optional, Union
+from typing import Any, Callable, Dict, List, Mapping, Optional, Union
 
 import pytest
 from tenacity import (
     RetryCallState,
     Retrying,
     retry,
+    retry_if_exception,
     retry_if_exception_type,
     stop_after_attempt,
     stop_never,
+    wait_exponential,
     wait_fixed,
 )
 from test_util import config, harness
@@ -34,6 +37,40 @@ MAIN_BRANCH = "main"
 # kube-proxy was replaced by the Cilium kube-proxy replacement in 1.36. Snaps older
 # than this always run kube-proxy and ignore `network.kube-proxy-enabled`.
 KUBE_PROXY_REPLACEMENT_MIN_VERSION = (1, 36)
+
+
+def _is_retryable_http_error(exc: BaseException) -> bool:
+    """True for 429, 5xx, or network-level errors."""
+    if isinstance(exc, urllib.error.HTTPError):
+        return exc.code == 429 or 500 <= exc.code < 600
+    if isinstance(exc, urllib.error.URLError):
+        return True
+    return False
+
+
+def fetch_text(
+    url: str,
+    headers: Optional[dict] = None,
+    retries: int = 6,
+    min_wait_s: float = 1.0,
+    max_wait_s: float = 30.0,
+) -> str:
+    """GET url as text with exponential backoff on transient errors."""
+    req = urllib.request.Request(url, headers=headers or {})
+    for attempt in Retrying(
+        stop=stop_after_attempt(retries),
+        wait=wait_exponential(multiplier=min_wait_s, max=max_wait_s),
+        retry=retry_if_exception(_is_retryable_http_error),
+        reraise=True,
+    ):
+        with attempt:
+            with urllib.request.urlopen(req) as response:  # nosec
+                return response.read().decode()
+
+
+def fetch_json(url: str, headers: Optional[dict] = None, **kwargs) -> dict:
+    """Like fetch_text() but parses the response as JSON."""
+    return json.loads(fetch_text(url, headers=headers, **kwargs))
 
 
 def run(command: list, **kwargs) -> subprocess.CompletedProcess:
@@ -213,7 +250,7 @@ def preload_snaps(instance: harness.Instance):
         )
 
         LOG.info("Wait for snap changes to finish...")
-        stubbornly(retries=20, delay_s=5).on(instance).until(
+        stubbornly(retries=40, delay_s=5).on(instance).until(
             lambda p: "Doing" not in p.stdout.decode()
         ).exec(["snap", "changes"])
 
@@ -231,6 +268,24 @@ def setup_core_dumps(instance: harness.Instance):
     instance.exec(["echo", core_pattern, ">", "/proc/sys/kernel/core_pattern"])
     instance.exec(["echo", "1", ">", "/proc/sys/fs/suid_dumpable"])
     instance.exec(["snap", "set", "system", "system.coredump.enable=true"])
+
+
+def configure_cpuset_controller(instance: harness.Instance):
+    """Make the cpuset controller available to system services."""
+    online_cpus = (
+        instance.exec(["cat", "/sys/devices/system/cpu/online"], capture_output=True)
+        .stdout.decode()
+        .strip()
+    )
+    instance.exec(
+        [
+            "systemctl",
+            "set-property",
+            "--runtime",
+            "system.slice",
+            f"AllowedCPUs={online_cpus}",
+        ]
+    )
 
 
 def setup_k8s_snap(
@@ -259,6 +314,8 @@ def setup_k8s_snap(
             "Cannot install without either a channel, revision, or path to the snap "
             + f"argument {snap=} and {config.SNAP=}"
         )
+
+    configure_cpuset_controller(instance)
 
     if isinstance(which_snap, str) and which_snap.startswith("/"):
         LOG.info("Install k8s snap by path")
@@ -338,7 +395,7 @@ def remove_k8s_snap(instance: harness.Instance):
     )
 
     LOG.info("Waiting for shims to go away...")
-    stubbornly(retries=20, delay_s=5).on(instance).until(
+    stubbornly(retries=40, delay_s=5).on(instance).until(
         lambda p: all(
             x not in p.stdout.decode()
             for x in ["containerd-shim", "cilium", "coredns", "/pause"]
@@ -346,7 +403,7 @@ def remove_k8s_snap(instance: harness.Instance):
     ).exec(["ps", "-fea"])
 
     LOG.info("Waiting for kubelet and containerd mounts to go away...")
-    stubbornly(retries=20, delay_s=5).on(instance).until(
+    stubbornly(retries=40, delay_s=5).on(instance).until(
         lambda p: all(
             x not in p.stdout.decode()
             for x in ["/var/lib/kubelet/pods", "/run/containerd/io.containerd"]
@@ -809,9 +866,7 @@ def tracks_least_risk(track: str, arch: str) -> str:
         "User-Agent": "Mozilla/5.0",
     }
 
-    req = urllib.request.Request(INFO_URL, headers=HEADERS)
-    with urllib.request.urlopen(req) as response:
-        snap_info = json.loads(response.read().decode())
+    snap_info = fetch_json(INFO_URL, headers=HEADERS)
 
     risks = [
         channel["channel"]["risk"]
@@ -859,16 +914,9 @@ def _major_minor_from_stable_upstream(maj: Optional[int] = None) -> Optional[tup
     addr = "https://dl.k8s.io/release/stable{dash_maj}.txt".format(
         dash_maj=f"-{maj}" if maj else ""
     )
-    for attempt in Retrying(stop=stop_after_attempt(3), wait=wait_fixed(2)):
-        with attempt:
-            LOG.info(
-                "Attempt %d: Fetching upstream version",
-                attempt.retry_state.attempt_number,
-            )
-            with urllib.request.urlopen(addr) as r:
-                stable = r.read().decode().strip()
-                LOG.info("Successfully fetched upstream version: %s", stable)
-                return major_minor(stable)
+    stable = fetch_text(addr).strip()
+    LOG.info("Successfully fetched upstream version: %s", stable)
+    return major_minor(stable)
 
 
 def _find_stable_track(major: int, minor: int, flavor: str) -> Optional[str]:
@@ -893,10 +941,8 @@ def _find_stable_track(major: int, minor: int, flavor: str) -> Optional[str]:
     }
 
     try:
-        req = urllib.request.Request(INFO_URL, headers=HEADERS)
-        with urllib.request.urlopen(req) as response:
-            snap_info = json.loads(response.read().decode())
-    except urllib.error.URLError:
+        snap_info = fetch_json(INFO_URL, headers=HEADERS)
+    except (urllib.error.HTTPError, urllib.error.URLError):
         LOG.warning(
             "Failed to query snap store for %s", config.SNAP_NAME, exc_info=True
         )
@@ -1400,35 +1446,79 @@ def _get_enabled_services(instance: harness.Instance) -> List[str]:
     return services
 
 
-def check_service_restarts(
+def _get_service_restart_counts(
     instance: harness.Instance,
     services: Optional[List[str]] = None,
-    max_restarts: int = 0,
-):
-    """
-    Check that k8s snap services have not restarted excessively.
-    Uses systemctl show to read the NRestarts counter for each service.
-    By default, fails if any service has restarted at all (max_restarts=0).
-    """
+) -> Dict[str, int]:
+    """Read systemd's NRestarts counter per service. Lifetime counter,
+    never resets between steps."""
     if services is None:
         services = _get_enabled_services(instance)
 
-    violations = []
+    counts = {}
     for service in services:
         result = instance.exec(
             ["systemctl", "show", f"snap.k8s.{service}", "-p", "NRestarts"],
             capture_output=True,
             text=True,
         )
-        n_restarts = int(result.stdout.strip().split("=")[1])
-        if n_restarts > max_restarts:
-            violations.append((service, n_restarts))
+        counts[service] = int(result.stdout.strip().split("=")[1])
+    return counts
+
+
+def check_service_restarts(
+    instance: harness.Instance,
+    services: Optional[List[str]] = None,
+    max_restarts: int = 0,
+):
+    """Fail if any service restarted more than max_restarts times. Only
+    correct for a zero-restarts baseline (e.g. fresh bootstrap). For
+    upgrade/downgrade steps use check_no_service_restarts_after_stabilization()
+    instead."""
+    if services is None:
+        services = _get_enabled_services(instance)
+
+    counts = _get_service_restart_counts(instance, services)
+    violations = [
+        (service, n_restarts)
+        for service, n_restarts in counts.items()
+        if n_restarts > max_restarts
+    ]
 
     assert (
         not violations
     ), f"Services have restarted more than {max_restarts} time(s): " + ", ".join(
         f"{s} ({n} restarts)" for s, n in violations
     )
+
+
+def check_no_service_restarts_after_stabilization(
+    instance: harness.Instance,
+    services: Optional[List[str]] = None,
+    retries: int = 3,
+    delay_s: int = config.DEFAULT_WAIT_DELAY_S,
+):
+    """Fail if a service keeps restarting after this point (crash loop).
+    Uses a sliding baseline so one expected refresh-triggered restart
+    doesn't fail the check - only ongoing restarts do."""
+    if services is None:
+        services = _get_enabled_services(instance)
+
+    previous = _get_service_restart_counts(instance, services)
+    for attempt in Retrying(stop=stop_after_attempt(retries), wait=wait_fixed(delay_s)):
+        with attempt:
+            current = _get_service_restart_counts(instance, services)
+            violations = [
+                (service, previous[service], current[service])
+                for service in services
+                if current[service] > previous[service]
+            ]
+            previous = current
+            assert (
+                not violations
+            ), "Services still restarting (crash-loop suspected): " + ", ".join(
+                f"{s} ({b} -> {n})" for s, b, n in violations
+            )
 
 
 def check_service_logs_for_panics(

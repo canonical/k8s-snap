@@ -13,6 +13,9 @@ outputs:
   snap-path:
     description: The *.snap destination path.
     value: ${{ steps.retrieve-path.outputs.snap-path }}
+  snap-revision:
+    description: Store revision of the downloaded snap (empty for artifact builds).
+    value: ${{ steps.download-channel.outputs.snap-revision }}
 
 runs:
   using: "composite"
@@ -50,6 +53,15 @@ runs:
           full_path=`realpath k8s.snap`
           echo "Downloaded snap: $full_path"
           ls -lh $full_path
+
+    - name: Record downloaded snap revision
+      if: inputs.channel != ''
+      id: download-channel
+      shell: bash
+      run: |
+        revision=$(awk '/^snap-revision: /{print $2; exit}' k8s.assert || true)
+        echo "Downloaded revision: ${revision:-unknown}"
+        echo "snap-revision=$revision" >> "$GITHUB_OUTPUT"
 
     - name: Retrieve resulting snap path
       shell: bash

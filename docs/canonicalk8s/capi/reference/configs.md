@@ -4,7 +4,7 @@ myst:
     description: "Reference documentation for Canonical Kubernetes CAPI provider configuration options, covering the bootstrap and the control plane providers."
 ---
 
-# Providers configurations
+# Provider configuration
 
 {{product}} bootstrap and control plane providers (CABPCK and CACPCK)
 can be configured to aid the cluster admin in reaching the desired

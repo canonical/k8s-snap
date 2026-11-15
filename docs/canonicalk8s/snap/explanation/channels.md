@@ -74,7 +74,7 @@ Choosing the most appropriate channel for your needs depends on a number of
 factors. We can give some general guidance for the following cases:
 
 - **I want to always be on the latest stable version matching a specific
-upstream K8s release (recommended).**
+upstream Kubernetes release (recommended).**
 
 Specify the release, for example: `--channel=1.32-classic/stable`.
 

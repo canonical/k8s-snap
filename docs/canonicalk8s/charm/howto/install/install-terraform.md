@@ -2,6 +2,7 @@
 myst:
   html_meta:
     description: "How to install Canonical Kubernetes using the Terraform Juju provider and the k8s-bundle Terraform module."
+relatedlinks: "[Terraform&#32;documentation](https://developer.hashicorp.com/terraform/docs)"
 ---
 
 # How to install with Terraform
@@ -54,7 +55,7 @@ module "k8s" {
 
 Define your `manifest.yaml` based on the requirements for your deployment. We
  recommend at least 16GB of root-disk storage, 4GB of memory and 2 cores.
-Specific charm configuration options can be found on Charmhub.io for charms
+Specific charm configuration options can be found on Charmhub for charms
 [k8s] and [k8s-worker].
 
 Example `manifest.yaml`:

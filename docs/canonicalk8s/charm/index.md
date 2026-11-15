@@ -47,46 +47,10 @@ This documentation embodies the [Diátaxis framework].
 - [Explanation](explanation/index) includes topic overviews, background and 
   context and detailed discussion.
 
-## Project and community
-
-{{product}} is a member of the Ubuntu family. It's an open source
-project which welcomes community involvement, contributions, suggestions, fixes
-and constructive feedback.
-
-### Get involved
-
-- [Canonical Kubernetes Slack]
-- [Canonical Kubernetes Discourse]
-- Our [community]
-- How to [contribute]
-
-### Releases 
-
-- Our [release notes][releases]
-
-### Governance and policies
-
-- Our [Code of Conduct]
-
-### Commercial support
-
-Thinking about using {{product}} for your next project? [Get in touch!]
-
-<!-- IMAGES -->
-
-[logo]: https://assets.ubuntu.com/v1/843c77b6-juju-at-a-glace.svg
-
 <!-- LINKS -->
 
-[Code of Conduct]: https://ubuntu.com/community/ethos/code-of-conduct
-[community]: /community
-[contribute]: /charm/howto/contribute
-[releases]: /releases/charm/index
 [what is Canonical Kubernetes page]: /about
 [arch]: /charm/explanation/architecture
 [Juju]: https://juju.is
 [k8s snap package]: /snap/index
 [Diátaxis framework]: https://diataxis.fr/
-[Canonical Kubernetes Slack]: https://kubernetes.slack.com/archives/CG1V2CAMB
-[Canonical Kubernetes Discourse]: https://discourse.ubuntu.com/c/kubernetes/180
-[Get in touch!]: https://ubuntu.com/kubernetes/contact-us

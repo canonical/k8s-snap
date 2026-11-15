@@ -4,7 +4,7 @@ config:
   raw.lxc: |
     # lxc.apparmor.profile=unconfined
     lxc.selinux.context=unconfined_t
-    lxc.mount.auto=proc:rw sys:rw cgroup:rw
+    lxc.mount.auto=proc:rw sys:mixed
     lxc.cgroup.devices.allow=a
     lxc.cap.drop=
   security.nesting: "true"

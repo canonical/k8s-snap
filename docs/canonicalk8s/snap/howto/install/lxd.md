@@ -2,6 +2,7 @@
 myst:
   html_meta:
     description: "How to install Canonical Kubernetes in an LXD virtual machine."
+relatedlinks: "[LXD&#32;documentation](https://canonical.com/lxd/docs/default/)"
 ---
 
 # How to install {{product}} in LXD

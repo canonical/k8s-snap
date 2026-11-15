@@ -1,11 +1,11 @@
 #!/bin/bash
 
 VERSION="v1.6.1"
-DIR=$(realpath $(dirname "${0}"))
+DIR=$(realpath "$(dirname "${0}")")
 
 CHARTS_PATH="$DIR/../../k8s/manifests/charts"
 
-cd "$CHARTS_PATH"
+cd "$CHARTS_PATH" || exit
 
 git clone https://github.com/kubernetes-sigs/gateway-api --depth 1 -b "${VERSION}" gateway-api-src
 

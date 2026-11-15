@@ -5,6 +5,8 @@ on:
     paths:
       - 'docs/**'
       - 'build-scripts/components/k8sd/**'
+      - 'ci/cmds/docs.py'
+      - 'docs/tools/test_generate_charms_reference.py'
 permissions:
   contents: read
 
@@ -16,7 +18,7 @@ jobs:
       repo: ${{ steps.changes.outputs.repo }}
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 
@@ -58,45 +60,59 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       with:
         fetch-depth: 0
 
     - name: Set up Python
-      uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
 
     - id: spell-check
       name: Spell Check
       if: success() || failure()
-      uses: canonical/documentation-workflows/spellcheck@aaeaf091e8f55145184ad897cb9834f224bd31de # main
+      uses: canonical/documentation-workflows/spellcheck@e2998cc659396f43165fefde2d01c39b1a88d64c # main
       with:
         working-directory: docs/canonicalk8s
 
     - name: Inclusive Language Check
       id: woke-step
       if: success() || failure()
-      uses: canonical/documentation-workflows/inclusive-language@aaeaf091e8f55145184ad897cb9834f224bd31de # main
+      uses: canonical/documentation-workflows/inclusive-language@e2998cc659396f43165fefde2d01c39b1a88d64c # main
       with:
         working-directory: docs/canonicalk8s
 
-  k8sd-api-docs:
-    runs-on: ubuntu-latest
+  reference-docs:
+    # ubuntu-latest can resolve to ubuntu-26.04, whose GCC default
+    # (-std=gnu23) breaks canonical/k8sd's libtirpc 1.3.3 build.
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Set up Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: '3.12'
 
       - name: Install Go
-        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
           go-version: 'stable'
 
       - name: Install Python dependencies
-        run: pip install --require-hashes -r ci/requirements-ci.txt
+        run: |
+          pip install --require-hashes -r ci/requirements-ci.txt
+          pip install tox
+
+      - name: Test charm reference generation
+        run: cd ci && tox -e test
 
       - name: Check k8sd API documentation
+        if: success() || failure()
         run: python3 ci/k8s-ci.py docs update-k8sd-api
+
+      - name: Check charm reference
+        if: success() || failure()
+        env:
+          OPERATOR_REF: ${{ github.base_ref || github.ref_name }}
+        run: python3 ci/k8s-ci.py docs update-charm-reference --operator-ref "$OPERATOR_REF"

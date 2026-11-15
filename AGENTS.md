@@ -18,6 +18,7 @@ Before working in a subfolder, read its `AGENTS.md`:
 snap/snapcraft.yaml              snap definition; parts reference build-scripts/components/*
 build-scripts/                   component build scripts (see build-scripts/AGENTS.md)
 k8s/                             snap runtime: lib.sh, wrappers, manifests (see k8s/AGENTS.md)
+.agents/skills/                  Agent playbooks: shared project skills + the triage pipeline
 ci/                              CI automation Python (GitHub Actions, tox, Mattermost)
 tests/integration/               pytest integration tests (see tests/integration/AGENTS.md)
 docs/                            MkDocs user docs and proposals (see docs/AGENTS.md)
@@ -40,6 +41,26 @@ API changes require PRs in all three. During development, add a `replace` direct
 
 Built with `snapcraft --use-lxd`. Architectures: `amd64`, `arm64`, `ppc64el`, `s390x` (see `snap/snapcraft.yaml` for snap base and other build metadata).
 Uses `go/<version>-fips/stable` for all Go component builds. FIPS mode is a first-class concern.
+
+## Agent Skills
+
+`.agents/skills/` holds markdown playbooks. The autonomous triage bot composes
+them into its prompts, but they are written for **any agent** working in this
+repository, so read the relevant one before starting:
+
+- **`local-cluster/`**: bring up a real cluster from this checkout with
+  `hack/cluster-up.sh`, drive the nodes, and the snap-build constraints
+  (a rebuild is the only way a Go change reaches a cluster).
+- **`inspection-report/`**: the layout of an inspection report tarball and the
+  order to read it in to find a fault, including the traps that make an absent
+  file look like a healthy one.
+- **`triage/`**: the bot's own pipeline (`reproduce -> verify -> reproducer ->
+  diagnose -> fix`), one file per step. These encode the contract with the
+  orchestrator, so they are only directly useful when running that pipeline;
+  the project knowledge they used to carry now lives in the skills above.
+
+A step declares the shared skills it needs with a `> Uses:` line, and the runner
+in `k8s_ai_agent_toolkit.triage.skills` appends each named skill to the prompt.
 
 ## Snap Channels
 

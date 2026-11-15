@@ -2,6 +2,7 @@
 myst:
   html_meta:
     description: "How to use an external etcd cluster as the datastore for a Canonical Kubernetes CAPI workload cluster."
+relatedlinks: "[etcd&#32;documentation](https://etcd.io/docs/latest/)"
 ---
 
 # How to use external etcd with Cluster API

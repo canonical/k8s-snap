@@ -8,9 +8,9 @@ myst:
 
 <!-- SPREAD SUITE: snap_bootstrapped -->
 
-{{product}} includes a default load balancer. As this is not an
-essential service for all deployments, it is not enabled by default. This guide
-explains how to configure and enable the `load-balancer`.
+{{product}} includes a default load balancer, implemented using [MetalLB].
+As this is not an essential service for all deployments, it is not enabled by
+default. This guide explains how to configure and enable the `load-balancer`.
 
 ## Prerequisites
 
@@ -150,3 +150,4 @@ fi
 <!-- LINKS -->
 [CIDR]: https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing
 [getting-started-guide]: /snap/tutorial/getting-started
+[MetalLB]: https://metallb.io/
