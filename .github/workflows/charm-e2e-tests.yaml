@@ -105,26 +105,32 @@ jobs:
             sudo snap install juju --channel=3/stable --classic
             sudo snap install juju-crashdump --classic
       - name: Download charms ${{ inputs.charm-channel }} ${{ inputs.arch }}
+        uses: ./.github/actions/retry-command
         env:
           INPUT_ARCH: ${{ inputs.arch }}
           INPUT_CHARM_CHANNEL: ${{ inputs.charm-channel }}
-        run: |
-          # The operator tests expect the charm file name to have the
-          # ${charmName}_ prefix and include the arch and ubuntu base.
-          # https://github.com/canonical/k8s-operator/blob/eba756ddc723e9aa5242c7804712807495356c6f/tests/integration/helpers.py#L334-L342
-          # The charm base (e.g. ubuntu@22.04) must match the one used by other
-          # related charms (e.g. ceph) used by the k8s-operator tests.
-          arch=$INPUT_ARCH
-          k8sCharmFile=${GITHUB_WORKSPACE}/k8s_ubuntu-22.04-${arch}.charm
-          k8sWorkerChamFile=${GITHUB_WORKSPACE}/k8s-worker_ubuntu-22.04-${arch}.charm
-          juju download k8s \
-            --channel "$INPUT_CHARM_CHANNEL" \
-            --filepath $k8sCharmFile \
-            --base ubuntu@22.04
-          juju download k8s-worker \
-            --channel "$INPUT_CHARM_CHANNEL" \
-            --filepath $k8sWorkerChamFile \
-            --base ubuntu@22.04
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          retry_wait_seconds: 10
+          command: |
+            # The operator tests expect the charm file name to have the
+            # ${charmName}_ prefix and include the arch and ubuntu base.
+            # https://github.com/canonical/k8s-operator/blob/eba756ddc723e9aa5242c7804712807495356c6f/tests/integration/helpers.py#L334-L342
+            # The charm base (e.g. ubuntu@22.04) must match the one used by other
+            # related charms (e.g. ceph) used by the k8s-operator tests.
+            arch="$INPUT_ARCH"
+            k8sCharmFile="${GITHUB_WORKSPACE}/k8s_ubuntu-22.04-${arch}.charm"
+            k8sWorkerCharmFile="${GITHUB_WORKSPACE}/k8s-worker_ubuntu-22.04-${arch}.charm"
+            rm -f "$k8sCharmFile" "$k8sWorkerCharmFile"
+            juju download k8s \
+              --channel "$INPUT_CHARM_CHANNEL" \
+              --filepath "$k8sCharmFile" \
+              --base ubuntu@22.04
+            juju download k8s-worker \
+              --channel "$INPUT_CHARM_CHANNEL" \
+              --filepath "$k8sWorkerCharmFile" \
+              --base ubuntu@22.04
       - name: Check system resources
         run: |
           # checking memory and cpu info to help debug CI failures
@@ -172,15 +178,20 @@ jobs:
         id: collect-juju-status
         run: |
           set -x
-          path=${{ env.K8S_OPERATOR }}/tmp
-          mkdir -p $path
-          juju status 2>&1 | tee $path/juju-status.txt
-          juju-crashdump -s -m controller -a debug-layer -a config -o $path/
-          mv ${{ env.K8S_OPERATOR }}/juju-crashdump-* $path/ || true
-          echo "path=${path}/" >> $GITHUB_OUTPUT
+          path="${K8S_OPERATOR}/tmp"
+          mkdir -p "$path"
+          echo "path=${path}/" >> "$GITHUB_OUTPUT"
+          if command -v juju >/dev/null 2>&1; then
+            juju status 2>&1 | tee "$path/juju-status.txt" || true
+          fi
+          if command -v juju-crashdump >/dev/null 2>&1; then
+            juju-crashdump -s -m controller -a debug-layer -a config -o "$path/" || true
+            mv "${K8S_OPERATOR}"/juju-crashdump-* "$path/" || true
+          fi
       - name: Upload debug artifacts
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: charm-e2e-tests-${{ inputs.arch }}
           path: ${{ steps.collect-juju-status.outputs.path }}
+          if-no-files-found: ignore
