@@ -69,6 +69,11 @@ jobs:
           sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- snapcraft --use-lxd
           mv k8s_*.snap $out_snap
 
+          # Ensure the classic snap does not stage libc, which breaks host tools (e.g. snap CLI) at runtime
+          if unsquashfs -l "$out_snap" | grep -qE "(^|/)lib/(x86_64|aarch64)-linux-gnu/libc\.so"; then
+            echo "::error::Built snap contains staged libc, which will cause host binaries (like snap) to segfault!"
+            exit 1
+          fi
           echo "snap-artifact=$out_snap" >> "$GITHUB_OUTPUT"
       - name: Upload k8s snap
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

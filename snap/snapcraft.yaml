@@ -182,6 +182,7 @@ parts:
     override-build: $CRAFT_PROJECT_DIR/build-scripts/build-component.sh runc
 
   bash-utils:
+    after: [build-deps]
     plugin: nil
     build-attributes: [enable-patchelf]
     stage-packages:
@@ -216,11 +217,21 @@ parts:
       - -etc/rsyslog.d
       - -etc/sudoers.d
       - -lib/systemd
+      - -lib/*-linux-gnu
+      - -lib64
+      - -usr/lib/*-linux-gnu/gconv
+      - -bin/systemctl
+      - -bin/journalctl
+      - -bin/loginctl
+      - -bin/networkctl
+      - -bin/systemd*
+      - -bin/mount
+      - -bin/umount
+      - -usr/bin/dpkg*
       - -usr/bin/perl*
       - -usr/include
       - -usr/lib/*/*perl*
       - -usr/share
-
   k8s:
     plugin: nil
     source: k8s
