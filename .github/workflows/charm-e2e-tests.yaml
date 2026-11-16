@@ -34,13 +34,13 @@ jobs:
       channel-available: ${{ steps.check-channel.outputs.channel-available }}
     steps:
       - name: Check out code
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Setup Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: '3.12'
       - name: Setup Astral UV
-        uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
       - name: Install tox with UV
         run: uv tool install tox --with tox-uv
       - name: Check charm channel availability
@@ -66,9 +66,9 @@ jobs:
     timeout-minutes: 600
     steps:
       - name: Check out code
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Setup Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: '3.10'
       - name: Download k8s-snap
@@ -78,7 +78,7 @@ jobs:
           channel: ${{ inputs.channel }}
           artifact: ${{ inputs.artifact }}
       - name: Setup LXD
-        uses: canonical/setup-lxd@a3c85fc6fb7fff43fcfeae87659e41a8f635b7dd # v0.1.3
+        uses: canonical/setup-lxd@8c6a87bfb56aa48f3fb9b830baa18562d8bfd4ee # v1
       - name: Install virtualenv
         run: sudo apt install -y python3.10-venv
       - name: Generate snap tarball
@@ -89,7 +89,7 @@ jobs:
           mv "$SNAP_PATH" snap_installation/k8s.snap
           tar cvzf snap_installation.tar.gz -C snap_installation/ .
       - name: Setup Astral UV
-        uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           python-version: ${{ env.python-version }}
       - name: Install tox with UV
@@ -138,7 +138,7 @@ jobs:
       - name: Bootstrap Juju controller (lxd)
         run: |
           juju bootstrap localhost lxd
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: canonical/k8s-operator
           ref: ${{ github.base_ref || github.ref_name }}

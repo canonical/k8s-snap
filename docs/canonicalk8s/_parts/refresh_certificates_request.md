@@ -32,10 +32,20 @@ The admin client key to be used for Kubernetes services.
 
 The client certificate to be used for the kube-proxy.
 
+Deprecated: As of Canonical Kubernetes 1.36, this field is not used with the
+default CNI (Cilium), which uses kube-proxy replacement instead of kube-proxy.
+It remains accepted for backward compatibility and is used when the default
+CNI is not used.
+
 ### kube-proxy-client-key
 **Type:** `string`<br>
 
 The client key to be used for the kube-proxy.
+
+Deprecated: As of Canonical Kubernetes 1.36, this field is not used with the
+default CNI (Cilium), which uses kube-proxy replacement instead of kube-proxy.
+It remains accepted for backward compatibility and is used when the default
+CNI is not used.
 
 ### kube-scheduler-client-crt
 **Type:** `string`<br>

@@ -46,6 +46,8 @@ bgp
 BGPAdvertisement
 BGPPeer
 bgppeers
+bool 
+boolean 
 bootloader
 BPF
 bschimke
@@ -248,6 +250,7 @@ IAM
 iavf
 IAVM
 IAVMs
+identitytoken
 ImagePolicyWebhook
 init
 initialisation
@@ -360,6 +363,7 @@ mtu
 multicast
 Multipass
 Multus
+myregistry
 nameservers
 namespace
 NamespaceLifecycle

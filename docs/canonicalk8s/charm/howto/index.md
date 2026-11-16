@@ -37,6 +37,7 @@ cluster and provide additional functionality.
 ```{toctree}
 :glob:
 :titlesonly:
+Charm integrations <charm-integrations.md>
 Integrate with OpenStack <openstack>
 Integrate with etcd <etcd>
 Integrate with ceph-csi <ceph-csi>
