@@ -33,7 +33,7 @@ jobs:
 
   test-branches:
     name: Test Branch Management
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -42,14 +42,18 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
-          python-version: '3.8'
+          python-version: '3.12'
       - name: Install tox
         uses: ./.github/actions/retry-command
         with:
           timeout_minutes: 5
           max_attempts: 5
           retry_wait_seconds: 5
-          command: sudo apt-get install -y tox
+          # Not "apt-get install tox": that binary is shebanged against the
+          # distro's default python3, which tracks the Ubuntu release
+          # (python3.14 on 26.04) instead of the interpreter selected above,
+          # breaking flake8/pyflakes the moment runs-on lands on a newer OS.
+          command: pip install tox==4.*
       - name: Extract Kubernetes versions
         id: versions
         env:
@@ -80,7 +84,7 @@ jobs:
           tox -c tests/branch_management -e test
   python-lint:
     name: Python lint
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -94,7 +98,9 @@ jobs:
           timeout_minutes: 5
           max_attempts: 5
           retry_wait_seconds: 5
-          command: sudo apt-get install -y tox
+          # See test-branches above: install via pip against the Python
+          # selected by setup-python, not the distro's rotating default.
+          command: pip install tox==4.*
       - name: Lint
         run: |
           cd tests/integration && tox -e lint
