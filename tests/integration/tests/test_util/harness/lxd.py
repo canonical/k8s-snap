@@ -194,7 +194,7 @@ class LXDHarness(Harness):
                 ["mkdir", "-m=0777", "-p", Path(destination).parent.as_posix()],
                 capture_output=True,
             )
-            run(
+            stubbornly(retries=3, delay_s=2).exec(
                 ["lxc", "file", "push", source, f"{instance_id}{destination}"],
                 capture_output=True,
             )
