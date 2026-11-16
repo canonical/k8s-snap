@@ -79,115 +79,36 @@ def _check_nvidia_drivers_loaded(instance: harness.Instance) -> Mapping[str, boo
 
 
 def _dump_gpu_operator_diagnostics(instance: harness.Instance, namespace: str):
-    """Dump operator-wide state for post-mortem debugging."""
-    diagnostics = [
-        (["k8s", "kubectl", "-n", namespace, "get", "pods", "-o", "wide"], "pods"),
-        (
-            ["k8s", "kubectl", "-n", namespace, "get", "daemonsets"],
-            "daemonsets",
-        ),
-        (
-            [
-                "k8s",
-                "kubectl",
-                "-n",
-                namespace,
-                "get",
-                "clusterpolicy",
-                "-o",
-                "yaml",
-            ],
-            "clusterpolicy",
-        ),
-        (
-            [
-                "k8s",
-                "kubectl",
-                "-n",
-                namespace,
-                "logs",
-                "-l",
-                "app=gpu-operator",
-                "--tail=200",
-            ],
-            "gpu-operator controller logs",
-        ),
-        (
-            [
-                "k8s",
-                "kubectl",
-                "get",
-                "events",
-                "-n",
-                namespace,
-                "--sort-by=.lastTimestamp",
-            ],
-            "namespace events",
-        ),
-        (
-            ["k8s", "kubectl", "get", "nodes", "-o", "yaml"],
-            "node labels and status",
-        ),
-    ]
-    for cmd, label in diagnostics:
-        try:
-            result = instance.exec(cmd, capture_output=True, text=True, check=False)
-            LOG.warning("=== DIAG: %s ===\n%s", label, result.stdout)
-            if result.stderr:
-                LOG.warning("stderr: %s", result.stderr)
-        except Exception as exc:
-            LOG.warning("Failed to collect %s: %s", label, exc)
+    """Dump gpu-operator specific state for post-mortem debugging.
 
-    _dump_failing_pod_logs(instance, namespace)
+    Generic cluster state (pods, daemonsets, events, nodes, current pod logs,
+    host `dmesg`/`lsmod`) is already collected by the inspection report, so
+    only what it does not contain is dumped here: the `ClusterPolicy` custom
+    resource, previous container logs and the in-container driver probes.
+    """
+    try:
+        result = instance.exec(
+            ["k8s", "kubectl", "get", "clusterpolicy", "-o", "yaml"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        LOG.warning("=== DIAG: clusterpolicy ===\n%s", result.stdout)
+        if result.stderr:
+            LOG.warning("stderr: %s", result.stderr)
+    except Exception as exc:
+        LOG.warning("Failed to collect clusterpolicy: %s", exc)
+
+    _dump_previous_pod_logs(instance, namespace)
     _dump_driver_validation_diagnostics(instance, namespace)
     _dump_driver_container_diagnostics(instance, namespace)
 
 
-def _dump_cluster_network_diagnostics(instance: harness.Instance):
-    """Dump cluster/CNI-wide state when the node never reaches Ready.
+def _dump_previous_pod_logs(instance: harness.Instance, namespace: str):
+    """Dump previous-container logs for every pod that is not fully ready.
 
-    Unlike `_dump_gpu_operator_diagnostics`, this runs before the gpu-operator
-    namespace even exists, so it looks at `kube-system` (network/dns) and the
-    node object itself instead.
-    """
-    diagnostics = [
-        (["k8s", "status"], "k8s status"),
-        (["k8s", "kubectl", "get", "nodes", "-o", "wide"], "nodes"),
-        (["k8s", "kubectl", "describe", "nodes"], "node describe"),
-        (
-            ["k8s", "kubectl", "-n", "kube-system", "get", "pods", "-o", "wide"],
-            "kube-system pods",
-        ),
-        (
-            ["k8s", "kubectl", "-n", "kube-system", "get", "daemonsets"],
-            "kube-system daemonsets",
-        ),
-        (
-            [
-                "k8s",
-                "kubectl",
-                "get",
-                "events",
-                "-A",
-                "--sort-by=.lastTimestamp",
-            ],
-            "cluster-wide events",
-        ),
-    ]
-    for cmd, label in diagnostics:
-        try:
-            result = instance.exec(cmd, capture_output=True, text=True, check=False)
-            LOG.warning("=== DIAG: %s ===\n%s", label, result.stdout)
-            if result.stderr:
-                LOG.warning("stderr: %s", result.stderr)
-        except Exception as exc:
-            LOG.warning("Failed to collect %s: %s", label, exc)
-
-    _dump_failing_pod_logs(instance, "kube-system")
-
-
-def _dump_failing_pod_logs(instance: harness.Instance, namespace: str):
-    """Dump current+previous container logs for every pod that is not fully ready.
+    The inspection report only has the current logs, which for a crash-looping
+    container say nothing about why the last instance died.
 
     Uses `-o json` + Python parsing rather than a single combined `jsonpath`
     query: kubectl's jsonpath `range` silently truncates output once it hits
@@ -219,30 +140,27 @@ def _dump_failing_pod_logs(instance: harness.Instance, namespace: str):
         if container_statuses and all(c.get("ready") for c in container_statuses):
             continue
 
-        for flag, label in ((None, "current"), ("--previous", "previous")):
-            cmd = [
-                "k8s",
-                "kubectl",
-                "-n",
-                namespace,
-                "logs",
+        cmd = [
+            "k8s",
+            "kubectl",
+            "-n",
+            namespace,
+            "logs",
+            pod_name,
+            "--all-containers=true",
+            "--previous",
+        ]
+        try:
+            r = instance.exec(cmd, capture_output=True, text=True, check=False)
+            LOG.warning(
+                "=== DIAG: %s logs (previous) ===\n%s",
                 pod_name,
-                "--all-containers=true",
-            ]
-            if flag:
-                cmd.append(flag)
-            try:
-                r = instance.exec(cmd, capture_output=True, text=True, check=False)
-                LOG.warning(
-                    "=== DIAG: %s logs (%s) ===\n%s",
-                    pod_name,
-                    label,
-                    _head_and_tail(r.stdout),
-                )
-                if r.stderr:
-                    LOG.warning("stderr: %s", r.stderr)
-            except Exception as exc:
-                LOG.warning("Failed %s logs for %s: %s", label, pod_name, exc)
+                _head_and_tail(r.stdout),
+            )
+            if r.stderr:
+                LOG.warning("stderr: %s", r.stderr)
+        except Exception as exc:
+            LOG.warning("Failed previous logs for %s: %s", pod_name, exc)
 
 
 def _head_and_tail(text: str, keep: int = 100) -> str:
@@ -457,28 +375,18 @@ def containerd_bind_mounts(instances: list[harness.Instance]):
             instance.exec(["umount", "-l", target], capture_output=True, check=False)
 
 
-# Bootstrap YAML overrides cluster-config defaults, so we must re-enable the core
-# features (network/dns/local-storage) alongside the containerd-base-dir override.
-_GPU_BOOTSTRAP_CONFIG = (
-    (
-        f"containerd-base-dir: {config.CONTAINERD_BASE_DIR}\n"
-        "cluster-config:\n"
-        "  network:\n"
-        "    enabled: true\n"
-        "  dns:\n"
-        "    enabled: true\n"
-        "  local-storage:\n"
-        "    enabled: true\n"
-    )
-    if config.CONTAINERD_BASE_DIR
-    else None
-)
-
-
 @pytest.mark.node_count(1)
 @pytest.mark.tags(tags.WEEKLY)
 @pytest.mark.tags(tags.GPU)
-@pytest.mark.bootstrap_config(_GPU_BOOTSTRAP_CONFIG)
+# Only relocate containerd when TEST_CONTAINERD_BASE_DIR is set; otherwise use
+# the default bootstrap.
+@pytest.mark.bootstrap_config(
+    (config.MANIFESTS_DIR / "bootstrap-gpu.yaml")
+    .read_text()
+    .format(containerd_base_dir=config.CONTAINERD_BASE_DIR)
+    if config.CONTAINERD_BASE_DIR
+    else None
+)
 @pytest.mark.usefixtures("containerd_bind_mounts")
 @pytest.mark.parametrize(
     "gpu_operator_version", NVIDIA_GPU_OPERATOR_SUPPORTED_UBUNTU_VERSIONS.keys()
@@ -561,12 +469,7 @@ def test_deploy_nvidia_gpu_operator(
         )
 
     LOG.info("Waiting for k8s node to become Ready (CNI initialized)...")
-    try:
-        util.wait_until_k8s_ready(instance, instances, retries=180, delay_s=5)
-    except Exception:
-        LOG.warning("Node never became Ready — collecting cluster/CNI diagnostics")
-        _dump_cluster_network_diagnostics(instance)
-        raise
+    util.wait_until_k8s_ready(instance, instances, retries=180, delay_s=5)
 
     # Add the upstream Nvidia GPU-operator Helm repo:
     instance.exec(
@@ -664,23 +567,5 @@ def test_deploy_nvidia_gpu_operator(
         )
     except Exception:
         LOG.warning("CUDA pod never became ready — collecting diagnostics")
-        try:
-            result = instance.exec(
-                [
-                    "k8s",
-                    "kubectl",
-                    "-n",
-                    test_namespace,
-                    "describe",
-                    "pod",
-                    NVIDIA_CUDA_VECTOR_ADDITION_TEST_POD_NAME,
-                ],
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            LOG.warning("=== DIAG: cuda-vectoradd describe ===\n%s", result.stdout)
-        except Exception as diag_exc:
-            LOG.warning("Failed to describe CUDA pod: %s", diag_exc)
         _dump_gpu_operator_diagnostics(instance, test_namespace)
         raise
