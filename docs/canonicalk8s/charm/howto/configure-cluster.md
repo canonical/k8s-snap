@@ -4,7 +4,6 @@ myst:
     description: "How to configure a Canonical Kubernetes cluster using Juju, including DNS, networking, labels, and feature flags via charm configuration options."
 ---
 
-(charm-configure-cluster)=
 
 # How to configure a {{ product }} cluster using Juju
 
