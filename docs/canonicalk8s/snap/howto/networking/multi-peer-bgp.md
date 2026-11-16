@@ -136,6 +136,9 @@ Correct the annotation and the reconciler retries automatically.
 - The annotation value is write-only — inspect it directly with
   `k8s kubectl get node <node> -o yaml`.
 - No per-peer BFD or multi-hop support.
+- `BGPPeer.spec.password` authenticates BGP sessions using TCP-MD5 (RFC 2385),
+  which is not approved under FIPS 140-3. Do not set a peer password in FIPS
+  environments.
 
 ## Next steps
 

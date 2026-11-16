@@ -6,7 +6,7 @@
 `string` · default ``""``
 
 The datastore to use in Canonical Kubernetes.
-This can only be reset after deployment.
+This can only be set at deployment and cannot be changed afterward.
 
 Allowed values are "", managed-etcd, dqlite and etcd.
 
@@ -143,7 +143,7 @@ juju config k8s containerd-custom-registries='[{
     "host": "ghcr.io",
     "ca_file": "'"$(base64 -w 0 < ~/my.custom.ca.pem)"'",
     "cert_file": "'"$(base64 -w 0 < ~/my.custom.cert.pem)"'",
-    "key_file": "'"$(base64 -w 0 < ~/my.custom.key.pem)"'",
+    "key_file": "'"$(base64 -w 0 < ~/my.custom.key.pem)"'"
 }]'
 
 (k8s-config-datastore-extra-args)=
