@@ -147,3 +147,4 @@ Correct the annotation and the reconciler retries automatically.
 
 <!-- LINKS -->
 [getting-started-guide]: /snap/tutorial/getting-started
+[multi-peer-bgp-fips]: #fips-limitation
