@@ -4,7 +4,7 @@ pytest_tagging==1.6.0
 pytest-benchmark==5.3.1
 PyYAML==6.0.3
 tenacity==9.2.1
-pylint==4.0.9
+pylint==4.1.4
 cryptography==50.0.2
 hvac==2.4.0
 python-subunit>=1.2
