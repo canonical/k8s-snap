@@ -73,13 +73,6 @@ plane providers and the infrastructure provider of your choice:
 clusterctl init --bootstrap canonical-kubernetes --control-plane canonical-kubernetes --infrastructure <infrastructure-provider>
 ```
 
-For AWS, run the following command instead. It pins the CAPI core and CAPA
-versions to avoid a CRD version mismatch:
-
-```
-clusterctl init --core cluster-api:v1.9.6 --bootstrap canonical-kubernetes --control-plane canonical-kubernetes --infrastructure aws:v2.8.4
-```
-
 Confirm that the provider controllers are running:
 
 ```
@@ -165,7 +158,7 @@ clusterctl get kubeconfig ${CLUSTER_NAME} > ./${CLUSTER_NAME}-kubeconfig
 You can then see the workload nodes using:
 
 ```
-KUBECONFIG=./${CLUSTER_NAME}-kubeconfig sudo k8s kubectl get node
+sudo k8s kubectl --kubeconfig ./${CLUSTER_NAME}-kubeconfig get node
 ```
 
 If the deployment fails, see the [troubleshooting guide](troubleshooting.md).

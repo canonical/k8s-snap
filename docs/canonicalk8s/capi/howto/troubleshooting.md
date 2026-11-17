@@ -229,6 +229,10 @@ This removes the containerd directory that the AMI creates on boot, ensuring a
 clean state with no conflicts. It does not necessarily resolve the original
 cause of the bootstrap failure.
 
+### Node fails to fetch images 
+
+Check the `AWS_SSH_KEY_NAME` variable is set to the correct SSH key pair and re-apply the `cluster.yaml`. Failing to set this variable can cause an error fetching cluster images. 
+
 ### Control plane nodes fail to join the cluster
 
 Add the following entry to the existing `cniIngressRules` list under
@@ -250,8 +254,8 @@ CAPA reconciliation loop removes it.
 ### Provisioning fails because of the bastion host
 
 If no AMI images are available in your region for the bastion host, set
-`AWS_CREATE_BASTION` to `false` in `./templates/aws/template-variables.rc` to
-avoid provisioning failures.
+`AWS_CREATE_BASTION` to `false` in `./templates/aws/template-variables.rc`, 
+then re-source the file and regenerate `cluster.yaml` before reapplying it.
 
 ## Report a bug
 
