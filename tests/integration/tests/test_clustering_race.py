@@ -38,7 +38,7 @@ def test_wrong_token_race(instances: List[harness.Instance]):
 
 
 @pytest.mark.node_count(3)
-@pytest.mark.tags(tags.PULL_REQUEST, tags.NIGHTLY)
+@pytest.mark.tags(tags.NIGHTLY)
 def test_concurrent_cp_join_race(
     instances: List[harness.Instance],
     registry,
