@@ -164,7 +164,7 @@ build context on each other beats an alphabetical pass:
 8. **Host and network context.** `sys/` holds `ps -ef` (`sys/ps`), disk
    usage (`sys/disk_usage`, `df -h`), `/proc/mounts`
    (`sys/proc-mounts`), memory (`sys/memory_usage`, `free -m`), swap
-   (`sys/swap`, `swapon`), `uptime` (`sys/uptime`), `/etc/os-release`
+   (`sys/swap`, `/proc/swaps`), `uptime` (`sys/uptime`), `/etc/os-release`
    (`sys/etc-os-release`), loaded kernel modules
    (`sys/loaded_kernel_modules`, `lsmod`) and `dmesg -H` (`sys/dmesg`,
    worth a grep for OOM kills). Alongside it: `ip-a.log` (`ip a`),
