@@ -29,7 +29,7 @@ jobs:
 
       - name: Create pull request
         if: steps.check.outputs.has-changes == 'true'
-        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c # v6
+        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8
         with:
           commit-message: "ci: update GitHub Actions to latest versions"
           title: "ci: update GitHub Actions to latest versions"
@@ -67,7 +67,7 @@ jobs:
 
       - name: Create pull request
         if: steps.check.outputs.has-changes == 'true'
-        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c # v6
+        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8
         with:
           commit-message: "ci: update pip dependencies"
           title: "ci: update pip dependencies"
