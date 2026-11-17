@@ -2,6 +2,7 @@
 
 import argparse
 import os
+import re
 from pathlib import Path
 
 DIR = Path(__file__).absolute().parent
@@ -10,8 +11,22 @@ DIR = Path(__file__).absolute().parent
 _PROJECT_DIR = os.getenv("SNAPCRAFT_PROJECT_DIR") or ""
 PROJECT_DIR = _PROJECT_DIR and Path(_PROJECT_DIR) or Path(DIR / "..")
 
+
+def is_strict_confinement(snapcraft_yaml_text: str) -> bool:
+    """Return True if snapcraft_yaml_text specifies top-level strict confinement."""
+    if not snapcraft_yaml_text:
+        return False
+    pattern = r"^confinement:\s*(?:strict|'strict'|\"strict\")\s*(?:#.*)?$"
+    return bool(re.search(pattern, snapcraft_yaml_text, re.MULTILINE))
+
+
 # Strict confinement needs extra patches
-STRICT = "confinement: strict" in (PROJECT_DIR / "snap/snapcraft.yaml").read_text()
+_snapcraft_yaml = PROJECT_DIR / "snap/snapcraft.yaml"
+STRICT = (
+    is_strict_confinement(_snapcraft_yaml.read_text(encoding="utf-8"))
+    if _snapcraft_yaml.is_file()
+    else False
+)
 
 
 class Version:
@@ -101,7 +116,8 @@ def get_patches_for(component: str, version_string: str) -> list:
             patches.extend(
                 [
                     p.resolve().as_posix()
-                    for p in (patches_dir / patch_version).iterdir()
+                    for p in sorted((patches_dir / patch_version).iterdir())
+                    if p.is_file()
                 ]
             )
 
