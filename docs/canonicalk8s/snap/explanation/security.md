@@ -218,7 +218,12 @@ provide their own certificates instead.
 ### Encryption at rest
 
 {{product}} uses AES-256-GCM (Advanced Encryption Standard - Galois/Counter
-Mode) to encrypt cluster data at rest.
+Mode) to encrypt cluster data managed by k8sd at rest.
+
+This encryption applies to data stored by k8sd and does not include data stored
+in etcd. Encryption of Kubernetes resources stored in etcd, such as Secrets,
+must be configured separately using Kubernetes' encryption-at-rest
+configuration.
 
 ### Digital signatures
 

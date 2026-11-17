@@ -34,13 +34,13 @@ jobs:
       channel-available: ${{ steps.check-channel.outputs.channel-available }}
     steps:
       - name: Check out code
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Setup Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: '3.12'
       - name: Setup Astral UV
-        uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
       - name: Install tox with UV
         run: uv tool install tox --with tox-uv
       - name: Check charm channel availability
@@ -66,9 +66,9 @@ jobs:
     timeout-minutes: 600
     steps:
       - name: Check out code
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Setup Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: '3.10'
       - name: Download k8s-snap
@@ -78,7 +78,7 @@ jobs:
           channel: ${{ inputs.channel }}
           artifact: ${{ inputs.artifact }}
       - name: Setup LXD
-        uses: canonical/setup-lxd@a3c85fc6fb7fff43fcfeae87659e41a8f635b7dd # v0.1.3
+        uses: canonical/setup-lxd@8c6a87bfb56aa48f3fb9b830baa18562d8bfd4ee # v1
       - name: Install virtualenv
         run: sudo apt install -y python3.10-venv
       - name: Generate snap tarball
@@ -89,7 +89,7 @@ jobs:
           mv "$SNAP_PATH" snap_installation/k8s.snap
           tar cvzf snap_installation.tar.gz -C snap_installation/ .
       - name: Setup Astral UV
-        uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           python-version: ${{ env.python-version }}
       - name: Install tox with UV
@@ -105,26 +105,32 @@ jobs:
             sudo snap install juju --channel=3/stable --classic
             sudo snap install juju-crashdump --classic
       - name: Download charms ${{ inputs.charm-channel }} ${{ inputs.arch }}
+        uses: ./.github/actions/retry-command
         env:
           INPUT_ARCH: ${{ inputs.arch }}
           INPUT_CHARM_CHANNEL: ${{ inputs.charm-channel }}
-        run: |
-          # The operator tests expect the charm file name to have the
-          # ${charmName}_ prefix and include the arch and ubuntu base.
-          # https://github.com/canonical/k8s-operator/blob/eba756ddc723e9aa5242c7804712807495356c6f/tests/integration/helpers.py#L334-L342
-          # The charm base (e.g. ubuntu@22.04) must match the one used by other
-          # related charms (e.g. ceph) used by the k8s-operator tests.
-          arch=$INPUT_ARCH
-          k8sCharmFile=${GITHUB_WORKSPACE}/k8s_ubuntu-22.04-${arch}.charm
-          k8sWorkerChamFile=${GITHUB_WORKSPACE}/k8s-worker_ubuntu-22.04-${arch}.charm
-          juju download k8s \
-            --channel "$INPUT_CHARM_CHANNEL" \
-            --filepath $k8sCharmFile \
-            --base ubuntu@22.04
-          juju download k8s-worker \
-            --channel "$INPUT_CHARM_CHANNEL" \
-            --filepath $k8sWorkerChamFile \
-            --base ubuntu@22.04
+        with:
+          timeout_minutes: 5
+          max_attempts: 5
+          retry_wait_seconds: 10
+          command: |
+            # The operator tests expect the charm file name to have the
+            # ${charmName}_ prefix and include the arch and ubuntu base.
+            # https://github.com/canonical/k8s-operator/blob/eba756ddc723e9aa5242c7804712807495356c6f/tests/integration/helpers.py#L334-L342
+            # The charm base (e.g. ubuntu@22.04) must match the one used by other
+            # related charms (e.g. ceph) used by the k8s-operator tests.
+            arch="$INPUT_ARCH"
+            k8sCharmFile="${GITHUB_WORKSPACE}/k8s_ubuntu-22.04-${arch}.charm"
+            k8sWorkerCharmFile="${GITHUB_WORKSPACE}/k8s-worker_ubuntu-22.04-${arch}.charm"
+            rm -f "$k8sCharmFile" "$k8sWorkerCharmFile"
+            juju download k8s \
+              --channel "$INPUT_CHARM_CHANNEL" \
+              --filepath "$k8sCharmFile" \
+              --base ubuntu@22.04
+            juju download k8s-worker \
+              --channel "$INPUT_CHARM_CHANNEL" \
+              --filepath "$k8sWorkerCharmFile" \
+              --base ubuntu@22.04
       - name: Check system resources
         run: |
           # checking memory and cpu info to help debug CI failures
@@ -138,7 +144,7 @@ jobs:
       - name: Bootstrap Juju controller (lxd)
         run: |
           juju bootstrap localhost lxd
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: canonical/k8s-operator
           ref: ${{ github.base_ref || github.ref_name }}
@@ -172,15 +178,20 @@ jobs:
         id: collect-juju-status
         run: |
           set -x
-          path=${{ env.K8S_OPERATOR }}/tmp
-          mkdir -p $path
-          juju status 2>&1 | tee $path/juju-status.txt
-          juju-crashdump -s -m controller -a debug-layer -a config -o $path/
-          mv ${{ env.K8S_OPERATOR }}/juju-crashdump-* $path/ || true
-          echo "path=${path}/" >> $GITHUB_OUTPUT
+          path="${K8S_OPERATOR}/tmp"
+          mkdir -p "$path"
+          echo "path=${path}/" >> "$GITHUB_OUTPUT"
+          if command -v juju >/dev/null 2>&1; then
+            juju status 2>&1 | tee "$path/juju-status.txt" || true
+          fi
+          if command -v juju-crashdump >/dev/null 2>&1; then
+            juju-crashdump -s -m controller -a debug-layer -a config -o "$path/" || true
+            mv "${K8S_OPERATOR}"/juju-crashdump-* "$path/" || true
+          fi
       - name: Upload debug artifacts
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: charm-e2e-tests-${{ inputs.arch }}
           path: ${{ steps.collect-juju-status.outputs.path }}
+          if-no-files-found: ignore
