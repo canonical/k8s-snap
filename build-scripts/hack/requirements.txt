@@ -1,4 +1,4 @@
-lief==0.17.6
+lief==1.0.0
 packaging==26.3
 pyyaml==6.0.3
 tenacity==9.2.1
