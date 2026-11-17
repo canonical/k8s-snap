@@ -9,7 +9,7 @@ relatedlinks: "[Snap&#32;documentation](https://snapcraft.io/docs/), [kubectl&#3
 
 <!-- SPREAD SUITE: snap_clean -->
 
-{{product}} is a distribution of Kubernetes. It bundles upstream Kubernetes with selected tools and services such as networking, DNS and storage into a single package called a snap! 
+{{product}} is a distribution of Kubernetes. It bundles upstream Kubernetes with selected tools and services such as networking, DNS and storage into a single package called a snap!
 
 In this tutorial you will deploy a cluster by installing the snap
 in a Multipass virtual machine (VM). You will run some typical cluster operations such as
@@ -95,6 +95,8 @@ sudo k8s status --wait-ready
 sudo k8s kubectl wait --for=condition=Ready node --all --timeout=5m
 -->
 
+The `k8s status` command shows an overview of the {{product}} cluster.
+
 ```{important}
 This command waits for 90 seconds before timing out. If it ends with a "Context canceled" error, re-run it. The command will continue to wait for the cluster to be ready. 
 
@@ -144,7 +146,7 @@ sudo k8s kubectl get services | grep kubernetes
 
 
 Run the following command to list all the pods in the `kube-system`
-namespace:
+namespace. This is where core cluster components are deployed:
 
 ```
 sudo k8s kubectl get pods -n kube-system
@@ -332,18 +334,22 @@ repeat_checks "sudo k8s kubectl get pods -n kube-system -l app.kubernetes.io/nam
 
 ## Use local storage
 
-Local storage enables you to create persistent volumes, which is the
-Kubernetes way to preserve application data beyond the life-cycle of a pod.
-Create a `PersistentVolumeClaim` and use it in a `Pod`:
+As we saw in the Deploy an app section, pods may get deleted and recreated. We need a way to ensure the data on these pods is preserved beyond the life-cycle of a pod. Local storage enables you to create persistent volumes, which is the Kubernetes way to give storage on the disk to the pods.
+
+Create a `PersistentVolumeClaim` (PVC), which is a request for local storage and use it in a `Pod`:
 
 ```
 sudo k8s kubectl apply -f https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/canonicalk8s/assets/tutorial-pod-with-pvc.yaml
 ```
 
-This command deploys the YAML configuration of a pod called `storage-writer-pod`
-and a persistent volume claim called `myclaim` with a capacity of 1Gi.
+This command deploys two objects:
 
-Confirm that the persistent volume claim is up and running.
+- `myclaim`, a PVC that requests 1Gi of storage
+- `storage-writer-pod`, a pod that mounts `myclaim` at `/mnt` and writes the current time to `/mnt/dates` every two seconds
+
+The local storage pods we saw earlier help carry out this request.
+
+Check the status of the PVC.
 
 ```
 sudo k8s kubectl get pvc myclaim
@@ -353,7 +359,7 @@ sudo k8s kubectl get pvc myclaim
 repeat_checks "sudo k8s kubectl get pvc myclaim" "Bound"
 -->
 
-The persistent volume claim status should be `Bound`. Now let's inspect the
+The PVC status should be `Bound`, meaning local storage has created a volume for this claim. Now let's inspect the
 `storage-writer-pod`.
 
 ```
@@ -365,8 +371,7 @@ repeat_checks "sudo k8s kubectl describe pod storage-writer-pod" "Running"
 -->
 
 This output provides a detailed description of the `storage-writer-pod`. You
-should see `myclaim` listed under Volumes showing that it has been assigned
-correctly.
+should see `myclaim` listed under `Volumes` showing that the pod has requested a local volume correctly.
 
 <!-- SPREAD SKIP -->
 
@@ -379,7 +384,51 @@ Volumes:
 
 <!-- SPREAD SKIP END -->
 
-Remove the pod along with the persistent volume claim.
+Read the file the pod is writing:
+
+```
+sudo k8s kubectl exec storage-writer-pod -- head -n 3 /mnt/dates
+```
+
+<!-- SPREAD
+repeat_checks "sudo k8s kubectl exec storage-writer-pod -- head -n 3 /mnt/dates" "LOREM IPSUM"
+FIRST_LINE=$(sudo k8s kubectl exec storage-writer-pod -- head -n 1 /mnt/dates)
+-->
+
+You will see the first three lines of the file, which should be `LOREM IPSUM` followed by a timestamp.
+
+To see that the data outlives the pod, delete the pod and create it again. `myclaim` is not deleted, so the volume remains:
+
+```
+sudo k8s kubectl delete pod storage-writer-pod
+sudo k8s kubectl apply -f https://raw.githubusercontent.com/canonical/k8s-snap/main/docs/canonicalk8s/assets/tutorial-pod-with-pvc.yaml
+```
+
+Once the new pod is running, read the start of the file again:
+
+<!-- SPREAD
+repeat_checks "sudo k8s kubectl describe pod storage-writer-pod" "Running"
+-->
+
+```
+sudo k8s kubectl exec storage-writer-pod -- head -n 3 /mnt/dates
+```
+
+<!-- SPREAD
+repeat_checks "sudo k8s kubectl exec storage-writer-pod -- head -n 1 /mnt/dates" "$FIRST_LINE"
+-->
+
+Compare this with our previous output and you will see the file still starts with the timestamps from the first pod. The data survived the pod being deleted.
+
+Now let's verify it is adding new timestamps to the file. 
+
+```
+sudo k8s kubectl exec storage-writer-pod -- tail -n 3 /mnt/dates
+```
+
+This should show the last 3 lines of the file with the latest timestamps. 
+
+Remove the pod along with the PVC.
 
 ```
 sudo k8s kubectl delete pod storage-writer-pod
@@ -518,6 +567,14 @@ And they can be permanently removed with:
 multipass delete control-plane --purge
 multipass delete worker-node --purge
 ```
+
+Lastly, check that the Multipass VMs are deleted by listing all available VMs.
+
+```
+multipass list
+```
+
+The list should no longer show `control-plane` and `worker-node`.
 
 <!-- SPREAD SKIP END -->
 
