@@ -93,34 +93,42 @@ k8s::remove::containerd() {
   k8s::cmd::k8s x-cleanup containerd || true
 }
 
-# Cleanup systemd overrides
+# Cleanup system tuning sysctl overrides
+# Example: 'k8s::remove::system_tuning'
 k8s::remove::system_tuning() {
   if ! k8s::common::is_strict; then
-    # Find files matching pattern: digits followed by '-k8s.conf'
-    files_to_remove=$(find /etc/sysctl.d/ -maxdepth 1 -type f -regextype posix-extended -regex '.*/[0-9]+-k8s\.conf')
+    local files_to_remove=()
+    if [ -d /etc/sysctl.d ]; then
+      mapfile -d '' files_to_remove < <(find /etc/sysctl.d/ -maxdepth 1 -type f -regextype posix-extended -regex '.*/[0-9]+-k8s\.conf' -print0 2>/dev/null)
+    fi
 
-
-    if [ -n "$files_to_remove" ]; then
-      echo "$files_to_remove" | xargs sudo rm -f
-      sudo sysctl --system
+    if [ "${#files_to_remove[@]}" -gt 0 ]; then
+      k8s::util::run_as_root rm -f "${files_to_remove[@]}"
+      k8s::util::run_as_root sysctl --system
     fi
   fi
 }
 
+# Cleanup resources in SNAP_COMMON
+# Example: 'k8s::remove::resources'
 k8s::remove::resources() {
-  if [ -d "$SNAP_COMMON/etc" ]; then
-    sudo rm -rf "$SNAP_COMMON/etc"
+  local common_dir="${SNAP_COMMON:-/var/snap/k8s/common}"
+  if [ -d "$common_dir/etc" ]; then
+    k8s::util::run_as_root rm -rf "$common_dir/etc"
   fi
 }
 
+# Cleanup kubelet pod and container logs
+# Example: 'k8s::remove::kubelet_logs'
 k8s::remove::kubelet_logs() {
   if ! k8s::common::is_strict; then
-    if [ -d "$SNAP_COMMON/var/log/pods" ]; then
-        sudo rm -rf "$SNAP_COMMON/var/log/pods"
+    local common_dir="${SNAP_COMMON:-/var/snap/k8s/common}"
+    if [ -d "$common_dir/var/log/pods" ]; then
+      k8s::util::run_as_root rm -rf "$common_dir/var/log/pods"
     fi
 
-    if [ -d "$SNAP_COMMON/var/log/containers" ]; then
-      sudo rm -rf "$SNAP_COMMON/var/log/containers"
+    if [ -d "$common_dir/var/log/containers" ]; then
+      k8s::util::run_as_root rm -rf "$common_dir/var/log/containers"
     fi
   fi
 }
@@ -287,24 +295,40 @@ k8s::util::load_kernel_modules() {
   modprobe -- "$@"
 }
 
+# Execute command directly when running as root, otherwise with sudo
+# Example: 'k8s::util::run_as_root rm -f /path/to/file'
+k8s::util::run_as_root() {
+  if [ "$(id -u)" -eq 0 ]; then
+    "$@"
+  else
+    sudo "$@"
+  fi
+}
+
+# Ensure containerd systemd drop-in configuration defaults are applied
+# Example: 'k8s::containerd::ensure_systemd_defaults'
 k8s::containerd::ensure_systemd_defaults() {
   k8s::common::setup_env
 
-  local override_dir="/etc/systemd/system/snap.k8s.containerd.service.d"
-  local override_file="$SNAP/k8s/systemd/containerd-defaults.conf"
+  local override_dir="/etc/systemd/system/snap.${SNAP_INSTANCE_NAME:-k8s}.containerd.service.d"
+  local override_file="${SNAP:-/snap/k8s/current}/k8s/systemd/containerd-defaults.conf"
 
-  if ! [ -f "$override_dir/containerd-defaults.conf" ]; then
+  if [ ! -f "$override_file" ]; then
+    return 0
+  fi
+
+  if [ ! -f "$override_dir/containerd-defaults.conf" ] || ! cmp -s "$override_file" "$override_dir/containerd-defaults.conf"; then
     mkdir -p "$override_dir"
     cp "$override_file" "$override_dir/"
+    systemctl daemon-reload || true
   fi
 }
 
 # Sanitize feature gates in kube-apiserver arguments
-# This removes any feature gates that are not present in the current apiserver version
-# from the --feature-gates argument in /var/snap/k8s/common/args/kube-apiserver.
-# Usage: k8s::apiserver::sanitize_feature_gates
+# Example: 'k8s::apiserver::sanitize_feature_gates'
 k8s::apiserver::sanitize_feature_gates() {
-  local args_file="/var/snap/k8s/common/args/kube-apiserver"
+  local args_file="${SNAP_COMMON:-/var/snap/k8s/common}/args/kube-apiserver"
+  local apiserver_bin="${SNAP:-/snap/k8s/current}/bin/kube-apiserver"
 
   # Check if the args file exists
   if [ ! -f "$args_file" ]; then
@@ -318,9 +342,9 @@ k8s::apiserver::sanitize_feature_gates() {
 
   # Get the list of supported feature gates from kube-apiserver
   local supported_gates=""
-  if [ -x "/snap/k8s/current/bin/kube-apiserver" ]; then
+  if [ -x "$apiserver_bin" ]; then
     # Extract feature gate names from help output (format: kube:FeatureName=true|false)
-    supported_gates=$(/snap/k8s/current/bin/kube-apiserver --help 2>/dev/null | awk '/^ *kube:/{print $1}' | sed 's/^kube://' | sed 's/=.*//')
+    supported_gates=$("$apiserver_bin" --help 2>/dev/null | awk '/^ *kube:/{print $1}' | sed 's/^kube://' | sed 's/=.*//')
   fi
 
   # If we couldn't get supported gates, return without changes
@@ -328,29 +352,42 @@ k8s::apiserver::sanitize_feature_gates() {
     return 0
   fi
 
-  # Convert supported gates to array
+  # Convert supported gates to map
   declare -A supported_gates_map
   while IFS= read -r gate; do
     [[ -n "$gate" ]] && supported_gates_map["$gate"]=1
   done <<< "$supported_gates"
 
   # Get the current feature gates line
-  local current_line=$(grep "^--feature-gates=" "$args_file")
+  local current_line
+  current_line="$(grep -m 1 "^--feature-gates=" "$args_file" || true)"
   local feature_gates_value="${current_line#--feature-gates=}"
 
   # Remove surrounding quotes if present
-  feature_gates_value="${feature_gates_value%\"}"
-  feature_gates_value="${feature_gates_value#\"}"
+  if [[ "$feature_gates_value" == \"*\" ]]; then
+    feature_gates_value="${feature_gates_value#\"}"
+    feature_gates_value="${feature_gates_value%\"}"
+  elif [[ "$feature_gates_value" == \'*\' ]]; then
+    feature_gates_value="${feature_gates_value#\'}"
+    feature_gates_value="${feature_gates_value%\'}"
+  fi
 
   local updated_gates=""
 
   # Split by comma and filter out unsupported gates
   IFS=',' read -ra gates <<< "$feature_gates_value"
   for gate in "${gates[@]}"; do
+    # Strip leading and trailing whitespace
+    gate="${gate#"${gate%%[![:space:]]*}"}"
+    gate="${gate%"${gate##*[![:space:]]}"}"
+    if [ -z "$gate" ]; then
+      continue
+    fi
+
     local gate_name="${gate%%=*}"
 
     # Skip unsupported gates
-    if [[ -z "${supported_gates_map[$gate_name]}" ]]; then
+    if [[ -z "${supported_gates_map[$gate_name]:-}" ]]; then
       continue
     fi
 
@@ -364,8 +401,11 @@ k8s::apiserver::sanitize_feature_gates() {
 
   # Update the file in-place
   if [ -n "$updated_gates" ]; then
-    # Replace the line with updated gates (add quotes back)
-    sed -i "s/^--feature-gates=.*$/--feature-gates=\"${updated_gates}\"/" "$args_file"
+    # Escape special characters for sed replacement (&, \, delimiter |)
+    local escaped_gates="${updated_gates//\\/\\\\}"
+    escaped_gates="${escaped_gates//|/\\|}"
+    escaped_gates="${escaped_gates//&/\\&}"
+    sed -i "s|^--feature-gates=.*$|--feature-gates=\"${escaped_gates}\"|" "$args_file"
   else
     # Remove the line if all gates were removed
     sed -i '/^--feature-gates=/d' "$args_file"
