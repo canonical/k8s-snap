@@ -250,7 +250,7 @@ k8s::common::execute() {
   k8s::common::validate_env "${all_env_vars[@]}"
 
   set -e
-  ulimit -c unlimited
+  ulimit -c unlimited 2>/dev/null || true
   export GOTRACEBACK="crash"
 
   if (( ${#all_env_vars[@]} > 0 )); then
