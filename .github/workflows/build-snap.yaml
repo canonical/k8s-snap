@@ -71,7 +71,12 @@ jobs:
           fi
 
           sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- snapcraft --use-lxd
-          mv k8s_*.snap $out_snap
+          mv k8s_*.snap "$out_snap"
+          snap_listing="$(unsquashfs -l "$out_snap")"
+          if grep -qE '^squashfs-root/(usr/)?bin/systemctl$' <<< "$snap_listing"; then
+            echo "::error::Built snap contains unfiltered base packages (bin/systemctl); base snap manifest was missing during snapcraft build."
+            exit 1
+          fi
 
           echo "snap-artifact=$out_snap" >> "$GITHUB_OUTPUT"
       - name: Upload k8s snap
