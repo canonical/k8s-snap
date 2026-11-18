@@ -23,8 +23,7 @@ Patches are organized into version-tagged subdirectories:
 
 ```
 patches/default/      fallback when version is not semver and no version dir matches (optional)
-patches/v1.31.0/      applied for v1.31.x
-patches/v1.32.0/      applied for v1.32.x (supersedes v1.31.0 for v1.32+)
+patches/v1.34.0/      applied for v1.34.x and newer
 ```
 
 Resolution algorithm: find the most recent directory whose version is `<=` the build version.
