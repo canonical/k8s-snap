@@ -11,9 +11,96 @@ k8s::common::setup_env() {
 
   local SNAP_CURRENT="${SNAP%"${SNAP_REVISION}"}current"
 
-  # Configure PATH, LD_LIBRARY_PATH
-  export PATH="$SNAP_CURRENT/usr/bin:$SNAP_CURRENT/bin:$SNAP_CURRENT/usr/sbin:$SNAP_CURRENT/sbin:$REAL_PATH"
-  export LD_LIBRARY_PATH="$SNAP_LIBRARY_PATH:$SNAP_CURRENT/lib:$SNAP_CURRENT/usr/lib:$SNAP_CURRENT/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP_CURRENT/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP_CURRENT/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/ceph:${REAL_LD_LIBRARY_PATH:-}"
+  # Configure PATH
+  local snap_bins=(
+    "$SNAP_CURRENT/usr/bin"
+    "$SNAP_CURRENT/bin"
+    "$SNAP_CURRENT/usr/sbin"
+    "$SNAP_CURRENT/sbin"
+  )
+  local -a path_dirs=("${snap_bins[@]}")
+  local host_path="${REAL_PATH:-${PATH:-}}"
+  if [ -n "$host_path" ]; then
+    local -a raw_path_dirs=()
+    IFS=":" read -r -a raw_path_dirs <<< "$host_path"
+    for d in "${raw_path_dirs[@]}"; do
+      if [ -n "$d" ]; then
+        case "${d%/}" in
+          "$SNAP_CURRENT/usr/bin" | "$SNAP_CURRENT/bin" | "$SNAP_CURRENT/usr/sbin" | "$SNAP_CURRENT/sbin")
+            continue
+            ;;
+        esac
+        if [ -n "${SNAP:-}" ]; then
+          case "${d%/}" in
+            "${SNAP%/}/usr/bin" | "${SNAP%/}/bin" | "${SNAP%/}/usr/sbin" | "${SNAP%/}/sbin")
+              continue
+              ;;
+          esac
+        fi
+        path_dirs+=("$d")
+      fi
+    done
+  fi
+
+  local formatted_path=""
+  for d in "${path_dirs[@]}"; do
+    formatted_path="${formatted_path:+${formatted_path}:}$d"
+  done
+  export PATH="$formatted_path"
+
+  # Configure LD_LIBRARY_PATH
+  local -a ld_dirs=()
+  if [ -n "${SNAP_LIBRARY_PATH:-}" ]; then
+    local -a raw_snap_ld=()
+    IFS=":" read -r -a raw_snap_ld <<< "$SNAP_LIBRARY_PATH"
+    for d in "${raw_snap_ld[@]}"; do
+      [ -n "$d" ] && ld_dirs+=("$d")
+    done
+  fi
+
+  local arch_triplet="${CRAFT_ARCH_TRIPLET_BUILD_FOR:-${SNAPCRAFT_ARCH_TRIPLET:-}}"
+  local snap_libs=(
+    "$SNAP_CURRENT/lib"
+    "$SNAP_CURRENT/usr/lib"
+  )
+  if [ -n "$arch_triplet" ]; then
+    snap_libs+=(
+      "$SNAP_CURRENT/lib/$arch_triplet"
+      "$SNAP_CURRENT/usr/lib/$arch_triplet"
+      "$SNAP_CURRENT/usr/lib/$arch_triplet/ceph"
+    )
+  fi
+  ld_dirs+=("${snap_libs[@]}")
+
+  if [ -n "${REAL_LD_LIBRARY_PATH:-}" ]; then
+    local -a raw_real_ld=()
+    IFS=":" read -r -a raw_real_ld <<< "$REAL_LD_LIBRARY_PATH"
+    for d in "${raw_real_ld[@]}"; do
+      if [ -n "$d" ]; then
+        case "${d%/}" in
+          "$SNAP_CURRENT/lib" | "$SNAP_CURRENT/usr/lib" | \
+          "$SNAP_CURRENT/lib/$arch_triplet" | "$SNAP_CURRENT/usr/lib/$arch_triplet" | "$SNAP_CURRENT/usr/lib/$arch_triplet/ceph")
+            continue
+            ;;
+        esac
+        if [ -n "${SNAP:-}" ]; then
+          case "${d%/}" in
+            "${SNAP%/}/lib" | "${SNAP%/}/usr/lib" | \
+            "${SNAP%/}/lib/$arch_triplet" | "${SNAP%/}/usr/lib/$arch_triplet" | "${SNAP%/}/usr/lib/$arch_triplet/ceph")
+              continue
+              ;;
+          esac
+        fi
+        ld_dirs+=("$d")
+      fi
+    done
+  fi
+
+  local formatted_ld=""
+  for d in "${ld_dirs[@]}"; do
+    formatted_ld="${formatted_ld:+${formatted_ld}:}$d"
+  done
+  export LD_LIBRARY_PATH="$formatted_ld"
 
   # NOTE(neoaggelos/2023-08-14):
   # we cannot list system locales from snap. instead, we attempt
