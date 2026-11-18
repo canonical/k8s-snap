@@ -39,12 +39,28 @@ runs:
 
     - name: Download snap channel
       if: inputs.channel != ''
+      uses: ./.github/actions/retry-command
+      env:
+        INPUT_CHANNEL: ${{ inputs.channel }}
+      with:
+        max_attempts: 5
+        timeout_minutes: 3
+        retry_wait_seconds: 10
+        command: |
+          rm -f k8s.snap k8s.assert
+          snap download k8s --channel="$INPUT_CHANNEL" --basename k8s
+          full_path=`realpath k8s.snap`
+          echo "Downloaded snap: $full_path"
+          ls -lh $full_path
+
+    - name: Record downloaded snap revision
+      if: inputs.channel != ''
+      id: download-channel
       shell: bash
       run: |
-        snap download k8s --channel=${{ inputs.channel }} --basename k8s
-        full_path=`realpath k8s.snap`
-        echo "Downloaded snap: $full_path"
-        ls -lh $full_path
+        revision=$(awk '/^snap-revision: /{print $2; exit}' k8s.assert || true)
+        echo "Downloaded revision: ${revision:-unknown}"
+        echo "snap-revision=$revision" >> "$GITHUB_OUTPUT"
 
     - name: Retrieve resulting snap path
       shell: bash
