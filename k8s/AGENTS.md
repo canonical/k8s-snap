@@ -14,7 +14,7 @@ manifests/charts/    bundled Helm charts deployed by k8sd
 resources/
   configurations/    audit policies, pod security configs, DISA-STIG bootstrap templates
 scripts/             install/remove helper scripts (inspect.sh, etc.)
-hack/                low-level init helpers (connect-interfaces.sh, init.sh, …)
+hack/                low-level init helpers (init.sh, …)
 pebble/              pebble layer config for service supervision
 profiles/            containerd base profile
 systemd/             containerd systemd drop-in defaults
