@@ -339,7 +339,8 @@ def test_dns_user_ip_collision_not_overridden(instances: List[harness.Instance])
                 return False
             msg = dns_status.get("message", "")
             return (
-                "provided IP is already allocated" in msg or "failed to deploy" in msg
+                f"{user_dns_ip} is already allocated to Service "
+                "default/dummy-user-collision" in msg
             )
         except Exception:
             return False
