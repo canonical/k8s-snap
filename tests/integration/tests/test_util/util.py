@@ -117,6 +117,19 @@ class Retriable:
 
         try:
             resp = self._run(command_args, **command_kwds)
+        except subprocess.TimeoutExpired as e:
+            stdout = e.stdout or ""
+            stderr = e.stderr or ""
+            if not command_kwds.get("text"):
+                stdout = e.stdout.decode() if e.stdout else ""
+                stderr = e.stderr.decode() if e.stderr else ""
+
+            LOG.warning(f"  timed out after {e.timeout}s")
+            if stdout:
+                LOG.warning(f"  stdout={stdout}")
+            if stderr:
+                LOG.warning(f"  stderr={stderr}")
+            raise
         except subprocess.CalledProcessError as e:
             stdout = e.stdout or ""
             stderr = e.stderr or ""
@@ -226,7 +239,8 @@ def download_preloaded_snaps():
                 snap,
                 f"--basename={snap}",
                 "--target-directory=/tmp",
-            ]
+            ],
+            timeout=60 * 5,
         )
 
 
@@ -246,19 +260,19 @@ def preload_snaps(instance: harness.Instance):
 
         LOG.info("Running snap ack for %s", remote.as_posix())
         stubbornly(retries=3, delay_s=2).on(instance).exec(
-            ["snap", "ack", remote.as_posix()]
+            ["snap", "ack", remote.as_posix()], timeout=60 * 5
         )
 
         LOG.info("Wait for snap changes to finish...")
         stubbornly(retries=40, delay_s=5).on(instance).until(
             lambda p: "Doing" not in p.stdout.decode()
-        ).exec(["snap", "changes"])
+        ).exec(["snap", "changes"], timeout=60 * 5)
 
         LOG.info("Install snap file %s.", preloaded_snap)
         remote = remote_dir / snap.name
         instance.send_file(source=snap.as_posix(), destination=remote.as_posix())
         stubbornly(retries=3, delay_s=5).on(instance).exec(
-            ["snap", "install", remote.as_posix()]
+            ["snap", "install", remote.as_posix()], timeout=60 * 5
         )
 
 
@@ -293,6 +307,7 @@ def setup_k8s_snap(
     tmp_path: Path,
     snap: Optional[str] = None,
     connect_interfaces=True,
+    timeout: int = 60 * 5,
 ):
     """Installs and sets up the snap on the given instance and connects the interfaces.
 
@@ -305,6 +320,7 @@ def setup_k8s_snap(
             a snap revision to install
             a snap channel@revision to install
             a path to the snap to install
+        timeout:    timeout in seconds for the snap install command (default: 300)
     """
     cmd = ["snap", "install", "--classic"]
     which_snap = snap or config.SNAP
@@ -332,7 +348,7 @@ def setup_k8s_snap(
         LOG.info("Install k8s snap by least risky channel: %s", channel)
         cmd += [config.SNAP_NAME, "--channel", channel]
 
-    stubbornly(retries=3, delay_s=30).on(instance).exec(cmd)
+    stubbornly(retries=3, delay_s=30).on(instance).exec(cmd, timeout=timeout)
     if connect_interfaces:
         LOG.info("Ensure k8s interfaces and network requirements")
         instance.exec(["/snap/k8s/current/k8s/hack/init.sh"], stdout=subprocess.DEVNULL)
@@ -356,7 +372,7 @@ def snap_channel_args(channel: str) -> List[str]:
 def remove_k8s_snap(instance: harness.Instance):
     LOG.info("Uninstall k8s...")
     stubbornly(retries=20, delay_s=5).on(instance).exec(
-        ["snap", "remove", config.SNAP_NAME, "--purge"]
+        ["snap", "remove", config.SNAP_NAME, "--purge"], timeout=60 * 5
     )
 
     LOG.info("Waiting for shims to go away...")
