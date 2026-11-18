@@ -5,15 +5,128 @@
 # Configure execution environment, locales and XDG to use paths from SNAP
 # Example: 'k8s::common::setup_env'
 k8s::common::setup_env() {
+  if [ -z "${BASH_VERSION:-}" ]; then
+    echo "k8s::common::setup_env requires bash" >&2
+    return 1
+  fi
+
   if [ -n "$_K8S_ENV_SETUP_ONCE" ]; then
     return 0
   fi
 
-  local SNAP_CURRENT="${SNAP%"${SNAP_REVISION}"}current"
+  local SNAP_CURRENT=""
+  if [ -n "${SNAP:-}" ]; then
+    SNAP_CURRENT="${SNAP%"${SNAP_REVISION}"}current"
+  fi
 
-  # Configure PATH, LD_LIBRARY_PATH
-  export PATH="$SNAP_CURRENT/usr/bin:$SNAP_CURRENT/bin:$SNAP_CURRENT/usr/sbin:$SNAP_CURRENT/sbin:$REAL_PATH"
-  export LD_LIBRARY_PATH="$SNAP_LIBRARY_PATH:$SNAP_CURRENT/lib:$SNAP_CURRENT/usr/lib:$SNAP_CURRENT/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP_CURRENT/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP_CURRENT/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/ceph:${REAL_LD_LIBRARY_PATH:-}"
+  # Configure PATH
+  local -a path_dirs=()
+  local -A seen_path=()
+
+  if [ -n "$SNAP_CURRENT" ]; then
+    local snap_bins=(
+      "$SNAP_CURRENT/usr/bin"
+      "$SNAP_CURRENT/bin"
+      "$SNAP_CURRENT/usr/sbin"
+      "$SNAP_CURRENT/sbin"
+    )
+    for d in "${snap_bins[@]}"; do
+      local norm="${d%/}"
+      seen_path["$norm"]=1
+      path_dirs+=("$norm")
+    done
+
+    seen_path["${SNAP%/}/usr/bin"]=1
+    seen_path["${SNAP%/}/bin"]=1
+    seen_path["${SNAP%/}/usr/sbin"]=1
+    seen_path["${SNAP%/}/sbin"]=1
+  fi
+
+  local host_path="${REAL_PATH:-${PATH:-}}"
+  if [ -n "$host_path" ]; then
+    local -a raw_path_dirs=()
+    IFS=":" read -r -a raw_path_dirs <<< "$host_path"
+    for d in "${raw_path_dirs[@]}"; do
+      local norm="${d%/}"
+      if [[ "$norm" != /* ]] || [ -n "${seen_path[$norm]:-}" ]; then
+        continue
+      fi
+      seen_path["$norm"]=1
+      path_dirs+=("$norm")
+    done
+  fi
+
+  local formatted_path=""
+  for d in "${path_dirs[@]}"; do
+    formatted_path="${formatted_path:+${formatted_path}:}$d"
+  done
+  export PATH="$formatted_path"
+
+  # Configure LD_LIBRARY_PATH
+  local -a ld_dirs=()
+  local -A seen_ld=()
+
+  if [ -n "${SNAP_LIBRARY_PATH:-}" ]; then
+    local -a raw_snap_ld=()
+    IFS=":" read -r -a raw_snap_ld <<< "$SNAP_LIBRARY_PATH"
+    for d in "${raw_snap_ld[@]}"; do
+      local norm="${d%/}"
+      if [[ "$norm" != /* ]] || [ -n "${seen_ld[$norm]:-}" ]; then
+        continue
+      fi
+      seen_ld["$norm"]=1
+      ld_dirs+=("$norm")
+    done
+  fi
+
+  if [ -n "$SNAP_CURRENT" ]; then
+    local arch_triplet="${CRAFT_ARCH_TRIPLET_BUILD_FOR:-${SNAPCRAFT_ARCH_TRIPLET:-}}"
+    local snap_libs=(
+      "$SNAP_CURRENT/lib"
+      "$SNAP_CURRENT/usr/lib"
+    )
+    if [ -n "$arch_triplet" ]; then
+      snap_libs+=(
+        "$SNAP_CURRENT/lib/$arch_triplet"
+        "$SNAP_CURRENT/usr/lib/$arch_triplet"
+        "$SNAP_CURRENT/usr/lib/$arch_triplet/ceph"
+      )
+    fi
+    for d in "${snap_libs[@]}"; do
+      local norm="${d%/}"
+      if [ -z "${seen_ld[$norm]:-}" ]; then
+        seen_ld["$norm"]=1
+        ld_dirs+=("$norm")
+      fi
+    done
+
+    seen_ld["${SNAP%/}/lib"]=1
+    seen_ld["${SNAP%/}/usr/lib"]=1
+    if [ -n "$arch_triplet" ]; then
+      seen_ld["${SNAP%/}/lib/$arch_triplet"]=1
+      seen_ld["${SNAP%/}/usr/lib/$arch_triplet"]=1
+      seen_ld["${SNAP%/}/usr/lib/$arch_triplet/ceph"]=1
+    fi
+  fi
+
+  if [ -n "${REAL_LD_LIBRARY_PATH:-}" ]; then
+    local -a raw_real_ld=()
+    IFS=":" read -r -a raw_real_ld <<< "$REAL_LD_LIBRARY_PATH"
+    for d in "${raw_real_ld[@]}"; do
+      local norm="${d%/}"
+      if [[ "$norm" != /* ]] || [ -n "${seen_ld[$norm]:-}" ]; then
+        continue
+      fi
+      seen_ld["$norm"]=1
+      ld_dirs+=("$norm")
+    done
+  fi
+
+  local formatted_ld=""
+  for d in "${ld_dirs[@]}"; do
+    formatted_ld="${formatted_ld:+${formatted_ld}:}$d"
+  done
+  export LD_LIBRARY_PATH="$formatted_ld"
 
   # NOTE(neoaggelos/2023-08-14):
   # we cannot list system locales from snap. instead, we attempt
