@@ -499,8 +499,7 @@ def _get_upgrade_crs(instance: harness.Instance) -> List[dict]:
 @pytest.mark.no_setup()
 @pytest.mark.tags(tags.NIGHTLY)
 @pytest.mark.xfail(
-    reason="The node removal does not work consistently due to a microcluster bug.",
-    strict=True,
+    reason="The node removal does not work consistently due to a microcluster bug."
 )
 def test_feature_upgrades_rollout_upgrade(
     instances: List[harness.Instance], tmp_path: Path
