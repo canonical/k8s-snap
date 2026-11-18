@@ -1,0 +1,12 @@
+# Bootstrap configuration for the Nvidia GPU operator test. Rendered with
+# str.format(containerd_base_dir=...).
+# Bootstrap YAML overrides cluster-config defaults, so the core features
+# (network/dns/local-storage) must be re-enabled alongside the override.
+containerd-base-dir: {containerd_base_dir}
+cluster-config:
+  network:
+    enabled: true
+  dns:
+    enabled: true
+  local-storage:
+    enabled: true
