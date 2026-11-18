@@ -133,15 +133,6 @@ k8s::remove::kubelet_logs() {
   fi
 }
 
-# Run a ctr command against the local containerd socket
-# Example: 'k8s::cmd::ctr image ls -q'
-k8s::cmd::ctr() {
-  env \
-    CONTAINERD_NAMESPACE="${CONTAINERD_NAMESPACE:-k8s.io}" \
-    CONTAINERD_ADDRESS="${CONTAINERD_ADDRESS:-$SNAP_COMMON/run/containerd.sock}" \
-    "${SNAP}/bin/ctr" "${@}"
-}
-
 # Run kubectl as admin
 # Example: 'k8s::cmd::kubectl get pod,node -A'
 k8s::cmd::kubectl() {
@@ -168,15 +159,6 @@ k8s::util::default_interface() {
   k8s::common::setup_env
 
   ip route show default | awk '{for(i=1; i<NF; i++) if ($i=="dev") print $(i+1)}' | head -1
-}
-
-# Wait for containerd socket to be ready
-# Example: 'k8s::util::wait_containerd_socket'
-k8s::util::wait_containerd_socket() {
-  while ! k8s::cmd::ctr --connect-timeout 1s > /dev/null; do
-    echo Waiting for containerd to start
-    sleep 3
-  done
 }
 
 # Wait for API server to be ready
