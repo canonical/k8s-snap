@@ -83,6 +83,7 @@ parts:
       esac
 
   k8sd:
+    after: [build-deps]
     source: build-scripts/components/k8sd
     build-attributes: [enable-patchelf]
     plugin: nil
