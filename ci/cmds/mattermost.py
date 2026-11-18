@@ -28,7 +28,7 @@ def add_mattermost_cmds(parser: argparse.ArgumentParser) -> None:
         parser: The parent argparse.ArgumentParser to which subcommands will be added.
     """
     mattermost_parser = parser.add_parser(
-        "mattermost", help="Post results or messages to Mattermost."
+        "mattermost", help="Post aggregated CI results to Mattermost."
     )
     mattermost_sub = mattermost_parser.add_subparsers(
         dest="mattermost_command", required=True, title="mattermost commands"
