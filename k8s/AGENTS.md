@@ -27,7 +27,7 @@ All functions are namespaced `k8s::<category>::<name>`. Never define bare functi
 | Namespace | Purpose |
 |-----------|---------|
 | `k8s::common::*` | env setup, FIPS check, env validation, snap confinement detection |
-| `k8s::cmd::*` | thin wrappers: `kubectl`, `ctr`, `k8s`, `hostname` |
+| `k8s::cmd::*` | thin wrappers: `kubectl`, `k8s`, `hostname` |
 | `k8s::util::*` | system helpers: default interface, kernel module loading, wait loops |
 | `k8s::remove::*` | cleanup hooks invoked during `snap remove` |
 | `k8s::init::*` | bootstrap helpers (k8sd single-node init) |
