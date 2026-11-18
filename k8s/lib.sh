@@ -260,20 +260,6 @@ k8s::cmd::k8s() {
   "${SNAP}/bin/k8s" "${@}"
 }
 
-# Get the local node hostname, in lowercase
-# Example: 'hostname="$(k8s::cmd::hostname)"'
-k8s::cmd::hostname() {
-  k8s::common::setup_env
-
-  hostname | tr '[:upper:]' '[:lower:]'
-}
-
-k8s::util::default_interface() {
-  k8s::common::setup_env
-
-  ip route show default | awk '{for(i=1; i<NF; i++) if ($i=="dev") print $(i+1)}' | head -1
-}
-
 # Wait for API server to be ready
 # Example: 'k8s::util::wait_kube_apiserver'
 k8s::util::wait_kube_apiserver() {
