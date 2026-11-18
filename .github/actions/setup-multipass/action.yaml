@@ -1,12 +1,5 @@
 name: Setup Multipass
 
-inputs:
-  channel:
-    description: multipass snap channel
-    type: string
-    default: "latest/stable"
-    required: false
-
 runs:
   using: "composite"
   steps:

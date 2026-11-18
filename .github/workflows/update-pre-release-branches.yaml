@@ -18,9 +18,6 @@ jobs:
     permissions:
       contents: write  # for Git to git push
     runs-on: ubuntu-latest
-    outputs:
-      preRelease: ${{ steps.determine.outputs.preRelease }}
-      branch: ${{ steps.determine.outputs.branch }}
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:

@@ -57,7 +57,7 @@ jobs:
           fi
 
   charm-e2e-tests:
-    name: Test ${{ inputs.arch }} ${{ matrix.test }}
+    name: Test ${{ inputs.arch }}
     needs: check-charm-channel
     if: needs.check-charm-channel.outputs.channel-available == 'true'
     runs-on: ${{ inputs.arch == 'arm64' && 'self-hosted-linux-arm64-jammy-large' || 'self-hosted-linux-amd64-jammy-xlarge' }}
@@ -154,7 +154,7 @@ jobs:
         run: |
           # The charm tests can't handle ipv6 dualstack.
           lxc network set lxdbr0 ipv6.address none
-      - name: Run e2e test ${{matrix.test}}
+      - name: Run e2e tests
         env:
           INPUT_ARCH: ${{ inputs.arch }}
         run: |
