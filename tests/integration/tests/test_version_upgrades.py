@@ -491,7 +491,11 @@ def _get_upgrade_crs(instance: harness.Instance) -> List[dict]:
     return json.loads(out.stdout)["items"]
 
 
-@pytest.mark.node_count(2)
+@pytest.mark.node_count(6)
+@pytest.mark.skipif(
+    not config.SNAP,
+    reason="Feature upgrades require a local snap file",
+)
 @pytest.mark.no_setup()
 @pytest.mark.tags(tags.NIGHTLY)
 @pytest.mark.xfail(
@@ -513,15 +517,14 @@ def test_feature_upgrades_rollout_upgrade(
             ["snap", "install", "k8s", "--classic", *util.snap_channel_args(start_snap)]
         )
 
-    util.stubbornly(retries=3, delay_s=30).on(instance).exec(
-        ["snap", "install", "k8s", "--classic", *util.snap_channel_args(start_snap)]
-    )
-
     main_old.exec(["k8s", "bootstrap"])
+    # Avoid racing the bootstrap node's kubelet Node registration on join.
+    util.wait_until_k8s_ready(main_old, [main_old])
     for instance in instances[1:3]:
         token = util.get_join_token(main_old, instance)
         instance.exec(["k8s", "join-cluster", token])
 
+    util.wait_until_k8s_ready(main_old, instances[:3])
     # Get initial helm releases to track if they are updated correctly.
     initial_releases = {
         release["name"]: release
@@ -552,7 +555,7 @@ def test_feature_upgrades_rollout_upgrade(
         util.setup_k8s_snap(new_instance, config.SNAP)
         token = util.get_join_token(cluster_node, new_instance)
         new_instance.exec(["k8s", "join-cluster", token])
-        nodes_in_cluster = instances[idx : idx + 3]  # noqa
+        nodes_in_cluster = instances[idx : idx + 4]  # noqa: E203
         util.wait_until_k8s_ready(new_instance, nodes_in_cluster)
 
         # An upgrade CRD should exist and be in NodeUpgrade phase.
