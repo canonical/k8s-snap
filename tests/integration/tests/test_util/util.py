@@ -449,7 +449,7 @@ def remove_k8s_snap(instance: harness.Instance, retries: int = 40):
         stubbornly(retries=retries, delay_s=5).on(instance).until(
             _no_lingering_procs
         ).exec(["ps", "-fea"])
-    except (RetryError, AssertionError):
+    except RetryError:
         if last_lingering_procs:
             LOG.error(
                 "Timed out waiting for shims to go away on %s. Lingering processes: %s",
@@ -479,7 +479,7 @@ def remove_k8s_snap(instance: harness.Instance, retries: int = 40):
         stubbornly(retries=retries, delay_s=5).on(instance).until(
             _no_lingering_mounts
         ).exec(["mount"])
-    except (RetryError, AssertionError):
+    except RetryError:
         if last_lingering_mounts:
             LOG.error(
                 "Timed out waiting for mounts to go away on %s. Lingering mounts: %s",

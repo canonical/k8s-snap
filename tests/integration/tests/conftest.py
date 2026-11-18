@@ -332,6 +332,7 @@ def instances(
                 "Failed to cleanly remove k8s snap during teardown on %s: %s",
                 instance.id,
                 e,
+                exc_info=True,
             )
         finally:
             instance.delete()
