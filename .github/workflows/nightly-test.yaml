@@ -84,15 +84,121 @@ jobs:
     if: ${{ always() }}
     runs-on: ubuntu-24.04
     needs: [test-integration]
-    outputs:
-      matrix: ${{ steps.aggregate.outputs.matrix }}
     steps:
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
-      - run: |
-          results=$(find . -type f -name 'result.json' -exec cat {} \; | jq -c --slurp .)
-          echo "$results" > aggregated-results.json
-          echo "matrix=$results" >> $GITHUB_OUTPUT
-        id: aggregate
+      - name: Install @actions/artifact client
+        run: |
+          for attempt in 1 2 3; do
+            if npm install --no-save --prefix /tmp/artifact-client @actions/artifact@2.3.2; then
+              exit 0
+            fi
+            sleep $((attempt * 2))
+          done
+          echo "::error::Failed to install @actions/artifact after 3 attempts" >&2
+          exit 1
+      - name: Download and aggregate results
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const { DefaultArtifactClient } = await import(
+              '/tmp/artifact-client/node_modules/@actions/artifact/lib/artifact.js'
+            );
+
+            // List run artifacts via paginated REST (~26 requests for ~2,500 artifacts,
+            // well below GITHUB_TOKEN's 1,000 req/hr limit; actions/download-artifact's
+            // listArtifacts() caps at 1,000 and silently drops excess results).
+            const allArtifacts = await github.paginate(
+              github.rest.actions.listWorkflowRunArtifacts,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: context.runId,
+                per_page: 100,
+              }
+            );
+
+            // Keep only the latest non-expired artifact per logical test cell across
+            // rerun attempts (e2e-tests.yaml appends a random -<uuid> to each name).
+            const uuidSuffix =
+              /-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+            const latestByCell = new Map();
+            for (const artifact of allArtifacts) {
+              if (artifact.expired || !artifact.name.startsWith('result-')) {
+                continue;
+              }
+              const cellKey = artifact.name.replace(uuidSuffix, '');
+              const prev = latestByCell.get(cellKey);
+              if (!prev || artifact.id > prev.id) {
+                latestByCell.set(cellKey, artifact);
+              }
+            }
+
+            const targets = Array.from(latestByCell.values());
+            core.info(
+              `Found ${targets.length} deduplicated result-* artifacts (from ${allArtifacts.length} total run artifacts)`
+            );
+
+            // Download via DefaultArtifactClient without findBy: authenticates with
+            // ACTIONS_RUNTIME_TOKEN against the internal Actions ResultsService and
+            // blob storage SAS URLs, consuming zero GITHUB_TOKEN REST API requests.
+            const artifactClient = new DefaultArtifactClient();
+            const resultsDir = path.resolve('results');
+            fs.mkdirSync(resultsDir, { recursive: true });
+
+            const concurrency = 10;
+            const resultsByTuple = new Map();
+            for (let i = 0; i < targets.length; i += concurrency) {
+              const batch = targets.slice(i, i + concurrency);
+              const batchEntries = await Promise.all(
+                batch.map(async (artifact) => {
+                  const dest = path.join(resultsDir, String(artifact.id));
+                  const outcome = await artifactClient.downloadArtifact(artifact.id, {
+                    path: dest,
+                    expectedHash: artifact.digest || undefined,
+                  });
+                  if (outcome.digestMismatch) {
+                    throw new Error(
+                      `Digest validation failed for artifact ${artifact.name} (ID ${artifact.id})`
+                    );
+                  }
+                  const jsonPath = path.join(dest, 'result.json');
+                  if (!fs.existsSync(jsonPath)) {
+                    throw new Error(
+                      `Missing result.json in downloaded artifact ${artifact.name} (ID ${artifact.id})`
+                    );
+                  }
+                  const record = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+                  return { id: artifact.id, record };
+                })
+              );
+              for (const entry of batchEntries) {
+                const r = entry.record;
+                const tupleKey = [
+                  r.os,
+                  r.arch,
+                  r.channel,
+                  r.artifact,
+                  r.flavor,
+                  r.substrate,
+                  r.test,
+                ].join('\0');
+                const prev = resultsByTuple.get(tupleKey);
+                const attemptNum = Number(r.attempt) || 0;
+                const prevAttempt = prev ? Number(prev.record.attempt) || 0 : -1;
+                if (
+                  !prev ||
+                  attemptNum > prevAttempt ||
+                  (attemptNum === prevAttempt && entry.id > prev.id)
+                ) {
+                  resultsByTuple.set(tupleKey, entry);
+                }
+              }
+            }
+
+            const aggregated = Array.from(resultsByTuple.values(), (e) => e.record);
+            fs.writeFileSync('aggregated-results.json', JSON.stringify(aggregated));
+            core.info(`Wrote ${aggregated.length} results to aggregated-results.json`);
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: aggregated-results
