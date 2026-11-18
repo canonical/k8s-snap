@@ -327,10 +327,3 @@ def cmd_update_pip_locks(args: argparse.Namespace) -> int:
     _set_output("has-changes", "true")
     _set_output("summary", summary)
     return 0
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    add_deps_cmds(parser)
-    args_main = parser.parse_args()
-    sys.exit(args_main.func(args_main))

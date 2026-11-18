@@ -295,10 +295,3 @@ def cmd_update_k8sd_api(args: argparse.Namespace) -> int:
 
     print("✓ k8sd API documentation is up to date")
     return 0
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    add_docs_cmds(parser)
-    args_main = parser.parse_args()
-    sys.exit(args_main.func(args_main))
