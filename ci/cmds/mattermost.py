@@ -5,8 +5,8 @@
 """
 Mattermost subcommands for `k8s-ci`.
 
-This module provides functionality to post aggregated CI results or raw messages
-to a Mattermost channel via incoming webhooks or bot accounts. It supports
+This module provides functionality to post aggregated CI results to a Mattermost
+channel via incoming webhooks or bot accounts. It supports
 posting a concise summary via webhook (with color support) and then posting
 detailed results as a threaded comment using a bot.
 """
@@ -55,17 +55,6 @@ def add_mattermost_cmds(parser: argparse.ArgumentParser) -> None:
         "--channel-id", default=None, help="Channel ID (or MATTERMOST_CHANNEL_ID)"
     )
     p.set_defaults(func=cmd_results_message)
-
-    # Post raw JSON command
-    p = mattermost_sub.add_parser("post", help="Post raw JSON to a Mattermost channel.")
-    p.add_argument(
-        "--file", "-f", default=None, help="Message file (JSON) or '-' for stdin."
-    )
-    p.add_argument(
-        "--webhook", "-w", help="Incoming webhook URL (or MATTERMOST_WEBHOOK_URL)"
-    )
-    p.add_argument("--dry-run", action="store_true", help="Print payload and exit")
-    p.set_defaults(func=cmd_post)
 
 
 def _load_flattened_json(path: Optional[str]) -> List[Dict[str, Any]]:
@@ -337,37 +326,3 @@ def cmd_results_message(args: argparse.Namespace) -> int:
     # Post detailed tree as threaded comment
     _post_bot(server, token, channel_id, tree_text, root_id=root_id)
     return 0
-
-
-def cmd_post(args: argparse.Namespace) -> int:
-    """Post a raw JSON message either via webhook or bot account."""
-    if args.file == "-":
-        payload = json.load(sys.stdin)
-    else:
-        with open(args.file, "r", encoding="utf-8") as fh:
-            payload = json.load(fh)
-
-    webhook = args.webhook or os.environ.get("MATTERMOST_WEBHOOK_URL")
-    token = args.bot_token or os.environ.get("MATTERMOST_BOT_TOKEN")
-    server = args.server or os.environ.get("MATTERMOST_SERVER")
-    channel_id = args.channel_id or os.environ.get("MATTERMOST_CHANNEL_ID")
-
-    if args.dry_run:
-        print(json.dumps(payload, indent=2, ensure_ascii=False))
-        return 0
-
-    if webhook:
-        _post_webhook(webhook, payload)
-    elif token:
-        _post_bot(server, token, channel_id, json.dumps(payload, ensure_ascii=False))
-    else:
-        print("Error: webhook or bot token required", file=sys.stderr)
-        return 2
-    return 0
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    add_mattermost_cmds(parser)
-    args = parser.parse_args()
-    sys.exit(args.func(args))

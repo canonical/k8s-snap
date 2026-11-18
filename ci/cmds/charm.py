@@ -10,7 +10,6 @@ This module provides functionality around charms and their channels.
 
 import argparse
 import os
-import sys
 from typing import Optional
 
 
@@ -115,10 +114,3 @@ def cmd_channel_available(args: argparse.Namespace) -> int:
 
     print(f"no matching charm channel '{channel}' for '{args.charm_name}'")
     return 1
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    add_charm_cmds(parser)
-    args_main = parser.parse_args()
-    sys.exit(args_main.func(args_main))
