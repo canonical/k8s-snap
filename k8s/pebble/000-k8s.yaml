@@ -10,12 +10,6 @@ services:
     startup: disabled
     before: [kubelet]
 
-  k8s-dqlite:
-    override: replace
-    command: bash -c "$SNAP/k8s/wrappers/services/k8s-dqlite"
-    startup: disabled
-    before: [kube-apiserver]
-
   etcd:
     override: replace
     command: bash -c "$SNAP/k8s/wrappers/services/etcd"

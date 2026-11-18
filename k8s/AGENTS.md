@@ -7,7 +7,7 @@ configuration templates. This directory is copied verbatim into the snap as `$SN
 
 ```
 lib.sh               shared bash function library, sourced by all wrappers
-wrappers/commands/   snap app entry points (k8s CLI, dqlite)
+wrappers/commands/   snap app entry points (k8s CLI)
 wrappers/services/   snap daemon entry points (containerd, kubelet, kube-apiserver, …)
 args/                default service argument files (overridden at runtime in SNAP_DATA)
 manifests/charts/    bundled Helm charts deployed by k8sd
