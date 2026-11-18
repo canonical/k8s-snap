@@ -14,25 +14,28 @@ k8s::common::setup_env() {
     return 0
   fi
 
-  local SNAP_CURRENT="${SNAP%"${SNAP_REVISION}"}current"
+  local SNAP_CURRENT=""
+  if [ -n "${SNAP:-}" ]; then
+    SNAP_CURRENT="${SNAP%"${SNAP_REVISION}"}current"
+  fi
 
   # Configure PATH
   local -a path_dirs=()
   local -A seen_path=()
 
-  local snap_bins=(
-    "$SNAP_CURRENT/usr/bin"
-    "$SNAP_CURRENT/bin"
-    "$SNAP_CURRENT/usr/sbin"
-    "$SNAP_CURRENT/sbin"
-  )
-  for d in "${snap_bins[@]}"; do
-    local norm="${d%/}"
-    seen_path["$norm"]=1
-    path_dirs+=("$norm")
-  done
+  if [ -n "$SNAP_CURRENT" ]; then
+    local snap_bins=(
+      "$SNAP_CURRENT/usr/bin"
+      "$SNAP_CURRENT/bin"
+      "$SNAP_CURRENT/usr/sbin"
+      "$SNAP_CURRENT/sbin"
+    )
+    for d in "${snap_bins[@]}"; do
+      local norm="${d%/}"
+      seen_path["$norm"]=1
+      path_dirs+=("$norm")
+    done
 
-  if [ -n "${SNAP:-}" ]; then
     seen_path["${SNAP%/}/usr/bin"]=1
     seen_path["${SNAP%/}/bin"]=1
     seen_path["${SNAP%/}/usr/sbin"]=1
@@ -45,7 +48,7 @@ k8s::common::setup_env() {
     IFS=":" read -r -a raw_path_dirs <<< "$host_path"
     for d in "${raw_path_dirs[@]}"; do
       local norm="${d%/}"
-      if [ -z "$norm" ] || [ "$norm" = "." ] || [ -n "${seen_path[$norm]:-}" ]; then
+      if [[ "$norm" != /* ]] || [ -n "${seen_path[$norm]:-}" ]; then
         continue
       fi
       seen_path["$norm"]=1
@@ -68,7 +71,7 @@ k8s::common::setup_env() {
     IFS=":" read -r -a raw_snap_ld <<< "$SNAP_LIBRARY_PATH"
     for d in "${raw_snap_ld[@]}"; do
       local norm="${d%/}"
-      if [ -z "$norm" ] || [ "$norm" = "." ] || [ -n "${seen_ld[$norm]:-}" ]; then
+      if [[ "$norm" != /* ]] || [ -n "${seen_ld[$norm]:-}" ]; then
         continue
       fi
       seen_ld["$norm"]=1
@@ -76,27 +79,27 @@ k8s::common::setup_env() {
     done
   fi
 
-  local arch_triplet="${CRAFT_ARCH_TRIPLET_BUILD_FOR:-${SNAPCRAFT_ARCH_TRIPLET:-}}"
-  local snap_libs=(
-    "$SNAP_CURRENT/lib"
-    "$SNAP_CURRENT/usr/lib"
-  )
-  if [ -n "$arch_triplet" ]; then
-    snap_libs+=(
-      "$SNAP_CURRENT/lib/$arch_triplet"
-      "$SNAP_CURRENT/usr/lib/$arch_triplet"
-      "$SNAP_CURRENT/usr/lib/$arch_triplet/ceph"
+  if [ -n "$SNAP_CURRENT" ]; then
+    local arch_triplet="${CRAFT_ARCH_TRIPLET_BUILD_FOR:-${SNAPCRAFT_ARCH_TRIPLET:-}}"
+    local snap_libs=(
+      "$SNAP_CURRENT/lib"
+      "$SNAP_CURRENT/usr/lib"
     )
-  fi
-  for d in "${snap_libs[@]}"; do
-    local norm="${d%/}"
-    if [ -z "${seen_ld[$norm]:-}" ]; then
-      seen_ld["$norm"]=1
-      ld_dirs+=("$norm")
+    if [ -n "$arch_triplet" ]; then
+      snap_libs+=(
+        "$SNAP_CURRENT/lib/$arch_triplet"
+        "$SNAP_CURRENT/usr/lib/$arch_triplet"
+        "$SNAP_CURRENT/usr/lib/$arch_triplet/ceph"
+      )
     fi
-  done
+    for d in "${snap_libs[@]}"; do
+      local norm="${d%/}"
+      if [ -z "${seen_ld[$norm]:-}" ]; then
+        seen_ld["$norm"]=1
+        ld_dirs+=("$norm")
+      fi
+    done
 
-  if [ -n "${SNAP:-}" ]; then
     seen_ld["${SNAP%/}/lib"]=1
     seen_ld["${SNAP%/}/usr/lib"]=1
     if [ -n "$arch_triplet" ]; then
@@ -111,7 +114,7 @@ k8s::common::setup_env() {
     IFS=":" read -r -a raw_real_ld <<< "$REAL_LD_LIBRARY_PATH"
     for d in "${raw_real_ld[@]}"; do
       local norm="${d%/}"
-      if [ -z "$norm" ] || [ "$norm" = "." ] || [ -n "${seen_ld[$norm]:-}" ]; then
+      if [[ "$norm" != /* ]] || [ -n "${seen_ld[$norm]:-}" ]; then
         continue
       fi
       seen_ld["$norm"]=1
