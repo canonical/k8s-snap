@@ -17,20 +17,21 @@ jobs:
       contents: write
       pull-requests: write # so it can create pull requests
 
-    # Only run when pull request is merged
-    # or when a comment containing `/backport` is created by someone other than the
-    # https://github.com/backport-action bot user (user id: 97796249). Note that if you use your
-    # own PAT as `github_token`, that you should replace this id with yours.
-    # cdkbot's user ID is 99445902.
+    # Only run in the upstream repository when a pull request is merged
+    # or when a comment containing `/backport` is created by a maintainer
+    # (OWNER/MEMBER/COLLABORATOR) other than cdkbot (user ID 99445902).
     if: >
-      (
-        github.event_name == 'pull_request_target' &&
-        github.event.pull_request.merged
-      ) || (
-        github.event_name == 'issue_comment' &&
-        github.event.issue.pull_request &&
-        github.event.comment.user.id != 99445902 &&
-        contains(github.event.comment.body, '/backport')
+      github.repository == 'canonical/k8s-snap' && (
+        (
+          github.event_name == 'pull_request_target' &&
+          github.event.pull_request.merged
+        ) || (
+          github.event_name == 'issue_comment' &&
+          github.event.issue.pull_request &&
+          github.event.comment.user.id != 99445902 &&
+          contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association) &&
+          contains(github.event.comment.body, '/backport')
+        )
       )
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
