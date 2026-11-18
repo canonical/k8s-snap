@@ -326,7 +326,13 @@ def instances(
             continue
 
         try:
-            util.remove_k8s_snap(instance)
+            util.remove_k8s_snap(instance, retries=10)
+        except Exception as e:
+            LOG.warning(
+                "Failed to cleanly remove k8s snap during teardown on %s: %s",
+                instance.id,
+                e,
+            )
         finally:
             instance.delete()
 
