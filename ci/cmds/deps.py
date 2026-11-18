@@ -274,20 +274,23 @@ def cmd_update_pip_locks(args: argparse.Namespace) -> int:
 
     changed_files = []
     for infile in in_files:
-        outfile = infile.removesuffix(".in") + ".txt"
-        print(f"Compiling {Path(infile).relative_to(root)} ...")
+        rel_in = str(Path(infile).relative_to(root))
+        rel_out = rel_in.removesuffix(".in") + ".txt"
+        print(f"Compiling {rel_in} ...")
         try:
             r = subprocess.run(
                 [
                     "pip-compile",
                     "--upgrade",
+                    "--allow-unsafe",
                     "--generate-hashes",
                     "--strip-extras",
                     "--no-header",
                     "--output-file",
-                    outfile,
-                    infile,
+                    rel_out,
+                    rel_in,
                 ],
+                cwd=root,
                 capture_output=True,
                 text=True,
             )
@@ -299,18 +302,19 @@ def cmd_update_pip_locks(args: argparse.Namespace) -> int:
             return 1
         if r.returncode != 0:
             print(
-                f"ERROR: pip-compile failed for {infile}:\n{r.stderr}", file=sys.stderr
+                f"ERROR: pip-compile failed for {rel_in}:\n{r.stderr}", file=sys.stderr
             )
             return 1
 
-        # Check for changes via git diff
-        diff = subprocess.run(
-            ["git", "diff", "--quiet", outfile],
+        # Check for modified or untracked lock files
+        status = subprocess.run(
+            ["git", "status", "--porcelain", "--", rel_out],
+            cwd=root,
             capture_output=True,
+            text=True,
         )
-        if diff.returncode != 0:
-            changed_files.append(Path(outfile).relative_to(root))
-
+        if status.stdout.strip():
+            changed_files.append(Path(rel_out))
     if not changed_files:
         print("All pip lock files are up to date.")
         _set_output("has-changes", "false")

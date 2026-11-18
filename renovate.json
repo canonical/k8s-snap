@@ -6,6 +6,7 @@
   "ignorePaths": [
     "ci/requirements-bandit.txt",
     "ci/requirements-ci.txt",
+    "ci/requirements-pip-tools.txt",
     "ci/requirements-semgrep.txt"
   ]
 }
