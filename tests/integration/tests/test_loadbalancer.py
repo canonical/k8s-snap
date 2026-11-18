@@ -42,7 +42,6 @@ def test_loadbalancer_ipv6_only(instances: List[harness.Instance]):
 @pytest.mark.node_count(2)
 @pytest.mark.tags(tags.PULL_REQUEST)
 @pytest.mark.disable_k8s_bootstrapping()
-@pytest.mark.dualstack()
 @pytest.mark.network_type("dualstack")
 @pytest.mark.skipif(
     SUBSTRATE == "multipass", reason="QUEMU does not properly support IPv6"

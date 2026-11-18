@@ -3,7 +3,6 @@
 #
 import json
 import logging
-from pathlib import Path
 from typing import List
 
 import pytest
@@ -106,9 +105,7 @@ def test_skip_services_stop_on_remove(instances: List[harness.Instance]):
 @pytest.mark.node_count(2)
 @pytest.mark.no_setup()
 @pytest.mark.tags(tags.NIGHTLY)
-def test_disable_separate_feature_upgrades(
-    instances: List[harness.Instance], tmp_path: Path
-):
+def test_disable_separate_feature_upgrades(instances: List[harness.Instance]):
     cluster_node = instances[0]
     joining_cp = instances[1]
 
