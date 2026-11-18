@@ -13,6 +13,9 @@ if [ -d "$SNAP_COMMON/var/lib/k8s-dqlite" ] && [ -n "$(ls -A "$SNAP_COMMON/var/l
   exit 1
 fi
 
+# Sanitize deprecated kubelet arguments from older releases.
+k8s::kubelet::sanitize_args
+
 # Indicate that an update has been performed.
 # Many actions require k8sd to be active which is not
 # the case in the snap hook. Hence, we use a lock file
