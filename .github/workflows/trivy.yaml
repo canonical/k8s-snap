@@ -2,9 +2,9 @@ name: Trivy Security Scan
 
 # Deliberately not triggered by pull_request. This scans the published channels
 # on the release branches rather than a PR's own changes, and it files CVE
-# tickets into Jira, which must not happen from a PR run. The PR's own snap is
-# scanned by the security-scan job in lint_and_integration.yaml, which also
-# exercises security-scan.yaml. Use workflow_dispatch to test an edit.
+# tickets into Jira, which must not happen from a PR run. Repo Code Scanning on
+# pushes/PRs runs in trivy-repo.yaml, while the PR's built snap is checked by
+# the security-scan job in lint_and_integration.yaml. Use workflow_dispatch to test an edit.
 on:
   workflow_dispatch:
   schedule:

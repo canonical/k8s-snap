@@ -313,10 +313,11 @@ jobs:
     uses: ./.github/workflows/security-scan.yaml
     with:
       artifact: ${{ needs.build-snap.outputs.snap-artifact }}
+      upload-sarif: false
     permissions:
       contents: read # for actions/checkout to fetch code
-      # security-events: write is required for github/codeql-action/upload-sarif to upload SARIF results
-      # This permission is necessary for security scanning functionality and cannot be reduced.
+      # Required by the reusable security-scan.yaml job definition, even though
+      # SARIF upload to Code Scanning is handled separately by trivy-repo.yaml.
       security-events: write
 
   get-charm-channel:
