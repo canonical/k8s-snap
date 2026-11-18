@@ -848,27 +848,6 @@ def get_default_ip(instance: harness.Instance, ipv6=False):
         return p.stdout.decode().split(" ")[8]
 
 
-def get_global_unicast_ipv6(instance: harness.Instance, interface="eth0") -> str | None:
-    # ---
-    # 2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
-    #     link/ether 00:16:3e:0f:4d:1e brd ff:ff:ff:ff:ff:ff
-    #     inet
-    #     inet6 fe80::216:3eff:fe0f:4d1e/64 scope link
-    # ---
-    # Fetching the global unicast address for the specified interface, e.g. fe80::216:3eff:fe0f:4d1e
-    result = instance.exec(
-        ["ip", "-6", "addr", "show", "dev", interface, "scope", "global"],
-        capture_output=True,
-        text=True,
-    )
-    output = result.stdout
-    ipv6_regex = re.compile(r"inet6\s+([a-f0-9:]+)\/[0-9]*\s+scope global")
-    match = ipv6_regex.search(output)
-    if match:
-        return match.group(1)
-    return None
-
-
 # Checks if a datastring is a valid RFC3339 date.
 def is_valid_rfc3339(date_str):
     try:
