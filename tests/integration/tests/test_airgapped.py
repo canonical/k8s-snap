@@ -14,8 +14,12 @@ REGISTRY_PORT = 5000
 
 def setup_proxy(proxy: harness.Instance):
     """Installs and configures Squid proxy on the given instance."""
-    proxy.exec("apt update".split())
-    proxy.exec("apt install squid --yes".split())
+    util.stubbornly(retries=5, delay_s=10).on(proxy).exec(
+        "apt update".split(), timeout=60 * 5
+    )
+    util.stubbornly(retries=5, delay_s=10).on(proxy).exec(
+        "apt install squid --yes".split(), timeout=60 * 5
+    )
     proxy.exec("echo 'http_access allow all' >> /etc/squid/conf.d/allow.conf".split())
     time.sleep(1)
     proxy.exec("systemctl restart squid.service".split())
