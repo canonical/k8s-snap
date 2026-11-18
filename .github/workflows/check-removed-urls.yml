@@ -1,7 +1,6 @@
 name: Check for removed URLs
 
 on:
-  workflow_call:
   pull_request:
     paths:
       - 'docs/**'
