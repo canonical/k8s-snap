@@ -122,7 +122,7 @@ def _exec(*args, **kwargs) -> tuple[str, str]:
     kwargs.setdefault("text", True)
     kwargs.setdefault("check", True)
     kwargs.setdefault("timeout", EXEC_TIMEOUT)
-    LOG.debug("Executing: %s, args: %s, kwargs: %s", cmd, args, kwargs)
+    LOG.debug("Executing args: %s, kwargs: %s", args, kwargs)
     proc = subprocess.run(*args, **kwargs)
     return proc.stdout, proc.stderr
 
