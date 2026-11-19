@@ -1274,6 +1274,19 @@ def sonobuoy_tar_gz(architecture: str) -> str:
     return f"https://github.com/vmware-tanzu/sonobuoy/releases/download/{version}/sonobuoy_{version[1:]}_linux_{architecture}.tar.gz"  # noqa
 
 
+def _parse_snap_service_status(stdout: str) -> dict:
+    services_output = stdout.split("\n")[1:-1]  # Skip the header line
+
+    service_status = {}
+    for line in services_output:
+        parts = line.split()
+        if len(parts) >= 3:  # Ensure there are enough columns
+            service_name = parts[0].replace("k8s.", "", 1)
+            service_status[service_name] = parts[2]  # "active" or "inactive"
+
+    return service_status
+
+
 def get_snap_service_status(instance: harness.Instance) -> dict:
     """Get the status of all k8s snap services.
 
@@ -1284,16 +1297,7 @@ def get_snap_service_status(instance: harness.Instance) -> dict:
         A dictionary mapping service names to their status ("active" or "inactive")
     """
     result = instance.exec(["snap", "services", "k8s"], capture_output=True, text=True)
-    services_output = result.stdout.split("\n")[1:-1]  # Skip the header line
-
-    service_status = {}
-    for line in services_output:
-        parts = line.split()
-        if len(parts) >= 3:  # Ensure there are enough columns
-            service_name = parts[0].replace("k8s.", "", 1)
-            service_status[service_name] = parts[2]  # "active" or "inactive"
-
-    return service_status
+    return _parse_snap_service_status(result.stdout)
 
 
 def wait_for_services_stopped(
@@ -1312,15 +1316,22 @@ def wait_for_services_stopped(
     """
     exclude_services = exclude_services or []
 
-    def services_stopped():
-        service_status = get_snap_service_status(instance)
+    def services_stopped(result: subprocess.CompletedProcess) -> bool:
+        stdout = (
+            result.stdout.decode()
+            if isinstance(result.stdout, bytes)
+            else result.stdout
+        )
+        service_status = _parse_snap_service_status(stdout)
         for service_name, status in service_status.items():
             if service_name not in exclude_services and status == "active":
                 LOG.debug(f"Service {service_name} is still {status}")
                 return False
         return True
 
-    stubbornly(retries=retries, delay_s=delay_s).until(lambda: services_stopped())
+    stubbornly(retries=retries, delay_s=delay_s).on(instance).until(
+        services_stopped
+    ).exec(["snap", "services", "k8s"], text=True)
 
 
 def wait_for_ports_available(
@@ -1343,35 +1354,29 @@ def wait_for_ports_available(
 
     LOG.info(f"Waiting for ports {ports} to become available...")
 
-    def ports_available():
-        try:
-            # Check if any port is in use using ss command
-            result = instance.exec(
-                ["ss", "-tuln"],
-                capture_output=True,
-                text=True,
-            )
-            ports_in_use = []
-            for port in ports:
-                # Check for both IPv4 and IPv6 patterns
-                port_with_space = f":{port} "
-                port_with_newline = f":{port}\n"
-                if (
-                    port_with_space in result.stdout
-                    or port_with_newline in result.stdout
-                ):
-                    ports_in_use.append(port)
+    def ports_available(result: subprocess.CompletedProcess) -> bool:
+        stdout = (
+            result.stdout.decode()
+            if isinstance(result.stdout, bytes)
+            else result.stdout
+        )
+        ports_in_use = []
+        for port in ports:
+            # Check for both IPv4 and IPv6 patterns
+            port_with_space = f":{port} "
+            port_with_newline = f":{port}\n"
+            if port_with_space in stdout or port_with_newline in stdout:
+                ports_in_use.append(port)
 
-            if ports_in_use:
-                LOG.info(f"Ports still in use: {ports_in_use}")
-                return False
-            LOG.info("All ports are now available")
-            return True
-        except subprocess.CalledProcessError as e:
-            LOG.warning(f"Failed to check ports: {e}")
+        if ports_in_use:
+            LOG.info(f"Ports still in use: {ports_in_use}")
             return False
+        LOG.info("All ports are now available")
+        return True
 
-    stubbornly(retries=retries, delay_s=delay_s).until(lambda: ports_available())
+    stubbornly(retries=retries, delay_s=delay_s).on(instance).until(
+        ports_available
+    ).exec(["ss", "-tuln"], text=True)
 
 
 def check_snap_services_ready(
