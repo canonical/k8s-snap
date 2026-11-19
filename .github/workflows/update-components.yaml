@@ -33,7 +33,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-          sparse-checkout: build-scripts/hack/requirements.txt
+          sparse-checkout: build-scripts/hack
       - name: Stage hack requirements
         run: cp build-scripts/hack/requirements.txt "$RUNNER_TEMP/hack-requirements.txt"
       - name: Checking out repo
