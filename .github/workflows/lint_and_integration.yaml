@@ -21,7 +21,6 @@ concurrency:
 
 permissions:
   contents: read # for actions/checkout to fetch code
-  actions: read # for gh run download to fetch artifacts
 
 jobs:
   build-snap:
@@ -320,7 +319,6 @@ jobs:
       upload-sarif: false
     permissions:
       contents: read # for actions/checkout to fetch code
-      actions: read # for gh run download to fetch artifacts
       # Required by the reusable security-scan.yaml job definition, even though
       # SARIF upload to Code Scanning is handled separately by trivy-repo.yaml.
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
