@@ -1,0 +1,12 @@
+[Unit]
+Description=Local HTTP/HTTPS Forward Proxy for Airgapped Tests
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /usr/local/bin/http-proxy.py --bind 0.0.0.0 --port 3128
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=multi-user.target

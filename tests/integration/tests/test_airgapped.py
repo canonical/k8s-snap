@@ -1,7 +1,6 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
-import time
 from typing import List
 
 import pytest
@@ -13,16 +12,24 @@ REGISTRY_PORT = 5000
 
 
 def setup_proxy(proxy: harness.Instance):
-    """Installs and configures Squid proxy on the given instance."""
-    util.stubbornly(retries=5, delay_s=10).on(proxy).exec(
-        "apt update".split(), timeout=60 * 5
+    """Installs and configures a local forward proxy on the given instance."""
+    proxy_script = (config.PROXY_DIR / "http_proxy.py").read_bytes()
+    proxy_service = (config.PROXY_DIR / "http-proxy.service").read_bytes()
+    proxy.exec(["tee", "/usr/local/bin/http-proxy.py"], input=proxy_script)
+    proxy.exec(["chmod", "+x", "/usr/local/bin/http-proxy.py"])
+    proxy.exec(["tee", "/etc/systemd/system/http-proxy.service"], input=proxy_service)
+    proxy.exec(["systemctl", "daemon-reload"])
+    proxy.exec(["systemctl", "enable", "--now", "http-proxy.service"])
+    util.stubbornly(retries=10, delay_s=1).on(proxy).exec(
+        ["systemctl", "is-active", "--quiet", "http-proxy.service"]
     )
-    util.stubbornly(retries=5, delay_s=10).on(proxy).exec(
-        "apt install squid --yes".split(), timeout=60 * 5
+    util.stubbornly(retries=10, delay_s=1).on(proxy).exec(
+        [
+            "python3",
+            "-c",
+            "import socket; socket.create_connection(('127.0.0.1', 3128), timeout=1).close()",
+        ]
     )
-    proxy.exec("echo 'http_access allow all' >> /etc/squid/conf.d/allow.conf".split())
-    time.sleep(1)
-    proxy.exec("systemctl restart squid.service".split())
 
 
 def configure_proxy_env(

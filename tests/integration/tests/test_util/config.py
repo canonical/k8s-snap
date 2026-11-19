@@ -27,6 +27,9 @@ ETCD_VERSION = os.getenv("ETCD_VERSION") or "v3.4.34"
 # REGISTRY_DIR contains all templates required to setup an registry mirror.
 REGISTRY_DIR = MANIFESTS_DIR / "registry"
 
+# PROXY_DIR contains all templates required to setup an http proxy.
+PROXY_DIR = MANIFESTS_DIR / "proxy"
+
 # REGISTRY_URL is the url from which the registry binary should be downloaded.
 REGISTRY_URL = (
     os.getenv("REGISTRY_URL")
