@@ -229,9 +229,13 @@ This removes the containerd directory that the AMI creates on boot, ensuring a
 clean state with no conflicts. It does not necessarily resolve the original
 cause of the bootstrap failure.
 
-### Node fails to fetch images 
+### Cluster deployment fails due to `InvalidKeyPair` 
 
-Check the `AWS_SSH_KEY_NAME` variable is set to the correct SSH key pair and re-apply the `cluster.yaml`. Failing to set this variable can cause an error fetching cluster images. 
+If the cluster fails to deploy after applying the `cluster.yaml`, this may be due to the `AWS_SSH_KEY_NAME` variable not being set correctly. 
+
+In the provided [aws template-variable.rc](https://github.com/canonical/cluster-api-k8s/blob/main/templates/aws/template-variables.rc) file, we set `AWS_SSH_KEY_NAME="default"`. If you see `InvalidKeyPair.NotFound: The key pair 'default' does not exist` in the logs of the CAPA controller manager, go to your AWS console and create a key pair with the same name as `AWS_SSH_KEY_NAME`, in this case `default`. 
+
+After the key pair is created, CAPA should pick up this change on its next retry and continue provisioning the cluster. 
 
 ### Control plane nodes fail to join the cluster
 
