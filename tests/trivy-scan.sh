@@ -68,7 +68,6 @@ TRIVY_ROOTFS_SARIF="./.trivy/sarifs/snap.sarif"
 
 function split_sarif_runs() {
   local input_sarif="$1"
-  local prefix="$2"
 
   local count
   count=$(jq '.runs | length' "$input_sarif")
@@ -91,8 +90,8 @@ function split_sarif_runs() {
 
 
 # Split and collect final SARIF files
-REPO_SARIF_FILES=($(split_sarif_runs "$TRIVY_FS_SARIF" "trivy-k8s-repo-scan"))
-ROOTFS_SARIF_FILES=($(split_sarif_runs "$TRIVY_ROOTFS_SARIF" "snap"))
+REPO_SARIF_FILES=($(split_sarif_runs "$TRIVY_FS_SARIF"))
+ROOTFS_SARIF_FILES=($(split_sarif_runs "$TRIVY_ROOTFS_SARIF"))
 
 # Obtain CISA Known Exploited Vulnerabilities list.
 curl -s -o ./.trivy/kev.json \
