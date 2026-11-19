@@ -129,13 +129,15 @@ jobs:
     outputs:
       tests: ${{ steps.collect-tests.outputs.tests }}
       test-runners: ${{ steps.compute-test-runners.outputs.test_runners }}
-      repo: ${{ steps.compute-ref.outputs.repo }}
-      ref: ${{ steps.compute-ref.outputs.ref }}
+      repo: ${{ steps.resolve-source.outputs.repo }}
+      revision: ${{ steps.resolve-source.outputs.revision }}
     steps:
-      - name: Compute ref for test collection
-        id: compute-ref
+      - name: Resolve source for test collection
+        id: resolve-source
         shell: bash
         env:
+          EVENT_NAME: ${{ github.event_name }}
+          DEFAULT_REPO: ${{ github.repository }}
           INPUT_CHANNEL: ${{ inputs.channel }}
           INPUT_TEST_COLLECTION_BRANCH: ${{ inputs.test-collection-branch }}
           INPUT_TEST_COLLECTION_REPO: ${{ inputs.test-collection-repo }}
@@ -146,42 +148,50 @@ jobs:
           # 3. main branch
 
           CHANNEL="$INPUT_CHANNEL"
-          REF="main"
+          REVISION="main"
           # Match X.YY or X.YY-classic, optionally followed by a risk suffix like /edge or /candidate
           # e.g. "1.33-classic/edge" or "1.33/edge"
           if [[ -n "$CHANNEL" && "$CHANNEL" =~ ^([0-9]+)\.([0-9]+)(-classic)?(/.*)?$ ]]; then
-            REF="release-${BASH_REMATCH[1]}.${BASH_REMATCH[2]}"
+            REVISION="release-${BASH_REMATCH[1]}.${BASH_REMATCH[2]}"
           fi
 
           if [ -n "$INPUT_TEST_COLLECTION_BRANCH" ]; then
-            REF="$INPUT_TEST_COLLECTION_BRANCH"
+            REVISION="$INPUT_TEST_COLLECTION_BRANCH"
           fi
 
-          echo "Using git ref $REF for channel: $CHANNEL"
+          TARGET_REPO="${INPUT_TEST_COLLECTION_REPO:-$DEFAULT_REPO}"
+          if [[ "$EVENT_NAME" == "workflow_dispatch" || "$EVENT_NAME" == "schedule" ]]; then
+            if [[ "$TARGET_REPO" != "$DEFAULT_REPO" ]]; then
+              echo "Error: test-collection-repo ($TARGET_REPO) must match $DEFAULT_REPO for $EVENT_NAME events" >&2
+              exit 1
+            fi
+            if [[ ! "$REVISION" =~ ^(main|release-[0-9]+\.[0-9]+)$ ]]; then
+              echo "Error: resolved revision ($REVISION) must match main or release-X.Y for $EVENT_NAME events" >&2
+              exit 1
+            fi
+          fi
+
+          echo "Using git ref $REVISION for channel: $CHANNEL in $TARGET_REPO"
           {
             echo "repo<<EOF"
-            printf '%s\n' "$INPUT_TEST_COLLECTION_REPO"
+            printf '%s\n' "$TARGET_REPO"
             echo "EOF"
-            echo "ref<<EOF"
-            printf '%s\n' "$REF"
+            echo "revision<<EOF"
+            printf '%s\n' "$REVISION"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          repository: ${{ steps.compute-ref.outputs.repo }}
-          ref: ${{ steps.compute-ref.outputs.ref }}
+          repository: ${{ steps.resolve-source.outputs.repo }}
+          ref: ${{ steps.resolve-source.outputs.revision }}
+          persist-credentials: false
       - name: Setup Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: "3.12"
-      - name: Check out CI tooling
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          path: ci-tooling
-          persist-credentials: false
       - name: Install tox
-        uses: ./ci-tooling/.github/actions/retry-command
+        uses: $/.github/actions/retry-command
         with:
           timeout_minutes: 5
           max_attempts: 5
@@ -241,7 +251,8 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: ${{ needs.prepare.outputs.repo }}
-          ref: ${{ needs.prepare.outputs.ref }}
+          ref: ${{ needs.prepare.outputs.revision }}
+          persist-credentials: false
       - name: Check out CI tooling
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -253,7 +264,7 @@ jobs:
           python-version: "3.12"
       - name: Download k8s-snap
         id: download-snap
-        uses: ./.github/actions/download-k8s-snap
+        uses: $/.github/actions/download-k8s-snap
         with:
           channel: ${{ inputs.channel }}
           artifact: ${{ inputs.artifact }}
@@ -265,9 +276,9 @@ jobs:
           channel: "5.21/stable"
       - name: Setup Multipass
         if: ${{ inputs.substrate == 'multipass' }}
-        uses: ./.github/actions/setup-multipass
+        uses: $/.github/actions/setup-multipass
       - name: Install tox
-        uses: ./ci-tooling/.github/actions/retry-command
+        uses: $/.github/actions/retry-command
         with:
           timeout_minutes: 5
           max_attempts: 5
@@ -308,7 +319,7 @@ jobs:
           INPUT_ARTIFACT: ${{ inputs.artifact }}
           SNAP_REVISION: ${{ steps.download-snap.outputs.snap-revision }}
           TEST_COLLECTION_REPO: ${{ needs.prepare.outputs.repo }}
-          TEST_COLLECTION_REF: ${{ needs.prepare.outputs.ref }}
+          TEST_COLLECTION_REF: ${{ needs.prepare.outputs.revision }}
         run: |
           # Report the commit that actually ran (collection ref may differ
           # from the triggering ref).

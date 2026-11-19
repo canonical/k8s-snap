@@ -35,7 +35,7 @@ runs:
 
     - name: Download snap artifact
       if: inputs.artifact != ''
-      uses: ./.github/actions/retry-command
+      uses: $/.github/actions/retry-command
       env:
         GH_TOKEN: ${{ github.token }}
         GH_REPO: ${{ github.repository }}
@@ -60,7 +60,7 @@ runs:
           ls -lh "$full_path"
     - name: Download snap channel
       if: inputs.channel != ''
-      uses: ./.github/actions/retry-command
+      uses: $/.github/actions/retry-command
       env:
         INPUT_CHANNEL: ${{ inputs.channel }}
       with:
