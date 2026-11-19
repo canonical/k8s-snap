@@ -34,13 +34,15 @@ DB_REPOSITORIES=(
   "public.ecr.aws/aquasecurity/trivy-db:2"
   "mirror.gcr.io/aquasec/trivy-db:2"
 )
-COMBINED_REPOS=$(IFS=,; echo "${DB_REPOSITORIES[*]}")
-
 DB_DOWNLOADED=false
-for repo in "$COMBINED_REPOS" "${DB_REPOSITORIES[@]}"; do
+for repo in "${DB_REPOSITORIES[@]}"; do
+  extra_env=()
+  if [[ "$repo" != ghcr.io/* ]]; then
+    extra_env=(TRIVY_USERNAME="" TRIVY_PASSWORD="" TRIVY_REGISTRY_TOKEN="")
+  fi
   for attempt in 1 2 3; do
     echo "Attempting to download Trivy vulnerability DB from ${repo} (attempt ${attempt})..."
-    if ./.trivy/trivy image --download-db-only --db-repository "$repo"; then
+    if env "${extra_env[@]}" ./.trivy/trivy image --download-db-only --db-repository "$repo"; then
       DB_DOWNLOADED=true
       break 2
     fi
@@ -48,7 +50,6 @@ for repo in "$COMBINED_REPOS" "${DB_REPOSITORIES[@]}"; do
     sleep 3
   done
 done
-
 if [[ "$DB_DOWNLOADED" != "true" ]]; then
   echo "Failed to download Trivy vulnerability DB from all repositories."
   exit 1
@@ -84,7 +85,9 @@ mv "${TRIVY_FS_JSON}.tmp" "$TRIVY_FS_JSON"
 if [[ "$REPO_ONLY" == "false" ]]; then
   # Run Trivy vulnerability scanner in rootfs mode, scanning the snap
   for var in $(env | grep -o '^TRIVY_[^=]*'); do
-    unset "$var"
+    if [[ "$var" != "TRIVY_CACHE_DIR" ]]; then
+      unset "$var"
+    fi
   done
 
   cp "${SNAP_PATH}" ./.trivy/k8s-test.snap
