@@ -42,12 +42,13 @@ REPOS = [
 # Alerts older than this are flagged as overdue
 OVERDUE_DAYS = 7
 
+STATE_VERSION = 2
+
 # State file for delta detection (stored as GitHub Actions cache or local file)
 STATE_FILE = Path(os.environ.get("STATE_FILE", "/tmp/security-triage-state.json"))
 
 
 class GhApiError(Exception):
-    """Raised when a GitHub API request fails."""
 
     def __init__(self, endpoint: str, stderr: str, returncode: int = 1):
         super().__init__(f"failed to fetch {endpoint}: {stderr}")
@@ -87,7 +88,14 @@ def load_previous_state() -> dict[str, Any]:
     """Load state from the previous run."""
     if STATE_FILE.exists():
         try:
-            return json.loads(STATE_FILE.read_text())
+            data = json.loads(STATE_FILE.read_text())
+            if data.get("version", 1) < STATE_VERSION:
+                print(
+                    "State file is from an older schema version; resetting state.",
+                    file=sys.stderr,
+                )
+                return {}
+            return data
         except (json.JSONDecodeError, KeyError):
             pass
     return {}
@@ -99,6 +107,7 @@ def save_state(alert_ids: set[str]) -> None:
     STATE_FILE.write_text(
         json.dumps(
             {
+                "version": STATE_VERSION,
                 "alert_ids": sorted(alert_ids),
                 "updated": datetime.now(timezone.utc).isoformat(),
             },
@@ -530,17 +539,27 @@ def main() -> int:
 
     # Delta detection
     actionable_alerts = [a for a in all_alerts if a["severity"].lower() != "note"]
+    note_alerts = [a for a in all_alerts if a["severity"].lower() == "note"]
+    note_ids = {a["id"] for a in note_alerts}
+
     current_ids = {a["id"] for a in actionable_alerts}
     prev_state = load_previous_state()
     previous_ids = set(prev_state.get("alert_ids", []))
     is_first_run = not prev_state
 
-    new_ids = current_ids - previous_ids
-    resolved_ids = previous_ids - current_ids
+    skipped_repos = set(REPOS) - successful_repos
+    skipped_previous_ids = {
+        rid
+        for rid in previous_ids
+        if any(rid.startswith(f"{repo}#") for repo in skipped_repos)
+    }
+    evaluated_previous_ids = previous_ids - skipped_previous_ids
+
+    new_ids = current_ids - evaluated_previous_ids
+    resolved_ids = (evaluated_previous_ids - current_ids) - note_ids
 
     has_delta = bool(new_ids or resolved_ids)
     if not has_delta and not args.full and not is_first_run:
-        print("No changes since last run — skipping post.", file=sys.stderr)
         if args.dry_run:
             print(
                 json.dumps(
@@ -565,8 +584,8 @@ def main() -> int:
 
     post_webhook(webhook, payload)
     # Save state only after a successful post so a delivery failure does not
-    # suppress the delta notification on the next run.
-    save_state(current_ids)
+    # suppress the delta notification on the next run. Preserve IDs of skipped repos.
+    save_state(current_ids | skipped_previous_ids)
     return 0
 
 
