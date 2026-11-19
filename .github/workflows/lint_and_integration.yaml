@@ -26,7 +26,7 @@ permissions:
 jobs:
   build-snap:
     name: Build k8s-snap ${{ matrix.patch }} ${{ matrix.arch }}
-    uses: ./.github/workflows/build-snap.yaml
+    uses: $/.github/workflows/build-snap.yaml
     strategy:
       matrix:
         # e.g. strict - right now we only support the classic flavor
@@ -43,13 +43,14 @@ jobs:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          persist-credentials: false
           fetch-depth: 0
       - name: Setup Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: '3.8'
       - name: Install tox
-        uses: ./.github/actions/retry-command
+        uses: $/.github/actions/retry-command
         with:
           timeout_minutes: 5
           max_attempts: 5
@@ -89,12 +90,14 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
       - name: Setup Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: '3.12'
       - name: Install tox
-        uses: ./.github/actions/retry-command
+        uses: $/.github/actions/retry-command
         with:
           timeout_minutes: 5
           max_attempts: 5
@@ -130,7 +133,7 @@ jobs:
       - name: Install dependencies
         # setup-python provides a clean interpreter, so the runner image's
         # system PyYAML is not on the path here.
-        run: pip install pyyaml==6.0.2
+        run: pip install --require-hashes -r ci/requirements-pyyaml.txt
       - name: Check hack/cluster-up.sh syntax
         run: bash -n hack/cluster-up.sh
       - name: Check triage YAML parses
@@ -204,6 +207,7 @@ jobs:
       - name: Checking out repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          persist-credentials: false
           fetch-depth: 2
       - name: Get e2e test tags
         id: get-e2e-tags
@@ -235,7 +239,7 @@ jobs:
       matrix:
         arch: [amd64, arm64]
     needs: [build-snap, get-e2e-tags, python-lint]
-    uses: ./.github/workflows/e2e-tests.yaml
+    uses: $/.github/workflows/e2e-tests.yaml
     with:
       arch: ${{ matrix.arch }}
       os: ubuntu:24.04
@@ -269,7 +273,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Download k8s snap
-        uses: ./.github/actions/download-k8s-snap
+        uses: $/.github/actions/download-k8s-snap
         with:
           artifact: k8s-${{ matrix.arch }}.snap
       - name: Archive test suite
@@ -310,7 +314,7 @@ jobs:
   security-scan:
     name: Security scan
     needs: build-snap
-    uses: ./.github/workflows/security-scan.yaml
+    uses: $/.github/workflows/security-scan.yaml
     with:
       artifact: ${{ needs.build-snap.outputs.snap-artifact }}
       upload-sarif: false
@@ -349,7 +353,7 @@ jobs:
         arch: [amd64]
       fail-fast: false
     needs: [build-snap, python-lint, get-charm-channel]
-    uses: ./.github/workflows/charm-e2e-tests.yaml
+    uses: $/.github/workflows/charm-e2e-tests.yaml
     secrets:
       CHARMCRAFT_AUTH: ${{ secrets.CHARMCRAFT_AUTH }}
     with:

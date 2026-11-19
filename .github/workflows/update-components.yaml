@@ -29,7 +29,15 @@ jobs:
           - release-1.32
 
     steps:
+      - name: Checkout hash-pinned hack requirements
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          sparse-checkout: build-scripts/hack
+      - name: Stage hack requirements
+        run: cp build-scripts/hack/requirements.txt "$RUNNER_TEMP/hack-requirements.txt"
       - name: Checking out repo
+        # zizmor: ignore[artipacked] BOT_SSH_KEY configured for component git operations
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ matrix.branch }}
@@ -38,11 +46,11 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
-          python-version: "3.10"
+          python-version: "3.12"
 
       - name: Install dependencies
         run: |
-          pip3 install -r ./build-scripts/hack/requirements.txt
+          pip3 install --require-hashes -r "$RUNNER_TEMP/hack-requirements.txt"
 
       - name: Check for new component versions
         run: |

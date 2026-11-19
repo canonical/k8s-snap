@@ -4,9 +4,12 @@
     "config:recommended"
   ],
   "ignorePaths": [
+    "build-scripts/hack/requirements.txt",
     "ci/requirements-bandit.txt",
     "ci/requirements-ci.txt",
     "ci/requirements-pip-tools.txt",
+    "ci/requirements-pyyaml.txt",
+    "ci/requirements-release.txt",
     "ci/requirements-semgrep.txt"
   ]
 }

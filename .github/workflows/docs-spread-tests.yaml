@@ -40,10 +40,10 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
-          python-version: "3.x"
+          python-version: "3.12"
 
       - name: Install Python dependencies
-        run: pip install pyyaml==6.0.2
+        run: pip install --require-hashes -r ci/requirements-pyyaml.txt
 
       - id: generate
         name: Generate tasks.yaml for changed docs
@@ -126,7 +126,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          go install github.com/canonical/spread/cmd/spread@latest
+          go install github.com/canonical/spread/cmd/spread@32cad07bfd7fffb395f6c6134b68b1c24f9490c0
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
 
       - name: Skip empty suite

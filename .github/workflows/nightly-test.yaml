@@ -33,7 +33,7 @@ jobs:
             "1.32-classic/edge",
           ]
       fail-fast: false
-    uses: ./.github/workflows/e2e-tests.yaml
+    uses: $/.github/workflows/e2e-tests.yaml
     with:
       arch: ${{ matrix.arch }}
       os: ${{ matrix.os }}
@@ -46,7 +46,7 @@ jobs:
 
   build-snap-go-candidate:
     name: Build snap (Go candidate)
-    uses: ./.github/workflows/build-snap.yaml
+    uses: $/.github/workflows/build-snap.yaml
     with:
       arch: amd64
       go-snap-risk: candidate
@@ -54,7 +54,7 @@ jobs:
   test-go-candidate-smoke:
     name: Go candidate smoke test
     needs: build-snap-go-candidate
-    uses: ./.github/workflows/e2e-tests.yaml
+    uses: $/.github/workflows/e2e-tests.yaml
     with:
       arch: amd64
       os: ubuntu:24.04
@@ -71,7 +71,7 @@ jobs:
         os: ["ubuntu:22.04", "ubuntu:24.04", "ubuntu:26.04"]
         arch: ["amd64", "arm64"]
       fail-fast: false
-    uses: ./.github/workflows/compare-performance.yaml
+    uses: $/.github/workflows/compare-performance.yaml
     with:
       arch: ${{ matrix.arch }}
       os: ${{ matrix.os }}
@@ -84,10 +84,15 @@ jobs:
     runs-on: ubuntu-24.04
     needs: [test-integration]
     steps:
+      - name: Checkout artifact client lockfile
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          sparse-checkout: ci/artifact-client
       - name: Install @actions/artifact client
         run: |
           for attempt in 1 2 3; do
-            if npm install --no-save --prefix /tmp/artifact-client @actions/artifact@2.3.2; then
+            if npm ci --prefix ci/artifact-client; then
               exit 0
             fi
             sleep $((attempt * 2))
@@ -101,7 +106,7 @@ jobs:
             const fs = require('fs');
             const path = require('path');
             const { DefaultArtifactClient } = await import(
-              '/tmp/artifact-client/node_modules/@actions/artifact/lib/artifact.js'
+              `${process.env.GITHUB_WORKSPACE}/ci/artifact-client/node_modules/@actions/artifact/lib/artifact.js`
             );
 
             // List run artifacts via paginated REST (~26 requests for ~2,500 artifacts,
@@ -213,12 +218,14 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
       - name: Setup Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: "3.12"
       - name: Install tox
-        uses: ./.github/actions/retry-command
+        uses: $/.github/actions/retry-command
         with:
           timeout_minutes: 5
           max_attempts: 5
