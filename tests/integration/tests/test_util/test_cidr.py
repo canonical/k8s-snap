@@ -151,14 +151,21 @@ def test_is_candidate_occupied_probe_results():
     net = ipaddress.ip_network("10.145.252.4/30")
 
     mock_instance.exec.return_value = subprocess.CompletedProcess(
-        args=[], returncode=0, stdout="occupied 10.145.252.4\n"
+        args=[], returncode=0, stdout=b"occupied 10.145.252.4\n"
     )
     assert util._is_candidate_occupied(mock_instance, net) is True
 
     mock_instance.exec.return_value = subprocess.CompletedProcess(
-        args=[], returncode=0, stdout="free\n"
+        args=[], returncode=0, stdout=b"free\n"
     )
     assert util._is_candidate_occupied(mock_instance, net) is False
 
+    # Inconclusive probe output (empty or malformed) must be treated as occupied/unsafe
+    mock_instance.exec.return_value = subprocess.CompletedProcess(
+        args=[], returncode=1, stdout=b""
+    )
+    assert util._is_candidate_occupied(mock_instance, net) is True
+
+    # Probe failure/exception must be treated as occupied/unsafe
     mock_instance.exec.side_effect = RuntimeError("exec failed")
-    assert util._is_candidate_occupied(mock_instance, net) is False
+    assert util._is_candidate_occupied(mock_instance, net) is True

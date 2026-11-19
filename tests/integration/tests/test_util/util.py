@@ -1170,19 +1170,28 @@ echo "free"
         res = instance.exec(
             ["bash", "-c", probe_script],
             capture_output=True,
-            text=True,
             check=False,
             timeout=5,
         )
-        if "occupied" in res.stdout:
+        out = (
+            res.stdout.decode("utf-8", errors="replace")
+            if isinstance(res.stdout, bytes)
+            else str(res.stdout or "")
+        )
+        if "occupied" in out:
             LOG.info(
-                f"Candidate CIDR {candidate} is occupied on network: {res.stdout.strip()}"
+                f"Candidate CIDR {candidate} is occupied on network: {out.strip()}"
             )
             return True
-        return False
+        if "free" in out:
+            return False
+        LOG.warning(
+            f"Inconclusive probe result for CIDR {candidate}: rc={res.returncode} stdout={out!r}"
+        )
+        return True
     except Exception as e:
         LOG.warning(f"Failed to probe candidate CIDR {candidate} from instance: {e}")
-        return False
+        return True
 
 
 def find_suitable_cidr(
@@ -1242,10 +1251,14 @@ def find_suitable_cidr(
                                 "global",
                             ],
                             capture_output=True,
-                            text=True,
                             check=False,
                         )
-                        for line in p.stdout.splitlines():
+                        out = (
+                            p.stdout.decode("utf-8", errors="replace")
+                            if isinstance(p.stdout, bytes)
+                            else str(p.stdout or "")
+                        )
+                        for line in out.splitlines():
                             for token in line.split():
                                 if "/" in token:
                                     try:
@@ -1265,10 +1278,14 @@ def find_suitable_cidr(
             p = instance.exec(
                 ["ip", "-o", "-6" if ipv6 else "-4", "route", "show", "to", "default"],
                 capture_output=True,
-                text=True,
                 check=False,
             )
-            tokens = p.stdout.split()
+            out = (
+                p.stdout.decode("utf-8", errors="replace")
+                if isinstance(p.stdout, bytes)
+                else str(p.stdout or "")
+            )
+            tokens = out.split()
             if "via" in tokens:
                 gw_str = tokens[tokens.index("via") + 1]
                 try:
@@ -1284,10 +1301,14 @@ def find_suitable_cidr(
             p = instance.exec(
                 ["ip", "-6" if ipv6 else "-4", "neigh", "show"],
                 capture_output=True,
-                text=True,
                 check=False,
             )
-            for line in p.stdout.splitlines():
+            out = (
+                p.stdout.decode("utf-8", errors="replace")
+                if isinstance(p.stdout, bytes)
+                else str(p.stdout or "")
+            )
+            for line in out.splitlines():
                 tokens = line.split()
                 if len(tokens) >= 1 and "lladdr" in tokens and "FAILED" not in tokens:
                     try:
