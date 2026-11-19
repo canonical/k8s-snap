@@ -35,9 +35,13 @@ jobs:
 
             - name: Run Semgrep scan
               run: |
+                  # Semgrep's mutable-action-tag rule does not yet recognize GitHub's
+                  # immutable $/... self-repository syntax; zizmor and Scorecard
+                  # already enforce 40-char SHA pinning on external actions.
                   semgrep scan \
                     --config p/python \
                     --config p/github-actions \
+                    --exclude-rule yaml.github-actions.security.github-actions-mutable-action-tag.github-actions-mutable-action-tag \
                     --sarif \
                     --output semgrep-results.sarif \
                     .
