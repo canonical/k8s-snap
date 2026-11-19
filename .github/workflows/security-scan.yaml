@@ -1,7 +1,8 @@
 name: Security scan
 
 permissions:
-  contents: read  # for actions/checkout to fetch code
+  contents: read # for actions/checkout to fetch code
+  actions: read # for gh run download to fetch artifacts
 
 on:
   workflow_call:
@@ -32,7 +33,9 @@ on:
 jobs:
   security-scan:
     permissions:
-      security-events: write  # for github/codeql-action/upload-sarif to upload SARIF results
+      contents: read # for actions/checkout to fetch code
+      actions: read # for gh run download to fetch artifacts
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
     name: Security scan
     runs-on: ubuntu-latest
     steps:
