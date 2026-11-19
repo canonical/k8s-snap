@@ -15,7 +15,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       changed_files: ${{ steps.changes.outputs.changed_files }}
-      repo: ${{ steps.changes.outputs.repo }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -26,7 +25,6 @@ jobs:
         id: changes
         env:
           BASE_REF: ${{ github.event.pull_request.base.ref }}
-          EVENT_REPO: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name || github.repository }}
         run: |
           # Fetch the base branch to ensure we have the history for the comparison
           git fetch origin "$BASE_REF"
@@ -38,17 +36,13 @@ jobs:
 
           # Pass the space-delimited list to the step output
           echo "Changed files: $FILE_LIST"
-          echo "Repo for tests: $EVENT_REPO"
           echo "changed_files=$FILE_LIST" >> $GITHUB_OUTPUT
-          echo "repo=$EVENT_REPO" >> $GITHUB_OUTPUT
 
   linkcheck:
     needs: prepare 
     uses: ./.github/workflows/linkcheck.yaml
     with:
       changed_files: ${{ needs.prepare.outputs.changed_files }}
-      repo: ${{ needs.prepare.outputs.repo }}
-      ref: ${{ github.head_ref }}
 
   docs-spread-tests:
     needs: prepare

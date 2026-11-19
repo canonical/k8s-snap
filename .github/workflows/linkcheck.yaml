@@ -6,64 +6,35 @@ permissions:
 on:
   workflow_call:
     inputs:
-      ref: 
-        description: 'Branch to run the tests on'
+      target:
+        description: 'Release target to check out when invoked from scheduled workflows; leave empty on pull requests to check out the merge commit'
         type: string
         required: false
-      repo:
-        description: 'Repo to run the tests on'
-        type: string
-        required: false
-        default: ${{ github.repository }}
+        default: ''
       changed_files:
         type: string
         default: ''
 
 jobs:
-  prepare:
-    name: Prepare Environment
+  linkcheck:
+    name: Run linkchecker
     runs-on: ubuntu-latest
-    outputs:
-      repo: ${{ steps.compute-ref.outputs.repo }}
-      ref: ${{ steps.compute-ref.outputs.ref }}
     steps:
-      - name: Compute ref for test collection
-        id: compute-ref
+      - name: Validate target ref
         shell: bash
         env:
-          INPUT_REF: ${{ inputs.ref }}
-          INPUT_REPO: ${{ inputs.repo }}
+          INPUT_TARGET: ${{ inputs.target }}
         run: |
-          # Determine from which rev to collect the tests, resolved in order:
-          # 1. inputs.ref if set
-          # 2. main branch
-
-          REF="main"
-          
-          if [ -n "$INPUT_REF" ]; then
-            REF="$INPUT_REF"
+          if [ -n "$INPUT_TARGET" ] && [[ ! "$INPUT_TARGET" =~ ^(main|release-[0-9]+\.[0-9]+)$ ]]; then
+            echo "::error::Invalid target ref '$INPUT_TARGET'; must match ^(main|release-[0-9]+\.[0-9]+)$"
+            exit 1
           fi
-
-          echo "Using git ref $REF"
-          {
-            echo "repo<<EOF"
-            printf '%s\n' "$INPUT_REPO"
-            echo "EOF"
-            echo "ref<<EOF"
-            printf '%s\n' "$REF"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-  linkcheck: 
-    name: Run linkchecker 
-    runs-on: ubuntu-latest 
-    needs: prepare
-    steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
-          repository: ${{ needs.prepare.outputs.repo }}
-          ref: ${{ needs.prepare.outputs.ref }}
+          persist-credentials: false
+          ref: ${{ inputs.target }}
       - name: Set up Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
       - name: Run linkcheck 
