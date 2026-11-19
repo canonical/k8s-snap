@@ -157,7 +157,7 @@ def create_and_assign_certs(
 
 def check_nginx_pod_runs(instance: harness.Instance):
     manifest = MANIFESTS_DIR / "nginx-pod.yaml"
-    instance.exec(
+    util.stubbornly(retries=5, delay_s=2).on(instance).exec(
         ["k8s", "kubectl", "apply", "-f", "-"],
         input=manifest.read_bytes(),
     )
@@ -438,6 +438,8 @@ def test_vault_certificates(instances: List[harness.Instance]):
         ["k8s", "refresh-certs", "--external-certificates", "-"],
         input=str.encode(yaml.dump(new_worker_certs)),
     )
+
+    util.wait_until_k8s_ready(instance, instances)
 
     # Deploy the Pod again to verify the cluster functionality.
     check_nginx_pod_runs(instance)
