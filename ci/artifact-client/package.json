@@ -2,6 +2,10 @@
   "name": "k8s-snap-artifact-client",
   "private": true,
   "dependencies": {
-    "@actions/artifact": "2.3.2"
+    "@actions/artifact": "6.3.1"
+  },
+  "overrides": {
+    "glob": "14.0.6",
+    "minimatch": "11.0.9"
   }
 }
