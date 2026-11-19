@@ -11,6 +11,7 @@ permissions:
 jobs:
   main:
     name: Validate PR title
+    if: github.repository == 'canonical/k8s-snap'
     permissions:
       pull-requests: write # to comment
       statuses: write # to set commit status checks for the PR title lint

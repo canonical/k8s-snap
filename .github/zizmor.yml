@@ -1,0 +1,13 @@
+rules:
+  dangerous-triggers:
+    ignore:
+      # auto-label-release-notes: restricted to canonical/k8s-snap repository and non-draft PRs; no code checkout, inputs passed via environment variables.
+      - auto-label-release-notes.yaml:3
+      # backport: restricted to canonical/k8s-snap repository and merged pull requests; checks out base branch only.
+      - backport.yaml:3
+      # backport: restricted to canonical/k8s-snap repository, maintainer comments (OWNER/MEMBER/COLLABORATOR), and explicit /backport command.
+      - backport.yaml:5
+      # lint_pr: restricted to canonical/k8s-snap repository; no code checkout, inputs passed via environment variables.
+      - lint_pr.yaml:4
+      # triage: gate job uses read-only token, does not check out code, and requires maintainer association for pipeline triggers.
+      - triage.yaml:6
