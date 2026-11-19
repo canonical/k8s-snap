@@ -279,6 +279,20 @@ k8s::kubelet::ensure_shared_root_dir() {
   fi
 }
 
+# Remove deprecated or unsupported kubelet arguments
+# Example: 'k8s::kubelet::sanitize_args'
+k8s::kubelet::sanitize_args() {
+  local args_file="${SNAP_COMMON:-/var/snap/k8s/common}/args/kubelet"
+  if [ ! -f "$args_file" ]; then
+    return 0
+  fi
+
+  # --containerd was removed in Kubernetes 1.37 in favor of --container-runtime-endpoint.
+  if grep -qE '^[[:space:]]*--containerd(=|[[:space:]]|$)' "$args_file"; then
+    sed -i -E '/^[[:space:]]*--containerd(=|[[:space:]]|$)/d' "$args_file"
+  fi
+}
+
 # Loads the kernel module names given as arguments
 # Example: 'k8s::util::load_kernel_modules mod1 mod2 mod3'
 k8s::util::load_kernel_modules() {
