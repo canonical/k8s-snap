@@ -19,6 +19,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Get changed files list with git diff
@@ -40,13 +41,13 @@ jobs:
 
   linkcheck:
     needs: prepare 
-    uses: ./.github/workflows/linkcheck.yaml
+    uses: $/.github/workflows/linkcheck.yaml
     with:
       changed_files: ${{ needs.prepare.outputs.changed_files }}
 
   docs-spread-tests:
     needs: prepare
-    uses: ./.github/workflows/docs-spread-tests.yaml
+    uses: $/.github/workflows/docs-spread-tests.yaml
     with:
       changed_files: ${{ needs.prepare.outputs.changed_files }}
 
@@ -56,6 +57,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       with:
+        persist-credentials: false
         fetch-depth: 0
 
     - name: Set up Python
@@ -82,7 +84,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-
+        with:
+          persist-credentials: false
       - name: Set up Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
@@ -96,7 +99,6 @@ jobs:
       - name: Install Python dependencies
         run: |
           pip install --require-hashes -r ci/requirements-ci.txt
-          pip install tox
 
       - name: Test charm reference generation
         run: cd ci && tox -e test

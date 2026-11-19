@@ -1,0 +1,7 @@
+{
+  "name": "k8s-snap-artifact-client",
+  "private": true,
+  "dependencies": {
+    "@actions/artifact": "2.3.2"
+  }
+}

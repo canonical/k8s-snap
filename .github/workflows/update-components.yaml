@@ -30,6 +30,7 @@ jobs:
 
     steps:
       - name: Checking out repo
+        # zizmor: ignore[artipacked] BOT_SSH_KEY configured for component git operations
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ matrix.branch }}
@@ -42,7 +43,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip3 install -r ./build-scripts/hack/requirements.txt
+          pip3 install --require-hashes -r ./build-scripts/hack/requirements.txt
 
       - name: Check for new component versions
         run: |
