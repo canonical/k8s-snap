@@ -142,6 +142,11 @@ k8s::common::setup_env() {
   done
 
   _K8S_ENV_SETUP_ONCE="1"
+
+  local arch_triplet="${CRAFT_ARCH_TRIPLET_BUILD_FOR:-${SNAPCRAFT_ARCH_TRIPLET:-}}"
+  if [ -n "${SNAP:-}" ] && [ -n "$arch_triplet" ] && k8s::common::is_strict; then
+    export OPENSSL_MODULES="/usr/lib/${arch_triplet}/ossl-modules"
+  fi
 }
 
 # Check if k8s is installed as a strictly confined snap
@@ -149,7 +154,7 @@ k8s::common::setup_env() {
 k8s::common::is_strict() {
   k8s::common::setup_env
 
-  if cat "${SNAP}/meta/snap.yaml" | grep -q 'confinement: strict'; then
+  if grep -q '^confinement:[[:space:]]*strict' "${SNAP}/meta/snap.yaml" 2>/dev/null; then
     return 0
   else
     return 1
@@ -364,7 +369,7 @@ k8s::kubelet::ensure_shared_root_dir() {
 
   if ! findmnt -o PROPAGATION /var/lib/kubelet -n | grep -q shared; then
     echo "Ensure /var/lib/kubelet mount propagation is rshared"
-    mount -o remount --make-rshared "$SNAP_COMMON/var/lib/kubelet" /var/lib/kubelet
+    mount --make-rshared /var/lib/kubelet
   fi
 }
 
@@ -404,6 +409,9 @@ k8s::util::run_as_root() {
 # Example: 'k8s::containerd::ensure_systemd_defaults'
 k8s::containerd::ensure_systemd_defaults() {
   k8s::common::setup_env
+  if k8s::common::is_strict; then
+    return 0
+  fi
 
   local override_dir="/etc/systemd/system/snap.${SNAP_INSTANCE_NAME:-k8s}.containerd.service.d"
   local override_file="${SNAP:-/snap/k8s/current}/k8s/systemd/containerd-defaults.conf"
