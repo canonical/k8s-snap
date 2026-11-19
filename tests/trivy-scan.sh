@@ -149,14 +149,18 @@ if [[ "$REPO_ONLY" == "false" ]]; then
   ROOTFS_SARIF_FILES=($(split_sarif_runs "$TRIVY_ROOTFS_SARIF"))
 fi
 
+echo "Final SARIF files:"
+for sarif in "${REPO_SARIF_FILES[@]}" "${ROOTFS_SARIF_FILES[@]}"; do
+  echo "$sarif"
+done
+
 # Obtain CISA Known Exploited Vulnerabilities list.
-CISA_DOWNLOAD_OK=false
-if curl -fsSL --retry 5 --retry-delay 2 -o ./.trivy/kev.json \
+if ! curl -fsSL --retry 5 --retry-delay 2 -o ./.trivy/kev.json \
   https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json; then
-  CISA_DOWNLOAD_OK=true
-else
-  echo "Warning: failed to download CISA KEV catalog after retries; skipping KEV comparison" >&2
+  echo "Error: failed to download CISA KEV catalog after retries" >&2
+  exit 1
 fi
+
 function get_cisa_kev_cves() {
   local kevJson=$1
   local trivyJsonReport=$2
@@ -175,16 +179,9 @@ function get_cisa_kev_cves() {
 }
 
 # Compare the trivy reports with the CISA KEV list
-if [[ "$CISA_DOWNLOAD_OK" == "true" ]]; then
-  get_cisa_kev_cves ./.trivy/kev.json ./.trivy/sarifs/trivy-k8s-repo-scan--results.json
-  if [[ "$REPO_ONLY" == "false" ]]; then
-    get_cisa_kev_cves ./.trivy/kev.json ./.trivy/sarifs/snap.json
-  fi
+get_cisa_kev_cves ./.trivy/kev.json ./.trivy/sarifs/trivy-k8s-repo-scan--results.json
+if [[ "$REPO_ONLY" == "false" ]]; then
+  get_cisa_kev_cves ./.trivy/kev.json ./.trivy/sarifs/snap.json
 fi
-
-echo "Final SARIF files:"
-for sarif in "${REPO_SARIF_FILES[@]}" "${ROOTFS_SARIF_FILES[@]}"; do
-  echo "$sarif"
-done
 trap - EXIT
 
