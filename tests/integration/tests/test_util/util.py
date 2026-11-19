@@ -1337,7 +1337,11 @@ def find_suitable_cidr(
             continue
 
         # Skip subnet containing the broadcast address in IPv4.
-        if hasattr(net, "broadcast_address") and net.broadcast_address in candidate:
+        if (
+            not ipv6
+            and hasattr(net, "broadcast_address")
+            and net.broadcast_address in candidate
+        ):
             continue
 
         # Check if candidate contains any excluded IPs.

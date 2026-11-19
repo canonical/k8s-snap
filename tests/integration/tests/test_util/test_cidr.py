@@ -37,6 +37,10 @@ def test_find_suitable_cidr_ipv6_basic_and_excluded():
     cidr_excluded = util.find_suitable_cidr("fd00::/64", excluded_ips=["fd00::4"])
     assert cidr_excluded == "fd00::8/126"
 
+    # IPv6 has no broadcast address, so /125 can select the second /126 block
+    cidr_narrow = util.find_suitable_cidr("fd00::/125")
+    assert cidr_narrow == "fd00::4/126"
+
 
 @pytest.mark.tags(tags.PULL_REQUEST)
 def test_find_suitable_cidr_skips_network_and_broadcast():
