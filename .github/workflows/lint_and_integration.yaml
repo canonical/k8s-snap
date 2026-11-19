@@ -20,7 +20,8 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
-  contents: read
+  contents: read # for actions/checkout to fetch code
+  actions: read # for gh run download to fetch artifacts
 
 jobs:
   build-snap:
@@ -268,10 +269,9 @@ jobs:
         with:
           persist-credentials: false
       - name: Download k8s snap
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        uses: ./.github/actions/download-k8s-snap
         with:
-          name: k8s-${{ matrix.arch }}.snap
-          path: ${{ github.workspace }}
+          artifact: k8s-${{ matrix.arch }}.snap
       - name: Archive test suite
         run: |
           tar czf k8s-test-suite.tar.gz tests/integration/
@@ -316,9 +316,10 @@ jobs:
       upload-sarif: false
     permissions:
       contents: read # for actions/checkout to fetch code
+      actions: read # for gh run download to fetch artifacts
       # Required by the reusable security-scan.yaml job definition, even though
       # SARIF upload to Code Scanning is handled separately by trivy-repo.yaml.
-      security-events: write
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
 
   get-charm-channel:
     name: Determine the charm channel
