@@ -22,16 +22,21 @@ Environment variables:
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
+from collections.abc import Iterable
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+PRIMARY_REPO = "canonical/k8s-snap"
 REPOS = [
     "canonical/k8s-snap",
+    "canonical/k8sd",
+    "canonical/k8s-snap-api",
 ]
 
 # Alerts older than this are flagged as overdue
@@ -41,8 +46,22 @@ OVERDUE_DAYS = 7
 STATE_FILE = Path(os.environ.get("STATE_FILE", "/tmp/security-triage-state.json"))
 
 
+class GhApiError(Exception):
+    """Raised when a GitHub API request fails."""
+
+    def __init__(self, endpoint: str, stderr: str, returncode: int = 1):
+        super().__init__(f"failed to fetch {endpoint}: {stderr}")
+        self.endpoint = endpoint
+        self.stderr = stderr
+        self.returncode = returncode
+
+    @property
+    def is_permission_or_not_found(self) -> bool:
+        return "403" in self.stderr or "404" in self.stderr
+
+
 def gh_api(endpoint: str) -> list[dict[str, Any]]:
-    """Call gh api and return parsed JSON. Exits on error."""
+    """Call gh api and return parsed JSON."""
     cmd = ["gh", "api", endpoint, "--paginate", "--slurp"]
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
@@ -53,11 +72,9 @@ def gh_api(endpoint: str) -> list[dict[str, Any]]:
             for item in (page if isinstance(page, list) else [page])
         ]
     except subprocess.CalledProcessError as e:
-        print(f"Error: failed to fetch {endpoint}: {e.stderr}", file=sys.stderr)
-        raise SystemExit(1)
+        raise GhApiError(endpoint, e.stderr, e.returncode) from e
     except json.JSONDecodeError as e:
-        print(f"Error: failed to parse response from {endpoint}: {e}", file=sys.stderr)
-        raise SystemExit(1)
+        raise GhApiError(endpoint, f"JSON decode error: {e}") from e
 
 
 def days_ago(iso_date: str) -> int:
@@ -95,7 +112,9 @@ def _normalize_severity(rule: dict[str, Any]) -> str:
     if sev:
         return sev.lower()
     raw = rule.get("severity", "none").lower()
-    return {"error": "high", "warning": "medium", "note": "low"}.get(raw, "none")
+    if raw == "note":
+        return "note"
+    return {"error": "high", "warning": "medium", "low": "low"}.get(raw, "none")
 
 
 def _description_from_rule(rule: dict[str, Any]) -> str:
@@ -112,24 +131,114 @@ def _description_from_rule(rule: dict[str, Any]) -> str:
     return first_line
 
 
-def fetch_code_scanning_alerts(repo: str) -> list[dict[str, Any]]:
-    """Fetch ALL open code scanning alerts for a repo. No filtering."""
-    raw = gh_api(f"/repos/{repo}/code-scanning/alerts?state=open&per_page=100")
-    alerts = []
-    for a in raw:
-        rule = a.get("rule", {})
-        severity = _normalize_severity(rule)
-        rule_id = rule.get("id", "unknown")
-        tool = a.get("tool", {}).get("name", "unknown")
-        created = a.get("created_at", "")
-        age = days_ago(created) if created else 0
-        description = _description_from_rule(rule)
-        alert_number = a.get("number", "")
-        alert_link = f"https://github.com/{repo}/security/code-scanning/{alert_number}"
+def fetch_release_branches(repo: str) -> list[str]:
+    """Fetch active release-* branches for a repo."""
+    data = gh_api(f"/repos/{repo}/branches?per_page=100")
+    pattern = re.compile(r"^release-[0-9]+\.[0-9]+$")
+    branches = [
+        item["name"]
+        for item in data
+        if isinstance(item, dict) and "name" in item and pattern.match(item["name"])
+    ]
 
-        alerts.append(
-            {
+    def parse_version(b: str) -> tuple[int, ...]:
+        try:
+            return tuple(int(x) for x in b.removeprefix("release-").split("."))
+        except ValueError:
+            return (0,)
+
+    return sorted(branches, key=parse_version)
+
+
+def compact_branches(branches: Iterable[str]) -> str:
+    """Format and compact a collection of branch names.
+
+    e.g. ['main', 'release-1.32', 'release-1.33', 'release-1.34', 'release-1.35']
+    -> 'main, release-1.32..1.35'
+    """
+    branch_set = set(branches)
+    if not branch_set:
+        return "—"
+
+    has_main = "main" in branch_set
+    non_release = sorted(
+        b for b in branch_set if b != "main" and not b.startswith("release-")
+    )
+
+    # Parse release branches: (major, minor)
+    rel_branches: list[tuple[int, int]] = []
+    for b in branch_set:
+        if b.startswith("release-"):
+            parts = b.removeprefix("release-").split(".")
+            if len(parts) == 2 and all(p.isdigit() for p in parts):
+                rel_branches.append((int(parts[0]), int(parts[1])))
+
+    rel_branches.sort()
+
+    ranges: list[str] = []
+    if rel_branches:
+        cur_major, cur_start = rel_branches[0]
+        cur_end = cur_start
+        for major, minor in rel_branches[1:]:
+            if major == cur_major and minor == cur_end + 1:
+                cur_end = minor
+            else:
+                if cur_start == cur_end:
+                    ranges.append(f"release-{cur_major}.{cur_start}")
+                else:
+                    ranges.append(
+                        f"release-{cur_major}.{cur_start}..{cur_major}.{cur_end}"
+                    )
+                cur_major, cur_start, cur_end = major, minor, minor
+        if cur_start == cur_end:
+            ranges.append(f"release-{cur_major}.{cur_start}")
+        else:
+            ranges.append(f"release-{cur_major}.{cur_start}..{cur_major}.{cur_end}")
+
+    result: list[str] = []
+    if has_main:
+        result.append("main")
+    result.extend(non_release)
+    result.extend(ranges)
+    return ", ".join(result) if result else "—"
+
+
+def fetch_code_scanning_alerts(repo: str) -> list[dict[str, Any]]:
+    """Fetch open code scanning alerts for a repo across default and release branches."""
+    branches = fetch_release_branches(repo)
+
+    # 1. Fetch default branch query
+    raw_default = gh_api(f"/repos/{repo}/code-scanning/alerts?state=open&per_page=100")
+
+    # 2. Fetch release branches
+    branch_queries: list[tuple[str, list[dict[str, Any]]]] = []
+    for b in branches:
+        raw_b = gh_api(
+            f"/repos/{repo}/code-scanning/alerts?state=open&ref=refs/heads/{b}&per_page=100"
+        )
+        branch_queries.append((b, raw_b))
+
+    alerts_by_number: dict[int, dict[str, Any]] = {}
+
+    def record_alert(raw_alert: dict[str, Any], branch_name: str) -> None:
+        alert_number = raw_alert.get("number")
+        if not alert_number:
+            return
+        if alert_number not in alerts_by_number:
+            rule = raw_alert.get("rule", {})
+            severity = _normalize_severity(rule)
+            rule_id = rule.get("id", "unknown")
+            tool = raw_alert.get("tool", {}).get("name", "unknown")
+            created = raw_alert.get("created_at", "")
+            age = days_ago(created) if created else 0
+            description = _description_from_rule(rule)
+            alert_link = (
+                f"https://github.com/{repo}/security/code-scanning/{alert_number}"
+            )
+
+            alerts_by_number[alert_number] = {
                 "id": f"{repo}#{alert_number}",
+                "alert_number": alert_number,
                 "rule_id": rule_id,
                 "severity": severity,
                 "tool": tool,
@@ -137,14 +246,32 @@ def fetch_code_scanning_alerts(repo: str) -> list[dict[str, Any]]:
                 "summary": description,
                 "link": alert_link,
                 "repo": repo,
+                "branches": set(),
             }
+        alerts_by_number[alert_number]["branches"].add(branch_name)
+
+    for a in raw_default:
+        ref = a.get("most_recent_instance", {}).get("ref", "")
+        branch = (
+            ref.removeprefix("refs/heads/") if ref.startswith("refs/heads/") else "main"
         )
+        record_alert(a, branch or "main")
+
+    for b, raw_b in branch_queries:
+        for a in raw_b:
+            record_alert(a, b)
+
+    alerts: list[dict[str, Any]] = []
+    for a in alerts_by_number.values():
+        a["branches_display"] = compact_branches(a["branches"])
+        alerts.append(a)
+
     return alerts
 
 
 def severity_sort_key(alert: dict[str, Any]) -> tuple[int, int]:
     """Sort key: highest severity first, then oldest first."""
-    rank = {"critical": 4, "high": 3, "medium": 2, "low": 1}.get(
+    rank = {"critical": 5, "high": 4, "medium": 3, "low": 2, "note": 1}.get(
         alert["severity"].lower(), 0
     )
     return (-rank, -alert["age_days"])
@@ -156,6 +283,7 @@ def sev_emoji(severity: str) -> str:
         "high": "🔴",
         "medium": "🟡",
         "low": "🟢",
+        "note": "ℹ️",
     }.get(severity.lower(), "⚪")
 
 
@@ -163,7 +291,7 @@ def format_alert_row(a: dict[str, Any]) -> str:
     """Format one alert as a markdown table row."""
     sev = a["severity"]
     sev_display = f"{sev_emoji(sev)} {sev.capitalize()}" if sev else "⚪ —"
-    summary = a.get("summary", "")
+    summary = a.get("summary", "").replace("\n", " ").replace("|", "\\|")
     if len(summary) > 55:
         summary = summary[:52] + "..."
     link_display = f"[{a['rule_id']}]({a['link']})"
@@ -173,7 +301,12 @@ def format_alert_row(a: dict[str, Any]) -> str:
         and a["severity"].lower() in ("critical", "high")
         else ""
     )
-    return f"| {link_display} | {a['tool']} | {sev_display} | {summary} | {a['age_days']}d{overdue} |"
+    repo_display = a.get("repo", "").split("/")[-1]
+    branch_display = a.get("branches_display", "—")
+    return (
+        f"| {repo_display} | {link_display} | {a['tool']} | {sev_display} | "
+        f"{branch_display} | {summary} | {a['age_days']}d{overdue} |"
+    )
 
 
 def build_message(
@@ -185,18 +318,24 @@ def build_message(
     """Build the full Mattermost webhook payload with new/known/resolved sections."""
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
-    new_alerts = [a for a in all_alerts if a["id"] in new_ids]
-    known_alerts = [a for a in all_alerts if a["id"] not in new_ids]
+    actionable_alerts = [a for a in all_alerts if a["severity"].lower() != "note"]
+    note_alerts = [a for a in all_alerts if a["severity"].lower() == "note"]
+
+    new_alerts = [a for a in actionable_alerts if a["id"] in new_ids]
+    known_alerts = [a for a in actionable_alerts if a["id"] not in new_ids]
 
     new_alerts.sort(key=severity_sort_key)
     known_alerts.sort(key=severity_sort_key)
 
     # Header stats
-    total = len(all_alerts)
+    total = len(actionable_alerts)
     n_new = len(new_alerts)
     n_resolved = len(resolved_ids)
-    n_critical = sum(1 for a in all_alerts if a["severity"].lower() == "critical")
-    n_high = sum(1 for a in all_alerts if a["severity"].lower() == "high")
+    n_critical = sum(
+        1 for a in actionable_alerts if a["severity"].lower() == "critical"
+    )
+    n_high = sum(1 for a in actionable_alerts if a["severity"].lower() == "high")
+    n_notes = len(note_alerts)
 
     lines = []
     lines.append(
@@ -205,14 +344,15 @@ def build_message(
         + (f" · ✅ **{n_resolved}** resolved" if n_resolved else "")
         + (f" · 🔥 {n_critical} critical" if n_critical else "")
         + (f" · 🔴 {n_high} high" if n_high else "")
+        + (f" · ℹ️ {n_notes} notes" if n_notes else "")
     )
     lines.append("")
 
     # NEW section — always expanded, full detail
     if new_alerts:
         lines.append("### 🆕 NEW — needs attention")
-        lines.append("| Rule | Tool | Severity | Description | Age |")
-        lines.append("|------|------|----------|-------------|-----|")
+        lines.append("| Repo | Rule | Tool | Severity | Branch | Description | Age |")
+        lines.append("|------|------|------|----------|--------|-------------|-----|")
         for a in new_alerts:
             lines.append(format_alert_row(a))
         lines.append("")
@@ -234,8 +374,12 @@ def build_message(
             lines.append(
                 f"#### {tool_name} ({len(tool_alerts)} alerts) — {sev_summary}"
             )
-            lines.append("| Rule | Tool | Severity | Description | Age |")
-            lines.append("|------|------|----------|-------------|-----|")
+            lines.append(
+                "| Repo | Rule | Tool | Severity | Branch | Description | Age |"
+            )
+            lines.append(
+                "|------|------|------|----------|--------|-------------|-----|"
+            )
             for a in tool_alerts:
                 lines.append(format_alert_row(a))
             lines.append("")
@@ -246,6 +390,10 @@ def build_message(
         for rid in sorted(resolved_ids):
             lines.append(f"- ~{rid}~")
         lines.append("")
+
+    # Informational notes summary
+    if note_alerts:
+        lines.append(f"ℹ️ _{n_notes} informational note(s) omitted from tables._\n")
 
     # Footer
     repos_str = ", ".join(f"`{r}`" for r in REPOS)
@@ -288,7 +436,7 @@ def _severity_summary(alerts: list[dict[str, Any]]) -> str:
         sev = a["severity"].lower() if a["severity"] else "unrated"
         counts[sev] = counts.get(sev, 0) + 1
     parts = []
-    for sev in ("critical", "high", "medium", "low", "unrated"):
+    for sev in ("critical", "high", "medium", "low", "note", "unrated"):
         if sev in counts:
             parts.append(
                 f"{sev_emoji(sev) if sev != 'unrated' else '⚪'} {counts[sev]} {sev}"
@@ -351,14 +499,38 @@ def main() -> int:
 
     # Fetch all alerts from all repos
     all_alerts: list[dict[str, Any]] = []
+    successful_repos: set[str] = set()
+
     for repo in REPOS:
         print(f"Fetching alerts for {repo}...", file=sys.stderr)
-        alerts = fetch_code_scanning_alerts(repo)
-        all_alerts.extend(alerts)
-        print(f"  {repo}: {len(alerts)} open alerts", file=sys.stderr)
+        try:
+            alerts = fetch_code_scanning_alerts(repo)
+            all_alerts.extend(alerts)
+            successful_repos.add(repo)
+            print(f"  {repo}: {len(alerts)} open alerts", file=sys.stderr)
+        except GhApiError as e:
+            if repo != PRIMARY_REPO and e.is_permission_or_not_found:
+                print(
+                    f"Warning: skipping {repo}: insufficient permissions or repo not found ({e.stderr.strip()})",
+                    file=sys.stderr,
+                )
+                continue
+            print(
+                f"Error: failed to fetch alerts for {repo}: {e.stderr.strip()}",
+                file=sys.stderr,
+            )
+            raise SystemExit(1)
+
+    if not successful_repos or PRIMARY_REPO not in successful_repos:
+        print(
+            "Error: primary repo failed or all repos failed to fetch",
+            file=sys.stderr,
+        )
+        return 1
 
     # Delta detection
-    current_ids = {a["id"] for a in all_alerts}
+    actionable_alerts = [a for a in all_alerts if a["severity"].lower() != "note"]
+    current_ids = {a["id"] for a in actionable_alerts}
     prev_state = load_previous_state()
     previous_ids = set(prev_state.get("alert_ids", []))
     is_first_run = not prev_state
@@ -375,7 +547,7 @@ def main() -> int:
                     {
                         "skipped": True,
                         "reason": "no delta",
-                        "total_open": len(all_alerts),
+                        "total_open": len(actionable_alerts),
                     }
                 )
             )
