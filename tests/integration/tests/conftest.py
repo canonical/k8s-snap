@@ -1,10 +1,9 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
-import itertools
 import logging
 from pathlib import Path
-from typing import Generator, Iterator, List, Optional, Union
+from typing import Generator, List, Optional, Union
 
 import pytest
 from pytest_subunit import SubunitTerminalReporter
@@ -166,8 +165,7 @@ def pytest_configure(config):
         "containerd_cfgdir: The instance containerd config directory, defaults to /etc/containerd."
         "network_type: Specify network type to use for the infrastructure (IPv4, Dualstack or IPv6).\n"
         "etcd_count: Mark a test to specify how many etcd instance nodes need to be created (None by default)\n"
-        "node_count: Mark a test to specify how many instance nodes need to be created\n"
-        "snap_versions: Mark a test to specify snap_versions for each node\n",
+        "node_count: Mark a test to specify how many instance nodes need to be created\n",
     )
 
     if config.option.subunit:
@@ -189,15 +187,6 @@ def node_count(request) -> int:
         return 1
     node_count_arg, *_ = node_count_marker.args
     return int(node_count_arg)
-
-
-def snap_versions(request) -> Iterator[Optional[str]]:
-    """An endless iterable of snap versions for each node in the test."""
-    marking = ()
-    if snap_version_marker := request.node.get_closest_marker("snap_versions"):
-        marking, *_ = snap_version_marker.args
-    # endlessly repeat of the configured snap version after exhausting the marking
-    return itertools.chain(marking, itertools.repeat(None))
 
 
 @pytest.fixture(scope="function")
@@ -251,7 +240,6 @@ def instances(
     h: harness.Harness,
     registry: Registry,
     node_count: int,
-    tmp_path: Path,
     disable_k8s_bootstrapping: bool,
     required_ports: List[int],
     no_setup: bool,
@@ -269,8 +257,7 @@ def instances(
 
     LOG.info(f"Creating {node_count} instances")
     instances: List[harness.Instance] = []
-
-    for _, snap in zip(range(node_count), snap_versions(request)):
+    for _ in range(node_count):
         # Create <node_count> instances and setup the k8s snap in each.
         instance = h.new_instance(network_type=network_type)
         instances.append(instance)
@@ -284,7 +271,7 @@ def instances(
 
         if not no_setup:
             util.setup_core_dumps(instance)
-            util.setup_k8s_snap(instance, snap)
+            util.setup_k8s_snap(instance)
 
             if config.USE_LOCAL_MIRROR:
                 registry.apply_configuration(instance, containerd_cfgdir)

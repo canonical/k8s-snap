@@ -3,7 +3,6 @@
 #
 import json
 import logging
-from pathlib import Path
 from typing import List
 
 import pytest
@@ -160,7 +159,6 @@ def test_version_upgrades(
 @pytest.mark.tags(tags.NIGHTLY)
 def test_version_downgrades_with_rollback(
     instances: List[harness.Instance],
-    tmp_path,
     containerd_cfgdir: str,
     registry: Registry,
 ):
@@ -304,7 +302,7 @@ def test_version_downgrades_with_rollback(
     not config.SNAP,
     reason="Feature upgrades require a local snap file",
 )
-def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: Path):
+def test_feature_upgrades_inplace(instances: List[harness.Instance]):
     """Verify that feature upgrades function correctly.
 
     Note: This is an interim test that will be expanded as feature upgrades mature.
@@ -502,7 +500,7 @@ def _get_upgrade_crs(instance: harness.Instance) -> List[dict]:
     reason="The node removal does not work consistently due to a microcluster bug."
 )
 def test_feature_upgrades_rollout_upgrade(
-    instances: List[harness.Instance], tmp_path: Path
+    instances: List[harness.Instance],
 ):
     """ """
     # TODO: Ensure that this test only runs on different k8s versions.

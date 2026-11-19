@@ -18,7 +18,7 @@ LOG = logging.getLogger(__name__)
 @pytest.mark.bootstrap_config(
     (config.MANIFESTS_DIR / "bootstrap-dualstack.yaml").read_text()
 )
-@pytest.mark.dualstack()
+@pytest.mark.network_type("dualstack")
 @pytest.mark.tags(tags.NIGHTLY, tags.PROMOTE_CANDIDATE)
 @pytest.mark.skipif(
     config.SUBSTRATE == "multipass", reason="QUEMU does not properly support IPv6"
