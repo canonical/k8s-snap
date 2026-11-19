@@ -75,12 +75,12 @@ jobs:
   
   docs:
     # Run linkcheck on release branches
-    name: Docs linkcheck (${{ matrix.ref }})
+    name: Docs linkcheck (${{ matrix.target }})
     strategy:
       fail-fast: false
       # Update when new release branches are created
       matrix:
-        ref:
+        target:
           [
             "release-1.32",
             "release-1.33",
@@ -90,7 +90,7 @@ jobs:
           ]
     uses: ./.github/workflows/linkcheck.yaml
     with:
-      ref: ${{ matrix.ref }}
+      target: ${{ matrix.target }}
 
   Mattermost:
     name: Notify Mattermost

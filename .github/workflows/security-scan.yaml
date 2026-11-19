@@ -21,6 +21,13 @@ on:
         required: false
         type: boolean
         default: false
+    secrets:
+      CVE_JIRA_WEBHOOK_URL:
+        description: Webhook URL for uploading CVE reports to Jira.
+        required: false
+      CVE_JIRA_WEBHOOK_TOKEN:
+        description: Auth token for the Jira CVE webhook.
+        required: false
 
 jobs:
   security-scan:
