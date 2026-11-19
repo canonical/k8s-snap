@@ -1,10 +1,6 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
-# Postponed annotation evaluation is required: `test_util.harness` imports
-# `bare_metal` first (isort order), which imports this module while the
-# `harness` package is still half-initialised, so annotations such as
-# `harness.Instance` can't be evaluated at definition time.
 from __future__ import annotations
 
 import ipaddress
@@ -1142,34 +1138,201 @@ def previous_track(snap_version: str) -> str:
     )
 
 
-def find_suitable_cidr(parent_cidr: str, excluded_ips: List[str]):
-    """Find a suitable CIDR for LoadBalancer services"""
+def _is_candidate_occupied(
+    instance: harness.Instance,
+    candidate: Union[ipaddress.IPv4Network, ipaddress.IPv6Network],
+) -> bool:
+    """Probe whether any IP in the candidate subnet is occupied on the network."""
+    ips_str = " ".join(str(ip) for ip in candidate)
+    ping_flag = "-6" if candidate.version == 6 else "-4"
+    neigh_flag = "-6" if candidate.version == 6 else "-4"
+    probe_script = f"""
+tmp=$(mktemp)
+trap 'rm -f "$tmp"' EXIT
+for ip in {ips_str}; do
+    ping {ping_flag} -c 1 -W 1 $ip >/dev/null 2>&1 && echo "occupied $ip" >> "$tmp" &
+done
+wait
+if [ -s "$tmp" ]; then
+    cat "$tmp"
+    exit 0
+fi
+for ip in {ips_str}; do
+    neigh=$(ip {neigh_flag} neigh show $ip 2>/dev/null)
+    if echo "$neigh" | grep -q "lladdr" && ! echo "$neigh" | grep -q "FAILED"; then
+        echo "occupied $ip"
+        exit 0
+    fi
+done
+echo "free"
+"""
+    try:
+        res = instance.exec(
+            ["bash", "-c", probe_script],
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=5,
+        )
+        if "occupied" in res.stdout:
+            LOG.info(
+                f"Candidate CIDR {candidate} is occupied on network: {res.stdout.strip()}"
+            )
+            return True
+        return False
+    except Exception as e:
+        LOG.warning(f"Failed to probe candidate CIDR {candidate} from instance: {e}")
+        return False
+
+
+def find_suitable_cidr(
+    parent_cidr: str,
+    excluded_ips: Optional[List[str]] = None,
+    instance: Optional[harness.Instance] = None,
+) -> str:
+    """Find a suitable CIDR for LoadBalancer services that avoids collisions."""
     net = ipaddress.ip_network(parent_cidr, False)
     ipv6 = isinstance(net, ipaddress.IPv6Network)
-    if ipv6:
-        ip_range = 126
-    else:
-        ip_range = 30
+    ip_range = 126 if ipv6 else 30
 
-    # Starting from the first IP address from the parent cidr,
-    # we search for a /30 cidr block(4 total ips, 2 available)
-    # that doesn't contain the excluded ips to avoid collisions
-    # /30 because this is the smallest CIDR cilium hands out IPs from.
-    # For ipv6, we use a /126 block that contains 4 total ips.
-    for i in range(4, 255, 4):
-        lb_net = ipaddress.ip_network(f"{str(net[0]+i)}/{ip_range}", False)
+    if net.prefixlen >= ip_range:
+        raise RuntimeError(
+            f"Parent CIDR {parent_cidr} is too small to carve out a /{ip_range} network"
+        )
 
-        contains_excluded = False
-        for excluded in excluded_ips:
-            if ipaddress.ip_address(excluded) in lb_net:
-                contains_excluded = True
-                break
+    excluded: set[Union[ipaddress.IPv4Address, ipaddress.IPv6Address]] = set()
 
-        if contains_excluded:
+    for ip_str in excluded_ips or []:
+        try:
+            addr = ipaddress.ip_address(ip_str)
+            if addr.version == net.version:
+                excluded.add(addr)
+        except ValueError:
+            pass
+
+    if instance is not None:
+        h = getattr(instance, "_h", None)
+        if h and hasattr(h, "instances"):
+            for inst_id in list(h.instances):
+                try:
+                    other_instance = (
+                        instance
+                        if getattr(instance, "id", None) == inst_id
+                        else harness.Instance(h, inst_id)
+                    )
+                    try:
+                        def_ip = get_default_ip(other_instance, ipv6=ipv6)
+                        addr = ipaddress.ip_address(def_ip)
+                        if addr.version == net.version:
+                            excluded.add(addr)
+                    except Exception as e:
+                        LOG.debug(
+                            f"Could not get default IP for instance {inst_id}: {e}"
+                        )
+
+                    try:
+                        p = other_instance.exec(
+                            [
+                                "ip",
+                                "-o",
+                                "-6" if ipv6 else "-4",
+                                "addr",
+                                "show",
+                                "scope",
+                                "global",
+                            ],
+                            capture_output=True,
+                            text=True,
+                            check=False,
+                        )
+                        for line in p.stdout.splitlines():
+                            for token in line.split():
+                                if "/" in token:
+                                    try:
+                                        addr = ipaddress.ip_address(token.split("/")[0])
+                                        if addr.version == net.version:
+                                            excluded.add(addr)
+                                    except ValueError:
+                                        pass
+                    except Exception as e:
+                        LOG.debug(
+                            f"Could not get interface addresses for instance {inst_id}: {e}"
+                        )
+                except Exception as e:
+                    LOG.debug(f"Failed to inspect harness instance {inst_id}: {e}")
+
+        try:
+            p = instance.exec(
+                ["ip", "-o", "-6" if ipv6 else "-4", "route", "show", "to", "default"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            tokens = p.stdout.split()
+            if "via" in tokens:
+                gw_str = tokens[tokens.index("via") + 1]
+                try:
+                    gw_ip = ipaddress.ip_address(gw_str)
+                    if gw_ip.version == net.version:
+                        excluded.add(gw_ip)
+                except ValueError:
+                    pass
+        except Exception as e:
+            LOG.debug(f"Could not get default gateway for instance: {e}")
+
+        try:
+            p = instance.exec(
+                ["ip", "-6" if ipv6 else "-4", "neigh", "show"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            for line in p.stdout.splitlines():
+                tokens = line.split()
+                if len(tokens) >= 1 and "lladdr" in tokens and "FAILED" not in tokens:
+                    try:
+                        neigh_ip = ipaddress.ip_address(tokens[0])
+                        if neigh_ip.version == net.version:
+                            excluded.add(neigh_ip)
+                    except ValueError:
+                        pass
+        except Exception as e:
+            LOG.debug(f"Could not get neighbor table for instance: {e}")
+
+    LOG.info(
+        f"Finding suitable CIDR in {parent_cidr}, excluding {len(excluded)} IPs: "
+        f"{[str(ip) for ip in sorted(excluded)]}"
+    )
+
+    checked_candidates = 0
+    max_candidates = 64
+    for candidate in net.subnets(new_prefix=ip_range):
+        checked_candidates += 1
+        if checked_candidates > max_candidates:
+            break
+
+        # Skip the first subnet containing the parent network address (.0) and gateway (.1).
+        if candidate.network_address == net.network_address:
             continue
 
-        return str(lb_net)
-    raise RuntimeError("Could not find a suitable CIDR for LoadBalancer services")
+        # Skip subnet containing the broadcast address in IPv4.
+        if hasattr(net, "broadcast_address") and net.broadcast_address in candidate:
+            continue
+
+        # Check if candidate contains any excluded IPs.
+        if any(ip in candidate for ip in excluded):
+            continue
+
+        # If an instance is provided, actively probe candidate IPs on L2.
+        if instance is not None and _is_candidate_occupied(instance, candidate):
+            continue
+
+        LOG.info(f"Selected suitable LoadBalancer CIDR: {candidate}")
+        return str(candidate)
+
+    raise RuntimeError(
+        f"Could not find a suitable CIDR for LoadBalancer services in {parent_cidr}"
+    )
 
 
 def check_file_paths_exist(
