@@ -1,7 +1,8 @@
 name: Run e2e tests
 
 permissions:
-  contents: read
+  contents: read # for actions/checkout to fetch code
+  actions: read # for gh run download to fetch artifacts
 
 on:
   workflow_call:
