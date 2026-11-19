@@ -57,7 +57,7 @@ class JujuHarness(Harness):
     def new_instance(
         self, network_type: str = "IPv4", name_suffix: str = ""
     ) -> Instance:
-        if network_type:
+        if network_type and network_type.lower() != "ipv4":
             raise HarnessError("Currently only IPv4 is supported by Juju harness")
 
         for instance_id in self.existing_machines:
