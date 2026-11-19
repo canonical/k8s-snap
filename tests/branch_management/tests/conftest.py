@@ -73,9 +73,3 @@ def current_release() -> semver.Version:
 def prior_stable_release(stable_release) -> semver.Version:
     """Return the prior release to the upstream stable"""
     return _previous_release(stable_release)
-
-
-@pytest.fixture
-def prior_release(current_release) -> semver.Version:
-    """Return the prior release to the current release"""
-    return _previous_release(current_release)
