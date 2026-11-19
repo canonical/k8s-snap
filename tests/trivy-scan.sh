@@ -19,10 +19,40 @@ fi
 # Setup Trivy vulnerability scanner
 TRIVY_VERSION="v0.69.3"
 mkdir -p .trivy/sarifs
+trap 'rm -f ./.trivy/sarifs/*.tmp' EXIT
+
 pushd .trivy
-wget https://github.com/aquasecurity/trivy/releases/download/${TRIVY_VERSION}/trivy_${TRIVY_VERSION#v}_Linux-64bit.tar.gz
-tar -zxvf ./trivy_${TRIVY_VERSION#v}_Linux-64bit.tar.gz
+if [[ ! -x ./trivy ]]; then
+  wget --tries=5 --waitretry=2 "https://github.com/aquasecurity/trivy/releases/download/${TRIVY_VERSION}/trivy_${TRIVY_VERSION#v}_Linux-64bit.tar.gz"
+  tar -zxvf "./trivy_${TRIVY_VERSION#v}_Linux-64bit.tar.gz"
+fi
 popd
+
+# Download vulnerability database with mirror fallbacks and retries
+DB_REPOSITORIES=(
+  "ghcr.io/aquasecurity/trivy-db:2"
+  "public.ecr.aws/aquasecurity/trivy-db:2"
+  "mirror.gcr.io/aquasec/trivy-db:2"
+)
+COMBINED_REPOS=$(IFS=,; echo "${DB_REPOSITORIES[*]}")
+
+DB_DOWNLOADED=false
+for repo in "$COMBINED_REPOS" "${DB_REPOSITORIES[@]}"; do
+  for attempt in 1 2 3; do
+    echo "Attempting to download Trivy vulnerability DB from ${repo} (attempt ${attempt})..."
+    if ./.trivy/trivy image --download-db-only --db-repository "$repo"; then
+      DB_DOWNLOADED=true
+      break 2
+    fi
+    echo "Attempt ${attempt} to download Trivy vulnerability DB failed. Retrying..."
+    sleep 3
+  done
+done
+
+if [[ "$DB_DOWNLOADED" != "true" ]]; then
+  echo "Failed to download Trivy vulnerability DB from all repositories."
+  exit 1
+fi
 
 # Run Trivy vulnerability scanner in repo mode.
 #
@@ -33,20 +63,23 @@ popd
 #   * the list of vulnerabilities is easier to parse and compare with the CISA list
 #   * the second run will not filter the records based on severity
 TRIVY_FS_SARIF="./.trivy/sarifs/trivy-k8s-repo-scan--results.sarif"
+TRIVY_FS_JSON="./.trivy/sarifs/trivy-k8s-repo-scan--results.json"
 
 # Run Trivy vulnerability scanner in repo mode
 ./.trivy/trivy fs . \
   --format sarif \
-  --db-repository public.ecr.aws/aquasecurity/trivy-db \
+  --skip-db-update \
   --severity "MEDIUM,HIGH,CRITICAL" \
   --ignore-unfixed \
-  > "$TRIVY_FS_SARIF"
+  --output "${TRIVY_FS_SARIF}.tmp"
+mv "${TRIVY_FS_SARIF}.tmp" "$TRIVY_FS_SARIF"
 
 ./.trivy/trivy fs . \
   --format json \
-  --db-repository public.ecr.aws/aquasecurity/trivy-db \
+  --skip-db-update \
   --ignore-unfixed \
-  > ./.trivy/sarifs/trivy-k8s-repo-scan--results.json
+  --output "${TRIVY_FS_JSON}.tmp"
+mv "${TRIVY_FS_JSON}.tmp" "$TRIVY_FS_JSON"
 
 if [[ "$REPO_ONLY" == "false" ]]; then
   # Run Trivy vulnerability scanner in rootfs mode, scanning the snap
@@ -61,16 +94,19 @@ if [[ "$REPO_ONLY" == "false" ]]; then
   popd
 
   TRIVY_ROOTFS_SARIF="./.trivy/sarifs/snap.sarif"
+  TRIVY_ROOTFS_JSON="./.trivy/sarifs/snap.json"
 
   ./.trivy/trivy rootfs ./.trivy/squashfs-root/ \
     --format sarif \
-    --db-repository public.ecr.aws/aquasecurity/trivy-db \
-    > "$TRIVY_ROOTFS_SARIF"
+    --skip-db-update \
+    --output "${TRIVY_ROOTFS_SARIF}.tmp"
+  mv "${TRIVY_ROOTFS_SARIF}.tmp" "$TRIVY_ROOTFS_SARIF"
 
   ./.trivy/trivy rootfs ./.trivy/squashfs-root/ \
     --format json \
-    --db-repository public.ecr.aws/aquasecurity/trivy-db \
-    > ./.trivy/sarifs/snap.json
+    --skip-db-update \
+    --output "${TRIVY_ROOTFS_JSON}.tmp"
+  mv "${TRIVY_ROOTFS_JSON}.tmp" "$TRIVY_ROOTFS_JSON"
 fi
 
 function split_sarif_runs() {
@@ -83,7 +119,7 @@ function split_sarif_runs() {
     return 0
   fi
 
-  echo "Splitting SARIF: $input_sarif (contains $count runs)"
+  echo "Splitting SARIF: $input_sarif (contains $count runs)" >&2
   local output_files=()
   local base="${input_sarif%.sarif}"
   for i in $(seq 0 $((count - 1))); do
@@ -104,7 +140,7 @@ if [[ "$REPO_ONLY" == "false" ]]; then
 fi
 
 # Obtain CISA Known Exploited Vulnerabilities list.
-curl -s -o ./.trivy/kev.json \
+curl -fsSL --retry 5 --retry-delay 2 -o ./.trivy/kev.json \
   https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json
 
 function get_cisa_kev_cves() {
@@ -134,3 +170,5 @@ echo "Final SARIF files:"
 for sarif in "${REPO_SARIF_FILES[@]}" "${ROOTFS_SARIF_FILES[@]}"; do
   echo "$sarif"
 done
+trap - EXIT
+
