@@ -32,8 +32,8 @@ popd
 TRIVY_CACHE_DIR="${TRIVY_CACHE_DIR:-${HOME}/.cache/trivy}"
 mkdir -p "$TRIVY_CACHE_DIR"
 
-# Isolate download attempts from global credentials to prevent credential exposure across registries
-unset TRIVY_USERNAME TRIVY_PASSWORD TRIVY_REGISTRY_TOKEN TRIVY_AUTH_TOKEN
+# Isolate download attempts from global credentials and config to prevent credential exposure across registries
+unset TRIVY_USERNAME TRIVY_PASSWORD TRIVY_REGISTRY_TOKEN TRIVY_AUTH_TOKEN TRIVY_CONFIG
 
 # Download vulnerability database with mirror fallbacks and retries
 DB_REPOSITORIES=(
@@ -45,7 +45,7 @@ DB_DOWNLOADED=false
 for repo in "${DB_REPOSITORIES[@]}"; do
   for attempt in 1 2 3; do
     echo "Attempting to download Trivy vulnerability DB from ${repo} (attempt ${attempt})..."
-    if ./.trivy/trivy image --cache-dir "$TRIVY_CACHE_DIR" --download-db-only --db-repository "$repo"; then
+    if ./.trivy/trivy image --config /dev/null --cache-dir "$TRIVY_CACHE_DIR" --download-db-only --db-repository "$repo"; then
       DB_DOWNLOADED=true
       break 2
     fi
@@ -150,9 +150,13 @@ if [[ "$REPO_ONLY" == "false" ]]; then
 fi
 
 # Obtain CISA Known Exploited Vulnerabilities list.
-curl -fsSL --retry 5 --retry-delay 2 -o ./.trivy/kev.json \
-  https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json
-
+CISA_DOWNLOAD_OK=false
+if curl -fsSL --retry 5 --retry-delay 2 -o ./.trivy/kev.json \
+  https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json; then
+  CISA_DOWNLOAD_OK=true
+else
+  echo "Warning: failed to download CISA KEV catalog after retries; skipping KEV comparison" >&2
+fi
 function get_cisa_kev_cves() {
   local kevJson=$1
   local trivyJsonReport=$2
@@ -171,9 +175,11 @@ function get_cisa_kev_cves() {
 }
 
 # Compare the trivy reports with the CISA KEV list
-get_cisa_kev_cves ./.trivy/kev.json ./.trivy/sarifs/trivy-k8s-repo-scan--results.json
-if [[ "$REPO_ONLY" == "false" ]]; then
-  get_cisa_kev_cves ./.trivy/kev.json ./.trivy/sarifs/snap.json
+if [[ "$CISA_DOWNLOAD_OK" == "true" ]]; then
+  get_cisa_kev_cves ./.trivy/kev.json ./.trivy/sarifs/trivy-k8s-repo-scan--results.json
+  if [[ "$REPO_ONLY" == "false" ]]; then
+    get_cisa_kev_cves ./.trivy/kev.json ./.trivy/sarifs/snap.json
+  fi
 fi
 
 echo "Final SARIF files:"
