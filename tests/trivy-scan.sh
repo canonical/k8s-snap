@@ -5,10 +5,15 @@ SCRIPT_DIR=$(realpath "$(dirname "$BASH_SOURCE")")
 set -ex
 cd "${SCRIPT_DIR}/.."
 
-SNAP_PATH="$1"
-if [[ ! -f $SNAP_PATH ]]; then
-  echo "Usage: $0 <snap_path>"
-  exit 1
+REPO_ONLY=false
+if [[ "${1:-}" == "--repo-only" ]]; then
+  REPO_ONLY=true
+else
+  SNAP_PATH="${1:-}"
+  if [[ ! -f "$SNAP_PATH" ]]; then
+    echo "Usage: $0 <snap_path> | --repo-only"
+    exit 1
+  fi
 fi
 
 # Setup Trivy vulnerability scanner
@@ -43,28 +48,30 @@ TRIVY_FS_SARIF="./.trivy/sarifs/trivy-k8s-repo-scan--results.sarif"
   --ignore-unfixed \
   > ./.trivy/sarifs/trivy-k8s-repo-scan--results.json
 
-# Run Trivy vulnerability scanner in rootfs mode, scanning the snap
-for var in $(env | grep -o '^TRIVY_[^=]*'); do
-  unset "$var"
-done
+if [[ "$REPO_ONLY" == "false" ]]; then
+  # Run Trivy vulnerability scanner in rootfs mode, scanning the snap
+  for var in $(env | grep -o '^TRIVY_[^=]*'); do
+    unset "$var"
+  done
 
-cp "${SNAP_PATH}" ./.trivy/k8s-test.snap
-rm -rf ./.trivy/squashfs-root
-pushd ./.trivy
-unsquashfs ./k8s-test.snap
-popd
+  cp "${SNAP_PATH}" ./.trivy/k8s-test.snap
+  rm -rf ./.trivy/squashfs-root
+  pushd ./.trivy
+  unsquashfs ./k8s-test.snap
+  popd
 
-TRIVY_ROOTFS_SARIF="./.trivy/sarifs/snap.sarif"
+  TRIVY_ROOTFS_SARIF="./.trivy/sarifs/snap.sarif"
 
-./.trivy/trivy rootfs ./.trivy/squashfs-root/ \
-  --format sarif \
-  --db-repository public.ecr.aws/aquasecurity/trivy-db \
-  > "$TRIVY_ROOTFS_SARIF"
+  ./.trivy/trivy rootfs ./.trivy/squashfs-root/ \
+    --format sarif \
+    --db-repository public.ecr.aws/aquasecurity/trivy-db \
+    > "$TRIVY_ROOTFS_SARIF"
 
-./.trivy/trivy rootfs ./.trivy/squashfs-root/ \
-  --format json \
-  --db-repository public.ecr.aws/aquasecurity/trivy-db \
-  > ./.trivy/sarifs/snap.json
+  ./.trivy/trivy rootfs ./.trivy/squashfs-root/ \
+    --format json \
+    --db-repository public.ecr.aws/aquasecurity/trivy-db \
+    > ./.trivy/sarifs/snap.json
+fi
 
 function split_sarif_runs() {
   local input_sarif="$1"
@@ -91,7 +98,10 @@ function split_sarif_runs() {
 
 # Split and collect final SARIF files
 REPO_SARIF_FILES=($(split_sarif_runs "$TRIVY_FS_SARIF"))
-ROOTFS_SARIF_FILES=($(split_sarif_runs "$TRIVY_ROOTFS_SARIF"))
+ROOTFS_SARIF_FILES=()
+if [[ "$REPO_ONLY" == "false" ]]; then
+  ROOTFS_SARIF_FILES=($(split_sarif_runs "$TRIVY_ROOTFS_SARIF"))
+fi
 
 # Obtain CISA Known Exploited Vulnerabilities list.
 curl -s -o ./.trivy/kev.json \
@@ -116,7 +126,9 @@ function get_cisa_kev_cves() {
 
 # Compare the trivy reports with the CISA KEV list
 get_cisa_kev_cves ./.trivy/kev.json ./.trivy/sarifs/trivy-k8s-repo-scan--results.json
-get_cisa_kev_cves ./.trivy/kev.json ./.trivy/sarifs/snap.json
+if [[ "$REPO_ONLY" == "false" ]]; then
+  get_cisa_kev_cves ./.trivy/kev.json ./.trivy/sarifs/snap.json
+fi
 
 echo "Final SARIF files:"
 for sarif in "${REPO_SARIF_FILES[@]}" "${ROOTFS_SARIF_FILES[@]}"; do
