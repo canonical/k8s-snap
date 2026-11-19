@@ -28,6 +28,13 @@ if [[ ! -x ./trivy ]]; then
 fi
 popd
 
+# Resolve and isolate a consistent cache directory across all Trivy invocations
+TRIVY_CACHE_DIR="${TRIVY_CACHE_DIR:-${HOME}/.cache/trivy}"
+mkdir -p "$TRIVY_CACHE_DIR"
+
+# Isolate download attempts from global credentials to prevent credential exposure across registries
+unset TRIVY_USERNAME TRIVY_PASSWORD TRIVY_REGISTRY_TOKEN TRIVY_AUTH_TOKEN
+
 # Download vulnerability database with mirror fallbacks and retries
 DB_REPOSITORIES=(
   "ghcr.io/aquasecurity/trivy-db:2"
@@ -36,13 +43,9 @@ DB_REPOSITORIES=(
 )
 DB_DOWNLOADED=false
 for repo in "${DB_REPOSITORIES[@]}"; do
-  extra_env=()
-  if [[ "$repo" != ghcr.io/* ]]; then
-    extra_env=(TRIVY_USERNAME="" TRIVY_PASSWORD="" TRIVY_REGISTRY_TOKEN="")
-  fi
   for attempt in 1 2 3; do
     echo "Attempting to download Trivy vulnerability DB from ${repo} (attempt ${attempt})..."
-    if env "${extra_env[@]}" ./.trivy/trivy image --download-db-only --db-repository "$repo"; then
+    if ./.trivy/trivy image --cache-dir "$TRIVY_CACHE_DIR" --download-db-only --db-repository "$repo"; then
       DB_DOWNLOADED=true
       break 2
     fi
@@ -68,6 +71,7 @@ TRIVY_FS_JSON="./.trivy/sarifs/trivy-k8s-repo-scan--results.json"
 
 # Run Trivy vulnerability scanner in repo mode
 ./.trivy/trivy fs . \
+  --cache-dir "$TRIVY_CACHE_DIR" \
   --format sarif \
   --skip-db-update \
   --severity "MEDIUM,HIGH,CRITICAL" \
@@ -76,6 +80,7 @@ TRIVY_FS_JSON="./.trivy/sarifs/trivy-k8s-repo-scan--results.json"
 mv "${TRIVY_FS_SARIF}.tmp" "$TRIVY_FS_SARIF"
 
 ./.trivy/trivy fs . \
+  --cache-dir "$TRIVY_CACHE_DIR" \
   --format json \
   --skip-db-update \
   --ignore-unfixed \
@@ -100,12 +105,14 @@ if [[ "$REPO_ONLY" == "false" ]]; then
   TRIVY_ROOTFS_JSON="./.trivy/sarifs/snap.json"
 
   ./.trivy/trivy rootfs ./.trivy/squashfs-root/ \
+    --cache-dir "$TRIVY_CACHE_DIR" \
     --format sarif \
     --skip-db-update \
     --output "${TRIVY_ROOTFS_SARIF}.tmp"
   mv "${TRIVY_ROOTFS_SARIF}.tmp" "$TRIVY_ROOTFS_SARIF"
 
   ./.trivy/trivy rootfs ./.trivy/squashfs-root/ \
+    --cache-dir "$TRIVY_CACHE_DIR" \
     --format json \
     --skip-db-update \
     --output "${TRIVY_ROOTFS_JSON}.tmp"
