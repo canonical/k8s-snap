@@ -76,8 +76,8 @@ def test_kubectl(instances: List[harness.Instance]):
 
     # Stop k8sd service
     LOG.info("Stopping k8sd service...")
-    cp.exec(["snap", "stop", "k8s.k8sd"])
-    worker.exec(["snap", "stop", "k8s.k8sd"])
+    util.stubbornly(retries=5, delay_s=2).on(cp).exec(["snap", "stop", "k8s.k8sd"])
+    util.stubbornly(retries=5, delay_s=2).on(worker).exec(["snap", "stop", "k8s.k8sd"])
 
     # Give it a moment to fully stop
     util.stubbornly(retries=10, delay_s=3).on(cp).until(
