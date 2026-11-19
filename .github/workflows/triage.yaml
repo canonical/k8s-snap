@@ -185,7 +185,7 @@ jobs:
                   fetch-depth: 0
 
             - name: Set up AI Agent Toolkit
-              uses: ./.github/actions/setup-triage-toolkit
+              uses: $/.github/actions/setup-triage-toolkit
               with:
                   token: ${{ secrets.BOT_TOKEN }}
 
@@ -283,7 +283,7 @@ jobs:
                   fetch-depth: 0
 
             - name: Set up AI Agent Toolkit
-              uses: ./.github/actions/setup-triage-toolkit
+              uses: $/.github/actions/setup-triage-toolkit
               with:
                   token: ${{ secrets.BOT_TOKEN }}
 
@@ -340,7 +340,7 @@ jobs:
                   ref: ${{ github.event_name == 'pull_request' && 'main' || github.ref }}
 
             - name: Set up AI Agent Toolkit
-              uses: ./.github/actions/setup-triage-toolkit
+              uses: ./.github/actions/setup-triage-toolkit # zizmor: ignore[self-repository] must load from the explicit main checkout above rather than an unmerged PR ref
               with:
                   token: ${{ secrets.BOT_TOKEN }}
 
@@ -373,7 +373,7 @@ jobs:
                   persist-credentials: false
 
             - name: Set up AI Agent Toolkit
-              uses: ./.github/actions/setup-triage-toolkit
+              uses: $/.github/actions/setup-triage-toolkit
               with:
                   token: ${{ secrets.BOT_TOKEN }}
 

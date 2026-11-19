@@ -21,7 +21,7 @@ jobs:
         os: ["jammy", "noble"]
         arch: ["amd64"]
         channel: ["latest/edge"]
-    uses: ./.github/workflows/e2e-tests.yaml
+    uses: $/.github/workflows/e2e-tests.yaml
     with:
       arch: ${{ matrix.arch }}
       os: ${{ matrix.os }}
@@ -40,7 +40,7 @@ jobs:
         arch: ["amd64", "arm64"]
         channel: ["latest/edge"]
       fail-fast: false
-    uses: ./.github/workflows/e2e-tests.yaml
+    uses: $/.github/workflows/e2e-tests.yaml
     with:
       arch: ${{ matrix.arch }}
       channel: ${{ matrix.channel }}
@@ -66,7 +66,7 @@ jobs:
             "1.36-classic/stable",
             "1.37-classic/stable",
           ]
-    uses: ./.github/workflows/e2e-tests.yaml
+    uses: $/.github/workflows/e2e-tests.yaml
     with:
       arch: ${{ matrix.arch }}
       os: ${{ matrix.os }}
@@ -89,7 +89,7 @@ jobs:
             "release-1.36",
             "release-1.37",
           ]
-    uses: ./.github/workflows/linkcheck.yaml
+    uses: $/.github/workflows/linkcheck.yaml
     with:
       target: ${{ matrix.target }}
 

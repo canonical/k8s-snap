@@ -36,6 +36,8 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
       - name: Setup Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
@@ -68,13 +70,15 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
       - name: Setup Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: '3.10'
       - name: Download k8s-snap
         id: download-snap
-        uses: ./.github/actions/download-k8s-snap
+        uses: $/.github/actions/download-k8s-snap
         with:
           channel: ${{ inputs.channel }}
           artifact: ${{ inputs.artifact }}
@@ -96,7 +100,7 @@ jobs:
       - name: Install tox with UV
         run: uv tool install tox --with tox-uv
       - name: Install charmcraft, juju, juju-crashdump
-        uses: ./.github/actions/retry-command
+        uses: $/.github/actions/retry-command
         with:
           timeout_minutes: 10
           max_attempts: 5
@@ -106,7 +110,7 @@ jobs:
             sudo snap install juju --channel=3/stable --classic
             sudo snap install juju-crashdump --classic
       - name: Download charms ${{ inputs.charm-channel }} ${{ inputs.arch }}
-        uses: ./.github/actions/retry-command
+        uses: $/.github/actions/retry-command
         env:
           INPUT_ARCH: ${{ inputs.arch }}
           INPUT_CHARM_CHANNEL: ${{ inputs.charm-channel }}
@@ -148,6 +152,7 @@ jobs:
           juju bootstrap localhost lxd
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          persist-credentials: false
           repository: canonical/k8s-operator
           ref: ${{ github.base_ref || github.ref_name }}
           path: ${{ env.K8S_OPERATOR }}

@@ -35,6 +35,8 @@ jobs:
     steps:
       - name: Checking out repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
       - name: Apply flavor-specific patches
         if: inputs.flavor != ''
         env:
@@ -52,7 +54,7 @@ jobs:
       - name: Setup LXD
         uses: canonical/setup-lxd@8c6a87bfb56aa48f3fb9b830baa18562d8bfd4ee # v1
       - name: Install snapcraft
-        uses: ./.github/actions/retry-command
+        uses: $/.github/actions/retry-command
         with:
           timeout_minutes: 10
           max_attempts: 5
