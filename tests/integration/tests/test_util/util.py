@@ -1147,19 +1147,37 @@ def _is_candidate_occupied(
     ping_flag = "-6" if candidate.version == 6 else "-4"
     neigh_flag = "-6" if candidate.version == 6 else "-4"
     probe_script = f"""
-tmp=$(mktemp)
-trap 'rm -f "$tmp"' EXIT
+command -v ping >/dev/null 2>&1 || exit 127
+command -v ip >/dev/null 2>&1 || exit 127
+tmp=$(mktemp) || exit 1
+errors=$(mktemp) || exit 1
+trap 'rm -f "$tmp" "$errors"' EXIT
 for ip in {ips_str}; do
-    ping {ping_flag} -c 1 -W 1 $ip >/dev/null 2>&1 && echo "occupied $ip" >> "$tmp" &
+    (
+        ping {ping_flag} -c 1 -W 1 "$ip" >/dev/null 2>&1
+        status=$?
+        if [ "$status" -eq 0 ]; then
+            echo "occupied $ip" >> "$tmp"
+        elif [ "$status" -gt 1 ]; then
+            echo "ping failed for $ip with status $status" >> "$errors"
+        fi
+    ) &
 done
 wait
+if [ -s "$errors" ]; then
+    cat "$errors" >&2
+    exit 1
+fi
 if [ -s "$tmp" ]; then
     cat "$tmp"
     exit 0
 fi
 for ip in {ips_str}; do
-    neigh=$(ip {neigh_flag} neigh show $ip 2>/dev/null)
-    if echo "$neigh" | grep -q "lladdr" && ! echo "$neigh" | grep -q "FAILED"; then
+    if ! neigh=$(ip {neigh_flag} neigh show "$ip" 2>/dev/null); then
+        echo "neighbor lookup failed for $ip" >&2
+        exit 1
+    fi
+    if [[ "$neigh" == *lladdr* && "$neigh" != *FAILED* ]]; then
         echo "occupied $ip"
         exit 0
     fi
@@ -1178,20 +1196,24 @@ echo "free"
             if isinstance(res.stdout, bytes)
             else str(res.stdout or "")
         )
-        if "occupied" in out:
+        if res.returncode != 0:
+            raise RuntimeError(
+                f"Probe exited with status {res.returncode}: {out.strip()!r}"
+            )
+        if out.strip().startswith("occupied "):
             LOG.info(
                 f"Candidate CIDR {candidate} is occupied on network: {out.strip()}"
             )
             return True
-        if "free" in out:
+        if out.strip() == "free":
             return False
-        LOG.warning(
-            f"Inconclusive probe result for CIDR {candidate}: rc={res.returncode} stdout={out!r}"
-        )
-        return True
     except Exception as e:
         LOG.warning(f"Failed to probe candidate CIDR {candidate} from instance: {e}")
-        return True
+        raise RuntimeError(f"Could not verify candidate CIDR {candidate}") from e
+
+    raise RuntimeError(
+        f"Inconclusive probe result for CIDR {candidate}: stdout={out!r}"
+    )
 
 
 def find_suitable_cidr(
@@ -1338,8 +1360,7 @@ def find_suitable_cidr(
 
         # Skip subnet containing the broadcast address in IPv4.
         if (
-            not ipv6
-            and hasattr(net, "broadcast_address")
+            isinstance(net, ipaddress.IPv4Network)
             and net.broadcast_address in candidate
         ):
             continue

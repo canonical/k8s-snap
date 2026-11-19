@@ -43,6 +43,12 @@ def test_find_suitable_cidr_ipv6_basic_and_excluded():
 
 
 @pytest.mark.tags(tags.PULL_REQUEST)
+def test_find_suitable_cidr_ipv6_does_not_exclude_highest_address():
+    """Verify IPv6 selection does not treat the highest address as an IPv4 broadcast."""
+    assert util.find_suitable_cidr("fd00::/125") == "fd00::4/126"
+
+
+@pytest.mark.tags(tags.PULL_REQUEST)
 def test_find_suitable_cidr_skips_network_and_broadcast():
     """Verify that network (.0) and broadcast (.15 in /28) are never allocated."""
     # 10.0.0.0/28 has 16 addresses (0 to 15).
@@ -164,12 +170,26 @@ def test_is_candidate_occupied_probe_results():
     )
     assert util._is_candidate_occupied(mock_instance, net) is False
 
-    # Inconclusive probe output (empty or malformed) must be treated as occupied/unsafe
+    # Inconclusive probe output (empty or malformed) must not be accepted as free.
     mock_instance.exec.return_value = subprocess.CompletedProcess(
         args=[], returncode=1, stdout=b""
     )
-    assert util._is_candidate_occupied(mock_instance, net) is True
+    with pytest.raises(RuntimeError):
+        util._is_candidate_occupied(mock_instance, net)
 
-    # Probe failure/exception must be treated as occupied/unsafe
+    mock_instance.exec.return_value = subprocess.CompletedProcess(
+        args=[], returncode=1, stdout=b"free\n"
+    )
+    with pytest.raises(RuntimeError):
+        util._is_candidate_occupied(mock_instance, net)
+
+    mock_instance.exec.return_value = subprocess.CompletedProcess(
+        args=[], returncode=0, stdout=b"not free\n"
+    )
+    with pytest.raises(RuntimeError):
+        util._is_candidate_occupied(mock_instance, net)
+
+    # Probe failure/exception must not be accepted as free.
     mock_instance.exec.side_effect = RuntimeError("exec failed")
-    assert util._is_candidate_occupied(mock_instance, net) is True
+    with pytest.raises(RuntimeError):
+        util._is_candidate_occupied(mock_instance, net)
