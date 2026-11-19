@@ -191,7 +191,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install tox
-        uses: $/.github/actions/retry-command # nosemgrep: yaml.github-actions.security.github-actions-mutable-action-tag.github-actions-mutable-action-tag
+        uses: $/.github/actions/retry-command
         with:
           timeout_minutes: 5
           max_attempts: 5
@@ -264,7 +264,7 @@ jobs:
           python-version: "3.12"
       - name: Download k8s-snap
         id: download-snap
-        uses: $/.github/actions/download-k8s-snap # nosemgrep: yaml.github-actions.security.github-actions-mutable-action-tag.github-actions-mutable-action-tag
+        uses: $/.github/actions/download-k8s-snap
         with:
           channel: ${{ inputs.channel }}
           artifact: ${{ inputs.artifact }}
@@ -276,9 +276,9 @@ jobs:
           channel: "5.21/stable"
       - name: Setup Multipass
         if: ${{ inputs.substrate == 'multipass' }}
-        uses: $/.github/actions/setup-multipass # nosemgrep: yaml.github-actions.security.github-actions-mutable-action-tag.github-actions-mutable-action-tag
+        uses: $/.github/actions/setup-multipass
       - name: Install tox
-        uses: $/.github/actions/retry-command # nosemgrep: yaml.github-actions.security.github-actions-mutable-action-tag.github-actions-mutable-action-tag
+        uses: $/.github/actions/retry-command
         with:
           timeout_minutes: 5
           max_attempts: 5
