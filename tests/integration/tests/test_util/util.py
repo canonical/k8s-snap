@@ -27,6 +27,7 @@ from tenacity import (
     retry_if_exception,
     retry_if_exception_type,
     stop_after_attempt,
+    stop_after_delay,
     stop_never,
     wait_exponential,
     wait_fixed,
@@ -185,6 +186,7 @@ def stubbornly(
     retries: Optional[int] = None,
     delay_s: Optional[Union[float, int]] = None,
     exceptions: Optional[tuple] = None,
+    timeout_s: Optional[Union[float, int]] = None,
     **retry_kds,
 ):
     """
@@ -214,7 +216,14 @@ def stubbornly(
         LOG.info(f"Retrying in {delay_s} seconds...")
 
     waits = wait_fixed(delay_s) if delay_s else wait_fixed(0)
-    stops = stop_after_attempt(retries) if retries else stop_never
+    stops = stop_never
+    if retries and timeout_s:
+        stops = stop_after_attempt(retries) | stop_after_delay(timeout_s)
+    elif retries:
+        stops = stop_after_attempt(retries)
+    elif timeout_s:
+        stops = stop_after_delay(timeout_s)
+
     exceptions = exceptions or (Exception,)  # default to retry on all exceptions
 
     retry_args = dict(
@@ -263,6 +272,7 @@ def wait_for_snap_changes(
     instance: harness.Instance,
     retries: int = 60,
     delay_s: int = 5,
+    timeout_s: int = 300,
 ) -> None:
     """Wait for all in-progress snapd changes to finish.
 
@@ -292,9 +302,9 @@ def wait_for_snap_changes(
                 return False
         return True
 
-    stubbornly(retries=retries, delay_s=delay_s).on(instance).until(
-        _has_no_in_progress_changes
-    ).exec(["snap", "changes"], timeout=30)
+    stubbornly(retries=retries, delay_s=delay_s, timeout_s=timeout_s).on(
+        instance
+    ).until(_has_no_in_progress_changes).exec(["snap", "changes"], timeout=15)
 
 
 def _exec_snap_cmd_with_retries(
@@ -447,9 +457,10 @@ def setup_k8s_snap(
             which_snap,
         )
         if not (isinstance(which_snap, str) and which_snap.startswith("/")):
-            snap_refresh(
+            refresh_cmd = ["snap", "refresh", *cmd[3:], "--classic"]
+            _exec_snap_cmd_with_retries(
                 instance,
-                which_snap,
+                refresh_cmd,
                 retries=retries,
                 delay_s=delay_s,
                 timeout=timeout,
