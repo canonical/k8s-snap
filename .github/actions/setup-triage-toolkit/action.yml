@@ -13,7 +13,7 @@ inputs:
     ref:
         description: Toolkit ref to install
         required: false
-        default: feat/triage-bot-toolkit
+        default: main
     python-version:
         description: Python version for the virtualenv
         required: false

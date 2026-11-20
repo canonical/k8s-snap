@@ -173,6 +173,7 @@ jobs:
             cancel-in-progress: false
         # Maintainer pipeline runs cluster reproduction and fix drafting.
         runs-on: [self-hosted, linux, noble, xlarge]
+        environment: triage-bot
         permissions:
             contents: read
             issues: read
@@ -192,6 +193,7 @@ jobs:
             - name: Run triage pipeline (unprivileged)
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  OPENROUTER_API_KEY: ${{ secrets.TRIAGE_OPENROUTER_API_KEY }}
                   GOOGLE_API_KEY: ${{ secrets.TRIAGE_GOOGLE_API_KEY }}
                   GITHUB_EVENT_PATH: ${{ github.event_path }}
                   EVENT_NAME: ${{ github.event_name }}
@@ -327,6 +329,7 @@ jobs:
             cancel-in-progress: false
         # Untrusted events: label, dedup, and request missing info only.
         runs-on: ubuntu-latest
+        environment: triage-bot
         permissions:
             issues: write
             contents: read
@@ -347,6 +350,7 @@ jobs:
             - name: Run triage bot
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  OPENROUTER_API_KEY: ${{ secrets.TRIAGE_OPENROUTER_API_KEY }}
                   GOOGLE_API_KEY: ${{ secrets.TRIAGE_GOOGLE_API_KEY }}
                   GITHUB_EVENT_PATH: ${{ github.event_path }}
               run: |
