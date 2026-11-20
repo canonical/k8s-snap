@@ -92,6 +92,7 @@ require (
 	github.com/google/gnostic-models v0.7.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/renameio v1.0.1 // indirect
+	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/gorilla/securecookie v1.1.2 // indirect
@@ -133,7 +134,6 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pkg/sftp v1.13.11 // indirect
 	github.com/pkg/xattr v0.4.12 // indirect
-	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_golang v1.25.0 // indirect
 	github.com/prometheus/client_model v0.6.3 // indirect
 	github.com/prometheus/common v0.72.0 // indirect
@@ -184,24 +184,30 @@ require (
 	sigs.k8s.io/kustomize/api v0.20.1 // indirect
 	sigs.k8s.io/kustomize/kyaml v0.20.1 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect
-	sigs.k8s.io/structured-merge-diff/v6 v6.3.0 // indirect
+	sigs.k8s.io/structured-merge-diff/v4 v4.6.0 // indirect
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
-replace k8s.io/api => k8s.io/api v0.34.0
+replace k8s.io/api => k8s.io/api v0.33.13
 
-replace k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.34.0
+replace k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.33.13
 
-replace k8s.io/apimachinery => k8s.io/apimachinery v0.34.0
+replace k8s.io/apimachinery => k8s.io/apimachinery v0.33.13
 
-replace k8s.io/apiserver => k8s.io/apiserver v0.34.0
+replace k8s.io/apiserver => k8s.io/apiserver v0.33.13
 
-replace k8s.io/cli-runtime => k8s.io/cli-runtime v0.34.0
+replace k8s.io/cli-runtime => k8s.io/cli-runtime v0.33.13
 
-replace k8s.io/client-go => k8s.io/client-go v0.34.0
+replace k8s.io/client-go => k8s.io/client-go v0.33.13
 
-replace k8s.io/component-base => k8s.io/component-base v0.34.0
+replace k8s.io/component-base => k8s.io/component-base v0.33.13
 
-replace k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20250710124328-f3f2b991d03b
+replace k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20250318190949-c8a335a9a2ff
 
-replace k8s.io/kubectl => k8s.io/kubectl v0.34.0
+replace k8s.io/kubectl => k8s.io/kubectl v0.33.13
+
+replace github.com/google/gnostic-models => github.com/google/gnostic-models v0.6.9
+
+replace sigs.k8s.io/kustomize/api => sigs.k8s.io/kustomize/api v0.19.0
+
+replace sigs.k8s.io/kustomize/kyaml => sigs.k8s.io/kustomize/kyaml v0.19.0
