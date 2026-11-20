@@ -43,7 +43,8 @@ class MultipassHarness(Harness):
     def new_instance(
         self, network_type: str = "IPv4", name_suffix: str = ""
     ) -> Instance:
-        if network_type.lower() not in ("ipv4", "ipv6", "dualstack"):
+        network_type_clean = network_type.lower()
+        if network_type_clean not in ("ipv4", "ipv6", "dualstack"):
             raise HarnessError(
                 f"Unknown network type: {network_type}; supported types: IPv4, IPv6, dualstack"
             )
@@ -130,7 +131,7 @@ class MultipassHarness(Harness):
         stubbornly(retries=5, delay_s=5).on(instance).exec(
             ["snap", "wait", "system", "seed.loaded"]
         )
-        if network_type.lower() in ("ipv6", "dualstack"):
+        if network_type_clean in ("ipv6", "dualstack"):
             LOG.debug("Enabling IPv6 support in instance %s", instance_id)
             try:
                 self.exec(
