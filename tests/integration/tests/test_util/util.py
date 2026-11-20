@@ -1018,7 +1018,11 @@ def tracks_least_risk(track: str, arch: str) -> str:
     LOG.debug("Determining least risk channel for track: %s on %s", track, arch)
     if track == "latest":
         return f"latest/edge/{config.VARIANT or 'classic'}"
-
+    if config.VARIANT == "strict":
+        base_track = track.removesuffix("-strict")
+        if not base_track.endswith("-classic"):
+            base_track = f"{base_track}-classic"
+        return f"{base_track}/edge/strict"
     INFO_URL = f"https://api.snapcraft.io/v2/snaps/info/{config.SNAP_NAME}"
     HEADERS = {
         "Snap-Device-Series": "16",
