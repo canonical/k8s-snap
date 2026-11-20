@@ -22,9 +22,10 @@ mkdir -p .trivy/sarifs
 trap 'rm -f ./.trivy/sarifs/*.tmp' EXIT
 
 pushd .trivy
-if [[ ! -x ./trivy ]]; then
-  wget --tries=5 --waitretry=2 "https://github.com/aquasecurity/trivy/releases/download/${TRIVY_VERSION}/trivy_${TRIVY_VERSION#v}_Linux-64bit.tar.gz"
-  tar -zxvf "./trivy_${TRIVY_VERSION#v}_Linux-64bit.tar.gz"
+TRIVY_TARBALL="trivy_${TRIVY_VERSION#v}_Linux-64bit.tar.gz"
+if [[ ! -x ./trivy ]] || [[ "$(./trivy --version | head -n1)" != "Version: ${TRIVY_VERSION#v}" ]]; then
+  wget --tries=5 --waitretry=2 -O "$TRIVY_TARBALL" "https://github.com/aquasecurity/trivy/releases/download/${TRIVY_VERSION}/${TRIVY_TARBALL}"
+  tar -zxvf "./${TRIVY_TARBALL}"
 fi
 popd
 
