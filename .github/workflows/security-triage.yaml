@@ -47,7 +47,7 @@ jobs:
 
             - name: Run security triage
               env:
-                  GH_TOKEN: ${{ github.event_name != 'pull_request' && secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   MATTERMOST_BOT_WEBHOOK_URL: ${{ secrets.MATTERMOST_BOT_WEBHOOK_URL }}
                   # Kubernetes CI Night's watch channel
                   MATTERMOST_CHANNEL_ID: "4axiydhyxfr8px4phe9d5wgx7w"

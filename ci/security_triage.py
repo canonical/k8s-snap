@@ -5,7 +5,7 @@
 """
 Security PoC daily triage script.
 
-Fetches code scanning alerts from Canonical Kubernetes repos,
+Fetches code scanning alerts across default and active release branches,
 tracks new vs known alerts, and posts a structured triage summary
 to Mattermost via incoming webhook.
 
@@ -16,7 +16,7 @@ Usage:
     python3 ci/security_triage.py --webhook <URL> [--dry-run]
 
 Environment variables:
-    GH_TOKEN  — GitHub token with security_events scope for all target repos
+    GH_TOKEN  — GitHub token with security_events read scope for the repository
 """
 
 import argparse
@@ -32,12 +32,7 @@ from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-PRIMARY_REPO = "canonical/k8s-snap"
-REPOS = [
-    "canonical/k8s-snap",
-    "canonical/k8sd",
-    "canonical/k8s-snap-api",
-]
+REPO = os.environ.get("GITHUB_REPOSITORY", "canonical/k8s-snap")
 
 # Alerts older than this are flagged as overdue
 OVERDUE_DAYS = 7
@@ -48,21 +43,8 @@ STATE_VERSION = 2
 STATE_FILE = Path(os.environ.get("STATE_FILE", "/tmp/security-triage-state.json"))
 
 
-class GhApiError(Exception):
-
-    def __init__(self, endpoint: str, stderr: str, returncode: int = 1):
-        super().__init__(f"failed to fetch {endpoint}: {stderr}")
-        self.endpoint = endpoint
-        self.stderr = stderr
-        self.returncode = returncode
-
-    @property
-    def is_permission_or_not_found(self) -> bool:
-        return "403" in self.stderr or "404" in self.stderr
-
-
 def gh_api(endpoint: str) -> list[dict[str, Any]]:
-    """Call gh api and return parsed JSON."""
+    """Call gh api and return parsed JSON. Exits on error."""
     cmd = ["gh", "api", endpoint, "--paginate", "--slurp"]
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
@@ -73,9 +55,11 @@ def gh_api(endpoint: str) -> list[dict[str, Any]]:
             for item in (page if isinstance(page, list) else [page])
         ]
     except subprocess.CalledProcessError as e:
-        raise GhApiError(endpoint, e.stderr, e.returncode) from e
+        print(f"Error: failed to fetch {endpoint}: {e.stderr}", file=sys.stderr)
+        raise SystemExit(1)
     except json.JSONDecodeError as e:
-        raise GhApiError(endpoint, f"JSON decode error: {e}") from e
+        print(f"Error: failed to parse response from {endpoint}: {e}", file=sys.stderr)
+        raise SystemExit(1)
 
 
 def days_ago(iso_date: str) -> int:
@@ -310,10 +294,9 @@ def format_alert_row(a: dict[str, Any]) -> str:
         and a["severity"].lower() in ("critical", "high")
         else ""
     )
-    repo_display = a.get("repo", "").split("/")[-1]
     branch_display = a.get("branches_display", "—")
     return (
-        f"| {repo_display} | {link_display} | {a['tool']} | {sev_display} | "
+        f"| {link_display} | {a['tool']} | {sev_display} | "
         f"{branch_display} | {summary} | {a['age_days']}d{overdue} |"
     )
 
@@ -360,8 +343,8 @@ def build_message(
     # NEW section — always expanded, full detail
     if new_alerts:
         lines.append("### 🆕 NEW — needs attention")
-        lines.append("| Repo | Rule | Tool | Severity | Branch | Description | Age |")
-        lines.append("|------|------|------|----------|--------|-------------|-----|")
+        lines.append("| Rule | Tool | Severity | Branch | Description | Age |")
+        lines.append("|------|------|----------|--------|-------------|-----|")
         for a in new_alerts:
             lines.append(format_alert_row(a))
         lines.append("")
@@ -383,12 +366,8 @@ def build_message(
             lines.append(
                 f"#### {tool_name} ({len(tool_alerts)} alerts) — {sev_summary}"
             )
-            lines.append(
-                "| Repo | Rule | Tool | Severity | Branch | Description | Age |"
-            )
-            lines.append(
-                "|------|------|------|----------|--------|-------------|-----|"
-            )
+            lines.append("| Rule | Tool | Severity | Branch | Description | Age |")
+            lines.append("|------|------|----------|--------|-------------|-----|")
             for a in tool_alerts:
                 lines.append(format_alert_row(a))
             lines.append("")
@@ -405,11 +384,8 @@ def build_message(
         lines.append(f"ℹ️ _{n_notes} informational note(s) omitted from tables._\n")
 
     # Footer
-    repos_str = ", ".join(f"`{r}`" for r in REPOS)
-    workflow_url = (
-        "https://github.com/canonical/k8s-snap/actions/workflows/security-triage.yaml"
-    )
-    lines.append(f"---\n_Repos: {repos_str} · [Workflow run]({workflow_url})_")
+    workflow_url = f"https://github.com/{REPO}/actions/workflows/security-triage.yaml"
+    lines.append(f"---\n_Repo: `{REPO}` · [Workflow run]({workflow_url})_")
 
     text = "\n".join(lines)
 
@@ -506,60 +482,25 @@ def main() -> int:
         )
         return 1
 
-    # Fetch all alerts from all repos
-    all_alerts: list[dict[str, Any]] = []
-    successful_repos: set[str] = set()
-
-    for repo in REPOS:
-        print(f"Fetching alerts for {repo}...", file=sys.stderr)
-        try:
-            alerts = fetch_code_scanning_alerts(repo)
-            all_alerts.extend(alerts)
-            successful_repos.add(repo)
-            print(f"  {repo}: {len(alerts)} open alerts", file=sys.stderr)
-        except GhApiError as e:
-            if repo != PRIMARY_REPO and e.is_permission_or_not_found:
-                print(
-                    f"Warning: skipping {repo}: insufficient permissions or repo not found ({e.stderr.strip()})",
-                    file=sys.stderr,
-                )
-                continue
-            print(
-                f"Error: failed to fetch alerts for {repo}: {e.stderr.strip()}",
-                file=sys.stderr,
-            )
-            raise SystemExit(1)
-
-    if not successful_repos or PRIMARY_REPO not in successful_repos:
-        print(
-            "Error: primary repo failed or all repos failed to fetch",
-            file=sys.stderr,
-        )
-        return 1
+    print(f"Fetching alerts for {REPO}...", file=sys.stderr)
+    all_alerts = fetch_code_scanning_alerts(REPO)
+    print(f"  {REPO}: {len(all_alerts)} open alerts", file=sys.stderr)
 
     # Delta detection
     actionable_alerts = [a for a in all_alerts if a["severity"].lower() != "note"]
-    note_alerts = [a for a in all_alerts if a["severity"].lower() == "note"]
-    note_ids = {a["id"] for a in note_alerts}
+    note_ids = {a["id"] for a in all_alerts if a["severity"].lower() == "note"}
 
     current_ids = {a["id"] for a in actionable_alerts}
     prev_state = load_previous_state()
     previous_ids = set(prev_state.get("alert_ids", []))
     is_first_run = not prev_state
 
-    skipped_repos = set(REPOS) - successful_repos
-    skipped_previous_ids = {
-        rid
-        for rid in previous_ids
-        if any(rid.startswith(f"{repo}#") for repo in skipped_repos)
-    }
-    evaluated_previous_ids = previous_ids - skipped_previous_ids
-
-    new_ids = current_ids - evaluated_previous_ids
-    resolved_ids = (evaluated_previous_ids - current_ids) - note_ids
+    new_ids = current_ids - previous_ids
+    resolved_ids = (previous_ids - current_ids) - note_ids
 
     has_delta = bool(new_ids or resolved_ids)
     if not has_delta and not args.full and not is_first_run:
+        print("No changes since last run — skipping post.", file=sys.stderr)
         if args.dry_run:
             print(
                 json.dumps(
@@ -584,8 +525,8 @@ def main() -> int:
 
     post_webhook(webhook, payload)
     # Save state only after a successful post so a delivery failure does not
-    # suppress the delta notification on the next run. Preserve IDs of skipped repos.
-    save_state(current_ids | skipped_previous_ids)
+    # suppress the delta notification on the next run.
+    save_state(current_ids)
     return 0
 
 
