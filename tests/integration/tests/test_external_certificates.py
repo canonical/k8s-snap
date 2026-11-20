@@ -85,7 +85,9 @@ def setup_vault(instance: harness.Instance, instance_ip: str):
     """Install and initialize Vault."""
 
     LOG.info("Installing Vault.")
-    instance.exec(["snap", "install", "vault"])
+    util.stubbornly(retries=3, delay_s=30).on(instance).exec(
+        ["snap", "install", "vault"]
+    )
     instance.exec(["snap", "start", "vault"])
 
     LOG.info("Waiting for Vault to become available.")
