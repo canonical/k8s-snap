@@ -22,6 +22,7 @@ concurrency:
 permissions:
     contents: read # for actions/checkout to fetch code
     security-events: read # to read code scanning alerts via gh api
+
 jobs:
     triage:
         name: Fetch and report security alerts
@@ -42,8 +43,8 @@ jobs:
               uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
               with:
                   path: /tmp/security-triage-state.json
-                  key: security-triage-state-${{ github.run_id }}-${{ github.run_attempt }}
-                  restore-keys: security-triage-state-
+                  key: security-triage-state-v2-${{ github.run_id }}-${{ github.run_attempt }}
+                  restore-keys: security-triage-state-v2-
 
             - name: Run security triage
               env:

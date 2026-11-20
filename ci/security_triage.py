@@ -25,19 +25,20 @@ import os
 import re
 import subprocess
 import sys
-from collections.abc import Iterable
+from collections import defaultdict
 from datetime import datetime, timezone
+from itertools import groupby
 from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 REPO = os.environ.get("GITHUB_REPOSITORY", "canonical/k8s-snap")
+DEFAULT_BRANCH = "main"
+RELEASE_BRANCH = re.compile(r"release-(\d+)\.(\d+)")
 
 # Alerts older than this are flagged as overdue
 OVERDUE_DAYS = 7
-
-STATE_VERSION = 2
 
 # State file for delta detection (stored as GitHub Actions cache or local file)
 STATE_FILE = Path(os.environ.get("STATE_FILE", "/tmp/security-triage-state.json"))
@@ -72,14 +73,7 @@ def load_previous_state() -> dict[str, Any]:
     """Load state from the previous run."""
     if STATE_FILE.exists():
         try:
-            data = json.loads(STATE_FILE.read_text())
-            if data.get("version", 1) < STATE_VERSION:
-                print(
-                    "State file is from an older schema version; resetting state.",
-                    file=sys.stderr,
-                )
-                return {}
-            return data
+            return json.loads(STATE_FILE.read_text())
         except (json.JSONDecodeError, KeyError):
             pass
     return {}
@@ -91,7 +85,6 @@ def save_state(alert_ids: set[str]) -> None:
     STATE_FILE.write_text(
         json.dumps(
             {
-                "version": STATE_VERSION,
                 "alert_ids": sorted(alert_ids),
                 "updated": datetime.now(timezone.utc).isoformat(),
             },
@@ -105,9 +98,7 @@ def _normalize_severity(rule: dict[str, Any]) -> str:
     if sev:
         return sev.lower()
     raw = rule.get("severity", "none").lower()
-    if raw == "note":
-        return "note"
-    return {"error": "high", "warning": "medium", "low": "low"}.get(raw, "none")
+    return {"error": "high", "warning": "medium", "note": "note"}.get(raw, "none")
 
 
 def _description_from_rule(rule: dict[str, Any]) -> str:
@@ -124,147 +115,72 @@ def _description_from_rule(rule: dict[str, Any]) -> str:
     return first_line
 
 
-def fetch_release_branches(repo: str) -> list[str]:
-    """Fetch active release-* branches for a repo."""
-    data = gh_api(f"/repos/{repo}/branches?per_page=100")
-    pattern = re.compile(r"^release-[0-9]+\.[0-9]+$")
-    branches = [
-        item["name"]
-        for item in data
-        if isinstance(item, dict) and "name" in item and pattern.match(item["name"])
-    ]
-
-    def parse_version(b: str) -> tuple[int, ...]:
-        try:
-            return tuple(int(x) for x in b.removeprefix("release-").split("."))
-        except ValueError:
-            return (0,)
-
-    return sorted(branches, key=parse_version)
-
-
-def compact_branches(branches: Iterable[str]) -> str:
-    """Format and compact a collection of branch names.
-
-    e.g. ['main', 'release-1.32', 'release-1.33', 'release-1.34', 'release-1.35']
-    -> 'main, release-1.32..1.35'
-    """
-    branch_set = set(branches)
-    if not branch_set:
-        return "—"
-
-    has_main = "main" in branch_set
-    non_release = sorted(
-        b for b in branch_set if b != "main" and not b.startswith("release-")
+def tracked_branches(repo: str) -> list[str]:
+    """Release branches oldest to newest, followed by the default branch."""
+    refs = gh_api(f"/repos/{repo}/git/matching-refs/heads/release-")
+    names = (r["ref"].removeprefix("refs/heads/") for r in refs)
+    releases = sorted(
+        (m for name in names if (m := RELEASE_BRANCH.fullmatch(name))),
+        key=lambda m: (int(m[1]), int(m[2])),
     )
+    return [m[0] for m in releases] + [DEFAULT_BRANCH]
 
-    # Parse release branches: (major, minor)
-    rel_branches: list[tuple[int, int]] = []
-    for b in branch_set:
-        if b.startswith("release-"):
-            parts = b.removeprefix("release-").split(".")
-            if len(parts) == 2 and all(p.isdigit() for p in parts):
-                rel_branches.append((int(parts[0]), int(parts[1])))
 
-    rel_branches.sort()
+def compact_branches(present: list[int], branches: list[str]) -> str:
+    """Collapse runs of adjacent tracked branches: 'release-1.32..1.35, main'."""
+    if len(present) == len(branches):
+        return "all"
+    runs = []
+    for _, run in groupby(enumerate(present), key=lambda p: p[1] - p[0]):
+        idx = [i for _, i in run]
+        first, last = branches[idx[0]], branches[idx[-1]]
+        runs.append(
+            first if first == last else f"{first}..{last.removeprefix('release-')}"
+        )
+    return ", ".join(runs)
 
-    ranges: list[str] = []
-    if rel_branches:
-        cur_major, cur_start = rel_branches[0]
-        cur_end = cur_start
-        for major, minor in rel_branches[1:]:
-            if major == cur_major and minor == cur_end + 1:
-                cur_end = minor
-            else:
-                if cur_start == cur_end:
-                    ranges.append(f"release-{cur_major}.{cur_start}")
-                else:
-                    ranges.append(
-                        f"release-{cur_major}.{cur_start}..{cur_major}.{cur_end}"
-                    )
-                cur_major, cur_start, cur_end = major, minor, minor
-        if cur_start == cur_end:
-            ranges.append(f"release-{cur_major}.{cur_start}")
-        else:
-            ranges.append(f"release-{cur_major}.{cur_start}..{cur_major}.{cur_end}")
 
-    result: list[str] = []
-    if has_main:
-        result.append("main")
-    result.extend(non_release)
-    result.extend(ranges)
-    return ", ".join(result) if result else "—"
+def _parse_alert(repo: str, a: dict[str, Any]) -> dict[str, Any]:
+    rule = a.get("rule", {})
+    created = a.get("created_at", "")
+    alert_number = a.get("number", "")
+    return {
+        "id": f"{repo}#{alert_number}",
+        "rule_id": rule.get("id", "unknown"),
+        "severity": _normalize_severity(rule),
+        "tool": a.get("tool", {}).get("name", "unknown"),
+        "age_days": days_ago(created) if created else 0,
+        "summary": _description_from_rule(rule),
+        "link": f"https://github.com/{repo}/security/code-scanning/{alert_number}",
+        "repo": repo,
+    }
 
 
 def fetch_code_scanning_alerts(repo: str) -> list[dict[str, Any]]:
-    """Fetch open code scanning alerts for a repo across default and release branches."""
-    branches = fetch_release_branches(repo)
+    """Fetch open, actionable code scanning alerts across tracked branches."""
+    branches = tracked_branches(repo)
+    raw_alerts: dict[int, dict[str, Any]] = {}
+    seen_on: dict[int, list[int]] = defaultdict(list)
+    for idx, branch in enumerate(branches):
+        for raw in gh_api(
+            f"/repos/{repo}/code-scanning/alerts"
+            f"?state=open&ref=refs/heads/{branch}&per_page=100"
+        ):
+            raw_alerts.setdefault(raw["number"], raw)
+            seen_on[raw["number"]].append(idx)
 
-    # 1. Fetch default branch query
-    raw_default = gh_api(f"/repos/{repo}/code-scanning/alerts?state=open&per_page=100")
-
-    # 2. Fetch release branches
-    branch_queries: list[tuple[str, list[dict[str, Any]]]] = []
-    for b in branches:
-        raw_b = gh_api(
-            f"/repos/{repo}/code-scanning/alerts?state=open&ref=refs/heads/{b}&per_page=100"
-        )
-        branch_queries.append((b, raw_b))
-
-    alerts_by_number: dict[int, dict[str, Any]] = {}
-
-    def record_alert(raw_alert: dict[str, Any], branch_name: str) -> None:
-        alert_number = raw_alert.get("number")
-        if not alert_number:
-            return
-        if alert_number not in alerts_by_number:
-            rule = raw_alert.get("rule", {})
-            severity = _normalize_severity(rule)
-            rule_id = rule.get("id", "unknown")
-            tool = raw_alert.get("tool", {}).get("name", "unknown")
-            created = raw_alert.get("created_at", "")
-            age = days_ago(created) if created else 0
-            description = _description_from_rule(rule)
-            alert_link = (
-                f"https://github.com/{repo}/security/code-scanning/{alert_number}"
-            )
-
-            alerts_by_number[alert_number] = {
-                "id": f"{repo}#{alert_number}",
-                "alert_number": alert_number,
-                "rule_id": rule_id,
-                "severity": severity,
-                "tool": tool,
-                "age_days": age,
-                "summary": description,
-                "link": alert_link,
-                "repo": repo,
-                "branches": set(),
-            }
-        alerts_by_number[alert_number]["branches"].add(branch_name)
-
-    for a in raw_default:
-        ref = a.get("most_recent_instance", {}).get("ref", "")
-        branch = (
-            ref.removeprefix("refs/heads/") if ref.startswith("refs/heads/") else "main"
-        )
-        record_alert(a, branch or "main")
-
-    for b, raw_b in branch_queries:
-        for a in raw_b:
-            record_alert(a, b)
-
-    alerts: list[dict[str, Any]] = []
-    for a in alerts_by_number.values():
-        a["branches_display"] = compact_branches(a["branches"])
-        alerts.append(a)
-
+    alerts = []
+    for number, raw in raw_alerts.items():
+        alert = _parse_alert(repo, raw)
+        if alert["severity"] != "note":
+            alert["branches"] = compact_branches(seen_on[number], branches)
+            alerts.append(alert)
     return alerts
 
 
 def severity_sort_key(alert: dict[str, Any]) -> tuple[int, int]:
     """Sort key: highest severity first, then oldest first."""
-    rank = {"critical": 5, "high": 4, "medium": 3, "low": 2, "note": 1}.get(
+    rank = {"critical": 4, "high": 3, "medium": 2, "low": 1}.get(
         alert["severity"].lower(), 0
     )
     return (-rank, -alert["age_days"])
@@ -276,7 +192,6 @@ def sev_emoji(severity: str) -> str:
         "high": "🔴",
         "medium": "🟡",
         "low": "🟢",
-        "note": "ℹ️",
     }.get(severity.lower(), "⚪")
 
 
@@ -294,10 +209,9 @@ def format_alert_row(a: dict[str, Any]) -> str:
         and a["severity"].lower() in ("critical", "high")
         else ""
     )
-    branch_display = a.get("branches_display", "—")
     return (
         f"| {link_display} | {a['tool']} | {sev_display} | "
-        f"{branch_display} | {summary} | {a['age_days']}d{overdue} |"
+        f"{a['branches']} | {summary} | {a['age_days']}d{overdue} |"
     )
 
 
@@ -310,24 +224,18 @@ def build_message(
     """Build the full Mattermost webhook payload with new/known/resolved sections."""
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
-    actionable_alerts = [a for a in all_alerts if a["severity"].lower() != "note"]
-    note_alerts = [a for a in all_alerts if a["severity"].lower() == "note"]
-
-    new_alerts = [a for a in actionable_alerts if a["id"] in new_ids]
-    known_alerts = [a for a in actionable_alerts if a["id"] not in new_ids]
+    new_alerts = [a for a in all_alerts if a["id"] in new_ids]
+    known_alerts = [a for a in all_alerts if a["id"] not in new_ids]
 
     new_alerts.sort(key=severity_sort_key)
     known_alerts.sort(key=severity_sort_key)
 
     # Header stats
-    total = len(actionable_alerts)
+    total = len(all_alerts)
     n_new = len(new_alerts)
     n_resolved = len(resolved_ids)
-    n_critical = sum(
-        1 for a in actionable_alerts if a["severity"].lower() == "critical"
-    )
-    n_high = sum(1 for a in actionable_alerts if a["severity"].lower() == "high")
-    n_notes = len(note_alerts)
+    n_critical = sum(1 for a in all_alerts if a["severity"].lower() == "critical")
+    n_high = sum(1 for a in all_alerts if a["severity"].lower() == "high")
 
     lines = []
     lines.append(
@@ -336,7 +244,6 @@ def build_message(
         + (f" · ✅ **{n_resolved}** resolved" if n_resolved else "")
         + (f" · 🔥 {n_critical} critical" if n_critical else "")
         + (f" · 🔴 {n_high} high" if n_high else "")
-        + (f" · ℹ️ {n_notes} notes" if n_notes else "")
     )
     lines.append("")
 
@@ -379,10 +286,6 @@ def build_message(
             lines.append(f"- ~{rid}~")
         lines.append("")
 
-    # Informational notes summary
-    if note_alerts:
-        lines.append(f"ℹ️ _{n_notes} informational note(s) omitted from tables._\n")
-
     # Footer
     workflow_url = f"https://github.com/{REPO}/actions/workflows/security-triage.yaml"
     lines.append(f"---\n_Repo: `{REPO}` · [Workflow run]({workflow_url})_")
@@ -421,7 +324,7 @@ def _severity_summary(alerts: list[dict[str, Any]]) -> str:
         sev = a["severity"].lower() if a["severity"] else "unrated"
         counts[sev] = counts.get(sev, 0) + 1
     parts = []
-    for sev in ("critical", "high", "medium", "low", "note", "unrated"):
+    for sev in ("critical", "high", "medium", "low", "unrated"):
         if sev in counts:
             parts.append(
                 f"{sev_emoji(sev) if sev != 'unrated' else '⚪'} {counts[sev]} {sev}"
@@ -487,16 +390,13 @@ def main() -> int:
     print(f"  {REPO}: {len(all_alerts)} open alerts", file=sys.stderr)
 
     # Delta detection
-    actionable_alerts = [a for a in all_alerts if a["severity"].lower() != "note"]
-    note_ids = {a["id"] for a in all_alerts if a["severity"].lower() == "note"}
-
-    current_ids = {a["id"] for a in actionable_alerts}
+    current_ids = {a["id"] for a in all_alerts}
     prev_state = load_previous_state()
     previous_ids = set(prev_state.get("alert_ids", []))
     is_first_run = not prev_state
 
     new_ids = current_ids - previous_ids
-    resolved_ids = (previous_ids - current_ids) - note_ids
+    resolved_ids = previous_ids - current_ids
 
     has_delta = bool(new_ids or resolved_ids)
     if not has_delta and not args.full and not is_first_run:
@@ -507,7 +407,7 @@ def main() -> int:
                     {
                         "skipped": True,
                         "reason": "no delta",
-                        "total_open": len(actionable_alerts),
+                        "total_open": len(all_alerts),
                     }
                 )
             )
