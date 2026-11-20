@@ -144,7 +144,7 @@ def _test_loadbalancer(instances: List[harness.Instance], k8s_net_type: K8sNetTy
                 has_ipv6 = any(":" in ip for ip in ips)
                 return len(ips) >= 2 and has_ipv4 and has_ipv6
             return len(ips) >= 1
-        except Exception:
+        except (json.JSONDecodeError, UnicodeDecodeError):
             return False
 
     p = (
@@ -165,13 +165,12 @@ def _test_loadbalancer(instances: List[harness.Instance], k8s_net_type: K8sNetTy
         formatted_ip = f"[{ip}]" if ":" in ip else ip
         service_url = f"http://{formatted_ip}/"
         LOG.info(f"Reaching out to service with url = {service_url}")
-        p = (
+        (
             util.stubbornly(retries=40, delay_s=5)
             .on(tester_instance)
             .until(lambda p: "Welcome to nginx!" in p.stdout.decode())
             .exec(["curl", service_url])
         )
-        assert "Welcome to nginx!" in p.stdout.decode()
 
 
 # ---------------------------------------------------------------------------

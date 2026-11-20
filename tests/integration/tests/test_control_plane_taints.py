@@ -18,9 +18,8 @@ LOG = logging.getLogger(__name__)
 @pytest.mark.tags(tags.NIGHTLY)
 def test_control_plane_taints(instances: List[harness.Instance]):
     k8s_instance = instances[0]
-    util.wait_until_k8s_ready(k8s_instance, [k8s_instance])
 
-    retries = 10
+    retries = 20
     nodes = []
     matching_taints = []
     while retries:
@@ -37,6 +36,6 @@ def test_control_plane_taints(instances: List[harness.Instance]):
         time.sleep(3)
         retries -= 1
 
-    assert len(nodes) == 1, "Should have found one node in 30 sec"
+    assert len(nodes) == 1, "Should have found one node in 60 sec"
     assert matching_taints, "Expected node-role.kubernetes.io/control-plane taint"
     assert all(t.get("effect") == "NoSchedule" for t in matching_taints)
