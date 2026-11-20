@@ -270,15 +270,15 @@ def download_preloaded_snaps():
 
 def wait_for_snap_changes(
     instance: harness.Instance,
+    snap_name: Optional[str] = None,
     retries: int = 60,
     delay_s: int = 5,
     timeout_s: int = 300,
 ) -> None:
-    """Wait for all in-progress snapd changes to finish.
+    """Wait for in-progress snapd changes to finish.
 
-    When snap commands time out on the client CLI or encounter transient network errors,
-    snapd continues processing changes in the background. Retrying immediately while a
-    change is still running fails with error code 10 ('has "<kind>" change in progress').
+    If snap_name is provided, only waits on changes that affect that snap or system-wide
+    operations (like auto-refresh). Otherwise waits on all non-settled changes.
     """
 
     def _has_no_in_progress_changes(p: subprocess.CompletedProcess) -> bool:
@@ -296,6 +296,14 @@ def wait_for_snap_changes(
                 parts[1] in UNFINISHED_SNAP_STATUSES
                 or parts[1] not in SETTLED_SNAP_STATUSES
             ):
+                if snap_name:
+                    line_lower = line.lower()
+                    if (
+                        f'"{snap_name.lower()}"' not in line_lower
+                        and f" {snap_name.lower()} " not in line_lower
+                        and "auto-refresh" not in line_lower
+                    ):
+                        continue
                 LOG.debug(
                     "Waiting for in-progress snap change on %s: %s", instance.id, line
                 )
@@ -313,14 +321,19 @@ def _exec_snap_cmd_with_retries(
     retries: int = 5,
     delay_s: int = 15,
     timeout: int = 60 * 10,
+    snap_name: Optional[str] = None,
 ) -> subprocess.CompletedProcess:
     """Execute a snap command on an instance with retries, waiting for snap changes before each attempt."""
 
     def _attempt(_cmd: List[str], **kwds) -> subprocess.CompletedProcess:
-        wait_for_snap_changes(instance)
+        wait_for_snap_changes(instance, snap_name=snap_name)
         return instance.exec(_cmd, **kwds)
 
-    retriable = stubbornly(retries=retries, delay_s=delay_s)
+    retriable = stubbornly(
+        retries=retries,
+        delay_s=delay_s,
+        exceptions=(subprocess.CalledProcessError, subprocess.TimeoutExpired),
+    )
     retriable._run = partial(_attempt, capture_output=True)
     return retriable.exec(cmd, timeout=timeout)
 
@@ -359,6 +372,7 @@ def preload_snaps(instance: harness.Instance):
             retries=5,
             delay_s=10,
             timeout=60 * 5,
+            snap_name=preloaded_snap,
         )
 
 
@@ -443,6 +457,7 @@ def setup_k8s_snap(
         retries=retries,
         delay_s=delay_s,
         timeout=timeout,
+        snap_name=config.SNAP_NAME,
     )
     stdout = (
         res.stdout.decode() if isinstance(res.stdout, bytes) else (res.stdout or "")
@@ -464,6 +479,7 @@ def setup_k8s_snap(
                 retries=retries,
                 delay_s=delay_s,
                 timeout=timeout,
+                snap_name=config.SNAP_NAME,
             )
     if connect_interfaces:
         LOG.info("Ensure k8s interfaces and network requirements")
@@ -525,6 +541,7 @@ def snap_refresh(
         retries=retries,
         delay_s=delay_s,
         timeout=timeout,
+        snap_name=config.SNAP_NAME,
     )
 
 

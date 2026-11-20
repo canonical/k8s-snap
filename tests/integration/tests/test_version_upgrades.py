@@ -134,6 +134,7 @@ def test_version_upgrades(
                     retries=5,
                     delay_s=5,
                     timeout=60 * 10,
+                    snap_name=config.SNAP_NAME,
                 )
             else:
                 util.snap_refresh(instance, channel, "--amend")
@@ -526,6 +527,7 @@ def test_feature_upgrades_rollout_upgrade(
             retries=5,
             delay_s=15,
             timeout=60 * 10,
+            snap_name=config.SNAP_NAME,
         )
 
     main_old.exec(["k8s", "bootstrap"])

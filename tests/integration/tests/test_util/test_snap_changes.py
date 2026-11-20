@@ -550,3 +550,47 @@ def test_snap_refresh_raises_when_not_installed():
             delay_s=0,
             timeout=600,
         )
+
+
+@pytest.mark.tags(tags.PULL_REQUEST)
+def test_wait_for_snap_changes_ignores_unrelated_snaps():
+    instance = MagicMock()
+    instance.exec.return_value = subprocess.CompletedProcess(
+        args=["snap", "changes"],
+        returncode=0,
+        stdout=(
+            "ID   Status   Spawn                   Ready                   Summary\n"
+            '1    Doing    yesterday at 14:44 CET  -                       Install snap "pc-kernel"\n'
+            '2    Wait     yesterday at 14:40 CET  -                       Refresh snap "other"\n'
+        ),
+        stderr="",
+    )
+
+    # Scoped to k8s, unrelated pc-kernel and other changes do not block
+    util.wait_for_snap_changes(instance, snap_name="k8s", retries=2, delay_s=0)
+    assert instance.exec.call_count == 1
+
+
+@pytest.mark.tags(tags.PULL_REQUEST)
+def test_exec_snap_cmd_fails_immediately_when_snap_changes_times_out(monkeypatch):
+    instance = MagicMock()
+    monkeypatch.setattr(
+        util,
+        "wait_for_snap_changes",
+        MagicMock(side_effect=RetryError(MagicMock())),
+    )
+
+    # Outer retries=5 does not restart the wait loop; it fails fast on RetryError
+    with pytest.raises(RetryError):
+        util._exec_snap_cmd_with_retries(
+            instance,
+            ["snap", "refresh", "k8s", "--channel", "latest/edge/classic"],
+            retries=5,
+            delay_s=0,
+            timeout=600,
+            snap_name="k8s",
+        )
+
+    # Verifies wait_for_snap_changes failed fast on first attempt and command was not run
+    assert util.wait_for_snap_changes.call_count == 1
+    assert instance.exec.call_count == 0
