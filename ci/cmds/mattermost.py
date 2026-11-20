@@ -223,7 +223,7 @@ def _determine_color(entries: List[Dict[str, Any]], text: str) -> str:
     return "good"
 
 
-def _post_webhook(webhook: str, payload: Dict[str, Any]) -> None:
+def post_webhook(webhook: str, payload: Dict[str, Any]) -> None:
     """Post payload to Mattermost using an incoming webhook."""
     body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
     req = Request(
@@ -304,7 +304,7 @@ def cmd_results_message(args: argparse.Namespace) -> int:
 
     # Post summary via webhook
     summary_payload = _build_summary_payload(channel_id, entries, title, color)
-    _post_webhook(webhook, summary_payload)
+    post_webhook(webhook, summary_payload)
 
     # Fetch last post ID for threading
     req = Request(
