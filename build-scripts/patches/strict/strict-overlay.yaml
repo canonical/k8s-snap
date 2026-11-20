@@ -19,6 +19,8 @@ layout:
     bind: $SNAP_COMMON/var/log/pods
   /var/log/containers:
     bind: $SNAP_COMMON/var/log/containers
+  /var/log/kubernetes:
+    bind: $SNAP_COMMON/var/log/kubernetes
 
 plugs:
   home-read-all:
@@ -92,6 +94,7 @@ apps:
       - mount-observe
       - network
       - network-bind
+      - network-control
       - network-observe
       - system-observe
   kubelet:
@@ -147,6 +150,7 @@ hooks:
     plugs:
       - cilium-cleanup
       - firewall-control
+      - kernel-module-observe
       - kubernetes-support
       - mount-observe
       - network
