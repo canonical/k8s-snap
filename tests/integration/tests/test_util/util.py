@@ -40,6 +40,7 @@ MAIN_BRANCH = "main"
 # kube-proxy was replaced by the Cilium kube-proxy replacement in 1.36. Snaps older
 # than this always run kube-proxy and ignore `network.kube-proxy-enabled`.
 KUBE_PROXY_REPLACEMENT_MIN_VERSION = (1, 36)
+IN_PROGRESS_SNAP_STATUSES = {"Doing", "Undoing", "Do"}
 
 
 def _is_retryable_http_error(exc: BaseException) -> bool:
@@ -120,11 +121,12 @@ class Retriable:
         try:
             resp = self._run(command_args, **command_kwds)
         except subprocess.TimeoutExpired as e:
-            stdout = e.stdout or ""
-            stderr = e.stderr or ""
-            if not command_kwds.get("text"):
-                stdout = e.stdout.decode() if e.stdout else ""
-                stderr = e.stderr.decode() if e.stderr else ""
+            stdout = (
+                e.stdout.decode() if isinstance(e.stdout, bytes) else (e.stdout or "")
+            )
+            stderr = (
+                e.stderr.decode() if isinstance(e.stderr, bytes) else (e.stderr or "")
+            )
 
             LOG.warning(f"  timed out after {e.timeout}s")
             if stdout:
@@ -133,12 +135,12 @@ class Retriable:
                 LOG.warning(f"  stderr={stderr}")
             raise
         except subprocess.CalledProcessError as e:
-            stdout = e.stdout or ""
-            stderr = e.stderr or ""
-            if not command_kwds.get("text"):
-                # The output will be in bytes if text is not set / is False.
-                stdout = e.stdout.decode() if e.stdout else ""
-                stderr = e.stderr.decode() if e.stderr else ""
+            stdout = (
+                e.stdout.decode() if isinstance(e.stdout, bytes) else (e.stdout or "")
+            )
+            stderr = (
+                e.stderr.decode() if isinstance(e.stderr, bytes) else (e.stderr or "")
+            )
 
             LOG.warning(f"  rc={e.returncode}")
             LOG.warning(f"  stdout={stdout}")
@@ -256,6 +258,86 @@ def download_preloaded_snaps():
         )
 
 
+def wait_for_snap_changes(
+    instance: harness.Instance,
+    retries: int = 60,
+    delay_s: int = 5,
+) -> None:
+    """Wait for all in-progress snapd changes to finish.
+
+    When snap commands time out on the client CLI or encounter transient network errors,
+    snapd continues processing changes in the background. Retrying immediately while a
+    change is still running fails with error code 10 ('has "<kind>" change in progress').
+    """
+
+    def _has_no_in_progress_changes(p: subprocess.CompletedProcess) -> bool:
+        stdout = p.stdout.decode() if isinstance(p.stdout, bytes) else (p.stdout or "")
+        for line in stdout.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            parts = line.split()
+            if not parts:
+                continue
+            if parts[0] in ("ID", "No"):
+                continue
+            if len(parts) >= 2 and parts[1] in IN_PROGRESS_SNAP_STATUSES:
+                LOG.debug(
+                    "Waiting for in-progress snap change on %s: %s", instance.id, line
+                )
+                return False
+        return True
+
+    stubbornly(retries=retries, delay_s=delay_s).on(instance).until(
+        _has_no_in_progress_changes
+    ).exec(["snap", "changes"], timeout=60 * 5)
+
+
+def _exec_snap_cmd_with_retries(
+    instance: harness.Instance,
+    cmd: List[str],
+    retries: int = 5,
+    delay_s: int = 15,
+    timeout: int = 60 * 10,
+) -> subprocess.CompletedProcess:
+    """Execute a snap command on an instance with retries, waiting for snap changes before each attempt."""
+
+    def _attempt(_cmd: List[str], **kwds) -> subprocess.CompletedProcess:
+        wait_for_snap_changes(instance)
+        try:
+            return instance.exec(_cmd, **kwds)
+        except subprocess.CalledProcessError as e:
+            stdout = (
+                e.stdout.decode() if isinstance(e.stdout, bytes) else (e.stdout or "")
+            )
+            stderr = (
+                e.stderr.decode() if isinstance(e.stderr, bytes) else (e.stderr or "")
+            )
+            combined = f"{stdout}\n{stderr}".lower()
+            if any(
+                msg in combined
+                for msg in (
+                    "already installed",
+                    "has no updates available",
+                    "is not installed",
+                )
+            ):
+                LOG.info(
+                    "Snap command on %s indicated operation already satisfied: %s",
+                    instance.id,
+                    combined.strip(),
+                )
+                return subprocess.CompletedProcess(_cmd, 0, e.stdout, e.stderr)
+            raise
+
+    retriable = stubbornly(retries=retries, delay_s=delay_s)
+    retriable._run = partial(_attempt, capture_output=True)
+    return retriable.exec(cmd, timeout=timeout)
+
+
+exec_snap_cmd_with_retries = _exec_snap_cmd_with_retries
+
+
 def preload_snaps(instance: harness.Instance):
     if not config.PRELOAD_SNAPS:
         LOG.info("Snap preloading disabled.")
@@ -276,15 +358,17 @@ def preload_snaps(instance: harness.Instance):
         )
 
         LOG.info("Wait for snap changes to finish...")
-        stubbornly(retries=40, delay_s=5).on(instance).until(
-            lambda p: "Doing" not in p.stdout.decode()
-        ).exec(["snap", "changes"], timeout=60 * 5)
+        wait_for_snap_changes(instance)
 
         LOG.info("Install snap file %s.", preloaded_snap)
         remote = remote_dir / snap.name
         instance.send_file(source=snap.as_posix(), destination=remote.as_posix())
-        stubbornly(retries=5, delay_s=10).on(instance).exec(
-            ["snap", "install", remote.as_posix()], timeout=60 * 5
+        _exec_snap_cmd_with_retries(
+            instance,
+            ["snap", "install", remote.as_posix()],
+            retries=5,
+            delay_s=10,
+            timeout=60 * 5,
         )
 
 
@@ -298,11 +382,10 @@ def setup_core_dumps(instance: harness.Instance):
 
 def configure_cpuset_controller(instance: harness.Instance):
     """Make the cpuset controller available to system services."""
+    res = instance.exec(["cat", "/sys/devices/system/cpu/online"], capture_output=True)
     online_cpus = (
-        instance.exec(["cat", "/sys/devices/system/cpu/online"], capture_output=True)
-        .stdout.decode()
-        .strip()
-    )
+        res.stdout.decode() if isinstance(res.stdout, bytes) else (res.stdout or "")
+    ).strip()
     instance.exec(
         [
             "systemctl",
@@ -319,7 +402,9 @@ def setup_k8s_snap(
     snap: Optional[str] = None,
     connect_interfaces=True,
     tmp_path: Optional[Path] = Path("/home/ubuntu"),
-    timeout: int = 60 * 5,
+    timeout: int = 60 * 10,
+    retries: int = 5,
+    delay_s: int = 15,
 ):
     """Installs and sets up the snap on the given instance and connects the interfaces.
 
@@ -332,7 +417,9 @@ def setup_k8s_snap(
             a snap channel@revision to install
             a path to the snap to install
         tmp_path:   path to store the snap on the instance (optional, defaults to /home/ubuntu)
-        timeout:    timeout in seconds for the snap install command (default: 300)
+        timeout:    timeout in seconds for the snap install command (default: 600)
+        retries:    number of retry attempts (default: 5)
+        delay_s:    delay in seconds between retries (default: 15)
     """
     cmd = ["snap", "install", "--classic"]
     which_snap = snap or config.SNAP
@@ -360,7 +447,13 @@ def setup_k8s_snap(
         LOG.info("Install k8s snap by least risky channel: %s", channel)
         cmd += [config.SNAP_NAME, "--channel", channel]
 
-    stubbornly(retries=3, delay_s=30).on(instance).exec(cmd, timeout=timeout)
+    _exec_snap_cmd_with_retries(
+        instance,
+        cmd,
+        retries=retries,
+        delay_s=delay_s,
+        timeout=timeout,
+    )
     if connect_interfaces:
         LOG.info("Ensure k8s interfaces and network requirements")
         instance.exec(["/snap/k8s/current/k8s/hack/init.sh"], stdout=subprocess.DEVNULL)
@@ -385,8 +478,9 @@ def snap_refresh(
     instance: harness.Instance,
     channel: str,
     *extra_args: str,
-    retries: int = 3,
-    delay_s: int = 30,
+    retries: int = 5,
+    delay_s: int = 15,
+    timeout: int = 60 * 10,
 ):
     """Refresh the k8s snap on an instance with retry logic.
 
@@ -398,8 +492,9 @@ def snap_refresh(
         instance:   instance on which to refresh the snap
         channel:    snap channel to refresh to
         *extra_args: additional arguments to pass to snap refresh (e.g. "--amend")
-        retries:    number of retry attempts (default: 3)
-        delay_s:    delay in seconds between retries (default: 30)
+        retries:    number of retry attempts (default: 5)
+        delay_s:    delay in seconds between retries (default: 15)
+        timeout:    timeout in seconds for the snap refresh command (default: 600)
     """
     cmd = [
         "snap",
@@ -413,7 +508,13 @@ def snap_refresh(
     LOG.info(
         "Refreshing %s to channel %s on %s", config.SNAP_NAME, channel, instance.id
     )
-    stubbornly(retries=retries, delay_s=delay_s).on(instance).exec(cmd)
+    _exec_snap_cmd_with_retries(
+        instance,
+        cmd,
+        retries=retries,
+        delay_s=delay_s,
+        timeout=timeout,
+    )
 
 
 def remove_k8s_snap(instance: harness.Instance, retries: int = 40):
