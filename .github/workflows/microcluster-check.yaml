@@ -1,5 +1,8 @@
 name: Detect Microcluster Schema Change
 
+permissions:
+  contents: read
+
 on:
   pull_request:
     paths:
@@ -9,6 +12,8 @@ on:
 jobs:
   create-comment:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
 
     steps:
       - name: Create Microcluster Warning Message
