@@ -25,15 +25,14 @@ permissions:
 
 jobs:
   build-snap:
-    name: Build k8s-snap ${{ matrix.patch }} ${{ matrix.arch }}
+    name: Build k8s-snap ${{ matrix.variant }} ${{ matrix.arch }}
     uses: $/.github/workflows/build-snap.yaml
     strategy:
       matrix:
-        # e.g. strict - right now we only support the classic flavor
-        patch: [""]
+        variant: [""]
         arch: ["amd64", "arm64"]
     with:
-      flavor: ${{ matrix.patch }}
+      variant: ${{ matrix.variant }}
       arch: ${{ matrix.arch }}
 
   test-branches:

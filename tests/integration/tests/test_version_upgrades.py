@@ -42,10 +42,10 @@ def test_version_upgrades(
         ref = config.GH_BASE_REF or config.GH_REF
         channels = snap.get_most_stable_channels(
             int(num_channels),
-            config.FLAVOR,
+            config.VARIANT,
             cp.arch,
             min_release=config.VERSION_UPGRADE_MIN_RELEASE,
-            # Include `latest/edge/<flavor>` only if this is not a release branch.
+            # Include `latest/edge/<variant>` only if this is not a release branch.
             include_latest=ref == util.MAIN_BRANCH,
         )
         current_channel = channels[0]
@@ -85,7 +85,7 @@ def test_version_upgrades(
 
     if len(channels) < 2:
         pytest.fail(
-            f"Need at least 2 channels to upgrade, got {len(channels)} for flavor {config.FLAVOR}"
+            f"Need at least 2 channels to upgrade, got {len(channels)} for variant {config.VARIANT}"
         )
     LOG.info(f"Testing upgrades for snaps: {channels}")
     LOG.info(
@@ -197,17 +197,17 @@ def test_version_downgrades_with_rollback(
         )
         channels = snap.get_most_stable_channels(
             int(num_channels),
-            config.FLAVOR,
+            config.VARIANT,
             cp.arch,
             min_release=config.VERSION_UPGRADE_MIN_RELEASE,
             max_release=max_release,
             reverse=True,
-            # Include `latest/edge/<flavor>` only if this is not a release branch.
+            # Include `latest/edge/<variant>` only if this is not a release branch.
             include_latest=ref == util.MAIN_BRANCH,
         )
         if len(channels) < 2:
             pytest.fail(
-                f"Need at least 2 channels to downgrade, got {len(channels)} for flavour {config.FLAVOR}"
+                f"Need at least 2 channels to downgrade, got {len(channels)} for variant {config.VARIANT}"
             )
         current_channel = channels[0]
 

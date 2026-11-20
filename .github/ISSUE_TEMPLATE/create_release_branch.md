@@ -106,13 +106,13 @@ The steps are to be followed in-order, each task must be completed by the person
   - [ ] Add `release-1.xx` in [.github/workflows/update-components.yaml][]
   - [ ] Remove unsupported releases from the list (if applicable, consult with **Reviewer**)
   - [ ] Create PR against `main` with the changes and request review from **Reviewer**. Make sure to update the issue information with a link to the PR.
-- [ ] **Reviewer**: On merge, confirm [Auto-update strict branch] action runs to completion and that the `autoupdate/release-1.xx-*` flavor branches are created.
+- [ ] **Reviewer**: On merge, confirm [Auto-update variant branches][] action runs to completion and that the `autoupdate/release-1.xx-*` variant branches are created.
    - [ ] autoupdate/release-1.xx-strict
-- [ ] **Owner**: Create launchpad builders for `release-1.xx` and flavors
+- [ ] **Owner**: Create launchpad builders for `release-1.xx` and variants
   - [ ] Run the [Confirm Snap Builds][] Action
 - [ ] **Reviewer**: Ensure snap recipes are created in [lp:k8s/+snaps][]
-  - [ ] look for `k8s-snap-1.xx-classic`
-  - [ ] look for `k8s-snap-1.xx-strict`
+  - [ ] look for `k8s-snap-1.xx-classic` (`1.xx-classic/edge`)
+  - [ ] look for `k8s-snap-1.xx-strict` (`1.xx-classic/edge/strict`)
   - [ ] make sure each is "Authorized for Store Upload"
 
 #### After release
@@ -123,7 +123,7 @@ The steps are to be followed in-order, each task must be completed by the person
 
 
 <!-- LINKS -->
-[Auto-update strict branch]: https://github.com/canonical/k8s-snap/actions/workflows/strict.yaml
+[Auto-update variant branches]: https://github.com/canonical/k8s-snap/actions/workflows/update-variant-branches.yaml
 [snapstore track-request]: https://forum.snapcraft.io/t/tracks-request-for-k8s-snap/39122/2
 [releases-page]: https://snapcraft.io/k8s/releases
 [.github/workflows/cla.yaml]: ../workflows/cla.yaml
@@ -133,7 +133,7 @@ The steps are to be followed in-order, each task must be completed by the person
 [.github/workflows/python.yaml]: ../workflows/python.yaml
 [.github/workflows/sbom.yaml]: ../workflows/sbom.yaml
 [.github/workflows/strict-integration.yaml]: ../workflows/strict-integration.yaml
-[.github/workflows/strict.yaml]: ../workflows/strict.yaml
+[.github/workflows/update-variant-branches.yaml]: ../workflows/update-variant-branches.yaml
 [.github/workflows/update-components.yaml]: ../workflows/update-components.yaml
 [/build-scripts/components/hack/update-component-versions.py]: ../../build-scripts/components/hack/update-component-versions.py
 [/build-scripts/components/k8s-dqlite/version]: ../../build-scripts/components/k8s-dqlite/version
