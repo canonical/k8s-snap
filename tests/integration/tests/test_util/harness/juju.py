@@ -171,7 +171,12 @@ class JujuHarness(Harness):
         )
         if check:
             s_result.check_returncode()
-        juju_response = json.loads(s_result.stdout.decode())
+        stdout_str = (
+            s_result.stdout.decode()
+            if isinstance(s_result.stdout, bytes)
+            else s_result.stdout
+        )
+        juju_response = json.loads(stdout_str)
         results = juju_response[instance_id]["results"]
         stdout = (
             b.encode()
