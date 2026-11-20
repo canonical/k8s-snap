@@ -127,16 +127,20 @@ def tracked_branches(repo: str) -> list[str]:
 
 
 def compact_branches(present: list[int], branches: list[str]) -> str:
-    """Collapse runs of adjacent tracked branches: 'release-1.32..1.35, main'."""
+    """Collapse adjacent release branches into ranges: 'release-1.32..1.35, main'."""
     if len(present) == len(branches):
         return "all"
+    default_idx = len(branches) - 1
+    releases = [i for i in present if i != default_idx]
     runs = []
-    for _, run in groupby(enumerate(present), key=lambda p: p[1] - p[0]):
+    for _, run in groupby(enumerate(releases), key=lambda p: p[1] - p[0]):
         idx = [i for _, i in run]
         first, last = branches[idx[0]], branches[idx[-1]]
         runs.append(
             first if first == last else f"{first}..{last.removeprefix('release-')}"
         )
+    if default_idx in present:
+        runs.append(DEFAULT_BRANCH)
     return ", ".join(runs)
 
 
