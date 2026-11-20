@@ -281,7 +281,7 @@ jobs:
           tar czf k8s-test-suite.tar.gz tests/integration/
       - name: Submit Testflinger Job
         id: testflinger
-        uses: canonical/testflinger/.github/actions/submit@9a4edb236caa7bdbacfb52751cb87f39597810b2 # main
+        uses: canonical/testflinger/.github/actions/submit@ed034e20e493efc7ed1653684dac06c856c0bbda # main
         timeout-minutes: 75
         with:
           poll: true
