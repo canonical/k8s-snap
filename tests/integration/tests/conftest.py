@@ -29,6 +29,13 @@ def pytest_itemcollected(item):
         )
 
 
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    rep = outcome.get_result()
+    setattr(item, f"rep_{rep.when}", rep)
+
+
 def _harness_clean(h: harness.Harness):
     "Clean up created instances within the test harness."
 
@@ -125,7 +132,7 @@ def log_environment_info(h: harness.Harness):
 
 @pytest.fixture(scope="session")
 def registry(h: harness.Harness) -> Optional[Registry]:
-    if config.USE_LOCAL_MIRROR:
+    if config.USE_LOCAL_MIRROR and config.SUBSTRATE != "bare_metal":
         yield Registry(h)
     else:
         LOG.info("Local registry mirror disabled!")
@@ -165,7 +172,10 @@ def pytest_configure(config):
         "containerd_cfgdir: The instance containerd config directory, defaults to /etc/containerd."
         "network_type: Specify network type to use for the infrastructure (IPv4, Dualstack or IPv6).\n"
         "etcd_count: Mark a test to specify how many etcd instance nodes need to be created (None by default)\n"
-        "node_count: Mark a test to specify how many instance nodes need to be created\n",
+        "node_count: Mark a test to specify how many instance nodes need to be created\n"
+        "allow_service_panics: Opt out of checking service logs for panics in post-test health invariants.\n"
+        "allow_service_restarts: Opt out of checking service restarts in post-test health invariants.\n"
+        "allow_core_dumps: Opt out of checking for core dumps in post-test health invariants.\n",
     )
 
     if config.option.subunit:
@@ -238,7 +248,7 @@ def containerd_cfgdir(request) -> str:
 @pytest.fixture(scope="function")
 def instances(
     h: harness.Harness,
-    registry: Registry,
+    registry: Optional[Registry],
     node_count: int,
     disable_k8s_bootstrapping: bool,
     required_ports: List[int],
@@ -273,7 +283,7 @@ def instances(
             util.setup_core_dumps(instance)
             util.setup_k8s_snap(instance)
 
-            if config.USE_LOCAL_MIRROR:
+            if config.USE_LOCAL_MIRROR and registry:
                 registry.apply_configuration(instance, containerd_cfgdir)
 
     if not disable_k8s_bootstrapping and not no_setup:
@@ -292,6 +302,30 @@ def instances(
     if config.SKIP_CLEANUP:
         LOG.warning("Skipping clean-up of instances, delete them on your own")
         return
+
+    invariant_failures: List[str] = []
+    if (
+        getattr(request.node, "rep_call", None) is not None
+        and request.node.rep_call.passed
+    ):
+        for instance in instances:
+            if instance.id not in h.instances:
+                continue
+            if not util.is_k8s_snap_installed(instance):
+                continue
+
+            try:
+                if not request.node.get_closest_marker("allow_service_panics"):
+                    util.check_service_logs_for_panics(instance)
+                if not request.node.get_closest_marker("allow_core_dumps"):
+                    util.check_no_core_dumps(instance)
+                if not request.node.get_closest_marker("allow_service_restarts"):
+                    if "active" in util.get_snap_service_status(instance).values():
+                        util.check_no_service_restarts_after_stabilization(
+                            instance, retries=3, delay_s=2
+                        )
+            except Exception as e:
+                invariant_failures.append(f"[{instance.id}] {e}")
 
     # Collect all the reports before initiating the cleanup so that we won't
     # affect the state of the observed cluster.
@@ -323,6 +357,11 @@ def instances(
             )
         finally:
             instance.delete()
+
+    if invariant_failures:
+        pytest.fail(
+            "Post-test health invariant failure(s):\n" + "\n".join(invariant_failures)
+        )
 
 
 @pytest.fixture(scope="function")

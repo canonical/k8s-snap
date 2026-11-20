@@ -134,6 +134,7 @@ def verify_resource_fips_failure(
 @pytest.mark.node_count(1)
 @pytest.mark.bootstrap_config((config.MANIFESTS_DIR / "bootstrap-all.yaml").read_text())
 @pytest.mark.tags(tags.NIGHTLY)
+@pytest.mark.allow_service_panics
 def test_fips_images(instances: List[harness.Instance]):
     """
     Test that all container images are FIPS-compiled by verifying they fail to start

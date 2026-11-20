@@ -1,10 +1,6 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
-# Postponed annotation evaluation is required: `test_util.harness` imports
-# `bare_metal` first (isort order), which imports this module while the
-# `harness` package is still half-initialised, so annotations such as
-# `harness.Instance` can't be evaluated at definition time.
 from __future__ import annotations
 
 import ipaddress
@@ -502,10 +498,22 @@ def remove_k8s_snap(instance: harness.Instance, retries: int = 40):
     # ip netns delete cni-UUID3
     # Cannot remove namespace file "/run/netns/cni-UUID3": Device or resource busy
 
-    # LOG.info("Waiting for CNI network namespaces to go away...")
-    # stubbornly(retries=5, delay_s=5).on(instance).until(
-    #     lambda p: "cni-" not in p.stdout.decode()
-    # ).exec(["ip", "netns", "list"])
+    if config.FLAVOR == "classic":
+        LOG.info("Waiting for CNI network namespaces to go away...")
+        stubbornly(retries=5, delay_s=5).on(instance).until(
+            lambda p: "cni-" not in p.stdout.decode()
+        ).exec(["ip", "netns", "list"])
+
+
+def is_k8s_snap_installed(instance: harness.Instance) -> bool:
+    """Check if k8s-snap is installed on the instance."""
+    result = instance.exec(
+        ["snap", "list", config.SNAP_NAME],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return result.returncode == 0
 
 
 def wait_until_k8s_ready(
@@ -1581,8 +1589,11 @@ def check_no_service_restarts_after_stabilization(
         services = _get_enabled_services(instance)
 
     previous = _get_service_restart_counts(instance, services)
-    for attempt in Retrying(stop=stop_after_attempt(retries), wait=wait_fixed(delay_s)):
+    for attempt in Retrying(
+        stop=stop_after_attempt(retries), wait=wait_fixed(0), reraise=True
+    ):
         with attempt:
+            time.sleep(delay_s)
             current = _get_service_restart_counts(instance, services)
             violations = [
                 (service, previous[service], current[service])
@@ -1594,6 +1605,26 @@ def check_no_service_restarts_after_stabilization(
                 not violations
             ), "Services still restarting (crash-loop suspected): " + ", ".join(
                 f"{s} ({b} -> {n})" for s, b, n in violations
+            )
+
+
+def check_no_core_dumps(instance: harness.Instance):
+    """Check that no core dumps or crash files exist in the core dump directory."""
+    result = instance.exec(
+        ["ls", "-A", config.CORE_DUMP_DIR],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode == 0:
+        entries = [
+            f
+            for f in result.stdout.split()
+            if f.startswith("core") or f.endswith(".crash")
+        ]
+        if entries:
+            raise AssertionError(
+                f"Core dumps found in {config.CORE_DUMP_DIR} on {instance.id}: {entries}"
             )
 
 
