@@ -1,12 +1,9 @@
 name: Trivy Security Scan
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: "0 0 * * *" # Runs every midnight
-  pull_request:
-    paths:
-      - .github/workflows/security-scan.yaml
-      - .github/workflows/trivy.yaml
 
 permissions:
   contents: read
@@ -18,6 +15,7 @@ jobs:
      contents: read # for actions/checkout to fetch code
      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
    strategy:
+     fail-fast: false
      matrix:
        include:
          # Latest branches
@@ -33,5 +31,7 @@ jobs:
      channel: ${{ matrix.channel }}
      checkout-ref: ${{ matrix.branch }}
      upload-reports-to-jira: true
-   secrets: inherit
+   secrets:
+     CVE_JIRA_WEBHOOK_URL: ${{ secrets.CVE_JIRA_WEBHOOK_URL }}
+     CVE_JIRA_WEBHOOK_TOKEN: ${{ secrets.CVE_JIRA_WEBHOOK_TOKEN }}
 
