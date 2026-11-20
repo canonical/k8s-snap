@@ -1,7 +1,7 @@
 pytest==9.2.0
 pytest_tagging==1.6.0
 pytest-benchmark==5.3.1
-PyYAML==6.0.3
+PyYAML==6.0.4
 tenacity==9.2.1
 cryptography==50.0.2
 hvac==2.4.0
