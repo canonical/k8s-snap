@@ -13,7 +13,8 @@ on:
     pull_request:
         paths:
             - .github/workflows/security-triage.yaml
-            - ci/security_triage.py
+            - ci/k8s-ci.py
+            - ci/cmds/**
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -57,9 +58,10 @@ jobs:
                   FULL_MODE: ${{ inputs.full || 'false' }}
               run: |
                   if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
-                    python3 ci/security_triage.py --dry-run --full
+                    flags=(--dry-run --full)
                   elif [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" && "$FULL_MODE" == "true" ]]; then
-                    python3 ci/security_triage.py --full
+                    flags=(--full)
                   else
-                    python3 ci/security_triage.py
+                    flags=()
                   fi
+                  python3 ci/k8s-ci.py security triage --state-file "$STATE_FILE" "${flags[@]}"
