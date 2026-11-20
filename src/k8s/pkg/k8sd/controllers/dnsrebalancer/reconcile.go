@@ -194,8 +194,8 @@ func nodeSchedulableForCoreDNS(node *corev1.Node) bool {
 	}
 	// This release's CoreDNS chart does not set any scheduling tolerations.
 	for i := range node.Spec.Taints {
-		switch node.Spec.Taints[i].Effect {
-		case corev1.TaintEffectNoSchedule, corev1.TaintEffectNoExecute:
+		effect := node.Spec.Taints[i].Effect
+		if effect == corev1.TaintEffectNoSchedule || effect == corev1.TaintEffectNoExecute {
 			return false
 		}
 	}
