@@ -43,10 +43,10 @@ class MultipassHarness(Harness):
     def new_instance(
         self, network_type: str = "IPv4", name_suffix: str = ""
     ) -> Instance:
-        if network_type not in ("IPv4", "IPv6", "dualstack"):
+        network_type_clean = network_type.lower()
+        if network_type_clean not in ("ipv4", "ipv6", "dualstack"):
             raise HarnessError(
-                "Unknown network type: %s; supported types: IPv4, IPv6, dualstack",
-                network_type,
+                f"Unknown network type: {network_type}; supported types: IPv4, IPv6, dualstack"
             )
 
         instance_id = (
@@ -77,19 +77,16 @@ class MultipassHarness(Harness):
 
                 # Replace environment variables in the format ${VAR} or $VAR
                 def replace_env_var(match):
-                    LOG.info(match)
                     var_name = match.group(1) or match.group(2)
-                    LOG.info(var_name)
                     return os.environ.get(var_name, match.group(0))
 
-                LOG.info(os.environ)
                 cloud_init_content = re.sub(
                     r"\$\{([^}]+)\}|\$([A-Za-z_][A-Za-z0-9_]*)",
                     replace_env_var,
                     cloud_init_content,
                 )
 
-                LOG.info("Using cloud-init: %s", cloud_init_content)
+                LOG.info("Using cloud-init: %s", self.cloud_init)
                 # Note(ben): Multipass does not handle restarts in
                 # cloud-init very well and the command times out even if
                 # the underlying machine works just fine.
@@ -134,7 +131,7 @@ class MultipassHarness(Harness):
         stubbornly(retries=5, delay_s=5).on(instance).exec(
             ["snap", "wait", "system", "seed.loaded"]
         )
-        if network_type in ("IPv6", "dualstack"):
+        if network_type_clean in ("ipv6", "dualstack"):
             LOG.debug("Enabling IPv6 support in instance %s", instance_id)
             try:
                 self.exec(

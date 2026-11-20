@@ -6,10 +6,9 @@ from unittest.mock import MagicMock
 
 import pytest
 from tenacity import RetryError
-from test_util import harness, tags, util  # noqa: F401
+from test_util import util
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_wait_for_services_stopped_polls_until_inactive():
     instance = MagicMock()
     instance.exec.side_effect = [
@@ -42,7 +41,6 @@ def test_wait_for_services_stopped_polls_until_inactive():
     assert instance.exec.call_count == 2
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_wait_for_services_stopped_raises_when_still_active():
     instance = MagicMock()
     instance.exec.return_value = subprocess.CompletedProcess(
@@ -59,7 +57,6 @@ def test_wait_for_services_stopped_raises_when_still_active():
         util.wait_for_services_stopped(instance, retries=2, delay_s=0)
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_wait_for_ports_available_polls_until_unbound():
     instance = MagicMock()
     instance.exec.side_effect = [
@@ -85,7 +82,6 @@ def test_wait_for_ports_available_polls_until_unbound():
     assert instance.exec.call_count == 2
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_wait_for_ports_available_raises_when_still_bound():
     instance = MagicMock()
     instance.exec.return_value = subprocess.CompletedProcess(
