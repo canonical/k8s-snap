@@ -54,5 +54,5 @@ jobs:
           git checkout -B "${TARGET_BRANCH}"
           ./build-scripts/patches/"${VARIANT}"/apply
           git add snap/snapcraft.yaml
-          git commit -m "chore(${VARIANT}): apply ${VARIANT} variant overlay"
+          git diff --cached --quiet || git commit -m "chore(${VARIANT}): apply ${VARIANT} variant overlay"
           git push origin --force "${TARGET_BRANCH}"

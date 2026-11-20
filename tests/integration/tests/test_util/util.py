@@ -1120,19 +1120,22 @@ def _find_stable_track(major: int, minor: int, variant: str) -> Optional[str]:
         if ch["channel"]["risk"] == "stable" and ch["channel"]["architecture"] == arch
     }
 
+    base_suffix = "-classic" if variant == "strict" else (variant and f"-{variant}")
     _min = minor
     while _min >= 0:
-        track = f"{major}.{_min}" + (variant and f"-{variant}")
+        track = f"{major}.{_min}{base_suffix}"
         if track in stable_tracks:
-            LOG.info("Found stable snap for track %s (arch=%s)", track, arch)
-            return track
+            resolved = f"{track}/edge/strict" if variant == "strict" else track
+            LOG.info(
+                "Found stable snap for track %s -> %s (arch=%s)", track, resolved, arch
+            )
+            return resolved
         LOG.info(
             "No stable snap for track %s (arch=%s), trying previous minor",
             track,
             arch,
         )
         _min -= 1
-
     return None
 
 

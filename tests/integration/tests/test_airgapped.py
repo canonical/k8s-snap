@@ -169,9 +169,12 @@ def test_airgapped_with_image_mirror(
     images = out.stdout.splitlines()
     ctr_args = ["/snap/k8s/current/bin/ctr"]
     if config.VARIANT == "strict":
-        ctr_args.extend(
-            ["--address", "/var/snap/k8s/common/run/containerd/containerd.sock"]
-        )
+        ctr_args = [
+            "LD_LIBRARY_PATH=/snap/k8s/current/lib",
+            "/snap/k8s/current/bin/ctr",
+            "--address",
+            "/var/snap/k8s/common/run/containerd/containerd.sock",
+        ]
     ctr_cmd = " ".join(ctr_args)
     for image in images:
         link = "/".join(image.split("/")[1:])
