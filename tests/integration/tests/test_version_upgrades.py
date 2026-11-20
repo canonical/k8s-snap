@@ -150,6 +150,9 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
         )
 
     bootstrap_cp.exec(["k8s", "bootstrap"])
+    # Avoid racing the bootstrap node's kubelet Node registration (join can
+    # fail with "the cluster has no nodes" otherwise).
+    util.wait_until_k8s_ready(bootstrap_cp, [bootstrap_cp])
     for instance in instances:
         if instance.id in [bootstrap_cp.id, worker.id]:
             continue
@@ -332,6 +335,9 @@ def test_feature_upgrades_rollout_upgrade(
     )
 
     main_old.exec(["k8s", "bootstrap"])
+    # Avoid racing the bootstrap node's kubelet Node registration (join can
+    # fail with "the cluster has no nodes" otherwise).
+    util.wait_until_k8s_ready(main_old, [main_old])
     for instance in instances[1:3]:
         token = util.get_join_token(main_old, instance)
         instance.exec(["k8s", "join-cluster", token])
