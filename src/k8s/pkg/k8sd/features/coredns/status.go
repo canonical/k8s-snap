@@ -10,7 +10,7 @@ import (
 
 // CheckDNS checks the CoreDNS deployment in the cluster.
 func CheckDNS(ctx context.Context, snap snap.Snap) error {
-	client, err := snap.KubernetesClient("kube-system")
+	client, err := snap.KubernetesClient(Chart.Namespace)
 	if err != nil {
 		return fmt.Errorf("failed to create kubernetes client: %w", err)
 	}
@@ -20,7 +20,7 @@ func CheckDNS(ctx context.Context, snap snap.Snap) error {
 		namespace string
 		labels    map[string]string
 	}{
-		{name: "coredns", namespace: "kube-system", labels: map[string]string{"app.kubernetes.io/name": "coredns"}},
+		{name: DeploymentName, namespace: Chart.Namespace, labels: map[string]string{"app.kubernetes.io/name": "coredns"}},
 	} {
 		if err := client.CheckForReadyPods(ctx, check.namespace, metav1.ListOptions{
 			LabelSelector: metav1.FormatLabelSelector(&metav1.LabelSelector{MatchLabels: check.labels}),
