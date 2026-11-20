@@ -85,20 +85,15 @@ def test_no_unnecessary_helm_revisions(instances: List[harness.Instance]):
     util.wait_until_k8s_ready(instance, [instance])
 
     def check_features_enabled(p: CompletedProcess):
-        stdout = p.stdout.decode() if isinstance(p.stdout, bytes) else p.stdout
-        status = json.loads(stdout.strip())
-        features = [
-            "network",
-            "gateway",
-            "ingress",
-            "load-balancer",
-            "dns",
-            "local-storage",
-            "metrics-server",
-        ]
-        return all(
-            "enabled" in ((status.get(feature) or {}).get("message") or "")
-            for feature in features
+        status = json.loads(p.stdout.strip())
+        return (
+            "enabled" in status.get("network", {}).get("message")
+            and "enabled" in status.get("gateway", {}).get("message")
+            and "enabled" in status.get("ingress", {}).get("message")
+            and "enabled" in status.get("load-balancer", {}).get("message")
+            and "enabled" in status.get("dns", {}).get("message")
+            and "enabled" in status.get("local-storage", {}).get("message")
+            and "enabled" in status.get("metrics-server", {}).get("message")
         )
 
     util.stubbornly(retries=50, delay_s=5).on(instance).until(
@@ -124,18 +119,12 @@ def test_no_unnecessary_helm_revisions(instances: List[harness.Instance]):
             text=True,
         )
 
-        stdout = (
-            result.stdout.decode()
-            if isinstance(result.stdout, bytes)
-            else result.stdout
-        )
-        charts = json.loads(stdout)
+        charts = json.loads(result.stdout)
         for chart in charts:
             revisions[chart["name"]] = chart["revision"]
         return revisions
 
     initial_revisions = get_chart_revisions()
-    baseline_revisions = None
 
     for i in range(10):
         LOG.info("Running k8s set command (iteration %d)", i + 1)
@@ -166,42 +155,13 @@ def test_no_unnecessary_helm_revisions(instances: List[harness.Instance]):
 
         current_revisions = get_chart_revisions()
 
-        if i == 0:
-            assert len(current_revisions) == len(
-                initial_revisions
-            ), "Mismatch in number of charts"
-            for chart, initial_rev in initial_revisions.items():
-                current_rev = current_revisions.get(chart)
-                assert (
-                    current_rev is not None
-                ), f"Chart {chart} not in current revisions"
-                if chart == "ck-dns":
-                    # NOTE(Hue): (KU-3683) ck-dns has a bug that clusterIP is not available in the first reconciliation
-                    # and release. And with the new reconciliation, the clusterIP is set and a new revision is
-                    # created. But this should only happen once. After that, the revision should not change.
-                    assert int(initial_rev) in (
-                        1,
-                        2,
-                    ), f"Unexpected initial revision {initial_rev} for ck-dns"
-                    assert (
-                        int(current_rev) in (int(initial_rev), int(initial_rev) + 1)
-                        and int(current_rev) == 2
-                    ), f"Chart {chart} revision changed unexpectedly, initial was {initial_rev}, got {current_rev}"
-                else:
-                    assert (
-                        current_rev == initial_rev
-                    ), f"Chart {chart} revision changed unexpectedly"
-            baseline_revisions = current_revisions
-        else:
-            assert len(current_revisions) == len(
-                baseline_revisions
-            ), "Mismatch in number of charts"
-            for chart, base_rev in baseline_revisions.items():
-                current_rev = current_revisions.get(chart)
-                assert (
-                    current_rev is not None
-                ), f"Chart {chart} not in current revisions"
-                assert current_rev == base_rev, (
-                    f"Chart {chart} revision changed unexpectedly on iteration {i + 1}, "
-                    f"expected {base_rev}, got {current_rev}"
-                )
+        assert len(current_revisions) == len(
+            initial_revisions
+        ), "Mismatch in number of charts"
+        for chart, initial_rev in initial_revisions.items():
+            current_rev = current_revisions.get(chart)
+            assert current_rev is not None, f"Chart {chart} not in current revisions"
+            assert current_rev == initial_rev, (
+                f"Chart {chart} revision changed unexpectedly on iteration {i + 1}, "
+                f"expected {initial_rev}, got {current_rev}"
+            )
