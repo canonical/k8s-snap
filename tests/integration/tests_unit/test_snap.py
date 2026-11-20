@@ -3,11 +3,9 @@
 #
 from unittest.mock import patch
 
-import pytest
-from test_util import snap, tags
+from test_util import snap
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 @patch("test_util.snap.get_snap_info")
 def test_get_most_stable_channels_order_with_latest(mock_get_snap_info):
     mock_get_snap_info.return_value = {
