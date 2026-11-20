@@ -21,7 +21,7 @@ import yaml
 
 # Project name
 # TODO: Update with the official name of your project (e.g., "LXD documentation")
-project = "Canonical Kubernetes"
+project = "Canonical Kubernetes documentation"
 
 # Author name; used in the default copyright statement in the page footer
 author = "Canonical Ltd."
@@ -50,37 +50,33 @@ ogp_image = "https://assets.ubuntu.com/v1/cc828679-docs_illustration.svg"
 # The theme for the HTML output
 html_theme = "ulwazi"
 
+# Keep the sphinx-structured-toc separators Ubuntu orange in dark mode, where
+# Ulwazi defaults to white. Light mode already defaults to Ubuntu orange.
+ulwazi_structured_toc_separator_color_dark = "#E95420"
+
 # Dictionary of values to pass into every page's template.
 html_context = {
     # The header links the project name to the documentation root. Don't set
     # 'product_page', as it replaces that link with the product website.
-    # Product tag image; the orange part of your logo, shown in the page header
-    # TODO: To add a tag image, uncomment and update as needed.
-    # 'product_tag': '_static/tag.png',
     # Feedback and edit/view links require a valid `github_url`.
     # TODO: Set to False to hide feedback and page controls.
     "feedback": True,
+    # Docs branch in the repo; used in links for viewing the source files
+    "repo_branch": "main",
+    # Docs location in the repo; used in links for viewing the source files
+    "repo_folder": "/docs/canonicalk8s/",
     # Brand configuration for the leftmost entry in the banner
     # TODO: If your project falls under a different product page, update the title, URL,
     #       and logo if necessary.
-    "repo_default_branch": "main",
-    # Docs location in the repo; used in links for viewing the source files
-    "repo_folder": "/docs/canonicalk8s/",
     "logo_title": "Canonical",
     "logo_link_URL": "https://canonical.com",
     "logo_img_URL": "https://assets.ubuntu.com/v1/82818827-CoF_white.svg",
+    # Community links for the 'Resources' dropdown menu.
     "discourse": "https://discourse.ubuntu.com/c/kubernetes/180",
     # Adding slack channel
     'slack': 'https://kubernetes.slack.com/archives/CG1V2CAMB',
-    #
     # TODO: Change to your documentation GitHub repository URL or leave empty.
     "github_url": "https://github.com/canonical/k8s-snap",
-    # Docs branch in the repo; used in links for viewing the source files
-    # TODO: To enable or disable the Previous / Next buttons at the bottom of pages
-    # Valid options: none, prev, next, both
-    # "sequential_nav": "",
-    # Required for feedback button
-    "github_issues": "enabled",
     # License information to be rendered in the footer
     "author": author,
     "license": {
@@ -120,7 +116,7 @@ sitemap_excludes = [
 # Template and asset locations #
 ################################
 
-html_static_path = ["_static"]
+# html_static_path = ["_static"]
 # templates_path = ["_templates"]
 
 #############
@@ -247,7 +243,6 @@ exclude_patterns = [
 # Adds custom CSS files, located remotely or in 'html_static_path'.
 html_css_files = [
     "https://assets.ubuntu.com/v1/d86746ef-cookie_banner.css",
-    "domain-list-override.css",
 ]
 
 # Adds custom JavaScript files, located remotely or in 'html_static_path'.
