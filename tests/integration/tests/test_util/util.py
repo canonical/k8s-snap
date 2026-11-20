@@ -304,31 +304,7 @@ def _exec_snap_cmd_with_retries(
 
     def _attempt(_cmd: List[str], **kwds) -> subprocess.CompletedProcess:
         wait_for_snap_changes(instance)
-        try:
-            return instance.exec(_cmd, **kwds)
-        except subprocess.CalledProcessError as e:
-            stdout = (
-                e.stdout.decode() if isinstance(e.stdout, bytes) else (e.stdout or "")
-            )
-            stderr = (
-                e.stderr.decode() if isinstance(e.stderr, bytes) else (e.stderr or "")
-            )
-            combined = f"{stdout}\n{stderr}".lower()
-            if any(
-                msg in combined
-                for msg in (
-                    "already installed",
-                    "has no updates available",
-                    "is not installed",
-                )
-            ):
-                LOG.info(
-                    "Snap command on %s indicated operation already satisfied: %s",
-                    instance.id,
-                    combined.strip(),
-                )
-                return subprocess.CompletedProcess(_cmd, 0, e.stdout, e.stderr)
-            raise
+        return instance.exec(_cmd, **kwds)
 
     retriable = stubbornly(retries=retries, delay_s=delay_s)
     retriable._run = partial(_attempt, capture_output=True)

@@ -287,20 +287,9 @@ def test_snap_refresh_waits_for_changes_across_error_retry():
 
 
 @pytest.mark.tags(tags.PULL_REQUEST)
-def test_setup_k8s_snap_handles_already_installed_error_gracefully():
+def test_snap_refresh_raises_when_not_installed():
     instance = MagicMock()
-    instance.arch = "amd64"
     instance.exec.side_effect = [
-        # configure_cpuset_controller
-        subprocess.CompletedProcess(
-            args=["cat", "/sys/devices/system/cpu/online"],
-            returncode=0,
-            stdout="0-3\n",
-            stderr="",
-        ),
-        subprocess.CompletedProcess(
-            args=["systemctl"], returncode=0, stdout="", stderr=""
-        ),
         # wait_for_snap_changes
         subprocess.CompletedProcess(
             args=["snap", "changes"],
@@ -308,42 +297,46 @@ def test_setup_k8s_snap_handles_already_installed_error_gracefully():
             stdout="ID   Status  Summary\n1    Done    Setup\n",
             stderr="",
         ),
-        # snap install raises CalledProcessError with "already installed"
+        # snap refresh fails because snap is not installed
         subprocess.CalledProcessError(
             returncode=1,
             cmd=[
                 "snap",
-                "install",
-                "--classic",
+                "refresh",
                 "k8s",
                 "--channel",
-                "latest/edge/classic",
+                "1.32-classic/stable",
+                "--classic",
             ],
-            stderr="snap \"k8s\" is already installed, see 'snap help refresh'\n",
+            stderr='error: snap "k8s" is not installed\n',
         ),
-        # connect_interfaces: init.sh
+        # retry wait_for_snap_changes
         subprocess.CompletedProcess(
-            args=["/snap/k8s/current/k8s/hack/init.sh"],
+            args=["snap", "changes"],
             returncode=0,
-            stdout="",
+            stdout="ID   Status  Summary\n1    Done    Setup\n",
             stderr="",
         ),
+        # retry fails again
+        subprocess.CalledProcessError(
+            returncode=1,
+            cmd=[
+                "snap",
+                "refresh",
+                "k8s",
+                "--channel",
+                "1.32-classic/stable",
+                "--classic",
+            ],
+            stderr='error: snap "k8s" is not installed\n',
+        ),
     ]
 
-    util.setup_k8s_snap(
-        instance,
-        snap="latest/edge/classic",
-        connect_interfaces=True,
-        retries=2,
-        delay_s=0,
-        timeout=600,
-    )
-
-    exec_cmds = [call_args[0][0] for call_args in instance.exec.call_args_list]
-    assert exec_cmds == [
-        ["cat", "/sys/devices/system/cpu/online"],
-        ["systemctl", "set-property", "--runtime", "system.slice", "AllowedCPUs=0-3"],
-        ["snap", "changes"],
-        ["snap", "install", "--classic", "k8s", "--channel", "latest/edge/classic"],
-        ["/snap/k8s/current/k8s/hack/init.sh"],
-    ]
+    with pytest.raises(RetryError):
+        util.snap_refresh(
+            instance,
+            channel="1.32-classic/stable",
+            retries=2,
+            delay_s=0,
+            timeout=600,
+        )
