@@ -29,7 +29,7 @@ jobs:
     uses: $/.github/workflows/build-snap.yaml
     strategy:
       matrix:
-        variant: [""]
+        variant: ${{ startsWith(github.ref_name, 'autoupdate/') && fromJson('[""]') || fromJson('["", "strict"]') }}
         arch: ["amd64", "arm64"]
     with:
       variant: ${{ matrix.variant }}

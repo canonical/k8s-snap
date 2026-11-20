@@ -1,0 +1,58 @@
+name: Auto-update variant branches
+
+on:
+  push:
+    branches:
+      - main
+      - 'release-[0-9]+.[0-9]+'
+
+permissions:
+  contents: read
+
+jobs:
+  update:
+    name: "${{ matrix.variant }}"
+    permissions:
+      contents: write # for Git to git push
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        variant: ["strict"]
+    steps:
+      - name: Determine branch
+        id: determine
+        env:
+          BRANCH: ${{ github.ref_name }}
+          VARIANT: ${{ matrix.variant }}
+        run: |
+          if [[ "${BRANCH}" == "main" ]]; then
+            echo "branch=autoupdate/${VARIANT}" >> "$GITHUB_OUTPUT"
+          elif [[ "${BRANCH}" =~ ^release-[0-9]+\.[0-9]+$ ]]; then
+            echo "branch=autoupdate/${BRANCH}-${VARIANT}" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::Unsupported branch: ${BRANCH}"
+            exit 1
+          fi
+      - name: Checkout repository
+        # zizmor: ignore[artipacked] BOT_SSH_KEY must remain configured for git push
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ssh-key: ${{ secrets.BOT_SSH_KEY }}
+      - name: Setup Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: '3.12'
+      - name: Install Python dependencies
+        run: pip3 install --require-hashes -r ci/requirements-pyyaml.txt
+      - name: Apply variant overlay and push
+        env:
+          TARGET_BRANCH: ${{ steps.determine.outputs.branch }}
+          VARIANT: ${{ matrix.variant }}
+        run: |
+          git config user.name "Github Actions"
+          git config user.email "worker@org.com"
+          git checkout -B "${TARGET_BRANCH}"
+          ./build-scripts/patches/"${VARIANT}"/apply
+          git add snap/snapcraft.yaml
+          git commit -m "chore(${VARIANT}): apply ${VARIANT} variant overlay"
+          git push origin --force "${TARGET_BRANCH}"

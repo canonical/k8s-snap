@@ -1,0 +1,157 @@
+assumes:
+  - snapd2.62
+
+environment:
+  OPENSSL_MODULES: /usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/ossl-modules
+
+layout:
+  /etc/kubernetes:
+    bind: $SNAP_COMMON/etc/kubernetes
+  /etc/cni/net.d:
+    bind: $SNAP_COMMON/etc/cni/net.d
+  /opt/cni/bin:
+    bind: $SNAP_COMMON/opt/cni/bin
+  /var/lib/kubelet:
+    bind: $SNAP_COMMON/var/lib/kubelet
+  /var/lib/cni:
+    bind: $SNAP_COMMON/var/lib/cni
+  /var/log/pods:
+    bind: $SNAP_COMMON/var/log/pods
+  /var/log/containers:
+    bind: $SNAP_COMMON/var/log/containers
+
+plugs:
+  home-read-all:
+    interface: home
+    read: all
+  docker-privileged:
+    interface: docker-support
+    privileged-containers: true
+  k8s-kubeproxy:
+    interface: kubernetes-support
+    flavor: kubeproxy
+  cilium-delete-queue-lock:
+    interface: system-files
+    write:
+      - /run/cilium/deleteQueue/lockfile
+  cilium-cleanup:
+    interface: system-files
+    read:
+      - /sys/fs/bpf
+    write:
+      - /run/cilium
+      - /sys/fs/bpf/cilium
+      - /sys/fs/bpf/tc/globals
+  cilium-module-load:
+    interface: kernel-module-load
+    modules:
+      - name: iptable_raw
+        load: on-boot
+      - name: xt_socket
+        load: on-boot
+
+apps:
+  k8s:
+    plugs:
+      - firewall-control
+      - home-read-all
+      - home
+      - kernel-module-observe
+      - kubernetes-support
+      - login-session-observe
+      - log-observe
+      - mount-observe
+      - network
+      - network-bind
+      - network-control
+      - network-observe
+      - opengl
+      - system-observe
+  containerd:
+    plugs:
+      - cifs-mount
+      - cilium-delete-queue-lock
+      - cilium-module-load
+      - docker-privileged
+      - firewall-control
+      - fuse-support
+      - kernel-crypto-api
+      - kubernetes-support
+      - mount-observe
+      - network
+      - network-bind
+      - network-control
+      - opengl
+  etcd:
+    plugs:
+      - network
+      - network-bind
+  k8sd:
+    plugs:
+      - kubernetes-support
+      - mount-observe
+      - network
+      - network-bind
+      - network-observe
+      - system-observe
+  kubelet:
+    plugs:
+      - docker-privileged
+      - firewall-control
+      - hardware-observe
+      - kernel-module-observe
+      - kubernetes-support
+      - mount-observe
+      - network
+      - network-bind
+      - network-observe
+      - opengl
+      - process-control
+      - system-observe
+  kube-apiserver:
+    plugs:
+      - network
+      - network-bind
+      - network-observe
+      - system-observe
+  kube-controller-manager:
+    plugs:
+      - network
+      - network-bind
+      - network-observe
+      - system-observe
+  kube-proxy:
+    plugs:
+      - firewall-control
+      - k8s-kubeproxy
+      - kernel-module-observe
+      - network
+      - network-bind
+      - network-control
+      - network-observe
+      - process-control
+      - system-observe
+  kube-scheduler:
+    plugs:
+      - network
+      - network-bind
+      - network-observe
+      - system-observe
+  k8s-apiserver-proxy:
+    plugs:
+      - network
+      - network-bind
+
+hooks:
+  remove:
+    plugs:
+      - cilium-cleanup
+      - firewall-control
+      - kubernetes-support
+      - mount-observe
+      - network
+      - network-bind
+      - network-control
+      - network-observe
+      - process-control
+      - system-observe
