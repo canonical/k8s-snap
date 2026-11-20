@@ -129,6 +129,19 @@ sudo k8s get dns | grep "service-ip: 10.152.183.254"
 Replace `<new-ip>`, `<new-domain-name>`, and `<new-cluster-ip>` with the
 desired values for your DNS configuration.
 
+A cluster IP you set is never changed automatically. If another service takes
+it while DNS is disabled, DNS stays disabled when you enable it again and its
+status names the service holding the IP. Delete that service, or disable DNS
+and set a different IP. Set an empty value to let Kubernetes choose the IP:
+
+<!-- SPREAD SKIP -->
+
+```
+sudo k8s set dns.service-ip=""
+```
+
+<!-- SPREAD SKIP END -->
+
 ## Disable DNS
 
 {{product}} also allows you to disable the built-in DNS,
@@ -136,7 +149,10 @@ if you desire a custom solution:
 
 ```{warning} Disabling DNS will disrupt internal cluster communication. Ensure
 a suitable custom DNS solution is in place before disabling. You can re-enable
-DNS at any point, and your cluster will return to normal functionality.
+DNS at any point. If another service took the DNS cluster IP in the meantime,
+the DNS service gets a new IP, and pods created before that keep using the old
+one until they are restarted. If you set the IP yourself, it is kept instead,
+see [Configure DNS](#configure-dns).
 ```
 
 <!-- SPREAD SKIP -->
