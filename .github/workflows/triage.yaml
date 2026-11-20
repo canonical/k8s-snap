@@ -192,6 +192,7 @@ jobs:
             - name: Run triage pipeline (unprivileged)
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  OPENROUTER_API_KEY: ${{ secrets.TRIAGE_OPENROUTER_API_KEY }}
                   GOOGLE_API_KEY: ${{ secrets.TRIAGE_GOOGLE_API_KEY }}
                   GITHUB_EVENT_PATH: ${{ github.event_path }}
                   EVENT_NAME: ${{ github.event_name }}
@@ -347,6 +348,7 @@ jobs:
             - name: Run triage bot
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  OPENROUTER_API_KEY: ${{ secrets.TRIAGE_OPENROUTER_API_KEY }}
                   GOOGLE_API_KEY: ${{ secrets.TRIAGE_GOOGLE_API_KEY }}
                   GITHUB_EVENT_PATH: ${{ github.event_path }}
               run: |
