@@ -1,6 +1,11 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
+
+# Postponed annotation evaluation is required: `test_util.harness` imports
+# `bare_metal` first (isort order), which imports this module while the
+# `harness` package is still half-initialised, so annotations such as
+# `harness.Instance` can't be evaluated at definition time.
 from __future__ import annotations
 
 import ipaddress
@@ -1611,17 +1616,27 @@ def check_no_service_restarts_after_stabilization(
 def check_no_core_dumps(instance: harness.Instance):
     """Check that no core dumps or crash files exist in the core dump directory."""
     result = instance.exec(
-        ["ls", "-A", config.CORE_DUMP_DIR],
+        [
+            "find",
+            config.CORE_DUMP_DIR,
+            "-maxdepth",
+            "1",
+            "-type",
+            "f",
+            "(",
+            "-name",
+            "core*",
+            "-o",
+            "-name",
+            "*.crash",
+            ")",
+        ],
         capture_output=True,
         text=True,
         check=False,
     )
     if result.returncode == 0:
-        entries = [
-            f
-            for f in result.stdout.split()
-            if f.startswith("core") or f.endswith(".crash")
-        ]
+        entries = [line.strip() for line in result.stdout.splitlines() if line.strip()]
         if entries:
             raise AssertionError(
                 f"Core dumps found in {config.CORE_DUMP_DIR} on {instance.id}: {entries}"

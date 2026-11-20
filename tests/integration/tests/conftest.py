@@ -132,11 +132,14 @@ def log_environment_info(h: harness.Harness):
 
 @pytest.fixture(scope="session")
 def registry(h: harness.Harness) -> Optional[Registry]:
-    if config.USE_LOCAL_MIRROR and config.SUBSTRATE != "bare_metal":
-        yield Registry(h)
-    else:
+    if not config.USE_LOCAL_MIRROR:
         LOG.info("Local registry mirror disabled!")
         yield None
+    elif config.SUBSTRATE == "bare_metal":
+        LOG.info("Local registry mirror skipped on bare metal substrate")
+        yield None
+    else:
+        yield Registry(h)
 
 
 @pytest.fixture(scope="function")
