@@ -186,6 +186,11 @@ func TestEnabled(t *testing.T) {
 }
 
 func validateValues(g Gomega, values map[string]any, dns types.DNS, kubelet types.Kubelet) {
+	g.Expect(values).To(HaveKeyWithValue("rollingUpdate", map[string]any{
+		"maxSurge":       1,
+		"maxUnavailable": 0,
+	}))
+
 	service := values["service"].(map[string]any)
 	g.Expect(service["clusterIP"]).To(Equal(kubelet.GetClusterDNS()))
 
@@ -198,14 +203,14 @@ func validateValues(g Gomega, values map[string]any, dns types.DNS, kubelet type
 	g.Expect(values["priorityClassName"]).To(Equal("system-node-critical"))
 
 	// Validate tolerations
-	tolerations, ok := values["tolerations"].([]map[string]any)
+	tolerations, ok := values["tolerations"].([]corev1.Toleration)
 	g.Expect(ok).To(BeTrue())
 	g.Expect(tolerations).To(HaveLen(1))
 
 	toleration := tolerations[0]
-	g.Expect(toleration["key"]).To(Equal("node-role.kubernetes.io/control-plane"))
-	g.Expect(toleration["operator"]).To(Equal("Exists"))
-	g.Expect(toleration["effect"]).To(Equal("NoSchedule"))
+	g.Expect(toleration.Key).To(Equal("node-role.kubernetes.io/control-plane"))
+	g.Expect(toleration.Operator).To(Equal(corev1.TolerationOpExists))
+	g.Expect(toleration.Effect).To(Equal(corev1.TaintEffectNoSchedule))
 
 	// Validate HPA configuration
 	hpa := values["hpa"].(map[string]any)
@@ -245,6 +250,7 @@ func validateValues(g Gomega, values map[string]any, dns types.DNS, kubelet type
 
 	podAffinityTerm := preferred[0]["podAffinityTerm"].(map[string]any)
 	g.Expect(podAffinityTerm["topologyKey"]).To(Equal("kubernetes.io/hostname"))
+	g.Expect(podAffinityTerm).To(HaveKeyWithValue("matchLabelKeys", []string{"pod-template-hash"}))
 	labelSelector := podAffinityTerm["labelSelector"].(map[string]any)
 	matchLabels := labelSelector["matchLabels"].(map[string]any)
 	g.Expect(matchLabels["app.kubernetes.io/name"]).To(Equal("coredns"))
