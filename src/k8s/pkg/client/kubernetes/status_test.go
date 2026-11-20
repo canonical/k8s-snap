@@ -98,3 +98,36 @@ func TestClusterHasReadyNodes(t *testing.T) {
 		})
 	}
 }
+
+func TestIsNodeReady(t *testing.T) {
+	tests := []struct {
+		name string
+		node *v1.Node
+		want bool
+	}{
+		{name: "nil"},
+		{name: "no conditions", node: &v1.Node{}},
+		{name: "unrelated condition", node: &v1.Node{Status: v1.NodeStatus{Conditions: []v1.NodeCondition{{Type: v1.NodeMemoryPressure, Status: v1.ConditionTrue}}}}},
+	}
+	for _, status := range []v1.ConditionStatus{v1.ConditionTrue, v1.ConditionFalse, v1.ConditionUnknown} {
+		tests = append(tests, struct {
+			name string
+			node *v1.Node
+			want bool
+		}{
+			name: string(status),
+			node: &v1.Node{Status: v1.NodeStatus{Conditions: []v1.NodeCondition{
+				{Type: v1.NodeMemoryPressure, Status: v1.ConditionFalse},
+				{Type: v1.NodeReady, Status: status},
+			}}},
+			want: status == v1.ConditionTrue,
+		})
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := IsNodeReady(tt.node); got != tt.want {
+				t.Fatalf("IsNodeReady() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
