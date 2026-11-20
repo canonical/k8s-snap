@@ -105,3 +105,34 @@ func TestCheckForReadyPods(t *testing.T) {
 		})
 	}
 }
+
+func TestIsPodReady(t *testing.T) {
+	if IsPodReady(nil) {
+		t.Fatal("nil pod must not be ready")
+	}
+	for _, phase := range []corev1.PodPhase{"", corev1.PodPending, corev1.PodRunning, corev1.PodSucceeded, corev1.PodFailed, corev1.PodUnknown} {
+		for _, status := range []corev1.ConditionStatus{corev1.ConditionTrue, corev1.ConditionFalse, corev1.ConditionUnknown} {
+			t.Run(string(phase)+"/"+string(status), func(t *testing.T) {
+				pod := &corev1.Pod{Status: corev1.PodStatus{
+					Phase: phase,
+					Conditions: []corev1.PodCondition{
+						{Type: corev1.PodScheduled, Status: corev1.ConditionTrue},
+						{Type: corev1.PodReady, Status: status},
+					},
+				}}
+				want := phase == corev1.PodRunning && status == corev1.ConditionTrue
+				if got := IsPodReady(pod); got != want {
+					t.Fatalf("IsPodReady() = %v, want %v", got, want)
+				}
+			})
+		}
+	}
+	pod := &corev1.Pod{Status: corev1.PodStatus{Phase: corev1.PodRunning}}
+	if IsPodReady(pod) {
+		t.Fatal("running pod without conditions must not be ready")
+	}
+	pod.Status.Conditions = []corev1.PodCondition{{Type: corev1.PodScheduled, Status: corev1.ConditionTrue}}
+	if IsPodReady(pod) {
+		t.Fatal("running pod without a Ready condition must not be ready")
+	}
+}
