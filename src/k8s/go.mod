@@ -188,26 +188,17 @@ require (
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
-replace k8s.io/api => k8s.io/api v0.32.13
-
-replace k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.32.13
-
-replace k8s.io/apimachinery => k8s.io/apimachinery v0.32.13
-
-replace k8s.io/apiserver => k8s.io/apiserver v0.32.13
-
-replace k8s.io/cli-runtime => k8s.io/cli-runtime v0.32.13
-
-replace k8s.io/client-go => k8s.io/client-go v0.32.13
-
-replace k8s.io/component-base => k8s.io/component-base v0.32.13
-
-replace k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20241105132330-32ad38e42d3f
-
-replace k8s.io/kubectl => k8s.io/kubectl v0.32.13
-
-replace github.com/google/gnostic-models => github.com/google/gnostic-models v0.6.8
-
-replace sigs.k8s.io/kustomize/api => sigs.k8s.io/kustomize/api v0.18.0
-
-replace sigs.k8s.io/kustomize/kyaml => sigs.k8s.io/kustomize/kyaml v0.18.1
+replace (
+	github.com/google/gnostic-models => github.com/google/gnostic-models v0.6.8
+	k8s.io/api => k8s.io/api v0.32.13
+	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.32.13
+	k8s.io/apimachinery => k8s.io/apimachinery v0.32.13
+	k8s.io/apiserver => k8s.io/apiserver v0.32.13
+	k8s.io/cli-runtime => k8s.io/cli-runtime v0.32.13
+	k8s.io/client-go => k8s.io/client-go v0.32.13
+	k8s.io/component-base => k8s.io/component-base v0.32.13
+	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20241105132330-32ad38e42d3f
+	k8s.io/kubectl => k8s.io/kubectl v0.32.13
+	sigs.k8s.io/kustomize/api => sigs.k8s.io/kustomize/api v0.18.0
+	sigs.k8s.io/kustomize/kyaml => sigs.k8s.io/kustomize/kyaml v0.18.1
+)
