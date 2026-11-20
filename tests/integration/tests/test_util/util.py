@@ -40,7 +40,8 @@ MAIN_BRANCH = "main"
 # kube-proxy was replaced by the Cilium kube-proxy replacement in 1.36. Snaps older
 # than this always run kube-proxy and ignore `network.kube-proxy-enabled`.
 KUBE_PROXY_REPLACEMENT_MIN_VERSION = (1, 36)
-IN_PROGRESS_SNAP_STATUSES = {"Doing", "Undoing", "Do"}
+SETTLED_SNAP_STATUSES = {"Done", "Error", "Hold"}
+UNFINISHED_SNAP_STATUSES = {"Doing", "Undoing", "Do", "Undo", "Wait", "Abort"}
 
 
 def _is_retryable_http_error(exc: BaseException) -> bool:
@@ -281,7 +282,10 @@ def wait_for_snap_changes(
                 continue
             if parts[0] in ("ID", "No"):
                 continue
-            if len(parts) >= 2 and parts[1] in IN_PROGRESS_SNAP_STATUSES:
+            if len(parts) >= 2 and (
+                parts[1] in UNFINISHED_SNAP_STATUSES
+                or parts[1] not in SETTLED_SNAP_STATUSES
+            ):
                 LOG.debug(
                     "Waiting for in-progress snap change on %s: %s", instance.id, line
                 )
@@ -290,7 +294,7 @@ def wait_for_snap_changes(
 
     stubbornly(retries=retries, delay_s=delay_s).on(instance).until(
         _has_no_in_progress_changes
-    ).exec(["snap", "changes"], timeout=60 * 5)
+    ).exec(["snap", "changes"], timeout=30)
 
 
 def _exec_snap_cmd_with_retries(
@@ -423,13 +427,33 @@ def setup_k8s_snap(
         LOG.info("Install k8s snap by least risky channel: %s", channel)
         cmd += [config.SNAP_NAME, "--channel", channel]
 
-    _exec_snap_cmd_with_retries(
+    res = _exec_snap_cmd_with_retries(
         instance,
         cmd,
         retries=retries,
         delay_s=delay_s,
         timeout=timeout,
     )
+    stdout = (
+        res.stdout.decode() if isinstance(res.stdout, bytes) else (res.stdout or "")
+    )
+    stderr = (
+        res.stderr.decode() if isinstance(res.stderr, bytes) else (res.stderr or "")
+    )
+    if "is already installed" in f"{stdout}\n{stderr}":
+        LOG.info(
+            "Snap %s is already installed; ensuring target channel %s",
+            config.SNAP_NAME,
+            which_snap,
+        )
+        if not (isinstance(which_snap, str) and which_snap.startswith("/")):
+            snap_refresh(
+                instance,
+                which_snap,
+                retries=retries,
+                delay_s=delay_s,
+                timeout=timeout,
+            )
     if connect_interfaces:
         LOG.info("Ensure k8s interfaces and network requirements")
         instance.exec(["/snap/k8s/current/k8s/hack/init.sh"], stdout=subprocess.DEVNULL)

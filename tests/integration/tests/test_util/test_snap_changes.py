@@ -37,7 +37,25 @@ def test_wait_for_snap_changes_polls_until_settled():
             returncode=0,
             stdout=(
                 "ID   Status   Spawn                   Ready                   Summary\n"
-                '1    Do       yesterday at 14:44 CET  -                       Install snap "k8s"\n'
+                '1    Undo     yesterday at 14:44 CET  -                       Install snap "k8s"\n'
+            ),
+            stderr="",
+        ),
+        subprocess.CompletedProcess(
+            args=["snap", "changes"],
+            returncode=0,
+            stdout=(
+                "ID   Status   Spawn                   Ready                   Summary\n"
+                '1    Wait     yesterday at 14:44 CET  -                       Install snap "k8s"\n'
+            ),
+            stderr="",
+        ),
+        subprocess.CompletedProcess(
+            args=["snap", "changes"],
+            returncode=0,
+            stdout=(
+                "ID   Status   Spawn                   Ready                   Summary\n"
+                '1    Abort    yesterday at 14:44 CET  -                       Install snap "k8s"\n'
             ),
             stderr="",
         ),
@@ -48,14 +66,15 @@ def test_wait_for_snap_changes_polls_until_settled():
                 "ID   Status   Spawn                   Ready                   Summary\n"
                 '1    Done     yesterday at 14:44 CET  yesterday at 14:45 CET  Install snap "k8s"\n'
                 '2    Error    yesterday at 14:40 CET  yesterday at 14:41 CET  Refresh snap "core22"\n'
+                '3    Hold     yesterday at 14:30 CET  -                       Hold snap "test"\n'
             ),
             stderr="",
         ),
     ]
 
-    util.wait_for_snap_changes(instance, retries=5, delay_s=0)
+    util.wait_for_snap_changes(instance, retries=8, delay_s=0)
 
-    assert instance.exec.call_count == 4
+    assert instance.exec.call_count == 6
 
 
 @pytest.mark.tags(tags.PULL_REQUEST)
@@ -179,7 +198,7 @@ def test_setup_k8s_snap_waits_for_changes_across_timeout_retry():
                 "latest/edge/classic",
             ],
             returncode=0,
-            stdout="snap \"k8s\" is already installed, see 'snap help refresh'\n",
+            stdout="k8s (edge) 1.32 installed\n",
             stderr="",
         ),
         # connect_interfaces: init.sh
@@ -210,6 +229,93 @@ def test_setup_k8s_snap_waits_for_changes_across_timeout_retry():
         ["snap", "changes"],
         ["snap", "changes"],
         ["snap", "install", "--classic", "k8s", "--channel", "latest/edge/classic"],
+        ["/snap/k8s/current/k8s/hack/init.sh"],
+    ]
+
+
+@pytest.mark.tags(tags.PULL_REQUEST)
+def test_setup_k8s_snap_refreshes_when_already_installed():
+    instance = MagicMock()
+    instance.arch = "amd64"
+    instance.exec.side_effect = [
+        # configure_cpuset_controller
+        subprocess.CompletedProcess(
+            args=["cat", "/sys/devices/system/cpu/online"],
+            returncode=0,
+            stdout="0-3\n",
+            stderr="",
+        ),
+        subprocess.CompletedProcess(
+            args=["systemctl"], returncode=0, stdout="", stderr=""
+        ),
+        # wait_for_snap_changes (install)
+        subprocess.CompletedProcess(
+            args=["snap", "changes"],
+            returncode=0,
+            stdout="ID   Status  Summary\n1    Done    Setup\n",
+            stderr="",
+        ),
+        # snap install returns already installed
+        subprocess.CompletedProcess(
+            args=[
+                "snap",
+                "install",
+                "--classic",
+                "k8s",
+                "--channel",
+                "latest/edge/classic",
+            ],
+            returncode=0,
+            stdout="snap \"k8s\" is already installed, see 'snap help refresh'\n",
+            stderr="",
+        ),
+        # wait_for_snap_changes (refresh)
+        subprocess.CompletedProcess(
+            args=["snap", "changes"],
+            returncode=0,
+            stdout="ID   Status  Summary\n1    Done    Setup\n",
+            stderr="",
+        ),
+        # snap refresh runs to ensure target channel
+        subprocess.CompletedProcess(
+            args=[
+                "snap",
+                "refresh",
+                "k8s",
+                "--channel",
+                "latest/edge/classic",
+                "--classic",
+            ],
+            returncode=0,
+            stdout='snap "k8s" has no updates available\n',
+            stderr="",
+        ),
+        # connect_interfaces: init.sh
+        subprocess.CompletedProcess(
+            args=["/snap/k8s/current/k8s/hack/init.sh"],
+            returncode=0,
+            stdout="",
+            stderr="",
+        ),
+    ]
+
+    util.setup_k8s_snap(
+        instance,
+        snap="latest/edge/classic",
+        connect_interfaces=True,
+        retries=2,
+        delay_s=0,
+        timeout=600,
+    )
+
+    exec_cmds = [call_args[0][0] for call_args in instance.exec.call_args_list]
+    assert exec_cmds == [
+        ["cat", "/sys/devices/system/cpu/online"],
+        ["systemctl", "set-property", "--runtime", "system.slice", "AllowedCPUs=0-3"],
+        ["snap", "changes"],
+        ["snap", "install", "--classic", "k8s", "--channel", "latest/edge/classic"],
+        ["snap", "changes"],
+        ["snap", "refresh", "k8s", "--channel", "latest/edge/classic", "--classic"],
         ["/snap/k8s/current/k8s/hack/init.sh"],
     ]
 
