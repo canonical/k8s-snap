@@ -1,0 +1,36 @@
+{
+  "tracks": {
+    "snap:1.35-classic/stable": {
+      "last_documented_sha": "b876753cabbc9c33a305dc3e51c3b4f86aed7394",
+      "last_documented_date": "2026-07-23"
+    },
+    "snap:1.34-classic/stable": {
+      "last_documented_sha": "64537d9e77bd470709606a6a48e099dfb37fc660",
+      "last_documented_date": "2026-07-23"
+    },
+    "snap:1.33-classic/stable": {
+      "last_documented_sha": "9d74a1c0ab00c74e3b72ae38742d22d903f4b6a4",
+      "last_documented_date": "2026-07-23"
+    },
+    "snap:1.32-classic/stable": {
+      "last_documented_sha": "7bb5299dbfcd83bc3d5bc47ca60caf9f2f61bc7a",
+      "last_documented_date": "2026-07-23"
+    },
+    "charm:1.35/stable": {
+      "last_documented_sha": "0a905a808bc3015e0b5231b485e38dd5faf44a64",
+      "last_documented_date": "2026-07-23"
+    },
+    "charm:1.34/stable": {
+      "last_documented_sha": "2c27f24558e978000c4044a9c300e16a9ae29cb6",
+      "last_documented_date": "2026-07-23"
+    },
+    "charm:1.33/stable": {
+      "last_documented_sha": "6b70b9f87123e37ba44b2a50913e3161a85dafdc",
+      "last_documented_date": "2026-07-23"
+    },
+    "charm:1.32/stable": {
+      "last_documented_sha": "9732111d8daf9012312daacb3d1dd816689a4ba3",
+      "last_documented_date": "2026-07-23"
+    }
+  }
+}
