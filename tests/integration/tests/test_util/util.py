@@ -549,6 +549,15 @@ def wait_until_k8s_ready(
         assert_no_apparmor_denials(instances)
 
 
+def _is_benign_glibc_hugepages_probe(line: str) -> bool:
+    """Ignore core24 glibc's read-only startup opendir(/sys/kernel/mm/hugepages/)."""
+    return (
+        'operation="open"' in line
+        and 'name="/sys/kernel/mm/hugepages/"' in line
+        and 'requested_mask="r"' in line
+    )
+
+
 def _filter_k8s_apparmor_denials(raw_output: str) -> List[str]:
     """Return AppArmor DENIED log lines involving the k8s snap or its containers."""
     snap_token = f"snap.{config.SNAP_NAME}."
@@ -557,6 +566,8 @@ def _filter_k8s_apparmor_denials(raw_output: str) -> List[str]:
     for raw_line in raw_output.splitlines():
         line = raw_line.strip()
         if 'apparmor="DENIED"' not in line or 'operation="not mount"' in line:
+            continue
+        if _is_benign_glibc_hugepages_probe(line):
             continue
         if snap_token not in line and "cri-containerd.apparmor.d" not in line:
             continue

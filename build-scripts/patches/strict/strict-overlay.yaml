@@ -90,12 +90,17 @@ apps:
       - network-bind
   k8sd:
     plugs:
+      - block-devices
+      - cilium-cleanup
+      - firewall-control
+      - kernel-module-observe
       - kubernetes-support
       - mount-observe
       - network
       - network-bind
       - network-control
       - network-observe
+      - process-control
       - system-observe
   kubelet:
     plugs:
@@ -148,6 +153,7 @@ apps:
 hooks:
   remove:
     plugs:
+      - block-devices
       - cilium-cleanup
       - firewall-control
       - kernel-module-observe
