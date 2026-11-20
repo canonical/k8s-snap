@@ -62,12 +62,34 @@ Collecting system information
  INFO:  Copy k8s diagnostics to the final report tarball
 Collecting networking information
  INFO:  Copy network diagnostics to the final report tarball
+Collecting Cilium diagnostics
+ INFO:  Copy Cilium drop/trace monitor sample to the final report tarball
 Building the report tarball
  SUCCESS:  Report tarball is at /root/inspection-report-20250109_132806.tar.gz
 ```
 
 Use the report to ensure that all necessary services are running and dive into
 every aspect of the system.
+
+## Network diagnostics
+
+Alongside the usual `ip a`/`ip r`/`ss` output, the report also captures the
+node's netfilter and connection-tracking state:
+
+- ``iptables.log`` / ``iptables-legacy.log`` (and IPv6 equivalents) - rule
+  counters from the `nf_tables` and legacy `iptables` backends respectively,
+  as seen through the `iptables`/`iptables-legacy` commands.
+- ``nft-ruleset.log`` - the output of `nft list ruleset`, which reflects the
+  actual netfilter state regardless of which backend owns it. This is useful
+  when another tool on the host (for example Docker) manages its own
+  nftables or iptables rules, since `iptables-save` alone only shows the
+  backend that the `iptables` alternative currently points to.
+- ``conntrack-table.log`` / ``conntrack-stats.log`` - the current connection
+  tracking table and statistics, useful for NAT troubleshooting.
+- ``nstat.log`` - kernel networking counters, useful for narrowing packet
+  drops down to a specific subsystem.
+- ``cilium-monitor.log`` - a short sample of `cilium monitor --type drop
+  --type trace` output from the Cilium pod running on the node, if any.
 
 ## Command arguments
 
