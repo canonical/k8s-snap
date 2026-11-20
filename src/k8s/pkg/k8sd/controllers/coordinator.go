@@ -209,7 +209,6 @@ func (c *Coordinator) setupDNSRebalancerController(
 		logger,
 		mgr.GetClient(),
 		getClusterConfig,
-		c.snap,
 	)
 
 	if err := dnsrebalancerController.SetupWithManager(mgr); err != nil {
