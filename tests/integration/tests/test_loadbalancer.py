@@ -158,17 +158,18 @@ def _test_loadbalancer(instances: List[harness.Instance], k8s_net_type: K8sNetTy
     service_ips = [
         entry["ip"]
         for entry in data.get("status", {}).get("loadBalancer", {}).get("ingress", [])
-        if "ip" in entry
+        if entry.get("ip")
     ]
 
     for ip in service_ips:
         formatted_ip = f"[{ip}]" if ":" in ip else ip
-        LOG.info(f"Reaching out to service with service_ip = {formatted_ip}")
+        service_url = f"http://{formatted_ip}/"
+        LOG.info(f"Reaching out to service with url = {service_url}")
         p = (
             util.stubbornly(retries=40, delay_s=5)
             .on(tester_instance)
             .until(lambda p: "Welcome to nginx!" in p.stdout.decode())
-            .exec(["curl", formatted_ip])
+            .exec(["curl", service_url])
         )
         assert "Welcome to nginx!" in p.stdout.decode()
 

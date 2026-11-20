@@ -7,7 +7,13 @@ import logging
 from collections.abc import Mapping
 
 import pytest
+from tenacity import retry_if_exception
 from test_util import config, harness, tags, util
+
+
+class _PodFailedError(RuntimeError):
+    pass
+
 
 LOG = logging.getLogger(__name__)
 
@@ -555,21 +561,14 @@ def test_deploy_nvidia_gpu_operator(
         def _check_pod_phase(p):
             phase = p.stdout.decode().strip()
             if phase == "Failed":
-                raise AssertionError("CUDA vectoradd pod entered Failed phase")
+                raise _PodFailedError("CUDA vectoradd pod entered Failed phase")
             return phase == "Succeeded"
 
-        def _should_retry(retry_state):
-            if retry_state.outcome and retry_state.outcome.failed:
-                exc = retry_state.outcome.exception()
-                if isinstance(
-                    exc, AssertionError
-                ) and "CUDA vectoradd pod entered Failed phase" in str(exc):
-                    return False
-            return True
-
-        util.stubbornly(retries=36, delay_s=5, retry=_should_retry).on(instance).until(
-            _check_pod_phase
-        ).exec(
+        util.stubbornly(
+            retries=36,
+            delay_s=5,
+            retry=retry_if_exception(lambda exc: not isinstance(exc, _PodFailedError)),
+        ).on(instance).until(_check_pod_phase).exec(
             [
                 "k8s",
                 "kubectl",
