@@ -551,20 +551,51 @@ def test_deploy_nvidia_gpu_operator(
         input=pod_spec.encode(),
     )
     try:
-        util.stubbornly(retries=5, delay_s=1).on(instance).exec(
+
+        def _check_pod_phase(p):
+            phase = p.stdout.decode().strip()
+            if phase == "Failed":
+                raise AssertionError("CUDA vectoradd pod entered Failed phase")
+            return phase == "Succeeded"
+
+        def _should_retry(retry_state):
+            if retry_state.outcome and retry_state.outcome.failed:
+                exc = retry_state.outcome.exception()
+                if isinstance(
+                    exc, AssertionError
+                ) and "CUDA vectoradd pod entered Failed phase" in str(exc):
+                    return False
+            return True
+
+        util.stubbornly(retries=36, delay_s=5, retry=_should_retry).on(instance).until(
+            _check_pod_phase
+        ).exec(
             [
                 "k8s",
                 "kubectl",
                 "-n",
                 test_namespace,
-                "wait",
-                "--for=condition=ready",
+                "get",
                 "pod",
                 NVIDIA_CUDA_VECTOR_ADDITION_TEST_POD_NAME,
-                "--timeout",
-                "180s",
-            ]
+                "-o",
+                "jsonpath={.status.phase}",
+            ],
+            capture_output=True,
         )
+
+        logs = instance.exec(
+            [
+                "k8s",
+                "kubectl",
+                "-n",
+                test_namespace,
+                "logs",
+                NVIDIA_CUDA_VECTOR_ADDITION_TEST_POD_NAME,
+            ],
+            capture_output=True,
+        )
+        assert "Test PASSED" in logs.stdout.decode()
     except Exception:
         LOG.warning("CUDA pod never became ready — collecting diagnostics")
         _dump_gpu_operator_diagnostics(instance, test_namespace)

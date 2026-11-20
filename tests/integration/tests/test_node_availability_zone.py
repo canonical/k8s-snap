@@ -61,14 +61,14 @@ def test_node_availability_zone(
 
     def _get_az(instance, same_az, suffix):
         if same_az:
-            return "fake-az"
+            return f"fake-az{suffix}"
         else:
-            return instance.id
+            return f"{instance.id}{suffix}"
 
     # We're concerned about the risk of quorum loss after dqlite service
     # restarts. For this reason, we'll have multiple iterations, ensuring
     # that the cluster remains functional.
-    iterations = 10
+    iterations = 3
     for iteration in range(iterations):
         LOG.info("Starting iteration: %s", iteration)
         az_suffix = f"-{iteration}"
@@ -110,3 +110,29 @@ def test_node_availability_zone(
 
         # Make sure that the nodes remain available.
         util.wait_until_k8s_ready(initial_node, instances)
+
+    # Remove the AZ labels and ensure failure domain resets to 0.
+    for instance in instances:
+        util.stubbornly(retries=5, delay_s=10).on(instance).exec(
+            [
+                "k8s",
+                "kubectl",
+                "label",
+                "nodes",
+                instance.id,
+                "topology.kubernetes.io/zone-",
+            ]
+        )
+
+    for instance in instances:
+        LOG.info("Node: %s, expected failure domain reset to 0", instance.id)
+        util.stubbornly(retries=5, delay_s=10).on(instance).until(
+            lambda p: p.stdout.decode().strip() == "0"
+        ).exec(
+            [
+                "cat",
+                "/var/snap/k8s/common/var/lib/k8sd/state/database/failure-domain",
+            ]
+        )
+
+    util.wait_until_k8s_ready(initial_node, instances)

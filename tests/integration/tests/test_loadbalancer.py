@@ -103,7 +103,12 @@ def _test_loadbalancer(instances: List[harness.Instance], k8s_net_type: K8sNetTy
         ]
     )
 
-    manifest = MANIFESTS_DIR / "loadbalancer-test.yaml"
+    manifest_name = (
+        "loadbalancer-dualstack-test.yaml"
+        if k8s_net_type == K8sNetType.dualstack
+        else "loadbalancer-test.yaml"
+    )
+    manifest = MANIFESTS_DIR / manifest_name
     instance.exec(
         ["k8s", "kubectl", "apply", "-f", "-"],
         input=Path(manifest).read_bytes(),
@@ -129,33 +134,43 @@ def _test_loadbalancer(instances: List[harness.Instance], k8s_net_type: K8sNetTy
         ]
     )
 
-    util.stubbornly(retries=10, delay_s=5).on(instance).until(
-        lambda p: "my-nginx" in p.stdout.decode()
-    ).exec(["k8s", "kubectl", "get", "service", "-o", "json"])
+    def _has_expected_ips(p):
+        try:
+            data = json.loads(p.stdout.decode())
+            ingress = data.get("status", {}).get("loadBalancer", {}).get("ingress", [])
+            ips = [entry.get("ip") for entry in ingress if entry.get("ip")]
+            if k8s_net_type == K8sNetType.dualstack:
+                has_ipv4 = any(":" not in ip for ip in ips)
+                has_ipv6 = any(":" in ip for ip in ips)
+                return len(ips) >= 2 and has_ipv4 and has_ipv6
+            return len(ips) >= 1
+        except Exception:
+            return False
 
     p = (
-        util.stubbornly(retries=10, delay_s=5)
+        util.stubbornly(retries=20, delay_s=5)
         .on(instance)
-        .until(lambda p: len(p.stdout.decode().replace("'", "")) > 0)
-        .exec(
-            [
-                "k8s",
-                "kubectl",
-                "get",
-                "service",
-                "my-nginx",
-                "-o=jsonpath='{.status.loadBalancer.ingress[0].ip}'",
-            ],
-        )
+        .until(_has_expected_ips)
+        .exec(["k8s", "kubectl", "get", "service", "my-nginx", "-o", "json"])
     )
-    service_ip = p.stdout.decode().replace("'", "")
-    if ":" in service_ip:
-        service_ip = "[" + service_ip + "]"
 
-    LOG.info(f"Reaching out to service with service_ip = {service_ip}")
-    util.stubbornly(retries=40, delay_s=5).on(tester_instance).until(
-        lambda p: "Welcome to nginx!" in p.stdout.decode()
-    ).exec(["curl", service_ip])
+    data = json.loads(p.stdout.decode())
+    service_ips = [
+        entry["ip"]
+        for entry in data.get("status", {}).get("loadBalancer", {}).get("ingress", [])
+        if "ip" in entry
+    ]
+
+    for ip in service_ips:
+        formatted_ip = f"[{ip}]" if ":" in ip else ip
+        LOG.info(f"Reaching out to service with service_ip = {formatted_ip}")
+        p = (
+            util.stubbornly(retries=40, delay_s=5)
+            .on(tester_instance)
+            .until(lambda p: "Welcome to nginx!" in p.stdout.decode())
+            .exec(["curl", formatted_ip])
+        )
+        assert "Welcome to nginx!" in p.stdout.decode()
 
 
 # ---------------------------------------------------------------------------
