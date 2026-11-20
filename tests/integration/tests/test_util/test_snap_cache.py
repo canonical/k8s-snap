@@ -114,9 +114,11 @@ def test_setup_k8s_snap_with_cached_snaps():
         assert install_call[2] == "--classic"
 
         # Check cleanup rm -f was executed in finally block
-        instance_exec_calls = [c.args[0] for c in instance.exec.call_args_list]
-        rm_call = next(c for c in instance_exec_calls if c[0] == "rm" and c[1] == "-f")
-        assert rm_call is not None
+        instance_rm_calls = [
+            c for c in instance.exec.call_args_list if c.args[0][:2] == ["rm", "-f"]
+        ]
+        assert len(instance_rm_calls) == 1
+        assert instance_rm_calls[0].kwargs.get("check") is False
 
 
 @pytest.mark.tags(tags.PULL_REQUEST)
@@ -193,24 +195,34 @@ def test_snap_refresh_with_cached_snaps():
         mock_on = MagicMock()
         mock_stubbornly.return_value.on.return_value = mock_on
 
-        util.snap_refresh(instance, "1.33/stable", "--amend", cached_snaps=cache)
+        util.snap_refresh(
+            instance,
+            "1.33/stable",
+            "--amend",
+            "--ignore-validation",
+            cached_snaps=cache,
+        )
 
         # send_file called for assert and snap
         assert instance.send_file.call_count == 2
 
-        # snap ack and snap refresh --classic called with extra_args
+        # snap ack and snap install --classic called (snap refresh rejects file paths,
+        # and --amend is store-refresh-only while install flags are forwarded)
         exec_calls = [c.args[0] for c in mock_on.exec.call_args_list]
         ack_call = next(c for c in exec_calls if c[:2] == ["snap", "ack"])
         assert ack_call is not None
-        refresh_call = next(c for c in exec_calls if c[:2] == ["snap", "refresh"])
-        assert "--classic" in refresh_call
-        assert "--amend" in refresh_call
-        assert refresh_call[-1].endswith(".snap")
+        install_call = next(c for c in exec_calls if c[:2] == ["snap", "install"])
+        assert "--classic" in install_call
+        assert "--amend" not in install_call
+        assert "--ignore-validation" in install_call
+        assert install_call[-1].endswith(".snap")
 
-        # rm -f cleanup in finally
-        instance_exec_calls = [c.args[0] for c in instance.exec.call_args_list]
-        rm_call = next(c for c in instance_exec_calls if c[:2] == ["rm", "-f"])
-        assert rm_call is not None
+        # rm -f cleanup in finally with check=False
+        instance_rm_calls = [
+            c for c in instance.exec.call_args_list if c.args[0][:2] == ["rm", "-f"]
+        ]
+        assert len(instance_rm_calls) == 1
+        assert instance_rm_calls[0].kwargs.get("check") is False
 
 
 @pytest.mark.tags(tags.PULL_REQUEST)
@@ -226,7 +238,7 @@ def test_snap_refresh_cached_cleanup_on_error():
         mock_stubbornly.return_value.on.return_value = mock_on
 
         def _side_effect(cmd, **kwargs):
-            if cmd[:2] == ["snap", "refresh"]:
+            if cmd[:2] == ["snap", "install"]:
                 raise subprocess.CalledProcessError(1, cmd)
             return MagicMock()
 
@@ -236,9 +248,11 @@ def test_snap_refresh_cached_cleanup_on_error():
             util.snap_refresh(instance, "1.33/stable", "--amend", cached_snaps=cache)
 
         # rm -f called in finally
-        instance_exec_calls = [c.args[0] for c in instance.exec.call_args_list]
-        rm_call = next((c for c in instance_exec_calls if c[:2] == ["rm", "-f"]), None)
-        assert rm_call is not None
+        instance_rm_calls = [
+            c for c in instance.exec.call_args_list if c.args[0][:2] == ["rm", "-f"]
+        ]
+        assert len(instance_rm_calls) == 1
+        assert instance_rm_calls[0].kwargs.get("check") is False
 
 
 @pytest.mark.tags(tags.PULL_REQUEST)

@@ -422,7 +422,7 @@ def setup_k8s_snap(
                 ["snap", "install", "--classic", remote_snap], timeout=timeout
             )
         finally:
-            instance.exec(["rm", "-f", remote_snap, remote_assert])
+            instance.exec(["rm", "-f", remote_snap, remote_assert], check=False)
 
         if connect_interfaces:
             LOG.info("Ensure k8s interfaces and network requirements")
@@ -510,10 +510,13 @@ def snap_refresh(
                 channel,
                 instance.id,
             )
-            cmd = ["snap", "refresh", "--classic", *extra_args, remote_snap]
-            stubbornly(retries=retries, delay_s=delay_s).on(instance).exec(cmd)
+            install_args = [arg for arg in extra_args if arg != "--amend"]
+            cmd = ["snap", "install", "--classic", *install_args, remote_snap]
+            stubbornly(retries=retries, delay_s=delay_s).on(instance).exec(
+                cmd, timeout=60 * 5
+            )
         finally:
-            instance.exec(["rm", "-f", remote_snap, remote_assert])
+            instance.exec(["rm", "-f", remote_snap, remote_assert], check=False)
         return
 
     cmd = [
