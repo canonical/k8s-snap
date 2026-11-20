@@ -22,12 +22,14 @@ jobs:
 
       - name: Get changed files list with git diff
         id: changes
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
         run: |
           # Fetch the base branch to ensure we have the history for the comparison
-          git fetch origin ${{ github.event.pull_request.base.ref }}
+          git fetch origin "$BASE_REF"
 
           # Use git diff to find files changed between the base branch and the PR branch
-          FILE_LIST=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD -- 'docs/canonicalk8s/**/*.md' | \
+          FILE_LIST=$(git diff --name-only origin/"$BASE_REF"...HEAD -- 'docs/canonicalk8s/**/*.md' | \
             sed 's|^docs/canonicalk8s/||' | \
             xargs)
 
