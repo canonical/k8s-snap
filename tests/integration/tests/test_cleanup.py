@@ -19,6 +19,24 @@ CONTAINERD_PATHS = [
     "/var/lib/containerd",
 ]
 CNI_PATH = "/opt/cni/bin"
+CONTAINERD_PATHS_STRICT = [
+    "/var/snap/k8s/common/etc/containerd",
+    "/var/snap/k8s/common/run/containerd",
+    "/var/snap/k8s/common/var/lib/containerd",
+]
+CNI_PATH_STRICT = "/var/snap/k8s/common/opt/cni/bin"
+
+
+def _containerd_paths() -> List[str]:
+    if config.VARIANT == "strict":
+        return CONTAINERD_PATHS_STRICT
+    return CONTAINERD_PATHS
+
+
+def _cni_path() -> str:
+    if config.VARIANT == "strict":
+        return CNI_PATH_STRICT
+    return CNI_PATH
 
 
 def _assert_paths_not_exist(instance: harness.Instance, paths: List[str]):
@@ -44,7 +62,7 @@ def test_node_cleanup(instances: List[harness.Instance]):
     util.remove_k8s_snap(instance)
 
     # Check that the containerd-related folders are removed on snap removal.
-    all_paths = CONTAINERD_PATHS + [CNI_PATH]
+    all_paths = _containerd_paths() + [_cni_path()]
     _assert_paths_not_exist(instance, all_paths)
 
     util.setup_k8s_snap(instance)
@@ -54,6 +72,10 @@ def test_node_cleanup(instances: List[harness.Instance]):
 @pytest.mark.node_count(2)
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.containerd_cfgdir("/home/ubuntu/etc/containerd")
+@pytest.mark.skipif(
+    config.VARIANT == "strict",
+    reason="custom containerd-base-dir outside SNAP_COMMON is unsupported under strict confinement",
+)
 @pytest.mark.tags(tags.NIGHTLY)
 def test_node_cleanup_new_containerd_path(instances: List[harness.Instance]):
     main = instances[0]
@@ -118,6 +140,10 @@ containerd-base-dir: /home/ubuntu
 @pytest.mark.node_count(2)
 @pytest.mark.disable_k8s_bootstrapping()
 @pytest.mark.containerd_cfgdir("/home/ubuntu/etc/containerd")
+@pytest.mark.skipif(
+    config.VARIANT == "strict",
+    reason="custom containerd-base-dir outside SNAP_COMMON is unsupported under strict confinement",
+)
 @pytest.mark.tags(tags.NIGHTLY)
 def test_containerd_base_dir_cli_flag(instances: List[harness.Instance]):
     """Tests that the --containerd-base-dir CLI flag correctly sets the
@@ -206,4 +232,4 @@ def test_containerd_path_cleanup_on_failed_init(instances: List[harness.Instance
             f"but it exited with {proc.returncode}.\n"
         )
 
-    _assert_paths_not_exist(instance, CONTAINERD_PATHS)
+    _assert_paths_not_exist(instance, _containerd_paths())

@@ -29,6 +29,13 @@ def pytest_itemcollected(item):
         )
 
 
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    rep = outcome.get_result()
+    setattr(item, f"rep_{rep.when}", rep)
+
+
 def _harness_clean(h: harness.Harness):
     "Clean up created instances within the test harness."
 
@@ -47,15 +54,26 @@ def _generate_inspection_report(h: harness.Harness, instance_id: str):
 
     try:
         inspection_path = Path(config.INSPECTION_REPORTS_DIR)
-        result = h.exec(
-            instance_id,
-            [
-                "/snap/k8s/current/k8s/scripts/inspect.sh",
+        if config.VARIANT == "strict":
+            report_remote = "/home/ubuntu/inspection-report.tar.gz"
+            inspect_cmd = [
+                "sh",
+                "-c",
+                f"cd /home/ubuntu && /snap/{config.SNAP_NAME}/current/k8s/scripts/inspect.sh "
+                f"--all-namespaces --core-dump-dir {config.CORE_DUMP_DIR} {report_remote}",
+            ]
+        else:
+            report_remote = "/inspection-report.tar.gz"
+            inspect_cmd = [
+                f"/snap/{config.SNAP_NAME}/current/k8s/scripts/inspect.sh",
                 "--all-namespaces",
                 "--core-dump-dir",
                 config.CORE_DUMP_DIR,
-                "/inspection-report.tar.gz",
-            ],
+                report_remote,
+            ]
+        result = h.exec(
+            instance_id,
+            inspect_cmd,
             capture_output=True,
             text=True,
             check=False,
@@ -71,7 +89,7 @@ def _generate_inspection_report(h: harness.Harness, instance_id: str):
 
         h.pull_file(
             instance_id,
-            "/inspection-report.tar.gz",
+            report_remote,
             (inspection_path / instance_id / "inspection_report.tar.gz").as_posix(),
         )
     except harness.HarnessError as e:
@@ -230,6 +248,8 @@ def network_type(request) -> Union[str, None]:
 def containerd_cfgdir(request) -> str:
     marker = request.node.get_closest_marker("containerd_cfgdir")
     if not marker:
+        if config.VARIANT == "strict":
+            return "/var/snap/k8s/common/etc/containerd"
         return "/etc/containerd"
     cfgdir, *_ = marker.args
     return cfgdir
@@ -257,6 +277,11 @@ def instances(
 
     LOG.info(f"Creating {node_count} instances")
     instances: List[harness.Instance] = []
+    denial_baseline = (
+        set(util.collect_host_apparmor_denials())
+        if config.VARIANT == "strict"
+        else set()
+    )
     for _ in range(node_count):
         # Create <node_count> instances and setup the k8s snap in each.
         instance = h.new_instance(network_type=network_type)
@@ -270,7 +295,8 @@ def instances(
         )
 
         if not no_setup:
-            util.setup_core_dumps(instance)
+            if config.VARIANT != "strict":
+                util.setup_core_dumps(instance)
             util.setup_k8s_snap(instance)
 
             if config.USE_LOCAL_MIRROR:
@@ -293,6 +319,19 @@ def instances(
         LOG.warning("Skipping clean-up of instances, delete them on your own")
         return
 
+    test_passed = not hasattr(request.node, "rep_call") or request.node.rep_call.passed
+    post_remove_denials: List[str] = []
+    pre_cleanup_error: Optional[AssertionError] = None
+
+    if config.VARIANT == "strict" and test_passed:
+        try:
+            util.assert_no_apparmor_denials(
+                [i for i in instances if i.id in h.instances],
+                baseline=denial_baseline,
+            )
+        except AssertionError as exc:
+            pre_cleanup_error = exc
+
     # Collect all the reports before initiating the cleanup so that we won't
     # affect the state of the observed cluster.
     if config.INSPECTION_REPORTS_DIR:
@@ -314,6 +353,9 @@ def instances(
 
         try:
             util.remove_k8s_snap(instance, retries=10)
+            if config.VARIANT == "strict":
+                for line in util.collect_instance_apparmor_denials(instance):
+                    post_remove_denials.append(f"[{instance.id}] {line}")
         except Exception as e:
             LOG.warning(
                 "Failed to cleanly remove k8s snap during teardown on %s: %s",
@@ -323,6 +365,15 @@ def instances(
             )
         finally:
             instance.delete()
+
+    if pre_cleanup_error is not None:
+        raise pre_cleanup_error
+    if config.VARIANT == "strict" and test_passed:
+        util.assert_no_apparmor_denials(
+            [],
+            baseline=denial_baseline,
+            extra_denials=post_remove_denials,
+        )
 
 
 @pytest.fixture(scope="function")

@@ -86,7 +86,10 @@ class Registry:
         # This would fail if the `TEST_SNAP` environment variable is not set which however has
         # valid use cases, e.g. in the promotion scenarios.
         util.preload_snaps(self.instance)
-        util.setup_k8s_snap(self.instance, config.SNAP or "latest/edge/classic")
+        util.setup_k8s_snap(
+            self.instance,
+            config.SNAP or f"latest/edge/{config.VARIANT or 'classic'}",
+        )
 
     def get_configured_mirrors(self) -> List[Mirror]:
         mirrors: List[Mirror] = []
@@ -176,7 +179,13 @@ class Registry:
         return self.instance.exec(command, **kwargs)
 
     # Configure the specified instance to use this registry mirror.
-    def apply_configuration(self, instance, containerd_basedir="/etc/containerd"):
+    def apply_configuration(self, instance, containerd_basedir: Optional[str] = None):
+        if containerd_basedir is None:
+            containerd_basedir = (
+                "/var/snap/k8s/common/etc/containerd"
+                if config.VARIANT == "strict"
+                else "/etc/containerd"
+            )
         for mirror in self.mirrors:
             substitutes = {
                 "IP": self.ip,

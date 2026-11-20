@@ -10,8 +10,9 @@ on:
         description: Job runner architecture (amd64 or arm64)
         default: amd64
         type: string
-      flavor:
-        description: k8s-snap flavor (e.g. strict)
+      variant:
+        description: k8s-snap variant (e.g. strict)
+        default: ""
         type: string
       go-snap-risk:
         description: |
@@ -37,12 +38,12 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - name: Apply flavor-specific patches
-        if: inputs.flavor != ''
+      - name: Apply variant-specific patches
+        if: inputs.variant != ''
         env:
-          INPUT_FLAVOR: ${{ inputs.flavor }}
+          INPUT_VARIANT: ${{ inputs.variant }}
         run: |
-          ./build-scripts/patches/"$INPUT_FLAVOR"/apply
+          ./build-scripts/patches/"$INPUT_VARIANT"/apply
       - name: Override Go snap risk
         if: inputs.go-snap-risk != ''
         env:
@@ -63,11 +64,11 @@ jobs:
       - name: Build k8s snap
         id: build
         env:
-          flavor: ${{ inputs.flavor }}
+          variant: ${{ inputs.variant }}
           INPUT_ARCH: ${{ inputs.arch }}
         run: |
-          if [[ -n "$flavor" ]]; then
-            out_snap=k8s-$flavor-${INPUT_ARCH}.snap
+          if [[ -n "$variant" ]]; then
+            out_snap=k8s-$variant-${INPUT_ARCH}.snap
           else
             out_snap=k8s-${INPUT_ARCH}.snap
           fi
