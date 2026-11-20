@@ -487,14 +487,18 @@ def _get_upgrade_crs(instance: harness.Instance) -> List[dict]:
     return json.loads(out.stdout)["items"]
 
 
-@pytest.mark.node_count(2)
+@pytest.mark.node_count(6)
+@pytest.mark.skipif(
+    not config.SNAP,
+    reason="Feature upgrades require a local snap file",
+)
 @pytest.mark.no_setup()
 @pytest.mark.tags(tags.NIGHTLY)
 @pytest.mark.xfail(
     reason="The node removal does not work consistently due to a microcluster bug."
 )
 def test_feature_upgrades_rollout_upgrade(
-    instances: List[harness.Instance], tmp_path: Path
+    instances: List[harness.Instance],
 ):
     """ """
     # TODO: Ensure that this test only runs on different k8s versions.
@@ -508,11 +512,8 @@ def test_feature_upgrades_rollout_upgrade(
             ["snap", "install", "k8s", "--classic", *util.snap_channel_args(start_snap)]
         )
 
-    util.stubbornly(retries=3, delay_s=30).on(instance).exec(
-        ["snap", "install", "k8s", "--classic", *util.snap_channel_args(start_snap)]
-    )
-
     main_old.exec(["k8s", "bootstrap"])
+    util.wait_until_k8s_ready(main_old, [main_old])
     for instance in instances[1:3]:
         token = util.get_join_token(main_old, instance)
         instance.exec(["k8s", "join-cluster", token])
