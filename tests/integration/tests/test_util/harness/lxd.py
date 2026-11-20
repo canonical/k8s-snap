@@ -21,8 +21,9 @@ class LXDHarness(Harness):
     name = "lxd"
 
     def next_id(self) -> int:
-        self._next_id += 1
-        return self._next_id
+        with self._lock:
+            self._next_id += 1
+            return self._next_id
 
     def __init__(self):
         super(LXDHarness, self).__init__()
@@ -149,7 +150,8 @@ class LXDHarness(Harness):
 
         try:
             stubbornly(retries=3, delay_s=1).exec(launch_lxd_command)
-            self.instances.add(instance_id)
+            with self._lock:
+                self.instances.add(instance_id)
 
             if self.sideload_images_dir:
                 stubbornly(retries=3, delay_s=1).exec(
@@ -312,7 +314,8 @@ class LXDHarness(Harness):
             LOG.warning("LXC container removal timed out.")
             pass
 
-        self.instances.discard(instance_id)
+        with self._lock:
+            self.instances.discard(instance_id)
 
     def log_environment_info(self):
         """Log any relevant environment information before and after each test.
@@ -340,5 +343,7 @@ class LXDHarness(Harness):
             LOG.exception("Failed to obtain environment info")
 
     def cleanup(self):
-        for instance_id in self.instances.copy():
+        with self._lock:
+            instances = list(self.instances)
+        for instance_id in instances:
             self.delete_instance(instance_id)

@@ -1,12 +1,9 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
-# Postponed annotation evaluation is required: `test_util.harness` imports
-# `bare_metal` first (isort order), which imports this module while the
-# `harness` package is still half-initialised, so annotations such as
-# `harness.Instance` can't be evaluated at definition time.
 from __future__ import annotations
 
+import concurrent.futures
 import ipaddress
 import json
 import logging
@@ -260,6 +257,60 @@ def download_preloaded_snaps():
         )
 
 
+def download_k8s_snaps(
+    channels: List[str],
+    cache_dir: Union[Path, str],
+    arch: str = "amd64",
+) -> Dict[str, tuple[Path, Path]]:
+    """Download k8s snaps for multiple channels into cache_dir on the host."""
+    if not config.CACHE_SNAPS:
+        LOG.info("Snap caching disabled, skipping download")
+        return {}
+
+    unique_channels: List[str] = []
+    for c in channels:
+        if c.startswith("/"):
+            continue
+        if c not in unique_channels:
+            unique_channels.append(c)
+
+    if not unique_channels:
+        return {}
+
+    cache_path = Path(cache_dir)
+    cache_path.mkdir(parents=True, exist_ok=True)
+
+    dl_env = dict(os.environ)
+    if arch:
+        dl_env["UBUNTU_STORE_ARCH"] = arch
+
+    def _download_channel(chan: str) -> tuple[Path, Path]:
+        slug = re.sub(r"[^a-zA-Z0-9_.-]", "_", chan)
+        snap_file = cache_path / f"{slug}.snap"
+        assert_file = cache_path / f"{slug}.assert"
+        dl_args = snap_channel_args(chan)
+        stubbornly(retries=5, delay_s=5).exec(
+            [
+                "snap",
+                "download",
+                config.SNAP_NAME,
+                *dl_args,
+                f"--basename={slug}",
+                f"--target-directory={cache_path.as_posix()}",
+            ],
+            timeout=60 * 5,
+            env=dl_env,
+        )
+        return snap_file, assert_file
+
+    with concurrent.futures.ThreadPoolExecutor(
+        max_workers=min(4, len(unique_channels))
+    ) as executor:
+        results = list(executor.map(_download_channel, unique_channels))
+
+    return dict(zip(unique_channels, results))
+
+
 def preload_snaps(instance: harness.Instance):
     if not config.PRELOAD_SNAPS:
         LOG.info("Snap preloading disabled.")
@@ -324,6 +375,7 @@ def setup_k8s_snap(
     connect_interfaces=True,
     tmp_path: Optional[Path] = Path("/home/ubuntu"),
     timeout: int = 60 * 5,
+    cached_snaps: Optional[Dict[str, tuple[Path, Path]]] = None,
 ):
     """Installs and sets up the snap on the given instance and connects the interfaces.
 
@@ -337,6 +389,7 @@ def setup_k8s_snap(
             a path to the snap to install
         tmp_path:   path to store the snap on the instance (optional, defaults to /home/ubuntu)
         timeout:    timeout in seconds for the snap install command (default: 300)
+        cached_snaps: optional mapping of channel to (snap_path, assert_path)
     """
     cmd = ["snap", "install", "--classic"]
     which_snap = snap or config.SNAP
@@ -348,6 +401,35 @@ def setup_k8s_snap(
         )
 
     configure_cpuset_controller(instance)
+
+    if cached_snaps and which_snap in cached_snaps:
+        local_snap, local_assert = cached_snaps[which_snap]
+        unique_prefix = os.urandom(4).hex()
+        remote_assert = f"/tmp/{unique_prefix}_{local_assert.name}"
+        remote_snap = f"/tmp/{unique_prefix}_{local_snap.name}"
+        try:
+            LOG.info("Pushing cached assert %s to %s", local_assert, remote_assert)
+            instance.send_file(local_assert.as_posix(), remote_assert)
+            LOG.info("Pushing cached snap %s to %s", local_snap, remote_snap)
+            instance.send_file(local_snap.as_posix(), remote_snap)
+
+            LOG.info("Acknowledging snap assert on %s", instance.id)
+            stubbornly(retries=5, delay_s=5).on(instance).exec(
+                ["snap", "ack", remote_assert], timeout=timeout
+            )
+            LOG.info("Installing cached snap %s on %s", remote_snap, instance.id)
+            stubbornly(retries=3, delay_s=30).on(instance).exec(
+                ["snap", "install", "--classic", remote_snap], timeout=timeout
+            )
+        finally:
+            instance.exec(["rm", "-f", remote_snap, remote_assert])
+
+        if connect_interfaces:
+            LOG.info("Ensure k8s interfaces and network requirements")
+            instance.exec(
+                ["/snap/k8s/current/k8s/hack/init.sh"], stdout=subprocess.DEVNULL
+            )
+        return
 
     if isinstance(which_snap, str) and which_snap.startswith("/"):
         LOG.info("Install k8s snap by path")
@@ -391,6 +473,7 @@ def snap_refresh(
     *extra_args: str,
     retries: int = 3,
     delay_s: int = 30,
+    cached_snaps: Optional[Dict[str, tuple[Path, Path]]] = None,
 ):
     """Refresh the k8s snap on an instance with retry logic.
 
@@ -404,7 +487,36 @@ def snap_refresh(
         *extra_args: additional arguments to pass to snap refresh (e.g. "--amend")
         retries:    number of retry attempts (default: 3)
         delay_s:    delay in seconds between retries (default: 30)
+        cached_snaps: optional mapping of channel to (snap_path, assert_path)
     """
+    if cached_snaps and channel in cached_snaps:
+        local_snap, local_assert = cached_snaps[channel]
+        unique_prefix = os.urandom(4).hex()
+        remote_assert = f"/tmp/{unique_prefix}_{local_assert.name}"
+        remote_snap = f"/tmp/{unique_prefix}_{local_snap.name}"
+        try:
+            LOG.info("Pushing cached assert %s to %s", local_assert, remote_assert)
+            instance.send_file(local_assert.as_posix(), remote_assert)
+            LOG.info("Pushing cached snap %s to %s", local_snap, remote_snap)
+            instance.send_file(local_snap.as_posix(), remote_snap)
+
+            LOG.info("Acknowledging snap assert on %s", instance.id)
+            stubbornly(retries=5, delay_s=5).on(instance).exec(
+                ["snap", "ack", remote_assert]
+            )
+            LOG.info(
+                "Refreshing %s from cached snap %s on %s",
+                config.SNAP_NAME,
+                channel,
+                instance.id,
+            )
+            stubbornly(retries=retries, delay_s=delay_s).on(instance).exec(
+                ["snap", "install", "--classic", remote_snap]
+            )
+        finally:
+            instance.exec(["rm", "-f", remote_snap, remote_assert])
+        return
+
     cmd = [
         "snap",
         "refresh",

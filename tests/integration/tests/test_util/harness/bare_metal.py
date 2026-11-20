@@ -68,14 +68,15 @@ class BareMetalHarness(Harness):
     def new_instance(
         self, network_type: str = "IPv4", name_suffix: str = ""
     ) -> Instance:
-        if self.instances:
-            raise HarnessError(
-                "bare_metal harness only supports a single instance. "
-                "Set @pytest.mark.node_count(1) on your test."
-            )
+        with self._lock:
+            if self.instances:
+                raise HarnessError(
+                    "bare_metal harness only supports a single instance. "
+                    "Set @pytest.mark.node_count(1) on your test."
+                )
 
-        instance_id = self._instance_id
-        self.instances.add(instance_id)
+            instance_id = self._instance_id
+            self.instances.add(instance_id)
 
         if not self._is_local:
             # Verify SSH connectivity before proceeding.
@@ -86,7 +87,8 @@ class BareMetalHarness(Harness):
                     timeout=30,
                 )
             except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
-                self.instances.discard(instance_id)
+                with self._lock:
+                    self.instances.discard(instance_id)
                 raise HarnessError(
                     f"Cannot connect to bare_metal host {self.ssh_host} via SSH"
                 ) from e
@@ -236,7 +238,8 @@ class BareMetalHarness(Harness):
         except subprocess.CalledProcessError:
             LOG.warning("Failed to remove k8s snap during cleanup")
 
-        self.instances.discard(instance_id)
+        with self._lock:
+            self.instances.discard(instance_id)
 
     def log_environment_info(self):
         """Log relevant environment information."""
@@ -257,5 +260,7 @@ class BareMetalHarness(Harness):
             LOG.exception("Failed to obtain environment info")
 
     def cleanup(self):
-        for instance_id in self.instances.copy():
+        with self._lock:
+            instances = list(self.instances)
+        for instance_id in instances:
             self.delete_instance(instance_id)

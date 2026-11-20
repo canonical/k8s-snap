@@ -2,6 +2,7 @@
 # Copyright 2026 Canonical, Ltd.
 #
 import subprocess
+import threading
 from functools import cached_property, partial
 from typing import List
 
@@ -59,6 +60,9 @@ class Harness:
     """
 
     name: str
+
+    def __init__(self):
+        self._lock = threading.Lock()
 
     def new_instance(
         self, network_type: str = "IPv4", name_suffix: str = ""

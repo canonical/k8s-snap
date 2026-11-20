@@ -1,7 +1,9 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
+import concurrent.futures
 import logging
+import threading
 from pathlib import Path
 from typing import Generator, List, Optional, Union
 
@@ -256,36 +258,71 @@ def instances(
         pytest.xfail("Test requested 0 or fewer instances, skip this test.")
 
     LOG.info(f"Creating {node_count} instances")
-    instances: List[harness.Instance] = []
-    for _ in range(node_count):
-        # Create <node_count> instances and setup the k8s snap in each.
-        instance = h.new_instance(network_type=network_type)
-        instances.append(instance)
+    created_instances: List[harness.Instance] = []
+    created_lock = threading.Lock()
 
-        util.preload_snaps(instance)
+    def _setup_node(_: int) -> harness.Instance:
+        inst = h.new_instance(network_type=network_type)
+        with created_lock:
+            created_instances.append(inst)
+
+        util.preload_snaps(inst)
 
         h.open_ports(
-            instance.id,
+            inst.id,
             required_ports,
         )
 
         if not no_setup:
-            util.setup_core_dumps(instance)
-            util.setup_k8s_snap(instance)
+            util.setup_core_dumps(inst)
+            util.setup_k8s_snap(inst)
 
-            if config.USE_LOCAL_MIRROR:
-                registry.apply_configuration(instance, containerd_cfgdir)
+            if config.USE_LOCAL_MIRROR and registry:
+                registry.apply_configuration(inst, containerd_cfgdir)
+        return inst
 
-    if not disable_k8s_bootstrapping and not no_setup:
-        first_node, *_ = instances
-
-        if bootstrap_config:
-            first_node.exec(
-                ["k8s", "bootstrap", "--file", "-"],
-                input=str.encode(bootstrap_config),
-            )
+    instances: List[harness.Instance] = []
+    try:
+        if node_count > 1 and h.name != "bare_metal":
+            with concurrent.futures.ThreadPoolExecutor(
+                max_workers=node_count
+            ) as executor:
+                instances = list(executor.map(_setup_node, range(node_count)))
         else:
-            first_node.exec(["k8s", "bootstrap"])
+            instances = [_setup_node(i) for i in range(node_count)]
+
+        if not disable_k8s_bootstrapping and not no_setup:
+            first_node, *_ = instances
+
+            if bootstrap_config:
+                first_node.exec(
+                    ["k8s", "bootstrap", "--file", "-"],
+                    input=str.encode(bootstrap_config),
+                )
+            else:
+                first_node.exec(["k8s", "bootstrap"])
+    except Exception:
+        for inst in created_instances:
+            if not no_setup:
+                try:
+                    util.remove_k8s_snap(inst, retries=10)
+                except Exception as e:
+                    LOG.warning(
+                        "Failed to cleanly remove k8s snap during setup failure cleanup on %s: %s",
+                        inst.id,
+                        e,
+                        exc_info=True,
+                    )
+            try:
+                inst.delete()
+            except Exception as e:
+                LOG.warning(
+                    "Failed to delete instance %s during setup failure cleanup: %s",
+                    inst.id,
+                    e,
+                    exc_info=True,
+                )
+        raise
 
     yield instances
 

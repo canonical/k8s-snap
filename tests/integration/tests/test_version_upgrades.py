@@ -1,6 +1,7 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
+import concurrent.futures
 import json
 import logging
 from typing import List
@@ -50,11 +51,10 @@ def test_version_upgrades(
         )
         current_channel = channels[0]
 
+    snap_path = (tmp_path / "k8s.snap").as_posix()
     if config.SNAP:
-        # Copy the current snap into the instances.
-        snap_path = (tmp_path / "k8s.snap").as_posix()
-        for instance in instances:
-            instance.send_file(config.SNAP, snap_path)
+        # Copy the current snap into cp so we can query its version.
+        cp.send_file(config.SNAP, snap_path)
 
         # Figure out where to add the current snap into the channels array.
         # Upgrades should be in order.
@@ -92,11 +92,20 @@ def test_version_upgrades(
         f"Bootstrap node on {current_channel} and upgrade through channels: {channels[1:]}"
     )
 
+    cached_snaps = util.download_k8s_snaps(
+        channels, tmp_path / "snap-cache", arch=cp.arch
+    )
+
     # Setup the k8s snap from the bootstrap channel and setup basic configuration.
-    for instance in instances:
-        util.setup_k8s_snap(instance, current_channel)
+    def _setup_node(instance: harness.Instance):
+        if config.SNAP and instance.id != cp.id:
+            instance.send_file(config.SNAP, snap_path)
+        util.setup_k8s_snap(instance, current_channel, cached_snaps=cached_snaps)
         if config.USE_LOCAL_MIRROR:
             registry.apply_configuration(instance, containerd_cfgdir)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
+        list(executor.map(_setup_node, instances))
 
     cp.exec(["k8s", "bootstrap"])
     # Avoid racing the bootstrap node's kubelet Node registration (join can
@@ -107,9 +116,13 @@ def test_version_upgrades(
     join_token_cp2 = util.get_join_token(cp, cp2)
     join_token_w0 = util.get_join_token(cp, w0, "--worker")
 
-    util.join_cluster(cp1, join_token_cp1)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        f1 = executor.submit(util.join_cluster, cp1, join_token_cp1)
+        f2 = executor.submit(util.join_cluster, w0, join_token_w0)
+        f1.result()
+        f2.result()
+
     util.join_cluster(cp2, join_token_cp2)
-    util.join_cluster(w0, join_token_w0)
 
     util.wait_until_k8s_ready(cp, instances)
 
@@ -132,7 +145,9 @@ def test_version_upgrades(
                     ["snap", "install", "--classic", "--dangerous", snap_path]
                 )
             else:
-                util.snap_refresh(instance, channel, "--amend")
+                util.snap_refresh(
+                    instance, channel, "--amend", cached_snaps=cached_snaps
+                )
             util.wait_until_k8s_ready(cp, instances)
             LOG.info("Verifying snap service health")
             util.check_snap_services_ready(instance, retries=10, delay_s=10)
@@ -159,6 +174,7 @@ def test_version_upgrades(
 @pytest.mark.tags(tags.NIGHTLY)
 def test_version_downgrades_with_rollback(
     instances: List[harness.Instance],
+    tmp_path,
     containerd_cfgdir: str,
     registry: Registry,
 ):
@@ -215,12 +231,18 @@ def test_version_downgrades_with_rollback(
         f"Bootstrap node on {current_channel} and downgrade through channels: {channels[1:]}"
     )
 
+    cached_snaps = util.download_k8s_snaps(
+        channels, tmp_path / "snap-cache", arch=cp.arch
+    )
+
     # Setup the k8s snap from the bootstrap channel and setup basic configuration.
-    for instance in instances:
-        util.setup_k8s_snap(instance, current_channel)
+    def _setup_node(instance: harness.Instance):
+        util.setup_k8s_snap(instance, current_channel, cached_snaps=cached_snaps)
         if config.USE_LOCAL_MIRROR:
             registry.apply_configuration(instance, containerd_cfgdir)
 
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
+        list(executor.map(_setup_node, instances))
     cp.exec(["k8s", "bootstrap"])
     # Avoid racing the bootstrap node's kubelet Node registration (join can
     # fail with "the cluster has no nodes" otherwise).
@@ -248,7 +270,7 @@ def test_version_downgrades_with_rollback(
             LOG.debug(
                 f"Step 1. Downgrade {instance.id} from {current_channel} → {channel}"
             )
-            util.snap_refresh(instance, channel)
+            util.snap_refresh(instance, channel, cached_snaps=cached_snaps)
             util.wait_until_k8s_ready(cp, instances)
             LOG.info("Verifying snap service health")
             util.check_snap_services_ready(instance, retries=10, delay_s=10)
@@ -260,7 +282,7 @@ def test_version_downgrades_with_rollback(
 
         for instance in instances:
             LOG.debug(f"Step 2. Roll back from {current_channel} → {last_channel}")
-            util.snap_refresh(instance, last_channel)
+            util.snap_refresh(instance, last_channel, cached_snaps=cached_snaps)
             util.wait_until_k8s_ready(cp, instances)
             LOG.info("Verifying snap service health")
             util.check_snap_services_ready(instance, retries=10, delay_s=10)
@@ -271,7 +293,7 @@ def test_version_downgrades_with_rollback(
             LOG.debug(
                 f"Step 3. Final downgrade to channel from {last_channel} → {current_channel}"
             )
-            util.snap_refresh(instance, current_channel)
+            util.snap_refresh(instance, current_channel, cached_snaps=cached_snaps)
             util.wait_until_k8s_ready(cp, instances)
             LOG.info("Verifying snap service health")
             util.check_snap_services_ready(instance, retries=10, delay_s=10)
@@ -302,7 +324,12 @@ def test_version_downgrades_with_rollback(
     not config.SNAP,
     reason="Feature upgrades require a local snap file",
 )
-def test_feature_upgrades_inplace(instances: List[harness.Instance]):
+def test_feature_upgrades_inplace(
+    instances: List[harness.Instance],
+    tmp_path,
+    containerd_cfgdir: str,
+    registry: Registry,
+):
     """Verify that feature upgrades function correctly.
 
     Note: This is an interim test that will be expanded as feature upgrades mature.
@@ -318,29 +345,37 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance]):
     bootstrap_cp = instances[0]
     worker = instances[-1]
 
-    for instance in instances:
-        util.stubbornly(retries=3, delay_s=30).on(instance).exec(
-            [
-                "snap",
-                "install",
-                "k8s",
-                "--classic",
-                *util.snap_channel_args(start_branch),
-            ]
-        )
+    cached_snaps = util.download_k8s_snaps(
+        [start_branch], tmp_path / "snap-cache", arch=bootstrap_cp.arch
+    )
+
+    def _setup_instance(instance: harness.Instance):
+        util.setup_k8s_snap(instance, start_branch, cached_snaps=cached_snaps)
+        if config.USE_LOCAL_MIRROR and registry:
+            registry.apply_configuration(instance, containerd_cfgdir)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
+        list(executor.map(_setup_instance, instances))
 
     bootstrap_cp.exec(["k8s", "bootstrap"])
     # Avoid racing the bootstrap node's kubelet Node registration (join can
     # fail with "the cluster has no nodes" otherwise).
     util.wait_until_k8s_ready(bootstrap_cp, [bootstrap_cp])
-    for instance in instances:
-        if instance.id in [bootstrap_cp.id, worker.id]:
-            continue
-        token = util.get_join_token(bootstrap_cp, instance)
-        instance.exec(["k8s", "join-cluster", token])
 
-    token = util.get_join_token(bootstrap_cp, worker, "--worker")
-    worker.exec(["k8s", "join-cluster", token])
+    cp1 = instances[1]
+    cp2 = instances[2]
+
+    token_cp1 = util.get_join_token(bootstrap_cp, cp1)
+    cp1.exec(["k8s", "join-cluster", token_cp1])
+
+    token_cp2 = util.get_join_token(bootstrap_cp, cp2)
+    token_worker = util.get_join_token(bootstrap_cp, worker, "--worker")
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        f1 = executor.submit(cp2.exec, ["k8s", "join-cluster", token_cp2])
+        f2 = executor.submit(worker.exec, ["k8s", "join-cluster", token_worker])
+        f1.result()
+        f2.result()
 
     # Get initial helm releases to track if they are updated correctly.
     initial_releases = {
