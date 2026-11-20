@@ -188,20 +188,14 @@ require (
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
-replace k8s.io/api => k8s.io/api v0.34.12
-
-replace k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.34.12
-
-replace k8s.io/apimachinery => k8s.io/apimachinery v0.34.12
-
-replace k8s.io/apiserver => k8s.io/apiserver v0.34.12
-
-replace k8s.io/cli-runtime => k8s.io/cli-runtime v0.34.12
-
-replace k8s.io/client-go => k8s.io/client-go v0.34.12
-
-replace k8s.io/component-base => k8s.io/component-base v0.34.12
-
-replace k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20250710124328-f3f2b991d03b
-
-replace k8s.io/kubectl => k8s.io/kubectl v0.34.12
+replace (
+	k8s.io/api => k8s.io/api v0.34.12
+	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.34.12
+	k8s.io/apimachinery => k8s.io/apimachinery v0.34.12
+	k8s.io/apiserver => k8s.io/apiserver v0.34.12
+	k8s.io/cli-runtime => k8s.io/cli-runtime v0.34.12
+	k8s.io/client-go => k8s.io/client-go v0.34.12
+	k8s.io/component-base => k8s.io/component-base v0.34.12
+	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20250710124328-f3f2b991d03b
+	k8s.io/kubectl => k8s.io/kubectl v0.34.12
+)
