@@ -90,3 +90,8 @@
 
 # Deleted files
 "snap/explanation/package-management" "snap/explanation/index"
+
+# Move to one tutorial
+"snap/tutorial/index" "snap/tutorial/getting-started"
+"snap/tutorial/kubectl" "snap/tutorial/getting-started"
+"snap/tutorial/add-remove-nodes" "snap/tutorial/getting-started"
