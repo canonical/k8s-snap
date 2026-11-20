@@ -209,6 +209,58 @@ scp <user>@<node>:/home/<user>/inspection-report.tar.gz ./
 
 See the [inspection report reference page] for more details.
 
+## Troubleshoot AWS deployments
+
+The following issues are specific to clusters deployed on AWS with the
+{{product}} `aws` cluster template.
+
+### Nodes fail to bootstrap
+
+If nodes fail to bootstrap {{product}}, you can retry by adding the following
+`preRunCommands` to `CK8sControlPlane` and `CK8sConfigTemplate` in the
+generated `cluster.yaml`:
+
+```yaml
+preRunCommands:
+  - rm -rf /run/containerd
+```
+
+This removes the containerd directory that the AMI creates on boot, ensuring a
+clean state with no conflicts. It does not necessarily resolve the original
+cause of the bootstrap failure.
+
+### Cluster deployment fails due to `InvalidKeyPair` 
+
+If the cluster fails to deploy after applying the `cluster.yaml`, this may be due to the `AWS_SSH_KEY_NAME` variable not being set correctly. 
+
+In the provided [aws template-variable.rc](https://github.com/canonical/cluster-api-k8s/blob/main/templates/aws/template-variables.rc) file, we set `AWS_SSH_KEY_NAME="default"`. If you see `InvalidKeyPair.NotFound: The key pair 'default' does not exist` in the logs of the CAPA controller manager, go to your AWS console and create a key pair with the same name as `AWS_SSH_KEY_NAME`, in this case `default`. 
+
+After the key pair is created, CAPA should pick up this change on its next retry and continue provisioning the cluster. 
+
+### Control plane nodes fail to join the cluster
+
+Add the following entry to the existing `cniIngressRules` list under
+`network.cni` in `AWSCluster` in `cluster.yaml`, to allow port 2381 for etcd's
+peer-to-peer communication:
+
+```yaml
+network:
+  cni:
+    cniIngressRules:
+    - description: etcd-peer-join
+      protocol: tcp
+      toPort: 2381
+```
+
+Manually updating the AWS security group rule does not persist, because the
+CAPA reconciliation loop removes it.
+
+### Provisioning fails because of the bastion host
+
+If no AMI images are available in your region for the bastion host, set
+`AWS_CREATE_BASTION` to `false` in `./templates/aws/template-variables.rc`, 
+then re-source the file and regenerate `cluster.yaml` before reapplying it.
+
 ## Report a bug
 
 If you cannot solve your issue and believe that the fault may lie in

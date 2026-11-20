@@ -70,5 +70,5 @@ the help of the CAPI providers.
 [getting-started guide]: /snap/tutorial/getting-started.md
 [Terraform's Juju provider]: https://github.com/juju/terraform-provider-juju/
 [installing-with-Terraform]: /charm/howto/install/install-terraform
-[CAPI guide]: /capi/tutorial/getting-started.md
+[CAPI guide]: /capi/howto/provision.md
 [Cluster API]: https://cluster-api.sigs.k8s.io/
