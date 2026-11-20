@@ -24,8 +24,9 @@ func (c *Client) CheckForReadyPods(ctx context.Context, namespace string, listOp
 	}
 
 	notReadyPods := []string{}
-	for _, pod := range pods.Items {
-		if !podIsReady(pod) {
+	for i := range pods.Items {
+		pod := &pods.Items[i]
+		if !IsPodReady(pod) {
 			notReadyPods = append(notReadyPods, pod.Name)
 		}
 	}
@@ -36,11 +37,10 @@ func (c *Client) CheckForReadyPods(ctx context.Context, namespace string, listOp
 	return nil
 }
 
-// podIsReady checks if a pod is in the ready state.
-// It returns true if the pod is running (Condition "Ready" = true).
-// Otherwise, it returns false.
-func podIsReady(pod corev1.Pod) bool {
-	if pod.Status.Phase != corev1.PodRunning {
+// IsPodReady reports whether a pod is running and has a true Ready condition.
+// A nil pod is not ready.
+func IsPodReady(pod *corev1.Pod) bool {
+	if pod == nil || pod.Status.Phase != corev1.PodRunning {
 		return false
 	}
 

@@ -38,16 +38,25 @@ func (c *Client) HasReadyNodes(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("failed to list nodes: %w", err)
 	}
 
-	for _, node := range nodes.Items {
-		for _, condition := range node.Status.Conditions {
-			if condition.Type == v1.NodeReady {
-				if condition.Status == v1.ConditionTrue {
-					// At least one node is ready.
-					return true, nil
-				}
-			}
+	for i := range nodes.Items {
+		if IsNodeReady(&nodes.Items[i]) {
+			return true, nil
 		}
 	}
 
 	return false, nil
+}
+
+// IsNodeReady reports whether a node has a true Ready condition.
+// A nil node is not ready.
+func IsNodeReady(node *v1.Node) bool {
+	if node == nil {
+		return false
+	}
+	for _, condition := range node.Status.Conditions {
+		if condition.Type == v1.NodeReady && condition.Status == v1.ConditionTrue {
+			return true
+		}
+	}
+	return false
 }
