@@ -10,7 +10,7 @@ from test_util.harness.multipass import MultipassHarness
 
 
 def test_multipass_harness_cloud_init_secrets_redacted(monkeypatch, caplog):
-    caplog.set_level(logging.DEBUG)
+    caplog.set_level(logging.DEBUG, logger="test_util.harness.multipass")
     monkeypatch.setenv("TEST_SECRET_TOKEN", "super-secret-token-12345")
     monkeypatch.setenv("SECOND_SECRET", "second-secret-value-67890")
 
@@ -71,7 +71,10 @@ def test_multipass_harness_accepts_case_insensitive_network_types(
 
     assert instance is not None
     if expects_ipv6:
-        assert harness.exec.called
+        assert harness.exec.call_count == 4
+        harness.exec.assert_any_call(
+            instance.id, ["sysctl", "-w", "net.ipv6.conf.all.disable_ipv6=0"]
+        )
     else:
         assert not harness.exec.called
 
