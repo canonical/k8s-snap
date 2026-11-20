@@ -42,7 +42,9 @@ jobs:
       channel: ${{ matrix.channel }}
       checkout-ref: ${{ matrix.branch }}
       upload-reports-to-jira: true
-    secrets: inherit
+    secrets:
+      CVE_JIRA_WEBHOOK_URL: ${{ secrets.CVE_JIRA_WEBHOOK_URL }}
+      CVE_JIRA_WEBHOOK_TOKEN: ${{ secrets.CVE_JIRA_WEBHOOK_TOKEN }}
 
   TICS:
     if: ${{ always() && github.event_name == 'schedule' }}
