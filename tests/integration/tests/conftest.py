@@ -258,6 +258,13 @@ def instances(
         pytest.xfail("Test requested 0 or fewer instances, skip this test.")
 
     LOG.info(f"Creating {node_count} instances")
+    initial_instance_ids = set()
+    if hasattr(h, "_lock"):
+        with h._lock:
+            initial_instance_ids = set(getattr(h, "instances", set()))
+    elif hasattr(h, "instances"):
+        initial_instance_ids = set(h.instances)
+
     created_instances: List[harness.Instance] = []
     created_lock = threading.Lock()
 
@@ -302,7 +309,20 @@ def instances(
             else:
                 first_node.exec(["k8s", "bootstrap"])
     except Exception:
-        for inst in created_instances:
+        with created_lock:
+            cleanup_instances = list(created_instances)
+        cleaned_ids = {inst.id for inst in cleanup_instances}
+
+        if hasattr(h, "_lock"):
+            with h._lock:
+                h_ids = set(getattr(h, "instances", set())) - initial_instance_ids
+        else:
+            h_ids = set(getattr(h, "instances", set())) - initial_instance_ids
+
+        for instance_id in h_ids - cleaned_ids:
+            cleanup_instances.append(harness.Instance(h, instance_id))
+
+        for inst in cleanup_instances:
             if not no_setup:
                 try:
                     util.remove_k8s_snap(inst, retries=10)

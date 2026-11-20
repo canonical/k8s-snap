@@ -510,9 +510,8 @@ def snap_refresh(
                 channel,
                 instance.id,
             )
-            stubbornly(retries=retries, delay_s=delay_s).on(instance).exec(
-                ["snap", "install", "--classic", remote_snap]
-            )
+            cmd = ["snap", "refresh", "--classic", *extra_args, remote_snap]
+            stubbornly(retries=retries, delay_s=delay_s).on(instance).exec(cmd)
         finally:
             instance.exec(["rm", "-f", remote_snap, remote_assert])
         return

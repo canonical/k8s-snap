@@ -198,12 +198,14 @@ def test_snap_refresh_with_cached_snaps():
         # send_file called for assert and snap
         assert instance.send_file.call_count == 2
 
-        # snap ack and snap install --classic called
+        # snap ack and snap refresh --classic called with extra_args
         exec_calls = [c.args[0] for c in mock_on.exec.call_args_list]
         ack_call = next(c for c in exec_calls if c[:2] == ["snap", "ack"])
         assert ack_call is not None
-        install_call = next(c for c in exec_calls if c[:2] == ["snap", "install"])
-        assert install_call[2] == "--classic"
+        refresh_call = next(c for c in exec_calls if c[:2] == ["snap", "refresh"])
+        assert "--classic" in refresh_call
+        assert "--amend" in refresh_call
+        assert refresh_call[-1].endswith(".snap")
 
         # rm -f cleanup in finally
         instance_exec_calls = [c.args[0] for c in instance.exec.call_args_list]
@@ -224,7 +226,7 @@ def test_snap_refresh_cached_cleanup_on_error():
         mock_stubbornly.return_value.on.return_value = mock_on
 
         def _side_effect(cmd, **kwargs):
-            if cmd[:2] == ["snap", "install"]:
+            if cmd[:2] == ["snap", "refresh"]:
                 raise subprocess.CalledProcessError(1, cmd)
             return MagicMock()
 
@@ -298,26 +300,28 @@ def test_conftest_instances_cleanup_on_provisioning_failure():
     import conftest
 
     mock_harness = MagicMock()
+    mock_harness.instances = set()
     created = []
 
     def _new_inst(network_type="IPv4"):
+        idx = len(created)
+        inst_id = f"inst-{idx}"
+        mock_harness.instances.add(inst_id)
+        if idx == 2:
+            # Simulate backend registering the resource before seed wait fails
+            raise RuntimeError("Backend failure inside new_instance before returning")
         inst = MagicMock(spec=Instance)
-        inst.id = f"inst-{len(created)}"
+        inst.id = inst_id
         created.append(inst)
         return inst
 
     mock_harness.new_instance.side_effect = _new_inst
     mock_harness.name = "lxd"
-
-    def _setup_k8s(instance, *args, **kwargs):
-        if instance.id == "inst-2":
-            raise RuntimeError("Provisioning failure on inst-2")
-
     with (
         patch("test_util.util.preload_snaps"),
         patch("test_util.util.setup_core_dumps"),
-        patch("test_util.util.setup_k8s_snap", side_effect=_setup_k8s),
-        patch("test_util.util.remove_k8s_snap") as mock_remove_snap,
+        patch("test_util.util.setup_k8s_snap"),
+        patch("test_util.util.remove_k8s_snap"),
     ):
         gen = conftest.instances.__wrapped__(
             h=mock_harness,
@@ -331,11 +335,11 @@ def test_conftest_instances_cleanup_on_provisioning_failure():
             request=MagicMock(),
             network_type="IPv4",
         )
-        with pytest.raises(RuntimeError, match="Provisioning failure on inst-2"):
+        with pytest.raises(RuntimeError, match="Backend failure inside new_instance"):
             next(gen)
 
-    # Ensure any created instances were cleaned up
-    assert len(created) > 0
+    # Ensure both returned instances and registered-only instances were cleaned up
+    assert len(created) == 2
     for inst in created:
         inst.delete.assert_called_once()
-    assert mock_remove_snap.call_count == len(created)
+    mock_harness.delete_instance.assert_called_with("inst-2")
