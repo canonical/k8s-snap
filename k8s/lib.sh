@@ -42,7 +42,19 @@ k8s::common::setup_env() {
     seen_path["${SNAP%/}/sbin"]=1
   fi
 
+  local is_strict=""
+  if [ -n "${SNAP:-}" ] && grep -q '^confinement:[[:space:]]*strict' "${SNAP}/meta/snap.yaml" 2>/dev/null; then
+    is_strict="1"
+  fi
+
   local host_path="${REAL_PATH:-${PATH:-}}"
+  if [ -n "$is_strict" ]; then
+    if [ -n "${K8S_STRICT_CLI:-}" ]; then
+      host_path="/usr/bin:/bin"
+    else
+      host_path="/usr/bin:/usr/sbin:/bin:/sbin"
+    fi
+  fi
   if [ -n "$host_path" ]; then
     local -a raw_path_dirs=()
     IFS=":" read -r -a raw_path_dirs <<< "$host_path"
@@ -109,7 +121,7 @@ k8s::common::setup_env() {
     fi
   fi
 
-  if [ -n "${REAL_LD_LIBRARY_PATH:-}" ]; then
+  if [ -z "$is_strict" ] && [ -n "${REAL_LD_LIBRARY_PATH:-}" ]; then
     local -a raw_real_ld=()
     IFS=":" read -r -a raw_real_ld <<< "$REAL_LD_LIBRARY_PATH"
     for d in "${raw_real_ld[@]}"; do
@@ -144,7 +156,7 @@ k8s::common::setup_env() {
   _K8S_ENV_SETUP_ONCE="1"
 
   local arch_triplet="${CRAFT_ARCH_TRIPLET_BUILD_FOR:-${SNAPCRAFT_ARCH_TRIPLET:-}}"
-  if [ -n "${SNAP:-}" ] && [ -n "$arch_triplet" ] && k8s::common::is_strict; then
+  if [ -n "$is_strict" ] && [ -n "$arch_triplet" ]; then
     export OPENSSL_MODULES="/usr/lib/${arch_triplet}/ossl-modules"
   fi
 }
@@ -254,7 +266,11 @@ k8s::remove::kubelet_logs() {
 # Run kubectl as admin
 # Example: 'k8s::cmd::kubectl get pod,node -A'
 k8s::cmd::kubectl() {
-  env KUBECONFIG="${KUBECONFIG:-/etc/kubernetes/admin.conf}" "${SNAP}/bin/kubectl" "${@}"
+  if [ -n "${SNAP:-}" ] && grep -q '^confinement:[[:space:]]*strict' "${SNAP}/meta/snap.yaml" 2>/dev/null; then
+    env PATH="${SNAP}/bin:/usr/bin:/bin" KUBECONFIG="${KUBECONFIG:-/etc/kubernetes/admin.conf}" "${SNAP}/bin/kubectl" "${@}"
+  else
+    env KUBECONFIG="${KUBECONFIG:-/etc/kubernetes/admin.conf}" "${SNAP}/bin/kubectl" "${@}"
+  fi
 }
 
 # Run k8s CLI
