@@ -48,6 +48,3 @@ To upgrade each provider one by one, issue:
 clusterctl upgrade apply --bootstrap cabpck-system/canonical-kubernetes:v0.2.0
 clusterctl upgrade apply --control-plane cacpck-system/canonical-kubernetes:v0.2.0
 ```
-
-<!-- LINKS -->
-[Cluster provisioning with CAPI and {{product}} tutorial]: ../tutorial/getting-started.md
