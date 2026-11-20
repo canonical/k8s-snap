@@ -129,7 +129,7 @@ def test_version_upgrades(
 
             if channel.startswith("/"):
                 LOG.info("Refreshing k8s snap by path")
-                instance.exec(
+                util.stubbornly(retries=5, delay_s=5).on(instance).exec(
                     ["snap", "install", "--classic", "--dangerous", snap_path]
                 )
             else:
