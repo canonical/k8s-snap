@@ -1,10 +1,6 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
-# Postponed annotation evaluation is required: `test_util.harness` imports
-# `bare_metal` first (isort order), which imports this module while the
-# `harness` package is still half-initialised, so annotations such as
-# `harness.Instance` can't be evaluated at definition time.
 from __future__ import annotations
 
 import ipaddress
@@ -338,7 +334,9 @@ def setup_k8s_snap(
         tmp_path:   path to store the snap on the instance (optional, defaults to /home/ubuntu)
         timeout:    timeout in seconds for the snap install command (default: 300)
     """
-    cmd = ["snap", "install", "--classic"]
+    cmd = ["snap", "install"]
+    if config.VARIANT != "strict":
+        cmd.append("--classic")
     which_snap = snap or config.SNAP
 
     if not which_snap:
@@ -410,10 +408,10 @@ def snap_refresh(
         "refresh",
         config.SNAP_NAME,
         *snap_channel_args(channel),
-        # note: the `--classic` flag will be ignored by snapd for strict snaps.
-        "--classic",
-        *extra_args,
     ]
+    if config.VARIANT != "strict":
+        cmd.append("--classic")
+    cmd.extend(extra_args)
     LOG.info(
         "Refreshing %s to channel %s on %s", config.SNAP_NAME, channel, instance.id
     )
@@ -459,7 +457,13 @@ def remove_k8s_snap(instance: harness.Instance, retries: int = 40):
         raise
 
     LOG.info("Waiting for kubelet and containerd mounts to go away...")
-    target_mounts = ["/var/lib/kubelet/pods", "/run/containerd/io.containerd"]
+    if config.VARIANT == "strict":
+        target_mounts = [
+            "/var/snap/k8s/common/var/lib/kubelet/pods",
+            "/var/snap/k8s/common/run/containerd",
+        ]
+    else:
+        target_mounts = ["/var/lib/kubelet/pods", "/run/containerd/io.containerd"]
     last_lingering_mounts: List[str] = []
 
     def _no_lingering_mounts(p: subprocess.CompletedProcess) -> bool:
@@ -540,6 +544,91 @@ def wait_until_k8s_ready(
     LOG.info("Successfully checked Kubelet registered on all harness instances.")
     result = control_node.exec(["k8s", "kubectl", "get", "node"], capture_output=True)
     LOG.info("%s", result.stdout.decode().strip())
+
+    if config.VARIANT == "strict":
+        assert_no_apparmor_denials(instances)
+
+
+def _filter_k8s_apparmor_denials(raw_output: str) -> List[str]:
+    """Return AppArmor DENIED log lines involving the k8s snap or its containers."""
+    snap_token = f"snap.{config.SNAP_NAME}."
+    seen = set()
+    matched: List[str] = []
+    for raw_line in raw_output.splitlines():
+        line = raw_line.strip()
+        if 'apparmor="DENIED"' not in line or 'operation="not mount"' in line:
+            continue
+        if snap_token not in line and "cri-containerd.apparmor.d" not in line:
+            continue
+        if line not in seen:
+            seen.add(line)
+            matched.append(line)
+    return matched
+
+
+def collect_instance_apparmor_denials(instance: harness.Instance) -> List[str]:
+    """Collect k8s AppArmor denials visible from inside an instance."""
+    out = instance.exec(
+        [
+            "sh",
+            "-c",
+            "journalctl -k --no-pager 2>/dev/null; dmesg 2>/dev/null || true",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return _filter_k8s_apparmor_denials(out.stdout or "")
+
+
+def collect_host_apparmor_denials() -> List[str]:
+    """Collect k8s AppArmor denials from the LXD host kernel and audit logs."""
+    if config.SUBSTRATE != "lxd":
+        return []
+    out = run(
+        [
+            "sudo",
+            "-n",
+            "sh",
+            "-c",
+            "journalctl -k --no-pager 2>/dev/null; dmesg 2>/dev/null; "
+            "grep -h 'apparmor=\"DENIED\"' /var/log/audit/audit.log 2>/dev/null || true",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return _filter_k8s_apparmor_denials(out.stdout or "")
+
+
+def assert_no_apparmor_denials(
+    instances: List[harness.Instance],
+    baseline: Optional[set] = None,
+    extra_denials: Optional[List[str]] = None,
+) -> None:
+    """Fail if any unexpected AppArmor denials occurred for k8s or its containers."""
+    ignored = baseline or set()
+    found: List[str] = []
+    seen = set()
+
+    for line in extra_denials or []:
+        if line not in ignored and line not in seen:
+            seen.add(line)
+            found.append(line)
+
+    for instance in instances:
+        for line in collect_instance_apparmor_denials(instance):
+            if line not in ignored and line not in seen:
+                seen.add(line)
+                found.append(f"[{instance.id}] {line}")
+
+    for line in collect_host_apparmor_denials():
+        if line not in ignored and line not in seen:
+            seen.add(line)
+            found.append(f"[host] {line}")
+
+    if found:
+        raise AssertionError("AppArmor denials detected:\n" + "\n".join(found))
 
 
 def is_node_ready(
@@ -1878,15 +1967,20 @@ def diverged_cluster_memberships(
     # datastore membership
     datastore = status.get("datastore", {}).get("type")
     if datastore == "etcd":
+        pki_dir = (
+            "/var/snap/k8s/common/etc/kubernetes/pki"
+            if config.VARIANT == "strict"
+            else "/etc/kubernetes/pki"
+        )
         proc = control_node.exec(
             [
                 "curl",
                 "--cacert",
-                "/etc/kubernetes/pki/etcd/ca.crt",
+                f"{pki_dir}/etcd/ca.crt",
                 "--cert",
-                "/etc/kubernetes/pki/apiserver-etcd-client.crt",
+                f"{pki_dir}/apiserver-etcd-client.crt",
                 "--key",
-                "/etc/kubernetes/pki/apiserver-etcd-client.key",
+                f"{pki_dir}/apiserver-etcd-client.key",
                 "https://127.0.0.1:2379/v3/cluster/member/list",
                 "-X",
                 "POST",

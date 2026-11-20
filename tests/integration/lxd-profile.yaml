@@ -1,9 +1,11 @@
 description: "LXD profile for Canonical Kubernetes"
 config:
   linux.kernel_modules: vxlan,ip_vs,ip_vs_rr,ip_vs_wrr,ip_vs_sh,ip_tables,ip6_tables,ip6table_raw,iptable_raw,netlink_diag,nf_nat,overlay,br_netfilter,xt_socket,nf_conntrack
+  # Give each container its own bpffs before installing or starting the snap.
   raw.lxc: |
     lxc.apparmor.profile=unconfined
     lxc.mount.auto=proc:rw sys:mixed
+    lxc.mount.entry=bpf sys/fs/bpf bpf rw,nosuid,nodev,noexec,create=dir 0 0
     lxc.cgroup2.devices.allow=a
     lxc.cap.drop=
   security.nesting: "true"

@@ -176,7 +176,13 @@ class Registry:
         return self.instance.exec(command, **kwargs)
 
     # Configure the specified instance to use this registry mirror.
-    def apply_configuration(self, instance, containerd_basedir="/etc/containerd"):
+    def apply_configuration(self, instance, containerd_basedir: Optional[str] = None):
+        if containerd_basedir is None:
+            containerd_basedir = (
+                "/var/snap/k8s/common/etc/containerd"
+                if config.VARIANT == "strict"
+                else "/etc/containerd"
+            )
         for mirror in self.mirrors:
             substitutes = {
                 "IP": self.ip,
