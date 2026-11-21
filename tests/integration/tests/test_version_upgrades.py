@@ -294,7 +294,12 @@ def test_version_downgrades_with_rollback(
     not config.SNAP,
     reason="Feature upgrades require a local snap file",
 )
-def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: Path):
+def test_feature_upgrades_inplace(
+    instances: List[harness.Instance],
+    tmp_path: Path,
+    containerd_cfgdir: str,
+    registry: Registry,
+):
     """Verify that feature upgrades function correctly.
 
     Note: This is an interim test that will be expanded as feature upgrades mature.
@@ -316,6 +321,8 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
 
     for instance in instances:
         util.setup_k8s_snap(instance, start_branch, cached_snaps=cached_snaps)
+        if config.USE_LOCAL_MIRROR and registry:
+            registry.apply_configuration(instance, containerd_cfgdir)
 
     bootstrap_cp.exec(["k8s", "bootstrap"])
     # Avoid racing the bootstrap node's kubelet Node registration (join can
