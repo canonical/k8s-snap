@@ -23,8 +23,9 @@ class MultipassHarness(Harness):
     name = "multipass"
 
     def next_id(self) -> int:
-        self._next_id += 1
-        return self._next_id
+        with self._lock:
+            self._next_id += 1
+            return self._next_id
 
     def __init__(self):
         super(MultipassHarness, self).__init__()
@@ -128,7 +129,8 @@ class MultipassHarness(Harness):
         except subprocess.CalledProcessError as e:
             raise HarnessError(f"Failed to create multipass VM {instance_id}") from e
 
-        self.instances.add(instance_id)
+        with self._lock:
+            self.instances.add(instance_id)
 
         instance = Instance(self, instance_id)
         stubbornly(retries=5, delay_s=5).on(instance).exec(
@@ -260,8 +262,9 @@ class MultipassHarness(Harness):
             self.exec(instance_id, ["sudo", "ufw", "allow", str(port)], check=False)
 
     def delete_instance(self, instance_id: str):
-        if instance_id not in self.instances:
-            raise HarnessError(f"unknown instance {instance_id}")
+        with self._lock:
+            if instance_id not in self.instances:
+                raise HarnessError(f"unknown instance {instance_id}")
 
         try:
             run(["multipass", "delete", instance_id])
@@ -269,8 +272,11 @@ class MultipassHarness(Harness):
         except subprocess.CalledProcessError as e:
             raise HarnessError(f"failed to delete instance {instance_id}") from e
 
-        self.instances.discard(instance_id)
+        with self._lock:
+            self.instances.discard(instance_id)
 
     def cleanup(self):
-        for instance_id in self.instances.copy():
+        with self._lock:
+            instances = list(self.instances)
+        for instance_id in instances:
             self.delete_instance(instance_id)
