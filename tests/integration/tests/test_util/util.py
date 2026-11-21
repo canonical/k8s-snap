@@ -303,8 +303,6 @@ def preload_snaps(instance: harness.Instance):
             ["snap", "ack", remote.as_posix()], timeout=60 * 5
         )
 
-        # snap install waits on its own change; background store registration
-        # ("Initialize device") never conflicts with it but can stay Doing for minutes.
         LOG.info("Install snap file %s.", preloaded_snap)
         remote = remote_dir / snap.name
         instance.send_file(source=snap.as_posix(), destination=remote.as_posix())
