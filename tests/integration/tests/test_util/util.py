@@ -38,6 +38,7 @@ MAIN_BRANCH = "main"
 # kube-proxy was replaced by the Cilium kube-proxy replacement in 1.36. Snaps older
 # than this always run kube-proxy and ignore `network.kube-proxy-enabled`.
 KUBE_PROXY_REPLACEMENT_MIN_VERSION = (1, 36)
+MAX_LOGGED_OUTPUT_CHARS = 1000
 
 
 def _is_retryable_http_error(exc: BaseException) -> bool:
@@ -88,6 +89,37 @@ def run(command: list, **kwargs) -> subprocess.CompletedProcess:
     return subprocess.run(command, **kwargs)
 
 
+def _decode_output(stream: Union[bytes, str, None]) -> str:
+    if stream is None:
+        return ""
+    if isinstance(stream, bytes):
+        return stream.decode(errors="replace")
+    return stream
+
+
+def _truncate_output(text: str, max_chars: int = MAX_LOGGED_OUTPUT_CHARS) -> str:
+    """Keep head and tail of long command output so logs stay bounded."""
+    omitted = len(text) - max_chars
+    if omitted <= 0:
+        return text
+    head_len = max_chars // 2
+    tail_start = len(text) - (max_chars - head_len)
+    return f"{text[:head_len]}...[truncated {omitted} chars]...{text[tail_start:]}"
+
+
+class _ConditionNotMetError(AssertionError):
+    """Raised when a polled command's output fails Retriable.until()."""
+
+    def __init__(self, returncode: int, stdout: str, stderr: str) -> None:
+        self.returncode = returncode
+        self.stdout = _truncate_output(stdout)
+        self.stderr = _truncate_output(stderr)
+        super().__init__(
+            f"Failed to meet condition: rc={returncode} "
+            f"stdout={self.stdout!r} stderr={self.stderr!r}"
+        )
+
+
 class Retriable:
     def __init__(self, retry_kwargs: Optional[Mapping[str, Any]]) -> None:
         self._condition = None
@@ -118,11 +150,8 @@ class Retriable:
         try:
             resp = self._run(command_args, **command_kwds)
         except subprocess.TimeoutExpired as e:
-            stdout = e.stdout or ""
-            stderr = e.stderr or ""
-            if not command_kwds.get("text"):
-                stdout = e.stdout.decode() if e.stdout else ""
-                stderr = e.stderr.decode() if e.stderr else ""
+            stdout = _truncate_output(_decode_output(e.stdout))
+            stderr = _truncate_output(_decode_output(e.stderr))
 
             LOG.warning(f"  timed out after {e.timeout}s")
             if stdout:
@@ -131,19 +160,19 @@ class Retriable:
                 LOG.warning(f"  stderr={stderr}")
             raise
         except subprocess.CalledProcessError as e:
-            stdout = e.stdout or ""
-            stderr = e.stderr or ""
-            if not command_kwds.get("text"):
-                # The output will be in bytes if text is not set / is False.
-                stdout = e.stdout.decode() if e.stdout else ""
-                stderr = e.stderr.decode() if e.stderr else ""
+            stdout = _truncate_output(_decode_output(e.stdout))
+            stderr = _truncate_output(_decode_output(e.stderr))
 
             LOG.warning(f"  rc={e.returncode}")
             LOG.warning(f"  stdout={stdout}")
             LOG.warning(f"  stderr={stderr}")
             raise
-        if self._condition:
-            assert self._condition(resp), "Failed to meet condition"
+        if self._condition and not self._condition(resp):
+            raise _ConditionNotMetError(
+                resp.returncode,
+                _decode_output(resp.stdout),
+                _decode_output(resp.stderr),
+            )
         return resp
 
     def on(self, instance: harness.Instance) -> "Retriable":
@@ -193,10 +222,14 @@ def stubbornly(
     def _before_sleep(retry_state: RetryCallState):
         attempt = retry_state.attempt_number
         tries = f"/{retries}" if retries else ""
-        errstr = ""
-        if retry_state.outcome:
-            errstr = f" Error: {retry_state.outcome.exception()}"
-        LOG.info(f"Attempt {attempt}{tries} failed.{errstr}")
+        exc = retry_state.outcome.exception() if retry_state.outcome else None
+        if isinstance(exc, _ConditionNotMetError):
+            LOG.info(
+                f"Attempt {attempt}{tries} failed: condition not met (rc={exc.returncode})"
+            )
+        else:
+            errstr = f" Error: {exc}" if exc is not None else ""
+            LOG.info(f"Attempt {attempt}{tries} failed.{errstr}")
         LOG.info(f"Retrying in {delay_s} seconds...")
 
     waits = wait_fixed(delay_s) if delay_s else wait_fixed(0)
