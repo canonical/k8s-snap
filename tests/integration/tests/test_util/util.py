@@ -337,6 +337,50 @@ def configure_cpuset_controller(instance: harness.Instance):
     )
 
 
+SETTLED_SNAP_STATUSES = {"Done", "Undone", "Hold", "Error"}
+
+
+def _has_no_in_flight_snap_changes(res: subprocess.CompletedProcess) -> bool:
+    stdout = _decode_output(res.stdout)
+    for line in stdout.splitlines():
+        parts = line.strip().split()
+        if (
+            len(parts) >= 2
+            and parts[0].isdigit()
+            and parts[1] not in SETTLED_SNAP_STATUSES
+        ):
+            return False
+    return True
+
+
+def wait_for_snap_change(
+    instance: harness.Instance,
+    snap_name: str = config.SNAP_NAME,
+    retries: int = 120,
+    delay_s: Union[float, int] = 5,
+) -> None:
+    """Wait until all in-flight snapd changes for snap_name have settled."""
+    LOG.info("Waiting for in-flight %s snap changes on %s", snap_name, instance.id)
+    stubbornly(retries=retries, delay_s=delay_s).on(instance).until(
+        _has_no_in_flight_snap_changes
+    ).exec(["snap", "changes", snap_name])
+
+
+def wait_for_snap_change_hook(
+    instance: harness.Instance,
+    max_attempts: int,
+    snap_name: str = config.SNAP_NAME,
+    **wait_kwargs,
+) -> Callable[[RetryCallState], None]:
+    """Return a tenacity hook that waits for snap changes only between attempts."""
+
+    def _hook(retry_state: RetryCallState) -> None:
+        if retry_state.attempt_number < max_attempts:
+            wait_for_snap_change(instance, snap_name=snap_name, **wait_kwargs)
+
+    return _hook
+
+
 def setup_k8s_snap(
     instance: harness.Instance,
     snap: Optional[str] = None,
@@ -383,7 +427,11 @@ def setup_k8s_snap(
         LOG.info("Install k8s snap by least risky channel: %s", channel)
         cmd += [config.SNAP_NAME, "--channel", channel]
 
-    stubbornly(retries=3, delay_s=30).on(instance).exec(cmd, timeout=timeout)
+    stubbornly(
+        retries=3,
+        delay_s=30,
+        after=wait_for_snap_change_hook(instance, max_attempts=3),
+    ).on(instance).exec(cmd, timeout=timeout)
     if connect_interfaces:
         LOG.info("Ensure k8s interfaces and network requirements")
         instance.exec(["/snap/k8s/current/k8s/hack/init.sh"], stdout=subprocess.DEVNULL)
@@ -436,7 +484,11 @@ def snap_refresh(
     LOG.info(
         "Refreshing %s to channel %s on %s", config.SNAP_NAME, channel, instance.id
     )
-    stubbornly(retries=retries, delay_s=delay_s).on(instance).exec(cmd)
+    stubbornly(
+        retries=retries,
+        delay_s=delay_s,
+        after=wait_for_snap_change_hook(instance, max_attempts=retries),
+    ).on(instance).exec(cmd)
 
 
 def remove_k8s_snap(instance: harness.Instance, retries: int = 40):
