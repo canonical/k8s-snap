@@ -97,9 +97,13 @@ def test_version_upgrades(
         f"Bootstrap node on {current_channel} and upgrade through channels: {channels[1:]}"
     )
 
+    cached_snaps = util.download_k8s_snaps(
+        channels, tmp_path / "snap_cache", arch=cp.arch
+    )
+
     # Setup the k8s snap from the bootstrap channel and setup basic configuration.
     for instance in instances:
-        util.setup_k8s_snap(instance, current_channel)
+        util.setup_k8s_snap(instance, current_channel, cached_snaps=cached_snaps)
         if config.USE_LOCAL_MIRROR:
             registry.apply_configuration(instance, containerd_cfgdir)
 
@@ -141,7 +145,9 @@ def test_version_upgrades(
                     ["snap", "install", "--classic", "--dangerous", snap_path]
                 )
             else:
-                util.snap_refresh(instance, channel, "--amend")
+                util.snap_refresh(
+                    instance, channel, "--amend", cached_snaps=cached_snaps
+                )
             util.wait_until_k8s_ready(cp, instances)
             LOG.info("Verifying snap service health")
             util.check_snap_services_ready(instance, retries=10, delay_s=10)
@@ -225,12 +231,15 @@ def test_version_downgrades_with_rollback(
         f"Bootstrap node on {current_channel} and downgrade through channels: {channels[1:]}"
     )
 
+    cached_snaps = util.download_k8s_snaps(
+        channels, tmp_path / "snap_cache", arch=cp.arch
+    )
+
     # Setup the k8s snap from the bootstrap channel and setup basic configuration.
     for instance in instances:
-        util.setup_k8s_snap(instance, current_channel)
+        util.setup_k8s_snap(instance, current_channel, cached_snaps=cached_snaps)
         if config.USE_LOCAL_MIRROR:
             registry.apply_configuration(instance, containerd_cfgdir)
-
     cp.exec(["k8s", "bootstrap"])
     # Avoid racing the bootstrap node's kubelet Node registration (join can
     # fail with "the cluster has no nodes" otherwise).
@@ -258,7 +267,7 @@ def test_version_downgrades_with_rollback(
             LOG.debug(
                 f"Step 1. Downgrade {instance.id} from {current_channel} → {channel}"
             )
-            util.snap_refresh(instance, channel)
+            util.snap_refresh(instance, channel, cached_snaps=cached_snaps)
             util.wait_until_k8s_ready(cp, instances)
             LOG.info("Verifying snap service health")
             util.check_snap_services_ready(instance, retries=10, delay_s=10)
@@ -270,7 +279,7 @@ def test_version_downgrades_with_rollback(
 
         for instance in instances:
             LOG.debug(f"Step 2. Roll back from {current_channel} → {last_channel}")
-            util.snap_refresh(instance, last_channel)
+            util.snap_refresh(instance, last_channel, cached_snaps=cached_snaps)
             util.wait_until_k8s_ready(cp, instances)
             LOG.info("Verifying snap service health")
             util.check_snap_services_ready(instance, retries=10, delay_s=10)
@@ -281,7 +290,7 @@ def test_version_downgrades_with_rollback(
             LOG.debug(
                 f"Step 3. Final downgrade to channel from {last_channel} → {current_channel}"
             )
-            util.snap_refresh(instance, current_channel)
+            util.snap_refresh(instance, current_channel, cached_snaps=cached_snaps)
             util.wait_until_k8s_ready(cp, instances)
             LOG.info("Verifying snap service health")
             util.check_snap_services_ready(instance, retries=10, delay_s=10)
@@ -312,7 +321,12 @@ def test_version_downgrades_with_rollback(
     not config.SNAP,
     reason="Feature upgrades require a local snap file",
 )
-def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: Path):
+def test_feature_upgrades_inplace(
+    instances: List[harness.Instance],
+    tmp_path,
+    containerd_cfgdir: str,
+    registry: Registry,
+):
     """Verify that feature upgrades function correctly.
 
     Note: This is an interim test that will be expanded as feature upgrades mature.
@@ -328,20 +342,14 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
     bootstrap_cp = instances[0]
     worker = instances[-1]
 
+    cached_snaps = util.download_k8s_snaps(
+        [start_branch], tmp_path / "snap_cache", arch=bootstrap_cp.arch
+    )
+
     for instance in instances:
-        util.stubbornly(
-            retries=3,
-            delay_s=30,
-            after=util.wait_for_snap_change_hook(instance, max_attempts=3),
-        ).on(instance).exec(
-            [
-                "snap",
-                "install",
-                "k8s",
-                "--classic",
-                *util.snap_channel_args(start_branch),
-            ]
-        )
+        util.setup_k8s_snap(instance, start_branch, cached_snaps=cached_snaps)
+        if config.USE_LOCAL_MIRROR and registry:
+            registry.apply_configuration(instance, containerd_cfgdir)
 
     bootstrap_cp.exec(["k8s", "bootstrap"])
     # Avoid racing the bootstrap node's kubelet Node registration (join can
