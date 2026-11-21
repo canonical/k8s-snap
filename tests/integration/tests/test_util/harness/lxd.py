@@ -314,9 +314,9 @@ class LXDHarness(Harness):
         except subprocess.TimeoutExpired:
             LOG.warning("LXC container removal timed out.")
             pass
-        finally:
-            with self._lock:
-                self.instances.discard(instance_id)
+
+        with self._lock:
+            self.instances.discard(instance_id)
 
     def log_environment_info(self):
         """Log any relevant environment information before and after each test.

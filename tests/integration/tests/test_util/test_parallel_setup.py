@@ -77,6 +77,45 @@ def test_juju_harness_new_instance_thread_safety():
 
 
 @pytest.mark.tags(tags.PULL_REQUEST)
+def test_harness_delete_instance_retains_id_on_failure():
+    import subprocess
+
+    lxd_h = LXDHarness.__new__(LXDHarness)
+    Harness.__init__(lxd_h)
+    lxd_h.instances = {"inst-0"}
+    with patch(
+        "test_util.harness.lxd.run",
+        side_effect=subprocess.CalledProcessError(1, ["lxc", "rm"]),
+    ):
+        with pytest.raises(HarnessError):
+            lxd_h.delete_instance("inst-0")
+    assert "inst-0" in lxd_h.instances
+
+    mp_h = MultipassHarness.__new__(MultipassHarness)
+    Harness.__init__(mp_h)
+    mp_h.instances = {"inst-0"}
+    with patch(
+        "test_util.harness.multipass.run",
+        side_effect=subprocess.CalledProcessError(1, ["multipass"]),
+    ):
+        with pytest.raises(HarnessError):
+            mp_h.delete_instance("inst-0")
+    assert "inst-0" in mp_h.instances
+
+    juju_h = JujuHarness.__new__(JujuHarness)
+    Harness.__init__(juju_h)
+    juju_h.instances = {"inst-0"}
+    juju_h.existing_machines = {}
+    with patch(
+        "test_util.harness.juju.run",
+        side_effect=subprocess.CalledProcessError(1, ["juju"]),
+    ):
+        with pytest.raises(HarnessError):
+            juju_h.delete_instance("inst-0")
+    assert "inst-0" in juju_h.instances
+
+
+@pytest.mark.tags(tags.PULL_REQUEST)
 def test_bare_metal_harness_single_instance_concurrent_rejection():
     h = BareMetalHarness.__new__(BareMetalHarness)
     Harness.__init__(h)

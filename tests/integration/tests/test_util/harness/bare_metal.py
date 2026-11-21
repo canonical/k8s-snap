@@ -239,9 +239,8 @@ class BareMetalHarness(Harness):
         except subprocess.CalledProcessError:
             LOG.warning("Failed to remove k8s snap during cleanup")
 
-        finally:
-            with self._lock:
-                self.instances.discard(instance_id)
+        with self._lock:
+            self.instances.discard(instance_id)
 
     def log_environment_info(self):
         """Log relevant environment information."""

@@ -218,9 +218,9 @@ class JujuHarness(Harness):
             run(["juju", "remove-machine", instance_id, "--force"])
         except subprocess.CalledProcessError as e:
             raise HarnessError(f"failed to delete instance {instance_id}") from e
-        finally:
-            with self._lock:
-                self.instances.discard(instance_id)
+
+        with self._lock:
+            self.instances.discard(instance_id)
 
     def cleanup(self):
         with self._lock:
