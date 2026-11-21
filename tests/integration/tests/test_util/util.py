@@ -617,7 +617,7 @@ def snap_refresh(
     ).on(instance).exec(cmd, timeout=timeout)
 
 
-def remove_k8s_snap(instance: harness.Instance, retries: int = 40):
+def remove_k8s_snap(instance: harness.Instance):
     LOG.info("Uninstall k8s...")
     stubbornly(retries=20, delay_s=5).on(instance).exec(
         ["snap", "remove", config.SNAP_NAME, "--purge"], timeout=60 * 5

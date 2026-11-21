@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from tenacity import RetryError
-from test_util import harness, tags, util  # noqa: F401
+from test_util import tags, util
 
 
 @pytest.mark.tags(tags.PULL_REQUEST)
