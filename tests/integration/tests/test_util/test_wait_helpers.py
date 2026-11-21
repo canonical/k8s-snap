@@ -10,7 +10,6 @@ from tenacity import RetryError
 from test_util import harness, tags, util  # noqa: F401
 
 
-
 @pytest.mark.tags(tags.PULL_REQUEST)
 def test_stubbornly_until_omits_command_streams_from_retry_logs(caplog):
     instance = MagicMock()
