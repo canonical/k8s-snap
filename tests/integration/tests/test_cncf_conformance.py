@@ -52,7 +52,7 @@ def cluster_setup(instances: List[harness.Instance]) -> harness.Instance:
     joining_nodes = instances[1:]
 
     for joining_node in joining_nodes:
-        join_token = util.get_join_token(cluster_node, joining_node)
+        join_token = util.get_join_token(cluster_node, joining_node, "--worker")
         util.join_cluster(joining_node, join_token)
 
     util.wait_until_k8s_ready(cluster_node, instances)
@@ -60,8 +60,8 @@ def cluster_setup(instances: List[harness.Instance]) -> harness.Instance:
     nodes = util.ready_nodes(cluster_node)
     assert len(nodes) == 3, "node should have joined cluster"
     assert "control-plane" in util.get_local_node_status(cluster_node)
-    assert "control-plane" in util.get_local_node_status(joining_nodes[0])
-    assert "control-plane" in util.get_local_node_status(joining_nodes[1])
+    assert "worker" in util.get_local_node_status(joining_nodes[0])
+    assert "worker" in util.get_local_node_status(joining_nodes[1])
 
     config = cluster_node.exec(["k8s", "config"], capture_output=True)
     cluster_node.exec(["dd", "of=/root/.kube/config"], input=config.stdout)
