@@ -51,20 +51,14 @@ def test_find_suitable_cidr_ipv6_does_not_exclude_highest_address():
 @pytest.mark.tags(tags.PULL_REQUEST)
 def test_find_suitable_cidr_skips_network_and_broadcast():
     """Verify that network (.0) and broadcast (.15 in /28) are never allocated."""
-    # 10.0.0.0/28 has 16 addresses (0 to 15).
-    # Subnets of size /30 are:
-    #   10.0.0.0/30 (contains network .0 and gateway .1) -> skipped
-    #   10.0.0.4/30 (hosts .4 - .7)
-    #   10.0.0.8/30 (hosts .8 - .11)
-    #   10.0.0.12/30 (contains broadcast .15) -> skipped
+    # Usable /30 blocks in 10.0.0.0/28 are .4 and .8; .0 and .12 hold network and broadcast.
     cidr = util.find_suitable_cidr("10.0.0.0/28")
     assert cidr == "10.0.0.4/30"
 
-    # Excluding .4 yields .8/30
     cidr = util.find_suitable_cidr("10.0.0.0/28", excluded_ips=["10.0.0.4"])
     assert cidr == "10.0.0.8/30"
 
-    # Excluding both .4 and .8 leaves no valid /30 (since .12/30 contains broadcast .15)
+    # No usable /30 left.
     with pytest.raises(RuntimeError):
         util.find_suitable_cidr("10.0.0.0/28", excluded_ips=["10.0.0.4", "10.0.0.8"])
 

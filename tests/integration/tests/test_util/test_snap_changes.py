@@ -566,7 +566,7 @@ def test_wait_for_snap_changes_ignores_unrelated_snaps():
         stderr="",
     )
 
-    # Scoped to k8s, unrelated pc-kernel and other changes do not block
+    # Changes of other snaps do not block.
     util.wait_for_snap_changes(instance, snap_name="k8s", retries=2, delay_s=0)
     assert instance.exec.call_count == 1
 
@@ -580,7 +580,7 @@ def test_exec_snap_cmd_fails_immediately_when_snap_changes_times_out(monkeypatch
         MagicMock(side_effect=RetryError(MagicMock())),
     )
 
-    # Outer retries=5 does not restart the wait loop; it fails fast on RetryError
+    # Outer retries do not restart the wait loop.
     with pytest.raises(RetryError):
         util._exec_snap_cmd_with_retries(
             instance,
@@ -591,6 +591,5 @@ def test_exec_snap_cmd_fails_immediately_when_snap_changes_times_out(monkeypatch
             snap_name="k8s",
         )
 
-    # Verifies wait_for_snap_changes failed fast on first attempt and command was not run
     assert util.wait_for_snap_changes.call_count == 1
     assert instance.exec.call_count == 0
