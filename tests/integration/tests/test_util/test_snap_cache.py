@@ -43,12 +43,12 @@ def test_download_k8s_snaps_deduplication_and_env(tmp_path):
         assert mock_exec.call_count == 3
         calls = mock_exec.call_args_list
 
-        # Check UBUNTU_STORE_ARCH passed in env
+        # Check UBUNTU_STORE_ARCH passed in env with sensitive_kwargs=True
         for c in calls:
             kwargs = c.kwargs
             assert "env" in kwargs
             assert kwargs["env"].get("UBUNTU_STORE_ARCH") == "arm64"
-
+            assert kwargs.get("sensitive_kwargs") is True
         # Verify channel@revision handled
         found_revision_call = False
         for c in calls:
@@ -357,3 +357,94 @@ def test_conftest_instances_cleanup_on_provisioning_failure():
     for inst in created:
         inst.delete.assert_called_once()
     mock_harness.delete_instance.assert_called_with("inst-2")
+
+
+@pytest.mark.tags(tags.PULL_REQUEST)
+def test_fetch_text_enforces_socket_timeout_and_retries_timeout_error():
+    calls = []
+
+    class _FakeResp:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def read(self):
+            return b'{"ok": true}'
+
+    def _fake_urlopen(req, timeout=None):
+        calls.append(timeout)
+        if len(calls) == 1:
+            raise TimeoutError("socket read timed out")
+        return _FakeResp()
+
+    with patch("urllib.request.urlopen", side_effect=_fake_urlopen):
+        body = util.fetch_text(
+            "https://api.snapcraft.io/v2/snaps/info/k8s",
+            retries=3,
+            min_wait_s=0.01,
+            max_wait_s=0.02,
+        )
+    assert body == '{"ok": true}'
+    assert calls == [30.0, 30.0]
+
+
+@pytest.mark.tags(tags.PULL_REQUEST)
+def test_instance_arch_enforces_timeout_and_retries_transient_hang():
+    mock_harness = MagicMock()
+    attempts = []
+
+    def _exec(instance_id, cmd, **kwargs):
+        attempts.append(kwargs.get("timeout"))
+        if len(attempts) == 1:
+            raise subprocess.TimeoutExpired(cmd, kwargs.get("timeout", 0))
+        res = MagicMock()
+        res.stdout = "arm64\n"
+        return res
+
+    mock_harness.exec.side_effect = _exec
+    inst = Instance(mock_harness, "node-1")
+    assert inst.arch == "arm64"
+    assert attempts == [60, 60]
+
+
+@pytest.mark.tags(tags.PULL_REQUEST)
+def test_conftest_instances_caps_workers_by_cpu_count():
+    import conftest
+
+    mock_harness = MagicMock()
+    mock_harness.name = "lxd"
+    mock_harness.instances = set()
+    mock_harness.new_instance.side_effect = lambda network_type="IPv4": MagicMock(
+        spec=Instance, id="inst"
+    )
+
+    recorded_max_workers = []
+    real_tpe = concurrent.futures.ThreadPoolExecutor
+
+    def _spy_tpe(*args, **kwargs):
+        recorded_max_workers.append(kwargs.get("max_workers"))
+        return real_tpe(*args, **kwargs)
+
+    with (
+        patch("os.cpu_count", return_value=4),
+        patch("concurrent.futures.ThreadPoolExecutor", side_effect=_spy_tpe),
+        patch("test_util.util.preload_snaps"),
+    ):
+        gen = conftest.instances.__wrapped__(
+            h=mock_harness,
+            registry=None,
+            node_count=4,
+            disable_k8s_bootstrapping=True,
+            required_ports=[],
+            no_setup=True,
+            containerd_cfgdir="/etc/containerd",
+            bootstrap_config=None,
+            request=MagicMock(),
+            network_type="IPv4",
+        )
+        result = next(gen)
+        assert len(result) == 4
+
+    assert recorded_max_workers == [2]

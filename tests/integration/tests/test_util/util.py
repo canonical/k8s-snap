@@ -47,7 +47,7 @@ def _is_retryable_http_error(exc: BaseException) -> bool:
     """True for 429, 5xx, or network-level errors."""
     if isinstance(exc, urllib.error.HTTPError):
         return exc.code == 429 or 500 <= exc.code < 600
-    if isinstance(exc, urllib.error.URLError):
+    if isinstance(exc, (urllib.error.URLError, TimeoutError)):
         return True
     return False
 
@@ -58,6 +58,7 @@ def fetch_text(
     retries: int = 6,
     min_wait_s: float = 1.0,
     max_wait_s: float = 30.0,
+    timeout_s: float = 30.0,
 ) -> str:
     """GET url as text with exponential backoff on transient errors."""
     req = urllib.request.Request(url, headers=headers or {})
@@ -68,7 +69,7 @@ def fetch_text(
         reraise=True,
     ):
         with attempt:
-            with urllib.request.urlopen(req) as response:  # nosec
+            with urllib.request.urlopen(req, timeout=timeout_s) as response:  # nosec
                 return response.read().decode()
 
 
@@ -300,6 +301,7 @@ def download_k8s_snaps(
             ],
             timeout=60 * 5,
             env=dl_env,
+            sensitive_kwargs=True,
         )
         return snap_file, assert_file
 

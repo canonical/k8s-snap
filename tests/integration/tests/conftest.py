@@ -3,6 +3,7 @@
 #
 import concurrent.futures
 import logging
+import os
 import threading
 from pathlib import Path
 from typing import Generator, List, Optional, Union
@@ -291,8 +292,9 @@ def instances(
     instances: List[harness.Instance] = []
     try:
         if node_count > 1 and h.name != "bare_metal":
+            max_workers = min(node_count, max(1, (os.cpu_count() or 2) // 2))
             with concurrent.futures.ThreadPoolExecutor(
-                max_workers=node_count
+                max_workers=max_workers
             ) as executor:
                 instances = list(executor.map(_setup_node, range(node_count)))
         else:

@@ -3,6 +3,7 @@
 #
 import subprocess
 import threading
+import time
 from functools import cached_property, partial
 from typing import List
 
@@ -34,9 +35,19 @@ class Instance:
     @cached_property
     def arch(self) -> str:
         """Return the architecture of the instance"""
-        return self.exec(
-            ["dpkg", "--print-architecture"], text=True, capture_output=True
-        ).stdout.strip()
+        for attempt in range(3):
+            try:
+                return self.exec(
+                    ["dpkg", "--print-architecture"],
+                    text=True,
+                    capture_output=True,
+                    timeout=60,
+                ).stdout.strip()
+            except (subprocess.TimeoutExpired, subprocess.CalledProcessError):
+                if attempt == 2:
+                    raise
+                time.sleep(2)
+        raise RuntimeError("Unreachable")
 
     def open_ports(self, ports: List[int]) -> None:
         """Open ports on the instance"""
