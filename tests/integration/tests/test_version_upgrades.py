@@ -112,7 +112,11 @@ def test_version_upgrades(
 
             if channel.startswith("/"):
                 LOG.info("Refreshing k8s snap by path")
-                util.stubbornly(retries=5, delay_s=5).on(instance).exec(
+                util.stubbornly(
+                    retries=5,
+                    delay_s=5,
+                    after=util.wait_for_snap_change_hook(instance, max_attempts=5),
+                ).on(instance).exec(
                     ["snap", "install", "--classic", "--dangerous", snap_path]
                 )
             else:
@@ -295,7 +299,11 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance]):
     worker = instances[-1]
 
     for instance in instances:
-        util.stubbornly(retries=3, delay_s=30).on(instance).exec(
+        util.stubbornly(
+            retries=3,
+            delay_s=30,
+            after=util.wait_for_snap_change_hook(instance, max_attempts=3),
+        ).on(instance).exec(
             [
                 "snap",
                 "install",
@@ -486,8 +494,18 @@ def test_feature_upgrades_rollout_upgrade(
 
     # Setup the first half of nodes up on the old version.
     for instance in instances[:3]:
-        util.stubbornly(retries=3, delay_s=30).on(instance).exec(
-            ["snap", "install", "k8s", "--classic", *util.snap_channel_args(start_snap)]
+        util.stubbornly(
+            retries=3,
+            delay_s=30,
+            after=util.wait_for_snap_change_hook(instance, max_attempts=3),
+        ).on(instance).exec(
+            [
+                "snap",
+                "install",
+                "k8s",
+                "--classic",
+                *util.snap_channel_args(start_snap),
+            ]
         )
 
     main_old.exec(["k8s", "bootstrap"])
