@@ -5,6 +5,10 @@
 
 from typing import Optional
 
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
 _INFO_URLS = {
     "charm": "https://api.charmhub.io/v2/charms/info/{}?fields=channel-map",
     "snap": "https://api.snapcraft.io/v2/snaps/info/{}?fields=channel-map",
@@ -23,10 +27,6 @@ def query_info(kind: str, name: str, auth_token: Optional[str] = None) -> dict:
     Returns:
         JSON response from the store API.
     """
-    import requests
-    from requests.adapters import HTTPAdapter
-    from urllib3.util.retry import Retry
-
     headers = {"Content-Type": "application/json", "Snap-Device-Series": "16"}
     if auth_token:
         headers["Authorization"] = f"Bearer {auth_token}"
