@@ -10,10 +10,6 @@ inputs:
     token:
         description: Token able to read canonical/k8s-ai-agent-toolkit
         required: true
-    ref:
-        description: Toolkit ref to install
-        required: false
-        default: main
     python-version:
         description: Python version for the virtualenv
         required: false
@@ -35,7 +31,7 @@ runs:
           uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
           with:
               repository: canonical/k8s-ai-agent-toolkit
-              ref: ${{ inputs.ref }}
+              ref: main
               token: ${{ inputs.token }}
               path: .toolkit
               persist-credentials: false
