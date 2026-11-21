@@ -349,3 +349,59 @@ def test_build_upgrade_channel_list(mock_get_snap_info):
         "1.37-classic/candidate",
         snap_path,
     ]
+
+
+@pytest.mark.tags(tags.PULL_REQUEST)
+@patch("test_util.snap.get_snap_info")
+def test_build_upgrade_channel_list_fetches_snap_info_once(mock_get_snap_info):
+    mock_get_snap_info.return_value = MOCK_CHANNEL_MAP_6_TRACKS
+
+    channels = snap.build_upgrade_channel_list(
+        channels=["recent", "2"],
+        flavor="classic",
+        arch="amd64",
+        ref="main",
+    )
+    assert channels == [
+        "1.36-classic/candidate",
+        "1.37-classic/candidate",
+    ]
+    # Must only call get_snap_info once, sharing the snapshot across operations
+    assert mock_get_snap_info.call_count == 1
+
+
+@pytest.mark.tags(tags.PULL_REQUEST)
+@patch("test_util.snap.get_snap_info")
+def test_deduplicate_channels_by_revision_skips_store_lookup_when_not_needed(
+    mock_get_snap_info,
+):
+    # Local snap paths do not require store metadata
+    paths = ["/tmp/snap1.snap", "/tmp/snap2.snap"]
+    assert snap.deduplicate_channels_by_revision(paths, "amd64") == paths
+    assert mock_get_snap_info.call_count == 0
+
+    # Explicit channel@rev syntax does not require store metadata
+    explicit_revs = ["1.36@5834", "1.37@5822"]
+    assert (
+        snap.deduplicate_channels_by_revision(explicit_revs, "amd64") == explicit_revs
+    )
+    assert mock_get_snap_info.call_count == 0
+
+
+@pytest.mark.tags(tags.PULL_REQUEST)
+@patch("test_util.snap.get_snap_info")
+def test_build_downgrade_channel_list(mock_get_snap_info):
+    mock_get_snap_info.return_value = MOCK_CHANNEL_MAP_6_TRACKS
+
+    channels = snap.build_downgrade_channel_list(
+        channels=["recent", "2"],
+        flavor="classic",
+        arch="amd64",
+        ref="main",
+    )
+    assert channels == [
+        "1.37-classic/candidate",
+        "1.36-classic/candidate",
+    ]
+    # Single store metadata fetch shared across operations
+    assert mock_get_snap_info.call_count == 1

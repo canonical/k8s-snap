@@ -164,6 +164,17 @@ def get_most_stable_channels(
     return final_channels
 
 
+def _needs_store_lookup(channels: List[str]) -> bool:
+    """Check if any channel requires querying the Snap Store for revision info."""
+    for chan in channels:
+        if chan.startswith("/"):
+            continue
+        if "@" in chan and chan.rsplit("@", 1)[1].isdigit():
+            continue
+        return True
+    return False
+
+
 def deduplicate_channels_by_revision(
     channels: List[str], arch: str, snap_info: Optional[dict] = None
 ) -> List[str]:
@@ -173,29 +184,30 @@ def deduplicate_channels_by_revision(
     if not channels:
         return []
 
-    if snap_info is None:
+    if snap_info is None and _needs_store_lookup(channels):
         snap_info = get_snap_info()
 
     chan_rev_map = {}
-    for ch in snap_info.get("channel-map", []):
-        if ch.get("channel", {}).get("architecture") != arch:
-            continue
-        c = ch.get("channel", {})
-        rev = ch.get("revision")
-        if rev is None:
-            continue
-        name = c.get("name")
-        track = c.get("track")
-        risk = c.get("risk")
-        if name:
-            chan_rev_map[name] = rev
-        if track and risk:
-            chan_rev_map[f"{track}/{risk}"] = rev
-            if track == "latest" and risk == "edge":
-                chan_rev_map["latest/edge/classic"] = rev
-                chan_rev_map["latest/edge/strict"] = rev
-                chan_rev_map["latest/edge"] = rev
-                chan_rev_map["edge"] = rev
+    if snap_info:
+        for ch in snap_info.get("channel-map", []):
+            if ch.get("channel", {}).get("architecture") != arch:
+                continue
+            c = ch.get("channel", {})
+            rev = ch.get("revision")
+            if rev is None:
+                continue
+            name = c.get("name")
+            track = c.get("track")
+            risk = c.get("risk")
+            if name:
+                chan_rev_map[name] = rev
+            if track and risk:
+                chan_rev_map[f"{track}/{risk}"] = rev
+                if track == "latest" and risk == "edge":
+                    chan_rev_map["latest/edge/classic"] = rev
+                    chan_rev_map["latest/edge/strict"] = rev
+                    chan_rev_map["latest/edge"] = rev
+                    chan_rev_map["edge"] = rev
 
     def _resolve_revision(chan: str) -> Optional[int]:
         if "@" in chan:
@@ -260,6 +272,9 @@ def build_upgrade_channel_list(
             ref_name == util.MAIN_BRANCH and not snap_path and not local_snap_version
         )
 
+        if snap_info is None:
+            snap_info = get_snap_info()
+
         resolved_channels = get_most_stable_channels(
             num_of_channels=num_channels,
             flavor=flavor,
@@ -291,6 +306,57 @@ def build_upgrade_channel_list(
 
         if not added:
             resolved_channels.append(snap_path)
+
+    return deduplicate_channels_by_revision(
+        resolved_channels, arch=arch, snap_info=snap_info
+    )
+
+
+def build_downgrade_channel_list(
+    channels: List[str],
+    flavor: str,
+    arch: str,
+    ref: Optional[str] = None,
+    min_release: Optional[str] = None,
+    snap_info: Optional[dict] = None,
+) -> List[str]:
+    """Build the list of channels for version downgrades."""
+    if isinstance(channels, str):
+        channels = channels.strip().split()
+    else:
+        channels = list(channels)
+
+    if channels and channels[0].lower() == "recent":
+        if len(channels) != 2:
+            raise ValueError(
+                "'recent' requires the number of releases as second argument"
+            )
+        num_channels = int(channels[1])
+
+        ref_name = ref.removeprefix("refs/heads/") if ref else ""
+        max_release = (
+            ref_name.removeprefix("release-")
+            if ref_name.startswith("release-")
+            else None
+        )
+
+        include_latest = ref_name == util.MAIN_BRANCH
+
+        if snap_info is None:
+            snap_info = get_snap_info()
+
+        resolved_channels = get_most_stable_channels(
+            num_of_channels=num_channels,
+            flavor=flavor,
+            arch=arch,
+            include_latest=include_latest,
+            min_release=min_release,
+            max_release=max_release,
+            reverse=True,
+            snap_info=snap_info,
+        )
+    else:
+        resolved_channels = list(channels)
 
     return deduplicate_channels_by_revision(
         resolved_channels, arch=arch, snap_info=snap_info

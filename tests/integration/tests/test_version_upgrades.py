@@ -169,38 +169,23 @@ def test_version_downgrades_with_rollback(
     # https://github.com/canonical/k8s-snap/blob/96124bd7f1e82e96e23a4c4d11fcff86045f403c/snap/hooks/configure#L7
     #
     # w0 = instances[3]
-    current_channel = channels[0]
-    if current_channel.lower() == "recent":
+    ref = config.GH_BASE_REF or config.GH_REF
+    if channels[0].lower() == "recent":
         if len(channels) != 2:
             pytest.fail("'recent' requires the number of releases as second argument")
-        _, num_channels = channels
-        ref = config.GH_BASE_REF or config.GH_REF
-        max_release = (
-            ref.removeprefix("release-") if ref and ref.startswith("release-") else None
+
+    channels = snap.build_downgrade_channel_list(
+        channels=channels,
+        flavor=config.FLAVOR,
+        arch=cp.arch,
+        ref=ref,
+        min_release=config.VERSION_UPGRADE_MIN_RELEASE,
+    )
+    if len(channels) < 2:
+        pytest.fail(
+            f"Need at least 2 channels to downgrade, got {len(channels)} for flavour {config.FLAVOR}"
         )
-        channels = snap.get_most_stable_channels(
-            int(num_channels),
-            config.FLAVOR,
-            cp.arch,
-            min_release=config.VERSION_UPGRADE_MIN_RELEASE,
-            max_release=max_release,
-            reverse=True,
-            # Include `latest/edge/<flavor>` only if this is not a release branch.
-            include_latest=ref == util.MAIN_BRANCH,
-        )
-        channels = snap.deduplicate_channels_by_revision(channels, cp.arch)
-        if len(channels) < 2:
-            pytest.fail(
-                f"Need at least 2 channels to downgrade, got {len(channels)} for flavour {config.FLAVOR}"
-            )
-        current_channel = channels[0]
-    else:
-        channels = snap.deduplicate_channels_by_revision(channels, cp.arch)
-        if len(channels) < 2:
-            pytest.fail(
-                f"Need at least 2 channels to downgrade, got {len(channels)} for flavour {config.FLAVOR}"
-            )
-        current_channel = channels[0]
+    current_channel = channels[0]
 
     LOG.info(
         f"Bootstrap node on {current_channel} and downgrade through channels: {channels[1:]}"
