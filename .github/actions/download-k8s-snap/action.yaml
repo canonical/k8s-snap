@@ -39,9 +39,7 @@ runs:
       env:
         INPUT_ARTIFACT: ${{ inputs.artifact }}
       run: |
-        CLEAN_ARTIFACT=$(printf '%s' "$INPUT_ARTIFACT" | tr -d '\r\n')
-        artifact=$(basename -- "$CLEAN_ARTIFACT")
-        if [[ -z "$artifact" || "$artifact" == "." || "$artifact" == ".." || "$artifact" == *"/"* || "$artifact" != "$CLEAN_ARTIFACT" ]]; then
+        if [[ -z "$INPUT_ARTIFACT" || "$INPUT_ARTIFACT" == "." || "$INPUT_ARTIFACT" == ".." || "$INPUT_ARTIFACT" == *[/$'\r\n']* ]]; then
           echo "Invalid artifact name: $INPUT_ARTIFACT"
           exit 1
         fi
@@ -62,10 +60,8 @@ runs:
         INPUT_ARTIFACT: ${{ inputs.artifact }}
         WORKSPACE: ${{ github.workspace }}
       run: |
-        CLEAN_ARTIFACT=$(printf '%s' "$INPUT_ARTIFACT" | tr -d '\r\n')
-        artifact=$(basename -- "$CLEAN_ARTIFACT")
-        echo "Attempt 1 failed. Cleaning up partial download for ${artifact}..."
-        rm -rf "${WORKSPACE:?}/${artifact}"
+        echo "Attempt 1 failed. Cleaning up partial download for ${INPUT_ARTIFACT}..."
+        rm -rf "${WORKSPACE:?}/${INPUT_ARTIFACT}"
         sleep $((10 + RANDOM % 15))
 
     - name: Download snap artifact (attempt 2)
@@ -84,10 +80,8 @@ runs:
         INPUT_ARTIFACT: ${{ inputs.artifact }}
         WORKSPACE: ${{ github.workspace }}
       run: |
-        CLEAN_ARTIFACT=$(printf '%s' "$INPUT_ARTIFACT" | tr -d '\r\n')
-        artifact=$(basename -- "$CLEAN_ARTIFACT")
-        echo "Attempt 2 failed. Cleaning up partial download for ${artifact}..."
-        rm -rf "${WORKSPACE:?}/${artifact}"
+        echo "Attempt 2 failed. Cleaning up partial download for ${INPUT_ARTIFACT}..."
+        rm -rf "${WORKSPACE:?}/${INPUT_ARTIFACT}"
         sleep $((25 + RANDOM % 20))
 
     - name: Download snap artifact (attempt 3)
@@ -129,10 +123,9 @@ runs:
         INPUT_ARTIFACT: ${{ inputs.artifact }}
         WORKSPACE: ${{ github.workspace }}
       run: |
-        CLEAN_ARTIFACT=$(printf '%s' "$INPUT_ARTIFACT" | tr -d '\r\n')
-        ARTIFACT=$(basename -- "$CLEAN_ARTIFACT")
-        if [[ -n "$ARTIFACT" && "$ARTIFACT" != "." && "$ARTIFACT" != ".." && "$ARTIFACT" != *"/"* && "$ARTIFACT" == "$CLEAN_ARTIFACT" ]]; then
-          snap_path="${WORKSPACE}/${ARTIFACT}"
+        # The artifact name was validated before download.
+        if [[ -n "$INPUT_ARTIFACT" ]]; then
+          snap_path="${WORKSPACE}/${INPUT_ARTIFACT}"
         else
           snap_path="${WORKSPACE}/k8s.snap"
         fi
