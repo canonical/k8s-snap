@@ -24,12 +24,24 @@ def query_info(kind: str, name: str, auth_token: Optional[str] = None) -> dict:
         JSON response from the store API.
     """
     import requests
+    from requests.adapters import HTTPAdapter
+    from urllib3.util.retry import Retry
 
     headers = {"Content-Type": "application/json", "Snap-Device-Series": "16"}
     if auth_token:
         headers["Authorization"] = f"Bearer {auth_token}"
 
-    resp = requests.get(_INFO_URLS[kind].format(name), headers=headers, timeout=20)
+    # Store APIs occasionally drop connections or return 5xx; retry transient
+    # failures so one blip does not fail CI.
+    retry = Retry(
+        total=3,
+        backoff_factor=2,
+        status_forcelist=(429, 500, 502, 503, 504),
+        raise_on_status=False,
+    )
+    with requests.Session() as session:
+        session.mount("https://", HTTPAdapter(max_retries=retry))
+        resp = session.get(_INFO_URLS[kind].format(name), headers=headers, timeout=20)
     resp.raise_for_status()
     return resp.json()
 
