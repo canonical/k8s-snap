@@ -15,6 +15,12 @@ from test_util.harness.lxd import LXDHarness
 from test_util.harness.multipass import MultipassHarness
 
 
+@pytest.fixture(autouse=True)
+def disable_inspection_reports():
+    with patch("conftest.config.INSPECTION_REPORTS_DIR", None):
+        yield
+
+
 @pytest.mark.tags(tags.PULL_REQUEST)
 def test_harness_has_lock():
     h = Harness()
