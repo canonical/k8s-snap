@@ -546,6 +546,7 @@ def snap_refresh(
     instance: harness.Instance,
     channel: str,
     *extra_args: str,
+    timeout: int = 60 * 5,
     retries: int = 3,
     delay_s: int = 30,
     cached_snaps: Optional[Dict[str, Tuple[Union[str, Path], Union[str, Path]]]] = None,
@@ -565,7 +566,7 @@ def snap_refresh(
             snap_file,
             assert_file,
             extra_flags=install_flags,
-            timeout=60 * 5,
+            timeout=timeout,
             retries=retries,
             delay_s=delay_s,
         )
@@ -587,7 +588,7 @@ def snap_refresh(
         retries=retries,
         delay_s=delay_s,
         after=wait_for_snap_change_hook(instance, max_attempts=retries),
-    ).on(instance).exec(cmd)
+    ).on(instance).exec(cmd, timeout=timeout)
 
 
 def remove_k8s_snap(instance: harness.Instance):
