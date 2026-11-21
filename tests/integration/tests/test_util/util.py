@@ -532,30 +532,27 @@ def setup_k8s_snap(
             timeout=timeout,
             delay_s=delay_s,
         )
-    elif isinstance(which_snap, str) and which_snap.startswith("/"):
-        LOG.info("Install k8s snap by path")
-        snap_path = (tmp_path / "k8s.snap").as_posix()
-        instance.send_file(which_snap, snap_path)
-        cmd += ["--dangerous", snap_path]
-        stubbornly(retries=3, delay_s=30).on(instance).exec(cmd, timeout=timeout)
-    elif _as_int(which_snap):
-        LOG.info("Install k8s snap by revision")
-        cmd += [config.SNAP_NAME, "--revision", which_snap]
-        stubbornly(retries=3, delay_s=30).on(instance).exec(cmd, timeout=timeout)
-    elif "/" in which_snap or which_snap in RISKS:
-        LOG.info("Install k8s snap by specific channel: %s", which_snap)
-        cmd += [config.SNAP_NAME, *snap_channel_args(which_snap)]
-        stubbornly(retries=3, delay_s=30).on(instance).exec(cmd, timeout=timeout)
-    elif channel := tracks_least_risk(which_snap, instance.arch):
-        LOG.info("Install k8s snap by least risky channel: %s", channel)
-        cmd += [config.SNAP_NAME, "--channel", channel]
-        stubbornly(retries=3, delay_s=30).on(instance).exec(cmd, timeout=timeout)
+    else:
+        if isinstance(which_snap, str) and which_snap.startswith("/"):
+            LOG.info("Install k8s snap by path")
+            snap_path = (tmp_path / "k8s.snap").as_posix()
+            instance.send_file(which_snap, snap_path)
+            cmd += ["--dangerous", snap_path]
+        elif _as_int(which_snap):
+            LOG.info("Install k8s snap by revision")
+            cmd += [config.SNAP_NAME, "--revision", which_snap]
+        elif "/" in which_snap or which_snap in RISKS:
+            LOG.info("Install k8s snap by specific channel: %s", which_snap)
+            cmd += [config.SNAP_NAME, *snap_channel_args(which_snap)]
+        elif channel := tracks_least_risk(which_snap, instance.arch):
+            LOG.info("Install k8s snap by least risky channel: %s", channel)
+            cmd += [config.SNAP_NAME, "--channel", channel]
 
-    stubbornly(
-        retries=3,
-        delay_s=30,
-        after=wait_for_snap_change_hook(instance, max_attempts=3),
-    ).on(instance).exec(cmd, timeout=timeout)
+        stubbornly(
+            retries=3,
+            delay_s=30,
+            after=wait_for_snap_change_hook(instance, max_attempts=3),
+        ).on(instance).exec(cmd, timeout=timeout)
     if connect_interfaces:
         LOG.info("Ensure k8s interfaces and network requirements")
         instance.exec(["/snap/k8s/current/k8s/hack/init.sh"], stdout=subprocess.DEVNULL)
