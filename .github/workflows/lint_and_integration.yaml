@@ -218,11 +218,7 @@ jobs:
         run: |
           tags="pull_request"
           if [ "$EVENT_NAME" = "pull_request" ]; then
-            # Run all tests if there are test changes or on backports. In case of a PR, we'll
-            # get a merge commit that includes all changes.
-            if git diff --name-only HEAD^1 HEAD | grep -qE "^(snap/|k8s/|build-scripts/|tests/)" || echo "$BASE_REF" | grep -q "^release-"; then
-              tags="up_to_weekly"
-            fi
+            tags="up_to_nightly"
           else
             # Run all tests on backports.
             if echo "$REF_NAME" | grep -q "^release-"; then
