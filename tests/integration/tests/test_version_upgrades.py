@@ -105,7 +105,8 @@ def test_version_upgrades(instances: List[harness.Instance], tmp_path):
                     delay_s=5,
                     after=util.wait_for_snap_change_hook(instance, max_attempts=5),
                 ).on(instance).exec(
-                    ["snap", "install", "--classic", "--dangerous", snap_path]
+                    ["snap", "install", "--classic", "--dangerous", snap_path],
+                    timeout=60 * 5,
                 )
             else:
                 util.snap_refresh(
@@ -497,7 +498,8 @@ def test_feature_upgrades_rollout_upgrade(
                 "k8s",
                 "--classic",
                 *util.snap_channel_args(start_snap),
-            ]
+            ],
+            timeout=60 * 5,
         )
 
     util.stubbornly(retries=3, delay_s=30).on(instance).exec(
