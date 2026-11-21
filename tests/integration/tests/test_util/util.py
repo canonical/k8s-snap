@@ -263,11 +263,6 @@ def preload_snaps(instance: harness.Instance):
             ["snap", "ack", remote.as_posix()], timeout=60 * 5
         )
 
-        LOG.info("Wait for snap changes to finish...")
-        stubbornly(retries=20, delay_s=5).on(instance).until(
-            lambda p: "Doing" not in p.stdout.decode()
-        ).exec(["snap", "changes"], timeout=60 * 5)
-
         LOG.info("Install snap file %s.", preloaded_snap)
         remote = remote_dir / snap.name
         instance.send_file(source=snap.as_posix(), destination=remote.as_posix())
