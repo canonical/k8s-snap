@@ -311,6 +311,14 @@ def configure_cpuset_controller(instance: harness.Instance):
 SETTLED_SNAP_STATUSES = {"Done", "Undone", "Hold", "Error"}
 
 
+def _decode_output(stream: Union[bytes, str, None]) -> str:
+    if stream is None:
+        return ""
+    if isinstance(stream, bytes):
+        return stream.decode(errors="replace")
+    return stream
+
+
 def _has_no_in_flight_snap_changes(res: subprocess.CompletedProcess) -> bool:
     stdout = _decode_output(res.stdout)
     for line in stdout.splitlines():
