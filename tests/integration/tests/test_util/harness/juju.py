@@ -60,12 +60,13 @@ class JujuHarness(Harness):
         if network_type and network_type.lower() != "ipv4":
             raise HarnessError("Currently only IPv4 is supported by Juju harness")
 
-        for instance_id in self.existing_machines:
-            if not self.existing_machines[instance_id]:
-                LOG.debug("Reusing existing machine %s", instance_id)
-                self.existing_machines[instance_id] = True
-                self.instances.add(instance_id)
-                return Instance(self, instance_id)
+        with self._lock:
+            for instance_id in self.existing_machines:
+                if not self.existing_machines[instance_id]:
+                    LOG.debug("Reusing existing machine %s", instance_id)
+                    self.existing_machines[instance_id] = True
+                    self.instances.add(instance_id)
+                    return Instance(self, instance_id)
 
         LOG.debug("Creating instance with constraints %s", self.constraints)
         try:
@@ -91,7 +92,8 @@ class JujuHarness(Harness):
         except subprocess.CalledProcessError as e:
             raise HarnessError("Failed to create Juju machine") from e
 
-        self.instances.add(instance_id)
+        with self._lock:
+            self.instances.add(instance_id)
 
         self.exec(instance_id, ["snap", "wait", "system", "seed.loaded"])
         return Instance(self, instance_id)
@@ -200,23 +202,28 @@ class JujuHarness(Harness):
             self.exec(instance_id, ["open-port", port])
 
     def delete_instance(self, instance_id: str):
-        if instance_id not in self.instances:
-            raise HarnessError(f"unknown instance {instance_id}")
+        with self._lock:
+            if instance_id not in self.instances:
+                raise HarnessError(f"unknown instance {instance_id}")
 
-        if self.existing_machines.get(instance_id):
-            # For existing machines, simply mark it as free
-            LOG.debug("No longer using machine %s", instance_id)
-            self.existing_machines[instance_id] = False
-        else:
-            # Remove the machine
-            LOG.debug("Removing machine %s", instance_id)
-            try:
-                run(["juju", "remove-machine", instance_id, "--force"])
-            except subprocess.CalledProcessError as e:
-                raise HarnessError(f"failed to delete instance {instance_id}") from e
+            if self.existing_machines.get(instance_id):
+                LOG.debug("No longer using machine %s", instance_id)
+                self.existing_machines[instance_id] = False
+                self.instances.discard(instance_id)
+                return
 
-        self.instances.discard(instance_id)
+        # Remove the machine
+        LOG.debug("Removing machine %s", instance_id)
+        try:
+            run(["juju", "remove-machine", instance_id, "--force"])
+        except subprocess.CalledProcessError as e:
+            raise HarnessError(f"failed to delete instance {instance_id}") from e
+        finally:
+            with self._lock:
+                self.instances.discard(instance_id)
 
     def cleanup(self):
-        for instance_id in self.instances.copy():
+        with self._lock:
+            instances = list(self.instances)
+        for instance_id in instances:
             self.delete_instance(instance_id)
