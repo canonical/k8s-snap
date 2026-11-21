@@ -12,5 +12,5 @@ cluster-config:
     enabled: true
   metrics-server:
     enabled: true
-pod-cidr: 10.100.0.0/16,fd01::/108
-service-cidr: 10.200.0.0/16,fd98::/108
+pod-cidr: 172.30.0.0/16,fd01::/108
+service-cidr: 172.31.0.0/24,fd98::/108
