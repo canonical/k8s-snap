@@ -323,7 +323,7 @@ jobs:
         run: |
           # Report the commit that actually ran (collection ref may differ
           # from the triggering ref).
-          ctx_sha=$(git rev-parse --verify --quiet HEAD || echo unknown)
+          ctx_sha=$(git rev-parse --verify --quiet HEAD 2>/dev/null || echo unknown)
           ctx_run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}"
 
           {
