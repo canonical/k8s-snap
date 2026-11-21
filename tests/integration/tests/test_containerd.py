@@ -30,22 +30,24 @@ def test_containerd(instances: List[harness.Instance]):
     )
 
     # Test sideloading: export, delete, re-import and run image
-    instance.exec(
+    res = instance.exec(
         [
             "/snap/k8s/current/bin/ctr",
             "-n",
             "k8s.io",
             "image",
             "export",
+            "--local",
             "/tmp/nginx-export.tar",
             "docker.io/library/nginx:1.29",
         ],
         capture_output=True,
         text=True,
-        check=True,
+        check=False,
     )
+    assert res.returncode == 0, f"ctr image export failed: {res.stderr}"
 
-    instance.exec(
+    res = instance.exec(
         [
             "/snap/k8s/current/bin/ctr",
             "-n",
@@ -56,10 +58,11 @@ def test_containerd(instances: List[harness.Instance]):
         ],
         capture_output=True,
         text=True,
-        check=True,
+        check=False,
     )
+    assert res.returncode == 0, f"ctr image rm failed: {res.stderr}"
 
-    instance.exec(
+    res = instance.exec(
         [
             "/snap/k8s/current/bin/ctr",
             "-n",
@@ -70,9 +73,9 @@ def test_containerd(instances: List[harness.Instance]):
         ],
         capture_output=True,
         text=True,
-        check=True,
+        check=False,
     )
-
+    assert res.returncode == 0, f"ctr image import failed: {res.stderr}"
     result = instance.exec(
         ["/snap/k8s/current/bin/ctr", "-n", "k8s.io", "images", "ls"],
         capture_output=True,
