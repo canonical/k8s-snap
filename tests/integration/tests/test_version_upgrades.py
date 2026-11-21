@@ -512,8 +512,13 @@ def test_feature_upgrades_rollout_upgrade(
             timeout=60 * 5,
         )
 
-    util.stubbornly(retries=3, delay_s=30).on(instance).exec(
-        ["snap", "install", "k8s", "--classic", *util.snap_channel_args(start_snap)]
+    util.stubbornly(
+        retries=3,
+        delay_s=30,
+        after=util.wait_for_snap_change_hook(instance, max_attempts=3),
+    ).on(instance).exec(
+        ["snap", "install", "k8s", "--classic", *util.snap_channel_args(start_snap)],
+        timeout=60 * 5,
     )
 
     main_old.exec(["k8s", "bootstrap"])

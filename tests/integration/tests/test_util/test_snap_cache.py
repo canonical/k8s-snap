@@ -219,7 +219,7 @@ def test_snap_refresh_cached_success(tmp_path):
     remote_snap = send_calls[1].args[1]
     assert remote_snap.startswith("/tmp/")
 
-    # MUST use snap install --classic --ignore-validation (strip --amend, NOT snap refresh)
+    # Uses snap install with stripped amend flag instead of snap refresh.
     exec_calls = instance.exec.call_args_list
     install_calls = [
         c
