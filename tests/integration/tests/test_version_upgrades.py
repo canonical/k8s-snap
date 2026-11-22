@@ -97,6 +97,9 @@ def test_version_upgrades(
             registry.apply_configuration(instance, containerd_cfgdir)
 
     cp.exec(["k8s", "bootstrap"])
+    # Avoid racing the bootstrap node's kubelet Node registration (join can
+    # fail with "the cluster has no nodes" otherwise).
+    util.wait_until_k8s_ready(cp, [cp])
 
     join_token_cp1 = util.get_join_token(cp, cp1)
     join_token_cp2 = util.get_join_token(cp, cp2)
@@ -121,15 +124,13 @@ def test_version_upgrades(
             latest_version = out.stdout.decode().strip().split("\n")[-1]
             LOG.info(f"Current snap version: {latest_version}")
 
-            # note: the `--classic` flag will be ignored by snapd for strict snaps.
             if channel.startswith("/"):
                 LOG.info("Refreshing k8s snap by path")
-                cmd = ["snap", "install", "--classic", "--dangerous", snap_path]
+                util.stubbornly(retries=5, delay_s=5).on(instance).exec(
+                    ["snap", "install", "--classic", "--dangerous", snap_path]
+                )
             else:
-                cmd = ["snap", "refresh", "--classic", config.SNAP_NAME]
-                cmd += [*util.snap_channel_args(channel), "--amend"]
-
-            instance.exec(cmd)
+                util.snap_refresh(instance, channel, "--amend")
             util.wait_until_k8s_ready(cp, instances)
             LOG.info("Verifying snap service health")
             util.check_snap_services_ready(instance)
@@ -217,7 +218,9 @@ def test_version_downgrades_with_rollback(
             registry.apply_configuration(instance, containerd_cfgdir)
 
     cp.exec(["k8s", "bootstrap"])
-
+    # Avoid racing the bootstrap node's kubelet Node registration (join can
+    # fail with "the cluster has no nodes" otherwise).
+    util.wait_until_k8s_ready(cp, [cp])
     join_token_cp1 = util.get_join_token(cp, cp1)
     join_token_cp2 = util.get_join_token(cp, cp2)
     # join_token_w0 = util.get_join_token(cp, w0, "--worker")
@@ -241,16 +244,7 @@ def test_version_downgrades_with_rollback(
             LOG.debug(
                 f"Step 1. Downgrade {instance.id} from {current_channel} → {channel}"
             )
-            # note: the `--classic` flag will be ignored by snapd for strict snaps.
-            instance.exec(
-                [
-                    "snap",
-                    "refresh",
-                    config.SNAP_NAME,
-                    *util.snap_channel_args(channel),
-                    "--classic",
-                ]
-            )
+            util.snap_refresh(instance, channel)
             util.wait_until_k8s_ready(cp, instances)
             LOG.info("Verifying snap service health")
             util.check_snap_services_ready(instance)
@@ -262,16 +256,7 @@ def test_version_downgrades_with_rollback(
 
         for instance in instances:
             LOG.debug(f"Step 2. Roll back from {current_channel} → {last_channel}")
-            # note: the `--classic` flag will be ignored by snapd for strict snaps.
-            instance.exec(
-                [
-                    "snap",
-                    "refresh",
-                    config.SNAP_NAME,
-                    *util.snap_channel_args(last_channel),
-                    "--classic",
-                ]
-            )
+            util.snap_refresh(instance, last_channel)
             util.wait_until_k8s_ready(cp, instances)
             LOG.info("Verifying snap service health")
             util.check_snap_services_ready(instance)
@@ -282,15 +267,7 @@ def test_version_downgrades_with_rollback(
             LOG.debug(
                 f"Step 3. Final downgrade to channel from {last_channel} → {current_channel}"
             )
-            instance.exec(
-                [
-                    "snap",
-                    "refresh",
-                    config.SNAP_NAME,
-                    *util.snap_channel_args(current_channel),
-                    "--classic",
-                ]
-            )
+            util.snap_refresh(instance, current_channel)
             util.wait_until_k8s_ready(cp, instances)
             LOG.info("Verifying snap service health")
             util.check_snap_services_ready(instance)
@@ -331,7 +308,7 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
     worker = instances[-1]
 
     for instance in instances:
-        instance.exec(
+        util.stubbornly(retries=3, delay_s=30).on(instance).exec(
             [
                 "snap",
                 "install",
@@ -342,6 +319,9 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
         )
 
     bootstrap_cp.exec(["k8s", "bootstrap"])
+    # Avoid racing the bootstrap node's kubelet Node registration (join can
+    # fail with "the cluster has no nodes" otherwise).
+    util.wait_until_k8s_ready(bootstrap_cp, [bootstrap_cp])
     for instance in instances:
         if instance.id in [bootstrap_cp.id, worker.id]:
             continue
@@ -515,15 +495,13 @@ def test_feature_upgrades_rollout_upgrade(
 
     # Setup the first half of nodes up on the old version.
     for instance in instances[:3]:
-        instance.exec(
+        util.stubbornly(retries=3, delay_s=30).on(instance).exec(
             ["snap", "install", "k8s", "--classic", *util.snap_channel_args(start_snap)]
         )
 
-    instance.exec(
-        ["snap", "install", "k8s", "--classic", *util.snap_channel_args(start_snap)]
-    )
-
     main_old.exec(["k8s", "bootstrap"])
+    # Avoid racing the bootstrap node's kubelet Node registration on join.
+    util.wait_until_k8s_ready(main_old, [main_old])
     for instance in instances[1:3]:
         token = util.get_join_token(main_old, instance)
         instance.exec(["k8s", "join-cluster", token])

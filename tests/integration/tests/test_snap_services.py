@@ -28,8 +28,8 @@ def test_snap_services(instances: List[harness.Instance]):
     refresh_track = util.previous_track(config.SNAP)
 
     LOG.info(f"Refreshing the snap to {refresh_track}")
-    cp.exec(f"snap refresh k8s --channel={refresh_track} --amend".split())
-    worker.exec(f"snap refresh k8s --channel={refresh_track} --amend".split())
+    util.snap_refresh(cp, refresh_track, "--amend")
+    util.snap_refresh(worker, refresh_track, "--amend")
 
     LOG.info("Waiting for k8s to be ready")
     util.wait_until_k8s_ready(cp, instances)
