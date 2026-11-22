@@ -88,6 +88,10 @@ jobs:
           artifact: ${{ inputs.artifact }}
       - name: Setup LXD
         uses: canonical/setup-lxd@8c6a87bfb56aa48f3fb9b830baa18562d8bfd4ee # v1
+      - name: Disable lxd ipv6
+        run: |
+          # Runners lack IPv6 routes; disable lxdbr0 IPv6 before bootstrap to avoid dead-end routes.
+          lxc network set lxdbr0 ipv6.address none
       - name: Install virtualenv
         run: sudo apt install -y python3.10-venv
       - name: Generate snap tarball
@@ -162,7 +166,7 @@ jobs:
 
           dump_diag() {
             local label="${1:-periodic}"
-            local ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+            local ts=$(date -u +"%Y%m%d-%H%M%SZ")
             local out="$diag_dir/diag-${ts}-${label}.txt"
             {
               echo "============================================================"
@@ -245,10 +249,6 @@ jobs:
           repository: canonical/k8s-operator
           ref: ${{ github.base_ref || github.ref_name }}
           path: ${{ env.K8S_OPERATOR }}
-      - name: Disable lxd ipv6
-        run: |
-          # The charm tests can't handle ipv6 dualstack.
-          lxc network set lxdbr0 ipv6.address none
       - name: Run e2e tests
         env:
           INPUT_ARCH: ${{ inputs.arch }}
