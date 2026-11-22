@@ -40,6 +40,7 @@ jobs:
           sudo snap install snapcraft --classic --channel=8.x
       - name: Build k8s snap
         id: build
+        timeout-minutes: 100
         env:
           flavor: ${{ inputs.flavor }}
         run: |
@@ -49,8 +50,34 @@ jobs:
             out_snap=k8s.snap
           fi
 
-          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- snapcraft --use-lxd
-          mv k8s_*.snap $out_snap
+          cleanup() {
+            echo "Cleaning snapcraft LXD build instance..."
+            timeout 2m sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- snapcraft clean --use-lxd 2>/dev/null || true
+            if command -v lxc >/dev/null 2>&1; then
+              timeout 30s lxc list --project snapcraft -c n --format csv 2>/dev/null | xargs -r -n 1 timeout 30s lxc delete --project snapcraft -f 2>/dev/null || true
+              timeout 30s lxc list -c n --format csv 2>/dev/null | grep -E '^snapcraft-' | xargs -r -n 1 timeout 30s lxc delete -f 2>/dev/null || true
+            fi
+          }
+
+          # Retry once after cleaning lingering LXD build state if build stalls.
+          build_cmd=(sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- snapcraft --use-lxd)
+          ret=0
+          timeout -k 10s 45m "${build_cmd[@]}" || ret=$?
+          if [ "$ret" -eq 124 ] || [ "$ret" -eq 137 ]; then
+            echo "Snapcraft build timed out (exit code $ret); retrying once after cleanup..."
+            cleanup
+            ret=0
+            timeout -k 10s 45m "${build_cmd[@]}" || ret=$?
+            if [ "$ret" -ne 0 ]; then
+              cleanup
+              exit "$ret"
+            fi
+          elif [ "$ret" -ne 0 ]; then
+            cleanup
+            exit "$ret"
+          fi
+
+          mv k8s_*.snap "$out_snap"
 
           echo "snap-artifact=$out_snap" >> "$GITHUB_OUTPUT"
       - name: Upload k8s snap
