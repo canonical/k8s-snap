@@ -627,22 +627,13 @@ def snap_revert(
 ) -> None:
     """Revert a snap on an instance with retry logic."""
     LOG.info("Reverting %s on %s", snap_name, instance.id)
-
-    def _reverted(res: subprocess.CompletedProcess) -> bool:
-        if res.returncode == 0:
-            return True
-        stderr = _decode_output(res.stderr)
-        return "cannot revert snap" in stderr or "no revision to revert to" in stderr
-
     stubbornly(
         retries=retries,
         delay_s=delay_s,
         after=wait_for_snap_change_hook(
             instance, max_attempts=retries, snap_name=snap_name
         ),
-    ).on(instance).until(_reverted).exec(
-        ["snap", "revert", snap_name], timeout=timeout, check=False
-    )
+    ).on(instance).exec(["snap", "revert", snap_name], timeout=timeout)
 
 
 def remove_k8s_snap(instance: harness.Instance):
