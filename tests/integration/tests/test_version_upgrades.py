@@ -71,7 +71,9 @@ def test_version_upgrades(instances: List[harness.Instance], tmp_path):
 
     # Setup the k8s snap from the bootstrap channel and setup basic configuration.
     for instance in instances:
-        util.setup_k8s_snap(instance, tmp_path, current_channel, cached_snaps=cached_snaps)
+        util.setup_k8s_snap(
+            instance, tmp_path, current_channel, cached_snaps=cached_snaps
+        )
     cp.exec(["k8s", "bootstrap"])
     util.wait_until_k8s_ready(cp, instances)
     LOG.info(f"Installed {cp.id} on channel {current_channel}")
