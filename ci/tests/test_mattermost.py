@@ -141,6 +141,23 @@ class MattermostDetailsTablesTests(unittest.TestCase):
             "_...and [2 more failing tests](https://github.com/canonical/k8s-snap/actions/runs/100/attempts/1)._",
         )
 
+    def test_same_test_name_in_different_files_not_conflated(self):
+        entries = [
+            _entry(test="tests/test_alpha.py::test_smoke", status="failure"),
+            _entry(test="tests/test_beta.py::test_smoke", status="failure"),
+        ]
+
+        msg = mattermost.build_details_message(entries)
+
+        self.assertIn(
+            "| `test_alpha.py::test_smoke` | 1 | :x: 1 | `latest/edge` |",
+            msg,
+        )
+        self.assertIn(
+            "| `test_beta.py::test_smoke` | 1 | :x: 1 | `latest/edge` |",
+            msg,
+        )
+
     def test_all_green_omits_failing_tests_table(self):
         entries = [
             _entry(channel="latest/edge", os_name="ubuntu:24.04", arch="amd64"),

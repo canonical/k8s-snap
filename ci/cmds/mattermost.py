@@ -199,18 +199,30 @@ def _build_failing_tests_table(
     entries: List[Dict[str, Any]], all_channels: List[str]
 ) -> List[str]:
     """Build the Top Failing Tests markdown table lines, capped at MAX_FAILING_TESTS."""
-    by_test: Dict[str, List[Dict[str, Any]]] = {}
+    by_node_id: Dict[str, List[Dict[str, Any]]] = {}
     for e in entries:
         if _entry_status(e) in _NON_FAILING_STATUSES:
             continue
-        raw_test = str(e.get("test") or "")
-        name = raw_test.split("::")[-1] if raw_test else "Unnamed Test"
-        by_test.setdefault(name, []).append(e)
+        node_id = str(e.get("test") or "").strip() or "Unnamed Test"
+        by_node_id.setdefault(node_id, []).append(e)
 
-    if not by_test:
+    if not by_node_id:
         return []
 
-    ranked = sorted(by_test.items(), key=lambda kv: (-len(kv[1]), kv[0]))
+    short_counts: Dict[str, int] = {}
+    for node_id in by_node_id:
+        short = node_id.split("::")[-1]
+        short_counts[short] = short_counts.get(short, 0) + 1
+
+    def _display_name(node_id: str) -> str:
+        short = node_id.split("::")[-1]
+        if short_counts.get(short, 0) > 1 and "::" in node_id:
+            return node_id.removeprefix("tests/")
+        return short
+
+    ranked = sorted(
+        by_node_id.items(), key=lambda kv: (-len(kv[1]), _display_name(kv[0]), kv[0])
+    )
     channel_order = {ch: idx for idx, ch in enumerate(all_channels)}
 
     lines = [
@@ -218,8 +230,8 @@ def _build_failing_tests_table(
         "| Test | Count | Breakdown | Channels |",
         "| --- | ---: | --- | --- |",
     ]
-    for name, test_entries in ranked[:MAX_FAILING_TESTS]:
-        safe_name = name.replace("|", "\\|")
+    for node_id, test_entries in ranked[:MAX_FAILING_TESTS]:
+        safe_name = _display_name(node_id).replace("|", "\\|")
         affected = sorted(
             {_entry_channel(e) for e in test_entries},
             key=lambda ch: channel_order.get(ch, len(channel_order)),
