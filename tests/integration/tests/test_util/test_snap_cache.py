@@ -86,7 +86,9 @@ def test_setup_k8s_snap_cached_success(tmp_path):
     assert_file = tmp_path / "k8s_test.assert"
     cached = {"1.36-classic/candidate": (snap_file, assert_file)}
 
-    util.setup_k8s_snap(instance, tmp_path, "1.36-classic/candidate", cached_snaps=cached)
+    util.setup_k8s_snap(
+        instance, tmp_path, "1.36-classic/candidate", cached_snaps=cached
+    )
 
     # Verify push of files to /tmp/<hex>_<name>
     send_calls = instance.send_file.call_args_list
