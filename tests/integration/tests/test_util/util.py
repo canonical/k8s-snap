@@ -1077,73 +1077,16 @@ def _major_minor_from_stable_upstream(maj: Optional[int] = None) -> Optional[tup
     return major_minor(stable)
 
 
-def _get_local_snap_version(
-    snap_path: Optional[str] = None,
-) -> Optional[Tuple[int, int]]:
-    """Determine the major and minor version of a local snap file."""
-    path = snap_path or config.SNAP
-    if not path or not Path(path).is_file():
-        return None
-    try:
-        res = subprocess.run(
-            ["snap", "info", path],
-            capture_output=True,
-            text=True,
-            check=False,
-            timeout=10,
-        )
-        if res.returncode == 0 and res.stdout:
-            if m := re.search(r"^version:\s*v?(\d+\.\d+)", res.stdout, re.MULTILINE):
-                return major_minor(m.group(1))
-    except Exception as e:
-        LOG.debug("Failed to determine snap version from %s: %s", path, e)
-    return None
-
-
-def _get_repo_version() -> Optional[Tuple[int, int]]:
-    """Determine the Kubernetes version from the repository."""
-    repo_root = Path(__file__).resolve().parents[4]
-    version_file = repo_root / "build-scripts" / "components" / "kubernetes" / "version"
-    if version_file.is_file():
-        try:
-            content = version_file.read_text().strip().lstrip("v")
-            if maj_min := major_minor(content):
-                return maj_min
-        except OSError:
-            pass
-    try:
-        res = subprocess.run(
-            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-            cwd=repo_root,
-            capture_output=True,
-            text=True,
-            check=False,
-            timeout=5,
-        )
-        if res.returncode == 0 and res.stdout.strip():
-            branch = res.stdout.strip().removeprefix("release-")
-            if maj_min := major_minor(branch):
-                return maj_min
-    except Exception:
-        pass
-    return None
-
-
-def _previous_track_from_branch(
-    branch: str, snap_path: Optional[str] = None
-) -> Optional[str]:
+def _previous_track_from_branch(branch: str) -> Optional[str]:
     """Determine the previous track from the branch.
 
     Args:
         branch: the branch to determine the previous track for
-        snap_path: optional local snap path for version fallback
 
     Returns:
         the previous track or None if fails to determine
     """
     clean_branch = branch.removeprefix("refs/heads/") if branch else ""
-    maj_min = None
-
     if clean_branch == MAIN_BRANCH:
         # NOTE(Hue): `latest/stable` is not populated at the moment.
         # When it is, we should return `latest` instead.
@@ -1158,30 +1101,17 @@ def _previous_track_from_branch(
     elif clean_branch.startswith("release-"):
         LOG.info("Getting current version from branch %s", branch)
         maj_min = major_minor(clean_branch.removeprefix("release-"))
-    elif m := re.search(r"release-(\d+\.\d+)", clean_branch):
-        LOG.info("Getting current version from branch release substring %s", branch)
-        maj_min = major_minor(m.group(1))
-    elif m := re.search(r"(?:^|[/_-])(\d+\.\d+)(?:$|[/_-])", clean_branch):
-        LOG.info("Getting current version from branch version substring %s", branch)
-        maj_min = major_minor(m.group(1))
+        # Get the previous version from the branch, e.g. for branch `release-1.32` we want `1.31`
+        if maj_min:
+            _maj, _min = maj_min[0], maj_min[1]
+            if _min == 0:
+                maj_min = _major_minor_from_stable_upstream(_maj - 1)
+            else:
+                maj_min = (_maj, _min - 1)
     else:
         LOG.info(
-            "Branch %s is non-standard, falling back to local snap or repository version",
-            branch,
+            "Branch is neither `main` nor `release-X.Y`. Can't determine previous track."
         )
-        maj_min = _get_local_snap_version(snap_path) or _get_repo_version()
-
-    if not maj_min:
-        return None
-
-    if clean_branch != MAIN_BRANCH:
-        _maj, _min = maj_min[0], maj_min[1]
-        if _min == 0:
-            maj_min = _major_minor_from_stable_upstream(_maj - 1)
-        else:
-            maj_min = (_maj, _min - 1)
-
-    if not maj_min:
         return None
 
     flavor = _get_flavor()
@@ -1203,30 +1133,16 @@ def previous_track(snap_version: str) -> str:
         assumed = f"1.32-{_get_flavor()}"
         LOG.info(
             "Cannot determine previous track for undefined snap -- assume %s",
-            snap_version,
             assumed,
         )
         return assumed
 
     if snap_version.startswith("/") or _as_int(snap_version) is not None:
-        branch = config.GH_BASE_REF or config.GH_REF or MAIN_BRANCH
-        snap_path = snap_version if snap_version.startswith("/") else None
-        prev = _previous_track_from_branch(branch, snap_path=snap_path)
-        if prev:
-            LOG.info(
-                "Previous track for %s from branch %s is %s", snap_version, branch, prev
-            )
-            return prev
-        else:
-            assumed = f"1.32-{_get_flavor()}"
-            LOG.info(
-                "Previous track for %s from branch %s is not found -- assume %s",
-                snap_version,
-                branch,
-                assumed,
-            )
-            return assumed
-
+        assumed = f"1.32-{_get_flavor()}"
+        LOG.info(
+            "Cannot determine previous track for %s -- assume %s", snap_version, assumed
+        )
+        return assumed
     if maj_min := major_minor(snap_version):
         maj, min = maj_min
         if min == 0:
