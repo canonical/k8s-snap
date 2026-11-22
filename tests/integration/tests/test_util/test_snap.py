@@ -140,7 +140,7 @@ MOCK_CHANNEL_MAP_6_TRACKS = {
 def test_get_most_stable_channels_recent_2(mock_get_snap_info):
     mock_get_snap_info.return_value = MOCK_CHANNEL_MAP_6_TRACKS
 
-    # Ascending order (reverse=False, for upgrades) - should return the 2 MOST RECENT tracks
+    # Ascending order returns the 2 most recent tracks.
     ascending = snap.get_most_stable_channels(
         2, "classic", "amd64", reverse=False, include_latest=False
     )
@@ -149,7 +149,7 @@ def test_get_most_stable_channels_recent_2(mock_get_snap_info):
         "1.37-classic/candidate",
     ]
 
-    # Descending order (reverse=True, for downgrades) - should return the 2 MOST RECENT tracks reversed
+    # Descending order returns the 2 most recent tracks reversed.
     descending = snap.get_most_stable_channels(
         2, "classic", "amd64", reverse=True, include_latest=False
     )
@@ -182,9 +182,7 @@ def test_build_upgrade_channel_list(mock_get_snap_info):
     mock_get_snap_info.return_value = MOCK_CHANNEL_MAP_6_TRACKS
     snap_path = "/tmp/k8s.snap"
 
-    # Case 1: main PR (recent 2 + local 1.37 snap)
-    # Keeps 1.37-classic/candidate so in-track k8sd/hook upgrades are tested,
-    # and drops latest/edge/classic when testing a local snap build.
+    # PR upgrade with local snap drops rolling edge and appends snap path.
     c1 = snap.build_upgrade_channel_list(
         channels=["recent", "2"],
         flavor="classic",
@@ -199,9 +197,7 @@ def test_build_upgrade_channel_list(mock_get_snap_info):
         snap_path,
     ]
 
-    # Case 2: Nightly latest/edge (recent 6 + downloaded 1.37 snap)
-    # Keeps all 6 tracks including 1.37-classic/candidate, omits latest/edge/classic,
-    # and appends snap_path.
+    # Scheduled upgrade walks all tracks up to local snap build.
     c2 = snap.build_upgrade_channel_list(
         channels=["recent", "6"],
         flavor="classic",
@@ -220,8 +216,7 @@ def test_build_upgrade_channel_list(mock_get_snap_info):
         snap_path,
     ]
 
-    # Case 3: Nightly 1.34-classic/edge (recent 6, ref="main", local 1.34 snap)
-    # Caps max_release at 1.34 and keeps 1.34-classic/stable -> snap_path hop.
+    # Caps upgrade tracks at release version.
     c3 = snap.build_upgrade_channel_list(
         channels=["recent", "6"],
         flavor="classic",
@@ -237,7 +232,7 @@ def test_build_upgrade_channel_list(mock_get_snap_info):
         snap_path,
     ]
 
-    # Case 4: release-1.32 PR (recent 2, min_release="1.32", ref="release-1.32", local 1.32 snap)
+    # Handles release branch upgrade with min release constraint.
     c4 = snap.build_upgrade_channel_list(
         channels=["recent", "2"],
         flavor="classic",
@@ -249,7 +244,7 @@ def test_build_upgrade_channel_list(mock_get_snap_info):
     )
     assert c4 == ["1.32-classic/stable", snap_path]
 
-    # Case 5: Unreleased next minor (recent 2 + local 1.38 snap when store max is 1.37)
+    # Handles unreleased next minor with local snap.
     c5 = snap.build_upgrade_channel_list(
         channels=["recent", "2"],
         flavor="classic",
@@ -264,7 +259,7 @@ def test_build_upgrade_channel_list(mock_get_snap_info):
         snap_path,
     ]
 
-    # Case 6: Channel-only run on main without local snap includes latest/edge/classic
+    # Channel-only run on main includes latest edge.
     c6 = snap.build_upgrade_channel_list(
         channels=["recent", "2"],
         flavor="classic",
@@ -277,7 +272,7 @@ def test_build_upgrade_channel_list(mock_get_snap_info):
         "latest/edge/classic",
     ]
 
-    # Case 7: Explicit channel list inserts local snap in order without deduplication
+    # Preserves explicit channel list order.
     c7 = snap.build_upgrade_channel_list(
         channels=["1.34-classic/stable", "1.36-classic/candidate"],
         flavor="classic",
@@ -293,7 +288,7 @@ def test_build_upgrade_channel_list(mock_get_snap_info):
 def test_build_downgrade_channel_list(mock_get_snap_info):
     mock_get_snap_info.return_value = MOCK_CHANNEL_MAP_6_TRACKS
 
-    # On main, includes latest/edge/classic followed by the 2 most recent tracks descending
+    # Downgrade list includes latest edge on main.
     assert snap.build_downgrade_channel_list(
         channels=["recent", "2"],
         flavor="classic",
@@ -305,7 +300,7 @@ def test_build_downgrade_channel_list(mock_get_snap_info):
         "1.36-classic/candidate",
     ]
 
-    # On release-1.35, caps at 1.35 and omits latest/edge/classic
+    # Caps downgrade tracks at release version.
     assert snap.build_downgrade_channel_list(
         channels=["recent", "2"],
         flavor="classic",
@@ -316,7 +311,7 @@ def test_build_downgrade_channel_list(mock_get_snap_info):
         "1.34-classic/stable",
     ]
 
-    # Explicit channel list is preserved verbatim without store lookup
+    # Preserves explicit downgrade channel list.
     explicit = ["1.37-classic/candidate", "1.37-classic/beta", "1.36-classic/candidate"]
     mock_get_snap_info.reset_mock()
     assert (
