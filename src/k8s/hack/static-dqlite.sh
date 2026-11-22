@@ -24,8 +24,8 @@ fi
 if [ ! -f "${INSTALL_DIR}/musl/bin/musl-gcc" ]; then
   (
     cd "${BUILD_DIR}"
-    rm -rf musl
     for i in $(seq 1 5); do
+      rm -rf musl
       git clone "${REPO_MUSL}" --depth 1 --branch "${TAG_MUSL}" musl > /dev/null && break
       sleep 5
     done
@@ -49,8 +49,8 @@ export CC=musl-gcc
 if [ ! -f "${BUILD_DIR}/libtirpc/src/libtirpc.la" ]; then
   (
     cd "${BUILD_DIR}"
-    rm -rf libtirpc
     for i in $(seq 1 5); do
+      rm -rf libtirpc
       git clone "${REPO_LIBTIRPC}" --depth 1 --branch "${TAG_LIBTIRPC}" libtirpc >/dev/null && break
       sleep 5
     done
@@ -66,8 +66,8 @@ fi
 if [ ! -f "${BUILD_DIR}/libnsl/src/libnsl.la" ]; then
   (
     cd "${BUILD_DIR}"
-    rm -rf libnsl
     for i in $(seq 1 5); do
+      rm -rf libnsl
       git clone "${REPO_LIBNSL}" --depth 1 --branch "${TAG_LIBNSL}" > /dev/null && break
       sleep 5
     done
@@ -89,8 +89,8 @@ fi
 if [ ! -f "${BUILD_DIR}/libuv/libuv.la" ]; then
   (
     cd "${BUILD_DIR}"
-    rm -rf libuv
     for i in $(seq 1 5); do
+      rm -rf libuv
       git clone "${REPO_LIBUV}" --depth 1 --branch "${TAG_LIBUV}" > /dev/null && break
       sleep 5
     done
@@ -105,8 +105,8 @@ fi
 if [ ! -f "${BUILD_DIR}/lz4/lib/liblz4.a" ] || [ ! -f "${BUILD_DIR}/lz4/lib/liblz4.so" ]; then
   (
     cd "${BUILD_DIR}"
-    rm -rf lz4
     for i in $(seq 1 5); do
+      rm -rf lz4
       git clone "${REPO_LIBLZ4}" --depth 1 --branch "${TAG_LIBLZ4}" > /dev/null && break
       sleep 5
     done
@@ -119,8 +119,8 @@ fi
 if [ ! -f "${BUILD_DIR}/sqlite/libsqlite3.a" ]; then
   (
     cd "${BUILD_DIR}"
-    rm -rf sqlite
     for i in $(seq 1 5); do
+      rm -rf sqlite
       git clone "${REPO_SQLITE}" --depth 1 --branch "${TAG_SQLITE}" > /dev/null && break
       sleep 5
     done
@@ -136,8 +136,8 @@ fi
 if [ ! -f "${BUILD_DIR}/dqlite/libdqlite.la" ]; then
   (
     cd "${BUILD_DIR}"
-    rm -rf dqlite
     for i in $(seq 1 5); do
+      rm -rf dqlite
       git clone "${REPO_DQLITE}" --depth 1 --branch "${TAG_DQLITE}" > /dev/null && break
       sleep 5
     done
