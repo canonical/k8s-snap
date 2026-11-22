@@ -2,6 +2,7 @@
 # Copyright 2025 Canonical, Ltd.
 #
 import logging
+from pathlib import Path
 from typing import List
 
 import pytest
@@ -12,7 +13,7 @@ LOG = logging.getLogger(__name__)
 
 @pytest.mark.tags(tags.NIGHTLY)
 @pytest.mark.node_count(2)
-def test_snap_services(instances: List[harness.Instance]):
+def test_snap_services(instances: List[harness.Instance], tmp_path: Path):
     """
     Test that snap services are running after a `snap revert` instances.
     """
@@ -26,17 +27,22 @@ def test_snap_services(instances: List[harness.Instance]):
     util.wait_until_k8s_ready(cp, instances)
 
     refresh_track = util.previous_track(config.SNAP)
+    cached_snaps = util.download_k8s_snaps([refresh_track], tmp_path)
 
     LOG.info(f"Refreshing the snap to {refresh_track}")
-    util.snap_refresh(cp, refresh_track, "--amend")
-    util.snap_refresh(worker, refresh_track, "--amend")
+    util.snap_refresh(
+        cp, refresh_track, "--amend", timeout=60 * 5, cached_snaps=cached_snaps
+    )
+    util.snap_refresh(
+        worker, refresh_track, "--amend", timeout=60 * 5, cached_snaps=cached_snaps
+    )
 
     LOG.info("Waiting for k8s to be ready")
     util.wait_until_k8s_ready(cp, instances)
 
     LOG.info("Reverting the snaps")
-    cp.exec("snap revert k8s".split())
-    worker.exec("snap revert k8s".split())
+    util.snap_revert(cp)
+    util.snap_revert(worker)
 
     LOG.info("Waiting for k8s to be ready")
     util.wait_until_k8s_ready(cp, instances)

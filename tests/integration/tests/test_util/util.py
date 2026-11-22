@@ -597,6 +597,24 @@ def snap_refresh(
     ).on(instance).exec(cmd, timeout=timeout)
 
 
+def snap_revert(
+    instance: harness.Instance,
+    snap_name: str = config.SNAP_NAME,
+    timeout: int = 60 * 5,
+    retries: int = 3,
+    delay_s: int = 30,
+) -> None:
+    """Revert a snap on an instance with retry logic."""
+    LOG.info("Reverting %s on %s", snap_name, instance.id)
+    stubbornly(
+        retries=retries,
+        delay_s=delay_s,
+        after=wait_for_snap_change_hook(
+            instance, max_attempts=retries, snap_name=snap_name
+        ),
+    ).on(instance).exec(["snap", "revert", snap_name], timeout=timeout)
+
+
 def remove_k8s_snap(instance: harness.Instance):
     LOG.info("Uninstall k8s...")
     stubbornly(retries=20, delay_s=5).on(instance).exec(
