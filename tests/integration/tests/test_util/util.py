@@ -1352,15 +1352,14 @@ def get_in_use_ips(
     parent_cidr: str, instance: Optional[harness.Instance] = None
 ) -> List[str]:
     """Return in-use IP addresses on the bridge network matching parent_cidr."""
-    if (
-        instance is not None
-        and getattr(getattr(instance, "_h", None), "name", None) != "lxd"
-    ):
-        return []
+    is_lxd = False
+    if instance is not None:
+        if getattr(getattr(instance, "_h", None), "name", None) != "lxd":
+            return []
+        is_lxd = True
 
     parent_net = ipaddress.ip_network(parent_cidr, strict=False)
     in_use_ips = set()
-
     try:
         net_proc = run(
             ["lxc", "network", "list", "--format", "json"],
@@ -1442,8 +1441,11 @@ def get_in_use_ips(
                             except ValueError:
                                 pass
     except Exception as e:
+        if is_lxd:
+            raise RuntimeError(
+                f"Failed to query LXD bridge network for {parent_cidr}"
+            ) from e
         LOG.debug("Could not inspect LXD bridge network for %s: %s", parent_cidr, e)
-
     return sorted(in_use_ips)
 
 
