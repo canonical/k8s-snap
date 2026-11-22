@@ -25,7 +25,10 @@ if [ ! -f "${INSTALL_DIR}/musl/bin/musl-gcc" ]; then
   (
     cd "${BUILD_DIR}"
     rm -rf musl
-    git clone "${REPO_MUSL}" --depth 1 --branch "${TAG_MUSL}" musl > /dev/null
+    for i in $(seq 1 5); do
+      git clone "${REPO_MUSL}" --depth 1 --branch "${TAG_MUSL}" musl > /dev/null && break
+      sleep 5
+    done
     cd musl
     ./configure --prefix="${INSTALL_DIR}/musl" > /dev/null
     make -j > /dev/null
@@ -47,7 +50,10 @@ if [ ! -f "${BUILD_DIR}/libtirpc/src/libtirpc.la" ]; then
   (
     cd "${BUILD_DIR}"
     rm -rf libtirpc
-    git clone "${REPO_LIBTIRPC}" --depth 1 --branch "${TAG_LIBTIRPC}" > /dev/null
+    for i in $(seq 1 5); do
+      git clone "${REPO_LIBTIRPC}" --depth 1 --branch "${TAG_LIBTIRPC}" > /dev/null && break
+      sleep 5
+    done
     cd libtirpc
     chmod +x autogen.sh
     ./autogen.sh > /dev/null
@@ -61,7 +67,10 @@ if [ ! -f "${BUILD_DIR}/libnsl/src/libnsl.la" ]; then
   (
     cd "${BUILD_DIR}"
     rm -rf libnsl
-    git clone "${REPO_LIBNSL}" --depth 1 --branch "${TAG_LIBNSL}" > /dev/null
+    for i in $(seq 1 5); do
+      git clone "${REPO_LIBNSL}" --depth 1 --branch "${TAG_LIBNSL}" > /dev/null && break
+      sleep 5
+    done
     cd libnsl
     ./autogen.sh > /dev/null
     autoreconf -i > /dev/null
@@ -81,7 +90,10 @@ if [ ! -f "${BUILD_DIR}/libuv/libuv.la" ]; then
   (
     cd "${BUILD_DIR}"
     rm -rf libuv
-    git clone "${REPO_LIBUV}" --depth 1 --branch "${TAG_LIBUV}" > /dev/null
+    for i in $(seq 1 5); do
+      git clone "${REPO_LIBUV}" --depth 1 --branch "${TAG_LIBUV}" > /dev/null && break
+      sleep 5
+    done
     cd libuv
     ./autogen.sh > /dev/null
     ./configure > /dev/null
@@ -94,7 +106,10 @@ if [ ! -f "${BUILD_DIR}/lz4/lib/liblz4.a" ] || [ ! -f "${BUILD_DIR}/lz4/lib/libl
   (
     cd "${BUILD_DIR}"
     rm -rf lz4
-    git clone "${REPO_LIBLZ4}" --depth 1 --branch "${TAG_LIBLZ4}" > /dev/null
+    for i in $(seq 1 5); do
+      git clone "${REPO_LIBLZ4}" --depth 1 --branch "${TAG_LIBLZ4}" > /dev/null && break
+      sleep 5
+    done
     cd lz4
     make lib -j > /dev/null
   )
@@ -105,7 +120,10 @@ if [ ! -f "${BUILD_DIR}/sqlite/libsqlite3.a" ]; then
   (
     cd "${BUILD_DIR}"
     rm -rf sqlite
-    git clone "${REPO_SQLITE}" --depth 1 --branch "${TAG_SQLITE}" > /dev/null
+    for i in $(seq 1 5); do
+      git clone "${REPO_SQLITE}" --depth 1 --branch "${TAG_SQLITE}" > /dev/null && break
+      sleep 5
+    done
     cd sqlite
     ./configure --disable-shared --disable-readline \
       CFLAGS="${CFLAGS} -DSQLITE_ENABLE_DBSTAT_VTAB=1" \
@@ -119,7 +137,10 @@ if [ ! -f "${BUILD_DIR}/dqlite/libdqlite.la" ]; then
   (
     cd "${BUILD_DIR}"
     rm -rf dqlite
-    git clone "${REPO_DQLITE}" --depth 1 --branch "${TAG_DQLITE}" > /dev/null
+    for i in $(seq 1 5); do
+      git clone "${REPO_DQLITE}" --depth 1 --branch "${TAG_DQLITE}" > /dev/null && break
+      sleep 5
+    done
     cd dqlite
     autoreconf -i > /dev/null
     ./configure --disable-shared --enable-build-raft \
