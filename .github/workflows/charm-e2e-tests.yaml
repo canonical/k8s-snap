@@ -124,8 +124,34 @@ jobs:
           echo "Total physical RAM on the host:"
           free -g
       - name: Bootstrap Juju controller (lxd)
+        timeout-minutes: 50
         run: |
-          juju bootstrap localhost lxd
+          pre_containers=$(mktemp)
+          lxc list -c n --format csv > "$pre_containers"
+
+          cleanup() {
+            timeout 1m juju kill-controller -y -t 30s lxd 2>/dev/null || true
+            timeout 15s juju unregister -y lxd 2>/dev/null || true
+            if [ -f "$pre_containers" ]; then
+              comm -23 <(timeout 15s lxc list -c n --format csv 2>/dev/null | sort) <(sort "$pre_containers") | grep -E '^juju-' | xargs -r -n 1 timeout 30s lxc delete -f 2>/dev/null || true
+            fi
+          }
+
+          # Retry once after cleaning lingering controller state if bootstrap hangs.
+          ret=0
+          timeout -k 10s 20m juju bootstrap localhost lxd --debug || ret=$?
+          if [ "$ret" -ne 0 ]; then
+            echo "Bootstrap failed or timed out; retrying after cleanup..."
+            cleanup
+            ret=0
+            timeout -k 10s 20m juju bootstrap localhost lxd --debug || ret=$?
+            if [ "$ret" -ne 0 ]; then
+              cleanup
+              rm -f "$pre_containers"
+              exit "$ret"
+            fi
+          fi
+          rm -f "$pre_containers"
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: canonical/k8s-operator
