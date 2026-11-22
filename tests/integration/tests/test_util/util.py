@@ -1086,7 +1086,8 @@ def _previous_track_from_branch(branch: str) -> Optional[str]:
     Returns:
         the previous track or None if fails to determine
     """
-    if branch == MAIN_BRANCH:
+    clean_branch = branch.removeprefix("refs/heads/") if branch else ""
+    if clean_branch == MAIN_BRANCH:
         # NOTE(Hue): `latest/stable` is not populated at the moment.
         # When it is, we should return `latest` instead.
         LOG.info("Getting current version from upstream k8s")
@@ -1097,9 +1098,9 @@ def _previous_track_from_branch(branch: str) -> Optional[str]:
             LOG.info("Failed to determine upstream version")
             return None
 
-    elif branch.startswith("release-"):
+    elif clean_branch.startswith("release-"):
         LOG.info("Getting current version from branch %s", branch)
-        maj_min = major_minor(branch.lstrip("release-"))
+        maj_min = major_minor(clean_branch.removeprefix("release-"))
         # Get the previous version from the branch, e.g. for branch `release-1.32` we want `1.31`
         if maj_min:
             _maj, _min = maj_min[0], maj_min[1]
@@ -1132,7 +1133,6 @@ def previous_track(snap_version: str) -> str:
         assumed = f"1.32-{_get_flavor()}"
         LOG.info(
             "Cannot determine previous track for undefined snap -- assume %s",
-            snap_version,
             assumed,
         )
         return assumed
@@ -1143,7 +1143,6 @@ def previous_track(snap_version: str) -> str:
             "Cannot determine previous track for %s -- assume %s", snap_version, assumed
         )
         return assumed
-
     if maj_min := major_minor(snap_version):
         maj, min = maj_min
         if min == 0:
