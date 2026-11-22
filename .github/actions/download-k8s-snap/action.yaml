@@ -32,11 +32,30 @@ runs:
 
     - name: Download snap artifact
       if: inputs.artifact != ''
-      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      uses: ./.github/actions/retry-command
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
+        RUN_ID: ${{ github.run_id }}
+        INPUT_ARTIFACT: ${{ inputs.artifact }}
+        WORKSPACE: ${{ github.workspace }}
       with:
-        name: ${{ inputs.artifact }}
-        path: ${{ github.workspace }}
-
+        max_attempts: 5
+        timeout_minutes: 3
+        retry_wait_seconds: 10
+        command: |
+          set -e
+          CLEAN_ARTIFACT=$(printf '%s' "$INPUT_ARTIFACT" | tr -d '\r\n')
+          artifact=$(basename -- "$CLEAN_ARTIFACT")
+          if [[ -z "$artifact" || "$artifact" == "." || "$artifact" == ".." || "$artifact" == *"/"* || "$artifact" != "$CLEAN_ARTIFACT" ]]; then
+            echo "Invalid artifact name: $INPUT_ARTIFACT"
+            exit 1
+          fi
+          rm -rf "${WORKSPACE:?}/${artifact}"
+          gh run download "$RUN_ID" --repo "$GH_REPO" --name "$artifact" --dir "$WORKSPACE"
+          full_path=$(realpath "${WORKSPACE}/${artifact}")
+          echo "Downloaded snap artifact: $full_path"
+          ls -lh "$full_path"
     - name: Download snap channel
       if: inputs.channel != ''
       uses: ./.github/actions/retry-command
@@ -47,6 +66,7 @@ runs:
         timeout_minutes: 3
         retry_wait_seconds: 10
         command: |
+          set -e
           rm -f k8s.snap k8s.assert
           snap download k8s --channel="$INPUT_CHANNEL" --basename k8s
           full_path=`realpath k8s.snap`
@@ -69,8 +89,9 @@ runs:
         INPUT_ARTIFACT: ${{ inputs.artifact }}
         WORKSPACE: ${{ github.workspace }}
       run: |
-        ARTIFACT=$(printf '%s' "$INPUT_ARTIFACT" | tr -d '\r\n')
-        if [[ -n "$ARTIFACT" ]]; then
+        CLEAN_ARTIFACT=$(printf '%s' "$INPUT_ARTIFACT" | tr -d '\r\n')
+        ARTIFACT=$(basename -- "$CLEAN_ARTIFACT")
+        if [[ -n "$ARTIFACT" && "$ARTIFACT" != "." && "$ARTIFACT" != ".." && "$ARTIFACT" != *"/"* && "$ARTIFACT" == "$CLEAN_ARTIFACT" ]]; then
           snap_path="${WORKSPACE}/${ARTIFACT}"
         else
           snap_path="${WORKSPACE}/k8s.snap"
