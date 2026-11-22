@@ -38,7 +38,7 @@ jobs:
 
   test-branches:
     name: Test Branch Management
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     steps:
       - name: Check out code
@@ -87,7 +87,7 @@ jobs:
           tox -c tests/branch_management -e test
   python-lint:
     name: Python lint
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
