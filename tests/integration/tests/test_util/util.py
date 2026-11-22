@@ -35,12 +35,6 @@ from tenacity import (
 )
 from test_util import config, harness
 
-# Postponed annotation evaluation is required: `test_util.harness` imports
-# `bare_metal` first (isort order), which imports this module while the
-# `harness` package is still half-initialised, so annotations such as
-# `harness.Instance` can't be evaluated at definition time.
-
-
 LOG = logging.getLogger(__name__)
 RISKS = ["stable", "candidate", "beta", "edge"]
 TRACK_RE = re.compile(r"^v?(\d+)\.(\d+)(.\d+)?(\S*)$")
