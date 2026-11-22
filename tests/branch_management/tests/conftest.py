@@ -8,7 +8,14 @@ from typing import Optional
 import pytest
 import requests
 import semver
-from tenacity import Retrying, stop_after_attempt, wait_fixed
+from tenacity import (
+    Retrying,
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+    wait_fixed,
+)
 
 LOG = logging.getLogger(__name__)
 
@@ -16,9 +23,17 @@ STABLE_URL = "https://dl.k8s.io/release/stable.txt"
 RELEASE_URL = "https://dl.k8s.io/release/stable-{}.{}.txt"
 
 
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=2, max=10),
+    retry=retry_if_exception_type(requests.RequestException),
+    reraise=True,
+)
 def _upstream_release(ver: semver.Version) -> Optional[semver.Version]:
     """Semver of the major.minor release if it exists"""
-    r = requests.get(RELEASE_URL.format(ver.major, ver.minor))
+    r = requests.get(RELEASE_URL.format(ver.major, ver.minor), timeout=30)
+    if r.status_code in {429, 500, 502, 503, 504}:
+        r.raise_for_status()
     if r.status_code == 200:
         return semver.Version.parse(r.content.decode().lstrip("v"))
 
@@ -52,7 +67,7 @@ def stable_release() -> semver.Version:
                 "Attempt %d: Fetching upstream stable version",
                 attempt.retry_state.attempt_number,
             )
-            r = requests.get(STABLE_URL)
+            r = requests.get(STABLE_URL, timeout=30)
             r.raise_for_status()
             version = semver.Version.parse(r.content.decode().lstrip("v"))
             LOG.info("Successfully fetched upstream stable version: %s", version)
