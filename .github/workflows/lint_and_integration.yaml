@@ -15,7 +15,8 @@ on:
       - 'docs/**'
 
 permissions:
-  contents: read
+  contents: read # for actions/checkout to fetch code
+  actions: read # for gh run download to fetch artifacts
 
 jobs:
   build-snap:
@@ -124,4 +125,5 @@ jobs:
       artifact: ${{ needs.build-snap.outputs.snap-artifact}}
     permissions:
       contents: read # for actions/checkout to fetch code
+      actions: read # for gh run download to fetch artifacts
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
