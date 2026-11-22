@@ -25,9 +25,11 @@ from tenacity import (
     RetryCallState,
     Retrying,
     retry,
+    retry_if_exception,
     retry_if_exception_type,
     stop_after_attempt,
     stop_never,
+    wait_exponential,
     wait_fixed,
 )
 from test_util import config, harness
@@ -301,6 +303,7 @@ def configure_cpuset_controller(instance: harness.Instance):
 
 SETTLED_SNAP_STATUSES = {"Done", "Undone", "Hold", "Error"}
 
+
 def _decode_output(stream: Union[bytes, str, None]) -> str:
     if stream is None:
         return ""
@@ -454,36 +457,28 @@ def _install_cached_snap(
 
 def setup_k8s_snap(
     instance: harness.Instance,
-    tmp_path: Path,
+    snap_or_tmp: Union[str, Path, None] = None,
     snap: Optional[str] = None,
-    connect_interfaces=True,
+    connect_interfaces: bool = True,
+    tmp_path: Optional[Path] = None,
     timeout: int = 60 * 5,
     cached_snaps: Optional[Dict[str, Tuple[Union[str, Path], Union[str, Path]]]] = None,
     delay_s: int = 30,
 ):
-    """Installs and sets up the snap on the given instance and connects the interfaces.
+    """Installs and sets up the snap on the given instance and connects the interfaces."""
+    if isinstance(snap_or_tmp, Path):
+        dest_tmp = snap_or_tmp
+        which_snap = snap or config.SNAP
+    else:
+        dest_tmp = tmp_path or Path("/tmp")
+        which_snap = snap_or_tmp or snap or config.SNAP
 
-    Args:
-        instance:   instance on which to install the snap
-        tmp_path:   path to store the snap on the instance
-        snap: choice of track, channel, revision, or file path
-            a snap track to install
-            a snap channel to install
-            a snap revision to install
-            a snap channel@revision to install
-            a path to the snap to install
-        timeout:    timeout in seconds for the snap install command (default: 300)
-        cached_snaps: optional pre-downloaded snaps on host
-    """
     cmd = ["snap", "install", "--classic"]
-    which_snap = snap or config.SNAP
-
     if not which_snap:
         pytest.fail(
             "Cannot install without either a channel, revision, or path to the snap "
             + f"argument {snap=} and {config.SNAP=}"
         )
-
     configure_cpuset_controller(instance)
 
     if cached_snaps and which_snap in cached_snaps:
@@ -499,7 +494,7 @@ def setup_k8s_snap(
     else:
         if isinstance(which_snap, str) and which_snap.startswith("/"):
             LOG.info("Install k8s snap by path")
-            snap_path = (tmp_path / "k8s.snap").as_posix()
+            snap_path = (dest_tmp / "k8s.snap").as_posix()
             instance.send_file(which_snap, snap_path)
             cmd += ["--dangerous", snap_path]
         elif _as_int(which_snap):
