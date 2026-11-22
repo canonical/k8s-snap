@@ -343,7 +343,6 @@ def test_feature_upgrades_inplace(
         "list",
         "-n",
         "kube-system",
-        "-a",
         "-o",
         "json",
     ]
