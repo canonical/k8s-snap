@@ -35,6 +35,8 @@ jobs:
         continue-on-error: true
         timeout-minutes: 10
         uses: canonical/setup-lxd@a3c85fc6fb7fff43fcfeae87659e41a8f635b7dd # v0.1.3
+        with:
+          channel: '5.21/stable'
       - name: Cleanup LXD after failure
         if: steps.setup-lxd.outcome == 'failure'
         timeout-minutes: 5
