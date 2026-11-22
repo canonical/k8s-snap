@@ -7,7 +7,13 @@ import logging
 from collections.abc import Mapping
 
 import pytest
+from tenacity import retry_if_exception
 from test_util import config, harness, tags, util
+
+
+class _PodFailedError(RuntimeError):
+    pass
+
 
 LOG = logging.getLogger(__name__)
 
@@ -551,20 +557,44 @@ def test_deploy_nvidia_gpu_operator(
         input=pod_spec.encode(),
     )
     try:
-        util.stubbornly(retries=5, delay_s=1).on(instance).exec(
+
+        def _check_pod_phase(p):
+            phase = p.stdout.decode().strip()
+            if phase == "Failed":
+                raise _PodFailedError("CUDA vectoradd pod entered Failed phase")
+            return phase == "Succeeded"
+
+        util.stubbornly(
+            retries=36,
+            delay_s=5,
+            retry=retry_if_exception(lambda exc: not isinstance(exc, _PodFailedError)),
+        ).on(instance).until(_check_pod_phase).exec(
             [
                 "k8s",
                 "kubectl",
                 "-n",
                 test_namespace,
-                "wait",
-                "--for=condition=ready",
+                "get",
                 "pod",
                 NVIDIA_CUDA_VECTOR_ADDITION_TEST_POD_NAME,
-                "--timeout",
-                "180s",
-            ]
+                "-o",
+                "jsonpath={.status.phase}",
+            ],
+            capture_output=True,
         )
+
+        logs = instance.exec(
+            [
+                "k8s",
+                "kubectl",
+                "-n",
+                test_namespace,
+                "logs",
+                NVIDIA_CUDA_VECTOR_ADDITION_TEST_POD_NAME,
+            ],
+            capture_output=True,
+        )
+        assert "Test PASSED" in logs.stdout.decode()
     except Exception:
         LOG.warning("CUDA pod never became ready — collecting diagnostics")
         _dump_gpu_operator_diagnostics(instance, test_namespace)
