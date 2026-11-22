@@ -63,7 +63,7 @@ def test_download_k8s_snaps_deduplication_and_formats(mock_run, tmp_path):
         env = kwargs.get("env")
         assert env is not None
         assert env.get("UBUNTU_STORE_ARCH") == "arm64"
-
+        assert kwargs.get("timeout") == 300
     # Verify command flags for plain channel, channel@rev, and bare revision
     flat_cmds = [" ".join(c) for c in executed_commands]
     assert any("--channel 1.36-classic/candidate" in c for c in flat_cmds)
@@ -330,3 +330,70 @@ def test_instance_arch_timeout_and_retry():
     assert arch == "amd64"
     assert mock_harness.exec.call_count == 2
     assert mock_harness.exec.call_args_list[0].kwargs.get("timeout") == 60
+
+
+@pytest.mark.tags(tags.PULL_REQUEST)
+@patch("test_util.util.run")
+def test_download_k8s_snaps_timeout_retry_and_cleanup(mock_run, tmp_path):
+    snap_file = tmp_path / "k8s_1.36-classic_candidate.snap"
+    assert_file = tmp_path / "k8s_1.36-classic_candidate.assert"
+    snap_partial = tmp_path / "k8s_1.36-classic_candidate.snap.partial"
+    assert_partial = tmp_path / "k8s_1.36-classic_candidate.assert.partial"
+
+    def side_effect(cmd, **kwargs):
+        if mock_run.call_count == 1:
+            snap_file.write_text("partial-snap")
+            assert_file.write_text("partial-assert")
+            snap_partial.write_text("partial-snap")
+            assert_partial.write_text("partial-assert")
+            raise subprocess.TimeoutExpired(cmd=cmd, timeout=300)
+        assert not snap_partial.exists()
+        assert not assert_partial.exists()
+        snap_file.write_text("complete-snap")
+        assert_file.write_text("complete-assert")
+        return subprocess.CompletedProcess(
+            args=cmd, returncode=0, stdout=b"", stderr=b""
+        )
+
+    mock_run.side_effect = side_effect
+
+    result = util.download_k8s_snaps(
+        ["1.36-classic/candidate"], tmp_path, retries=2, delay_s=0, timeout=300
+    )
+
+    assert "1.36-classic/candidate" in result
+    assert mock_run.call_count == 2
+    assert mock_run.call_args_list[0].kwargs.get("timeout") == 300
+    assert snap_file.read_text() == "complete-snap"
+    assert assert_file.read_text() == "complete-assert"
+    assert not snap_partial.exists()
+    assert not assert_partial.exists()
+
+
+@pytest.mark.tags(tags.PULL_REQUEST)
+@patch("test_util.util.run")
+def test_download_k8s_snaps_exhausted_retries_cleanup_and_raises(mock_run, tmp_path):
+    snap_file = tmp_path / "k8s_1.36-classic_candidate.snap"
+    assert_file = tmp_path / "k8s_1.36-classic_candidate.assert"
+    snap_partial = tmp_path / "k8s_1.36-classic_candidate.snap.partial"
+    assert_partial = tmp_path / "k8s_1.36-classic_candidate.assert.partial"
+
+    def side_effect(cmd, **kwargs):
+        snap_file.write_text("partial-snap")
+        assert_file.write_text("partial-assert")
+        snap_partial.write_text("partial-snap")
+        assert_partial.write_text("partial-assert")
+        raise subprocess.TimeoutExpired(cmd=cmd, timeout=300)
+
+    mock_run.side_effect = side_effect
+
+    with pytest.raises(subprocess.TimeoutExpired):
+        util.download_k8s_snaps(
+            ["1.36-classic/candidate"], tmp_path, retries=2, delay_s=0, timeout=300
+        )
+
+    assert mock_run.call_count == 2
+    assert not snap_file.exists()
+    assert not assert_file.exists()
+    assert not snap_partial.exists()
+    assert not assert_partial.exists()
