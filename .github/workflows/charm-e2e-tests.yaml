@@ -127,6 +127,7 @@ jobs:
       - name: Bootstrap Juju controller (lxd)
         timeout-minutes: 50
         run: |
+<<<<<<< HEAD
           pre_containers=$(mktemp)
           lxc list -c n --format csv > "$pre_containers"
 
@@ -153,10 +154,57 @@ jobs:
             fi
           fi
           rm -f "$pre_containers"
+      - name: Resolve k8s-operator ref
+        id: operator-ref
+        env:
+          CANDIDATE_REF: ${{ github.base_ref || github.ref_name }}
+        run: |
+          candidate="${CANDIDATE_REF#refs/heads/}"
+          operator_repo="https://github.com/canonical/k8s-operator.git"
+
+          ref_exists() {
+            git ls-remote --exit-code "$operator_repo" "refs/heads/$1" >/dev/null 2>&1
+          }
+
+          target=""
+          if [ -n "$candidate" ] && ref_exists "$candidate"; then
+            target="$candidate"
+          fi
+
+          if [ -z "$target" ] && [ -n "$candidate" ]; then
+            if [[ "$candidate" =~ (release-[0-9]+\.[0-9]+) ]]; then
+              rel="${BASH_REMATCH[1]}"
+              if ref_exists "$rel"; then
+                target="$rel"
+              fi
+            elif [[ "$candidate" =~ ([0-9]+\.[0-9]+) ]]; then
+              rel="release-${BASH_REMATCH[1]}"
+              if ref_exists "$rel"; then
+                target="$rel"
+              fi
+            fi
+          fi
+
+          if [ -z "$target" ] && [ -f "build-scripts/components/kubernetes/version" ]; then
+            k8s_ver=$(cat "build-scripts/components/kubernetes/version")
+            if [[ "$k8s_ver" =~ ([0-9]+\.[0-9]+) ]]; then
+              rel="release-${BASH_REMATCH[1]}"
+              if ref_exists "$rel"; then
+                target="$rel"
+              fi
+            fi
+          fi
+
+          if [ -z "$target" ]; then
+            target="main"
+          fi
+
+          echo "Resolved k8s-operator ref: $target"
+          echo "ref=$target" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: canonical/k8s-operator
-          ref: ${{ github.base_ref || github.ref_name }}
+          ref: ${{ steps.operator-ref.outputs.ref }}
           path: ${{ env.K8S_OPERATOR }}
       - name: Disable lxd ipv6
         run: |
