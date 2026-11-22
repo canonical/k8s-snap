@@ -1,6 +1,9 @@
 #
 # Copyright 2025 Canonical, Ltd.
 #
+from __future__ import annotations
+
+import concurrent.futures
 import ipaddress
 import json
 import logging
@@ -9,11 +12,13 @@ import re
 import shlex
 import subprocess
 import time
+import urllib.error
 import urllib.request
+import uuid
 from datetime import datetime
 from functools import partial
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Mapping, Optional, Union
+from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple, Union
 
 import pytest
 import yaml
@@ -21,9 +26,11 @@ from tenacity import (
     RetryCallState,
     Retrying,
     retry,
+    retry_if_exception,
     retry_if_exception_type,
     stop_after_attempt,
     stop_never,
+    wait_exponential,
     wait_fixed,
 )
 from test_util import config, harness
@@ -35,6 +42,41 @@ MAIN_BRANCH = "main"
 # kube-proxy was replaced by the Cilium kube-proxy replacement in 1.36. Snaps older
 # than this always run kube-proxy and ignore `network.kube-proxy-enabled`.
 KUBE_PROXY_REPLACEMENT_MIN_VERSION = (1, 36)
+
+
+def _is_retryable_http_error(exc: BaseException) -> bool:
+    """True for 429, 5xx, or network-level errors."""
+    if isinstance(exc, urllib.error.HTTPError):
+        return exc.code == 429 or 500 <= exc.code < 600
+    if isinstance(exc, (urllib.error.URLError, TimeoutError)):
+        return True
+    return False
+
+
+def fetch_text(
+    url: str,
+    headers: Optional[dict] = None,
+    retries: int = 6,
+    min_wait_s: float = 1.0,
+    max_wait_s: float = 30.0,
+    timeout: float = 30.0,
+) -> str:
+    """GET url as text with exponential backoff on transient errors."""
+    req = urllib.request.Request(url, headers=headers or {})
+    for attempt in Retrying(
+        stop=stop_after_attempt(retries),
+        wait=wait_exponential(multiplier=min_wait_s, max=max_wait_s),
+        retry=retry_if_exception(_is_retryable_http_error),
+        reraise=True,
+    ):
+        with attempt:
+            with urllib.request.urlopen(req, timeout=timeout) as response:  # nosec
+                return response.read().decode()
+
+
+def fetch_json(url: str, headers: Optional[dict] = None, **kwargs) -> dict:
+    """Like fetch_text() but parses the response as JSON."""
+    return json.loads(fetch_text(url, headers=headers, **kwargs))
 
 
 def run(command: list, **kwargs) -> subprocess.CompletedProcess:
@@ -259,26 +301,197 @@ def configure_cpuset_controller(instance: harness.Instance):
     )
 
 
+SETTLED_SNAP_STATUSES = {"Done", "Undone", "Hold", "Error"}
+
+
+def _decode_output(stream: Union[bytes, str, None]) -> str:
+    if stream is None:
+        return ""
+    if isinstance(stream, bytes):
+        return stream.decode(errors="replace")
+    return stream
+
+
+def _has_no_in_flight_snap_changes(res: subprocess.CompletedProcess) -> bool:
+    stdout = _decode_output(res.stdout)
+    for line in stdout.splitlines():
+        parts = line.strip().split()
+        if (
+            len(parts) >= 2
+            and parts[0].isdigit()
+            and parts[1] not in SETTLED_SNAP_STATUSES
+        ):
+            return False
+    return True
+
+
+def wait_for_snap_change(
+    instance: harness.Instance,
+    snap_name: str = config.SNAP_NAME,
+    retries: int = 120,
+    delay_s: Union[float, int] = 5,
+) -> None:
+    """Wait until all in-flight snapd changes for snap_name have settled."""
+    LOG.info("Waiting for in-flight %s snap changes on %s", snap_name, instance.id)
+    stubbornly(retries=retries, delay_s=delay_s).on(instance).until(
+        _has_no_in_flight_snap_changes
+    ).exec(["snap", "changes", snap_name])
+
+
+def wait_for_snap_change_hook(
+    instance: harness.Instance,
+    max_attempts: int,
+    snap_name: str = config.SNAP_NAME,
+    **wait_kwargs,
+) -> Callable[[RetryCallState], None]:
+    """Return a tenacity hook that waits for snap changes only between attempts."""
+
+    def _hook(retry_state: RetryCallState) -> None:
+        if retry_state.attempt_number < max_attempts:
+            wait_for_snap_change(instance, snap_name=snap_name, **wait_kwargs)
+
+    return _hook
+
+
+def download_k8s_snaps(
+    channels: Sequence[str],
+    cache_dir: Union[str, Path],
+    arch: Optional[str] = None,
+    retries: int = 5,
+    delay_s: int = 5,
+    timeout: int = 60 * 5,
+) -> Dict[str, Tuple[Path, Path]]:
+    """Download k8s snaps and assertions for channels to cache_dir on host."""
+    if not config.CACHE_SNAPS:
+        return {}
+
+    cache_path = Path(cache_dir)
+    cache_path.mkdir(parents=True, exist_ok=True)
+
+    unique_channels: List[str] = []
+    for ch in channels:
+        if ch.startswith("/"):
+            continue
+        if ch not in unique_channels:
+            unique_channels.append(ch)
+
+    if not unique_channels:
+        return {}
+
+    env = os.environ.copy()
+    if arch:
+        env["UBUNTU_STORE_ARCH"] = arch
+
+    def _download(channel: str) -> Tuple[str, Tuple[Path, Path]]:
+        if _as_int(channel):
+            channel_args = ["--revision", str(channel)]
+            basename = f"k8s_{channel}"
+        elif "@" in channel:
+            chan, rev = channel.split("@", maxsplit=1)
+            channel_args = ["--channel", chan, "--revision", rev]
+            sanitized = re.sub(r"[^a-zA-Z0-9_.-]", "_", f"{chan}@{rev}")
+            basename = f"k8s_{sanitized}"
+        else:
+            channel_args = ["--channel", channel]
+            sanitized = re.sub(r"[^a-zA-Z0-9_.-]", "_", channel)
+            basename = f"k8s_{sanitized}"
+
+        snap_file = cache_path / f"{basename}.snap"
+        assert_file = cache_path / f"{basename}.assert"
+
+        def _cleanup(state: Optional[RetryCallState] = None) -> None:
+            if (
+                state is not None
+                and state.outcome is not None
+                and not state.outcome.failed
+            ):
+                return
+            for ext in (".snap", ".assert", ".snap.partial", ".assert.partial"):
+                (cache_path / f"{basename}{ext}").unlink(missing_ok=True)
+
+        if not (snap_file.is_file() and assert_file.is_file()):
+            _cleanup()
+            cmd = [
+                "snap",
+                "download",
+                f"--target-directory={cache_path}",
+                f"--basename={basename}",
+                config.SNAP_NAME,
+                *channel_args,
+            ]
+            try:
+                stubbornly(
+                    retries=retries,
+                    delay_s=delay_s,
+                    reraise=True,
+                    after=_cleanup,
+                ).exec(
+                    cmd,
+                    env=env,
+                    sensitive_kwargs=True,
+                    timeout=timeout,
+                )
+            except Exception:
+                _cleanup()
+                raise
+        return channel, (snap_file, assert_file)
+
+    results: Dict[str, Tuple[Path, Path]] = {}
+    max_workers = min(4, len(unique_channels))
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_to_channel = {
+            executor.submit(_download, channel): channel for channel in unique_channels
+        }
+        for future in concurrent.futures.as_completed(future_to_channel):
+            ch, paths = future.result()
+            results[ch] = paths
+
+    return {ch: results[ch] for ch in unique_channels}
+
+
+def _install_cached_snap(
+    instance: harness.Instance,
+    snap_path: Union[str, Path],
+    assert_path: Union[str, Path],
+    extra_flags: Optional[List[str]] = None,
+    timeout: int = 60 * 5,
+    retries: int = 3,
+    delay_s: int = 30,
+) -> None:
+    token = uuid.uuid4().hex[:8]
+    assert_p = Path(assert_path)
+    snap_p = Path(snap_path)
+    remote_assert = f"/tmp/{token}_{assert_p.name}"
+    remote_snap = f"/tmp/{token}_{snap_p.name}"
+    cmd = ["snap", "install", "--classic"]
+    if extra_flags:
+        cmd.extend(extra_flags)
+    cmd.append(remote_snap)
+
+    try:
+        instance.send_file(str(assert_p), remote_assert)
+        instance.send_file(str(snap_p), remote_snap)
+        instance.exec(["snap", "ack", remote_assert])
+
+        stubbornly(
+            retries=retries,
+            delay_s=delay_s,
+            after=wait_for_snap_change_hook(instance, max_attempts=retries),
+        ).on(instance).exec(cmd, timeout=timeout)
+    finally:
+        instance.exec(["rm", "-f", remote_snap, remote_assert], check=False)
+
+
 def setup_k8s_snap(
     instance: harness.Instance,
     tmp_path: Path,
     snap: Optional[str] = None,
     connect_interfaces=True,
     timeout: int = 60 * 5,
+    cached_snaps: Optional[Dict[str, Tuple[Union[str, Path], Union[str, Path]]]] = None,
+    delay_s: int = 30,
 ):
-    """Installs and sets up the snap on the given instance and connects the interfaces.
-
-    Args:
-        instance:   instance on which to install the snap
-        tmp_path:   path to store the snap on the instance
-        snap: choice of track, channel, revision, or file path
-            a snap track to install
-            a snap channel to install
-            a snap revision to install
-            a snap channel@revision to install
-            a path to the snap to install
-        timeout:    timeout in seconds for the snap install command (default: 300)
-    """
+    """Installs and sets up the snap on the given instance and connects the interfaces."""
     cmd = ["snap", "install", "--classic"]
     which_snap = snap or config.SNAP
 
@@ -287,25 +500,39 @@ def setup_k8s_snap(
             "Cannot install without either a channel, revision, or path to the snap "
             + f"argument {snap=} and {config.SNAP=}"
         )
-
     configure_cpuset_controller(instance)
 
-    if isinstance(which_snap, str) and which_snap.startswith("/"):
-        LOG.info("Install k8s snap by path")
-        snap_path = (tmp_path / "k8s.snap").as_posix()
-        instance.send_file(which_snap, snap_path)
-        cmd += ["--dangerous", snap_path]
-    elif _as_int(which_snap):
-        LOG.info("Install k8s snap by revision")
-        cmd += [config.SNAP_NAME, "--revision", which_snap]
-    elif "/" in which_snap or which_snap in RISKS:
-        LOG.info("Install k8s snap by specific channel: %s", which_snap)
-        cmd += [config.SNAP_NAME, *snap_channel_args(which_snap)]
-    elif channel := tracks_least_risk(which_snap, instance.arch):
-        LOG.info("Install k8s snap by least risky channel: %s", channel)
-        cmd += [config.SNAP_NAME, "--channel", channel]
+    if cached_snaps and which_snap in cached_snaps:
+        LOG.info("Install k8s snap from cache for %s", which_snap)
+        snap_file, assert_file = cached_snaps[which_snap]
+        _install_cached_snap(
+            instance,
+            snap_file,
+            assert_file,
+            timeout=timeout,
+            delay_s=delay_s,
+        )
+    else:
+        if isinstance(which_snap, str) and which_snap.startswith("/"):
+            LOG.info("Install k8s snap by path")
+            snap_path = (tmp_path / "k8s.snap").as_posix()
+            instance.send_file(which_snap, snap_path)
+            cmd += ["--dangerous", snap_path]
+        elif _as_int(which_snap):
+            LOG.info("Install k8s snap by revision")
+            cmd += [config.SNAP_NAME, "--revision", which_snap]
+        elif "/" in which_snap or which_snap in RISKS:
+            LOG.info("Install k8s snap by specific channel: %s", which_snap)
+            cmd += [config.SNAP_NAME, *snap_channel_args(which_snap)]
+        elif channel := tracks_least_risk(which_snap, instance.arch):
+            LOG.info("Install k8s snap by least risky channel: %s", channel)
+            cmd += [config.SNAP_NAME, "--channel", channel]
 
-    stubbornly(retries=3, delay_s=30).on(instance).exec(cmd, timeout=timeout)
+        stubbornly(
+            retries=3,
+            delay_s=30,
+            after=wait_for_snap_change_hook(instance, max_attempts=3),
+        ).on(instance).exec(cmd, timeout=timeout)
     if connect_interfaces:
         LOG.info("Ensure k8s interfaces and network requirements")
         instance.exec(["/snap/k8s/current/k8s/hack/init.sh"], stdout=subprocess.DEVNULL)
@@ -330,22 +557,32 @@ def snap_refresh(
     instance: harness.Instance,
     channel: str,
     *extra_args: str,
+    timeout: int = 60 * 5,
     retries: int = 3,
     delay_s: int = 30,
+    cached_snaps: Optional[Dict[str, Tuple[Union[str, Path], Union[str, Path]]]] = None,
 ):
-    """Refresh the k8s snap on an instance with retry logic.
+    """Refresh the k8s snap on an instance with retry logic."""
+    if cached_snaps and channel in cached_snaps:
+        LOG.info(
+            "Refreshing %s via cached snap for channel %s on %s",
+            config.SNAP_NAME,
+            channel,
+            instance.id,
+        )
+        snap_file, assert_file = cached_snaps[channel]
+        install_flags = [arg for arg in extra_args if arg != "--amend"]
+        _install_cached_snap(
+            instance,
+            snap_file,
+            assert_file,
+            extra_flags=install_flags,
+            timeout=timeout,
+            retries=retries,
+            delay_s=delay_s,
+        )
+        return
 
-    Snap refresh operations can fail transiently due to snap store issues,
-    network timeouts, or snapd being busy. This function wraps the refresh
-    command with retries to handle these cases.
-
-    Args:
-        instance:   instance on which to refresh the snap
-        channel:    snap channel to refresh to
-        *extra_args: additional arguments to pass to snap refresh (e.g. "--amend")
-        retries:    number of retry attempts (default: 3)
-        delay_s:    delay in seconds between retries (default: 30)
-    """
     cmd = [
         "snap",
         "refresh",
@@ -358,7 +595,11 @@ def snap_refresh(
     LOG.info(
         "Refreshing %s to channel %s on %s", config.SNAP_NAME, channel, instance.id
     )
-    stubbornly(retries=retries, delay_s=delay_s).on(instance).exec(cmd)
+    stubbornly(
+        retries=retries,
+        delay_s=delay_s,
+        after=wait_for_snap_change_hook(instance, max_attempts=retries),
+    ).on(instance).exec(cmd, timeout=timeout)
 
 
 def remove_k8s_snap(instance: harness.Instance):
@@ -788,9 +1029,7 @@ def tracks_least_risk(track: str, arch: str) -> str:
         "User-Agent": "Mozilla/5.0",
     }
 
-    req = urllib.request.Request(INFO_URL, headers=HEADERS)
-    with urllib.request.urlopen(req) as response:
-        snap_info = json.loads(response.read().decode())
+    snap_info = fetch_json(INFO_URL, headers=HEADERS)
 
     risks = [
         channel["channel"]["risk"]
@@ -838,16 +1077,9 @@ def _major_minor_from_stable_upstream(maj: Optional[int] = None) -> Optional[tup
     addr = "https://dl.k8s.io/release/stable{dash_maj}.txt".format(
         dash_maj=f"-{maj}" if maj else ""
     )
-    for attempt in Retrying(stop=stop_after_attempt(3), wait=wait_fixed(2)):
-        with attempt:
-            LOG.info(
-                "Attempt %d: Fetching upstream version",
-                attempt.retry_state.attempt_number,
-            )
-            with urllib.request.urlopen(addr) as r:
-                stable = r.read().decode().strip()
-                LOG.info("Successfully fetched upstream version: %s", stable)
-                return major_minor(stable)
+    stable = fetch_text(addr).strip()
+    LOG.info("Successfully fetched upstream version: %s", stable)
+    return major_minor(stable)
 
 
 def _previous_track_from_branch(branch: str) -> Optional[str]:
@@ -920,17 +1152,11 @@ def previous_track(snap_version: str) -> str:
     if maj_min := major_minor(snap_version):
         maj, min = maj_min
         if min == 0:
-            with urllib.request.urlopen(
-                f"https://dl.k8s.io/release/stable-{maj - 1}.txt"
-            ) as r:
-                stable = r.read().decode().strip()
-                maj_min = major_minor(stable)
+            maj_min = _major_minor_from_stable_upstream(maj - 1)
         else:
             maj_min = (maj, min - 1)
     elif snap_version.startswith("latest") or "/" not in snap_version:
-        with urllib.request.urlopen("https://dl.k8s.io/release/stable.txt") as r:
-            stable = r.read().decode().strip()
-            maj_min = major_minor(stable)
+        maj_min = _major_minor_from_stable_upstream()
 
     if not maj_min:
         raise ValueError(
