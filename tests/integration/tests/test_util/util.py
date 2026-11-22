@@ -1165,8 +1165,107 @@ def previous_track(snap_version: str) -> str:
     return track
 
 
-def find_suitable_cidr(parent_cidr: str, excluded_ips: List[str]):
-    """Find a suitable CIDR for LoadBalancer services"""
+def get_in_use_ips(
+    parent_cidr: str, instance: Optional[harness.Instance] = None
+) -> List[str]:
+    """Return in-use IP addresses on the bridge network matching parent_cidr."""
+    is_lxd = False
+    if instance is not None:
+        if getattr(getattr(instance, "_h", None), "name", None) != "lxd":
+            return []
+        is_lxd = True
+
+    parent_net = ipaddress.ip_network(parent_cidr, strict=False)
+    in_use_ips = set()
+    try:
+        net_proc = run(
+            ["lxc", "network", "list", "--format", "json"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        networks = json.loads(net_proc.stdout)
+        target_bridges = []
+        for net in networks:
+            if net.get("type") != "bridge" or not net.get("managed"):
+                continue
+            cfg = net.get("config", {})
+            for key in ("ipv4.address", "ipv6.address"):
+                addr = cfg.get(key)
+                if addr and addr != "none":
+                    try:
+                        b_net = ipaddress.ip_network(addr, strict=False)
+                        if b_net.version == parent_net.version and (
+                            b_net == parent_net
+                            or parent_net.subnet_of(b_net)
+                            or b_net.subnet_of(parent_net)
+                        ):
+                            target_bridges.append(net["name"])
+                            break
+                    except ValueError:
+                        pass
+
+        if not target_bridges and is_lxd:
+            raise RuntimeError(
+                f"Could not find matching LXD bridge network for {parent_cidr}"
+            )
+
+        for br in target_bridges:
+            leases_proc = run(
+                ["lxc", "network", "list-leases", br, "--format", "json"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            for item in json.loads(leases_proc.stdout):
+                addr = item.get("address")
+                if addr:
+                    try:
+                        ip_obj = ipaddress.ip_address(addr)
+                        if (
+                            ip_obj.version == parent_net.version
+                            and ip_obj in parent_net
+                        ):
+                            in_use_ips.add(addr)
+                    except ValueError:
+                        pass
+
+        list_proc = run(
+            ["lxc", "list", "--format", "json"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        for inst in json.loads(list_proc.stdout):
+            state = inst.get("state") or {}
+            for iface in (state.get("network") or {}).values():
+                for addr_info in iface.get("addresses", []):
+                    addr = addr_info.get("address")
+                    if addr:
+                        try:
+                            ip_obj = ipaddress.ip_address(addr)
+                            if (
+                                ip_obj.version == parent_net.version
+                                and ip_obj in parent_net
+                            ):
+                                in_use_ips.add(addr)
+                        except ValueError:
+                            pass
+    except Exception as e:
+        if is_lxd:
+            raise RuntimeError(
+                f"Failed to query LXD bridge network for {parent_cidr}"
+            ) from e
+        LOG.debug("Could not inspect LXD bridge network for %s: %s", parent_cidr, e)
+    return sorted(in_use_ips)
+
+
+def find_suitable_cidr(
+    parent_cidr: str,
+    excluded_ips: Optional[List[str]] = None,
+    instance: Optional[harness.Instance] = None,
+) -> str:
+    """Find a suitable CIDR for LoadBalancer services."""
     net = ipaddress.ip_network(parent_cidr, False)
     ipv6 = isinstance(net, ipaddress.IPv6Network)
     if ipv6:
@@ -1174,17 +1273,21 @@ def find_suitable_cidr(parent_cidr: str, excluded_ips: List[str]):
     else:
         ip_range = 30
 
-    # Starting from the first IP address from the parent cidr,
-    # we search for a /30 cidr block(4 total ips, 2 available)
-    # that doesn't contain the excluded ips to avoid collisions
-    # /30 because this is the smallest CIDR cilium hands out IPs from.
-    # For ipv6, we use a /126 block that contains 4 total ips.
+    excluded_set = set(excluded_ips or [])
+    if instance is not None:
+        excluded_set.update(get_in_use_ips(parent_cidr, instance=instance))
+
+    # Search for an unallocated /30 block (or /126 for IPv6) starting at .4
     for i in range(4, 255, 4):
         lb_net = ipaddress.ip_network(f"{str(net[0]+i)}/{ip_range}", False)
 
         contains_excluded = False
-        for excluded in excluded_ips:
-            if ipaddress.ip_address(excluded) in lb_net:
+        for excluded in excluded_set:
+            try:
+                ip_obj = ipaddress.ip_address(excluded)
+            except ValueError:
+                continue
+            if ip_obj.version == lb_net.version and ip_obj in lb_net:
                 contains_excluded = True
                 break
 
