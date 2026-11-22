@@ -328,26 +328,30 @@ def test_feature_upgrades_inplace(
     token = util.get_join_token(bootstrap_cp, worker, "--worker")
     worker.exec(["k8s", "join-cluster", token])
 
-    # Get initial helm releases to track if they are updated correctly.
-    initial_releases = {
-        release["name"]: release
-        for release in json.loads(
-            bootstrap_cp.exec(
-                [
-                    "/snap/k8s/current/bin/helm",
-                    "--kubeconfig",
-                    "/etc/kubernetes/admin.conf",
-                    "list",
-                    "-n",
-                    "kube-system",
-                    "-o",
-                    "json",
-                ],
-                capture_output=True,
-                text=True,
-            ).stdout
+    util.wait_until_k8s_ready(bootstrap_cp, instances)
+    util.wait_for_pods_ready(bootstrap_cp)
+
+    # Get initial helm releases once all are deployed.
+    releases_cmd = [
+        "/snap/k8s/current/bin/helm",
+        "--kubeconfig",
+        "/etc/kubernetes/admin.conf",
+        "list",
+        "-n",
+        "kube-system",
+        "-o",
+        "json",
+    ]
+    p = (
+        util.stubbornly(retries=15, delay_s=5)
+        .on(bootstrap_cp)
+        .until(
+            lambda p: bool(json.loads(p.stdout or "[]"))
+            and all(r.get("status") == "deployed" for r in json.loads(p.stdout))
         )
-    }
+        .exec(releases_cmd, capture_output=True, text=True)
+    )
+    initial_releases = {release["name"]: release for release in json.loads(p.stdout)}
 
     # Refresh each CP node after each other and verify that the upgrade CR is updated correctly.
     for idx, instance in enumerate(instances):
