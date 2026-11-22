@@ -61,8 +61,8 @@ func WithState(t *testing.T, f func(context.Context, state.State)) {
 
 	stateChan := make(chan state.State, 1)
 	doneCh := make(chan error, 1)
-	defer close(stateChan)
-	defer close(doneCh)
+	// Single-use buffered signal channels are left open to avoid racing a deferred
+	// close against background goroutine writes if WithState exits early.
 
 	// app.Run() is blocking, so we get the state handle through a channel
 	go func() {
