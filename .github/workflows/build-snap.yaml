@@ -50,6 +50,38 @@ jobs:
           sed -i -E "s|(- go/[^/[:space:]]+/)[^[:space:]]+|\1${GO_SNAP_RISK}|" snap/snapcraft.yaml
           grep -nE '^\s*- go/' snap/snapcraft.yaml
       - name: Setup LXD
+        id: setup-lxd
+        continue-on-error: true
+        timeout-minutes: 10
+        uses: canonical/setup-lxd@a3c85fc6fb7fff43fcfeae87659e41a8f635b7dd # v0.1.3
+      - name: Cleanup LXD after failure
+        if: steps.setup-lxd.outcome == 'failure'
+        run: |
+          for id in $(snap changes lxd 2>/dev/null | awk '/^[0-9]+/ {if ($2 == "Doing" || $2 == "Do") print $1}'); do
+            sudo snap abort "$id" || true
+          done
+          sudo systemctl stop snapd.service snapd.socket || true
+          sudo python3 -c '
+          import json, os
+          path = "/var/lib/snapd/state.json"
+          if os.path.exists(path):
+              try:
+                  with open(path) as f:
+                      data = json.load(f)
+                  changes = data.get("data", {}).get("changes", {})
+                  data["data"]["changes"] = {
+                      k: v for k, v in changes.items()
+                      if "lxd" not in v.get("summary", "").lower()
+                  }
+                  with open(path, "w") as f:
+                      json.dump(data, f)
+              except Exception:
+                  pass
+          '
+          sudo systemctl start snapd.socket snapd.service || true
+      - name: Retry Setup LXD
+        if: steps.setup-lxd.outcome == 'failure'
+        timeout-minutes: 10
         uses: canonical/setup-lxd@a3c85fc6fb7fff43fcfeae87659e41a8f635b7dd # v0.1.3
       - name: Install snapcraft
         run: |
