@@ -34,31 +34,16 @@ def test_version_upgrades(
     cp1 = instances[1]
     cp2 = instances[2]
     w0 = instances[3]
-    current_channel = channels[0]
 
-    if current_channel.lower() == "recent":
-        if len(channels) != 2:
-            pytest.fail("'recent' requires the number of releases as second argument")
-        _, num_channels = channels
-        ref = config.GH_BASE_REF or config.GH_REF
-        channels = snap.get_most_stable_channels(
-            int(num_channels),
-            config.FLAVOR,
-            cp.arch,
-            min_release=config.VERSION_UPGRADE_MIN_RELEASE,
-            # Include `latest/edge/<flavor>` only if this is not a release branch.
-            include_latest=ref == util.MAIN_BRANCH,
-        )
-        current_channel = channels[0]
-
+    snap_path = None
+    local_snap_version = None
     if config.SNAP:
         # Copy the current snap into the instances.
         snap_path = (tmp_path / "k8s.snap").as_posix()
         for instance in instances:
             instance.send_file(config.SNAP, snap_path)
 
-        # Figure out where to add the current snap into the channels array.
-        # Upgrades should be in order.
+        # Figure out the locally built snap version before resolving channels
         out = cp.exec(["snap", "info", snap_path], capture_output=True)
         info = yaml.safe_load(out.stdout)
 
@@ -66,23 +51,22 @@ def test_version_upgrades(
         ver = info["version"].lstrip("v").split()[0].split(".")
         LOG.info(f"Locally built snap version: {ver}")
         local_snap_version = (int(ver[0]), int(ver[1]))
-        added = False
 
-        for i in range(len(channels)):
-            if "latest" in channels[i]:
-                continue
+    ref = config.GH_BASE_REF or config.GH_REF
+    if channels[0].lower() == "recent":
+        if len(channels) != 2:
+            pytest.fail("'recent' requires the number of releases as second argument")
 
-            # e.g.: 1.32-classic/stable
-            chan_ver_parts = channels[i].split("-")[0].split(".")
-            chan_ver = (int(chan_ver_parts[0]), int(chan_ver_parts[1]))
-            if local_snap_version < chan_ver:
-                channels.insert(i, snap_path)
-                added = True
-                break
-
-        if not added:
-            # if not added yet, config.SNAP should be at the end.
-            channels.append(snap_path)
+    channels = snap.build_upgrade_channel_list(
+        channels=channels,
+        flavor=config.FLAVOR,
+        arch=cp.arch,
+        ref=ref,
+        min_release=config.VERSION_UPGRADE_MIN_RELEASE,
+        snap_path=snap_path,
+        local_snap_version=local_snap_version,
+    )
+    current_channel = channels[0]
 
     if len(channels) < 2:
         pytest.fail(
@@ -93,9 +77,13 @@ def test_version_upgrades(
         f"Bootstrap node on {current_channel} and upgrade through channels: {channels[1:]}"
     )
 
+    cached_snaps = util.download_k8s_snaps(
+        channels, tmp_path / "snap_cache", arch=cp.arch
+    )
+
     # Setup the k8s snap from the bootstrap channel and setup basic configuration.
     for instance in instances:
-        util.setup_k8s_snap(instance, current_channel)
+        util.setup_k8s_snap(instance, current_channel, cached_snaps=cached_snaps)
         if config.USE_LOCAL_MIRROR:
             registry.apply_configuration(instance, containerd_cfgdir)
 
@@ -129,11 +117,18 @@ def test_version_upgrades(
 
             if channel.startswith("/"):
                 LOG.info("Refreshing k8s snap by path")
-                util.stubbornly(retries=5, delay_s=5).on(instance).exec(
-                    ["snap", "install", "--classic", "--dangerous", snap_path]
+                util.stubbornly(
+                    retries=5,
+                    delay_s=5,
+                    after=util.wait_for_snap_change_hook(instance, max_attempts=5),
+                ).on(instance).exec(
+                    ["snap", "install", "--classic", "--dangerous", snap_path],
+                    timeout=60 * 5,
                 )
             else:
-                util.snap_refresh(instance, channel, "--amend")
+                util.snap_refresh(
+                    instance, channel, "--amend", cached_snaps=cached_snaps
+                )
             util.wait_until_k8s_ready(cp, instances)
             LOG.info("Verifying snap service health")
             util.check_snap_services_ready(instance, retries=10, delay_s=10)
@@ -187,42 +182,37 @@ def test_version_downgrades_with_rollback(
     # https://github.com/canonical/k8s-snap/blob/96124bd7f1e82e96e23a4c4d11fcff86045f403c/snap/hooks/configure#L7
     #
     # w0 = instances[3]
-    current_channel = channels[0]
-
-    if current_channel.lower() == "recent":
+    ref = config.GH_BASE_REF or config.GH_REF
+    if channels[0].lower() == "recent":
         if len(channels) != 2:
             pytest.fail("'recent' requires the number of releases as second argument")
-        _, num_channels = channels
-        ref = config.GH_BASE_REF or config.GH_REF
-        max_release = (
-            ref.removeprefix("release-") if ref and ref.startswith("release-") else None
+
+    channels = snap.build_downgrade_channel_list(
+        channels=channels,
+        flavor=config.FLAVOR,
+        arch=cp.arch,
+        ref=ref,
+        min_release=config.VERSION_UPGRADE_MIN_RELEASE,
+    )
+    if len(channels) < 2:
+        pytest.fail(
+            f"Need at least 2 channels to downgrade, got {len(channels)} for flavour {config.FLAVOR}"
         )
-        channels = snap.get_most_stable_channels(
-            int(num_channels),
-            config.FLAVOR,
-            cp.arch,
-            min_release=config.VERSION_UPGRADE_MIN_RELEASE,
-            max_release=max_release,
-            reverse=True,
-            # Include `latest/edge/<flavor>` only if this is not a release branch.
-            include_latest=ref == util.MAIN_BRANCH,
-        )
-        if len(channels) < 2:
-            pytest.fail(
-                f"Need at least 2 channels to downgrade, got {len(channels)} for flavour {config.FLAVOR}"
-            )
-        current_channel = channels[0]
+    current_channel = channels[0]
 
     LOG.info(
         f"Bootstrap node on {current_channel} and downgrade through channels: {channels[1:]}"
     )
 
+    cached_snaps = util.download_k8s_snaps(
+        channels, tmp_path / "snap_cache", arch=cp.arch
+    )
+
     # Setup the k8s snap from the bootstrap channel and setup basic configuration.
     for instance in instances:
-        util.setup_k8s_snap(instance, current_channel)
+        util.setup_k8s_snap(instance, current_channel, cached_snaps=cached_snaps)
         if config.USE_LOCAL_MIRROR:
             registry.apply_configuration(instance, containerd_cfgdir)
-
     cp.exec(["k8s", "bootstrap"])
     # Avoid racing the bootstrap node's kubelet Node registration (join can
     # fail with "the cluster has no nodes" otherwise).
@@ -250,7 +240,7 @@ def test_version_downgrades_with_rollback(
             LOG.debug(
                 f"Step 1. Downgrade {instance.id} from {current_channel} → {channel}"
             )
-            util.snap_refresh(instance, channel)
+            util.snap_refresh(instance, channel, cached_snaps=cached_snaps)
             util.wait_until_k8s_ready(cp, instances)
             LOG.info("Verifying snap service health")
             util.check_snap_services_ready(instance, retries=10, delay_s=10)
@@ -262,7 +252,7 @@ def test_version_downgrades_with_rollback(
 
         for instance in instances:
             LOG.debug(f"Step 2. Roll back from {current_channel} → {last_channel}")
-            util.snap_refresh(instance, last_channel)
+            util.snap_refresh(instance, last_channel, cached_snaps=cached_snaps)
             util.wait_until_k8s_ready(cp, instances)
             LOG.info("Verifying snap service health")
             util.check_snap_services_ready(instance, retries=10, delay_s=10)
@@ -273,7 +263,7 @@ def test_version_downgrades_with_rollback(
             LOG.debug(
                 f"Step 3. Final downgrade to channel from {last_channel} → {current_channel}"
             )
-            util.snap_refresh(instance, current_channel)
+            util.snap_refresh(instance, current_channel, cached_snaps=cached_snaps)
             util.wait_until_k8s_ready(cp, instances)
             LOG.info("Verifying snap service health")
             util.check_snap_services_ready(instance, retries=10, delay_s=10)
@@ -304,7 +294,12 @@ def test_version_downgrades_with_rollback(
     not config.SNAP,
     reason="Feature upgrades require a local snap file",
 )
-def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: Path):
+def test_feature_upgrades_inplace(
+    instances: List[harness.Instance],
+    tmp_path: Path,
+    containerd_cfgdir: str,
+    registry: Registry,
+):
     """Verify that feature upgrades function correctly.
 
     Note: This is an interim test that will be expanded as feature upgrades mature.
@@ -320,16 +315,14 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
     bootstrap_cp = instances[0]
     worker = instances[-1]
 
+    cached_snaps = util.download_k8s_snaps(
+        [start_branch], tmp_path / "snap_cache", arch=bootstrap_cp.arch
+    )
+
     for instance in instances:
-        util.stubbornly(retries=3, delay_s=30).on(instance).exec(
-            [
-                "snap",
-                "install",
-                "k8s",
-                "--classic",
-                *util.snap_channel_args(start_branch),
-            ]
-        )
+        util.setup_k8s_snap(instance, start_branch, cached_snaps=cached_snaps)
+        if config.USE_LOCAL_MIRROR and registry:
+            registry.apply_configuration(instance, containerd_cfgdir)
 
     bootstrap_cp.exec(["k8s", "bootstrap"])
     # Avoid racing the bootstrap node's kubelet Node registration (join can
@@ -508,8 +501,19 @@ def test_feature_upgrades_rollout_upgrade(
 
     # Setup the first half of nodes up on the old version.
     for instance in instances[:3]:
-        util.stubbornly(retries=3, delay_s=30).on(instance).exec(
-            ["snap", "install", "k8s", "--classic", *util.snap_channel_args(start_snap)]
+        util.stubbornly(
+            retries=3,
+            delay_s=30,
+            after=util.wait_for_snap_change_hook(instance, max_attempts=3),
+        ).on(instance).exec(
+            [
+                "snap",
+                "install",
+                "k8s",
+                "--classic",
+                *util.snap_channel_args(start_snap),
+            ],
+            timeout=60 * 5,
         )
 
     util.stubbornly(retries=3, delay_s=30).on(instance).exec(
