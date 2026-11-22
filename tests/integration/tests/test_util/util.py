@@ -35,7 +35,6 @@ from tenacity import (
 )
 from test_util import config, harness
 
-
 LOG = logging.getLogger(__name__)
 RISKS = ["stable", "candidate", "beta", "edge"]
 TRACK_RE = re.compile(r"^v?(\d+)\.(\d+)(.\d+)?(\S*)$")
