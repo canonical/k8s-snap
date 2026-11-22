@@ -42,6 +42,21 @@ jobs:
         run: |
           sudo systemctl stop snapd.service snapd.socket || true
           sudo systemctl start snapd.socket snapd.service || true
+          for id in $(snap changes 2>/dev/null | awk '/^[0-9]+/ {if ($2 == "Doing" || $2 == "Do" || $2 == "Undoing") print $1}'); do
+            echo "Aborting in-flight snap change $id..."
+            sudo snap abort "$id" || true
+          done
+          echo "Waiting for in-flight snap changes to settle..."
+          for i in $(seq 1 36); do
+            changes=$(snap changes 2>/dev/null | awk '/^[0-9]+/ {if ($2 == "Doing" || $2 == "Do" || $2 == "Undoing") print $1, $2}')
+            if [ -z "$changes" ]; then
+              echo "All snap changes settled."
+              break
+            fi
+            echo "Still in progress ($i/36): $changes"
+            sleep 5
+          done
+          snap changes || true
       - name: Retry Setup LXD
         if: steps.setup-lxd.outcome == 'failure'
         timeout-minutes: 10
