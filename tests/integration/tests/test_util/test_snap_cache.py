@@ -2,7 +2,9 @@
 # Copyright 2026 Canonical, Ltd.
 #
 
+import json
 import subprocess
+import urllib.error
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -382,3 +384,33 @@ def test_download_k8s_snaps_exhausted_retries_cleanup_and_raises(mock_run, tmp_p
 
     assert mock_run.call_count == 2
     assert not snap_partial.exists()
+
+
+@pytest.mark.tags(tags.PULL_REQUEST)
+@patch("urllib.request.urlopen")
+def test_tracks_least_risk_retries_on_transient_error(mock_urlopen):
+    payload = json.dumps(
+        {
+            "channel-map": [
+                {
+                    "channel": {
+                        "track": "1.32-classic",
+                        "risk": "stable",
+                        "architecture": "amd64",
+                    }
+                }
+            ]
+        }
+    ).encode()
+    mock_resp = MagicMock()
+    mock_resp.__enter__.return_value.read.return_value = payload
+    mock_urlopen.side_effect = [
+        urllib.error.URLError("EOF occurred in violation of protocol (_ssl.c:1000)"),
+        mock_resp,
+    ]
+
+    with patch.object(config, "SNAP_NAME", "k8s"):
+        channel = util.tracks_least_risk("1.32-classic", "amd64")
+
+    assert channel == "1.32-classic/stable"
+    assert mock_urlopen.call_count == 2
