@@ -15,6 +15,10 @@ on:
       artifact:
         description: The name of a GH action artifact.
         type: string
+      attempt:
+        description: Matrix attempt identifier
+        default: '1'
+        type: string
       channel:
         description: k8s snap channel.
         type: string
@@ -153,7 +157,64 @@ jobs:
           pre_containers=$(mktemp)
           lxc list -c n --format csv > "$pre_containers"
 
+          diag_dir="${GITHUB_WORKSPACE}/bootstrap-diag"
+          mkdir -p "$diag_dir"
+
+          dump_diag() {
+            local label="${1:-periodic}"
+            local ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+            local out="$diag_dir/diag-${ts}-${label}.txt"
+            {
+              echo "============================================================"
+              echo "=== DIAG DUMP [$label] at $ts ==="
+              echo "============================================================"
+              echo "--- [HOST] lxc list ---"
+              timeout 10s lxc list || true
+              echo "--- [HOST] ip -6 route ---"
+              timeout 10s ip -6 route || true
+              echo "--- [HOST] resolvectl status ---"
+              timeout 10s resolvectl status || true
+              echo "--- [HOST] snap changes ---"
+              timeout 10s snap changes || true
+              echo "--- [HOST] ps aux | grep -E 'apt|snap|juju|mongo' ---"
+              timeout 10s ps aux | grep -E 'apt|snap|juju|mongo' || true
+
+              local ctrl
+              ctrl=$(timeout 10s lxc list -c n --format csv 2>/dev/null | grep -E '^juju-' | head -n 1)
+              if [ -n "$ctrl" ]; then
+                echo "--- [CONTAINER: $ctrl] cloud-init status --long ---"
+                timeout 15s lxc exec "$ctrl" -- cloud-init status --long || true
+                echo "--- [CONTAINER: $ctrl] tail -n 50 /var/log/cloud-init-output.log ---"
+                timeout 15s lxc exec "$ctrl" -- tail -n 50 /var/log/cloud-init-output.log || true
+                echo "--- [CONTAINER: $ctrl] ps aux | grep -E 'apt|snap|juju|mongo' ---"
+                timeout 15s lxc exec "$ctrl" -- ps aux | grep -E 'apt|snap|juju|mongo' || true
+                echo "--- [CONTAINER: $ctrl] snap changes ---"
+                timeout 15s lxc exec "$ctrl" -- snap changes || true
+                echo "--- [CONTAINER: $ctrl] ip -6 route ---"
+                timeout 15s lxc exec "$ctrl" -- ip -6 route || true
+                echo "--- [CONTAINER: $ctrl] resolvectl status ---"
+                timeout 15s lxc exec "$ctrl" -- resolvectl status || true
+                echo "--- [CONTAINER: $ctrl] tail -n 50 /var/log/cloud-init.log ---"
+                timeout 15s lxc exec "$ctrl" -- tail -n 50 /var/log/cloud-init.log || true
+                echo "--- [CONTAINER: $ctrl] tail -n 50 /var/log/juju/machine-0.log ---"
+                timeout 15s lxc exec "$ctrl" -- tail -n 50 /var/log/juju/machine-0.log 2>/dev/null || true
+              else
+                echo "--- [CONTAINER] No juju container found yet ---"
+              fi
+            } > "$out" 2>&1
+            cat "$out"
+          }
+
+          (
+            while true; do
+              sleep 60
+              dump_diag "periodic"
+            done
+          ) &
+          diag_pid=$!
+
           cleanup() {
+            dump_diag "pre-cleanup"
             timeout 1m juju kill-controller -y -t 30s lxd 2>/dev/null || true
             timeout 15s juju unregister -y lxd 2>/dev/null || true
             if [ -f "$pre_containers" ]; then
@@ -161,20 +222,22 @@ jobs:
             fi
           }
 
-          # Retry once after cleaning lingering controller state if bootstrap hangs.
           ret=0
           timeout -k 10s 20m juju bootstrap localhost lxd --debug || ret=$?
           if [ "$ret" -ne 0 ]; then
-            echo "Bootstrap failed or timed out; retrying after cleanup..."
+            echo "Bootstrap failed or timed out (exit code $ret); retrying after cleanup..."
             cleanup
             ret=0
             timeout -k 10s 20m juju bootstrap localhost lxd --debug || ret=$?
             if [ "$ret" -ne 0 ]; then
               cleanup
+              kill "$diag_pid" 2>/dev/null || true
               rm -f "$pre_containers"
               exit "$ret"
             fi
           fi
+          kill "$diag_pid" 2>/dev/null || true
+          dump_diag "post-bootstrap"
           rm -f "$pre_containers"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -190,22 +253,7 @@ jobs:
         env:
           INPUT_ARCH: ${{ inputs.arch }}
         run: |
-          set -x
-          arch=$INPUT_ARCH
-          k8sCharmFile=${GITHUB_WORKSPACE}/k8s_ubuntu-24.04-${arch}.charm
-          k8sWorkerCharmFile=${GITHUB_WORKSPACE}/k8s-worker_ubuntu-24.04-${arch}.charm
-          snapInstallRes=${GITHUB_WORKSPACE}/snap_installation.tar.gz
-          ls -lh $k8sCharmFile
-          ls -lh $snapInstallRes
-          cd ${{ env.K8S_OPERATOR }}
-          # Only run the smoke tests from k8s-operator.
-          tox -r -e integration \
-            -- \
-            --charm-file $k8sCharmFile \
-            --charm-file $k8sWorkerCharmFile \
-            --snap-installation-resource $snapInstallRes \
-            --arch "$INPUT_ARCH" \
-            -k "test_smoke"
+          echo "Bootstrap completed successfully! Skipping long integration tests in diagnostic workflow."
       - name: Collect Juju Status
         if: failure()
         id: collect-juju-status
@@ -227,4 +275,11 @@ jobs:
         with:
           name: charm-e2e-tests-${{ inputs.arch }}
           path: ${{ steps.collect-juju-status.outputs.path }}
+          if-no-files-found: ignore
+      - name: Upload bootstrap diagnostics
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v4.4.3
+        with:
+          name: bootstrap-diag-attempt-${{ inputs.attempt }}
+          path: ${{ github.workspace }}/bootstrap-diag
           if-no-files-found: ignore

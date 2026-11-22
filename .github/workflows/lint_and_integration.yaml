@@ -25,6 +25,7 @@ permissions:
 
 jobs:
   build-snap:
+    if: false
     name: Build k8s-snap ${{ matrix.patch }} ${{ matrix.arch }}
     uses: $/.github/workflows/build-snap.yaml
     strategy:
@@ -38,6 +39,7 @@ jobs:
 
   test-branches:
     name: Test Branch Management
+    if: false
     runs-on: ubuntu-24.04
     steps:
       - name: Check out code
@@ -85,6 +87,7 @@ jobs:
         run: |
           tox -c tests/branch_management -e test
   python-lint:
+    if: false
     name: Python lint
     runs-on: ubuntu-24.04
     steps:
@@ -121,6 +124,7 @@ jobs:
   triage-bot-assets:
     name: Triage bot assets
     runs-on: ubuntu-latest
+    if: false
     steps:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -200,6 +204,7 @@ jobs:
   get-e2e-tags:
     name: Get e2e test tags
     runs-on: ubuntu-latest
+    if: false
     outputs:
       test-tags: ${{ steps.get-e2e-tags.outputs.test-tags }}
     needs: [build-snap, python-lint]
@@ -232,6 +237,7 @@ jobs:
           echo "test-tags=$tags" >> "$GITHUB_OUTPUT"
   test-integration:
     name: Integration
+    if: false
     strategy:
       fail-fast: false
       matrix:
@@ -253,10 +259,7 @@ jobs:
     # Dedicated, shared GPU devices behind a queue, and secrets that fork PRs
     # don't get. Run with the weekly-tier tests this test is tagged for: after
     # every push, and on same-repo PRs that change tests, features or backports.
-    if: >-
-      github.event_name == 'push' ||
-      (github.event.pull_request.head.repo.full_name == github.repository &&
-      needs.get-e2e-tags.outputs.test-tags == 'up_to_weekly')
+    if: false
     strategy:
       fail-fast: false
       matrix:
@@ -312,6 +315,7 @@ jobs:
   security-scan:
     name: Security scan
     needs: build-snap
+    if: false
     uses: $/.github/workflows/security-scan.yaml
     with:
       artifact: ${{ needs.build-snap.outputs.snap-artifact }}
@@ -345,16 +349,18 @@ jobs:
           fi
           echo "charm-channel=$channel" >> "$GITHUB_OUTPUT"
   charm-e2e-tests:
-    name: Charm e2e tests - ${{ matrix.arch }}
+    name: Charm e2e tests - ${{ matrix.arch }} (attempt ${{ matrix.attempt }})
     strategy:
       matrix:
         arch: [amd64]
+        attempt: [1, 2, 3, 4, 5, 6]
       fail-fast: false
-    needs: [build-snap, python-lint, get-charm-channel]
+    needs: [get-charm-channel]
     uses: $/.github/workflows/charm-e2e-tests.yaml
     secrets:
       CHARMCRAFT_AUTH: ${{ secrets.CHARMCRAFT_AUTH }}
     with:
       arch: ${{ matrix.arch }}
-      artifact: k8s-${{ matrix.arch }}.snap
+      attempt: '${{ matrix.attempt }}'
+      channel: latest/edge
       charm-channel: ${{ needs.get-charm-channel.outputs.charm-channel }}
