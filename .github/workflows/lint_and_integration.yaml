@@ -115,19 +115,7 @@ jobs:
         run: |
           tags="pull_request"
           if [ "$EVENT_NAME" = "pull_request" ]; then
-            # Run all tests if there are test changes. In case of a PR, we'll
-            # get a merge commit that includes all changes.
-            if git diff HEAD HEAD~1 --name-only | grep "tests/"; then
-              tags="up_to_weekly"
-            fi
-            # Run all tests if there are any changes to the Kubernetes components / features.
-            if git diff HEAD HEAD~1 --name-only | grep "k8sd/features/.*/"; then
-              tags="up_to_weekly"
-            fi
-            # Run all tests on backports.
-            if echo "$BASE_REF" | grep "release-"; then
-              tags="up_to_weekly"
-            fi
+            tags="up_to_nightly"
           fi
           echo "test-tags=$tags" >> "$GITHUB_OUTPUT"
   test-integration:
