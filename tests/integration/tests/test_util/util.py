@@ -1400,12 +1400,32 @@ def get_in_use_ips(
                 ["lxc", "network", "list-leases", br, "--format", "json"],
                 capture_output=True,
                 text=True,
-                check=False,
                 timeout=10,
             )
-            if leases_proc.returncode == 0:
-                for item in json.loads(leases_proc.stdout):
-                    addr = item.get("address")
+            for item in json.loads(leases_proc.stdout):
+                addr = item.get("address")
+                if addr:
+                    try:
+                        ip_obj = ipaddress.ip_address(addr)
+                        if (
+                            ip_obj.version == parent_net.version
+                            and ip_obj in parent_net
+                        ):
+                            in_use_ips.add(addr)
+                    except ValueError:
+                        pass
+
+        list_proc = run(
+            ["lxc", "list", "--format", "json"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        for inst in json.loads(list_proc.stdout):
+            state = inst.get("state") or {}
+            for iface in (state.get("network") or {}).values():
+                for addr_info in iface.get("addresses", []):
+                    addr = addr_info.get("address")
                     if addr:
                         try:
                             ip_obj = ipaddress.ip_address(addr)
@@ -1416,30 +1436,6 @@ def get_in_use_ips(
                                 in_use_ips.add(addr)
                         except ValueError:
                             pass
-
-        list_proc = run(
-            ["lxc", "list", "--format", "json"],
-            capture_output=True,
-            text=True,
-            check=False,
-            timeout=10,
-        )
-        if list_proc.returncode == 0:
-            for inst in json.loads(list_proc.stdout):
-                state = inst.get("state") or {}
-                for iface in (state.get("network") or {}).values():
-                    for addr_info in iface.get("addresses", []):
-                        addr = addr_info.get("address")
-                        if addr:
-                            try:
-                                ip_obj = ipaddress.ip_address(addr)
-                                if (
-                                    ip_obj.version == parent_net.version
-                                    and ip_obj in parent_net
-                                ):
-                                    in_use_ips.add(addr)
-                            except ValueError:
-                                pass
     except Exception as e:
         if is_lxd:
             raise RuntimeError(
