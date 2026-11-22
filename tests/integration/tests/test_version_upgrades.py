@@ -246,6 +246,10 @@ def test_version_downgrades_with_rollback(
             util.check_no_service_restarts_after_stabilization(instance)
             util.check_service_logs_for_panics(instance)
 
+        LOG.info("Waiting for all pods to be ready after Step 1 downgrade")
+        util.wait_for_pods_ready(cp, retries=180, delay_s=5)
+        LOG.info("All pods are ready after Step 1 downgrade")
+
         last_channel = current_channel
         current_channel = channel
 
@@ -258,6 +262,10 @@ def test_version_downgrades_with_rollback(
             util.check_no_service_restarts_after_stabilization(instance)
             util.check_service_logs_for_panics(instance)
 
+        LOG.info("Waiting for all pods to be ready after Step 2 rollback")
+        util.wait_for_pods_ready(cp, retries=180, delay_s=5)
+        LOG.info("All pods are ready after Step 2 rollback")
+
         for instance in instances:
             LOG.debug(
                 f"Step 3. Final downgrade to channel from {last_channel} → {current_channel}"
@@ -269,16 +277,11 @@ def test_version_downgrades_with_rollback(
             util.check_no_service_restarts_after_stabilization(instance)
             util.check_service_logs_for_panics(instance)
 
-            LOG.info("Rollback segment complete. Proceeding to next downgrade segment.")
-
-        LOG.info("Waiting for all pods to be ready after downgrade segment")
-        # Use a generous timeout for pod readiness after downgrade segments.
-        # Multiple rapid version transitions (downgrade + rollback + final downgrade
-        # across all nodes) can leave pods in a degraded state that takes longer than
-        # the default 10 minutes to recover, especially on arm64.
+        LOG.info("Waiting for all pods to be ready after Step 3 downgrade")
         util.wait_for_pods_ready(cp, retries=180, delay_s=5)
-        LOG.info("All pods are ready after downgrade segment")
+        LOG.info("All pods are ready after Step 3 downgrade")
 
+        LOG.info("Rollback segment complete. Proceeding to next downgrade segment.")
     LOG.info("Rollback test complete. All downgrade segments verified.")
 
 
