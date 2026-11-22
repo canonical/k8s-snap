@@ -357,6 +357,9 @@ def download_k8s_snaps(
     channels: Sequence[str],
     cache_dir: Union[str, Path],
     arch: Optional[str] = None,
+    retries: int = 5,
+    delay_s: int = 5,
+    timeout: int = 60 * 5,
 ) -> Dict[str, Tuple[Path, Path]]:
     """Download k8s snaps and assertions for channels to cache_dir on host."""
     if not config.CACHE_SNAPS:
@@ -396,7 +399,18 @@ def download_k8s_snaps(
         snap_file = cache_path / f"{basename}.snap"
         assert_file = cache_path / f"{basename}.assert"
 
+        def _cleanup(state: Optional[RetryCallState] = None) -> None:
+            if (
+                state is not None
+                and state.outcome is not None
+                and not state.outcome.failed
+            ):
+                return
+            for ext in (".snap", ".assert", ".snap.partial", ".assert.partial"):
+                (cache_path / f"{basename}{ext}").unlink(missing_ok=True)
+
         if not (snap_file.is_file() and assert_file.is_file()):
+            _cleanup()
             cmd = [
                 "snap",
                 "download",
@@ -405,8 +419,21 @@ def download_k8s_snaps(
                 config.SNAP_NAME,
                 *channel_args,
             ]
-            run(cmd, env=env, sensitive_kwargs=True, check=True)
-
+            try:
+                stubbornly(
+                    retries=retries,
+                    delay_s=delay_s,
+                    reraise=True,
+                    after=_cleanup,
+                ).exec(
+                    cmd,
+                    env=env,
+                    sensitive_kwargs=True,
+                    timeout=timeout,
+                )
+            except Exception:
+                _cleanup()
+                raise
         return channel, (snap_file, assert_file)
 
     results: Dict[str, Tuple[Path, Path]] = {}
