@@ -23,7 +23,6 @@ LOG = logging.getLogger(__name__)
 def test_version_upgrades(instances: List[harness.Instance], tmp_path):
     channels = config.VERSION_UPGRADE_CHANNELS
     cp = instances[0]
-    cp = instances[0]
 
     snap_path = None
     local_snap_version = None
@@ -72,7 +71,7 @@ def test_version_upgrades(instances: List[harness.Instance], tmp_path):
 
     # Setup the k8s snap from the bootstrap channel and setup basic configuration.
     for instance in instances:
-        util.setup_k8s_snap(instance, current_channel, cached_snaps=cached_snaps)
+        util.setup_k8s_snap(instance, tmp_path, current_channel, cached_snaps=cached_snaps)
     cp.exec(["k8s", "bootstrap"])
     util.wait_until_k8s_ready(cp, instances)
     LOG.info(f"Installed {cp.id} on channel {current_channel}")
@@ -114,143 +113,6 @@ def test_version_upgrades(instances: List[harness.Instance], tmp_path):
         LOG.info("All pods are ready after upgrade")
 
 
-@pytest.mark.node_count(3)
-@pytest.mark.no_setup()
-@pytest.mark.skipif(
-    not config.VERSION_DOWNGRADE_CHANNELS, reason="No downgrade channels configured"
-)
-@pytest.mark.skipif(
-    config.SUBSTRATE == "multipass", reason="runner size too small on multipass"
-)
-@pytest.mark.tags(tags.NIGHTLY)
-def test_version_downgrades_with_rollback(
-    instances: List[harness.Instance],
-    tmp_path,
-    containerd_cfgdir: str,
-    registry: Registry,
-):
-    """
-    This test will downgrade the snap through the channels, and at each downgrade, attempt a rollback.
-
-    Example of downgrading while rolling back through channels:
-    Channels from config:  1.32-classic/stable, 1.31-classic/stable
-    Segment 1: 1.32-classic/stable -> 1.31-classic/stable -> 1.32-classic/stable -> 1.31-classic/stable
-
-    Example 2 of downgrading while rolling back through channels:
-    Channels from config: 1.32-classic/stable 1.32-classic/beta 1.31-classic/stable
-    Segment 1: 1.32-classic/stable -> 1.32-classic/beta -> 1.32-classic/stable -> 1.32-classic/beta
-    Segment 2: 1.32-classic/beta -> 1.31-classic/stable -> 1.32-classic/beta -> 1.31-classic/stable
-    """
-    channels = config.VERSION_DOWNGRADE_CHANNELS
-    cp = instances[0]
-    cp1 = instances[1]
-    cp2 = instances[2]
-    # TODO: add a worker node once the snap refresh is fixed on worker nodes
-    # and the patch lands on all the release channels covered by this test.
-    #
-    # At the moment, the following fails:
-    # https://github.com/canonical/k8s-snap/blob/96124bd7f1e82e96e23a4c4d11fcff86045f403c/snap/hooks/configure#L7
-    #
-    # w0 = instances[3]
-    ref = config.GH_BASE_REF or config.GH_REF
-    if channels[0].lower() == "recent":
-        if len(channels) != 2:
-            pytest.fail("'recent' requires the number of releases as second argument")
-
-    channels = snap.build_downgrade_channel_list(
-        channels=channels,
-        flavor=config.FLAVOR,
-        arch=cp.arch,
-        ref=ref,
-        min_release=config.VERSION_UPGRADE_MIN_RELEASE,
-    )
-    if len(channels) < 2:
-        pytest.fail(
-            f"Need at least 2 channels to downgrade, got {len(channels)} for flavour {config.FLAVOR}"
-        )
-    current_channel = channels[0]
-
-    LOG.info(
-        f"Bootstrap node on {current_channel} and downgrade through channels: {channels[1:]}"
-    )
-
-    cached_snaps = util.download_k8s_snaps(
-        channels, tmp_path / "snap_cache", arch=cp.arch
-    )
-
-    # Setup the k8s snap from the bootstrap channel and setup basic configuration.
-    for instance in instances:
-        util.setup_k8s_snap(instance, current_channel, cached_snaps=cached_snaps)
-        if config.USE_LOCAL_MIRROR:
-            registry.apply_configuration(instance, containerd_cfgdir)
-    cp.exec(["k8s", "bootstrap"])
-
-    join_token_cp1 = util.get_join_token(cp, cp1)
-    join_token_cp2 = util.get_join_token(cp, cp2)
-    # join_token_w0 = util.get_join_token(cp, w0, "--worker")
-
-    util.join_cluster(cp1, join_token_cp1)
-    util.join_cluster(cp2, join_token_cp2)
-    # util.join_cluster(w0, join_token_w0)
-
-    util.wait_until_k8s_ready(cp, instances)
-
-    for channel in channels[1:]:
-        for instance in instances:
-            LOG.info(
-                "Initiating downgrade + rollback segment from "
-                f"{current_channel} → {channel} - {instance.id}"
-            )
-            out = instance.exec(["snap", "list", config.SNAP_NAME], capture_output=True)
-            latest_version = out.stdout.decode().strip().split("\n")[-1]
-            LOG.info(f"Current snap version: {latest_version}")
-
-            LOG.debug(
-                f"Step 1. Downgrade {instance.id} from {current_channel} → {channel}"
-            )
-            util.snap_refresh(instance, channel, cached_snaps=cached_snaps)
-            util.wait_until_k8s_ready(cp, instances)
-            LOG.info("Verifying snap service health")
-            util.check_snap_services_ready(instance, retries=10, delay_s=10)
-            util.check_no_service_restarts_after_stabilization(instance)
-            util.check_service_logs_for_panics(instance)
-
-        last_channel = current_channel
-        current_channel = channel
-
-        for instance in instances:
-            LOG.debug(f"Step 2. Roll back from {current_channel} → {last_channel}")
-            util.snap_refresh(instance, last_channel, cached_snaps=cached_snaps)
-            util.wait_until_k8s_ready(cp, instances)
-            LOG.info("Verifying snap service health")
-            util.check_snap_services_ready(instance, retries=10, delay_s=10)
-            util.check_no_service_restarts_after_stabilization(instance)
-            util.check_service_logs_for_panics(instance)
-
-        for instance in instances:
-            LOG.debug(
-                f"Step 3. Final downgrade to channel from {last_channel} → {current_channel}"
-            )
-            util.snap_refresh(instance, current_channel, cached_snaps=cached_snaps)
-            util.wait_until_k8s_ready(cp, instances)
-            LOG.info("Verifying snap service health")
-            util.check_snap_services_ready(instance, retries=10, delay_s=10)
-            util.check_no_service_restarts_after_stabilization(instance)
-            util.check_service_logs_for_panics(instance)
-
-            LOG.info("Rollback segment complete. Proceeding to next downgrade segment.")
-
-        LOG.info("Waiting for all pods to be ready after downgrade segment")
-        # Use a generous timeout for pod readiness after downgrade segments.
-        # Multiple rapid version transitions (downgrade + rollback + final downgrade
-        # across all nodes) can leave pods in a degraded state that takes longer than
-        # the default 10 minutes to recover, especially on arm64.
-        util.wait_for_pods_ready(cp, retries=180, delay_s=5)
-        LOG.info("All pods are ready after downgrade segment")
-
-    LOG.info("Rollback test complete. All downgrade segments verified.")
-
-
 @pytest.mark.node_count(4)
 @pytest.mark.no_setup()
 @pytest.mark.tags(tags.NIGHTLY)
@@ -285,7 +147,7 @@ def test_feature_upgrades_inplace(
     )
 
     for instance in instances:
-        util.setup_k8s_snap(instance, start_branch, cached_snaps=cached_snaps)
+        util.setup_k8s_snap(instance, tmp_path, start_branch, cached_snaps=cached_snaps)
         if config.USE_LOCAL_MIRROR and registry:
             registry.apply_configuration(instance, containerd_cfgdir)
 

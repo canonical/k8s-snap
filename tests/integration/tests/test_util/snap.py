@@ -1,14 +1,13 @@
 #
 # Copyright 2025 Canonical, Ltd.
 #
-import json
 import logging
 import re
 import urllib.error
 from typing import List, Optional, Tuple
 
 from test_util import util
-from test_util.util import major_minor
+from test_util.util import fetch_json, major_minor
 
 LOG = logging.getLogger(__name__)
 
@@ -25,17 +24,14 @@ RISK_LEVELS = ["stable", "candidate", "beta", "edge"]
 
 def get_snap_info(snap_name=SNAP_NAME):
     """Get the snap info from the Snap Store API."""
-    req = urllib.request.Request(
-        SNAPSTORE_INFO_API + snap_name, headers=SNAPSTORE_HEADERS
-    )
+    url = SNAPSTORE_INFO_API + snap_name
     try:
-        with urllib.request.urlopen(req) as response:  # nosec
-            return json.loads(response.read().decode())
+        return fetch_json(url, headers=SNAPSTORE_HEADERS)  # nosec
     except urllib.error.HTTPError as e:
-        LOG.exception("HTTPError ({%s}): {%s} {%s}", req.full_url, e.code, e.reason)
+        LOG.exception("HTTPError ({%s}): {%s} {%s}", url, e.code, e.reason)
         raise
     except urllib.error.URLError as e:
-        LOG.exception("URLError ({%s}): {%s}", req.full_url, e.reason)
+        LOG.exception("URLError ({%s}): {%s}", url, e.reason)
         raise
 
 

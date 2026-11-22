@@ -12,6 +12,7 @@ import re
 import shlex
 import subprocess
 import time
+import urllib.error
 import urllib.request
 import uuid
 from datetime import datetime
@@ -33,11 +34,6 @@ from tenacity import (
     wait_fixed,
 )
 from test_util import config, harness
-
-# Postponed annotation evaluation is required: `test_util.harness` imports
-# `bare_metal` first (isort order), which imports this module while the
-# `harness` package is still half-initialised, so annotations such as
-# `harness.Instance` can't be evaluated at definition time.
 
 
 LOG = logging.getLogger(__name__)
@@ -462,23 +458,17 @@ def _install_cached_snap(
 
 def setup_k8s_snap(
     instance: harness.Instance,
-    snap_or_tmp: Union[str, Path, None] = None,
+    tmp_path: Path,
     snap: Optional[str] = None,
-    connect_interfaces: bool = True,
-    tmp_path: Optional[Path] = None,
+    connect_interfaces=True,
     timeout: int = 60 * 5,
     cached_snaps: Optional[Dict[str, Tuple[Union[str, Path], Union[str, Path]]]] = None,
     delay_s: int = 30,
 ):
     """Installs and sets up the snap on the given instance and connects the interfaces."""
-    if isinstance(snap_or_tmp, Path):
-        dest_tmp = snap_or_tmp
-        which_snap = snap or config.SNAP
-    else:
-        dest_tmp = tmp_path or Path("/tmp")
-        which_snap = snap_or_tmp or snap or config.SNAP
-
     cmd = ["snap", "install", "--classic"]
+    which_snap = snap or config.SNAP
+
     if not which_snap:
         pytest.fail(
             "Cannot install without either a channel, revision, or path to the snap "
@@ -499,7 +489,7 @@ def setup_k8s_snap(
     else:
         if isinstance(which_snap, str) and which_snap.startswith("/"):
             LOG.info("Install k8s snap by path")
-            snap_path = (dest_tmp / "k8s.snap").as_posix()
+            snap_path = (tmp_path / "k8s.snap").as_posix()
             instance.send_file(which_snap, snap_path)
             cmd += ["--dangerous", snap_path]
         elif _as_int(which_snap):
