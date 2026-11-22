@@ -146,7 +146,7 @@ jobs:
       test-tags: ${{ needs.get-e2e-tags.outputs.test-tags }}
       artifact: k8s-${{ matrix.arch }}.snap
       test-collection-repo: ${{github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name || github.repository }}
-      test-collection-branch: ${{ github.head_ref }}
+      test-collection-branch: ${{ github.head_ref || github.ref_name }}
       parallel: true
 
   security-scan:
