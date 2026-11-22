@@ -126,6 +126,7 @@ jobs:
           channel: "5.21/stable"
       - name: Cleanup LXD after failure
         if: steps.setup-lxd.outcome == 'failure'
+        continue-on-error: true
         timeout-minutes: 5
         run: |
           sudo systemctl stop snapd.service snapd.socket || true
