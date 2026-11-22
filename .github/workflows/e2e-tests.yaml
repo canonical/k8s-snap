@@ -121,6 +121,10 @@ jobs:
           python-version: "3.12"
       - name: Install tox
         run: |
+          sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
+          for f in /etc/apt/sources.list.d/*; do
+            [ -f "$f" ] && grep -q "packages.microsoft.com" "$f" 2>/dev/null && sudo rm -f "$f" || true
+          done
           sudo apt-get update
           sudo apt-get install -y tox
       - name: Compute test runners
@@ -187,6 +191,10 @@ jobs:
         uses: ./.github/actions/setup-multipass
       - name: Install tox
         run: |
+          sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
+          for f in /etc/apt/sources.list.d/*; do
+            [ -f "$f" ] && grep -q "packages.microsoft.com" "$f" 2>/dev/null && sudo rm -f "$f" || true
+          done
           sudo apt-get update
           sudo apt-get install -y tox
       - name: Generate names for step and artifacts
