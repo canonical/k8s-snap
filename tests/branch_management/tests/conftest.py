@@ -32,7 +32,7 @@ RELEASE_URL = "https://dl.k8s.io/release/stable-{}.{}.txt"
 def _upstream_release(ver: semver.Version) -> Optional[semver.Version]:
     """Semver of the major.minor release if it exists"""
     r = requests.get(RELEASE_URL.format(ver.major, ver.minor), timeout=30)
-    if r.status_code in {429, 500, 502, 503, 504}:
+    if r.status_code in {408, 429, 500, 502, 503, 504}:
         r.raise_for_status()
     if r.status_code == 200:
         return semver.Version.parse(r.content.decode().lstrip("v"))

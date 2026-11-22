@@ -79,7 +79,7 @@ def _confirm_all_branches_exist(leader):
 def _confirm_recipe_exist(track, flavour):
     recipe = f"https://launchpad.net/~containers/k8s/+snap/k8s-snap-{track}-{flavour}"
     r = requests.get(recipe, timeout=30)
-    if r.status_code in {429, 500, 502, 503, 504}:
+    if r.status_code in {408, 429, 500, 502, 503, 504}:
         r.raise_for_status()
     return r.status_code == 200
 
