@@ -81,6 +81,7 @@ def _test_loadbalancer(instances: List[harness.Instance], k8s_net_type: K8sNetTy
         lb_cidr = util.find_suitable_cidr(
             parent_cidr=instance_default_cidr,
             excluded_ips=[instance_default_ip, tester_instance_default_ip],
+            instance=instance,
         )
         return lb_cidr
 
