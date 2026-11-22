@@ -1,12 +1,10 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
-import logging
 import subprocess
 from unittest.mock import MagicMock
 
 import pytest
-from tenacity import RetryError
 from test_util import harness, tags, util  # noqa: F401
 
 

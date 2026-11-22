@@ -8,7 +8,7 @@ import urllib.error
 from typing import List, Optional, Tuple
 
 from test_util import util
-from test_util.util import fetch_json, major_minor
+from test_util.util import major_minor
 
 LOG = logging.getLogger(__name__)
 
