@@ -166,26 +166,76 @@ jobs:
         timeout-minutes: 50
         run: |
           pre_containers=$(mktemp)
-          lxc list -c n --format csv > "$pre_containers"
+          if ! timeout 15s lxc list -c n --format csv > "$pre_containers"; then
+            echo "Failed to list initial lxc containers" >&2
+            rm -f "$pre_containers"
+            exit 1
+          fi
+
+          has_controller() {
+            local ctrl="$1"
+            local json
+            local ret=0
+            json=$(timeout 15s juju controllers --format json) || ret=$?
+            if [ "$ret" -ne 0 ]; then
+              echo "Warning: failed to query juju controllers ($ret)" >&2
+              return 0
+            fi
+            echo "$json" | jq -e --arg c "$ctrl" '.controllers // {} | has($c)' >/dev/null
+          }
 
           cleanup() {
-            timeout 1m juju kill-controller -y -t 30s lxd 2>/dev/null || true
-            timeout 15s juju unregister -y lxd 2>/dev/null || true
+            timeout 1m juju kill-controller --no-prompt -t 30s lxd || echo "juju kill-controller failed or timed out ($?)"
+            if has_controller lxd; then
+              timeout 15s juju unregister --no-prompt lxd || echo "juju unregister failed or timed out ($?)"
+            fi
             if [ -f "$pre_containers" ]; then
-              comm -23 <(timeout 15s lxc list -c n --format csv 2>/dev/null | sort) <(sort "$pre_containers") | grep -E '^juju-' | xargs -r -n 1 timeout 30s lxc delete -f 2>/dev/null || true
+              local current_containers
+              current_containers=$(mktemp)
+              if ! timeout 15s lxc list -c n --format csv | sort > "$current_containers"; then
+                echo "Failed to list lxc containers during cleanup" >&2
+                rm -f "$current_containers"
+                return 1
+              fi
+              comm -23 "$current_containers" <(sort "$pre_containers") | (grep -E '^juju-' || true) | xargs -r -n 1 timeout 30s lxc delete -f || echo "lxc delete failed ($?)"
+              if ! timeout 15s lxc list -c n --format csv | sort > "$current_containers"; then
+                echo "Failed to list lxc containers after deletion" >&2
+                rm -f "$current_containers"
+                return 1
+              fi
+              local stale
+              stale=$(comm -23 "$current_containers" <(sort "$pre_containers") | (grep -E '^juju-' || true))
+              rm -f "$current_containers"
+              if [ -n "$stale" ]; then
+                echo "Warning: stale juju containers remain after cleanup: $stale" >&2
+                return 1
+              fi
             fi
           }
+
+          if has_controller lxd; then
+            echo "Pre-existing lxd controller found before bootstrap" >&2
+            rm -f "$pre_containers"
+            exit 1
+          fi
 
           # Retry once after cleaning lingering controller state if bootstrap hangs.
           ret=0
           timeout -k 10s 20m juju bootstrap localhost lxd --debug || ret=$?
           if [ "$ret" -ne 0 ]; then
             echo "Bootstrap failed or timed out; retrying after cleanup..."
-            cleanup
+            cleanup || { echo "Cleanup failed before retry" >&2; exit 1; }
+            if has_controller lxd; then
+              timeout 15s juju unregister --no-prompt lxd || echo "juju unregister failed or timed out ($?)"
+            fi
+            if has_controller lxd; then
+              echo "Controller lxd still present in juju controllers" >&2
+              exit 1
+            fi
             ret=0
             timeout -k 10s 20m juju bootstrap localhost lxd --debug || ret=$?
             if [ "$ret" -ne 0 ]; then
-              cleanup
+              cleanup || true
               rm -f "$pre_containers"
               exit "$ret"
             fi
