@@ -27,7 +27,9 @@ def test_snap_services(instances: List[harness.Instance], tmp_path: Path):
     util.wait_until_k8s_ready(cp, instances)
 
     refresh_track = util.previous_track(config.SNAP)
-    cached_snaps = util.download_k8s_snaps([refresh_track], tmp_path)
+    cached_snaps = util.download_k8s_snaps(
+        [refresh_track], tmp_path, arch=util.instance_arch(cp)
+    )
 
     LOG.info(f"Refreshing the snap to {refresh_track}")
     util.snap_refresh(
