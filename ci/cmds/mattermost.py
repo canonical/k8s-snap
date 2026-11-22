@@ -15,9 +15,12 @@ import argparse
 import json
 import os
 import sys
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
+
+MAX_FAILING_TESTS = 5
+_NON_FAILING_STATUSES = {"success", "skipped"}
 
 
 def add_mattermost_cmds(parser: argparse.ArgumentParser) -> None:
@@ -106,74 +109,161 @@ def _determine_run_link(entry: Dict[str, Any]) -> Optional[str]:
     return None
 
 
-def _build_tree_message(entries: List[Dict[str, Any]]) -> str:
-    """
-    Build a tree-formatted string of all test results.
+def _entry_channel(entry: Dict[str, Any]) -> str:
+    """Return the channel label for a result entry."""
+    channel = str(entry.get("channel") or "").strip()
+    if channel:
+        return channel
+    artifact = str(entry.get("artifact") or "").strip()
+    if artifact:
+        return f"artifact:{artifact}"
+    return "unknown"
 
-    Args:
-        entries: List of result dictionaries.
 
-    Returns:
-        Formatted tree string.
-    """
-    # Build a nested tree: channel -> os -> arch -> list of entries
-    tree: Dict[str, Dict[str, Dict[str, List[Dict[str, Any]]]]] = {}
+def _entry_status(entry: Dict[str, Any]) -> str:
+    """Return the normalized lowercase status for an entry."""
+    return str(entry.get("status") or "").strip().lower()
+
+
+def _format_os_arch_header(os_name: str, arch: str) -> str:
+    """Format an OS and architecture pair as a compact table column header."""
+    short_os = os_name.removeprefix("ubuntu:")
+    return f"{short_os} {arch}"
+
+
+def _format_cell(cell_entries: List[Dict[str, Any]]) -> str:
+    """Format a single channel x (os, arch) matrix cell."""
+    if not cell_entries:
+        return "—"
+    non_passing = [
+        e for e in cell_entries if _entry_status(e) not in _NON_FAILING_STATUSES
+    ]
+    if not non_passing:
+        return ":white_check_mark:"
+    cancelled = sum(1 for e in non_passing if _entry_status(e) == "cancelled")
+    failed = len(non_passing) - cancelled
+    parts: List[str] = []
+    if failed:
+        parts.append(f":x: {failed}")
+    if cancelled:
+        parts.append(f":stopwatch: {cancelled}")
+    return " ".join(parts)
+
+
+def _format_status_breakdown(failed_entries: List[Dict[str, Any]]) -> str:
+    """Format status counts (failed vs cancelled) for a failing test row."""
+    cancelled = sum(1 for e in failed_entries if _entry_status(e) == "cancelled")
+    failed = len(failed_entries) - cancelled
+    parts: List[str] = []
+    if failed:
+        parts.append(f":x: {failed}")
+    if cancelled:
+        parts.append(f":stopwatch: {cancelled}")
+    return ", ".join(parts)
+
+
+def _build_channel_matrix_table(
+    entries: List[Dict[str, Any]], channels: List[str]
+) -> List[str]:
+    """Build the Channel Matrix markdown table lines."""
+    targets: List[Tuple[str, str]] = sorted(
+        {
+            (str(e.get("os") or "unknown"), str(e.get("arch") or "unknown"))
+            for e in entries
+        }
+    )
+    grid: Dict[Tuple[str, str, str], List[Dict[str, Any]]] = {}
     for e in entries:
-        ch = str(e.get("channel", "unknown"))
-        osn = str(e.get("os", "unknown"))
-        arch = str(e.get("arch", "unknown"))
-        tree.setdefault(ch, {}).setdefault(osn, {}).setdefault(arch, []).append(e)
+        key = (
+            _entry_channel(e),
+            str(e.get("os") or "unknown"),
+            str(e.get("arch") or "unknown"),
+        )
+        grid.setdefault(key, []).append(e)
 
-    lines: List[str] = []
-    for ch in sorted(tree.keys(), reverse=True):
-        lines.append(f"{ch}")
-        os_list = sorted(tree[ch].keys())
-        for oi, osn in enumerate(os_list):
-            os_prefix = "└──" if oi == len(os_list) - 1 else "├──"
-            lines.append(f"    {os_prefix} {osn}")
-            arch_list = sorted(tree[ch][osn].keys())
-            for ai, arch in enumerate(arch_list):
-                arch_prefix = "└──" if ai == len(arch_list) - 1 else "├──"
-                entry_list = tree[ch][osn][arch]
-                failed_runs = [
-                    e
-                    for e in entry_list
-                    if str(e.get("status", "")).lower() != "success"
-                ]
-                # Determine arch-level status: success only if all entries succeeded
-                statuses = [str(e.get("status", "")).lower() for e in entry_list]
-                status = (
-                    "success" if all(s == "success" for s in statuses) else "failed"
-                )
-                emoji = ":white_check_mark:" if status == "success" else ":x:"
-                # If there's only one entry, preserve previous behavior to link that run
-                if not failed_runs:
-                    run_link = (
-                        _determine_run_link(entry_list[0]) if len(entry_list) else None
-                    )
-                    run_part = f" [Run]({run_link})" if run_link else " Run"
-                else:
-                    # For multiple entries, avoid a top-level link; individual failed runs below will have links.
-                    run_part = ""
-                indent = "        " if oi == len(os_list) - 1 else "    │   "
-                lines.append(f"{indent}{arch_prefix} {arch}: {emoji} {run_part}")
+    headers = [_format_os_arch_header(os_name, arch) for os_name, arch in targets]
+    lines = [
+        "### Channel Matrix",
+        "| Channel | " + " | ".join(headers) + " |",
+        "| --- | " + " | ".join(":---:" for _ in targets) + " |",
+    ]
+    for ch in channels:
+        cells = [
+            _format_cell(grid.get((ch, os_name, arch), [])) for os_name, arch in targets
+        ]
+        lines.append(f"| `{ch}` | " + " | ".join(cells) + " |")
+    return lines
 
-                # If there are failed runs for this arch, add a subtree listing them with links
-                if failed_runs:
-                    # child prefix keeps vertical bar if this arch isn't the last in the os list
-                    child_base = indent + (
-                        "    " if ai == len(arch_list) - 1 else "│   "
-                    )
-                    for fi, fe in enumerate(failed_runs):
-                        child_conn = "└──" if fi == len(failed_runs) - 1 else "├──"
-                        run_link = _determine_run_link(fe)
-                        run_part = f" [Run]({run_link})" if run_link else " Run"
-                        name = (
-                            fe.get("test").split("::")[-1]
-                            if fe.get("test")
-                            else "Unnamed Test"
-                        )
-                        lines.append(f"{child_base}{child_conn} {name}{run_part}")
+
+def _build_failing_tests_table(
+    entries: List[Dict[str, Any]], all_channels: List[str]
+) -> List[str]:
+    """Build the Top Failing Tests markdown table lines, capped at MAX_FAILING_TESTS."""
+    by_test: Dict[str, List[Dict[str, Any]]] = {}
+    for e in entries:
+        if _entry_status(e) in _NON_FAILING_STATUSES:
+            continue
+        raw_test = str(e.get("test") or "")
+        name = raw_test.split("::")[-1] if raw_test else "Unnamed Test"
+        by_test.setdefault(name, []).append(e)
+
+    if not by_test:
+        return []
+
+    ranked = sorted(by_test.items(), key=lambda kv: (-len(kv[1]), kv[0]))
+    channel_order = {ch: idx for idx, ch in enumerate(all_channels)}
+
+    lines = [
+        "### Top Failing Tests",
+        "| Test | Count | Breakdown | Channels |",
+        "| --- | ---: | --- | --- |",
+    ]
+    for name, test_entries in ranked[:MAX_FAILING_TESTS]:
+        safe_name = name.replace("|", "\\|")
+        affected = sorted(
+            {_entry_channel(e) for e in test_entries},
+            key=lambda ch: channel_order.get(ch, len(channel_order)),
+        )
+        if len(all_channels) >= 4 and len(affected) == len(all_channels):
+            channels_display = f"all {len(all_channels)} channels"
+        else:
+            channels_display = ", ".join(f"`{ch}`" for ch in affected)
+        breakdown = _format_status_breakdown(test_entries)
+        lines.append(
+            f"| `{safe_name}` | {len(test_entries)} | {breakdown} | {channels_display} |"
+        )
+
+    remaining = len(ranked) - MAX_FAILING_TESTS
+    if remaining > 0:
+        noun = "test" if remaining == 1 else "tests"
+        more_label = f"{remaining} more failing {noun}"
+        run_link = next(
+            (
+                _determine_run_link(e)
+                for _, es in ranked[MAX_FAILING_TESTS:]
+                for e in es
+                if _determine_run_link(e)
+            ),
+            None,
+        )
+        if run_link:
+            lines.append(f"_...and [{more_label}]({run_link})._")
+        else:
+            lines.append(f"_...and {more_label}._")
+    return lines
+
+
+def build_details_message(entries: List[Dict[str, Any]]) -> str:
+    """Build channel matrix and top failing test tables for a Mattermost thread reply."""
+    if not entries:
+        return "_No test results recorded._"
+
+    channels = sorted({_entry_channel(e) for e in entries}, reverse=True)
+    lines = _build_channel_matrix_table(entries, channels)
+    failing_lines = _build_failing_tests_table(entries, channels)
+    if failing_lines:
+        lines.append("")
+        lines.extend(failing_lines)
     return "\n".join(lines)
 
 
@@ -193,13 +283,27 @@ def _build_summary_payload(
         Payload dictionary ready to post.
     """
     total = len(entries)
-    successes = sum(1 for e in entries if str(e.get("status", "")).lower() == "success")
-    skipped = sum(1 for e in entries if str(e.get("status", "")).lower() == "skipped")
-    failures = total - successes - skipped
+    successes = sum(1 for e in entries if _entry_status(e) == "success")
+    skipped = sum(1 for e in entries if _entry_status(e) == "skipped")
+    cancelled = sum(1 for e in entries if _entry_status(e) == "cancelled")
+    failed = total - successes - skipped - cancelled
+    non_passing = failed + cancelled
     pass_pct = (successes / total * 100) if total else 0.0
-    emoji = ":white_check_mark:" if failures == 0 else ":x:"
+    emoji = ":white_check_mark:" if non_passing == 0 else ":x:"
     title = f"{emoji} {title}"
-    text = f"{successes}/{total} passed ({pass_pct:.0f}%) — Skipped: {skipped}"
+
+    parts = [f"{successes}/{total} passed ({pass_pct:.0f}%)"]
+    if failed:
+        parts.append(f":x: {failed} failed")
+    if cancelled:
+        parts.append(f":stopwatch: {cancelled} cancelled")
+    parts.append(f"Skipped: {skipped}")
+    text = " · ".join(parts)
+
+    run_link = _determine_run_link(entries[0]) if entries else None
+    if run_link:
+        text = f"{text} — [View Run]({run_link})"
+
     return {
         "channel_id": channel_id,
         "attachments": [
@@ -208,18 +312,11 @@ def _build_summary_payload(
     }
 
 
-def _determine_color(entries: List[Dict[str, Any]], text: str) -> str:
-    """
-    Determine color for webhook attachment based on test statuses.
-
-    Returns:
-        'good' if all success, 'danger' if any failed.
-    """
+def _determine_color(entries: List[Dict[str, Any]]) -> str:
+    """Return 'good' when all entries passed or skipped, else 'danger'."""
     for e in entries:
-        if str(e.get("status", "")).lower() != "success":
+        if _entry_status(e) not in _NON_FAILING_STATUSES:
             return "danger"
-    if ":x:" in text:
-        return "danger"
     return "good"
 
 
@@ -232,7 +329,11 @@ def post_webhook(webhook: str, payload: Dict[str, Any]) -> None:
     try:
         with urlopen(req, timeout=20) as resp:
             resp.read()  # webhook returns plain "ok"
-    except (HTTPError, URLError) as e:
+    except HTTPError as e:
+        detail = e.read().decode("utf-8", errors="replace") if e.fp else ""
+        print(f"Webhook error: {e} {detail}".strip(), file=sys.stderr)
+        raise SystemExit(2)
+    except URLError as e:
         print(f"Webhook error: {e}", file=sys.stderr)
         raise SystemExit(2)
 
@@ -271,7 +372,11 @@ def _post_bot(
     try:
         with urlopen(req, timeout=20) as resp:
             return json.loads(resp.read().decode("utf-8"))
-    except (HTTPError, URLError) as e:
+    except HTTPError as e:
+        detail = e.read().decode("utf-8", errors="replace") if e.fp else ""
+        print(f"Bot post error: {e} {detail}".strip(), file=sys.stderr)
+        raise SystemExit(2)
+    except URLError as e:
         print(f"Bot post error: {e}", file=sys.stderr)
         raise SystemExit(2)
 
@@ -279,8 +384,8 @@ def _post_bot(
 def cmd_results_message(args: argparse.Namespace) -> int:
     """Command to post CI results summary via webhook and details as bot-threaded comment."""
     entries = _load_flattened_json(args.file)
-    tree_text = _build_tree_message(entries)
-    color = _determine_color(entries, tree_text)
+    details_text = build_details_message(entries)
+    color = _determine_color(entries)
 
     webhook = args.webhook or os.environ.get("MATTERMOST_WEBHOOK_URL")
     token = args.bot_token or os.environ.get("MATTERMOST_BOT_TOKEN")
@@ -291,8 +396,8 @@ def cmd_results_message(args: argparse.Namespace) -> int:
     if args.dry_run:
         print("=== SUMMARY ===")
         print(_build_summary_payload(channel_id, entries, title, color))
-        print("=== TREE ===")
-        print(tree_text)
+        print("=== DETAILS ===")
+        print(details_text)
         return 0
 
     if not webhook or not token or not server or not channel_id:
@@ -323,6 +428,5 @@ def cmd_results_message(args: argparse.Namespace) -> int:
         print(f"Error fetching last post: {e}", file=sys.stderr)
         return 2
 
-    # Post detailed tree as threaded comment
-    _post_bot(server, token, channel_id, tree_text, root_id=root_id)
+    _post_bot(server, token, channel_id, details_text, root_id=root_id)
     return 0

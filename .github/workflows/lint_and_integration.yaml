@@ -103,10 +103,11 @@ jobs:
           max_attempts: 5
           retry_wait_seconds: 5
           command: sudo apt-get install -y tox
-      - name: Lint
+      - name: Lint and unit tests
         run: |
           cd tests/integration && tox -e lint
           cd ../../ci && tox -e lint
+          tox -e test
       - name: Bandit security scan
         run: |
           pip install --require-hashes -r ci/requirements-bandit.txt
