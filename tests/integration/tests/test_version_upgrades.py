@@ -92,15 +92,13 @@ def test_version_upgrades(instances: List[harness.Instance], tmp_path):
             latest_version = out.stdout.decode().strip().split("\n")[-1]
             LOG.info(f"Current snap version: {latest_version}")
 
-            # note: the `--classic` flag will be ignored by snapd for strict snaps.
             if channel.startswith("/"):
                 LOG.info("Refreshing k8s snap by path")
-                cmd = ["snap", "install", "--classic", "--dangerous", snap_path]
+                util.stubbornly(retries=5, delay_s=5).on(instance).exec(
+                    ["snap", "install", "--classic", "--dangerous", snap_path]
+                )
             else:
-                cmd = ["snap", "refresh", "--classic", config.SNAP_NAME]
-                cmd += [*util.snap_channel_args(channel), "--amend"]
-
-            instance.exec(cmd)
+                util.snap_refresh(instance, channel, "--amend")
             util.wait_until_k8s_ready(cp, instances)
             LOG.info("Verifying snap service health")
             util.check_snap_services_ready(instance)
@@ -141,7 +139,7 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
     worker = instances[-1]
 
     for instance in instances:
-        instance.exec(
+        util.stubbornly(retries=3, delay_s=30).on(instance).exec(
             [
                 "snap",
                 "install",
@@ -152,6 +150,9 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
         )
 
     bootstrap_cp.exec(["k8s", "bootstrap"])
+    # Avoid racing the bootstrap node's kubelet Node registration (join can
+    # fail with "the cluster has no nodes" otherwise).
+    util.wait_until_k8s_ready(bootstrap_cp, [bootstrap_cp])
     for instance in instances:
         if instance.id in [bootstrap_cp.id, worker.id]:
             continue
@@ -325,15 +326,18 @@ def test_feature_upgrades_rollout_upgrade(
 
     # Setup the first half of nodes up on the old version.
     for instance in instances[:3]:
-        instance.exec(
+        util.stubbornly(retries=3, delay_s=30).on(instance).exec(
             ["snap", "install", "k8s", "--classic", *util.snap_channel_args(start_snap)]
         )
 
-    instance.exec(
+    util.stubbornly(retries=3, delay_s=30).on(instance).exec(
         ["snap", "install", "k8s", "--classic", *util.snap_channel_args(start_snap)]
     )
 
     main_old.exec(["k8s", "bootstrap"])
+    # Avoid racing the bootstrap node's kubelet Node registration (join can
+    # fail with "the cluster has no nodes" otherwise).
+    util.wait_until_k8s_ready(main_old, [main_old])
     for instance in instances[1:3]:
         token = util.get_join_token(main_old, instance)
         instance.exec(["k8s", "join-cluster", token])
