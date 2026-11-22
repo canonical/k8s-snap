@@ -143,6 +143,28 @@ def test_version_upgrades(
         LOG.info("All pods are ready after upgrade")
 
 
+def _dump_upgrade_diagnostics(
+    cp: harness.Instance, instances: List[harness.Instance], step_label: str
+):
+    LOG.info(f"=== DIAGNOSTIC DUMP BEGIN: {step_label} ===")
+    try:
+        out = cp.exec(["k8s", "kubectl", "get", "upgrades", "-o", "yaml"], capture_output=True, text=True)
+        LOG.info(f"k8s kubectl get upgrades -o yaml:\n{out.stdout}")
+    except Exception as e:
+        LOG.warning(f"Failed to dump upgrades YAML: {e}")
+    for inst in instances:
+        try:
+            out = inst.exec(
+                ["bash", "-c", "journalctl -u snap.k8s.k8sd --no-pager | grep -E 'already exists|mark node as ready' || true"],
+                capture_output=True,
+                text=True,
+            )
+            LOG.info(f"k8sd log filter on {inst.id}:\n{out.stdout.strip()}")
+        except Exception as e:
+            LOG.warning(f"Failed to dump k8sd journal on {inst.id}: {e}")
+    LOG.info(f"=== DIAGNOSTIC DUMP END: {step_label} ===")
+
+
 @pytest.mark.node_count(3)
 @pytest.mark.no_setup()
 @pytest.mark.skipif(
@@ -245,6 +267,9 @@ def test_version_downgrades_with_rollback(
             util.check_snap_services_ready(instance, retries=10, delay_s=10)
             util.check_no_service_restarts_after_stabilization(instance)
             util.check_service_logs_for_panics(instance)
+        _dump_upgrade_diagnostics(
+            cp, instances, f"Step 1 Downgrade {current_channel} -> {channel}"
+        )
 
         last_channel = current_channel
         current_channel = channel
@@ -257,6 +282,9 @@ def test_version_downgrades_with_rollback(
             util.check_snap_services_ready(instance, retries=10, delay_s=10)
             util.check_no_service_restarts_after_stabilization(instance)
             util.check_service_logs_for_panics(instance)
+        _dump_upgrade_diagnostics(
+            cp, instances, f"Step 2 Rollback {current_channel} -> {last_channel}"
+        )
 
         for instance in instances:
             LOG.debug(
@@ -269,7 +297,10 @@ def test_version_downgrades_with_rollback(
             util.check_no_service_restarts_after_stabilization(instance)
             util.check_service_logs_for_panics(instance)
 
-            LOG.info("Rollback segment complete. Proceeding to next downgrade segment.")
+        _dump_upgrade_diagnostics(
+            cp, instances, f"Step 3 Final Downgrade {last_channel} -> {current_channel}"
+        )
+        LOG.info("Rollback segment complete. Proceeding to next downgrade segment.")
 
         LOG.info("Waiting for all pods to be ready after downgrade segment")
         # Use a generous timeout for pod readiness after downgrade segments.

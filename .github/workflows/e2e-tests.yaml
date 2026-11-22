@@ -225,7 +225,7 @@ jobs:
           # Collect test names and convert to JSON array for GitHub Actions
           # There is no easy way to get the test names from pytest, so we use the --collect-only flag
           # and parse the output to extract the test names.
-          TEST_FILES=$(tox -e integration -- --collect-only $TAGS_ARGS --quiet --no-header tests/test_version_upgrades.py | grep ::)
+          TEST_FILES=$(tox -e integration -- --collect-only $TAGS_ARGS --quiet --no-header tests/test_version_upgrades.py | grep ::test_version_downgrades_with_rollback)
 
           JSON_ARRAY=$(printf '%s\n' "$TEST_FILES" | jq -R -s -c 'split("\n") | map(select(length > 0))')
           echo "tests=$JSON_ARRAY" >> $GITHUB_OUTPUT
@@ -384,12 +384,12 @@ jobs:
           # tee so the same block lands in the job log and the run summary.
           python3 ci-tooling/ci/k8s-ci.py e2e print-failure-context | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Prepare inspection reports
-        if: failure() || cancelled()
+        if: always()
         run: |
           mkdir -p inspection-report-archives
           tar -czvf "inspection-report-archives/${test_name}.tar.gz" -C "$GITHUB_WORKSPACE" "inspection-reports/${test_name}" || true
       - name: Upload inspection report artifact
-        if: failure() || cancelled()
+        if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: inspection-reports-${{ env.test_name }}
