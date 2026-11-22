@@ -32,7 +32,7 @@ runs:
 
     - name: Download snap artifact
       if: inputs.artifact != ''
-      uses: ./.github/actions/retry-command
+      uses: $/.github/actions/retry-command
       env:
         GH_TOKEN: ${{ github.token }}
         GH_REPO: ${{ github.repository }}
@@ -44,6 +44,7 @@ runs:
         timeout_minutes: 3
         retry_wait_seconds: 10
         command: |
+          set -e
           CLEAN_ARTIFACT=$(printf '%s' "$INPUT_ARTIFACT" | tr -d '\r\n')
           artifact=$(basename -- "$CLEAN_ARTIFACT")
           if [[ -z "$artifact" || "$artifact" == "." || "$artifact" == ".." || "$artifact" == *"/"* || "$artifact" != "$CLEAN_ARTIFACT" ]]; then
@@ -57,7 +58,7 @@ runs:
           ls -lh "$full_path"
     - name: Download snap channel
       if: inputs.channel != ''
-      uses: ./.github/actions/retry-command
+      uses: $/.github/actions/retry-command
       env:
         INPUT_CHANNEL: ${{ inputs.channel }}
       with:
@@ -65,6 +66,7 @@ runs:
         timeout_minutes: 3
         retry_wait_seconds: 10
         command: |
+          set -e
           rm -f k8s.snap k8s.assert
           snap download k8s --channel="$INPUT_CHANNEL" --basename k8s
           full_path=`realpath k8s.snap`
