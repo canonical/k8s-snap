@@ -126,7 +126,6 @@ jobs:
       - name: Bootstrap Juju controller (lxd)
         timeout-minutes: 50
         run: |
-<<<<<<< HEAD
           pre_containers=$(mktemp)
           lxc list -c n --format csv > "$pre_containers"
 
@@ -162,7 +161,18 @@ jobs:
           operator_repo="https://github.com/canonical/k8s-operator.git"
 
           ref_exists() {
-            git ls-remote --exit-code "$operator_repo" "refs/heads/$1" >/dev/null 2>&1
+            local ret=0
+            for _ in 1 2 3; do
+              ret=0
+              git ls-remote --exit-code "$operator_repo" "refs/heads/$1" >/dev/null 2>&1 || ret=$?
+              if [ "$ret" -eq 0 ]; then
+                return 0
+              elif [ "$ret" -eq 2 ]; then
+                return 1
+              fi
+              sleep 2
+            done
+            return 1
           }
 
           target=""
