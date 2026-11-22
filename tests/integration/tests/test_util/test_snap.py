@@ -4,7 +4,7 @@
 from unittest.mock import patch
 
 import pytest
-from test_util import snap, tags
+from test_util import config, snap, tags, util
 
 
 @pytest.mark.tags(tags.PULL_REQUEST)
@@ -328,3 +328,34 @@ def test_build_downgrade_channel_list(mock_get_snap_info):
         == explicit
     )
     assert mock_get_snap_info.call_count == 0
+
+
+@pytest.mark.tags(tags.PULL_REQUEST)
+def test_previous_track_from_branch():
+    assert util._previous_track_from_branch("release-1.34") == "1.33-classic"
+    assert util._previous_track_from_branch("refs/heads/release-1.34") == "1.33-classic"
+    assert util._previous_track_from_branch("release-1.32") == "1.31-classic"
+
+    assert util._previous_track_from_branch("backport/foo-1.34") == "1.33-classic"
+    assert (
+        util._previous_track_from_branch("backport-upgrade-stability-release-1.36")
+        == "1.35-classic"
+    )
+
+    with patch("test_util.util._get_local_snap_version", return_value=(1, 35)):
+        assert (
+            util._previous_track_from_branch("stacked-fix", snap_path="/tmp/test.snap")
+            == "1.34-classic"
+        )
+
+    with patch("test_util.util._get_local_snap_version", return_value=None):
+        with patch("test_util.util._get_repo_version", return_value=(1, 34)):
+            assert util._previous_track_from_branch("stacked-fix") == "1.33-classic"
+
+
+@pytest.mark.tags(tags.PULL_REQUEST)
+def test_previous_track_stacked_base_ref(monkeypatch):
+    monkeypatch.setattr(config, "GH_BASE_REF", "backport/fix-1.34")
+    monkeypatch.setattr(config, "GH_REF", None)
+
+    assert util.previous_track("/tmp/k8s.snap") == "1.33-classic"
