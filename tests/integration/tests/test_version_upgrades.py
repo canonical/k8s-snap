@@ -354,7 +354,7 @@ def test_feature_upgrades_inplace(
         util.stubbornly(retries=15, delay_s=5)
         .on(bootstrap_cp)
         .until(
-            lambda p: bool(p.stdout.strip())
+            lambda p: bool(json.loads(p.stdout or "[]"))
             and all(r.get("status") == "deployed" for r in json.loads(p.stdout))
         )
         .exec(releases_cmd, capture_output=True, text=True)
