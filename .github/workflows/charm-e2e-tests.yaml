@@ -88,10 +88,6 @@ jobs:
           artifact: ${{ inputs.artifact }}
       - name: Setup LXD
         uses: canonical/setup-lxd@8c6a87bfb56aa48f3fb9b830baa18562d8bfd4ee # v1
-      - name: Disable lxd ipv6
-        run: |
-          # Runners lack IPv6 routes; disable lxdbr0 IPv6 before bootstrap to avoid dead-end routes.
-          lxc network set lxdbr0 ipv6.address none
       - name: Install virtualenv
         run: sudo apt install -y python3.10-venv
       - name: Generate snap tarball
@@ -180,6 +176,10 @@ jobs:
               timeout 10s resolvectl status || true
               echo "--- [HOST] snap changes ---"
               timeout 10s snap changes || true
+              echo "--- [HOST] ss -tnpi ---"
+              timeout 10s ss -tnpi || true
+              echo "--- [HOST] sudo iptables -t nat -S ---"
+              sudo iptables -t nat -S 2>/dev/null || true
               echo "--- [HOST] ps aux | grep -E 'apt|snap|juju|mongo' ---"
               timeout 10s ps aux | grep -E 'apt|snap|juju|mongo' || true
 
@@ -194,6 +194,18 @@ jobs:
                 timeout 15s lxc exec "$ctrl" -- ps aux | grep -E 'apt|snap|juju|mongo' || true
                 echo "--- [CONTAINER: $ctrl] snap changes ---"
                 timeout 15s lxc exec "$ctrl" -- snap changes || true
+                for ch in $(timeout 15s lxc exec "$ctrl" -- snap changes 2>/dev/null | awk '/^[0-9]+/ {print $1}'); do
+                  echo "--- [CONTAINER: $ctrl] snap change $ch ---"
+                  timeout 15s lxc exec "$ctrl" -- snap change "$ch" || true
+                  echo "--- [CONTAINER: $ctrl] snap tasks $ch ---"
+                  timeout 15s lxc exec "$ctrl" -- snap tasks "$ch" || true
+                done
+                echo "--- [CONTAINER: $ctrl] snap download directory ---"
+                timeout 15s lxc exec "$ctrl" -- ls -lh /var/lib/snapd/snaps /var/lib/snapd/download 2>/dev/null || true
+                echo "--- [CONTAINER: $ctrl] ss -tnpi ---"
+                timeout 15s lxc exec "$ctrl" -- ss -tnpi || true
+                echo "--- [CONTAINER: $ctrl] journalctl -u snapd -n 30 ---"
+                timeout 15s lxc exec "$ctrl" -- journalctl -u snapd -n 30 --no-pager 2>/dev/null || true
                 echo "--- [CONTAINER: $ctrl] ip -6 route ---"
                 timeout 15s lxc exec "$ctrl" -- ip -6 route || true
                 echo "--- [CONTAINER: $ctrl] resolvectl status ---"
@@ -249,6 +261,10 @@ jobs:
           repository: canonical/k8s-operator
           ref: ${{ github.base_ref || github.ref_name }}
           path: ${{ env.K8S_OPERATOR }}
+      - name: Disable lxd ipv6
+        run: |
+          # The charm tests can't handle ipv6 dualstack.
+          lxc network set lxdbr0 ipv6.address none
       - name: Run e2e tests
         env:
           INPUT_ARCH: ${{ inputs.arch }}
