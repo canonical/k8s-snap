@@ -1024,9 +1024,7 @@ def tracks_least_risk(track: str, arch: str) -> str:
         "User-Agent": "Mozilla/5.0",
     }
 
-    req = urllib.request.Request(INFO_URL, headers=HEADERS)
-    with urllib.request.urlopen(req) as response:
-        snap_info = json.loads(response.read().decode())
+    snap_info = fetch_json(INFO_URL, headers=HEADERS)
 
     risks = [
         channel["channel"]["risk"]
@@ -1074,16 +1072,9 @@ def _major_minor_from_stable_upstream(maj: Optional[int] = None) -> Optional[tup
     addr = "https://dl.k8s.io/release/stable{dash_maj}.txt".format(
         dash_maj=f"-{maj}" if maj else ""
     )
-    for attempt in Retrying(stop=stop_after_attempt(3), wait=wait_fixed(2)):
-        with attempt:
-            LOG.info(
-                "Attempt %d: Fetching upstream version",
-                attempt.retry_state.attempt_number,
-            )
-            with urllib.request.urlopen(addr) as r:
-                stable = r.read().decode().strip()
-                LOG.info("Successfully fetched upstream version: %s", stable)
-                return major_minor(stable)
+    stable = fetch_text(addr).strip()
+    LOG.info("Successfully fetched upstream version: %s", stable)
+    return major_minor(stable)
 
 
 def _previous_track_from_branch(branch: str) -> Optional[str]:
@@ -1156,17 +1147,11 @@ def previous_track(snap_version: str) -> str:
     if maj_min := major_minor(snap_version):
         maj, min = maj_min
         if min == 0:
-            with urllib.request.urlopen(
-                f"https://dl.k8s.io/release/stable-{maj - 1}.txt"
-            ) as r:
-                stable = r.read().decode().strip()
-                maj_min = major_minor(stable)
+            maj_min = _major_minor_from_stable_upstream(maj - 1)
         else:
             maj_min = (maj, min - 1)
     elif snap_version.startswith("latest") or "/" not in snap_version:
-        with urllib.request.urlopen("https://dl.k8s.io/release/stable.txt") as r:
-            stable = r.read().decode().strip()
-            maj_min = major_minor(stable)
+        maj_min = _major_minor_from_stable_upstream()
 
     if not maj_min:
         raise ValueError(
