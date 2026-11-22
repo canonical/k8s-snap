@@ -13,7 +13,11 @@ func (c *Client) RemoveNodeByAddress(ctx context.Context, address string) error 
 	if err != nil {
 		return fmt.Errorf("failed to create dqlite client: %w", err)
 	}
-	defer client.Close()
+	defer func() {
+		if client != nil {
+			_ = client.Close()
+		}
+	}()
 
 	members, err := client.Cluster(ctx)
 	if err != nil {
@@ -65,7 +69,8 @@ func (c *Client) RemoveNodeByAddress(ctx context.Context, address string) error 
 		if err := client.Transfer(ctx, freeSpareNode.ID); err != nil {
 			return fmt.Errorf("failed to transfer leadership to %d: %w", freeSpareNode.ID, err)
 		}
-		// Recreate client to point to the new leader.
+		// Close previous client before creating connection to new leader.
+		_ = client.Close()
 		client, err = c.clientGetter(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to create dqlite client: %w", err)
