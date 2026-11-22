@@ -100,6 +100,9 @@ def test_version_upgrades(
             registry.apply_configuration(instance, containerd_cfgdir)
 
     cp.exec(["k8s", "bootstrap"])
+    # Avoid racing the bootstrap node's kubelet Node registration (join can
+    # fail with "the cluster has no nodes" otherwise).
+    util.wait_until_k8s_ready(cp, [cp])
 
     join_token_cp1 = util.get_join_token(cp, cp1)
     join_token_cp2 = util.get_join_token(cp, cp2)
@@ -126,7 +129,7 @@ def test_version_upgrades(
 
             if channel.startswith("/"):
                 LOG.info("Refreshing k8s snap by path")
-                instance.exec(
+                util.stubbornly(retries=5, delay_s=5).on(instance).exec(
                     ["snap", "install", "--classic", "--dangerous", snap_path]
                 )
             else:
@@ -221,7 +224,9 @@ def test_version_downgrades_with_rollback(
             registry.apply_configuration(instance, containerd_cfgdir)
 
     cp.exec(["k8s", "bootstrap"])
-
+    # Avoid racing the bootstrap node's kubelet Node registration (join can
+    # fail with "the cluster has no nodes" otherwise).
+    util.wait_until_k8s_ready(cp, [cp])
     join_token_cp1 = util.get_join_token(cp, cp1)
     join_token_cp2 = util.get_join_token(cp, cp2)
     # join_token_w0 = util.get_join_token(cp, w0, "--worker")
@@ -327,6 +332,9 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
         )
 
     bootstrap_cp.exec(["k8s", "bootstrap"])
+    # Avoid racing the bootstrap node's kubelet Node registration (join can
+    # fail with "the cluster has no nodes" otherwise).
+    util.wait_until_k8s_ready(bootstrap_cp, [bootstrap_cp])
     for instance in instances:
         if instance.id in [bootstrap_cp.id, worker.id]:
             continue
@@ -509,6 +517,9 @@ def test_feature_upgrades_rollout_upgrade(
     )
 
     main_old.exec(["k8s", "bootstrap"])
+    # Avoid racing the bootstrap node's kubelet Node registration (join can
+    # fail with "the cluster has no nodes" otherwise).
+    util.wait_until_k8s_ready(main_old, [main_old])
     for instance in instances[1:3]:
         token = util.get_join_token(main_old, instance)
         instance.exec(["k8s", "join-cluster", token])
