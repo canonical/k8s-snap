@@ -1388,12 +1388,10 @@ def get_in_use_ips(
                     except ValueError:
                         pass
 
-        if not target_bridges:
-            target_bridges = [
-                net["name"]
-                for net in networks
-                if net.get("type") == "bridge" and net.get("managed")
-            ]
+        if not target_bridges and is_lxd:
+            raise RuntimeError(
+                f"Could not find matching LXD bridge network for {parent_cidr}"
+            )
 
         for br in target_bridges:
             leases_proc = run(
