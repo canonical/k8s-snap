@@ -466,7 +466,7 @@ def _install_cached_snap(
     try:
         instance.send_file(str(assert_p), remote_assert)
         instance.send_file(str(snap_p), remote_snap)
-        instance.exec(["snap", "ack", remote_assert])
+        instance.exec(["snap", "ack", remote_assert], timeout=timeout)
 
         stubbornly(
             retries=retries,
@@ -474,7 +474,7 @@ def _install_cached_snap(
             after=wait_for_snap_change_hook(instance, max_attempts=retries),
         ).on(instance).exec(cmd, timeout=timeout)
     finally:
-        instance.exec(["rm", "-f", remote_snap, remote_assert], check=False)
+        instance.exec(["rm", "-f", remote_snap, remote_assert], timeout=60, check=False)
 
 
 def setup_k8s_snap(
@@ -595,6 +595,24 @@ def snap_refresh(
         delay_s=delay_s,
         after=wait_for_snap_change_hook(instance, max_attempts=retries),
     ).on(instance).exec(cmd, timeout=timeout)
+
+
+def snap_revert(
+    instance: harness.Instance,
+    snap_name: str = config.SNAP_NAME,
+    timeout: int = 60 * 5,
+    retries: int = 3,
+    delay_s: int = 30,
+) -> None:
+    """Revert a snap on an instance with retry logic."""
+    LOG.info("Reverting %s on %s", snap_name, instance.id)
+    stubbornly(
+        retries=retries,
+        delay_s=delay_s,
+        after=wait_for_snap_change_hook(
+            instance, max_attempts=retries, snap_name=snap_name
+        ),
+    ).on(instance).exec(["snap", "revert", snap_name], timeout=timeout)
 
 
 def remove_k8s_snap(instance: harness.Instance):
