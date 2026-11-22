@@ -174,5 +174,11 @@ DEFAULT_MIRROR_LIST = [
 # Local mirror configuration.
 MIRROR_LIST = json.loads(os.getenv("TEST_MIRROR_LIST", "{}")) or DEFAULT_MIRROR_LIST
 
+# The GitHub ref_name.
+GH_REF = os.getenv("TEST_GH_REF")
+
+# The GitHub base_ref.
+GH_BASE_REF = os.getenv("TEST_GH_BASE_REF")
+
 # SONOBUOY_VERSION is the version of sonobuoy to use for CNCF conformance tests.
 SONOBUOY_VERSION = os.getenv("TEST_SONOBUOY_VERSION") or "v0.57.3"

@@ -86,7 +86,7 @@ def test_setup_k8s_snap_cached_success(tmp_path):
     assert_file = tmp_path / "k8s_test.assert"
     cached = {"1.36-classic/candidate": (snap_file, assert_file)}
 
-    util.setup_k8s_snap(instance, "1.36-classic/candidate", cached_snaps=cached)
+    util.setup_k8s_snap(instance, tmp_path, "1.36-classic/candidate", cached_snaps=cached)
 
     # Verify push of files to /tmp/<hex>_<name>
     send_calls = instance.send_file.call_args_list
@@ -160,7 +160,7 @@ def test_setup_k8s_snap_cached_failure_cleanup_and_retry(tmp_path):
     instance.exec.side_effect = mock_exec
 
     util.setup_k8s_snap(
-        instance, "1.36-classic/candidate", cached_snaps=cached, delay_s=0
+        instance, tmp_path, "1.36-classic/candidate", cached_snaps=cached, delay_s=0
     )
 
     # Verify snap changes was checked before retry
@@ -178,13 +178,13 @@ def test_setup_k8s_snap_cached_failure_cleanup_and_retry(tmp_path):
 
 
 @pytest.mark.tags(tags.PULL_REQUEST)
-def test_setup_k8s_snap_fallback_store():
+def test_setup_k8s_snap_fallback_store(tmp_path):
     instance = MagicMock()
     instance.exec.return_value = subprocess.CompletedProcess(
         args=[], returncode=0, stdout=b"0-3\n", stderr=b""
     )
 
-    util.setup_k8s_snap(instance, "1.36-classic/candidate", cached_snaps=None)
+    util.setup_k8s_snap(instance, tmp_path, "1.36-classic/candidate", cached_snaps=None)
 
     exec_cmds = [c.args[0] for c in instance.exec.call_args_list]
     assert any("snap" in c and "install" in c and "--channel" in c for c in exec_cmds)
