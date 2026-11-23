@@ -23,7 +23,7 @@ FRR_K8S_IMAGE_PREFIXES = ("ghcr.io/canonical/frr-k8s:", "ghcr.io/canonical/frr:"
 
 STATUS_CMD = ["k8s", "status", "--output-format", "json"]
 FRR_NODE_STATES_CMD = ["k8s", "kubectl", "get", "frrnodestates", "-o", "json"]
-BGP_STATUS = "enabled, BGP mode (alpha)"
+BGP_STATUS = "enabled, BGP mode"
 DISABLED_STATUS = "disabled"
 
 NODE_ASN = 65000

@@ -82,7 +82,8 @@ keep their current value.
 
 The annotation **replaces** the single-peer typed keys
 (`load-balancer.bgp-peer-*`). If both are present, the annotation takes
-precedence and a warning appears in `k8s status`.
+precedence and a warning is written to the `k8sd` service log
+(`sudo journalctl -u snap.k8s.k8sd`).
 
 ### Optionally advertise all pools
 
@@ -178,10 +179,10 @@ so doing these in one step leaves the profile behind (see
 sudo k8s status
 ```
 
-The status line includes `(alpha)` when the annotation path is active:
+The load balancer is reported as enabled in BGP mode:
 
 ```
-load-balancer: enabled, BGP mode (alpha)
+load-balancer: enabled, BGP mode
 ```
 
 Inspect the resulting BGPPeer resources:
