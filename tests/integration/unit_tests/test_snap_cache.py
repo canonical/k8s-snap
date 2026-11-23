@@ -1,13 +1,12 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
-
 import subprocess
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-from test_util import config, harness, tags, util
+from test_util import config, harness, util
 
 
 @pytest.fixture(autouse=True)
@@ -15,14 +14,12 @@ def disable_inspection_reports(monkeypatch):
     monkeypatch.setattr(config, "INSPECTION_REPORTS_DIR", None)
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_download_k8s_snaps_disabled(monkeypatch, tmp_path):
     monkeypatch.setattr(config, "CACHE_SNAPS", False)
     result = util.download_k8s_snaps(["1.36-classic/candidate"], tmp_path)
     assert result == {}
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 @patch("test_util.util.run")
 def test_download_k8s_snaps_deduplication_and_formats(mock_run, tmp_path):
     channels = [
@@ -71,7 +68,6 @@ def test_download_k8s_snaps_deduplication_and_formats(mock_run, tmp_path):
     assert any("--revision 5834" in c and "--channel" not in c for c in flat_cmds)
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_setup_k8s_snap_cached_success(tmp_path):
     instance = MagicMock()
     instance.id = "k8s-0"
@@ -114,7 +110,6 @@ def test_setup_k8s_snap_cached_success(tmp_path):
     assert cleanup_calls[0].kwargs.get("check") is False
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_setup_k8s_snap_cached_failure_cleanup_and_retry(tmp_path):
     instance = MagicMock()
     instance.id = "k8s-0"
@@ -172,7 +167,6 @@ def test_setup_k8s_snap_cached_failure_cleanup_and_retry(tmp_path):
     assert cleanup_calls[0].kwargs.get("check") is False
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_setup_k8s_snap_fallback_store(tmp_path):
     instance = MagicMock()
     instance.exec.return_value = subprocess.CompletedProcess(
@@ -186,7 +180,6 @@ def test_setup_k8s_snap_fallback_store(tmp_path):
     assert not any("rm" in c and "-f" in c for c in exec_cmds)
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_snap_refresh_cached_success(tmp_path):
     instance = MagicMock()
     instance.id = "k8s-0"
@@ -236,7 +229,6 @@ def test_snap_refresh_cached_success(tmp_path):
     assert cleanup_calls[0].kwargs.get("check") is False
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_snap_refresh_cached_retry_waiting_changes(tmp_path):
     instance = MagicMock()
     instance.id = "k8s-0"
@@ -275,7 +267,6 @@ def test_snap_refresh_cached_retry_waiting_changes(tmp_path):
     assert any(c[:2] == ["snap", "changes"] for c in exec_cmds)
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_snap_refresh_fallback_store():
     instance = MagicMock()
     instance.id = "k8s-0"
@@ -289,7 +280,6 @@ def test_snap_refresh_fallback_store():
     assert any("snap" in c and "refresh" in c and "--amend" in c for c in exec_cmds)
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 @patch("urllib.request.urlopen")
 def test_fetch_text_timeout_and_retry(mock_urlopen):
     # First attempt times out with TimeoutError, second succeeds
@@ -305,7 +295,6 @@ def test_fetch_text_timeout_and_retry(mock_urlopen):
     assert mock_urlopen.call_args_list[0].kwargs.get("timeout") == 30.0
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_instance_arch_timeout_and_retry():
     mock_harness = MagicMock()
     instance = harness.base.Instance(mock_harness, "k8s-0")
@@ -324,7 +313,6 @@ def test_instance_arch_timeout_and_retry():
     assert mock_harness.exec.call_args_list[0].kwargs.get("timeout") == 60
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 @patch("test_util.util.run")
 def test_download_k8s_snaps_timeout_retry_and_cleanup(mock_run, tmp_path):
     snap_partial = tmp_path / "k8s_1.36-classic_candidate.snap"
@@ -354,7 +342,6 @@ def test_download_k8s_snaps_timeout_retry_and_cleanup(mock_run, tmp_path):
     assert assert_partial.read_text() == "complete-assert"
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 @patch("test_util.util.run")
 def test_download_k8s_snaps_exhausted_retries_cleanup_and_raises(mock_run, tmp_path):
     snap_partial = tmp_path / "k8s_1.36-classic_candidate.snap"
