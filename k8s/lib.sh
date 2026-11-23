@@ -404,6 +404,10 @@ k8s::util::run_as_root() {
 # Example: 'k8s::containerd::ensure_systemd_defaults'
 k8s::containerd::ensure_systemd_defaults() {
   k8s::common::setup_env
+  # Strictly confined hooks cannot write host systemd drop-ins.
+  if k8s::common::is_strict; then
+    return 0
+  fi
 
   local override_dir="/etc/systemd/system/snap.${SNAP_INSTANCE_NAME:-k8s}.containerd.service.d"
   local override_file="${SNAP:-/snap/k8s/current}/k8s/systemd/containerd-defaults.conf"
