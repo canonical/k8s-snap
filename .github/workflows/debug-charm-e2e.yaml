@@ -84,8 +84,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y tcpdump tshark iputils-ping iputils-tracepath jq curl
-
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y tcpdump iputils-ping iputils-tracepath jq curl
       - name: Setup LXD
         id: setup-lxd
         timeout-minutes: 10
@@ -192,12 +191,11 @@ jobs:
             echo "=== PCAP Analysis (ens3 port 3128) ==="
             echo "Total packets captured on ens3: $(tcpdump -r "${{ env.ARTIFACT_DIR }}/pcaps/ens3.pcap" 2>/dev/null | wc -l)"
             echo "HTTP CONNECT requests and responses:"
-            tshark -r "${{ env.ARTIFACT_DIR }}/pcaps/ens3.pcap" -Y 'http.request.method == "CONNECT" or http.response' -T fields -e frame.time -e ip.src -e ip.dst -e http.request.method -e http.request.uri -e http.response.code -e http.response.phrase 2>/dev/null || true
-            echo "TCP retransmissions:"
-            tshark -r "${{ env.ARTIFACT_DIR }}/pcaps/ens3.pcap" -Y 'tcp.analysis.retransmission' -T fields -e frame.time -e ip.src -e ip.dst -e tcp.srcport -e tcp.dstport 2>/dev/null | head -n 30 || true
+            tcpdump -nn -A -r "${{ env.ARTIFACT_DIR }}/pcaps/ens3.pcap" 'tcp port 3128' 2>/dev/null | grep -E 'CONNECT |HTTP/1\.[01] [0-9]{3}' || true
+            echo "TCP control packets:"
+            tcpdump -nn -r "${{ env.ARTIFACT_DIR }}/pcaps/ens3.pcap" 'tcp[tcpflags] & (tcp-syn|tcp-fin|tcp-rst) != 0' 2>/dev/null | head -n 40 || true
             echo "ICMP Fragmentation Needed:"
-            tshark -r "${{ env.ARTIFACT_DIR }}/pcaps/ens3.pcap" -Y 'icmp.type == 3 and icmp.code == 4' 2>/dev/null || true
-          } | tee "${{ env.ARTIFACT_DIR }}/pcaps/analysis.txt"
+            tcpdump -nn -r "${{ env.ARTIFACT_DIR }}/pcaps/ens3.pcap" 'icmp[icmptype] == 3 and icmp[icmpcode] == 4' 2>/dev/null || true
 
       - name: Upload sweep artifacts
         if: always()
