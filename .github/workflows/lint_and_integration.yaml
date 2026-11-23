@@ -107,6 +107,7 @@ jobs:
       - name: Lint and unit tests
         run: |
           cd tests/integration && tox -e lint
+          tox -e unit
           cd ../../ci && tox -e lint
           tox -e test
       - name: Bandit security scan

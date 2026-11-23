@@ -7,6 +7,7 @@ provisioned by a substrate harness (LXD, Juju, or Multipass).
 
 ```
 cd tests/integration
+tox -e unit                                         # test_util unit tests (no cluster/LXD)
 tox -e integration -- tests/<test_file.py>          # single file
 tox -e integration -- tests/ -k test_name           # by name
 tox -e lint                                         # check style
@@ -104,6 +105,9 @@ For host architecture outside an instance context, use `platform.machine()`.
 
 Before writing a new helper, check `test_util/snap.py` and `test_util/util.py` — most common
 operations are already there.
+
+Unit tests for `test_util` helpers live in `tests/integration/unit_tests/` (run via `tox -e unit`),
+never under `tests/test_util/` where `e2e-tests.yaml` would collect them into the cluster matrix.
 
 ### `test_util/snap.py`
 

@@ -4,12 +4,10 @@
 from unittest.mock import patch
 
 import pytest
-from test_util import tags
 from test_util.harness import HarnessError
 from test_util.harness.juju import JujuHarness
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_juju_harness_allows_ipv4_and_rejects_other_network_types():
     with (
         patch("test_util.harness.juju.config.JUJU_CONTROLLER", "ctrl"),
