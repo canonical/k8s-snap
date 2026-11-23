@@ -8,6 +8,7 @@ import sys
 import unittest
 from contextlib import redirect_stdout
 from email.message import Message
+from email.utils import formatdate
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 from urllib.error import HTTPError, URLError
@@ -74,19 +75,25 @@ class StoreQueryTests(unittest.TestCase):
         sleep_mock.assert_called_once()
         self.assertGreaterEqual(sleep_mock.call_args[0][0], 12.0)
 
-    def test_query_info_caps_large_retry_after_and_handles_http_date(self):
+    def test_query_info_caps_large_retry_after_and_honors_http_date(self):
         self.assertEqual(store._retry_delay(1, "3600"), store._MAX_RETRY_DELAY)
-        delay = store._retry_delay(1, "Wed, 21 Oct 2026 07:28:00 GMT")
-        self.assertGreaterEqual(delay, 2.0)
-        self.assertLessEqual(delay, store._MAX_RETRY_DELAY)
+        with patch.object(store.time, "time", return_value=1_700_000_000.0):
+            future_date = formatdate(1_700_000_018.0, usegmt=True)
+            delay = store._retry_delay(1, future_date)
+            past_date = formatdate(1_699_999_990.0, usegmt=True)
+            past_delay = store._retry_delay(1, past_date)
+        self.assertEqual(delay, 18.0)
+        self.assertGreaterEqual(past_delay, 2.0)
+        self.assertLess(past_delay, 4.0)
 
-    def test_query_info_does_not_retry_non_transient_http_error(self):
+    def test_query_info_does_not_retry_and_closes_non_transient_http_error(self):
+        err_fp = MagicMock()
         not_found = HTTPError(
             "https://api.snapcraft.io/v2/snaps/info/missing?fields=channel-map",
             404,
             "Not Found",
             Message(),
-            None,
+            err_fp,
         )
         with patch.object(store, "urlopen", side_effect=not_found), patch.object(
             store.time, "sleep"
@@ -94,7 +101,28 @@ class StoreQueryTests(unittest.TestCase):
             store.query_info("snap", "missing")
 
         self.assertEqual(ctx.exception.code, 404)
+        err_fp.close.assert_called_once()
         sleep_mock.assert_not_called()
+
+    def test_query_info_closes_exhausted_retryable_http_errors(self):
+        fps = [MagicMock() for _ in range(store._ATTEMPTS)]
+        errors = [
+            HTTPError(
+                "https://api.snapcraft.io/v2/snaps/info/k8s?fields=channel-map",
+                429,
+                "Too Many Requests",
+                Message(),
+                fp,
+            )
+            for fp in fps
+        ]
+        with patch.object(store, "urlopen", side_effect=errors), patch.object(
+            store.time, "sleep"
+        ), self.assertRaises(HTTPError):
+            store.query_info("snap", "k8s")
+
+        for fp in fps:
+            fp.close.assert_called_once()
 
     def test_charm_channel_available_returns_nonzero_when_store_errors(self):
         args = argparse.Namespace(
