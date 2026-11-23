@@ -33,7 +33,8 @@ jobs:
                   python-version: "3.12"
 
             - name: Install Semgrep
-              run: pip install --require-hashes -r ci/requirements-semgrep.txt
+              # Skip dependency resolution to honor pinned transitive security overrides.
+              run: pip install --require-hashes --no-deps -r ci/requirements-semgrep.txt
 
             - name: Run Semgrep scan
               run: |
