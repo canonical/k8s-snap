@@ -17,10 +17,18 @@ LOG = logging.getLogger(__name__)
 pytest_plugins = ("pytest_tagging", "pytest_benchmark")
 
 
+_TEST_UTIL_DIR = Path(__file__).resolve().parent / "test_util"
+
+
 def pytest_itemcollected(item):
-    """
-    A hook to ensure all tests have at least one tag before execution.
-    """
+    """Reject unit tests under test_util/ and require at least one test tag."""
+    if Path(item.path).resolve().is_relative_to(_TEST_UTIL_DIR):
+        pytest.fail(
+            f"The test {item.nodeid} lives under tests/test_util/, which runs across "
+            "every e2e matrix cell. Move unit tests to tests/integration/unit_tests/ "
+            "(executed via `tox -e unit`)."
+        )
+
     # Check for tags in the pytest.mark attributes
     marked_tags = [mark for mark in item.iter_markers(name="tags")]
     if not marked_tags or not any(tag.args[0] in tags.TEST_TAGS for tag in marked_tags):
