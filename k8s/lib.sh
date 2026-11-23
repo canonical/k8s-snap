@@ -381,7 +381,7 @@ k8s::kubelet::ensure_shared_root_dir() {
 
   if ! findmnt -o PROPAGATION /var/lib/kubelet -n | grep -q shared; then
     echo "Ensure /var/lib/kubelet mount propagation is rshared"
-    mount -o remount --make-rshared "$SNAP_COMMON/var/lib/kubelet" /var/lib/kubelet
+    mount --make-rshared /var/lib/kubelet
   fi
 }
 
