@@ -25,6 +25,8 @@ jobs:
     steps:
       - name: Start tmate session
         id: tmate
+        timeout-minutes: 5
+        continue-on-error: true
         uses: canonical/action-tmate@main
         with:
           detached: true
@@ -37,6 +39,22 @@ jobs:
           echo "TMATE WEB URL: ${{ steps.tmate.outputs.web-url }}"
           echo "================================================================================"
 
+      - name: Save and upload early tmate connection info
+        if: always()
+        continue-on-error: true
+        run: |
+          mkdir -p /tmp/tmate-info
+          echo "${{ steps.tmate.outputs.ssh-command }}" > /tmp/tmate-info/tmate-ssh.txt
+          echo "${{ steps.tmate.outputs.web-url }}" > /tmp/tmate-info/tmate-web.txt
+
+      - name: Upload early tmate artifact
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+        with:
+          name: tmate-session-attempt-${{ matrix.job_index }}
+          path: /tmp/tmate-info
+          retention-days: 1
       - name: Check out code
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
@@ -74,11 +92,14 @@ jobs:
             sudo nft list ruleset 2>/dev/null || true
             echo "--- sysctl net settings ---"
             sudo sysctl net.ipv4.ip_forward net.ipv4.tcp_mtu_probing net.ipv4.tcp_rmem net.core.rmem_max net.ipv4.tcp_wmem net.core.wmem_max || true
-            echo "--- aproxy status & config ---"
+            echo "--- aproxy status, revision & config ---"
+            snap info aproxy || true
             systemctl status aproxy || true
             systemctl cat aproxy || true
             cat /etc/aproxy/* 2>/dev/null || true
-            journalctl -u aproxy --no-pager -n 100 || true
+            (sudo snap logs aproxy.aproxy -n 200 || journalctl -u aproxy --no-pager -n 100) || true
+            echo "--- aproxy 54969 and squid 3128 sockets ---"
+            ss -tnpi '( sport = :54969 or dport = :54969 or dport = :3128 )' || true
             echo "--- env proxies ---"
             env | grep -iE 'proxy|http' || true
             echo "--- resolvectl status ---"
@@ -354,7 +375,6 @@ jobs:
             --charm-file "$k8sWorkerChamFile" \
             --snap-installation-resource "$snapInstallRes" \
             --no-juju-teardown \
-            --model-config "${GITHUB_WORKSPACE}/.github/workflows/juju-model-config.yaml" \
             'tests/integration/test_k8s.py::test_nodes_ready'
 
       - name: Diagnostic dump on failure

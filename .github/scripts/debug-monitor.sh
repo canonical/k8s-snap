@@ -13,7 +13,7 @@ echo "Egress interface: ${EGRESS_IF:-unknown}" >> "$MONITOR_LOG"
 
 if [ -n "$EGRESS_IF" ]; then
     echo "Starting rolling tcpdump on egress interface: $EGRESS_IF" >> "$MONITOR_LOG"
-    sudo tcpdump -U -Z root -i "$EGRESS_IF" -s 0 -C 50 -W 3 -w "${ARTIFACT_DIR}/pcaps/egress.pcap" 'tcp port 443 or tcp port 80' >/dev/null 2>&1 &
+    sudo tcpdump -U -Z root -i "$EGRESS_IF" -s 0 -C 50 -W 3 -w "${ARTIFACT_DIR}/pcaps/egress.pcap" 'tcp port 443 or tcp port 80 or tcp port 3128 or tcp port 54969' >/dev/null 2>&1 &
     echo $! > "${ARTIFACT_DIR}/tcpdump-egress.pid"
 fi
 
@@ -31,7 +31,7 @@ while true; do
 
     if [ "$lxdbr0_tcpdump_started" = false ] && ip link show lxdbr0 >/dev/null 2>&1; then
         echo "Starting rolling tcpdump on lxdbr0 at $TIMESTAMP" >> "$MONITOR_LOG"
-        sudo tcpdump -U -Z root -i lxdbr0 -s 0 -C 50 -W 3 -w "${ARTIFACT_DIR}/pcaps/lxdbr0.pcap" 'tcp port 443 or tcp port 80' >/dev/null 2>&1 &
+        sudo tcpdump -U -Z root -i lxdbr0 -s 0 -C 50 -W 3 -w "${ARTIFACT_DIR}/pcaps/lxdbr0.pcap" 'tcp port 443 or tcp port 80 or tcp port 3128 or tcp port 54969' >/dev/null 2>&1 &
         echo $! > "${ARTIFACT_DIR}/tcpdump-lxdbr0.pid"
         lxdbr0_tcpdump_started=true
     fi
@@ -39,12 +39,12 @@ while true; do
 
     {
         echo "=== HOST SNAPSHOT [$TIMESTAMP] ==="
-        echo "--- ss -tnpi (port 443 / aproxy) ---"
-        ss -tnpi '( sport = :443 or dport = :443 )' 2>&1 || true
+        echo "--- ss -tnpi (port 443 / aproxy 54969 / squid 3128) ---"
+        ss -tnpi '( sport = :443 or dport = :443 or sport = :54969 or dport = :54969 or dport = :3128 )' 2>&1 || true
         echo "--- conntrack count ---"
         sudo conntrack -C 2>&1 || true
-        echo "--- aproxy journal (last 1 min) ---"
-        sudo journalctl -u aproxy --since -1min --no-pager 2>&1 || true
+        echo "--- aproxy logs ---"
+        sudo snap logs aproxy.aproxy -n 50 2>&1 || sudo journalctl -u aproxy --since -1min --no-pager 2>&1 || true
     } >> "${ARTIFACT_DIR}/host/host-monitor.log"
 
     INSTANCES=$(lxc list -c n,s,t --format csv 2>/dev/null || true)
@@ -97,7 +97,8 @@ EOF' 2>/dev/null || true
 
                 echo "--- ss -tnpi ---"
                 timeout 15s lxc exec "$NAME" -- ss -tnpi 2>&1 || true
-
+                echo "--- ss -tnpi dport = :443 ---"
+                timeout 15s lxc exec "$NAME" -- ss -tnpi 'dport = :443' 2>&1 || true
                 echo "--- journalctl snapd (last 1 min) ---"
                 timeout 15s lxc exec "$NAME" -- journalctl -u snapd --since -1min --no-pager 2>&1 || true
             } >> "${VM_DIR}/monitor.log"
@@ -122,10 +123,58 @@ EOF' 2>/dev/null || true
                     CDN_URL=$(timeout 15s lxc exec "$NAME" -- journalctl -u snapd --no-pager 2>/dev/null | grep -oE 'https://[^ "'\''>]*cdn\.snapcraftcontent\.com[^ "'\''>]*|https://[^ "'\''>]*fastly\.cdn\.snapcraft\.io[^ "'\''>]*' | tail -n 1 || true)
                     echo "Identified CDN URL: ${CDN_URL:-none}" | tee -a "$MONITOR_LOG" "$PROBE_LOG"
 
+                    STALLED_FLOW=$(timeout 15s lxc exec "$NAME" -- ss -tnp 'dport = :443' 2>/dev/null | grep -E 'ESTAB|SYN-SENT' | head -n 1 || true)
+                    echo "Stalled socket flow: ${STALLED_FLOW:-none}" | tee -a "$MONITOR_LOG" "$PROBE_LOG"
+                    CDN_IP=$(echo "$STALLED_FLOW" | awk '{print $5}' | cut -d: -f1 || true)
+                    VM_SRC_PORT=$(echo "$STALLED_FLOW" | awk '{print $4}' | cut -d: -f2 || true)
+
+                    echo "--- Interception check (aproxy & squid) ---" >> "$PROBE_LOG"
+                    echo "Snap info aproxy:" >> "$PROBE_LOG"
+                    snap info aproxy >> "$PROBE_LOG" 2>&1 || true
+                    echo "Host nft ruleset:" >> "$PROBE_LOG"
+                    sudo nft list ruleset >> "$PROBE_LOG" 2>&1 || true
+                    echo "Host ss for aproxy port 54969 and squid port 3128:" >> "$PROBE_LOG"
+                    ss -tnpi '( sport = :54969 or dport = :54969 or dport = :3128 )' >> "$PROBE_LOG" 2>&1 || true
+                    echo "Aproxy snap logs:" >> "$PROBE_LOG"
+                    (sudo snap logs aproxy.aproxy -n 200 || sudo journalctl -u aproxy -n 200) >> "$PROBE_LOG" 2>&1 || true
 
                     VM_IFACE=$(timeout 15s lxc exec "$NAME" -- ip -o route get 1.1.1.1 2>/dev/null | awk '{print $5}' || echo "enp5s0")
                     ORIG_MTU=$(timeout 15s lxc exec "$NAME" -- cat "/sys/class/net/$VM_IFACE/mtu" 2>/dev/null || echo "1500")
                     echo "VM $NAME interface: $VM_IFACE, default MTU: $ORIG_MTU" | tee -a "$MONITOR_LOG" "$PROBE_LOG"
+
+                    echo "--- MTU and ping probes ---" >> "$PROBE_LOG"
+                    echo "Host tcp_mtu_probing: $(sysctl -n net.ipv4.tcp_mtu_probing 2>/dev/null)" >> "$PROBE_LOG"
+                    echo "VM tcp_mtu_probing: $(timeout 10s lxc exec "$NAME" -- sysctl -n net.ipv4.tcp_mtu_probing 2>/dev/null)" >> "$PROBE_LOG"
+                    if [ -n "$CDN_IP" ]; then
+                        echo "Ping DF bit 1422 from VM to $CDN_IP:" >> "$PROBE_LOG"
+                        timeout 10s lxc exec "$NAME" -- ping -M do -s 1422 -c 2 "$CDN_IP" >> "$PROBE_LOG" 2>&1 || true
+                        echo "Ping DF bit 1472 from VM to $CDN_IP:" >> "$PROBE_LOG"
+                        timeout 10s lxc exec "$NAME" -- ping -M do -s 1472 -c 2 "$CDN_IP" >> "$PROBE_LOG" 2>&1 || true
+                    fi
+
+                    TARGET_HOST="canonical-bos01.cdn.snapcraftcontent.com"
+                    if [ -n "$CDN_URL" ]; then
+                        PARSED_HOST=$(echo "$CDN_URL" | awk -F[/:] '{print $4}')
+                        [ -n "$PARSED_HOST" ] && TARGET_HOST="$PARSED_HOST"
+                    fi
+                    SWEEP_URL="$CDN_URL"
+                    [ -z "$SWEEP_URL" ] && SWEEP_URL="https://${TARGET_HOST}/"
+                    A_RECORDS=$(getent ahostsv4 "$TARGET_HOST" 2>/dev/null | awk '{print $1}' | sort -u || true)
+                    echo "CDN Node Sweep for $TARGET_HOST (A records: $A_RECORDS):" >> "$PROBE_LOG"
+                    echo "--- CDN Sweep on Host ---" >> "$PROBE_LOG"
+                    for ip in $A_RECORDS; do
+                        echo -n "Host -> $ip: " >> "$PROBE_LOG"
+                        curl -s -o /dev/null --resolve "${TARGET_HOST}:443:${ip}" --connect-timeout 5 --max-time 30 \
+                          -w 'ip=%{remote_ip} connect=%{time_connect} ttfb=%{time_starttransfer} code=%{http_code} size=%{size_download}\n' \
+                          "$SWEEP_URL" >> "$PROBE_LOG" 2>&1 || echo "curl failed ($?)" >> "$PROBE_LOG"
+                    done
+                    echo "--- CDN Sweep in VM $NAME ---" >> "$PROBE_LOG"
+                    for ip in $A_RECORDS; do
+                        echo -n "VM -> $ip: " >> "$PROBE_LOG"
+                        timeout 35s lxc exec "$NAME" -- curl -s -o /dev/null --resolve "${TARGET_HOST}:443:${ip}" --connect-timeout 5 --max-time 30 \
+                          -w 'ip=%{remote_ip} connect=%{time_connect} ttfb=%{time_starttransfer} code=%{http_code} size=%{size_download}\n' \
+                          "$SWEEP_URL" >> "$PROBE_LOG" 2>&1 || echo "curl failed ($?)" >> "$PROBE_LOG"
+                    done
 
 
                     echo "--- PROBE: VM $NAME (MTU $ORIG_MTU) API and CDN ---" >> "$PROBE_LOG"
