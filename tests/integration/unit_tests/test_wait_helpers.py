@@ -7,10 +7,9 @@ from unittest.mock import MagicMock
 
 import pytest
 from tenacity import RetryError
-from test_util import harness, tags, util  # noqa: F401
+from test_util import util
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_wait_for_services_stopped_polls_until_inactive():
     instance = MagicMock()
     instance.exec.side_effect = [
@@ -43,7 +42,6 @@ def test_wait_for_services_stopped_polls_until_inactive():
     assert instance.exec.call_count == 2
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_wait_for_services_stopped_raises_when_still_active():
     instance = MagicMock()
     instance.exec.return_value = subprocess.CompletedProcess(
@@ -60,7 +58,6 @@ def test_wait_for_services_stopped_raises_when_still_active():
         util.wait_for_services_stopped(instance, retries=2, delay_s=0)
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_wait_for_ports_available_polls_until_unbound():
     instance = MagicMock()
     instance.exec.side_effect = [
@@ -86,7 +83,6 @@ def test_wait_for_ports_available_polls_until_unbound():
     assert instance.exec.call_count == 2
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_wait_for_ports_available_raises_when_still_bound():
     instance = MagicMock()
     instance.exec.return_value = subprocess.CompletedProcess(
@@ -103,7 +99,6 @@ def test_wait_for_ports_available_raises_when_still_bound():
         util.wait_for_ports_available(instance, ports=[6443], retries=2, delay_s=0)
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_stubbornly_until_omits_command_streams_from_retry_logs(caplog):
     instance = MagicMock()
     instance.exec.side_effect = [
@@ -139,7 +134,6 @@ def test_stubbornly_until_omits_command_streams_from_retry_logs(caplog):
     assert "sentinel-poll-stderr" not in caplog.text
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_stubbornly_until_includes_truncated_streams_on_exhaustion():
     instance = MagicMock()
     instance.exec.return_value = subprocess.CompletedProcess(
@@ -165,7 +159,6 @@ def test_stubbornly_until_includes_truncated_streams_on_exhaustion():
     assert len(msg) < 1200
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_stubbornly_called_process_error_truncates_logged_streams(caplog):
     instance = MagicMock()
     raw_stdout = b"OUT_START_" + (b"a" * 2000) + b"_OUT_END"
@@ -192,7 +185,6 @@ def test_stubbornly_called_process_error_truncates_logged_streams(caplog):
     assert cause.stderr == raw_stderr
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_stubbornly_timeout_expired_truncates_logged_streams(caplog):
     instance = MagicMock()
     instance.exec.side_effect = subprocess.TimeoutExpired(
@@ -215,7 +207,6 @@ def test_stubbornly_timeout_expired_truncates_logged_streams(caplog):
     assert ("t" * 600) not in caplog.text
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_truncate_output_preserves_exact_boundary():
     exact = "a" * 1000
     assert util._truncate_output(exact) == exact
@@ -225,7 +216,6 @@ def test_truncate_output_preserves_exact_boundary():
     assert util._truncate_output(over_by_one) == expected
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_wait_for_snap_change_happy_path_no_snap_changes():
     instance = MagicMock()
     instance.exec.return_value = subprocess.CompletedProcess(
@@ -253,7 +243,6 @@ def test_wait_for_snap_change_happy_path_no_snap_changes():
     assert instance.exec.call_args[0][0] == cmd
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_wait_for_snap_change_waits_for_inflight_change_before_retry():
     instance = MagicMock()
     cmd = ["snap", "install", "--classic", "k8s"]
@@ -308,7 +297,6 @@ def test_wait_for_snap_change_waits_for_inflight_change_before_retry():
     ]
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_snap_refresh_uses_bounded_timeout_and_retries_after_timeout():
     instance = MagicMock()
     cmd = [
@@ -358,7 +346,6 @@ def test_snap_refresh_uses_bounded_timeout_and_retries_after_timeout():
     assert instance.exec.call_args_list[2][1].get("timeout") == 300
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_snap_revert_uses_bounded_timeout_and_retries_after_timeout():
     instance = MagicMock()
     cmd = ["snap", "revert", "k8s"]
