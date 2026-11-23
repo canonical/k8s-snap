@@ -3,11 +3,9 @@
 #
 from unittest.mock import patch
 
-import pytest
-from test_util import snap, tags, util
+from test_util import snap, util
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 @patch("test_util.snap.get_snap_info")
 def test_get_most_stable_channels_order_with_latest(mock_get_snap_info):
     mock_get_snap_info.return_value = {
@@ -135,7 +133,6 @@ MOCK_CHANNEL_MAP_6_TRACKS = {
 }
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 @patch("test_util.snap.get_snap_info")
 def test_get_most_stable_channels_recent_2(mock_get_snap_info):
     mock_get_snap_info.return_value = MOCK_CHANNEL_MAP_6_TRACKS
@@ -159,7 +156,6 @@ def test_get_most_stable_channels_recent_2(mock_get_snap_info):
     ]
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 @patch("test_util.snap.get_snap_info")
 def test_get_most_stable_channels_keeps_latest_edge_on_same_minor(mock_get_snap_info):
     mock_get_snap_info.return_value = MOCK_CHANNEL_MAP_6_TRACKS
@@ -176,7 +172,6 @@ def test_get_most_stable_channels_keeps_latest_edge_on_same_minor(mock_get_snap_
     ]
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 @patch("test_util.snap.get_snap_info")
 def test_build_upgrade_channel_list(mock_get_snap_info):
     mock_get_snap_info.return_value = MOCK_CHANNEL_MAP_6_TRACKS
@@ -288,7 +283,6 @@ def test_build_upgrade_channel_list(mock_get_snap_info):
     assert c7 == ["1.34-classic/stable", snap_path, "1.36-classic/candidate"]
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 @patch("test_util.snap.get_snap_info")
 def test_build_downgrade_channel_list(mock_get_snap_info):
     mock_get_snap_info.return_value = MOCK_CHANNEL_MAP_6_TRACKS
@@ -330,7 +324,6 @@ def test_build_downgrade_channel_list(mock_get_snap_info):
     assert mock_get_snap_info.call_count == 0
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_previous_track_from_branch():
     assert util._previous_track_from_branch("release-1.32") == "1.31-classic"
     assert util._previous_track_from_branch("refs/heads/release-1.32") == "1.31-classic"
@@ -338,7 +331,6 @@ def test_previous_track_from_branch():
     assert util._previous_track_from_branch("non-release") is None
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_previous_track_local_snap():
     assert util.previous_track("/tmp/k8s.snap") == "1.32-classic"
     assert util.previous_track("1234") == "1.32-classic"
