@@ -25,10 +25,10 @@ def test_strict_interfaces(instances: List[harness.Instance]):
     if current_channel.lower() == "recent":
         if len(channels) != 3:
             pytest.fail(
-                "'recent' requires the number of releases as second argument and the flavour as third argument"
+                "'recent' requires the number of releases as second argument and the variant as third argument"
             )
-        _, num_channels, flavour = channels
-        channels = snap.get_channels(int(num_channels), flavour, cp.arch, "edge", True)
+        _, num_channels, variant = channels
+        channels = snap.get_channels(int(num_channels), variant, cp.arch, "edge", True)
 
     for channel in channels:
         util.setup_k8s_snap(cp, channel, connect_interfaces=False)

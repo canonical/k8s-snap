@@ -30,7 +30,7 @@ def _entry(
         "revision": "1000",
         "artifact": artifact,
         "substrate": "lxd",
-        "flavor": "classic",
+        "variant": "classic",
         "runner": "runner-1",
         "attempt": "1",
         "sha": "deadbeef",

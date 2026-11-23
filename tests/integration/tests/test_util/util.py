@@ -1168,7 +1168,7 @@ def tracks_least_risk(track: str, arch: str) -> str:
     """
     LOG.debug("Determining least risk channel for track: %s on %s", track, arch)
     if track == "latest":
-        return f"latest/edge/{config.FLAVOR or 'classic'}"
+        return f"latest/edge/{config.VARIANT or 'classic'}"
 
     INFO_URL = f"https://api.snapcraft.io/v2/snaps/info/{config.SNAP_NAME}"
     HEADERS = {
@@ -1207,9 +1207,9 @@ def major_minor(version: str) -> Optional[tuple]:
     return None
 
 
-def _get_flavor() -> str:
-    """Determine the flavor of the snap."""
-    return {"": "classic", "strict": ""}.get(config.FLAVOR, config.FLAVOR)
+def _get_variant() -> str:
+    """Determine the variant of the snap."""
+    return {"": "classic", "strict": ""}.get(config.VARIANT, config.VARIANT)
 
 
 def _major_minor_from_stable_upstream(maj: Optional[int] = None) -> Optional[tuple]:
@@ -1229,7 +1229,7 @@ def _major_minor_from_stable_upstream(maj: Optional[int] = None) -> Optional[tup
     return major_minor(stable)
 
 
-def _find_stable_track(major: int, minor: int, flavor: str) -> Optional[str]:
+def _find_stable_track(major: int, minor: int, variant: str) -> Optional[str]:
     """Find the latest track with a stable snap, walking back from (major, minor).
 
     Queries the snap store once and checks each minor version starting from
@@ -1239,7 +1239,7 @@ def _find_stable_track(major: int, minor: int, flavor: str) -> Optional[str]:
     Args:
         major: the major Kubernetes version
         minor: the minor Kubernetes version to start from
-        flavor: the snap flavor (e.g. 'classic', '')
+        variant: the snap variant (e.g. 'classic', '')
 
     Returns:
         the track string (e.g. '1.36-classic') or None if no stable track is found
@@ -1273,7 +1273,7 @@ def _find_stable_track(major: int, minor: int, flavor: str) -> Optional[str]:
 
     _min = minor
     while _min >= 0:
-        track = f"{major}.{_min}" + (flavor and f"-{flavor}")
+        track = f"{major}.{_min}" + (variant and f"-{variant}")
         if track in stable_tracks:
             LOG.info("Found stable snap for track %s (arch=%s)", track, arch)
             return track
@@ -1395,8 +1395,8 @@ def _previous_track_from_branch(
     if not maj_min:
         return None
 
-    flavor = _get_flavor()
-    return _find_stable_track(maj_min[0], maj_min[1], flavor)
+    variant = _get_variant()
+    return _find_stable_track(maj_min[0], maj_min[1], variant)
 
 
 def previous_track(snap_version: str) -> str:
@@ -1434,7 +1434,7 @@ def previous_track(snap_version: str) -> str:
                 snap_version,
                 branch,
             )
-            return f"latest/edge/{_get_flavor()}"
+            return f"latest/edge/{_get_variant()}"
 
     if maj_min := major_minor(snap_version):
         maj, min = maj_min
@@ -1451,8 +1451,8 @@ def previous_track(snap_version: str) -> str:
             f"current version: {snap_version}"
         )
 
-    flavor_track = _get_flavor()
-    track = _find_stable_track(maj_min[0], maj_min[1], flavor_track)
+    variant_track = _get_variant()
+    track = _find_stable_track(maj_min[0], maj_min[1], variant_track)
     if track:
         LOG.info("Previous track for %s is from track: %s", snap_version, track)
         return track

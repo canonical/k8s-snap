@@ -30,8 +30,8 @@ on:
         description: Integration test filter tags (e.g. pull_request, up_to_weekly)
         default: pull_request
         type: string
-      flavor:
-        description: Test flavor (e.g. strict), leave empty for classic
+      variant:
+        description: Test variant (e.g. strict), leave empty for classic
         default: ""
         type: string
       extra-test-args: &extra-test-args
@@ -347,7 +347,7 @@ jobs:
           INPUT_OS: ${{ inputs.os }}
           INPUT_ARCH: ${{ inputs.arch }}
           INPUT_SUBSTRATE: ${{ inputs.substrate }}
-          INPUT_FLAVOR: ${{ inputs.flavor }}
+          INPUT_VARIANT: ${{ inputs.variant }}
           INPUT_ARTIFACT: ${{ inputs.artifact }}
           SNAP_REVISION: ${{ steps.download-snap.outputs.snap-revision }}
           TEST_COLLECTION_REPO: ${{ needs.prepare.outputs.repo }}
@@ -366,7 +366,7 @@ jobs:
             echo "ctx_os=${INPUT_OS}"
             echo "ctx_arch=${INPUT_ARCH}"
             echo "ctx_substrate=${INPUT_SUBSTRATE}"
-            echo "ctx_flavor=${INPUT_FLAVOR:-classic}"
+            echo "ctx_variant=${INPUT_VARIANT:-classic}"
             echo "ctx_runner=${RUNNER_NAME} (${RUNNER_ENVIRONMENT}, ${RUNNER_OS}/${RUNNER_ARCH})"
             echo "ctx_attempt=${GITHUB_RUN_ATTEMPT}"
             echo "ctx_sha=${ctx_sha}"
@@ -383,7 +383,7 @@ jobs:
           TEST_SUBSTRATE: ${{ inputs.substrate }}
           TEST_LXD_IMAGE: ${{ inputs.os }}
           TEST_MULTIPASS_IMAGE: ${{ inputs.os }}
-          TEST_FLAVOR: ${{ inputs.flavor }}
+          TEST_VARIANT: ${{ inputs.variant }}
           TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports/${{ env.test_name }}
           TEST_VERSION_UPGRADE_CHANNELS: ${{ github.event_name == 'pull_request' && 'recent 2' || 'recent 6' }}
           TEST_VERSION_DOWNGRADE_CHANNELS: ${{ github.event_name == 'pull_request' && 'recent 2' || 'recent 6' }}

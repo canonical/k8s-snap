@@ -58,7 +58,7 @@ def test_version_upgrades(
 
     channels = snap.build_upgrade_channel_list(
         channels=channels,
-        flavor=config.FLAVOR,
+        variant=config.VARIANT,
         arch=cp.arch,
         ref=ref,
         min_release=config.VERSION_UPGRADE_MIN_RELEASE,
@@ -69,7 +69,7 @@ def test_version_upgrades(
 
     if len(channels) < 2:
         pytest.fail(
-            f"Need at least 2 channels to upgrade, got {len(channels)} for flavor {config.FLAVOR}"
+            f"Need at least 2 channels to upgrade, got {len(channels)} for variant {config.VARIANT}"
         )
     LOG.info(f"Testing upgrades for snaps: {channels}")
     LOG.info(
@@ -188,14 +188,14 @@ def test_version_downgrades_with_rollback(
 
     channels = snap.build_downgrade_channel_list(
         channels=channels,
-        flavor=config.FLAVOR,
+        variant=config.VARIANT,
         arch=cp.arch,
         ref=ref,
         min_release=config.VERSION_UPGRADE_MIN_RELEASE,
     )
     if len(channels) < 2:
         pytest.fail(
-            f"Need at least 2 channels to downgrade, got {len(channels)} for flavour {config.FLAVOR}"
+            f"Need at least 2 channels to downgrade, got {len(channels)} for variant {config.VARIANT}"
         )
     current_channel = channels[0]
 

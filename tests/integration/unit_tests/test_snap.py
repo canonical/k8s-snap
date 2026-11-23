@@ -182,7 +182,7 @@ def test_build_upgrade_channel_list(mock_get_snap_info):
     # and drops latest/edge/classic when testing a local snap build.
     c1 = snap.build_upgrade_channel_list(
         channels=["recent", "2"],
-        flavor="classic",
+        variant="classic",
         arch="amd64",
         ref="main",
         snap_path=snap_path,
@@ -199,7 +199,7 @@ def test_build_upgrade_channel_list(mock_get_snap_info):
     # and appends snap_path.
     c2 = snap.build_upgrade_channel_list(
         channels=["recent", "6"],
-        flavor="classic",
+        variant="classic",
         arch="amd64",
         ref="main",
         snap_path=snap_path,
@@ -219,7 +219,7 @@ def test_build_upgrade_channel_list(mock_get_snap_info):
     # Caps max_release at 1.34 and keeps 1.34-classic/stable -> snap_path hop.
     c3 = snap.build_upgrade_channel_list(
         channels=["recent", "6"],
-        flavor="classic",
+        variant="classic",
         arch="amd64",
         ref="main",
         snap_path=snap_path,
@@ -235,7 +235,7 @@ def test_build_upgrade_channel_list(mock_get_snap_info):
     # Case 4: release-1.32 PR (recent 2, min_release="1.32", ref="release-1.32", local 1.32 snap)
     c4 = snap.build_upgrade_channel_list(
         channels=["recent", "2"],
-        flavor="classic",
+        variant="classic",
         arch="amd64",
         ref="release-1.32",
         min_release="1.32",
@@ -247,7 +247,7 @@ def test_build_upgrade_channel_list(mock_get_snap_info):
     # Case 5: Unreleased next minor (recent 2 + local 1.38 snap when store max is 1.37)
     c5 = snap.build_upgrade_channel_list(
         channels=["recent", "2"],
-        flavor="classic",
+        variant="classic",
         arch="amd64",
         ref="main",
         snap_path=snap_path,
@@ -262,7 +262,7 @@ def test_build_upgrade_channel_list(mock_get_snap_info):
     # Case 6: Channel-only run on main without local snap includes latest/edge/classic
     c6 = snap.build_upgrade_channel_list(
         channels=["recent", "2"],
-        flavor="classic",
+        variant="classic",
         arch="amd64",
         ref="main",
     )
@@ -275,7 +275,7 @@ def test_build_upgrade_channel_list(mock_get_snap_info):
     # Case 7: Explicit channel list inserts local snap in order without deduplication
     c7 = snap.build_upgrade_channel_list(
         channels=["1.34-classic/stable", "1.36-classic/candidate"],
-        flavor="classic",
+        variant="classic",
         arch="amd64",
         snap_path=snap_path,
         local_snap_version=(1, 35),
@@ -290,7 +290,7 @@ def test_build_downgrade_channel_list(mock_get_snap_info):
     # On main, includes latest/edge/classic followed by the 2 most recent tracks descending
     assert snap.build_downgrade_channel_list(
         channels=["recent", "2"],
-        flavor="classic",
+        variant="classic",
         arch="amd64",
         ref="main",
     ) == [
@@ -302,7 +302,7 @@ def test_build_downgrade_channel_list(mock_get_snap_info):
     # On release-1.35, caps at 1.35 and omits latest/edge/classic
     assert snap.build_downgrade_channel_list(
         channels=["recent", "2"],
-        flavor="classic",
+        variant="classic",
         arch="amd64",
         ref="release-1.35",
     ) == [
@@ -316,7 +316,7 @@ def test_build_downgrade_channel_list(mock_get_snap_info):
     assert (
         snap.build_downgrade_channel_list(
             channels=explicit,
-            flavor="classic",
+            variant="classic",
             arch="amd64",
         )
         == explicit
@@ -326,8 +326,8 @@ def test_build_downgrade_channel_list(mock_get_snap_info):
 
 @patch("test_util.util._find_stable_track")
 def test_previous_track_from_branch(mock_find_stable):
-    mock_find_stable.side_effect = lambda maj, min, flavor: (
-        f"{maj}.{min}-{flavor}" if flavor else f"{maj}.{min}"
+    mock_find_stable.side_effect = lambda maj, min, variant: (
+        f"{maj}.{min}-{variant}" if variant else f"{maj}.{min}"
     )
 
     assert util._previous_track_from_branch("release-1.34") == "1.33-classic"
@@ -353,8 +353,8 @@ def test_previous_track_from_branch(mock_find_stable):
 
 @patch("test_util.util._find_stable_track")
 def test_previous_track_stacked_base_ref(mock_find_stable, monkeypatch):
-    mock_find_stable.side_effect = lambda maj, min, flavor: (
-        f"{maj}.{min}-{flavor}" if flavor else f"{maj}.{min}"
+    mock_find_stable.side_effect = lambda maj, min, variant: (
+        f"{maj}.{min}-{variant}" if variant else f"{maj}.{min}"
     )
     monkeypatch.setattr(config, "GH_BASE_REF", "backport/fix-1.34")
     monkeypatch.setattr(config, "GH_REF", None)

@@ -106,9 +106,9 @@ The steps are to be followed in-order, each task must be completed by the person
   - [ ] Add `release-1.xx` in [.github/workflows/update-components.yaml][]
   - [ ] Remove unsupported releases from the list (if applicable, consult with **Reviewer**)
   - [ ] Create PR against `main` with the changes and request review from **Reviewer**. Make sure to update the issue information with a link to the PR.
-- [ ] **Reviewer**: On merge, confirm [Auto-update strict branch] action runs to completion and that the `autoupdate/release-1.xx-*` flavor branches are created.
+- [ ] **Reviewer**: On merge, confirm [Auto-update strict branch] action runs to completion and that the `autoupdate/release-1.xx-*` variant branches are created.
    - [ ] autoupdate/release-1.xx-strict
-- [ ] **Owner**: Create launchpad builders for `release-1.xx` and flavors
+- [ ] **Owner**: Create launchpad builders for `release-1.xx` and variants
   - [ ] Run the [Confirm Snap Builds][] Action
 - [ ] **Reviewer**: Ensure snap recipes are created in [lp:k8s/+snaps][]
   - [ ] look for `k8s-snap-1.xx-classic`
