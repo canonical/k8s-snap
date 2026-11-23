@@ -178,6 +178,14 @@ class LXDHarness(Harness):
                     ["cp", "-rv", "/mnt/images", "/var/snap/k8s/common/images"],
                 )
         except subprocess.CalledProcessError as e:
+            with self._lock:
+                tracked = instance_id in self.instances
+            if not tracked:
+                run(
+                    ["lxc", "rm", instance_id, "--force"],
+                    check=False,
+                    capture_output=True,
+                )
             raise HarnessError(f"Failed to create LXD container {instance_id}") from e
 
         instance = Instance(self, instance_id)

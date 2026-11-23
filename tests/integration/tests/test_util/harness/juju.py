@@ -3,6 +3,7 @@
 #
 import json
 import logging
+import re
 import shlex
 import subprocess
 from pathlib import Path
@@ -84,11 +85,12 @@ class JujuHarness(Harness):
                 capture_output=True,
             )
 
-            output = p.stderr.decode().strip()
-            if not output.startswith("created machine "):
+            output = f"{p.stderr.decode()}\n{p.stdout.decode()}"
+            match = re.search(r"created machine (\S+)", output)
+            if not match:
                 raise HarnessError(f"failed to parse output from juju add-machine {p=}")
 
-            instance_id = output.split(" ")[2]
+            instance_id = match.group(1)
         except subprocess.CalledProcessError as e:
             raise HarnessError("Failed to create Juju machine") from e
 

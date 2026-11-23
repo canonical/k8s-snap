@@ -103,6 +103,8 @@ class MultipassHarness(Harness):
                     sensitive_kwargs=True,
                     check=False,
                 )
+                with self._lock:
+                    self.instances.add(instance_id)
                 stubbornly(retries=200, delay_s=10).until(
                     lambda p: json.loads(p.stdout).get("status") == "done"
                 ).exec(
@@ -125,12 +127,11 @@ class MultipassHarness(Harness):
 
             else:
                 run(cmd)
+                with self._lock:
+                    self.instances.add(instance_id)
 
         except subprocess.CalledProcessError as e:
             raise HarnessError(f"Failed to create multipass VM {instance_id}") from e
-
-        with self._lock:
-            self.instances.add(instance_id)
 
         instance = Instance(self, instance_id)
         stubbornly(retries=5, delay_s=5).on(instance).exec(

@@ -59,6 +59,8 @@ def test_lxd_and_multipass_next_id_thread_safety():
 
 @pytest.mark.tags(tags.PULL_REQUEST)
 def test_juju_harness_new_instance_thread_safety():
+    import subprocess
+
     with (
         patch("test_util.harness.juju.config.JUJU_CONTROLLER", "ctrl"),
         patch("test_util.harness.juju.config.JUJU_MODEL", "mdl"),
@@ -67,14 +69,32 @@ def test_juju_harness_new_instance_thread_safety():
         h = JujuHarness()
     assert hasattr(h, "_lock")
 
-    claimed_ids = []
-    with ThreadPoolExecutor(max_workers=4) as executor:
-        futures = [executor.submit(h.new_instance) for _ in range(4)]
-        for f in futures:
-            claimed_ids.append(f.result().id)
+    def _fake_add_machine(cmd, **kwargs):
+        return subprocess.CompletedProcess(
+            args=cmd,
+            returncode=0,
+            stdout=b"",
+            stderr=b"WARNING controller notice\ncreated machine 4\n",
+        )
 
-    assert sorted(claimed_ids) == ["0", "1", "2", "3"]
-    assert h.instances == {"0", "1", "2", "3"}
+    claimed_ids = []
+    with (
+        patch("test_util.harness.juju.run", side_effect=_fake_add_machine) as mock_run,
+        patch.object(h, "exec") as mock_exec,
+    ):
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            futures = [executor.submit(h.new_instance) for _ in range(5)]
+            for f in futures:
+                claimed_ids.append(f.result().id)
+
+        # 4 pre-existing claimed without CLI calls; 5th created dynamically and waited seed.loaded
+        assert mock_run.call_count == 1
+        mock_exec.assert_called_once_with(
+            "4", ["snap", "wait", "system", "seed.loaded"]
+        )
+
+    assert sorted(claimed_ids) == ["0", "1", "2", "3", "4"]
+    assert h.instances == {"0", "1", "2", "3", "4"}
     assert all(h.existing_machines.values())
 
     h.delete_instance("1")
@@ -367,3 +387,117 @@ def test_instances_fixture_sequential_bare_metal_and_single_node():
             next(gen)
         except StopIteration:
             pass
+
+
+@pytest.mark.tags(tags.PULL_REQUEST)
+def test_multipass_and_lxd_cleanup_or_track_mid_launch_failures(tmp_path):
+    import subprocess
+
+    # 1. Multipass cloud-init wait failure still records instance_id in self.instances
+    ci_file = tmp_path / "ci.yaml"
+    ci_file.write_text("#cloud-config\n")
+    mp_h = MultipassHarness.__new__(MultipassHarness)
+    Harness.__init__(mp_h)
+    mp_h._next_id = 0
+    mp_h.image = "24.04"
+    mp_h.cpus = "2"
+    mp_h.memory = "4G"
+    mp_h.disk = "20G"
+    mp_h.cloud_init = "ci.yaml"
+    mp_h.instances = set()
+
+    with (
+        patch("test_util.harness.multipass.config.CLOUD_INIT_DIR", tmp_path),
+        patch("test_util.harness.multipass.run"),
+        patch("test_util.harness.multipass.stubbornly") as mock_stubbornly,
+    ):
+        mock_stubbornly.return_value.until.return_value.exec.side_effect = RuntimeError(
+            "cloud-init timed out"
+        )
+        with pytest.raises(RuntimeError, match="cloud-init timed out"):
+            mp_h.new_instance()
+
+    assert len(mp_h.instances) == 1
+
+    # 2. LXD launch failure invokes best-effort lxc rm --force in case an attempt half-created it
+    lxd_h = LXDHarness.__new__(LXDHarness)
+    Harness.__init__(lxd_h)
+    lxd_h._next_id = 0
+    lxd_h.image = "ubuntu:24.04"
+    lxd_h.profile = "k8s-integration"
+    lxd_h.sideload_images_dir = None
+    lxd_h.instances = set()
+
+    with (
+        patch("test_util.harness.lxd.stubbornly") as mock_stubbornly,
+        patch("test_util.harness.lxd.run") as mock_lxd_run,
+    ):
+        mock_stubbornly.return_value.exec.side_effect = subprocess.CalledProcessError(
+            1, ["lxc", "launch"]
+        )
+        with pytest.raises(HarnessError, match="Failed to create LXD container"):
+            lxd_h.new_instance()
+
+    rm_calls = [
+        c.args[0] for c in mock_lxd_run.call_args_list if c.args[0][:2] == ["lxc", "rm"]
+    ]
+    assert len(rm_calls) == 1
+    assert rm_calls[0][-1] == "--force"
+
+
+@pytest.mark.tags(tags.PULL_REQUEST)
+def test_instances_fixture_retries_transient_delete_failure_on_error():
+    from conftest import instances as instances_fixture
+
+    mock_h = MagicMock()
+    mock_h.name = "lxd"
+    mock_h._lock = threading.Lock()
+    mock_h.instances = set()
+
+    def _new_instance(network_type="IPv4"):
+        idx = len(mock_h.instances)
+        inst_id = f"node-{idx}"
+        mock_h.instances.add(inst_id)
+        inst = Instance(mock_h, inst_id)
+        if idx == 0:
+            inst.exec = MagicMock(side_effect=RuntimeError("bootstrap failed"))
+        else:
+            inst.exec = MagicMock()
+        return inst
+
+    delete_attempts = []
+
+    def _delete_instance(inst_id):
+        delete_attempts.append(inst_id)
+        if inst_id == "node-0" and delete_attempts.count("node-0") == 1:
+            raise HarnessError("transient lxc rm failure")
+        mock_h.instances.discard(inst_id)
+
+    mock_h.new_instance.side_effect = _new_instance
+    mock_h.delete_instance.side_effect = _delete_instance
+
+    with (
+        patch("conftest.util.preload_snaps"),
+        patch("conftest.util.setup_core_dumps"),
+        patch("conftest.util.setup_k8s_snap"),
+        patch("conftest.util.remove_k8s_snap"),
+        patch("conftest.config.USE_LOCAL_MIRROR", False),
+    ):
+        gen = instances_fixture.__wrapped__(
+            h=mock_h,
+            registry=MagicMock(),
+            node_count=2,
+            disable_k8s_bootstrapping=False,
+            required_ports=[],
+            no_setup=False,
+            containerd_cfgdir="/etc/containerd",
+            bootstrap_config=None,
+            request=MagicMock(),
+            network_type="IPv4",
+        )
+        mock_h.exec.side_effect = RuntimeError("bootstrap failed")
+        with pytest.raises(RuntimeError, match="bootstrap failed"):
+            next(gen)
+
+    assert delete_attempts.count("node-0") == 2
+    assert mock_h.instances == set()

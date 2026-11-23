@@ -258,7 +258,11 @@ def instances(
         pytest.xfail("Test requested 0 or fewer instances, skip this test.")
 
     LOG.info(f"Creating {node_count} instances")
-    initial_instance_ids = set(h.instances)
+    if hasattr(h, "_lock"):
+        with h._lock:
+            initial_instance_ids = set(h.instances)
+    else:
+        initial_instance_ids = set(h.instances)
     instances: List[harness.Instance] = []
 
     def _setup_node(index: int) -> harness.Instance:
@@ -308,10 +312,16 @@ def instances(
                     "Failed to delete instance %s during error cleanup", inst.id
                 )
 
-        leftover_ids = set(h.instances) - initial_instance_ids
+        if hasattr(h, "_lock"):
+            with h._lock:
+                current_ids = set(h.instances)
+        else:
+            current_ids = set(h.instances)
+        attempted_snap_removal = {inst.id for inst in instances}
+        leftover_ids = current_ids - initial_instance_ids
         for leftover_id in leftover_ids:
             leftover_inst = harness.Instance(h, leftover_id)
-            if not no_setup:
+            if not no_setup and leftover_id not in attempted_snap_removal:
                 try:
                     util.remove_k8s_snap(leftover_inst, retries=10)
                 except Exception:
