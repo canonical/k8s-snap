@@ -322,7 +322,7 @@ def cmd_update_pip_locks(args: argparse.Namespace) -> int:
         for f in args.files:
             p = Path(f)
             p = (p if p.is_absolute() else root / p).resolve()
-            if p.suffix != ".in" or not p.is_file():
+            if not p.is_relative_to(root) or p.suffix != ".in" or not p.is_file():
                 print(f"ERROR: Invalid requirements file: {f}", file=sys.stderr)
                 return 1
             in_files.append(str(p))

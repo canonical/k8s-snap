@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from cmds import deps  # noqa: E402
 
 
-class StlibImportTests(unittest.TestCase):
+class StdlibImportTests(unittest.TestCase):
     def test_import_cmds_deps_without_packaging(self):
         blocked = {
             "packaging": None,
@@ -138,6 +138,17 @@ class UpdatePipLocksCommandTests(unittest.TestCase):
     def test_cmd_update_pip_locks_invalid_file(self):
         with tempfile.TemporaryDirectory() as tmp_root:
             args = argparse.Namespace(root=tmp_root, files=["not-a-file.txt"])
+            ret = deps.cmd_update_pip_locks(args)
+            self.assertEqual(ret, 1)
+
+    def test_cmd_update_pip_locks_rejects_file_outside_root(self):
+        with (
+            tempfile.TemporaryDirectory() as tmp_root,
+            tempfile.TemporaryDirectory() as outside_dir,
+        ):
+            outside_in = Path(outside_dir) / "requirements-outside.in"
+            outside_in.write_text("pkg>=1.0\n")
+            args = argparse.Namespace(root=tmp_root, files=[str(outside_in)])
             ret = deps.cmd_update_pip_locks(args)
             self.assertEqual(ret, 1)
 
