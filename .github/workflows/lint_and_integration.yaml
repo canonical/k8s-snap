@@ -87,6 +87,7 @@ jobs:
       - name: Lint
         run: |
           cd tests/integration && tox -e lint
+          tox -e unit
           cd ../../ci && tox -e lint
   go-lint-and-unit:
     name: Go lint and unit tests
