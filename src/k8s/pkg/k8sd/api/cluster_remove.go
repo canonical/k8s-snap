@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 
 	apiv1 "github.com/canonical/k8s-snap-api/api/v1"
 	apiv1_annotations "github.com/canonical/k8s-snap-api/api/v1/annotations"
+	etcdclient "github.com/canonical/k8s/pkg/client/etcd"
 	databaseutil "github.com/canonical/k8s/pkg/k8sd/database/util"
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	"github.com/canonical/k8s/pkg/log"
@@ -240,7 +242,11 @@ func removeNodeFromEtcd(ctx context.Context, snap snap.Snap, s state.State, cfg 
 	log := log.FromContext(ctx).WithValues("remove", "etcd", "name", nodeName, "clientURLs", clientURLs)
 	log.Info("Deleting node from etcd cluster")
 	if err := client.RemoveNodeByName(ctx, nodeName); err != nil {
-		return fmt.Errorf("failed to remove node %s from etcd cluster: %w", nodeName, err)
+		if errors.Is(err, etcdclient.ErrNotFound) {
+			log.Info("Node not found in the etcd cluster, nothing to remove", "node", nodeName)
+		} else {
+			return fmt.Errorf("failed to remove node %s from etcd cluster: %w", nodeName, err)
+		}
 	}
 
 	return nil
