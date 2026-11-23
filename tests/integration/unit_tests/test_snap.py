@@ -3,11 +3,9 @@
 #
 from unittest.mock import patch
 
-import pytest
-from test_util import config, snap, tags, util
+from test_util import config, snap, util
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 @patch("test_util.snap.get_snap_info")
 def test_get_most_stable_channels_order_with_latest(mock_get_snap_info):
     mock_get_snap_info.return_value = {
@@ -135,7 +133,6 @@ MOCK_CHANNEL_MAP_6_TRACKS = {
 }
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 @patch("test_util.snap.get_snap_info")
 def test_get_most_stable_channels_recent_2(mock_get_snap_info):
     mock_get_snap_info.return_value = MOCK_CHANNEL_MAP_6_TRACKS
@@ -159,7 +156,6 @@ def test_get_most_stable_channels_recent_2(mock_get_snap_info):
     ]
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 @patch("test_util.snap.get_snap_info")
 def test_get_most_stable_channels_keeps_latest_edge_on_same_minor(mock_get_snap_info):
     mock_get_snap_info.return_value = MOCK_CHANNEL_MAP_6_TRACKS
@@ -176,7 +172,6 @@ def test_get_most_stable_channels_keeps_latest_edge_on_same_minor(mock_get_snap_
     ]
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 @patch("test_util.snap.get_snap_info")
 def test_build_upgrade_channel_list(mock_get_snap_info):
     mock_get_snap_info.return_value = MOCK_CHANNEL_MAP_6_TRACKS
@@ -283,7 +278,6 @@ def test_build_upgrade_channel_list(mock_get_snap_info):
     assert c7 == ["1.34-classic/stable", snap_path, "1.36-classic/candidate"]
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 @patch("test_util.snap.get_snap_info")
 def test_build_downgrade_channel_list(mock_get_snap_info):
     mock_get_snap_info.return_value = MOCK_CHANNEL_MAP_6_TRACKS
@@ -325,7 +319,6 @@ def test_build_downgrade_channel_list(mock_get_snap_info):
     assert mock_get_snap_info.call_count == 0
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 @patch("test_util.util._find_stable_track")
 def test_previous_track_from_branch(mock_find_stable):
     mock_find_stable.side_effect = lambda maj, min, flavor: (
@@ -353,7 +346,6 @@ def test_previous_track_from_branch(mock_find_stable):
             assert util._previous_track_from_branch("stacked-fix") == "1.33-classic"
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 @patch("test_util.util._find_stable_track")
 def test_previous_track_stacked_base_ref(mock_find_stable, monkeypatch):
     mock_find_stable.side_effect = lambda maj, min, flavor: (

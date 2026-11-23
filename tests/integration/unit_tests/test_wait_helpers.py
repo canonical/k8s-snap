@@ -4,11 +4,9 @@
 import subprocess
 from unittest.mock import MagicMock
 
-import pytest
-from test_util import tags, util
+from test_util import util
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_wait_for_snap_change_happy_path_no_snap_changes():
     instance = MagicMock()
     instance.exec.return_value = subprocess.CompletedProcess(
@@ -36,7 +34,6 @@ def test_wait_for_snap_change_happy_path_no_snap_changes():
     assert instance.exec.call_args[0][0] == cmd
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_wait_for_snap_change_waits_for_inflight_change_before_retry():
     instance = MagicMock()
     cmd = ["snap", "install", "--classic", "k8s"]
@@ -91,7 +88,6 @@ def test_wait_for_snap_change_waits_for_inflight_change_before_retry():
     ]
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_snap_refresh_uses_bounded_timeout_and_retries_after_timeout():
     instance = MagicMock()
     cmd = [
@@ -141,7 +137,6 @@ def test_snap_refresh_uses_bounded_timeout_and_retries_after_timeout():
     assert instance.exec.call_args_list[2][1].get("timeout") == 300
 
 
-@pytest.mark.tags(tags.PULL_REQUEST)
 def test_snap_revert_uses_bounded_timeout_and_retries_after_timeout():
     instance = MagicMock()
     cmd = ["snap", "revert", "k8s"]
