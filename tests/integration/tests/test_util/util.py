@@ -706,7 +706,13 @@ def remove_k8s_snap(instance: harness.Instance, retries: int = 40):
         raise
 
     LOG.info("Waiting for kubelet and containerd mounts to go away...")
-    target_mounts = ["/var/lib/kubelet/pods", "/run/containerd/io.containerd"]
+    if config.VARIANT == "strict":
+        target_mounts = [
+            "/var/snap/k8s/common/var/lib/kubelet/pods",
+            "/var/snap/k8s/common/run/containerd",
+        ]
+    else:
+        target_mounts = ["/var/lib/kubelet/pods", "/run/containerd/io.containerd"]
     last_lingering_mounts: List[str] = []
 
     def _no_lingering_mounts(p: subprocess.CompletedProcess) -> bool:
@@ -1168,7 +1174,10 @@ def tracks_least_risk(track: str, arch: str) -> str:
     """
     LOG.debug("Determining least risk channel for track: %s on %s", track, arch)
     if track == "latest":
-        return f"latest/edge/{config.VARIANT or 'classic'}"
+        return f"latest/edge/{config.VARIANT}"
+    if config.VARIANT == "strict":
+        # Strict builds are only published to the hidden edge/strict branch of the classic track.
+        return f"{track.removesuffix('-classic')}-classic/edge/strict"
 
     INFO_URL = f"https://api.snapcraft.io/v2/snaps/info/{config.SNAP_NAME}"
     HEADERS = {
@@ -1209,7 +1218,7 @@ def major_minor(version: str) -> Optional[tuple]:
 
 def _get_variant() -> str:
     """Determine the variant of the snap."""
-    return {"": "classic", "strict": ""}.get(config.VARIANT, config.VARIANT)
+    return config.VARIANT
 
 
 def _major_minor_from_stable_upstream(maj: Optional[int] = None) -> Optional[tuple]:
@@ -1239,7 +1248,7 @@ def _find_stable_track(major: int, minor: int, variant: str) -> Optional[str]:
     Args:
         major: the major Kubernetes version
         minor: the minor Kubernetes version to start from
-        variant: the snap variant (e.g. 'classic', '')
+        variant: the snap variant (e.g. 'classic', 'strict')
 
     Returns:
         the track string (e.g. '1.36-classic') or None if no stable track is found
@@ -1271,12 +1280,14 @@ def _find_stable_track(major: int, minor: int, variant: str) -> Optional[str]:
         if ch["channel"]["risk"] == "stable" and ch["channel"]["architecture"] == arch
     }
 
+    # Strict builds are published to the hidden edge/strict branch of classic tracks.
+    suffix = "-classic" if variant == "strict" else (variant and f"-{variant}")
     _min = minor
     while _min >= 0:
-        track = f"{major}.{_min}" + (variant and f"-{variant}")
+        track = f"{major}.{_min}{suffix}"
         if track in stable_tracks:
             LOG.info("Found stable snap for track %s (arch=%s)", track, arch)
-            return track
+            return f"{track}/edge/strict" if variant == "strict" else track
         LOG.info(
             "No stable snap for track %s (arch=%s), trying previous minor",
             track,
@@ -2301,15 +2312,20 @@ def diverged_cluster_memberships(
     # datastore membership
     datastore = status.get("datastore", {}).get("type")
     if datastore == "etcd":
+        pki_dir = (
+            "/var/snap/k8s/common/etc/kubernetes/pki"
+            if config.VARIANT == "strict"
+            else "/etc/kubernetes/pki"
+        )
         proc = control_node.exec(
             [
                 "curl",
                 "--cacert",
-                "/etc/kubernetes/pki/etcd/ca.crt",
+                f"{pki_dir}/etcd/ca.crt",
                 "--cert",
-                "/etc/kubernetes/pki/apiserver-etcd-client.crt",
+                f"{pki_dir}/apiserver-etcd-client.crt",
                 "--key",
-                "/etc/kubernetes/pki/apiserver-etcd-client.key",
+                f"{pki_dir}/apiserver-etcd-client.key",
                 "https://127.0.0.1:2379/v3/cluster/member/list",
                 "-X",
                 "POST",

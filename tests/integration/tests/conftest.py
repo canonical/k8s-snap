@@ -55,15 +55,26 @@ def _generate_inspection_report(h: harness.Harness, instance_id: str):
 
     try:
         inspection_path = Path(config.INSPECTION_REPORTS_DIR)
+        report_remote = "/inspection-report.tar.gz"
+        inspect_cmd = [
+            "/snap/k8s/current/k8s/scripts/inspect.sh",
+            "--all-namespaces",
+            "--core-dump-dir",
+            config.CORE_DUMP_DIR,
+        ]
+        if config.VARIANT == "strict":
+            # The confined k8s CLI can only write the report below a home directory.
+            report_remote = "/home/ubuntu/inspection-report.tar.gz"
+            inspect_cmd = [
+                "sh",
+                "-c",
+                f"cd /home/ubuntu && {' '.join(inspect_cmd)} {report_remote}",
+            ]
+        else:
+            inspect_cmd.append(report_remote)
         result = h.exec(
             instance_id,
-            [
-                "/snap/k8s/current/k8s/scripts/inspect.sh",
-                "--all-namespaces",
-                "--core-dump-dir",
-                config.CORE_DUMP_DIR,
-                "/inspection-report.tar.gz",
-            ],
+            inspect_cmd,
             capture_output=True,
             text=True,
             check=False,
@@ -79,7 +90,7 @@ def _generate_inspection_report(h: harness.Harness, instance_id: str):
 
         h.pull_file(
             instance_id,
-            "/inspection-report.tar.gz",
+            report_remote,
             (inspection_path / instance_id / "inspection_report.tar.gz").as_posix(),
         )
     except harness.HarnessError as e:
@@ -238,6 +249,8 @@ def network_type(request) -> Union[str, None]:
 def containerd_cfgdir(request) -> str:
     marker = request.node.get_closest_marker("containerd_cfgdir")
     if not marker:
+        if config.VARIANT == "strict":
+            return "/var/snap/k8s/common/etc/containerd"
         return "/etc/containerd"
     cfgdir, *_ = marker.args
     return cfgdir

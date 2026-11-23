@@ -173,6 +173,24 @@ def test_get_most_stable_channels_keeps_latest_edge_on_same_minor(mock_get_snap_
 
 
 @patch("test_util.snap.get_snap_info")
+def test_get_most_stable_channels_strict_uses_edge_strict_branch(mock_get_snap_info):
+    mock_get_snap_info.return_value = {
+        "channel-map": [
+            {"channel": {"name": "1.35-classic/stable", "architecture": "amd64"}},
+            {"channel": {"name": "1.35-classic/edge", "architecture": "amd64"}},
+            {"channel": {"name": "1.36-classic/edge", "architecture": "amd64"}},
+            {"channel": {"name": "1.36-classic/edge", "architecture": "arm64"}},
+        ]
+    }
+
+    assert snap.get_most_stable_channels(2, "strict", "amd64") == [
+        "1.35-classic/edge/strict",
+        "1.36-classic/edge/strict",
+        "latest/edge/strict",
+    ]
+
+
+@patch("test_util.snap.get_snap_info")
 def test_build_upgrade_channel_list(mock_get_snap_info):
     mock_get_snap_info.return_value = MOCK_CHANNEL_MAP_6_TRACKS
     snap_path = "/tmp/k8s.snap"
@@ -325,7 +343,8 @@ def test_build_downgrade_channel_list(mock_get_snap_info):
 
 
 @patch("test_util.util._find_stable_track")
-def test_previous_track_from_branch(mock_find_stable):
+def test_previous_track_from_branch(mock_find_stable, monkeypatch):
+    monkeypatch.setattr(config, "VARIANT", "classic")
     mock_find_stable.side_effect = lambda maj, min, variant: (
         f"{maj}.{min}-{variant}" if variant else f"{maj}.{min}"
     )
@@ -353,6 +372,7 @@ def test_previous_track_from_branch(mock_find_stable):
 
 @patch("test_util.util._find_stable_track")
 def test_previous_track_stacked_base_ref(mock_find_stable, monkeypatch):
+    monkeypatch.setattr(config, "VARIANT", "classic")
     mock_find_stable.side_effect = lambda maj, min, variant: (
         f"{maj}.{min}-{variant}" if variant else f"{maj}.{min}"
     )

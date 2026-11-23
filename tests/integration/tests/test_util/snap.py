@@ -41,7 +41,7 @@ def filter_arch_and_variant(
     """Filter available channels by architecture and match them with a given regex pattern
     for a variant."""
     if variant == "strict":
-        pattern = re.compile(r"(\d+)\.(\d+)\/(" + "|".join(RISK_LEVELS) + ")")
+        pattern = re.compile(r"(\d+)\.(\d+)-classic\/(edge)")
     else:
         pattern = re.compile(
             r"(\d+)\.(\d+)-" + re.escape(variant) + r"\/(" + "|".join(RISK_LEVELS) + ")"
@@ -54,7 +54,12 @@ def filter_arch_and_variant(
             match = pattern.match(channel_name)
             if match:
                 major, minor, risk = match.groups()
-                matched_channels.append((channel_name, int(major), int(minor), risk))
+                resolved_name = (
+                    f"{major}.{minor}-classic/edge/strict"
+                    if variant == "strict"
+                    else channel_name
+                )
+                matched_channels.append((resolved_name, int(major), int(minor), risk))
 
     return matched_channels
 
