@@ -12,6 +12,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/klog/v2"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -199,7 +200,7 @@ func nodeSchedulableForCoreDNS(node *corev1.Node) bool {
 		}
 		tolerated := false
 		for j := range coredns.Tolerations {
-			if coredns.Tolerations[j].ToleratesTaint(taint) {
+			if coredns.Tolerations[j].ToleratesTaint(klog.Background(), taint, false) {
 				tolerated = true
 				break
 			}
