@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    paths:
-      - .github/workflows/update-pre-release-branches.yaml
   schedule:
     - cron: "0 0 * * *" # Runs every midnight
 

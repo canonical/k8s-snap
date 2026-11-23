@@ -1,16 +1,14 @@
 name: "Docs: Markdown lint"
 
 on:
-  pull_request:
-    paths:
-      - 'docs/**'
-      - '!docs/canonicalk8s/_parts/**'
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
   markdown-lint:
+    if: false
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4

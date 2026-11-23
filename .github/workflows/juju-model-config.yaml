@@ -1,0 +1,12 @@
+cloudinit-userdata: |
+  #cloud-config
+  write_files:
+    - path: /etc/systemd/system/snapd.service.d/debug.conf
+      owner: root:root
+      permissions: '0644'
+      content: |
+        [Service]
+        Environment=SNAPD_DEBUG=1 SNAPD_DEBUG_HTTP=3
+  runcmd:
+    - systemctl daemon-reload
+    - systemctl restart snapd.service

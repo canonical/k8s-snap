@@ -1,13 +1,11 @@
 name: cla-check
 
 on:
-  pull_request:
-    branches:
-      - main
-      - 'release-[0-9]+.[0-9]+'
+  workflow_dispatch:
       
 jobs:
   cla-check:
+    if: false
     runs-on: ubuntu-latest
     steps:
       - name: Check if CLA signed

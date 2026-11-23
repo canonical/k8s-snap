@@ -2,9 +2,6 @@ name: Close inactive issues or PRs
 on:
   schedule:
     - cron: "0 0 * * *" # Runs every midnight
-  pull_request:
-    paths:
-      - .github/workflows/stale-cron.yaml
 
 permissions:
   contents: read

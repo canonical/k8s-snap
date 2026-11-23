@@ -1,0 +1,420 @@
+name: Debug Charm e2e (Snap Store Stall)
+
+permissions:
+  contents: read
+  actions: read
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+jobs:
+  debug-charm-e2e:
+    name: Debug Charm e2e (Attempt ${{ matrix.job_index }}/3)
+    runs-on: self-hosted-linux-amd64-jammy-xlarge
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        job_index: [1, 2, 3]
+
+    env:
+      ARTIFACT_DIR: ${{ github.workspace }}/debug-artifacts
+
+    steps:
+      - name: Start tmate session
+        id: tmate
+        uses: canonical/action-tmate@main
+        with:
+          detached: true
+
+      - name: Display tmate SSH command
+        run: |
+          echo "================================================================================"
+          echo "TMATE SSH COMMAND (Job ${{ matrix.job_index }}/3):"
+          echo "${{ steps.tmate.outputs.ssh-command }}"
+          echo "TMATE WEB URL: ${{ steps.tmate.outputs.web-url }}"
+          echo "================================================================================"
+
+      - name: Check out code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Ensure /snap/bin in PATH
+        run: |
+          echo "/snap/bin" >> $GITHUB_PATH
+
+      - name: Install host debug prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y conntrack tcpdump jq curl python3.10-venv
+
+      - name: Create artifact directories
+        run: |
+          mkdir -p "${{ env.ARTIFACT_DIR }}/host" "${{ env.ARTIFACT_DIR }}/vms" "${{ env.ARTIFACT_DIR }}/probes" "${{ env.ARTIFACT_DIR }}/pcaps" "${{ env.ARTIFACT_DIR }}/crashdumps"
+
+      - name: Record host network facts (pre-deploy)
+        run: |
+          {
+            echo "=== HOST NETWORK FACTS (PRE-DEPLOY) ==="
+            echo "Timestamp: $(date -u -Iseconds)"
+            echo "--- ip -d link ---"
+            ip -d link || true
+            echo "--- ip route table all ---"
+            ip route show table all || true
+            echo "--- Interface MTUs ---"
+            for iface in /sys/class/net/*; do
+              name=$(basename "$iface")
+              mtu=$(cat "$iface/mtu" 2>/dev/null || echo "unknown")
+              echo "$name MTU: $mtu"
+            done
+            echo "--- iptables-save ---"
+            sudo iptables-save || true
+            echo "--- nft list ruleset ---"
+            sudo nft list ruleset 2>/dev/null || true
+            echo "--- sysctl net settings ---"
+            sudo sysctl net.ipv4.ip_forward net.ipv4.tcp_mtu_probing net.ipv4.tcp_rmem net.core.rmem_max net.ipv4.tcp_wmem net.core.wmem_max || true
+            echo "--- aproxy status & config ---"
+            systemctl status aproxy || true
+            systemctl cat aproxy || true
+            cat /etc/aproxy/* 2>/dev/null || true
+            journalctl -u aproxy --no-pager -n 100 || true
+            echo "--- env proxies ---"
+            env | grep -iE 'proxy|http' || true
+            echo "--- resolvectl status ---"
+            resolvectl status 2>/dev/null || systemd-resolve --status 2>/dev/null || true
+            echo "--- /etc/resolv.conf ---"
+            cat /etc/resolv.conf || true
+          } | tee "${{ env.ARTIFACT_DIR }}/host/pre-deploy-facts.txt"
+
+      - name: Setup Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.10'
+
+      - name: Setup Astral UV
+        uses: astral-sh/setup-uv@7edac99f961f18b581bbd960d59d049f04c0002f # v6.4.1
+        with:
+          python-version: '3.10'
+
+      - name: Install tox with UV
+        run: uv tool install tox --with tox-uv
+
+      - name: Install charmcraft
+        run: |
+          sudo snap install charmcraft --classic
+
+      - name: Install juju and juju-crashdump
+        run: |
+          sudo snap install juju --classic
+          sudo snap install juju-crashdump --classic || true
+
+      - name: Download k8s-snap
+        id: download-snap
+        uses: ./.github/actions/download-k8s-snap
+        with:
+          channel: 1.33-classic/edge
+
+      - name: Generate snap tarball
+        run: |
+          mkdir snap_installation
+          mv ${{ steps.download-snap.outputs.snap-path }} snap_installation/k8s.snap
+          tar cvzf snap_installation.tar.gz -C snap_installation/ .
+
+      - name: Download charms 1.33/beta amd64
+        run: |
+          arch=amd64
+          k8sCharmFile=${GITHUB_WORKSPACE}/k8s_ubuntu-22.04-${arch}.charm
+          k8sWorkerChamFile=${GITHUB_WORKSPACE}/k8s-worker_ubuntu-22.04-${arch}.charm
+
+          juju download k8s \
+            --channel 1.33/beta \
+            --filepath "$k8sCharmFile" \
+            --base ubuntu@22.04
+          juju download k8s-worker \
+            --channel 1.33/beta \
+            --filepath "$k8sWorkerChamFile" \
+            --base ubuntu@22.04
+
+      - name: Setup LXD
+        id: setup-lxd
+        continue-on-error: true
+        timeout-minutes: 10
+        uses: canonical/setup-lxd@a3c85fc6fb7fff43fcfeae87659e41a8f635b7dd # v0.1.3
+
+      - name: Cleanup LXD after failure
+        if: steps.setup-lxd.outcome == 'failure'
+        continue-on-error: true
+        timeout-minutes: 5
+        run: |
+          sudo systemctl stop snapd.service snapd.socket || true
+          sudo systemctl start snapd.socket snapd.service || true
+          for id in $(snap changes 2>/dev/null | awk '/^[0-9]+/ {if ($2 == "Doing" || $2 == "Do" || $2 == "Undoing") print $1}'); do
+            echo "Aborting in-flight snap change $id..."
+            sudo snap abort "$id" || true
+          done
+          echo "Waiting for in-flight snap changes to settle..."
+          for i in $(seq 1 36); do
+            changes=$(snap changes 2>/dev/null | awk '/^[0-9]+/ {if ($2 == "Doing" || $2 == "Do" || $2 == "Undoing") print $1, $2}')
+            if [ -z "$changes" ]; then
+              echo "All snap changes settled."
+              break
+            fi
+            echo "Still in progress ($i/36): $changes"
+            sleep 5
+          done
+          snap changes || true
+
+      - name: Retry Setup LXD
+        if: steps.setup-lxd.outcome == 'failure'
+        timeout-minutes: 10
+        uses: canonical/setup-lxd@a3c85fc6fb7fff43fcfeae87659e41a8f635b7dd # v0.1.3
+
+      - name: Disable lxd ipv6
+        run: |
+          lxc network set lxdbr0 ipv6.address none
+
+      - name: Record host network facts (post-LXD)
+        run: |
+          {
+            echo "=== POST-LXD NETWORK FACTS ==="
+            echo "Timestamp: $(date -u -Iseconds)"
+            echo "--- ip -d link lxdbr0 ---"
+            ip -d link show lxdbr0 || true
+            echo "--- iptables-save (nat) ---"
+            sudo iptables-save -t nat || true
+            echo "--- iptables-save (filter) ---"
+            sudo iptables-save -t filter || true
+          } | tee "${{ env.ARTIFACT_DIR }}/host/post-lxd-facts.txt"
+
+      - name: Start background monitor and rolling tcpdump
+        run: |
+          chmod +x .github/scripts/debug-monitor.sh
+          sudo .github/scripts/debug-monitor.sh "${{ env.ARTIFACT_DIR }}" &
+          echo $! > "${{ env.ARTIFACT_DIR }}/monitor.pid"
+          echo "Background monitor PID: $(cat "${{ env.ARTIFACT_DIR }}/monitor.pid")"
+
+      - name: Bootstrap Juju controller (lxd)
+        timeout-minutes: 50
+        run: |
+          pre_containers=$(mktemp)
+          if ! timeout 15s lxc list -c n --format csv > "$pre_containers"; then
+            echo "Failed to list initial lxc containers" >&2
+            rm -f "$pre_containers"
+            exit 1
+          fi
+
+          is_controller_present() {
+            local ctrl="$1"
+            local json
+            local ret=0
+            json=$(timeout 15s juju controllers --format json) || ret=$?
+            if [ "$ret" -ne 0 ]; then
+              return 2
+            fi
+            local present
+            present=$(echo "$json" | jq -r --arg c "$ctrl" 'if .controllers // {} | has($c) then "yes" else "no" end') || ret=$?
+            if [ "$ret" -ne 0 ]; then
+              return 2
+            fi
+            [ "$present" = "yes" ] && return 0
+            return 1
+          }
+
+          cleanup() {
+            timeout 1m juju kill-controller --no-prompt -t 30s lxd || true
+            local status=0
+            is_controller_present lxd || status=$?
+            if [ "$status" -ne 1 ]; then
+              timeout 15s juju unregister --no-prompt lxd || true
+            fi
+            if [ -f "$pre_containers" ]; then
+              local current_containers
+              current_containers=$(mktemp)
+              if ! timeout 15s lxc list -c n --format csv | sort > "$current_containers"; then
+                rm -f "$current_containers"
+                return 1
+              fi
+              comm -23 "$current_containers" <(sort "$pre_containers") | (grep -E '^juju-' || true) | xargs -r -n 1 timeout 30s lxc delete -f || true
+              rm -f "$current_containers"
+            fi
+          }
+
+          status=0
+          is_controller_present lxd || status=$?
+          if [ "$status" -ne 1 ]; then
+            echo "Cannot confirm controller absence before bootstrap" >&2
+            rm -f "$pre_containers"
+            exit 1
+          fi
+
+          ret=0
+          timeout -k 10s 20m juju bootstrap localhost lxd --debug || ret=$?
+          if [ "$ret" -ne 0 ]; then
+            echo "Bootstrap failed or timed out; retrying after cleanup..."
+            cleanup || { echo "Cleanup failed before retry" >&2; exit 1; }
+            ret=0
+            timeout -k 10s 20m juju bootstrap localhost lxd --debug || ret=$?
+            if [ "$ret" -ne 0 ]; then
+              cleanup || true
+              rm -f "$pre_containers"
+              exit "$ret"
+            fi
+          fi
+          rm -f "$pre_containers"
+
+          # Configure snapd debug drop-in globally for all models in this controller
+          echo "Applying cloudinit-userdata model-defaults on controller..."
+          juju model-defaults "${GITHUB_WORKSPACE}/.github/workflows/juju-model-config.yaml" || true
+          juju model-config "${GITHUB_WORKSPACE}/.github/workflows/juju-model-config.yaml" || true
+
+      - name: Resolve k8s-operator ref
+        id: operator-ref
+        env:
+          CANDIDATE_REF: ${{ github.base_ref || github.ref_name }}
+        run: |
+          candidate="${CANDIDATE_REF#refs/heads/}"
+          operator_repo="https://github.com/canonical/k8s-operator.git"
+
+          ref_exists() {
+            local ret=0
+            for _ in 1 2 3; do
+              ret=0
+              git ls-remote --exit-code "$operator_repo" "refs/heads/$1" >/dev/null 2>&1 || ret=$?
+              if [ "$ret" -eq 0 ]; then
+                return 0
+              elif [ "$ret" -eq 2 ]; then
+                return 1
+              fi
+              sleep 2
+            done
+            return 1
+          }
+
+          target=""
+          if [ -n "$candidate" ] && ref_exists "$candidate"; then
+            target="$candidate"
+          fi
+
+          if [ -z "$target" ] && [ -n "$candidate" ]; then
+            if [[ "$candidate" =~ (release-[0-9]+\.[0-9]+) ]]; then
+              rel="${BASH_REMATCH[1]}"
+              if ref_exists "$rel"; then
+                target="$rel"
+              fi
+            elif [[ "$candidate" =~ ([0-9]+\.[0-9]+) ]]; then
+              rel="release-${BASH_REMATCH[1]}"
+              if ref_exists "$rel"; then
+                target="$rel"
+              fi
+            fi
+          fi
+
+          if [ -z "$target" ] && [ -f "build-scripts/components/kubernetes/version" ]; then
+            k8s_ver=$(cat "build-scripts/components/kubernetes/version")
+            if [[ "$k8s_ver" =~ ([0-9]+\.[0-9]+) ]]; then
+              rel="release-${BASH_REMATCH[1]}"
+              if ref_exists "$rel"; then
+                target="$rel"
+              fi
+            fi
+          fi
+
+          if [ -z "$target" ]; then
+            target="main"
+          fi
+
+          echo "Resolved k8s-operator ref: $target"
+          echo "ref=$target" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          repository: canonical/k8s-operator
+          ref: ${{ steps.operator-ref.outputs.ref }}
+          path: k8s-operator
+
+      - name: Run e2e tests
+        run: |
+          set -x
+
+          arch=amd64
+          k8sCharmFile=${GITHUB_WORKSPACE}/k8s_ubuntu-22.04-${arch}.charm
+          k8sWorkerChamFile=${GITHUB_WORKSPACE}/k8s-worker_ubuntu-22.04-${arch}.charm
+          snapInstallRes=${GITHUB_WORKSPACE}/snap_installation.tar.gz
+
+          ls -lh "$k8sCharmFile"
+          ls -lh "$k8sWorkerChamFile"
+          ls -lh "$snapInstallRes"
+
+          cd k8s-operator
+
+          tox -r -e integration \
+            -- \
+            --charm-file "$k8sCharmFile" \
+            --charm-file "$k8sWorkerChamFile" \
+            --snap-installation-resource "$snapInstallRes" \
+            --no-juju-teardown \
+            --model-config "${GITHUB_WORKSPACE}/.github/workflows/juju-model-config.yaml" \
+            'tests/integration/test_k8s.py::test_nodes_ready'
+
+      - name: Diagnostic dump on failure
+        if: failure()
+        run: |
+          echo "=== JUJU STATUS ==="
+          juju status --format yaml || true
+
+          echo "=== JUJU CONTROLLERS ==="
+          juju controllers || true
+
+          echo "=== JUJU MODELS ==="
+          juju models || true
+
+          mkdir -p "${{ env.ARTIFACT_DIR }}/crashdumps"
+          MODELS=$(juju models --format json 2>/dev/null | jq -r '.models[].name // empty' || true)
+          for m in $MODELS; do
+            echo "Running juju-crashdump for model: $m"
+            juju-crashdump -s -m "$m" -o "${{ env.ARTIFACT_DIR }}/crashdumps" || true
+          done
+
+      - name: Stop background monitor and tcpdump
+        if: always()
+        run: |
+          if [ -f "${{ env.ARTIFACT_DIR }}/monitor.pid" ]; then
+            sudo kill $(cat "${{ env.ARTIFACT_DIR }}/monitor.pid") 2>/dev/null || true
+          fi
+          if [ -f "${{ env.ARTIFACT_DIR }}/tcpdump-egress.pid" ]; then
+            sudo kill $(cat "${{ env.ARTIFACT_DIR }}/tcpdump-egress.pid") 2>/dev/null || true
+          fi
+          if [ -f "${{ env.ARTIFACT_DIR }}/tcpdump-lxdbr0.pid" ]; then
+            sudo kill $(cat "${{ env.ARTIFACT_DIR }}/tcpdump-lxdbr0.pid") 2>/dev/null || true
+          fi
+          # Ensure all files are owned by runner user for artifact upload
+          sudo chown -R $USER:$USER "${{ env.ARTIFACT_DIR }}" || true
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+        with:
+          name: debug-artifacts-attempt-${{ matrix.job_index }}
+          path: ${{ env.ARTIFACT_DIR }}
+          retention-days: 7
+          overwrite: true
+
+      - name: Hold on failure for SSH debugging
+        if: failure()
+        run: |
+          echo "================================================================================"
+          echo "JOB FAILED! Holding runner for up to 90 minutes for interactive debugging."
+          echo "TMATE SSH COMMAND: ${{ steps.tmate.outputs.ssh-command }}"
+          echo "TMATE WEB URL:     ${{ steps.tmate.outputs.web-url }}"
+          echo "To finish hold early, run: touch /tmp/exit-hold"
+          echo "================================================================================"
+          for i in $(seq 1 9); do
+            if [ -f /tmp/exit-hold ]; then
+              echo "Exit hold requested via /tmp/exit-hold"
+              break
+            fi
+            echo "Hold loop ($i/9): waiting 10m. Current time: $(date -u -Iseconds)"
+            echo "TMATE SSH COMMAND: ${{ steps.tmate.outputs.ssh-command }}"
+            sleep 600
+          done
