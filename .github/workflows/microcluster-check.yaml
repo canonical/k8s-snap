@@ -6,8 +6,13 @@ on:
       - "src/k8s/pkg/k8sd/database/sql/migrations/**"
       - "src/k8s/pkg/k8sd/database/schema.go"
 
+permissions:
+  contents: read
+
 jobs:
   create-comment:
+    permissions:
+      pull-requests: write
     runs-on: ubuntu-latest
 
     steps:
