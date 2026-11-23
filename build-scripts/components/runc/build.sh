@@ -1,32 +1,58 @@
 #!/bin/bash
-
-# Store the current Go snap revision
-INITIAL_GO_REVISION=$(snap list go | grep -E '^go\s' | awk '{print $3}')
-echo "Current Go snap revision: ${INITIAL_GO_REVISION}"
-
-# Refresh to go fips stable channel
-maj_min=$(awk '/^go /{print $2}' go.mod | cut -d. -f1,2)
-echo "Refreshing to go ${maj_min}-fips/stable channel..."
-snap refresh go --channel=${maj_min}-fips/stable
+source "${BUILD_SCRIPTS_DIR}/lib.sh"
 
 VERSION="${2}"
-
-export INSTALL="${1}/bin"
+INSTALL="${1}/bin"
 mkdir -p "${INSTALL}"
 
-# Ensure `runc --version` prints the right commit hash from upstream
+# Retain clean upstream version commit before modifying dependencies.
 export COMMIT="$(git describe --long --always "${VERSION}")"
 
-# runc is statically linked, and the Go 1.25+ OpenSSL backend dlopens libcrypto, which a static binary cannot do
+# Static binary cannot dlopen libcrypto via OpenSSL backend.
 export GOTOOLCHAIN=local
-export GOEXPERIMENT=nosystemcrypto  # Go <= 1.26 only; delete at Go 1.27, where an unknown GOEXPERIMENT is a hard error
-export MS_GO_NOSYSTEMCRYPTO=1       # Go >= 1.26; unknown env var, so harmless on older toolchains
+export MS_GO_NOSYSTEMCRYPTO=1
+if [[ "$(go env GOVERSION)" < "go1.27" ]]; then
+  export GOEXPERIMENT=nosystemcrypto
+fi
 
-make BUILDTAGS="seccomp apparmor" EXTRA_LDFLAGS="-s -w" static
+semver_lt() {
+  python3 -c "
+import sys
+
+def parse(v):
+    v = v.lstrip('v').split('+')[0]
+    parts = v.split('-', 1)
+    core = tuple(int(x) for x in parts[0].split('.'))
+    if len(parts) == 1:
+        return (core, 1, ())
+    prerelease = []
+    for id_ in parts[1].split('.'):
+        prerelease.append((0, int(id_)) if id_.isdigit() else (1, id_))
+    return (core, 0, tuple(prerelease))
+
+sys.exit(0 if parse(sys.argv[1]) < parse(sys.argv[2]) else 1)
+" "$1" "$2"
+}
+
+# Bump dependencies that do not meet patched security floors.
+bumps=()
+for target in \
+  "golang.org/x/net v0.62.0" \
+  "github.com/moby/sys/user v0.4.1" \
+  "github.com/cilium/ebpf v0.22.0"; do
+  mod="${target%% *}"
+  floor="${target##* }"
+  cur="$(go list -m -f '{{.Version}}' "${mod}" 2>/dev/null || true)"
+  if [[ -n "${cur}" ]] && semver_lt "${cur}" "${floor}"; then
+    bumps+=("${mod}@${floor}")
+  fi
+done
+
+if [[ ${#bumps[@]} -gt 0 ]]; then
+  retry 5 5 go get "${bumps[@]}"
+  go mod tidy
+  go mod vendor
+fi
+
+make COMMIT="${COMMIT}" BUILDTAGS="seccomp apparmor" EXTRA_LDFLAGS="-s -w" static
 cp runc "${INSTALL}/runc"
-
-# Restore the initial Go snap revision
-echo "Restoring Go snap to initial revision: ${INITIAL_GO_REVISION}"
-
-# Snap revert fails if the revision is already the current one, so we ignore errors
-snap revert go --revision="${INITIAL_GO_REVISION}" || true
