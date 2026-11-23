@@ -795,6 +795,69 @@ def wait_until_k8s_ready(
     LOG.info("%s", result.stdout.decode().strip())
 
 
+def _is_benign_glibc_hugepages_probe(line: str) -> bool:
+    """Ignore glibc's read-only startup opendir(/sys/kernel/mm/hugepages/)."""
+    return (
+        'operation="open"' in line
+        and 'name="/sys/kernel/mm/hugepages/"' in line
+        and 'requested_mask="r"' in line
+    )
+
+
+def _filter_k8s_apparmor_denials(raw_output: str) -> List[str]:
+    """Return AppArmor DENIED log lines involving the k8s snap or its containers."""
+    snap_token = f"snap.{config.SNAP_NAME}."
+    seen = set()
+    matched: List[str] = []
+    for raw_line in raw_output.splitlines():
+        line = raw_line.strip()
+        if 'apparmor="DENIED"' not in line or 'operation="not mount"' in line:
+            continue
+        if _is_benign_glibc_hugepages_probe(line):
+            continue
+        if snap_token not in line and "cri-containerd.apparmor.d" not in line:
+            continue
+        if line not in seen:
+            seen.add(line)
+            matched.append(line)
+    return matched
+
+
+def collect_instance_apparmor_denials(instance: harness.Instance) -> List[str]:
+    """Collect k8s AppArmor denials visible from inside an instance."""
+    out = instance.exec(
+        [
+            "sh",
+            "-c",
+            "journalctl -k --no-pager 2>/dev/null; dmesg 2>/dev/null || true",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return _filter_k8s_apparmor_denials(out.stdout or "")
+
+
+def collect_host_apparmor_denials() -> List[str]:
+    """Collect k8s AppArmor denials from the LXD host kernel and audit logs."""
+    if config.SUBSTRATE != "lxd":
+        return []
+    out = run(
+        [
+            "sudo",
+            "-n",
+            "sh",
+            "-c",
+            "journalctl -k --no-pager 2>/dev/null; dmesg 2>/dev/null; "
+            "grep -h 'apparmor=\"DENIED\"' /var/log/audit/audit.log 2>/dev/null || true",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return _filter_k8s_apparmor_denials(out.stdout or "")
+
+
 def is_node_ready(
     control_node: harness.Instance,
     node_name: str = "",

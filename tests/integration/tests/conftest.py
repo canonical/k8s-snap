@@ -37,6 +37,13 @@ def pytest_itemcollected(item):
         )
 
 
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    rep = outcome.get_result()
+    setattr(item, f"rep_{rep.when}", rep)
+
+
 def _harness_clean(h: harness.Harness):
     "Clean up created instances within the test harness."
 
@@ -278,6 +285,8 @@ def instances(
 
     LOG.info(f"Creating {node_count} instances")
     instances: List[harness.Instance] = []
+    strict = config.VARIANT == "strict"
+    denial_baseline = set(util.collect_host_apparmor_denials()) if strict else set()
     for _ in range(node_count):
         # Create <node_count> instances and setup the k8s snap in each.
         instance = h.new_instance(network_type=network_type)
@@ -314,6 +323,8 @@ def instances(
         LOG.warning("Skipping clean-up of instances, delete them on your own")
         return
 
+    denials: List[str] = []
+
     # Collect all the reports before initiating the cleanup so that we won't
     # affect the state of the observed cluster.
     if config.INSPECTION_REPORTS_DIR:
@@ -343,7 +354,20 @@ def instances(
                 exc_info=True,
             )
         finally:
+            if strict:
+                denials += util.collect_instance_apparmor_denials(instance)
             instance.delete()
+
+    # A failed test already reports its own error; only check denials of passing tests.
+    if (
+        strict
+        and getattr(request.node, "rep_call", None)
+        and request.node.rep_call.passed
+    ):
+        new_denials = sorted(
+            set(denials + util.collect_host_apparmor_denials()) - denial_baseline
+        )
+        assert not new_denials, "AppArmor denials detected:\n" + "\n".join(new_denials)
 
 
 @pytest.fixture(scope="function")
