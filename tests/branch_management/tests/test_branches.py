@@ -7,6 +7,12 @@ import subprocess
 from pathlib import Path
 
 import requests
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
 
 log = logging.getLogger(__name__)
 K8S_GH_REPO = "https://github.com/canonical/k8s-snap.git/"
@@ -14,12 +20,15 @@ K8S_LP_REPO = " https://git.launchpad.net/k8s"
 
 
 def _sh(*args, **kwargs):
-    default = {"text": True, "stderr": subprocess.PIPE}
+    default = {"text": True, "stderr": subprocess.PIPE, "timeout": 60}
     try:
         return subprocess.check_output(*args, **{**default, **kwargs})
     except subprocess.CalledProcessError as e:
         log.error("stdout: %s", e.stdout)
         log.error("stderr: %s", e.stderr)
+        raise e
+    except subprocess.TimeoutExpired as e:
+        log.error("command timed out: %s", e.cmd)
         raise e
 
 
@@ -35,6 +44,12 @@ def _branch_flavours(branch: str = None):
 
 
 @functools.lru_cache
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=2, max=10),
+    retry=retry_if_exception_type(subprocess.SubprocessError),
+    reraise=True,
+)
 def _confirm_branch_exists(repo, branch):
     log.info(f"Checking {branch} branch exists in {repo}")
     cmd = f"git ls-remote --heads {repo} {branch}"
@@ -55,9 +70,17 @@ def _confirm_all_branches_exist(leader):
 
 
 @functools.lru_cache
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=2, max=10),
+    retry=retry_if_exception_type(requests.RequestException),
+    reraise=True,
+)
 def _confirm_recipe_exist(track, flavour):
     recipe = f"https://launchpad.net/~containers/k8s/+snap/k8s-snap-{track}-{flavour}"
-    r = requests.get(recipe)
+    r = requests.get(recipe, timeout=30)
+    if r.status_code in {408, 429, 500, 502, 503, 504}:
+        r.raise_for_status()
     return r.status_code == 200
 
 
