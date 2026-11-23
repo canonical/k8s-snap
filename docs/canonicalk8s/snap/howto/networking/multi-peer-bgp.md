@@ -215,8 +215,9 @@ Every entry should show `Valid`; `Invalid` entries include an error summary.
 
 ## Troubleshooting
 
-If an annotation is invalid, `k8s status` shows the error (see the example
-above). Correct the annotation and the reconciler retries automatically.
+If a load balancer annotation is invalid, the `load-balancer` entry in
+`k8s status` shows the error (see the example above). Correct the annotation
+and the reconciler retries automatically.
 
 If `configurationstates` shows `Invalid`, MetalLB rejected a configuration
 that {{product}} applied. The error summary names the cause, such as peers on
