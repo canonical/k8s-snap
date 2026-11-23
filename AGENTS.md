@@ -64,5 +64,5 @@ in `k8s_ai_agent_toolkit.triage.skills` appends each named skill to the prompt.
 
 ## Snap Channels
 
-Channel format: `{major}.{minor}-{variant}/{risk}`, e.g. `1.37-classic/stable`.
+Channel format: `{major}.{minor}-{variant}/{risk}` for classic (e.g. `1.37-classic/stable`), and hidden edge branch `{major}.{minor}-classic/edge/strict` (`latest/edge/strict`) for strict.
 Variants: `classic` (default), `strict`. Risk levels (ascending): `stable`, `candidate`, `beta`, `edge`.

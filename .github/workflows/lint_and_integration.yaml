@@ -29,7 +29,7 @@ jobs:
     uses: $/.github/workflows/build-snap.yaml
     strategy:
       matrix:
-        variant: ["", "strict"]
+        variant: ${{ startsWith(github.ref_name, 'autoupdate/') && fromJson('[""]') || fromJson('["", "strict"]') }}
         arch: ["amd64", "arm64"]
     with:
       variant: ${{ matrix.variant }}
@@ -244,6 +244,7 @@ jobs:
       arch: ${{ matrix.arch }}
       os: ubuntu:24.04
       test-tags: ${{ needs.get-e2e-tags.outputs.test-tags }}
+      variant: ${{ (github.ref_name == 'autoupdate/strict' || endsWith(github.ref_name, '-strict')) && 'strict' || '' }}
       artifact: k8s-${{ matrix.arch }}.snap
       test-collection-repo: ${{github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name || github.repository }}
       test-collection-branch: ${{ github.head_ref || github.ref_name }}
@@ -256,9 +257,10 @@ jobs:
     # don't get. Run with the weekly-tier tests this test is tagged for: after
     # every push, and on same-repo PRs that change tests, features or backports.
     if: >-
-      github.event_name == 'push' ||
+      !endsWith(github.ref_name, 'strict') &&
+      (github.event_name == 'push' ||
       (github.event.pull_request.head.repo.full_name == github.repository &&
-      needs.get-e2e-tags.outputs.test-tags == 'up_to_weekly')
+      needs.get-e2e-tags.outputs.test-tags == 'up_to_weekly'))
     strategy:
       fail-fast: false
       matrix:
@@ -353,6 +355,7 @@ jobs:
         arch: [amd64]
       fail-fast: false
     needs: [build-snap, python-lint, get-charm-channel]
+    if: ${{ !endsWith(github.ref_name, 'strict') }}
     uses: $/.github/workflows/charm-e2e-tests.yaml
     secrets:
       CHARMCRAFT_AUTH: ${{ secrets.CHARMCRAFT_AUTH }}

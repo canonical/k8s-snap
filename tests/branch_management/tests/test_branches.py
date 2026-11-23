@@ -71,7 +71,10 @@ def _confirm_all_branches_exist(leader):
         K8S_GH_REPO, leader
     ), f"GH Branch {leader} does not exist"
     branches = [leader]
-    branches += [f"autoupdate/{leader}-{v}" for v in _branch_variants(leader)]
+    branches += [
+        f"autoupdate/{v}" if leader == "main" else f"autoupdate/{leader}-{v}"
+        for v in _branch_variants(leader)
+    ]
     if missing := [b for b in branches if not _confirm_branch_exists(K8S_GH_REPO, b)]:
         assert missing, f"GH Branches do not exist {missing}"
     if missing := [b for b in branches if not _confirm_branch_exists(K8S_LP_REPO, b)]:
