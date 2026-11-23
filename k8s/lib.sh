@@ -42,7 +42,19 @@ k8s::common::setup_env() {
     seen_path["${SNAP%/}/sbin"]=1
   fi
 
+  local is_strict=""
+  if [ -n "${SNAP:-}" ] && grep -q 'confinement: strict' "${SNAP}/meta/snap.yaml" 2>/dev/null; then
+    is_strict="1"
+  fi
+
+  # Under strict confinement kubectl plugin discovery lists every PATH directory, and listing
+  # host directories such as /usr/local/bin or /usr/sbin is denied, so restrict PATH to the base.
   local host_path="${REAL_PATH:-${PATH:-}}"
+  if [ -n "$is_strict" ] && [ -n "${K8S_STRICT_CLI:-}" ]; then
+    host_path="/usr/bin:/bin"
+  elif [ -n "$is_strict" ]; then
+    host_path="/usr/bin:/usr/sbin:/bin:/sbin"
+  fi
   if [ -n "$host_path" ]; then
     local -a raw_path_dirs=()
     IFS=":" read -r -a raw_path_dirs <<< "$host_path"
@@ -109,7 +121,8 @@ k8s::common::setup_env() {
     fi
   fi
 
-  if [ -n "${REAL_LD_LIBRARY_PATH:-}" ]; then
+  # Under strict confinement the host library path holds snapd's inaccessible /var/lib/snapd/void.
+  if [ -z "$is_strict" ] && [ -n "${REAL_LD_LIBRARY_PATH:-}" ]; then
     local -a raw_real_ld=()
     IFS=":" read -r -a raw_real_ld <<< "$REAL_LD_LIBRARY_PATH"
     for d in "${raw_real_ld[@]}"; do
@@ -249,7 +262,11 @@ k8s::remove::kubelet_logs() {
 # Run kubectl as admin
 # Example: 'k8s::cmd::kubectl get pod,node -A'
 k8s::cmd::kubectl() {
-  env KUBECONFIG="${KUBECONFIG:-/etc/kubernetes/admin.conf}" "${SNAP}/bin/kubectl" "${@}"
+  if k8s::common::is_strict; then
+    env PATH="${SNAP}/bin:/usr/bin:/bin" KUBECONFIG="${KUBECONFIG:-/etc/kubernetes/admin.conf}" "${SNAP}/bin/kubectl" "${@}"
+  else
+    env KUBECONFIG="${KUBECONFIG:-/etc/kubernetes/admin.conf}" "${SNAP}/bin/kubectl" "${@}"
+  fi
 }
 
 # Run k8s CLI
