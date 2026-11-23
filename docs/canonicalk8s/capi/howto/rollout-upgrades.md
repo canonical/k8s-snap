@@ -21,7 +21,7 @@ To follow this guide, you will need:
 - The workload cluster kubeconfig. We will refer to it as `c1-kubeconfig.yaml`
   in the following steps.
 
-Please refer to the [getting-started guide][getting-started] for further
+Please refer to the [provisioning guide][provision] for further
 details on the required setup.
 This guide refers to the workload cluster as `c1` and its
 kubeconfig as `c1-kubeconfig.yaml`.
@@ -150,5 +150,5 @@ kubectl get machines -A
 ```
 
 <!-- LINKS -->
-[getting-started]: ../tutorial/getting-started.md
+[provision]: ./provision.md
 [in-place upgrade guide]: ./in-place-upgrades.md

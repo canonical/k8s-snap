@@ -35,7 +35,7 @@ def _assert_paths_not_exist(instance: harness.Instance, paths: List[str]):
 
 @pytest.mark.node_count(1)
 @pytest.mark.tags(tags.NIGHTLY)
-def test_node_cleanup(instances: List[harness.Instance], tmp_path):
+def test_node_cleanup(instances: List[harness.Instance]):
     """Verifies that a `snap remove k8s` will perform proper cleanup."""
     instance = instances[0]
     util.wait_for_dns(instance)

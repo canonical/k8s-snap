@@ -1,0 +1,53 @@
+name: Trivy Repo Security Scan
+
+on:
+  push:
+    paths-ignore:
+      - "docs/**"
+    branches:
+      - main
+      - autoupdate/strict
+      - "autoupdate/v*"
+      - "release-[0-9]+.[0-9]+"
+      - "autoupdate/release-[0-9]+.[0-9]+-strict"
+  pull_request:
+    paths-ignore:
+      - "docs/**"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions: {}
+
+jobs:
+  trivy-repo:
+    name: Trivy repo scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write # Needed for upload-sarif to upload SARIF results
+    steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4
+        with:
+          # Avoid rate limiting when pulling Trivy vulnerability databases
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Run Trivy vulnerability scanner
+        id: trivy-scan
+        run: ./tests/trivy-scan.sh --repo-only
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        if: ${{ !cancelled() && (steps.trivy-scan.outcome == 'success' || steps.trivy-scan.outcome == 'failure') && hashFiles('.trivy/sarifs/*.sarif') != '' }}
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          sarif_file: ./.trivy/sarifs
+          category: trivy-repo-scan

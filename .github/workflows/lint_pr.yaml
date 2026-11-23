@@ -11,6 +11,7 @@ permissions:
 jobs:
   main:
     name: Validate PR title
+    if: github.repository == 'canonical/k8s-snap'
     permissions:
       pull-requests: write # to comment
       statuses: write # to set commit status checks for the PR title lint
@@ -28,7 +29,7 @@ jobs:
           else
             echo "is_wip=false" >> $GITHUB_OUTPUT
           fi
-      - uses: amannn/action-semantic-pull-request@e32d7e603df1aa1ba07e981f2a23455dee596825 # v5
+      - uses: amannn/action-semantic-pull-request@c5e23b7e584519ee15caa684cf60d056aa9f035f # v6.1.3
         id: lint_pr_title
         if: steps.check_wip.outputs.is_wip == 'false'
         env:
@@ -38,7 +39,7 @@ jobs:
             automerge
             no-semantic
           wip: true
-      - uses: marocchino/sticky-pull-request-comment@773744901bac0e8cbb5a0dc842800d45e9b2b405 # v2
+      - uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
         # When the previous steps fails, the workflow would stop. By adding always()
         # we continue the execution with the populated error message.
         if: always() && steps.check_wip.outputs.is_wip == 'false' && steps.lint_pr_title.outputs.error_message != null
@@ -65,7 +66,7 @@ jobs:
       # or when the PR is converted to Draft or when the no-semantic
       # label is added.
       - if: ${{ steps.lint_pr_title.outputs.error_message == null || steps.check_wip.outputs.is_wip == 'true' || contains(github.event.pull_request.labels.*.name, 'no-semantic') }}
-        uses: marocchino/sticky-pull-request-comment@773744901bac0e8cbb5a0dc842800d45e9b2b405 # v2
+        uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
         with:
           header: pr-title-lint-error
           delete: true

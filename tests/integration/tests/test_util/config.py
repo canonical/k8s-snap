@@ -46,8 +46,23 @@ SNAP = os.getenv("TEST_SNAP")
 SNAP_NAME = os.getenv("TEST_SNAP_NAME") or "k8s"
 
 # SUBSTRATE is the substrate to use for running the integration tests.
-# One of 'lxd' (default), 'juju', or 'multipass'.
+# One of 'lxd' (default), 'juju', 'multipass', or 'bare_metal'.
 SUBSTRATE = os.getenv("TEST_SUBSTRATE") or "lxd"
+
+# BARE_METAL_SSH_HOST is the hostname or IP of the target machine
+# when using the 'bare_metal' substrate.
+BARE_METAL_SSH_HOST = os.getenv("TEST_BARE_METAL_SSH_HOST") or ""
+
+# BARE_METAL_SSH_USER is the SSH user for the bare_metal substrate.
+BARE_METAL_SSH_USER = os.getenv("TEST_BARE_METAL_SSH_USER") or "ubuntu"
+
+# REQUIRE_GPU makes the GPU tests fail instead of skip when the host has no
+# usable GPU. Set it in CI jobs that run on dedicated GPU hardware.
+REQUIRE_GPU = (os.getenv("TEST_REQUIRE_GPU") or "") == "1"
+
+# CONTAINERD_BASE_DIR relocates containerd files (needed when a system-wide
+# containerd is already installed at the default path, e.g. on non-provision arm64 IGX devices).
+CONTAINERD_BASE_DIR = os.getenv("TEST_CONTAINERD_BASE_DIR") or ""
 
 # SKIP_CLEANUP can be used to prevent machines to be automatically destroyed
 # after the tests complete.
@@ -197,13 +212,16 @@ STRICT_INTERFACE_CHANNELS = (
     os.environ.get("TEST_STRICT_INTERFACE_CHANNELS", "").strip().split()
 )
 
-# Cache and preload certain snaps such as snapd and core22 to avoid fetching them
-# for every test instance. Note that k8s-snap is currently based on core22.
+# Cache and preload base snaps to avoid fetching them for every test instance.
+# Older releases (1.32, 1.33) require core20 while current releases use core22.
 PRELOAD_SNAPS = (os.getenv("TEST_PRELOAD_SNAPS") or "1") == "1"
+
+# Cache and preload k8s snaps downloaded from store on host across test instances.
+CACHE_SNAPS = (os.getenv("TEST_CACHE_SNAPS") or "1") == "1"
 
 # The following snaps will be downloaded once per test run and preloaded
 # into the harness instances to reduce the number of downloads.
-DEFAULT_PRELOADED_SNAPS = ["snapd", "core22"]
+DEFAULT_PRELOADED_SNAPS = ["snapd", "core20", "core22"]
 PRELOADED_SNAPS = (
     os.getenv("TEST_PRELOADED_SNAPS", "").strip().split() or DEFAULT_PRELOADED_SNAPS
 )
