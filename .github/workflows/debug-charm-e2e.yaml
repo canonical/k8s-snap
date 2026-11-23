@@ -10,17 +10,39 @@ on:
   workflow_dispatch:
 
 jobs:
-  debug-charm-e2e:
-    name: Debug Charm e2e (Attempt ${{ matrix.job_index }}/3)
+  public-sweep:
+    name: Public Sweep (ubuntu-latest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Run public per-IP sweep
+        run: |
+          chmod +x .github/scripts/run-sweep.sh .github/scripts/summarize-sweep.py
+          bash .github/scripts/run-sweep.sh public "" "/tmp/public-sweep.txt"
+          python3 .github/scripts/summarize-sweep.py "/tmp/public-sweep.txt"
+
+      - name: Upload public sweep artifact
+        if: always()
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+        with:
+          name: public-sweep-results
+          path: /tmp/public-sweep.txt
+          retention-days: 7
+
+  egress-sweep:
+    name: Egress Sweep (Job ${{ matrix.attempt }}/3)
     runs-on: self-hosted-linux-amd64-jammy-xlarge
-    timeout-minutes: 180
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        job_index: [1, 2, 3]
+        attempt: [1, 2, 3]
 
     env:
-      ARTIFACT_DIR: ${{ github.workspace }}/debug-artifacts
+      ARTIFACT_DIR: ${{ github.workspace }}/sweep-artifacts
 
     steps:
       - name: Start tmate session
@@ -31,10 +53,10 @@ jobs:
         with:
           detached: true
 
-      - name: Display tmate SSH command
+      - name: Display tmate connection command
         run: |
           echo "================================================================================"
-          echo "TMATE SSH COMMAND (Job ${{ matrix.job_index }}/3):"
+          echo "TMATE SSH COMMAND (Job ${{ matrix.attempt }}/3):"
           echo "${{ steps.tmate.outputs.ssh-command }}"
           echo "TMATE WEB URL: ${{ steps.tmate.outputs.web-url }}"
           echo "================================================================================"
@@ -52,389 +74,135 @@ jobs:
         continue-on-error: true
         uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
         with:
-          name: tmate-session-attempt-${{ matrix.job_index }}
+          name: tmate-session-sweep-${{ matrix.attempt }}
           path: /tmp/tmate-info
           retention-days: 1
+
       - name: Check out code
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-      - name: Ensure /snap/bin in PATH
-        run: |
-          echo "/snap/bin" >> $GITHUB_PATH
-
-      - name: Install host debug prerequisites
+      - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y conntrack tcpdump jq curl python3.10-venv
-
-      - name: Create artifact directories
-        run: |
-          mkdir -p "${{ env.ARTIFACT_DIR }}/host" "${{ env.ARTIFACT_DIR }}/vms" "${{ env.ARTIFACT_DIR }}/probes" "${{ env.ARTIFACT_DIR }}/pcaps" "${{ env.ARTIFACT_DIR }}/crashdumps"
-
-      - name: Record host network facts (pre-deploy)
-        run: |
-          {
-            echo "=== HOST NETWORK FACTS (PRE-DEPLOY) ==="
-            echo "Timestamp: $(date -u -Iseconds)"
-            echo "--- ip -d link ---"
-            ip -d link || true
-            echo "--- ip route table all ---"
-            ip route show table all || true
-            echo "--- Interface MTUs ---"
-            for iface in /sys/class/net/*; do
-              name=$(basename "$iface")
-              mtu=$(cat "$iface/mtu" 2>/dev/null || echo "unknown")
-              echo "$name MTU: $mtu"
-            done
-            echo "--- iptables-save ---"
-            sudo iptables-save || true
-            echo "--- nft list ruleset ---"
-            sudo nft list ruleset 2>/dev/null || true
-            echo "--- sysctl net settings ---"
-            sudo sysctl net.ipv4.ip_forward net.ipv4.tcp_mtu_probing net.ipv4.tcp_rmem net.core.rmem_max net.ipv4.tcp_wmem net.core.wmem_max || true
-            echo "--- aproxy status, revision & config ---"
-            snap info aproxy || true
-            systemctl status aproxy || true
-            systemctl cat aproxy || true
-            cat /etc/aproxy/* 2>/dev/null || true
-            (sudo snap logs aproxy.aproxy -n 200 || journalctl -u aproxy --no-pager -n 100) || true
-            echo "--- aproxy 54969 and squid 3128 sockets ---"
-            ss -tnpi '( sport = :54969 or dport = :54969 or dport = :3128 )' || true
-            echo "--- env proxies ---"
-            env | grep -iE 'proxy|http' || true
-            echo "--- resolvectl status ---"
-            resolvectl status 2>/dev/null || systemd-resolve --status 2>/dev/null || true
-            echo "--- /etc/resolv.conf ---"
-            cat /etc/resolv.conf || true
-          } | tee "${{ env.ARTIFACT_DIR }}/host/pre-deploy-facts.txt"
-
-      - name: Setup Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
-        with:
-          python-version: '3.10'
-
-      - name: Setup Astral UV
-        uses: astral-sh/setup-uv@7edac99f961f18b581bbd960d59d049f04c0002f # v6.4.1
-        with:
-          python-version: '3.10'
-
-      - name: Install tox with UV
-        run: uv tool install tox --with tox-uv
-
-      - name: Install charmcraft
-        run: |
-          sudo snap install charmcraft --classic
-
-      - name: Install juju and juju-crashdump
-        run: |
-          sudo snap install juju --classic
-          sudo snap install juju-crashdump --classic || true
-
-      - name: Download k8s-snap
-        id: download-snap
-        uses: ./.github/actions/download-k8s-snap
-        with:
-          channel: 1.33-classic/edge
-
-      - name: Generate snap tarball
-        run: |
-          mkdir snap_installation
-          mv ${{ steps.download-snap.outputs.snap-path }} snap_installation/k8s.snap
-          tar cvzf snap_installation.tar.gz -C snap_installation/ .
-
-      - name: Download charms 1.33/beta amd64
-        run: |
-          arch=amd64
-          k8sCharmFile=${GITHUB_WORKSPACE}/k8s_ubuntu-22.04-${arch}.charm
-          k8sWorkerChamFile=${GITHUB_WORKSPACE}/k8s-worker_ubuntu-22.04-${arch}.charm
-
-          juju download k8s \
-            --channel 1.33/beta \
-            --filepath "$k8sCharmFile" \
-            --base ubuntu@22.04
-          juju download k8s-worker \
-            --channel 1.33/beta \
-            --filepath "$k8sWorkerChamFile" \
-            --base ubuntu@22.04
+          sudo apt-get install -y tcpdump tshark iputils-ping iputils-tracepath jq curl
 
       - name: Setup LXD
         id: setup-lxd
-        continue-on-error: true
         timeout-minutes: 10
         uses: canonical/setup-lxd@a3c85fc6fb7fff43fcfeae87659e41a8f635b7dd # v0.1.3
 
-      - name: Cleanup LXD after failure
-        if: steps.setup-lxd.outcome == 'failure'
-        continue-on-error: true
-        timeout-minutes: 5
-        run: |
-          sudo systemctl stop snapd.service snapd.socket || true
-          sudo systemctl start snapd.socket snapd.service || true
-          for id in $(snap changes 2>/dev/null | awk '/^[0-9]+/ {if ($2 == "Doing" || $2 == "Do" || $2 == "Undoing") print $1}'); do
-            echo "Aborting in-flight snap change $id..."
-            sudo snap abort "$id" || true
-          done
-          echo "Waiting for in-flight snap changes to settle..."
-          for i in $(seq 1 36); do
-            changes=$(snap changes 2>/dev/null | awk '/^[0-9]+/ {if ($2 == "Doing" || $2 == "Do" || $2 == "Undoing") print $1, $2}')
-            if [ -z "$changes" ]; then
-              echo "All snap changes settled."
-              break
-            fi
-            echo "Still in progress ($i/36): $changes"
-            sleep 5
-          done
-          snap changes || true
-
-      - name: Retry Setup LXD
-        if: steps.setup-lxd.outcome == 'failure'
-        timeout-minutes: 10
-        uses: canonical/setup-lxd@a3c85fc6fb7fff43fcfeae87659e41a8f635b7dd # v0.1.3
-
-      - name: Disable lxd ipv6
+      - name: Disable LXD IPv6 and launch container
         run: |
           lxc network set lxdbr0 ipv6.address none
+          lxc launch ubuntu:24.04 c1
+          sleep 10
+          lxc exec c1 -- cloud-init status --wait || true
+          lxc exec c1 -- apt-get update
+          lxc exec c1 -- apt-get install -y curl iproute2
 
-      - name: Record host network facts (post-LXD)
+      - name: Create artifact directories
+        run: |
+          mkdir -p "${{ env.ARTIFACT_DIR }}/pcaps" "${{ env.ARTIFACT_DIR }}/reports" "${{ env.ARTIFACT_DIR }}/host"
+
+      - name: Host and Squid path diagnostics
         run: |
           {
-            echo "=== POST-LXD NETWORK FACTS ==="
-            echo "Timestamp: $(date -u -Iseconds)"
-            echo "--- ip -d link lxdbr0 ---"
-            ip -d link show lxdbr0 || true
-            echo "--- iptables-save (nat) ---"
-            sudo iptables-save -t nat || true
-            echo "--- iptables-save (filter) ---"
-            sudo iptables-save -t filter || true
-          } | tee "${{ env.ARTIFACT_DIR }}/host/post-lxd-facts.txt"
+            echo "=== Host Network Diagnostics ==="
+            ip -d link
+            echo "--- sysctl MTU settings ---"
+            sysctl net.ipv4.tcp_mtu_probing net.ipv4.ip_no_pmtu_disc
+            echo "--- aproxy configuration ---"
+            snap info aproxy || true
+            sudo snap get aproxy || true
+            cat /var/snap/aproxy/current/* 2>/dev/null || true
+            sudo nft list ruleset || true
+          } | tee "${{ env.ARTIFACT_DIR }}/host/diagnostics.txt"
 
-      - name: Start background monitor and rolling tcpdump
-        run: |
-          chmod +x .github/scripts/debug-monitor.sh
-          sudo .github/scripts/debug-monitor.sh "${{ env.ARTIFACT_DIR }}" &
-          echo $! > "${{ env.ARTIFACT_DIR }}/monitor.pid"
-          echo "Background monitor PID: $(cat "${{ env.ARTIFACT_DIR }}/monitor.pid")"
+          SQUID_URL=$(sudo snap get aproxy proxy 2>/dev/null || grep -oE 'http://[^ "]+:3128' /var/snap/aproxy/current/* 2>/dev/null | head -n 1 || true)
+          [ -z "$SQUID_URL" ] && SQUID_URL="http://squid.internal:3128"
+          SQUID_HOST=$(echo "$SQUID_URL" | sed -e 's|http://||' -e 's|:3128.*||')
+          echo "Discovered Squid Proxy: $SQUID_URL ($SQUID_HOST)"
+          echo "$SQUID_URL" > "${{ env.ARTIFACT_DIR }}/host/squid-url.txt"
 
-      - name: Bootstrap Juju controller (lxd)
-        timeout-minutes: 50
-        run: |
-          pre_containers=$(mktemp)
-          if ! timeout 15s lxc list -c n --format csv > "$pre_containers"; then
-            echo "Failed to list initial lxc containers" >&2
-            rm -f "$pre_containers"
-            exit 1
-          fi
-
-          is_controller_present() {
-            local ctrl="$1"
-            local json
-            local ret=0
-            json=$(timeout 15s juju controllers --format json) || ret=$?
-            if [ "$ret" -ne 0 ]; then
-              return 2
-            fi
-            local present
-            present=$(echo "$json" | jq -r --arg c "$ctrl" 'if .controllers // {} | has($c) then "yes" else "no" end') || ret=$?
-            if [ "$ret" -ne 0 ]; then
-              return 2
-            fi
-            [ "$present" = "yes" ] && return 0
-            return 1
-          }
-
-          cleanup() {
-            timeout 1m juju kill-controller --no-prompt -t 30s lxd || true
-            local status=0
-            is_controller_present lxd || status=$?
-            if [ "$status" -ne 1 ]; then
-              timeout 15s juju unregister --no-prompt lxd || true
-            fi
-            if [ -f "$pre_containers" ]; then
-              local current_containers
-              current_containers=$(mktemp)
-              if ! timeout 15s lxc list -c n --format csv | sort > "$current_containers"; then
-                rm -f "$current_containers"
-                return 1
-              fi
-              comm -23 "$current_containers" <(sort "$pre_containers") | (grep -E '^juju-' || true) | xargs -r -n 1 timeout 30s lxc delete -f || true
-              rm -f "$current_containers"
-            fi
-          }
-
-          status=0
-          is_controller_present lxd || status=$?
-          if [ "$status" -ne 1 ]; then
-            echo "Cannot confirm controller absence before bootstrap" >&2
-            rm -f "$pre_containers"
-            exit 1
-          fi
-
-          ret=0
-          timeout -k 10s 20m juju bootstrap localhost lxd --debug || ret=$?
-          if [ "$ret" -ne 0 ]; then
-            echo "Bootstrap failed or timed out; retrying after cleanup..."
-            cleanup || { echo "Cleanup failed before retry" >&2; exit 1; }
-            ret=0
-            timeout -k 10s 20m juju bootstrap localhost lxd --debug || ret=$?
-            if [ "$ret" -ne 0 ]; then
-              cleanup || true
-              rm -f "$pre_containers"
-              exit "$ret"
-            fi
-          fi
-          rm -f "$pre_containers"
-
-          # Configure snapd debug drop-in globally for all models in this controller
-          echo "Applying cloudinit-userdata model-defaults on controller..."
-          juju model-defaults "${GITHUB_WORKSPACE}/.github/workflows/juju-model-config.yaml" || true
-          juju model-config "${GITHUB_WORKSPACE}/.github/workflows/juju-model-config.yaml" || true
-
-      - name: Resolve k8s-operator ref
-        id: operator-ref
-        env:
-          CANDIDATE_REF: ${{ github.base_ref || github.ref_name }}
-        run: |
-          candidate="${CANDIDATE_REF#refs/heads/}"
-          operator_repo="https://github.com/canonical/k8s-operator.git"
-
-          ref_exists() {
-            local ret=0
-            for _ in 1 2 3; do
-              ret=0
-              git ls-remote --exit-code "$operator_repo" "refs/heads/$1" >/dev/null 2>&1 || ret=$?
-              if [ "$ret" -eq 0 ]; then
-                return 0
-              elif [ "$ret" -eq 2 ]; then
-                return 1
-              fi
-              sleep 2
+          {
+            echo "=== Squid Path Diagnostics ($SQUID_HOST) ==="
+            getent ahosts "$SQUID_HOST" || true
+            SQUID_IPS=$(getent ahostsv4 "$SQUID_HOST" 2>/dev/null | awk '{print $1}' | sort -u || true)
+            for sip in $SQUID_IPS; do
+              echo "--- Diagnostics for Squid IP: $sip ---"
+              ip route get "$sip" || true
+              ping -M do -s 1472 -c 3 "$sip" || true
+              ping -M do -s 8914 -c 3 "$sip" || true
+              tracepath -n "$sip" || true
             done
-            return 1
-          }
+          } | tee "${{ env.ARTIFACT_DIR }}/host/squid-pings.txt"
 
-          target=""
-          if [ -n "$candidate" ] && ref_exists "$candidate"; then
-            target="$candidate"
-          fi
-
-          if [ -z "$target" ] && [ -n "$candidate" ]; then
-            if [[ "$candidate" =~ (release-[0-9]+\.[0-9]+) ]]; then
-              rel="${BASH_REMATCH[1]}"
-              if ref_exists "$rel"; then
-                target="$rel"
-              fi
-            elif [[ "$candidate" =~ ([0-9]+\.[0-9]+) ]]; then
-              rel="release-${BASH_REMATCH[1]}"
-              if ref_exists "$rel"; then
-                target="$rel"
-              fi
-            fi
-          fi
-
-          if [ -z "$target" ] && [ -f "build-scripts/components/kubernetes/version" ]; then
-            k8s_ver=$(cat "build-scripts/components/kubernetes/version")
-            if [[ "$k8s_ver" =~ ([0-9]+\.[0-9]+) ]]; then
-              rel="release-${BASH_REMATCH[1]}"
-              if ref_exists "$rel"; then
-                target="$rel"
-              fi
-            fi
-          fi
-
-          if [ -z "$target" ]; then
-            target="main"
-          fi
-
-          echo "Resolved k8s-operator ref: $target"
-          echo "ref=$target" >> "$GITHUB_OUTPUT"
-
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-        with:
-          repository: canonical/k8s-operator
-          ref: ${{ steps.operator-ref.outputs.ref }}
-          path: k8s-operator
-
-      - name: Run e2e tests
+      - name: Start packet captures
         run: |
-          set -x
+          sudo tcpdump -U -Z root -i ens3 -s 0 -w "${{ env.ARTIFACT_DIR }}/pcaps/ens3.pcap" 'tcp port 3128 or icmp' >/dev/null 2>&1 &
+          echo $! > /tmp/tcpdump-ens3.pid
+          sudo tcpdump -U -Z root -i lxdbr0 -s 0 -w "${{ env.ARTIFACT_DIR }}/pcaps/lxdbr0.pcap" 'tcp port 443' >/dev/null 2>&1 &
+          echo $! > /tmp/tcpdump-lxdbr0.pid
 
-          arch=amd64
-          k8sCharmFile=${GITHUB_WORKSPACE}/k8s_ubuntu-22.04-${arch}.charm
-          k8sWorkerChamFile=${GITHUB_WORKSPACE}/k8s-worker_ubuntu-22.04-${arch}.charm
-          snapInstallRes=${GITHUB_WORKSPACE}/snap_installation.tar.gz
-
-          ls -lh "$k8sCharmFile"
-          ls -lh "$k8sWorkerChamFile"
-          ls -lh "$snapInstallRes"
-
-          cd k8s-operator
-
-          tox -r -e integration \
-            -- \
-            --charm-file "$k8sCharmFile" \
-            --charm-file "$k8sWorkerChamFile" \
-            --snap-installation-resource "$snapInstallRes" \
-            --no-juju-teardown \
-            'tests/integration/test_k8s.py::test_nodes_ready'
-
-      - name: Diagnostic dump on failure
-        if: failure()
+      - name: Run sweep across all 3 paths
         run: |
-          echo "=== JUJU STATUS ==="
-          juju status --format yaml || true
+          chmod +x .github/scripts/run-sweep.sh .github/scripts/summarize-sweep.py
+          SQUID_URL=$(cat "${{ env.ARTIFACT_DIR }}/host/squid-url.txt")
 
-          echo "=== JUJU CONTROLLERS ==="
-          juju controllers || true
+          echo "=== 1. Container Sweep (aproxy path) ==="
+          bash .github/scripts/run-sweep.sh container "" "${{ env.ARTIFACT_DIR }}/reports/container-baseline.txt" c1
+          python3 .github/scripts/summarize-sweep.py "${{ env.ARTIFACT_DIR }}/reports/container-baseline.txt"
 
-          echo "=== JUJU MODELS ==="
-          juju models || true
+          echo "=== 2. Host Sweep with explicit Squid (-x $SQUID_URL) ==="
+          bash .github/scripts/run-sweep.sh host-squid "$SQUID_URL" "${{ env.ARTIFACT_DIR }}/reports/host-squid.txt"
+          python3 .github/scripts/summarize-sweep.py "${{ env.ARTIFACT_DIR }}/reports/host-squid.txt"
 
-          mkdir -p "${{ env.ARTIFACT_DIR }}/crashdumps"
-          MODELS=$(juju models --format json 2>/dev/null | jq -r '.models[].name // empty' || true)
-          for m in $MODELS; do
-            echo "Running juju-crashdump for model: $m"
-            juju-crashdump -s -m "$m" -o "${{ env.ARTIFACT_DIR }}/crashdumps" || true
-          done
+          echo "=== 3. Host Sweep Direct (no proxy) ==="
+          bash .github/scripts/run-sweep.sh host-direct "" "${{ env.ARTIFACT_DIR }}/reports/host-direct.txt" || true
+          python3 .github/scripts/summarize-sweep.py "${{ env.ARTIFACT_DIR }}/reports/host-direct.txt" || true
 
-      - name: Stop background monitor and tcpdump
+      - name: Run A/B variant sweep
+        run: |
+          if [ "${{ matrix.attempt }}" = "2" ]; then
+            echo "=== A/B Variant: Lowering ens3 MTU to 1500 ==="
+            sudo ip link set ens3 mtu 1500
+            ip -d link show ens3
+            bash .github/scripts/run-sweep.sh container "" "${{ env.ARTIFACT_DIR }}/reports/container-mtu1500.txt" c1
+            python3 .github/scripts/summarize-sweep.py "${{ env.ARTIFACT_DIR }}/reports/container-mtu1500.txt"
+          elif [ "${{ matrix.attempt }}" = "3" ]; then
+            echo "=== A/B Variant: Enabling tcp_mtu_probing=1 ==="
+            sudo sysctl -w net.ipv4.tcp_mtu_probing=1
+            sysctl net.ipv4.tcp_mtu_probing
+            bash .github/scripts/run-sweep.sh container "" "${{ env.ARTIFACT_DIR }}/reports/container-mtuprobing.txt" c1
+            python3 .github/scripts/summarize-sweep.py "${{ env.ARTIFACT_DIR }}/reports/container-mtuprobing.txt"
+          fi
+
+      - name: Stop packet captures and analyze pcaps
         if: always()
         run: |
-          if [ -f "${{ env.ARTIFACT_DIR }}/monitor.pid" ]; then
-            sudo kill $(cat "${{ env.ARTIFACT_DIR }}/monitor.pid") 2>/dev/null || true
+          if [ -f /tmp/tcpdump-ens3.pid ]; then
+            sudo kill $(cat /tmp/tcpdump-ens3.pid) 2>/dev/null || true
           fi
-          if [ -f "${{ env.ARTIFACT_DIR }}/tcpdump-egress.pid" ]; then
-            sudo kill $(cat "${{ env.ARTIFACT_DIR }}/tcpdump-egress.pid") 2>/dev/null || true
+          if [ -f /tmp/tcpdump-lxdbr0.pid ]; then
+            sudo kill $(cat /tmp/tcpdump-lxdbr0.pid) 2>/dev/null || true
           fi
-          if [ -f "${{ env.ARTIFACT_DIR }}/tcpdump-lxdbr0.pid" ]; then
-            sudo kill $(cat "${{ env.ARTIFACT_DIR }}/tcpdump-lxdbr0.pid") 2>/dev/null || true
-          fi
-          # Ensure all files are owned by runner user for artifact upload
           sudo chown -R $USER:$USER "${{ env.ARTIFACT_DIR }}" || true
 
-      - name: Upload artifacts
+          {
+            echo "=== PCAP Analysis (ens3 port 3128) ==="
+            echo "Total packets captured on ens3: $(tcpdump -r "${{ env.ARTIFACT_DIR }}/pcaps/ens3.pcap" 2>/dev/null | wc -l)"
+            echo "HTTP CONNECT requests and responses:"
+            tshark -r "${{ env.ARTIFACT_DIR }}/pcaps/ens3.pcap" -Y 'http.request.method == "CONNECT" or http.response' -T fields -e frame.time -e ip.src -e ip.dst -e http.request.method -e http.request.uri -e http.response.code -e http.response.phrase 2>/dev/null || true
+            echo "TCP retransmissions:"
+            tshark -r "${{ env.ARTIFACT_DIR }}/pcaps/ens3.pcap" -Y 'tcp.analysis.retransmission' -T fields -e frame.time -e ip.src -e ip.dst -e tcp.srcport -e tcp.dstport 2>/dev/null | head -n 30 || true
+            echo "ICMP Fragmentation Needed:"
+            tshark -r "${{ env.ARTIFACT_DIR }}/pcaps/ens3.pcap" -Y 'icmp.type == 3 and icmp.code == 4' 2>/dev/null || true
+          } | tee "${{ env.ARTIFACT_DIR }}/pcaps/analysis.txt"
+
+      - name: Upload sweep artifacts
         if: always()
         uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
         with:
-          name: debug-artifacts-attempt-${{ matrix.job_index }}
+          name: sweep-artifacts-job-${{ matrix.attempt }}
           path: ${{ env.ARTIFACT_DIR }}
           retention-days: 7
-          overwrite: true
-
-      - name: Hold on failure for SSH debugging
-        if: failure()
-        run: |
-          echo "================================================================================"
-          echo "JOB FAILED! Holding runner for up to 90 minutes for interactive debugging."
-          echo "TMATE SSH COMMAND: ${{ steps.tmate.outputs.ssh-command }}"
-          echo "TMATE WEB URL:     ${{ steps.tmate.outputs.web-url }}"
-          echo "To finish hold early, run: touch /tmp/exit-hold"
-          echo "================================================================================"
-          for i in $(seq 1 9); do
-            if [ -f /tmp/exit-hold ]; then
-              echo "Exit hold requested via /tmp/exit-hold"
-              break
-            fi
-            echo "Hold loop ($i/9): waiting 10m. Current time: $(date -u -Iseconds)"
-            echo "TMATE SSH COMMAND: ${{ steps.tmate.outputs.ssh-command }}"
-            sleep 600
-          done
