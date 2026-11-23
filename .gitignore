@@ -21,6 +21,11 @@ k8s_*.txt
 /docs/canonicalk8s/.sphinx/styles/*
 /docs/canonicalk8s/.sphinx/vale.ini
 
+# patch-notices: local working files, not for commit
+docs/tools/patch-notices/metadata/delta-*.json
+docs/tools/patch-notices/patch_notices_review.md
+docs/tools/patch-notices/patch_notices_output.md
+
 *.assert
 .trivy
 squashfs-root
