@@ -5,7 +5,9 @@ import functools
 import logging
 import re
 import subprocess
+from http.client import HTTPException
 from pathlib import Path
+from typing import Optional
 
 import pytest
 import requests
@@ -181,13 +183,22 @@ def _get_k8s_docs_version() -> semver.Version:
 
 
 @functools.lru_cache
-def _store_info(kind: str) -> dict:
-    return query_info(kind, "k8s")
+def _store_info(kind: str) -> Optional[dict]:
+    try:
+        return query_info(kind, "k8s")
+    except (OSError, HTTPException, ValueError) as exc:
+        log.warning("Failed to query %s store for k8s: %s", kind, exc)
+        return None
 
 
 def _skip_unless_on_stable(kind: str, channel: str, location: str):
     """Docs keep pointing at the previous release until the new one reaches stable."""
-    if not channel_available(_store_info(kind), channel):
+    info = _store_info(kind)
+    if info is None:
+        pytest.skip(
+            f"Could not verify {channel} in the k8s {kind} store; skipping {location}"
+        )
+    if not channel_available(info, channel):
         pytest.skip(
             f"{channel} is not yet released for the k8s {kind}; skipping {location}"
         )

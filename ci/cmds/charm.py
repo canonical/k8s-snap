@@ -10,6 +10,7 @@ This module provides functionality around charms and their channels.
 
 import argparse
 import os
+from http.client import HTTPException
 
 from cmds.store import channel_available, query_info
 
@@ -63,7 +64,11 @@ def cmd_channel_available(args: argparse.Namespace) -> int:
     auth_token = args.charm_auth or os.environ.get("CHARMCRAFT_AUTH")
     channel = args.channel
 
-    charm_info = query_info("charm", args.charm_name, auth_token)
+    try:
+        charm_info = query_info("charm", args.charm_name, auth_token)
+    except (OSError, HTTPException, ValueError) as exc:
+        print(f"failed to query charm '{args.charm_name}': {exc}")
+        return 1
 
     if channel_available(charm_info, channel):
         print(f"channel '{channel}' available for charm '{args.charm_name}'")
