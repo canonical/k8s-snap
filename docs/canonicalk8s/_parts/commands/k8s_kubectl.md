@@ -4,7 +4,7 @@ Integrated Kubernetes kubectl client
 
 ### Synopsis
 
-Run kubectl commands against the cluster using the integrated kubectl client.
+Run kubectl commands against the cluster using the integrated kubectl client. The kubeconfig is admin.conf on control plane nodes and kubelet.conf on worker nodes.
 
 ```
 k8s kubectl [flags]
