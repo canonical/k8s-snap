@@ -212,6 +212,38 @@ will result in the units blocking and indicating they cannot upgrade.
 See Kubernetes' [version skew policy]
 ```
 
+### Upgrade from 1.35 to 1.36
+
+Before refreshing either charm to 1.36:
+
+- Check the `Base` column in `juju status` for the machines running `k8s`
+  and `k8s-worker`. If any run on Ubuntu 22.04 LTS, move those units to
+  a supported base first. For an in-place base upgrade to Ubuntu 24.04 LTS
+  while still on 1.35, see [Juju's machine base upgrade guidance]. A charm
+  refresh does not upgrade the machine's operating system.
+- Check the datastore on a control-plane unit with
+  `juju exec --unit k8s/leader -- sudo k8s status`. If the `datastore` line
+  shows `k8s-dqlite`, stop. There is no supported in-place upgrade or
+  datastore migration. Stay on 1.35 or deploy a new cluster backed by etcd
+  and migrate your workloads.
+- Review any `cluster-annotations` configured on `k8s`. Settings that
+  previously had no effect can take effect when the charm reconciles
+  after the upgrade.
+- If you use the `k8s` or `k8s-worker` Terraform modules directly, use Juju
+  provider v1 or v2 and replace `model = juju_model.<name>.name` with
+  `model_uuid = juju_model.<name>.uuid` in each module call. If you are
+  upgrading from provider v0, follow the [Juju provider upgrade guide].
+  Review `terraform plan` before applying changes.
+
+Use the minor-upgrade procedure below to refresh the charms, not a manual
+snap refresh. Clusters already running `kube-proxy` keep using it by default.
+If you deliberately switch to Cilium's replacement after upgrading, set
+`juju config k8s kube-proxy-enabled=false` during a maintenance window and
+validate service connectivity. In 1.36, you cannot re-enable `kube-proxy`
+while the built-in Cilium network is enabled.
+
+See the [1.36 charm release notes] for the full list of changes.
+
 ### Run the pre-upgrade-check
 
 Before running any upgrade, check that the cluster is
@@ -305,3 +337,6 @@ juju debug-log --include=k8s-worker
 [juju-docs]:           https://documentation.ubuntu.com/juju/3.6/howto/manage-models/
 [upstream-notes]:      https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.35.md#deprecation
 [version skew policy]: https://kubernetes.io/releases/version-skew-policy/
+[1.36 charm release notes]: /releases/charm/1.36.md
+[Juju's machine base upgrade guidance]: https://documentation.ubuntu.com/juju/3.6/reference/juju-cli/list-of-juju-cli-commands/upgrade-machine/
+[Juju provider upgrade guide]: https://documentation.ubuntu.com/terraform-provider-juju/latest/howto/manage-provider/upgrade-provider-to-v1/
