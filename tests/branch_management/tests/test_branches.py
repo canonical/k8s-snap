@@ -5,12 +5,15 @@ import functools
 import logging
 import re
 import subprocess
+from http.client import HTTPException
 from pathlib import Path
+from typing import Dict, Union
 
 import pytest
 import requests
 import semver
 import yaml
+from cmds.store import channel_available, query_info
 from tenacity import (
     retry,
     retry_if_exception_type,
@@ -179,11 +182,38 @@ def _get_k8s_docs_version() -> semver.Version:
         return semver.Version.parse(version_str, optional_minor_and_patch=True)
 
 
+# Caches each store's response or error so one rate limit is not retried per test.
+_STORE_RESULTS: Dict[str, Union[dict, Exception]] = {}
+
+
+def _store_info(kind: str) -> dict:
+    if kind not in _STORE_RESULTS:
+        try:
+            _STORE_RESULTS[kind] = query_info(kind, "k8s")
+        except (OSError, HTTPException, ValueError) as exc:
+            _STORE_RESULTS[kind] = exc
+    result = _STORE_RESULTS[kind]
+    if isinstance(result, Exception):
+        raise result
+    return result
+
+
+def _skip_unless_on_stable(kind: str, channel: str, location: str):
+    """Docs keep pointing at the previous release until the new one reaches stable."""
+    if not channel_available(_store_info(kind), channel):
+        pytest.skip(
+            f"{channel} is not yet released for the k8s {kind}; skipping {location}"
+        )
+
+
 def test_k8s_version():
-    """Ensure that the k8s component version matches the one from the docs."""
+    """Ensure that the docs version matches the k8s component once it is on stable."""
     component_version = _get_k8s_component_version()
     docs_version = _get_k8s_docs_version()
 
+    if component_version[:2] != docs_version[:2]:
+        channel = f"{component_version.major}.{component_version.minor}-classic/stable"
+        _skip_unless_on_stable("snap", channel, "substitutions.yaml")
     assert (
         component_version[:2] == docs_version[:2]
     ), f"Channel mismatch between {component_version=} and {docs_version=}"
@@ -209,39 +239,23 @@ def _all_version_lines():
         yield from _find_k8s_channel_version(f)
 
 
-@functools.lru_cache
-@retry(
-    stop=stop_after_attempt(3),
-    wait=wait_exponential(multiplier=1, min=2, max=10),
-    retry=retry_if_exception_type(requests.RequestException),
-    reraise=True,
-)
-def _stable_channel_exists(channel: str) -> bool:
-    url = f"https://charmhub.io/k8s?channel={channel}/stable"
-    headers = {"Accept": "application/json", "Snap-Device-Series": "16"}
-    r = requests.get(url, headers=headers, timeout=30)
-    if r.status_code in {429, 500, 502, 503, 504}:
-        r.raise_for_status()
-    return r.status_code == 200
-
-
 @pytest.mark.parametrize("path_line_no, line, found", _all_version_lines())
 def test_k8s_version_in_files(path_line_no, line, found):
-    """Ensure that the k8s component version is used in all relevant files."""
+    """Ensure that the k8s component version is used in all relevant files once on stable."""
     ver = _get_k8s_component_version()
-    ver_major_minor = f"{ver.major}.{ver.minor}"
-
-    if "juju" in line and not _stable_channel_exists(ver_major_minor):
-        # A k8s-operator release might be released weeks after a k8s-snap release.
-        # In that case, we skip the test for this particular line until the channel
-        # is released.
-        pytest.skip(
-            f"Skipping check for {ver_major_minor=} in {path_line_no} as k8s-operator "
-            f"is not yet released for this version."
-        )
-
     found = tuple(map(int, found.split(".")))
     assert len(found) == 2, f"Invalid channel {found=} in {path_line_no}"
+
+    if ver[:2] != found:
+        # A k8s-operator release might be released weeks after a k8s-snap release,
+        # so juju lines follow the charm's stable channel instead of the snap's.
+        if "juju" in line:
+            _skip_unless_on_stable(
+                "charm", f"{ver.major}.{ver.minor}/stable", path_line_no
+            )
+        else:
+            channel = f"{ver.major}.{ver.minor}-classic/stable"
+            _skip_unless_on_stable("snap", channel, path_line_no)
     assert (
-        ver[:2] == found[:2]
+        ver[:2] == found
     ), f"Channel mismatch: expected={ver[:2]} but {found=} on {path_line_no}"
