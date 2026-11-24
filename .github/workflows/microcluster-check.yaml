@@ -6,9 +6,14 @@ on:
       - "src/k8s/pkg/k8sd/database/sql/migrations/**"
       - "src/k8s/pkg/k8sd/database/schema.go"
 
+permissions:
+  contents: read
+
 jobs:
   create-comment:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
 
     steps:
       - name: Create Microcluster Warning Message
