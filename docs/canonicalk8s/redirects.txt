@@ -90,5 +90,10 @@
 
 # Deleted files
 "snap/explanation/package-management" "snap/explanation/index"
+
+# Tutorial rework in 1.37 
 "capi/tutorial/getting-started" "capi/howto/provision"
 "capi/tutorial/index" "capi/howto/index"
+"charm/tutorial/getting-started" "charm/howto/install/charm"
+"charm/tutorial/basic-operations" "charm/howto/access-cluster"
+"charm/tutorial/index" "charm/howto/index"

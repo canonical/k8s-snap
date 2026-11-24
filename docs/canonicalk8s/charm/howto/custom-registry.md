@@ -14,7 +14,8 @@ different registry.
 ## Prerequisites
 
 - A running `k8s` charm cluster.
-- A `kubeconfig` to access the charmed cluster.
+- A `kubeconfig` to access the charmed cluster (see [how to access the
+  cluster][access-cluster]).
 - Access to a custom container registry from the cluster (e.g., docker registry
   or Harbor).
 
@@ -146,3 +147,4 @@ myregistry.example.com:5000/nginx:latest->true
 
 [charm configurations]: https://charmhub.io/k8s/configurations
 [adding kubernetes workers]: ./install/custom-workers.md
+[access-cluster]: ./access-cluster.md

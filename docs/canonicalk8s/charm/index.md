@@ -15,7 +15,6 @@ Overview <self>
 :hidden:
 :titlesonly:
 :caption: Deploy with Juju
-tutorial/index.md
 howto/index.md
 explanation/index.md
 reference/index.md
@@ -38,8 +37,6 @@ Kubernetes deployment. You can find out more about {{product}} on the
 
 This documentation embodies the [Diátaxis framework].
 
-- The [Tutorial](tutorial/getting-started) takes you step-by-step through 
-  deploying your first {{product}} cluster.
 - [How-to guides](howto/index) provide directions covering key cluster 
   operations and common tasks.
 - [Reference](reference/index) contains technical definitions of APIs, 
