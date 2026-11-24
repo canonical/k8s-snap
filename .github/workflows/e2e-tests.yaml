@@ -225,7 +225,8 @@ jobs:
           # Collect test names and convert to JSON array for GitHub Actions
           # There is no easy way to get the test names from pytest, so we use the --collect-only flag
           # and parse the output to extract the test names.
-          TEST_FILES=$(tox -e integration -- --collect-only $TAGS_ARGS --quiet --no-header tests/ | grep ::)
+          # DO NOT MERGE: only run the DNS collision tests.
+          TEST_FILES=$(tox -e integration -- --collect-only $TAGS_ARGS --quiet --no-header tests/test_dns_ip_collision.py | grep ::)
 
           JSON_ARRAY=$(printf '%s\n' "$TEST_FILES" | jq -R -s -c 'split("\n") | map(select(length > 0))')
           echo "tests=$JSON_ARRAY" >> $GITHUB_OUTPUT

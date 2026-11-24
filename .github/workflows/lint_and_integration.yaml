@@ -31,7 +31,7 @@ jobs:
       matrix:
         # e.g. strict - right now we only support the classic flavor
         patch: [""]
-        arch: ["amd64", "arm64"]
+        arch: ["amd64"] # DO NOT MERGE: only what the DNS collision tests need
     with:
       flavor: ${{ matrix.patch }}
       arch: ${{ matrix.arch }}
@@ -238,7 +238,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [amd64, arm64]
+        arch: [amd64] # DO NOT MERGE: only what the DNS collision tests need
     needs: [build-snap, get-e2e-tags, python-lint]
     uses: $/.github/workflows/e2e-tests.yaml
     with:
@@ -349,6 +349,7 @@ jobs:
           echo "charm-channel=$channel" >> "$GITHUB_OUTPUT"
   charm-e2e-tests:
     name: Charm e2e tests - ${{ matrix.arch }}
+    if: false # DO NOT MERGE: only run the DNS collision tests
     strategy:
       matrix:
         arch: [amd64]
