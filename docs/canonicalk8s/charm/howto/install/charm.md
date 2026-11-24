@@ -21,7 +21,7 @@ This guide assumes the following:
 - If you are using the Juju 'localhost' cloud see
   [localhost instructions](install-lxd) instead.
 
-If you still need to setup Juju, please take a look at the
+If you still need to set up Juju, please take a look at the
 [Juju tutorial](https://canonical.com/juju/docs/juju-cli/3.6/tutorial/), or,
 for custom clouds (OpenStack, MAAS), please consult the
 [Juju clouds documentation](https://canonical.com/juju/docs/juju-cli/3.6/reference/cloud/list-of-supported-clouds/).

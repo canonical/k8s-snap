@@ -22,7 +22,7 @@ To run `kubectl` from your own machine you need to install the `kubectl` and `yq
 
 ### Install `kubectl` and `yq`
 
-`kubectl` is available as a snap. Other installation methods available in the [Kubernetes documentation](https://kubernetes.io/docs/tasks/tools/#kubectl).
+`kubectl` is available as a snap. Other installation methods are available in the [Kubernetes documentation](https://kubernetes.io/docs/tasks/tools/#kubectl).
 Install the snap with:
 
 ```
