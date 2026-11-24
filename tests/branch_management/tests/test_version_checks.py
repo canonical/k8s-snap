@@ -31,9 +31,9 @@ def _store_payload(*channels: str) -> dict:
 
 @pytest.fixture(autouse=True)
 def _clear_store_cache():
-    test_branches._store_info.cache_clear()
+    test_branches._STORE_RESULTS.clear()
     yield
-    test_branches._store_info.cache_clear()
+    test_branches._STORE_RESULTS.clear()
 
 
 def test_k8s_version_skips_when_component_not_on_stable(monkeypatch):
@@ -79,7 +79,7 @@ def test_snap_version_in_files_fails_when_snap_is_on_stable(monkeypatch):
         )
 
 
-def test_version_checks_skip_and_cache_when_store_returns_429(monkeypatch):
+def test_version_checks_fail_and_cache_when_store_returns_429(monkeypatch):
     rate_limited = HTTPError(
         "https://api.snapcraft.io/v2/snaps/info/k8s?fields=channel-map",
         429,
@@ -96,9 +96,9 @@ def test_version_checks_skip_and_cache_when_store_returns_429(monkeypatch):
     )
     monkeypatch.setattr(test_branches, "query_info", query_mock)
 
-    with pytest.raises(pytest.skip.Exception):
+    with pytest.raises(HTTPError):
         test_branches.test_k8s_version()
-    with pytest.raises(pytest.skip.Exception):
+    with pytest.raises(HTTPError):
         test_branches.test_k8s_version_in_files(
             "docs/canonicalk8s/_parts/install.md:2",
             "sudo snap install k8s --classic --channel=1.35-classic/stable\n",
@@ -115,13 +115,13 @@ def test_version_checks_skip_and_cache_when_store_returns_429(monkeypatch):
         RemoteDisconnected("Remote end closed connection"),
     ],
 )
-def test_juju_version_check_skips_when_charm_store_unreachable(monkeypatch, exc):
+def test_juju_version_check_fails_when_charm_store_unreachable(monkeypatch, exc):
     monkeypatch.setattr(
         test_branches, "_get_k8s_component_version", lambda: semver.Version(1, 37, 1)
     )
     monkeypatch.setattr(test_branches, "query_info", MagicMock(side_effect=exc))
 
-    with pytest.raises(pytest.skip.Exception):
+    with pytest.raises(type(exc)):
         test_branches.test_k8s_version_in_files(
             "docs/canonicalk8s/_parts/install.md:11",
             'juju deploy k8s --channel=1.35/stable --base="ubuntu@24.04"\n',
