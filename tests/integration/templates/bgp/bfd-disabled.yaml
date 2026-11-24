@@ -1,0 +1,14 @@
+# The peers of frr-k8s-bfd.yaml without BFD, and no BFD profiles. Keeping the
+# peers updates the BGPPeers instead of deleting them, so the profile they used
+# can be deleted in the same change.
+k8sd/v1alpha1/metallb/bfd-profiles: "-"
+k8sd/v1alpha1/metallb/bgp-peers: |
+  - peerAddress: 192.0.2.1
+    peerASN: 65001
+  - peerAddress: 192.0.2.2
+    peerASN: 65002
+    peerPort: 1179
+  - peerAddress: 192.0.2.3
+    peerASN: 65003
+    nodeSelector:
+      k8sd-test/no-such-label: "true"
