@@ -5,7 +5,9 @@ import functools
 import logging
 import re
 import subprocess
+from http.client import HTTPException
 from pathlib import Path
+from typing import Dict, Union
 
 import pytest
 import requests
@@ -180,9 +182,20 @@ def _get_k8s_docs_version() -> semver.Version:
         return semver.Version.parse(version_str, optional_minor_and_patch=True)
 
 
-@functools.lru_cache
+# Caches each store's response or error so one rate limit is not retried per test.
+_STORE_RESULTS: Dict[str, Union[dict, Exception]] = {}
+
+
 def _store_info(kind: str) -> dict:
-    return query_info(kind, "k8s")
+    if kind not in _STORE_RESULTS:
+        try:
+            _STORE_RESULTS[kind] = query_info(kind, "k8s")
+        except (OSError, HTTPException, ValueError) as exc:
+            _STORE_RESULTS[kind] = exc
+    result = _STORE_RESULTS[kind]
+    if isinstance(result, Exception):
+        raise result
+    return result
 
 
 def _skip_unless_on_stable(kind: str, channel: str, location: str):
