@@ -9,6 +9,7 @@ from typing import List
 import pytest
 import yaml
 from test_util import config, harness, snap, tags, util
+from test_util.registry import Registry
 
 LOG = logging.getLogger(__name__)
 
@@ -22,29 +23,16 @@ LOG = logging.getLogger(__name__)
 def test_version_upgrades(instances: List[harness.Instance], tmp_path):
     channels = config.VERSION_UPGRADE_CHANNELS
     cp = instances[0]
-    current_channel = channels[0]
 
-    if current_channel.lower() == "recent":
-        if len(channels) != 2:
-            pytest.fail("'recent' requires the number of releases as second argument")
-        _, num_channels = channels
-        channels = snap.get_most_stable_channels(
-            int(num_channels),
-            config.FLAVOR,
-            cp.arch,
-            include_latest=False,
-            min_release=config.VERSION_UPGRADE_MIN_RELEASE,
-        )
-        current_channel = channels[0]
-
+    snap_path = None
+    local_snap_version = None
     if config.SNAP:
         # Copy the current snap into the instances.
         snap_path = (tmp_path / "k8s.snap").as_posix()
         for instance in instances:
             instance.send_file(config.SNAP, snap_path)
 
-        # Figure out where to add the current snap into the channels array.
-        # Upgrades should be in order.
+        # Figure out the locally built snap version before resolving channels
         out = cp.exec(["snap", "info", snap_path], capture_output=True)
         info = yaml.safe_load(out.stdout)
 
@@ -52,23 +40,22 @@ def test_version_upgrades(instances: List[harness.Instance], tmp_path):
         ver = info["version"].lstrip("v").split()[0].split(".")
         LOG.info(f"Locally built snap version: {ver}")
         local_snap_version = (int(ver[0]), int(ver[1]))
-        added = False
 
-        for i in range(len(channels)):
-            if "latest" in channels[i]:
-                continue
+    ref = config.GH_BASE_REF or config.GH_REF
+    if channels[0].lower() == "recent":
+        if len(channels) != 2:
+            pytest.fail("'recent' requires the number of releases as second argument")
 
-            # e.g.: 1.32-classic/stable
-            chan_ver_parts = channels[i].split("-")[0].split(".")
-            chan_ver = (int(chan_ver_parts[0]), int(chan_ver_parts[1]))
-            if local_snap_version < chan_ver:
-                channels.insert(i, snap_path)
-                added = True
-                break
-
-        if not added:
-            # if not added yet, config.SNAP should be at the end.
-            channels.append(snap_path)
+    channels = snap.build_upgrade_channel_list(
+        channels=channels,
+        flavor=config.FLAVOR,
+        arch=cp.arch,
+        ref=ref,
+        min_release=config.VERSION_UPGRADE_MIN_RELEASE,
+        snap_path=snap_path,
+        local_snap_version=local_snap_version,
+    )
+    current_channel = channels[0]
 
     if len(channels) < 2:
         pytest.fail(
@@ -78,8 +65,15 @@ def test_version_upgrades(instances: List[harness.Instance], tmp_path):
     LOG.info(
         f"Bootstrap node on {current_channel} and upgrade through channels: {channels[1:]}"
     )
+    cached_snaps = util.download_k8s_snaps(
+        channels, tmp_path / "snap_cache", arch=cp.arch
+    )
+
     # Setup the k8s snap from the bootstrap channel and setup basic configuration.
-    util.setup_k8s_snap(cp, tmp_path, current_channel)
+    for instance in instances:
+        util.setup_k8s_snap(
+            instance, tmp_path, current_channel, cached_snaps=cached_snaps
+        )
     cp.exec(["k8s", "bootstrap"])
     util.wait_until_k8s_ready(cp, instances)
     LOG.info(f"Installed {cp.id} on channel {current_channel}")
@@ -92,15 +86,20 @@ def test_version_upgrades(instances: List[harness.Instance], tmp_path):
             latest_version = out.stdout.decode().strip().split("\n")[-1]
             LOG.info(f"Current snap version: {latest_version}")
 
-            # note: the `--classic` flag will be ignored by snapd for strict snaps.
             if channel.startswith("/"):
                 LOG.info("Refreshing k8s snap by path")
-                cmd = ["snap", "install", "--classic", "--dangerous", snap_path]
+                util.stubbornly(
+                    retries=5,
+                    delay_s=5,
+                    after=util.wait_for_snap_change_hook(instance, max_attempts=5),
+                ).on(instance).exec(
+                    ["snap", "install", "--classic", "--dangerous", snap_path],
+                    timeout=60 * 5,
+                )
             else:
-                cmd = ["snap", "refresh", "--classic", config.SNAP_NAME]
-                cmd += [*util.snap_channel_args(channel), "--amend"]
-
-            instance.exec(cmd)
+                util.snap_refresh(
+                    instance, channel, "--amend", cached_snaps=cached_snaps
+                )
             util.wait_until_k8s_ready(cp, instances)
             LOG.info("Verifying snap service health")
             util.check_snap_services_ready(instance)
@@ -124,7 +123,12 @@ def test_version_upgrades(instances: List[harness.Instance], tmp_path):
     not config.SNAP,
     reason="Feature upgrades require a local snap file",
 )
-def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: Path):
+def test_feature_upgrades_inplace(
+    instances: List[harness.Instance],
+    tmp_path: Path,
+    containerd_cfgdir: str,
+    registry: Registry,
+):
     """Verify that feature upgrades function correctly.
 
     Note: This is an interim test that will be expanded as feature upgrades mature.
@@ -140,18 +144,19 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
     bootstrap_cp = instances[0]
     worker = instances[-1]
 
+    cached_snaps = util.download_k8s_snaps(
+        [start_branch], tmp_path / "snap_cache", arch=bootstrap_cp.arch
+    )
+
     for instance in instances:
-        instance.exec(
-            [
-                "snap",
-                "install",
-                "k8s",
-                "--classic",
-                *util.snap_channel_args(start_branch),
-            ]
-        )
+        util.setup_k8s_snap(instance, tmp_path, start_branch, cached_snaps=cached_snaps)
+        if config.USE_LOCAL_MIRROR and registry:
+            registry.apply_configuration(instance, containerd_cfgdir)
 
     bootstrap_cp.exec(["k8s", "bootstrap"])
+    # Avoid racing the bootstrap node's kubelet Node registration (join can
+    # fail with "the cluster has no nodes" otherwise).
+    util.wait_until_k8s_ready(bootstrap_cp, [bootstrap_cp])
     for instance in instances:
         if instance.id in [bootstrap_cp.id, worker.id]:
             continue
@@ -161,26 +166,30 @@ def test_feature_upgrades_inplace(instances: List[harness.Instance], tmp_path: P
     token = util.get_join_token(bootstrap_cp, worker, "--worker")
     worker.exec(["k8s", "join-cluster", token])
 
-    # Get initial helm releases to track if they are updated correctly.
-    initial_releases = {
-        release["name"]: release
-        for release in json.loads(
-            bootstrap_cp.exec(
-                [
-                    "/snap/k8s/current/bin/helm",
-                    "--kubeconfig",
-                    "/etc/kubernetes/admin.conf",
-                    "list",
-                    "-n",
-                    "kube-system",
-                    "-o",
-                    "json",
-                ],
-                capture_output=True,
-                text=True,
-            ).stdout
+    util.wait_until_k8s_ready(bootstrap_cp, instances)
+    util.wait_for_pods_ready(bootstrap_cp)
+
+    # Get initial helm releases once all are deployed.
+    releases_cmd = [
+        "/snap/k8s/current/bin/helm",
+        "--kubeconfig",
+        "/etc/kubernetes/admin.conf",
+        "list",
+        "-n",
+        "kube-system",
+        "-o",
+        "json",
+    ]
+    p = (
+        util.stubbornly(retries=15, delay_s=5)
+        .on(bootstrap_cp)
+        .until(
+            lambda p: bool(json.loads(p.stdout or "[]"))
+            and all(r.get("status") == "deployed" for r in json.loads(p.stdout))
         )
-    }
+        .exec(releases_cmd, capture_output=True, text=True)
+    )
+    initial_releases = {release["name"]: release for release in json.loads(p.stdout)}
 
     # Refresh each CP node after each other and verify that the upgrade CR is updated correctly.
     for idx, instance in enumerate(instances):
@@ -325,15 +334,29 @@ def test_feature_upgrades_rollout_upgrade(
 
     # Setup the first half of nodes up on the old version.
     for instance in instances[:3]:
-        instance.exec(
-            ["snap", "install", "k8s", "--classic", *util.snap_channel_args(start_snap)]
+        util.stubbornly(
+            retries=3,
+            delay_s=30,
+            after=util.wait_for_snap_change_hook(instance, max_attempts=3),
+        ).on(instance).exec(
+            [
+                "snap",
+                "install",
+                "k8s",
+                "--classic",
+                *util.snap_channel_args(start_snap),
+            ],
+            timeout=60 * 5,
         )
 
-    instance.exec(
+    util.stubbornly(retries=3, delay_s=30).on(instance).exec(
         ["snap", "install", "k8s", "--classic", *util.snap_channel_args(start_snap)]
     )
 
     main_old.exec(["k8s", "bootstrap"])
+    # Avoid racing the bootstrap node's kubelet Node registration (join can
+    # fail with "the cluster has no nodes" otherwise).
+    util.wait_until_k8s_ready(main_old, [main_old])
     for instance in instances[1:3]:
         token = util.get_join_token(main_old, instance)
         instance.exec(["k8s", "join-cluster", token])

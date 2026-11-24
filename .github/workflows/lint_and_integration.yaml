@@ -15,7 +15,8 @@ on:
       - 'docs/**'
 
 permissions:
-  contents: read
+  contents: read # for actions/checkout to fetch code
+  actions: read # for gh run download to fetch artifacts
 
 jobs:
   build-snap:
@@ -30,6 +31,7 @@ jobs:
   test-branches:
     name: Test Branch Management
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
       - name: Check out code
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -60,6 +62,7 @@ jobs:
       - name: Lint
         run: |
           cd tests/integration && tox -e lint
+          tox -e unit
 
   go-lint-and-unit:
     name: Go lint and unit tests
@@ -124,4 +127,5 @@ jobs:
       artifact: ${{ needs.build-snap.outputs.snap-artifact}}
     permissions:
       contents: read # for actions/checkout to fetch code
+      actions: read # for gh run download to fetch artifacts
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results

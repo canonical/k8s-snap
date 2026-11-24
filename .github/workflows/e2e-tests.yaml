@@ -1,7 +1,8 @@
 name: Run k8s-snap e2e tests
 
 permissions:
-  contents: read
+  contents: read # for actions/checkout to fetch code
+  actions: read # for gh run download to fetch artifacts
 
 on:
   workflow_call:
@@ -117,6 +118,38 @@ jobs:
           channel: ${{ inputs.channel }}
           artifact: ${{ inputs.artifact }}
       - name: Setup LXD
+        id: setup-lxd
+        continue-on-error: true
+        timeout-minutes: 10
+        uses: canonical/setup-lxd@a3c85fc6fb7fff43fcfeae87659e41a8f635b7dd # v0.1.3
+        with:
+          bridges: "lxdbr0,dualstack-br0,ipv6-br0"
+          channel: "5.21/stable"
+      - name: Cleanup LXD after failure
+        if: steps.setup-lxd.outcome == 'failure'
+        continue-on-error: true
+        timeout-minutes: 5
+        run: |
+          sudo systemctl stop snapd.service snapd.socket || true
+          sudo systemctl start snapd.socket snapd.service || true
+          for id in $(snap changes 2>/dev/null | awk '/^[0-9]+/ {if ($2 == "Doing" || $2 == "Do" || $2 == "Undoing") print $1}'); do
+            echo "Aborting in-flight snap change $id..."
+            sudo snap abort "$id" || true
+          done
+          echo "Waiting for in-flight snap changes to settle..."
+          for i in $(seq 1 36); do
+            changes=$(snap changes 2>/dev/null | awk '/^[0-9]+/ {if ($2 == "Doing" || $2 == "Do" || $2 == "Undoing") print $1, $2}')
+            if [ -z "$changes" ]; then
+              echo "All snap changes settled."
+              break
+            fi
+            echo "Still in progress ($i/36): $changes"
+            sleep 5
+          done
+          snap changes || true
+      - name: Retry Setup LXD
+        if: steps.setup-lxd.outcome == 'failure'
+        timeout-minutes: 10
         uses: canonical/setup-lxd@a3c85fc6fb7fff43fcfeae87659e41a8f635b7dd # v0.1.3
         with:
           bridges: "lxdbr0,dualstack-br0,ipv6-br0"
@@ -125,9 +158,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y tox
-      - name: Setup tmate session
-        uses: canonical/action-tmate@main
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.tmate_enabled }}
       - name: Generate names for step and artifacts
         run: |
           FULL_TEST_NODE_ID="${{ matrix.test }}"
@@ -146,10 +176,12 @@ jobs:
           TEST_LXD_IMAGE: ${{ inputs.os }}
           TEST_FLAVOR: ${{ inputs.flavor }}
           TEST_INSPECTION_REPORTS_DIR: ${{ github.workspace }}/inspection-reports/${{ env.test_name }}
-          TEST_VERSION_UPGRADE_CHANNELS: "recent 6"
+          TEST_VERSION_UPGRADE_CHANNELS: ${{ github.event_name == 'pull_request' && 'recent 2' || 'recent 6' }}
           TEST_VERSION_UPGRADE_MIN_RELEASE: "1.32"
           TEST_STRICT_INTERFACE_CHANNELS: "recent 6 strict"
           TEST_MIRROR_LIST: '[{"name": "ghcr.io", "port": 5000, "remote": "https://ghcr.io", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}, {"name": "docker.io", "port": 5001, "remote": "https://registry-1.docker.io", "username": "", "password": ""}]'
+          TEST_GH_REF: ${{ github.ref_name }}
+          TEST_GH_BASE_REF: ${{ github.base_ref }}
         run: |
           cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- ${{ inputs.extra-test-args }} ${{ matrix.test }}
       - name: Prepare inspection reports

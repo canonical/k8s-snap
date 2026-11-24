@@ -1,14 +1,13 @@
 #
 # Copyright 2025 Canonical, Ltd.
 #
-import json
 import logging
 import re
 import urllib.error
-import urllib.request
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
-from test_util.util import major_minor
+from test_util import util
+from test_util.util import fetch_json, major_minor
 
 LOG = logging.getLogger(__name__)
 
@@ -25,17 +24,14 @@ RISK_LEVELS = ["stable", "candidate", "beta", "edge"]
 
 def get_snap_info(snap_name=SNAP_NAME):
     """Get the snap info from the Snap Store API."""
-    req = urllib.request.Request(
-        SNAPSTORE_INFO_API + snap_name, headers=SNAPSTORE_HEADERS
-    )
+    url = SNAPSTORE_INFO_API + snap_name
     try:
-        with urllib.request.urlopen(req) as response:  # nosec
-            return json.loads(response.read().decode())
+        return fetch_json(url, headers=SNAPSTORE_HEADERS)  # nosec
     except urllib.error.HTTPError as e:
-        LOG.exception("HTTPError ({%s}): {%s} {%s}", req.full_url, e.code, e.reason)
+        LOG.exception("HTTPError ({%s}): {%s} {%s}", url, e.code, e.reason)
         raise
     except urllib.error.URLError as e:
-        LOG.exception("URLError ({%s}): {%s}", req.full_url, e.reason)
+        LOG.exception("URLError ({%s}): {%s}", url, e.reason)
         raise
 
 
@@ -68,11 +64,11 @@ def get_most_stable_channels(
     include_latest: bool = True,
     min_release: Optional[str] = None,
     max_release: Optional[str] = None,
+    reverse: bool = False,
 ) -> List[str]:
     """Get an ascending list of latest channels based on the number of channels
     flavour and architecture."""
     snap_info = get_snap_info()
-
     # Extract channel information and filter by architecture and flavor
     arch_flavor_channels = filter_arch_and_flavor(
         snap_info.get("channel-map", []), arch, flavor
@@ -98,16 +94,132 @@ def get_most_stable_channels(
         ) < RISK_LEVELS.index(channel_map[version_key][1]):
             channel_map[version_key] = (channel, risk)
 
-    # Sort channels by major and minor version (ascending order)
-    sorted_versions = sorted(channel_map.keys(), key=lambda v: (v[0], v[1]))
+    # Sort channels by major and minor version
+    if num_of_channels <= 0:
+        sorted_versions = []
+    elif reverse:
+        sorted_versions = sorted(
+            channel_map.keys(), key=lambda v: (v[0], v[1]), reverse=True
+        )[:num_of_channels]
+    else:
+        sorted_versions = sorted(channel_map.keys(), key=lambda v: (v[0], v[1]))[
+            -num_of_channels:
+        ]
 
     # Extract only the channel names
-    final_channels = [channel_map[v][0] for v in sorted_versions[:num_of_channels]]
+    final_channels = [channel_map[v][0] for v in sorted_versions]
 
     if include_latest:
-        final_channels.append(f"latest/edge/{flavor}")
-
+        latest_channel = f"latest/edge/{flavor}"
+        if reverse:
+            final_channels.insert(0, latest_channel)
+        else:
+            final_channels.append(latest_channel)
     return final_channels
+
+
+def build_upgrade_channel_list(
+    channels: List[str],
+    flavor: str,
+    arch: str,
+    ref: Optional[str] = None,
+    min_release: Optional[str] = None,
+    snap_path: Optional[str] = None,
+    local_snap_version: Optional[Tuple[int, int]] = None,
+) -> List[str]:
+    """Build the list of channels for version upgrades."""
+    if isinstance(channels, str):
+        channels = channels.strip().split()
+    else:
+        channels = list(channels)
+
+    if channels and channels[0].lower() == "recent":
+        if len(channels) != 2:
+            raise ValueError(
+                "'recent' requires the number of releases as second argument"
+            )
+        num_channels = int(channels[1])
+
+        ref_name = ref.removeprefix("refs/heads/") if ref else ""
+        if ref_name.startswith("release-"):
+            max_release = ref_name.removeprefix("release-")
+        elif local_snap_version is not None:
+            max_release = f"{local_snap_version[0]}.{local_snap_version[1]}"
+        else:
+            max_release = None
+
+        # Omit latest/edge when a local snap build is already under test.
+        include_latest = ref_name == util.MAIN_BRANCH and not snap_path
+
+        resolved_channels = get_most_stable_channels(
+            num_of_channels=num_channels,
+            flavor=flavor,
+            arch=arch,
+            include_latest=include_latest,
+            min_release=min_release,
+            max_release=max_release,
+            reverse=False,
+        )
+    else:
+        resolved_channels = list(channels)
+
+    if snap_path and local_snap_version:
+        added = False
+        for i, ch in enumerate(resolved_channels):
+            if "latest" in ch:
+                continue
+            chan_ver = major_minor(ch)
+            if chan_ver is not None and local_snap_version < chan_ver:
+                resolved_channels.insert(i, snap_path)
+                added = True
+                break
+
+        if not added:
+            resolved_channels.append(snap_path)
+
+    return resolved_channels
+
+
+def build_downgrade_channel_list(
+    channels: List[str],
+    flavor: str,
+    arch: str,
+    ref: Optional[str] = None,
+    min_release: Optional[str] = None,
+) -> List[str]:
+    """Build the list of channels for version downgrades."""
+    if isinstance(channels, str):
+        channels = channels.strip().split()
+    else:
+        channels = list(channels)
+
+    if channels and channels[0].lower() == "recent":
+        if len(channels) != 2:
+            raise ValueError(
+                "'recent' requires the number of releases as second argument"
+            )
+        num_channels = int(channels[1])
+
+        ref_name = ref.removeprefix("refs/heads/") if ref else ""
+        max_release = (
+            ref_name.removeprefix("release-")
+            if ref_name.startswith("release-")
+            else None
+        )
+
+        include_latest = ref_name == util.MAIN_BRANCH
+
+        return get_most_stable_channels(
+            num_of_channels=num_channels,
+            flavor=flavor,
+            arch=arch,
+            include_latest=include_latest,
+            min_release=min_release,
+            max_release=max_release,
+            reverse=True,
+        )
+
+    return channels
 
 
 def get_channels(
