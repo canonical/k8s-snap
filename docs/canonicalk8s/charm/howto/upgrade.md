@@ -214,35 +214,34 @@ See Kubernetes' [version skew policy]
 
 ### Upgrade from 1.35 to 1.36
 
-Before refreshing either charm to 1.36:
+Before you refresh `k8s` or `k8s-worker` to 1.36:
 
-- Check the `Base` column in `juju status` for the machines running `k8s`
-  and `k8s-worker`. If any run on Ubuntu 22.04 LTS, move those units to
-  a supported base first. For an in-place base upgrade to Ubuntu 24.04 LTS
-  while still on 1.35, see [Juju's machine base upgrade guidance]. A charm
-  refresh does not upgrade the machine's operating system.
-- Check the datastore on a control-plane unit with
-  `juju exec --unit k8s/leader -- sudo k8s status`. If the `datastore` line
-  shows `k8s-dqlite`, stop. There is no supported in-place upgrade or
-  datastore migration. Stay on 1.35 or deploy a new cluster backed by etcd
-  and migrate your workloads.
-- Review any `cluster-annotations` configured on `k8s`. Settings that
-  previously had no effect can take effect when the charm reconciles
-  after the upgrade.
-- If you use the `k8s` or `k8s-worker` Terraform modules directly, use Juju
-  provider v1 or v2 and replace `model = juju_model.<name>.name` with
-  `model_uuid = juju_model.<name>.uuid` in each module call. If you are
-  upgrading from provider v0, follow the [Juju provider upgrade guide].
-  Review `terraform plan` before applying changes.
+- **Ubuntu base**: Run `juju status` and check the `Base` column for the
+  machines running either charm. If any still run Ubuntu 22.04 LTS, move
+  those units to a supported base. For an in-place upgrade to Ubuntu
+  24.04 LTS while still on 1.35, see [Juju's machine base upgrade guidance].
+  Refreshing a charm does not upgrade the operating system.
+- **Datastore**: Check which datastore the cluster uses:
 
-Use the minor-upgrade procedure below to refresh the charms, not a manual
-snap refresh. Clusters already running `kube-proxy` keep using it by default.
-If you deliberately switch to Cilium's replacement after upgrading, set
-`juju config k8s kube-proxy-enabled=false` during a maintenance window and
-validate service connectivity. In 1.36, you cannot re-enable `kube-proxy`
-while the built-in Cilium network is enabled.
+  ```sh
+  juju exec --unit k8s/leader -- sudo k8s status
+  ```
 
-See the [1.36 charm release notes] for the full list of changes.
+  If the `datastore` line shows `k8s-dqlite`, do not refresh either charm.
+  Stay on 1.35 or deploy a new cluster backed by etcd and move your
+  workloads to it. There is no supported datastore migration.
+- **Cluster annotations**: Review the `cluster-annotations` setting on
+  `k8s`. After the upgrade, the charm can apply annotations that it
+  previously ignored.
+- **Terraform**: If you use either charm module directly, use v1 or v2
+  of the Terraform provider for Juju. In each module call, replace
+  `model = juju_model.<name>.name` with `model_uuid = juju_model.<name>.uuid`.
+  If you are still on provider v0, follow the [Juju provider upgrade guide].
+  Check `terraform plan` before applying any changes.
+
+Then follow the minor-upgrade steps below to refresh the charms. Do not
+refresh the snap directly. See the [1.36 charm release notes] for other
+changes that may affect your cluster.
 
 ### Run the pre-upgrade-check
 
@@ -309,6 +308,23 @@ version of **Kubernetes** is listed in the application's **Version**.
 
 It is recommended that you run a [cluster validation][cluster-validation]
 to ensure that the cluster is fully functional.
+
+### Switch to Cilium service routing after upgrading
+
+If your cluster already uses `kube-proxy`, upgrading to 1.36 leaves it
+running. If you use the built-in Cilium network and want Cilium to handle
+service traffic instead, make this change during a maintenance window.
+
+```{caution}
+On 1.36, you cannot re-enable `kube-proxy` while the built-in Cilium
+network is enabled.
+```
+
+```sh
+juju config k8s kube-proxy-enabled=false
+```
+
+After the change, check that your workloads can still reach their services.
 
 ## Recover from a failed upgrade 
 
