@@ -17,7 +17,7 @@ LOG = logging.getLogger(__name__)
     not config.STRICT_INTERFACE_CHANNELS, reason="No strict channels configured"
 )
 @pytest.mark.tags(tags.WEEKLY)
-def test_strict_interfaces(instances: List[harness.Instance], tmp_path):
+def test_strict_interfaces(instances: List[harness.Instance]):
     channels = config.STRICT_INTERFACE_CHANNELS
     cp = instances[0]
     current_channel = channels[0]

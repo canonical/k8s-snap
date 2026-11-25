@@ -19,7 +19,7 @@ To follow this guide, you will need:
 and configured.
 - A generated cluster spec manifest
 
-Please refer to the [getting-started guide][getting-started] for further
+Please refer to the [provisioning guide][provision] for further
 details on the required setup.
 
 This guide will call the generated cluster spec manifest `cluster.yaml`.
@@ -82,4 +82,4 @@ form the local path.
 ```
 
 <!-- LINKS -->
-[getting-started]: ../tutorial/getting-started.md
+[provision]: ./provision.md

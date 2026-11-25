@@ -1,0 +1,5 @@
+# bfd-session.yaml without BFD.
+k8sd/v1alpha1/metallb/bfd-profiles: "-"
+k8sd/v1alpha1/metallb/bgp-peers: |
+  - peerAddress: $ROUTER_IP
+    peerASN: $ROUTER_ASN

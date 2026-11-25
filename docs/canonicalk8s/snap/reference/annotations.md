@@ -120,7 +120,18 @@ v1alpha annotations are experimental and subject to change or removal in future 
 |                 |                                                                                                                                                                                                                                                                          |
 |-----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **Values**      | YAML-encoded list of BGP peer configurations                                                                                                                                                                                                                             |
-| **Description** | Configure multi-peer MetalLB BGP mode. Each item may include `peerAddress` (required), `peerASN` (required), `myASN` (optional, falls back to `load-balancer.bgp-local-asn`), `peerPort` (optional, default 179) and `nodeSelector` (optional). When set, this annotation replaces the single-peer typed BGP keys entirely. See [multi-peer BGP]. |
+| **Description** | Configure multi-peer MetalLB BGP mode. When set, this annotation replaces the single-peer typed BGP keys entirely. See [multi-peer BGP]. |
+
+Supported fields per peer:
+
+| Field | Required | Description |
+|---|---|---|
+| `peerAddress` | yes | IP address of the BGP peer router |
+| `peerASN` | yes | ASN of the peer router (1–4294967295) |
+| `myASN` | no | Local ASN for this peer (defaults to `load-balancer.bgp-local-asn`) |
+| `peerPort` | no | TCP port (default: 179) |
+| `nodeSelector` | no | `matchLabels` selector; omit to select all nodes |
+| `bfdProfile` | no | Name of a `BFDProfile` to attach to this peer; requires `k8sd/v1alpha1/metallb/bgp-backend` set to `frr-k8s` |
 
 ## `k8sd/v1alpha1/metallb/advertise-all-pools`
 
@@ -128,6 +139,32 @@ v1alpha annotations are experimental and subject to change or removal in future 
 |-----------------|------------------------------------------------------------------------------------------------------------------------------|
 | **Values**      | "true"\|"false"                                                                                                              |
 | **Description** | If set to "true", the BGPAdvertisement is created with an empty spec, which advertises all IP pools. If "false" (default), only the IPAddressPool created by {{product}} is advertised. |
+
+## `k8sd/v1alpha1/metallb/bgp-backend`
+
+|                 |                                                                                                                              |
+|-----------------|------------------------------------------------------------------------------------------------------------------------------|
+| **Values**      | "native"\|"frr-k8s"                                                                                                          |
+| **Description** | BGP implementation used by MetalLB. `native` (default) is MetalLB's built-in implementation and does not support BFD. `frr-k8s` runs FRR in a separate `frr-k8s` DaemonSet and is required for BFD. See [multi-peer BGP]. |
+
+## `k8sd/v1alpha1/metallb/bfd-profiles`
+
+|                 |                                                                                                                              |
+|-----------------|------------------------------------------------------------------------------------------------------------------------------|
+| **Values**      | YAML-encoded list of BFD profile configurations                                                                              |
+| **Description** | `BFDProfile` resources that {{product}} keeps in sync in the `metallb-system` namespace while BGP mode is enabled. Peers reference them by name in `bfdProfile`. Requires `k8sd/v1alpha1/metallb/bgp-backend` set to `frr-k8s`. Unknown fields are rejected. See [multi-peer BGP]. |
+
+Supported fields per profile (omitted fields use MetalLB's defaults):
+
+| Field | Required | Description |
+|---|---|---|
+| `name` | yes | Unique profile name (lowercase DNS subdomain) |
+| `receiveInterval` | no | Minimum receive interval in ms (10–60000, default: 300) |
+| `transmitInterval` | no | Minimum transmit interval in ms (10–60000, default: 300) |
+| `detectMultiplier` | no | Missed packets before the session is declared down (2–255, default: 3) |
+| `echoInterval` | no | Minimum echo receive interval in ms (10–60000, default: 50) |
+| `echoMode` | no | Enable echo mode (default: false) |
+| `passiveMode` | no | Wait for the peer to start the session (default: false) |
 
 <script>
 const el = document.getElementsByTagName("h2");

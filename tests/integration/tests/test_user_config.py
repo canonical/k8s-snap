@@ -161,14 +161,7 @@ def test_no_unnecessary_helm_revisions(instances: List[harness.Instance]):
         for chart, initial_rev in initial_revisions.items():
             current_rev = current_revisions.get(chart)
             assert current_rev is not None, f"Chart {chart} not in current revisions"
-            if chart == "ck-dns":
-                # NOTE(Hue): (KU-3683) ck-dns has a bug that clusterIP is not available in the first reconciliation
-                # and release. And with the new reconciliation, the clusterIP is set and a new revision is
-                # created. But this should only happen once. After that, the revision should not change.
-                assert (
-                    int(current_rev) == int(initial_rev) + 1
-                ), f"Chart {chart} revision changed unexpectedly, expected {int(initial_rev) + 1}, got {current_rev}"
-            else:
-                assert (
-                    current_rev == initial_rev
-                ), f"Chart {chart} revision changed unexpectedly"
+            assert current_rev == initial_rev, (
+                f"Chart {chart} revision changed unexpectedly on iteration {i + 1}, "
+                f"expected {initial_rev}, got {current_rev}"
+            )

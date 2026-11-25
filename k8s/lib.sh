@@ -5,15 +5,128 @@
 # Configure execution environment, locales and XDG to use paths from SNAP
 # Example: 'k8s::common::setup_env'
 k8s::common::setup_env() {
+  if [ -z "${BASH_VERSION:-}" ]; then
+    echo "k8s::common::setup_env requires bash" >&2
+    return 1
+  fi
+
   if [ -n "$_K8S_ENV_SETUP_ONCE" ]; then
     return 0
   fi
 
-  local SNAP_CURRENT="${SNAP%"${SNAP_REVISION}"}current"
+  local SNAP_CURRENT=""
+  if [ -n "${SNAP:-}" ]; then
+    SNAP_CURRENT="${SNAP%"${SNAP_REVISION}"}current"
+  fi
 
-  # Configure PATH, LD_LIBRARY_PATH
-  export PATH="$SNAP_CURRENT/usr/bin:$SNAP_CURRENT/bin:$SNAP_CURRENT/usr/sbin:$SNAP_CURRENT/sbin:$REAL_PATH"
-  export LD_LIBRARY_PATH="$SNAP_LIBRARY_PATH:$SNAP_CURRENT/lib:$SNAP_CURRENT/usr/lib:$SNAP_CURRENT/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP_CURRENT/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP_CURRENT/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/ceph:${REAL_LD_LIBRARY_PATH:-}"
+  # Configure PATH
+  local -a path_dirs=()
+  local -A seen_path=()
+
+  if [ -n "$SNAP_CURRENT" ]; then
+    local snap_bins=(
+      "$SNAP_CURRENT/usr/bin"
+      "$SNAP_CURRENT/bin"
+      "$SNAP_CURRENT/usr/sbin"
+      "$SNAP_CURRENT/sbin"
+    )
+    for d in "${snap_bins[@]}"; do
+      local norm="${d%/}"
+      seen_path["$norm"]=1
+      path_dirs+=("$norm")
+    done
+
+    seen_path["${SNAP%/}/usr/bin"]=1
+    seen_path["${SNAP%/}/bin"]=1
+    seen_path["${SNAP%/}/usr/sbin"]=1
+    seen_path["${SNAP%/}/sbin"]=1
+  fi
+
+  local host_path="${REAL_PATH:-${PATH:-}}"
+  if [ -n "$host_path" ]; then
+    local -a raw_path_dirs=()
+    IFS=":" read -r -a raw_path_dirs <<< "$host_path"
+    for d in "${raw_path_dirs[@]}"; do
+      local norm="${d%/}"
+      if [[ "$norm" != /* ]] || [ -n "${seen_path[$norm]:-}" ]; then
+        continue
+      fi
+      seen_path["$norm"]=1
+      path_dirs+=("$norm")
+    done
+  fi
+
+  local formatted_path=""
+  for d in "${path_dirs[@]}"; do
+    formatted_path="${formatted_path:+${formatted_path}:}$d"
+  done
+  export PATH="$formatted_path"
+
+  # Configure LD_LIBRARY_PATH
+  local -a ld_dirs=()
+  local -A seen_ld=()
+
+  if [ -n "${SNAP_LIBRARY_PATH:-}" ]; then
+    local -a raw_snap_ld=()
+    IFS=":" read -r -a raw_snap_ld <<< "$SNAP_LIBRARY_PATH"
+    for d in "${raw_snap_ld[@]}"; do
+      local norm="${d%/}"
+      if [[ "$norm" != /* ]] || [ -n "${seen_ld[$norm]:-}" ]; then
+        continue
+      fi
+      seen_ld["$norm"]=1
+      ld_dirs+=("$norm")
+    done
+  fi
+
+  if [ -n "$SNAP_CURRENT" ]; then
+    local arch_triplet="${CRAFT_ARCH_TRIPLET_BUILD_FOR:-${SNAPCRAFT_ARCH_TRIPLET:-}}"
+    local snap_libs=(
+      "$SNAP_CURRENT/lib"
+      "$SNAP_CURRENT/usr/lib"
+    )
+    if [ -n "$arch_triplet" ]; then
+      snap_libs+=(
+        "$SNAP_CURRENT/lib/$arch_triplet"
+        "$SNAP_CURRENT/usr/lib/$arch_triplet"
+        "$SNAP_CURRENT/usr/lib/$arch_triplet/ceph"
+      )
+    fi
+    for d in "${snap_libs[@]}"; do
+      local norm="${d%/}"
+      if [ -z "${seen_ld[$norm]:-}" ]; then
+        seen_ld["$norm"]=1
+        ld_dirs+=("$norm")
+      fi
+    done
+
+    seen_ld["${SNAP%/}/lib"]=1
+    seen_ld["${SNAP%/}/usr/lib"]=1
+    if [ -n "$arch_triplet" ]; then
+      seen_ld["${SNAP%/}/lib/$arch_triplet"]=1
+      seen_ld["${SNAP%/}/usr/lib/$arch_triplet"]=1
+      seen_ld["${SNAP%/}/usr/lib/$arch_triplet/ceph"]=1
+    fi
+  fi
+
+  if [ -n "${REAL_LD_LIBRARY_PATH:-}" ]; then
+    local -a raw_real_ld=()
+    IFS=":" read -r -a raw_real_ld <<< "$REAL_LD_LIBRARY_PATH"
+    for d in "${raw_real_ld[@]}"; do
+      local norm="${d%/}"
+      if [[ "$norm" != /* ]] || [ -n "${seen_ld[$norm]:-}" ]; then
+        continue
+      fi
+      seen_ld["$norm"]=1
+      ld_dirs+=("$norm")
+    done
+  fi
+
+  local formatted_ld=""
+  for d in "${ld_dirs[@]}"; do
+    formatted_ld="${formatted_ld:+${formatted_ld}:}$d"
+  done
+  export LD_LIBRARY_PATH="$formatted_ld"
 
   # NOTE(neoaggelos/2023-08-14):
   # we cannot list system locales from snap. instead, we attempt
@@ -93,45 +206,44 @@ k8s::remove::containerd() {
   k8s::cmd::k8s x-cleanup containerd || true
 }
 
-# Cleanup systemd overrides
+# Cleanup system tuning sysctl overrides
+# Example: 'k8s::remove::system_tuning'
 k8s::remove::system_tuning() {
   if ! k8s::common::is_strict; then
-    # Find files matching pattern: digits followed by '-k8s.conf'
-    files_to_remove=$(find /etc/sysctl.d/ -maxdepth 1 -type f -regextype posix-extended -regex '.*/[0-9]+-k8s\.conf')
+    local files_to_remove=()
+    if [ -d /etc/sysctl.d ]; then
+      mapfile -d '' files_to_remove < <(find /etc/sysctl.d/ -maxdepth 1 -type f -regextype posix-extended -regex '.*/[0-9]+-k8s\.conf' -print0 2>/dev/null)
+    fi
 
-
-    if [ -n "$files_to_remove" ]; then
-      echo "$files_to_remove" | xargs sudo rm -f
-      sudo sysctl --system
+    if [ "${#files_to_remove[@]}" -gt 0 ]; then
+      k8s::util::run_as_root rm -f "${files_to_remove[@]}"
+      k8s::util::run_as_root sysctl --system
     fi
   fi
 }
 
+# Cleanup resources in SNAP_COMMON
+# Example: 'k8s::remove::resources'
 k8s::remove::resources() {
-  if [ -d "$SNAP_COMMON/etc" ]; then
-    sudo rm -rf "$SNAP_COMMON/etc"
+  local common_dir="${SNAP_COMMON:-/var/snap/k8s/common}"
+  if [ -d "$common_dir/etc" ]; then
+    k8s::util::run_as_root rm -rf "$common_dir/etc"
   fi
 }
 
+# Cleanup kubelet pod and container logs
+# Example: 'k8s::remove::kubelet_logs'
 k8s::remove::kubelet_logs() {
   if ! k8s::common::is_strict; then
-    if [ -d "$SNAP_COMMON/var/log/pods" ]; then
-        sudo rm -rf "$SNAP_COMMON/var/log/pods"
+    local common_dir="${SNAP_COMMON:-/var/snap/k8s/common}"
+    if [ -d "$common_dir/var/log/pods" ]; then
+      k8s::util::run_as_root rm -rf "$common_dir/var/log/pods"
     fi
 
-    if [ -d "$SNAP_COMMON/var/log/containers" ]; then
-      sudo rm -rf "$SNAP_COMMON/var/log/containers"
+    if [ -d "$common_dir/var/log/containers" ]; then
+      k8s::util::run_as_root rm -rf "$common_dir/var/log/containers"
     fi
   fi
-}
-
-# Run a ctr command against the local containerd socket
-# Example: 'k8s::cmd::ctr image ls -q'
-k8s::cmd::ctr() {
-  env \
-    CONTAINERD_NAMESPACE="${CONTAINERD_NAMESPACE:-k8s.io}" \
-    CONTAINERD_ADDRESS="${CONTAINERD_ADDRESS:-$SNAP_COMMON/run/containerd.sock}" \
-    "${SNAP}/bin/ctr" "${@}"
 }
 
 # Run kubectl as admin
@@ -146,29 +258,6 @@ k8s::cmd::k8s() {
   k8s::common::setup_env
 
   "${SNAP}/bin/k8s" "${@}"
-}
-
-# Get the local node hostname, in lowercase
-# Example: 'hostname="$(k8s::cmd::hostname)"'
-k8s::cmd::hostname() {
-  k8s::common::setup_env
-
-  hostname | tr '[:upper:]' '[:lower:]'
-}
-
-k8s::util::default_interface() {
-  k8s::common::setup_env
-
-  ip route show default | awk '{for(i=1; i<NF; i++) if ($i=="dev") print $(i+1)}' | head -1
-}
-
-# Wait for containerd socket to be ready
-# Example: 'k8s::util::wait_containerd_socket'
-k8s::util::wait_containerd_socket() {
-  while ! k8s::cmd::ctr --connect-timeout 1s > /dev/null; do
-    echo Waiting for containerd to start
-    sleep 3
-  done
 }
 
 # Wait for API server to be ready
@@ -250,7 +339,7 @@ k8s::common::execute() {
   k8s::common::validate_env "${all_env_vars[@]}"
 
   set -e
-  ulimit -c unlimited
+  ulimit -c unlimited 2>/dev/null || true
   export GOTRACEBACK="crash"
 
   if (( ${#all_env_vars[@]} > 0 )); then
@@ -279,6 +368,20 @@ k8s::kubelet::ensure_shared_root_dir() {
   fi
 }
 
+# Remove deprecated or unsupported kubelet arguments
+# Example: 'k8s::kubelet::sanitize_args'
+k8s::kubelet::sanitize_args() {
+  local args_file="${SNAP_COMMON:-/var/snap/k8s/common}/args/kubelet"
+  if [ ! -f "$args_file" ]; then
+    return 0
+  fi
+
+  # --containerd was removed in Kubernetes 1.37 in favor of --container-runtime-endpoint.
+  if grep -qE '^[[:space:]]*--containerd(=|[[:space:]]|$)' "$args_file"; then
+    sed -i -E '/^[[:space:]]*--containerd(=|[[:space:]]|$)/d' "$args_file"
+  fi
+}
+
 # Loads the kernel module names given as arguments
 # Example: 'k8s::util::load_kernel_modules mod1 mod2 mod3'
 k8s::util::load_kernel_modules() {
@@ -287,24 +390,40 @@ k8s::util::load_kernel_modules() {
   modprobe -- "$@"
 }
 
+# Execute command directly when running as root, otherwise with sudo
+# Example: 'k8s::util::run_as_root rm -f /path/to/file'
+k8s::util::run_as_root() {
+  if [ "$(id -u)" -eq 0 ]; then
+    "$@"
+  else
+    sudo "$@"
+  fi
+}
+
+# Ensure containerd systemd drop-in configuration defaults are applied
+# Example: 'k8s::containerd::ensure_systemd_defaults'
 k8s::containerd::ensure_systemd_defaults() {
   k8s::common::setup_env
 
-  local override_dir="/etc/systemd/system/snap.k8s.containerd.service.d"
-  local override_file="$SNAP/k8s/systemd/containerd-defaults.conf"
+  local override_dir="/etc/systemd/system/snap.${SNAP_INSTANCE_NAME:-k8s}.containerd.service.d"
+  local override_file="${SNAP:-/snap/k8s/current}/k8s/systemd/containerd-defaults.conf"
 
-  if ! [ -f "$override_dir/containerd-defaults.conf" ]; then
+  if [ ! -f "$override_file" ]; then
+    return 0
+  fi
+
+  if [ ! -f "$override_dir/containerd-defaults.conf" ] || ! cmp -s "$override_file" "$override_dir/containerd-defaults.conf"; then
     mkdir -p "$override_dir"
     cp "$override_file" "$override_dir/"
+    systemctl daemon-reload || true
   fi
 }
 
 # Sanitize feature gates in kube-apiserver arguments
-# This removes any feature gates that are not present in the current apiserver version
-# from the --feature-gates argument in /var/snap/k8s/common/args/kube-apiserver.
-# Usage: k8s::apiserver::sanitize_feature_gates
+# Example: 'k8s::apiserver::sanitize_feature_gates'
 k8s::apiserver::sanitize_feature_gates() {
-  local args_file="/var/snap/k8s/common/args/kube-apiserver"
+  local args_file="${SNAP_COMMON:-/var/snap/k8s/common}/args/kube-apiserver"
+  local apiserver_bin="${SNAP:-/snap/k8s/current}/bin/kube-apiserver"
 
   # Check if the args file exists
   if [ ! -f "$args_file" ]; then
@@ -318,9 +437,9 @@ k8s::apiserver::sanitize_feature_gates() {
 
   # Get the list of supported feature gates from kube-apiserver
   local supported_gates=""
-  if [ -x "/snap/k8s/current/bin/kube-apiserver" ]; then
+  if [ -x "$apiserver_bin" ]; then
     # Extract feature gate names from help output (format: kube:FeatureName=true|false)
-    supported_gates=$(/snap/k8s/current/bin/kube-apiserver --help 2>/dev/null | awk '/^ *kube:/{print $1}' | sed 's/^kube://' | sed 's/=.*//')
+    supported_gates=$("$apiserver_bin" --help 2>/dev/null | awk '/^ *kube:/{print $1}' | sed 's/^kube://' | sed 's/=.*//')
   fi
 
   # If we couldn't get supported gates, return without changes
@@ -328,29 +447,42 @@ k8s::apiserver::sanitize_feature_gates() {
     return 0
   fi
 
-  # Convert supported gates to array
+  # Convert supported gates to map
   declare -A supported_gates_map
   while IFS= read -r gate; do
     [[ -n "$gate" ]] && supported_gates_map["$gate"]=1
   done <<< "$supported_gates"
 
   # Get the current feature gates line
-  local current_line=$(grep "^--feature-gates=" "$args_file")
+  local current_line
+  current_line="$(grep -m 1 "^--feature-gates=" "$args_file" || true)"
   local feature_gates_value="${current_line#--feature-gates=}"
 
   # Remove surrounding quotes if present
-  feature_gates_value="${feature_gates_value%\"}"
-  feature_gates_value="${feature_gates_value#\"}"
+  if [[ "$feature_gates_value" == \"*\" ]]; then
+    feature_gates_value="${feature_gates_value#\"}"
+    feature_gates_value="${feature_gates_value%\"}"
+  elif [[ "$feature_gates_value" == \'*\' ]]; then
+    feature_gates_value="${feature_gates_value#\'}"
+    feature_gates_value="${feature_gates_value%\'}"
+  fi
 
   local updated_gates=""
 
   # Split by comma and filter out unsupported gates
   IFS=',' read -ra gates <<< "$feature_gates_value"
   for gate in "${gates[@]}"; do
+    # Strip leading and trailing whitespace
+    gate="${gate#"${gate%%[![:space:]]*}"}"
+    gate="${gate%"${gate##*[![:space:]]}"}"
+    if [ -z "$gate" ]; then
+      continue
+    fi
+
     local gate_name="${gate%%=*}"
 
     # Skip unsupported gates
-    if [[ -z "${supported_gates_map[$gate_name]}" ]]; then
+    if [[ -z "${supported_gates_map[$gate_name]:-}" ]]; then
       continue
     fi
 
@@ -364,8 +496,11 @@ k8s::apiserver::sanitize_feature_gates() {
 
   # Update the file in-place
   if [ -n "$updated_gates" ]; then
-    # Replace the line with updated gates (add quotes back)
-    sed -i "s/^--feature-gates=.*$/--feature-gates=\"${updated_gates}\"/" "$args_file"
+    # Escape special characters for sed replacement (&, \, delimiter |)
+    local escaped_gates="${updated_gates//\\/\\\\}"
+    escaped_gates="${escaped_gates//|/\\|}"
+    escaped_gates="${escaped_gates//&/\\&}"
+    sed -i "s|^--feature-gates=.*$|--feature-gates=\"${escaped_gates}\"|" "$args_file"
   else
     # Remove the line if all gates were removed
     sed -i '/^--feature-gates=/d' "$args_file"

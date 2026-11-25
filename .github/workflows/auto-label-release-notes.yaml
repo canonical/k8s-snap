@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   label_pr:
-    if: github.event.pull_request.draft == false
+    if: github.repository == 'canonical/k8s-snap' && github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - name: Add release-notes label

@@ -45,6 +45,7 @@ SNAPCRAFT_GO_COMPONENTS = [
     "runc",
     "containerd",
     "cni",
+    "etcd",
     "helm",
     "kubernetes",
     "k8sd",

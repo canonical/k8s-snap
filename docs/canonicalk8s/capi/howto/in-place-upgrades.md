@@ -19,7 +19,7 @@ To follow this guide, you will need:
 - `kubectl` installed and configured to access your management cluster.
 - The workload cluster kubeconfig.
 
-Please refer to the [getting-started guide][getting-started] for further
+Please refer to the [provisioning guide][provision] for further
 details on the required setup.
 This guide refers to the workload cluster as `c1` and its
 kubeconfig as `c1-kubeconfig.yaml`.
@@ -100,5 +100,5 @@ kubectl --kubeconfig c1-kubeconfig.yaml get nodes -o wide
 
 
 <!-- LINKS -->
-[getting-started]: ../tutorial/getting-started.md
+[provision]: ./provision.md
 [annotations-reference]: ../reference/annotations.md

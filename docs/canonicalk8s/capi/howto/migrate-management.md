@@ -33,6 +33,3 @@ Simply call:
 ```
 clusterctl move --to-kubeconfig=$PWD/targetconfig
 ```
-
-<!-- LINKS -->
-[Cluster provisioning with CAPI and {{product}} tutorial]: ../tutorial/getting-started.md

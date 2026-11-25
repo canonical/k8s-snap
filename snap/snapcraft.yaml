@@ -83,6 +83,7 @@ parts:
       esac
 
   k8sd:
+    after: [build-deps]
     source: build-scripts/components/k8sd
     build-attributes: [enable-patchelf]
     plugin: nil
@@ -228,6 +229,8 @@ parts:
     override-build: |
       rm $CRAFT_PART_INSTALL/k8s -rf
       cp --archive --link --no-dereference . $CRAFT_PART_INSTALL/k8s
+    prime:
+      - -k8s/AGENTS.md
 
   bom:
     after:

@@ -90,3 +90,5 @@
 
 # Deleted files
 "snap/explanation/package-management" "snap/explanation/index"
+"capi/tutorial/getting-started" "capi/howto/provision"
+"capi/tutorial/index" "capi/howto/index"

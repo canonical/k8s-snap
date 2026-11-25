@@ -173,25 +173,27 @@ jobs:
             cancel-in-progress: false
         # Maintainer pipeline runs cluster reproduction and fix drafting.
         runs-on: [self-hosted, linux, noble, xlarge]
+        environment: triage-bot
         permissions:
             contents: read
             issues: read
             pull-requests: read
         steps:
             - name: Check out code
-              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   persist-credentials: false
                   fetch-depth: 0
 
             - name: Set up AI Agent Toolkit
-              uses: ./.github/actions/setup-triage-toolkit
+              uses: $/.github/actions/setup-triage-toolkit
               with:
                   token: ${{ secrets.BOT_TOKEN }}
 
             - name: Run triage pipeline (unprivileged)
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  OPENROUTER_API_KEY: ${{ secrets.TRIAGE_OPENROUTER_API_KEY }}
                   GOOGLE_API_KEY: ${{ secrets.TRIAGE_GOOGLE_API_KEY }}
                   GITHUB_EVENT_PATH: ${{ github.event_path }}
                   EVENT_NAME: ${{ github.event_name }}
@@ -245,7 +247,7 @@ jobs:
 
             - name: Upload triage artifacts
               if: always()
-              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+              uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
               with:
                   name: triage-artifacts-${{ needs.gate.outputs.issue }}
                   # Only the two files the publisher consumes. The agent shares
@@ -277,18 +279,18 @@ jobs:
             pull-requests: write
         steps:
             - name: Check out code
-              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   persist-credentials: false
                   fetch-depth: 0
 
             - name: Set up AI Agent Toolkit
-              uses: ./.github/actions/setup-triage-toolkit
+              uses: $/.github/actions/setup-triage-toolkit
               with:
                   token: ${{ secrets.BOT_TOKEN }}
 
             - name: Download triage artifacts
-              uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+              uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
               with:
                   name: triage-artifacts-${{ needs.gate.outputs.issue }}
                   path: triage-artifacts
@@ -327,26 +329,35 @@ jobs:
             cancel-in-progress: false
         # Untrusted events: label, dedup, and request missing info only.
         runs-on: ubuntu-latest
+        environment: triage-bot
         permissions:
             issues: write
             contents: read
             pull-requests: read
         steps:
             - name: Check out code
-              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              if: github.event_name != 'pull_request'
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  persist-credentials: false
+
+            - name: Check out code (PR close)
+              if: github.event_name == 'pull_request'
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   persist-credentials: false
                   # PR close events default to PR merge ref; pin to main so bot runs trusted code.
-                  ref: ${{ github.event_name == 'pull_request' && 'main' || github.ref }}
+                  ref: main
 
             - name: Set up AI Agent Toolkit
-              uses: ./.github/actions/setup-triage-toolkit
+              uses: ./.github/actions/setup-triage-toolkit # zizmor: ignore[self-repository] must load from the explicit main checkout above rather than an unmerged PR ref
               with:
                   token: ${{ secrets.BOT_TOKEN }}
 
             - name: Run triage bot
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  OPENROUTER_API_KEY: ${{ secrets.TRIAGE_OPENROUTER_API_KEY }}
                   GOOGLE_API_KEY: ${{ secrets.TRIAGE_GOOGLE_API_KEY }}
                   GITHUB_EVENT_PATH: ${{ github.event_path }}
               run: |
@@ -368,12 +379,12 @@ jobs:
             issues: read
         steps:
             - name: Check out code
-              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   persist-credentials: false
 
             - name: Set up AI Agent Toolkit
-              uses: ./.github/actions/setup-triage-toolkit
+              uses: $/.github/actions/setup-triage-toolkit
               with:
                   token: ${{ secrets.BOT_TOKEN }}
 

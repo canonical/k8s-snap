@@ -4,8 +4,7 @@ Get cluster configuration
 
 ### Synopsis
 
-Get the cluster configuration for a specific feature. If no feature is specified,
-display all configuration.
+Get cluster configuration for a specific feature or show all configuration.
 
 Available features: network, dns, gateway, ingress, local-storage, load-balancer
 

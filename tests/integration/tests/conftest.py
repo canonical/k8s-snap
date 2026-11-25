@@ -1,10 +1,9 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
-import itertools
 import logging
 from pathlib import Path
-from typing import Generator, Iterator, List, Optional, Union
+from typing import Generator, List, Optional, Union
 
 import pytest
 from pytest_subunit import SubunitTerminalReporter
@@ -17,10 +16,18 @@ LOG = logging.getLogger(__name__)
 pytest_plugins = ("pytest_tagging", "pytest_benchmark")
 
 
+_TEST_UTIL_DIR = Path(__file__).resolve().parent / "test_util"
+
+
 def pytest_itemcollected(item):
-    """
-    A hook to ensure all tests have at least one tag before execution.
-    """
+    """Reject unit tests under test_util/ and require at least one test tag."""
+    if Path(item.path).resolve().is_relative_to(_TEST_UTIL_DIR):
+        pytest.fail(
+            f"The test {item.nodeid} lives under tests/test_util/, which runs across "
+            "every e2e matrix cell. Move unit tests to tests/integration/unit_tests/ "
+            "(executed via `tox -e unit`)."
+        )
+
     # Check for tags in the pytest.mark attributes
     marked_tags = [mark for mark in item.iter_markers(name="tags")]
     if not marked_tags or not any(tag.args[0] in tags.TEST_TAGS for tag in marked_tags):
@@ -95,9 +102,11 @@ def h() -> harness.Harness:
         h = harness.MultipassHarness()
     elif config.SUBSTRATE == "juju":
         h = harness.JujuHarness()
+    elif config.SUBSTRATE == "bare_metal":
+        h = harness.BareMetalHarness()
     else:
         raise harness.HarnessError(
-            "TEST_SUBSTRATE must be one of: lxd, multipass, juju"
+            "TEST_SUBSTRATE must be one of: lxd, multipass, juju, bare_metal"
         )
 
     yield h
@@ -164,8 +173,7 @@ def pytest_configure(config):
         "containerd_cfgdir: The instance containerd config directory, defaults to /etc/containerd."
         "network_type: Specify network type to use for the infrastructure (IPv4, Dualstack or IPv6).\n"
         "etcd_count: Mark a test to specify how many etcd instance nodes need to be created (None by default)\n"
-        "node_count: Mark a test to specify how many instance nodes need to be created\n"
-        "snap_versions: Mark a test to specify snap_versions for each node\n",
+        "node_count: Mark a test to specify how many instance nodes need to be created\n",
     )
 
     if config.option.subunit:
@@ -187,15 +195,6 @@ def node_count(request) -> int:
         return 1
     node_count_arg, *_ = node_count_marker.args
     return int(node_count_arg)
-
-
-def snap_versions(request) -> Iterator[Optional[str]]:
-    """An endless iterable of snap versions for each node in the test."""
-    marking = ()
-    if snap_version_marker := request.node.get_closest_marker("snap_versions"):
-        marking, *_ = snap_version_marker.args
-    # endlessly repeat of the configured snap version after exhausting the marking
-    return itertools.chain(marking, itertools.repeat(None))
 
 
 @pytest.fixture(scope="function")
@@ -249,7 +248,6 @@ def instances(
     h: harness.Harness,
     registry: Registry,
     node_count: int,
-    tmp_path: Path,
     disable_k8s_bootstrapping: bool,
     required_ports: List[int],
     no_setup: bool,
@@ -267,8 +265,7 @@ def instances(
 
     LOG.info(f"Creating {node_count} instances")
     instances: List[harness.Instance] = []
-
-    for _, snap in zip(range(node_count), snap_versions(request)):
+    for _ in range(node_count):
         # Create <node_count> instances and setup the k8s snap in each.
         instance = h.new_instance(network_type=network_type)
         instances.append(instance)
@@ -282,7 +279,7 @@ def instances(
 
         if not no_setup:
             util.setup_core_dumps(instance)
-            util.setup_k8s_snap(instance, snap)
+            util.setup_k8s_snap(instance)
 
             if config.USE_LOCAL_MIRROR:
                 registry.apply_configuration(instance, containerd_cfgdir)
@@ -324,7 +321,14 @@ def instances(
             continue
 
         try:
-            util.remove_k8s_snap(instance)
+            util.remove_k8s_snap(instance, retries=10)
+        except Exception as e:
+            LOG.warning(
+                "Failed to cleanly remove k8s snap during teardown on %s: %s",
+                instance.id,
+                e,
+                exc_info=True,
+            )
         finally:
             instance.delete()
 

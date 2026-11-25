@@ -1,0 +1,4 @@
+# Direct release script dependencies. Compile with:
+#   pip-compile --generate-hashes --strip-extras ci/requirements-release.in
+packaging>=26.3
+requests>=2.34.2

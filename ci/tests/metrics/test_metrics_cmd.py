@@ -144,8 +144,7 @@ class MetricsCommandTest(unittest.TestCase):
             conn.execute(
                 "INSERT INTO workflows (workflow_id, name, file) VALUES (1, 'Nightly', 'nightly-test.yaml')"
             )
-            conn.execute(
-                """
+            conn.execute("""
                 INSERT INTO runs (
                     run_id, attempt, workflow_id, event, completed_at, started_at,
                     conclusion, jobs_total, jobs_success, jobs_failure, jobs_skipped,
@@ -153,8 +152,7 @@ class MetricsCommandTest(unittest.TestCase):
                     ingest_version
                 ) VALUES (100, 1, 1, 'schedule', '2026-10-12T00:10:00Z',
                           '2026-10-12T00:00:00Z', 'failure', 10, 9, 1, 0, 0, 10.0, 1.0, 1)
-                """
-            )
+                """)
             conn.commit()
             conn.close()
             args = argparse.Namespace(
@@ -162,14 +160,21 @@ class MetricsCommandTest(unittest.TestCase):
                 repo="canonical/k8s-snap",
                 report_ref="ci-metrics",
                 report_path="ci/metrics-data/reports/latest.md",
+                webhook=None,
             )
 
             stdout = io.StringIO()
-            with redirect_stdout(stdout):
+            with redirect_stdout(stdout), mock.patch(
+                "cmds.metrics.post_webhook"
+            ) as post:
                 exit_code = cmd_digest(args)
+                post.assert_not_called()
+                args.webhook = "https://mattermost.invalid/hooks/x"
+                cmd_digest(args)
 
             self.assertEqual(exit_code, 0)
-            payload = json.loads(stdout.getvalue())
+            payload = json.loads(stdout.getvalue().splitlines()[0])
+            post.assert_called_once_with("https://mattermost.invalid/hooks/x", payload)
             self.assertIn("text", payload)
             self.assertIn("Attribution and delta", payload["text"])
             self.assertIn(
