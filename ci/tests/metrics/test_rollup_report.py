@@ -23,19 +23,15 @@ def _db() -> sqlite3.Connection:
     conn = sqlite3.connect(":memory:")
     conn.execute("PRAGMA foreign_keys = ON")
     initialise_database(conn)
-    conn.execute(
-        """
+    conn.execute("""
         INSERT INTO workflows (workflow_id, name, file)
         VALUES (1, 'nightly-test', 'nightly-test.yaml'),
                (2, 'lint-and-integration', 'lint_and_integration.yaml')
-        """
-    )
-    conn.execute(
-        """
+        """)
+    conn.execute("""
         INSERT INTO configs (config_id, os, arch, channel, flavor, substrate)
         VALUES (1, 'noble', 'amd64', '1.37-classic/edge', 'classic', 'lxd')
-        """
-    )
+        """)
     conn.execute(
         "INSERT INTO tests (test_id, nodeid, file) VALUES (1, 'tests/test_a.py::test_a', 'tests/test_a.py')"
     )
@@ -192,13 +188,11 @@ class RollupReportTest(unittest.TestCase):
         _insert_run(conn, 100, jobs_total=10, jobs_success=9, jobs_failure=1)
         _insert_signature(conn, "1111111111111111", 1001)
         _insert_failed_job(conn, 100, 1001, "1111111111111111")
-        conn.execute(
-            """
+        conn.execute("""
             INSERT INTO run_blocked_jobs (
                 run_id, attempt, prepare_job_name, jobs_not_run
             ) VALUES (100, 1, 'Prepare Environment', 10)
-            """
-        )
+            """)
 
         rollup = derive_rollup(conn, "2026-10")
         report = render_latest_markdown([rollup])
@@ -311,15 +305,13 @@ class RollupReportTest(unittest.TestCase):
     ) -> None:
         conn = _db()
         _insert_signature(conn, "1111111111111111", 1001)
-        conn.execute(
-            """
+        conn.execute("""
             INSERT INTO signature_classifications (
                 signature_id, substrate, ruleset_version, failure_class, subclass,
                 rule_id, confidence, classified_by, classified_at
             ) VALUES ('1111111111111111', 'multipass', 1, 'infra.provisioning',
                       'timeout', 'infra.timeout', 1.0, 'rules', '2026-10-12T00:00:00Z')
-            """
-        )
+            """)
         _insert_open_issue(conn, "1111111111111111", 7, substrate="multipass")
 
         rows = open_issue_backlog(conn)

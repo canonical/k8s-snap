@@ -281,12 +281,10 @@ class IssueBridgeTest(unittest.TestCase):
         with conn:
             result = open_issues(conn, client, dry_run=False, issue_author="ci-bot")
 
-        row = conn.execute(
-            """
+        row = conn.execute("""
             SELECT issue_number, issue_state FROM issues
             WHERE signature_id = 'aaaaaaaaaaaaaaaa' AND substrate = 'lxd'
-            """
-        ).fetchone()
+            """).fetchone()
         self.assertEqual(tuple(row), (42, "open"))
         self.assertEqual(result.created, ())
         self.assertEqual(client.created, [])
@@ -294,8 +292,7 @@ class IssueBridgeTest(unittest.TestCase):
     def test_unknown_freshness_never_reopens_closed_issue(self) -> None:
         conn = _db()
         _insert_candidate(conn, "bbbbbbbbbbbbbbbb", "lxd")
-        conn.execute(
-            """
+        conn.execute("""
             INSERT INTO issues (
                 signature_id, substrate, idempotency_key, issue_number, issue_state,
                 claimed_at, opened_at, closed_at, closed_reason, fixed_at_sha,
@@ -307,8 +304,7 @@ class IssueBridgeTest(unittest.TestCase):
                 '1111111111111111111111111111111111111111',
                 '2999-01-01T00:00:00+00:00'
             )
-            """
-        )
+            """)
         client = FakeIssueClient()
 
         with tempfile.TemporaryDirectory() as tmp, conn:
@@ -595,14 +591,12 @@ class IssueBridgeIdentityTest(unittest.TestCase):
         unlabelled = _issue(78, "eeeeeeeeeeeeeeee", "lxd")
         unlabelled["labels"] = []
         client.lookup_issues.append(unlabelled)
-        conn.execute(
-            """
+        conn.execute("""
             INSERT INTO signatures (
                 signature_id, normalised_pattern, exemplar_excerpt,
                 normaliser_version, extractor_version
             ) VALUES ('eeeeeeeeeeeeeeee', 'p', 'e', 1, 1)
-            """
-        )
+            """)
 
         with conn:
             result = open_issues(conn, client, dry_run=False, issue_author="ci-bot")
@@ -716,12 +710,10 @@ class IssueStateSyncTest(unittest.TestCase):
         client = FakeIssueClient()
         conn = self._tracked(client)
         _closed(client.lookup_issues[0], "completed", "2026-02-01T00:00:00Z")
-        conn.execute(
-            """
+        conn.execute("""
             UPDATE issues SET issue_state = 'closed',
                 closed_at = '2026-02-01T00:00:00Z', closed_reason = 'completed'
-            """
-        )
+            """)
         client.closers[42] = FIX_SHA
 
         with conn:
@@ -965,12 +957,10 @@ class QuietCloseTest(unittest.TestCase):
         self.conn.execute(
             "INSERT INTO workflows (workflow_id, name, file) VALUES (2, 'pr', 'pr.yaml')"
         )
-        self.conn.execute(
-            """
+        self.conn.execute("""
             INSERT INTO configs (config_id, os, arch, channel, flavor, substrate)
             VALUES (50, 'jammy', 'arm64', '1.36-classic/edge', 'classic', 'lxd')
-            """
-        )
+            """)
         self._exercise_lxd(300, 301, 302, workflow_id=2)
         self._exercise_lxd(303, 304, 305, config_id=50)
 
@@ -1012,16 +1002,14 @@ class QuietCloseTest(unittest.TestCase):
         self._run(31)
         # The signature fails again in a later run (no provenance: freshness
         # would be unknown, which never reopens a human-closed issue).
-        self.conn.execute(
-            """
+        self.conn.execute("""
             INSERT INTO runs (
                 run_id, attempt, workflow_id, started_at, completed_at, conclusion,
                 jobs_total, jobs_success, jobs_failure, jobs_skipped,
                 jobs_cancelled, ingest_version
             ) VALUES (400, 1, 1, '2026-11-02T00:00:00Z', '2026-11-02T01:00:00Z',
                       'failure', 1, 0, 1, 0, 0, 1)
-            """
-        )
+            """)
         self.conn.execute(
             """
             INSERT INTO jobs (

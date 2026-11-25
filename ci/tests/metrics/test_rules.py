@@ -56,17 +56,14 @@ def _db(substrates: tuple[str, ...] = ("lxd",)) -> sqlite3.Connection:
     conn.execute(
         "INSERT INTO workflows (workflow_id, name, file) VALUES (1, 'nightly', 'nightly.yaml')"
     )
-    conn.execute(
-        """
+    conn.execute("""
         INSERT INTO runs (
             run_id, attempt, workflow_id, completed_at, conclusion, jobs_total,
             jobs_success, jobs_failure, jobs_skipped, jobs_cancelled,
             runner_minutes_total, runner_minutes_failed, ingest_version
         ) VALUES (100, 1, 1, '2026-10-12T00:00:00Z', 'failure', 1, 0, 1, 0, 0, 1.0, 1.0, 1)
-        """
-    )
-    conn.execute(
-        """
+        """)
+    conn.execute("""
         INSERT INTO signatures (
             signature_id, normalised_pattern, exemplar_excerpt,
             normaliser_version, extractor_version
@@ -77,8 +74,7 @@ def _db(substrates: tuple[str, ...] = ("lxd",)) -> sqlite3.Connection:
             1,
             1
         )
-        """
-    )
+        """)
     for index, substrate in enumerate(substrates, start=1):
         conn.execute(
             """
@@ -111,23 +107,20 @@ def _db(substrates: tuple[str, ...] = ("lxd",)) -> sqlite3.Connection:
 
 class RulesTest(unittest.TestCase):
     def test_invalid_failure_class_is_fatal_at_load_time(self) -> None:
-        path = _write_rules(
-            """
+        path = _write_rules("""
             version: 1
             rules:
               - id: typo
                 signature_id: 8c531e6ba49b3382
                 failure_class: product_bug
                 notes: typo must fail
-            """
-        )
+            """)
 
         with self.assertRaises(RulePackError):
             load_rules(path)
 
     def test_shadowed_pinned_rule_warns(self) -> None:
-        path = _write_rules(
-            """
+        path = _write_rules("""
             version: 1
             rules:
               - id: broad
@@ -140,8 +133,7 @@ class RulesTest(unittest.TestCase):
                 job:
                   substrate: '^multipass$'
                 notes: unreachable behind broad pin
-            """
-        )
+            """)
 
         with self.assertLogs("metrics.rules", level=logging.WARNING) as logs:
             load_rules(path)
@@ -171,9 +163,7 @@ class RulesTest(unittest.TestCase):
         self.assertEqual(rows, [(1, "infra.provisioning"), (2, "product.bug")])
 
     def test_rule_ordering_keeps_infra_above_product(self) -> None:
-        infra_first = load_rules(
-            _write_rules(
-                """
+        infra_first = load_rules(_write_rules("""
                 version: 1
                 rules:
                   - id: infra-disk
@@ -184,12 +174,8 @@ class RulesTest(unittest.TestCase):
                     failure_class: product.bug
                     excerpt_pattern: 'k8s bootstrap'
                     notes: bootstrap failed
-                """
-            )
-        )
-        product_first = load_rules(
-            _write_rules(
-                """
+                """))
+        product_first = load_rules(_write_rules("""
                 version: 1
                 rules:
                   - id: product-bootstrap
@@ -200,9 +186,7 @@ class RulesTest(unittest.TestCase):
                     failure_class: infra.runner
                     excerpt_pattern: 'no space left on device'
                     notes: host disk full wins
-                """
-            )
-        )
+                """))
         context = RuleContext(
             signature_id="1111111111111111",
             excerpt="k8s bootstrap failed: no space left on device",
@@ -243,8 +227,7 @@ class RulesTest(unittest.TestCase):
         )
 
     def test_example_must_be_classified_by_its_own_rule(self) -> None:
-        typo = _write_rules(
-            """
+        typo = _write_rules("""
             version: 1
             rules:
               - id: snap-store
@@ -252,10 +235,8 @@ class RulesTest(unittest.TestCase):
                 excerpt_pattern: 'unable to contact snap stroe'
                 examples: ['stderr: error: unable to contact snap store']
                 notes: typo in the pattern
-            """
-        )
-        shadowed = _write_rules(
-            """
+            """)
+        shadowed = _write_rules("""
             version: 1
             rules:
               - id: broad
@@ -268,8 +249,7 @@ class RulesTest(unittest.TestCase):
                 examples:
                   - "Command 'snap refresh k8s' failed\\nstderr: error: unable to contact snap store"
                 notes: never reached
-            """
-        )
+            """)
 
         with self.assertRaisesRegex(RulePackError, "classified by no rule"):
             load_rules(typo)
@@ -309,24 +289,20 @@ class RulesTest(unittest.TestCase):
     def test_new_ruleset_supersedes_older_rows_but_keeps_them(self) -> None:
         conn = _db(("lxd",))
         classify_signatures(conn, load_rules(_write_rules(SUBSTRATE_SPLIT)))
-        conn.execute(
-            """
+        conn.execute("""
             INSERT INTO signature_classifications (
                 signature_id, substrate, ruleset_version, failure_class,
                 rule_id, confidence, classified_by, classified_at
             ) VALUES ('8c531e6ba49b3382', 'lxd', 1, 'test.bug', NULL, 1, 'human', '')
-            """
-        )
-        empty_v2 = _write_rules(
-            """
+            """)
+        empty_v2 = _write_rules("""
             version: 2
             rules:
               - id: unrelated
                 failure_class: infra.runner
                 excerpt_pattern: 'no space left on device'
                 notes: matches nothing stored
-            """
-        )
+            """)
 
         classify_signatures(conn, load_rules(empty_v2))
 

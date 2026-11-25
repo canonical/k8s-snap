@@ -65,9 +65,7 @@ Traceback (most recent call last):
   File "/home/runner/work/k8s-snap/k8s-snap/tests/test_other.py", line 9, in test_other
     boom()
 ValueError: unrelated
-""".replace(
-                "TEST", test
-            )
+""".replace("TEST", test)
 
         first = fingerprint(log("test_upgrade_inplace"))
         second = fingerprint(log("test_downgrade_rollback"))
@@ -158,11 +156,7 @@ Traceback (most recent call last):
   File "/home/runner/work/k8s-snap/k8s-snap/tests/test_upgrade.py", line 9, in test_upgrade
     util.run(cmd)
 subprocess.CalledProcessError: Command '['snap', 'refresh', 'k8s']' returned non-zero exit status 1.
-""".replace(
-                    "BLOCK", block
-                ).replace(
-                    "HEADER", header
-                )
+""".replace("BLOCK", block).replace("HEADER", header)
                 + captured
                 + "\n=== short test summary info ===\n"
             )
@@ -218,8 +212,7 @@ subprocess.CalledProcessError: Command '['snap', 'refresh', 'k8s']' returned non
 
     def test_only_the_last_command_supplies_the_stderr(self) -> None:
         def log(captured: str) -> str:
-            return (
-                """
+            return """
 === FAILURES ===
 ____ test_upgrade ____
   File "/home/runner/work/k8s-snap/k8s-snap/tests/test_upgrade.py", line 9, in test_upgrade
@@ -229,10 +222,7 @@ subprocess.CalledProcessError: Command '['snap', 'refresh', 'k8s']' returned non
 2026-10-13 02:40:01 WARNING   stderr=error: unable to contact snap store
 2026-10-13 02:40:30 INFO Attempt 1/3 failed.
 2026-10-13 02:41:01 DEBUG Execute command snap refresh k8s
-"""
-                + captured
-                + "=== short test summary info ===\n"
-            )
+""" + captured + "=== short test summary info ===\n"
 
         not_diagnostic = log(
             "2026-10-13 02:41:01 WARNING   rc=1\n"

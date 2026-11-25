@@ -245,14 +245,12 @@ def ensure_router_rules(conn: sqlite3.Connection) -> None:
 
 
 def _jobs(conn: sqlite3.Connection) -> Iterable[RouterJob]:
-    rows = conn.execute(
-        """
+    rows = conn.execute("""
         SELECT j.job_id, j.failed_step_name, j.log_available, j.duration_s, cfg.channel
         FROM jobs j
         JOIN configs cfg USING (config_id)
         ORDER BY j.job_id
-        """
-    )
+        """)
     for row in rows:
         yield RouterJob(
             job_id=int(row[0]),

@@ -45,17 +45,12 @@ def delta(
 def derive_rollups(conn: sqlite3.Connection) -> List[Dict[str, Any]]:
     """Derive one rollup per data month, in stable period order."""
 
-    periods = [
-        row[0]
-        for row in conn.execute(
-            """
+    periods = [row[0] for row in conn.execute("""
             SELECT DISTINCT substr(COALESCE(started_at, completed_at), 1, 7) AS period
             FROM runs
             WHERE period IS NOT NULL AND period != ''
             ORDER BY period
-            """
-        )
-    ]
+            """)]
     return [derive_rollup(conn, period) for period in periods]
 
 
@@ -194,8 +189,7 @@ def signature_catalogue(conn: sqlite3.Connection) -> List[Dict[str, Any]]:
     """Return the deterministic signature catalogue derived from current facts."""
 
     rows = []
-    for row in conn.execute(
-        """
+    cursor = conn.execute("""
         SELECT s.signature_id,
                st.occurrences,
                st.runs_seen,
@@ -216,8 +210,8 @@ def signature_catalogue(conn: sqlite3.Connection) -> List[Dict[str, Any]]:
           ON vc.signature_id = s.signature_id AND vc.substrate = '*'
         LEFT JOIN jobs j ON j.job_id = s.exemplar_job_id
         ORDER BY st.occurrences DESC, s.signature_id
-        """
-    ):
+        """)
+    for row in cursor:
         payload = dict(row)
         payload["contexts"] = _signature_contexts(conn, row["signature_id"])
         rows.append(payload)
@@ -242,8 +236,7 @@ def open_issue_backlog(
 
     _row_factory(conn)
     rows = []
-    for row in conn.execute(
-        """
+    cursor = conn.execute("""
         SELECT issue_number, signature_id, substrate, opened_at,
                last_reported_occurrences, reopened_count, failure_class
         FROM (
@@ -266,8 +259,8 @@ def open_issue_backlog(
         )
         WHERE rn = 1
         ORDER BY opened_at, issue_number
-        """
-    ):
+        """)
+    for row in cursor:
         payload = dict(row)
         payload["age_days"] = _issue_age_days(row["opened_at"], now)
         rows.append(payload)
@@ -325,9 +318,7 @@ def _run_scope(conn: sqlite3.Connection, period: Optional[str]) -> List[sqlite3.
             JOIN workflows w USING (workflow_id)
             WHERE 1 = 1 {period_clause}
             ORDER BY COALESCE(r.started_at, r.completed_at), r.run_id, r.attempt
-            """.format(
-                period_clause=period_clause
-            ),
+            """.format(period_clause=period_clause),
             params,
         )
     )
@@ -350,9 +341,7 @@ def _jobs(
             JOIN jobs j USING (job_id)
             JOIN scope USING (run_id, attempt)
             ORDER BY vc.job_id
-            """.format(
-                values=values
-            ),
+            """.format(values=values),
             params,
         )
     )
@@ -378,9 +367,7 @@ def _flakes(
             JOIN runs r ON r.run_id = vf.run_id AND r.attempt = vf.attempt
             WHERE 1 = 1 {period_clause}
             ORDER BY vf.signature_id, vf.run_id, vf.attempt, vf.config_id, vf.test_id
-            """.format(
-                period_clause=period_clause
-            ),
+            """.format(period_clause=period_clause),
             params,
         )
     )
@@ -417,9 +404,7 @@ def _tests_collected(
         JOIN scope USING (run_id, attempt)
         ORDER BY cfg.os, cfg.arch, cfg.channel, cfg.flavor, cfg.substrate,
                  rtc.run_id, rtc.attempt
-        """.format(
-            values=values
-        ),
+        """.format(values=values),
         params,
     ):
         grouped[_config_label(row)].append(int(row["count"]))
@@ -449,9 +434,7 @@ def _blocked_jobs(
             FROM run_blocked_jobs rbj
             JOIN scope USING (run_id, attempt)
             ORDER BY rbj.run_id, rbj.attempt, rbj.prepare_job_name
-            """.format(
-                values=values
-            ),
+            """.format(values=values),
             params,
         )
     ]
@@ -484,9 +467,7 @@ def _signature_rows(
             WHERE j.signature_id IS NOT NULL
             GROUP BY j.signature_id
             ORDER BY occurrences DESC, j.signature_id
-            """.format(
-                values=values
-            ),
+            """.format(values=values),
             params,
         )
     )
@@ -507,9 +488,7 @@ def _signature_payload(
             WHERE vc.signature_id = ?
             GROUP BY vc.failure_class, vc.subclass, vc.classified_by
             ORDER BY count DESC, vc.failure_class, vc.subclass, vc.classified_by
-            """.format(
-                values=values
-            ),
+            """.format(values=values),
             (*params, row["signature_id"]),
         )
     )
@@ -525,9 +504,7 @@ def _signature_payload(
             JOIN tests t USING (test_id)
             WHERE j.signature_id = ? AND t.nodeid != ''
             ORDER BY t.nodeid
-            """.format(
-                values=values
-            ),
+            """.format(values=values),
             (*params, row["signature_id"]),
         )
     ]
@@ -542,9 +519,7 @@ def _signature_payload(
             JOIN configs cfg USING (config_id)
             WHERE j.signature_id = ?
             ORDER BY cfg.os, cfg.arch, cfg.channel, cfg.flavor, cfg.substrate
-            """.format(
-                values=values
-            ),
+            """.format(values=values),
             (*params, row["signature_id"]),
         )
     ]

@@ -326,8 +326,7 @@ def _subsumes(earlier: Rule, later: Rule) -> bool:
 
 
 def _contexts(conn: sqlite3.Connection) -> Iterable[RuleContext]:
-    rows = conn.execute(
-        """
+    rows = conn.execute("""
         SELECT s.signature_id, s.exemplar_excerpt, j.job_name,
                COALESCE(j.caller_job, ''), cfg.os, cfg.arch, cfg.channel,
                cfg.flavor, cfg.substrate, t.nodeid, COALESCE(t.file, ''),
@@ -338,8 +337,7 @@ def _contexts(conn: sqlite3.Connection) -> Iterable[RuleContext]:
         JOIN tests t USING (test_id)
         WHERE j.router_rule_id IS NULL
         ORDER BY s.signature_id, cfg.substrate, j.job_id
-        """
-    )
+        """)
     seen = set()
     for row in rows:
         key = (row[0], row[8])

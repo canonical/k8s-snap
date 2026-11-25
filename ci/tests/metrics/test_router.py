@@ -22,27 +22,21 @@ def _db() -> sqlite3.Connection:
         "INSERT INTO workflows (workflow_id, name, file) VALUES (1, 'nightly', 'nightly.yaml')"
     )
     conn.execute("INSERT INTO tests (test_id, nodeid) VALUES (0, '')")
-    conn.execute(
-        """
+    conn.execute("""
         INSERT INTO runs (
             run_id, attempt, workflow_id, completed_at, conclusion, jobs_total,
             jobs_success, jobs_failure, jobs_skipped, jobs_cancelled,
             runner_minutes_total, runner_minutes_failed, ingest_version
         ) VALUES (100, 1, 1, '2026-10-12T00:00:00Z', 'failure', 1, 0, 1, 0, 0, 1.0, 1.0, 1)
-        """
-    )
-    conn.execute(
-        """
+        """)
+    conn.execute("""
         INSERT INTO configs (config_id, os, arch, channel, flavor, substrate)
         VALUES (1, '', 'amd64', '', '', '')
-        """
-    )
-    conn.execute(
-        """
+        """)
+    conn.execute("""
         INSERT INTO configs (config_id, os, arch, channel, flavor, substrate)
         VALUES (2, '', 'amd64', '1.37-classic/edge', '', '')
-        """
-    )
+        """)
     return conn
 
 
