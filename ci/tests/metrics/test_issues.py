@@ -555,6 +555,37 @@ class IssueBridgeTest(unittest.TestCase):
 
         self.assertEqual(flaky, {"multipass": True, "lxd": False})
 
+    def test_failed_create_leaves_no_claim_and_the_retry_adopts(self) -> None:
+        # The CLI runs the bridge in one transaction, so a failure after the
+        # claim rolls the claim back; an issue GitHub created before the failure
+        # is then adopted by marker on the next run instead of being duplicated.
+        conn = _db()
+        _insert_candidate(conn, "eeeeeeeeeeeeeeee", "lxd")
+        conn.commit()
+        client = FakeIssueClient()
+        created = _issue(7, "eeeeeeeeeeeeeeee", "lxd")
+
+        def create_then_fail(*_: Any) -> Dict[str, Any]:
+            client.lookup_issues.append(created)
+            raise IssueBridgeError("GitHub 502 after creating the issue")
+
+        client.create_issue = create_then_fail
+        with self.assertRaises(IssueBridgeError), conn:
+            open_issues(conn, client, dry_run=False, issue_author="ci-bot")
+        self.assertEqual(conn.execute("SELECT COUNT(*) FROM issues").fetchone()[0], 0)
+
+        retry = FakeIssueClient()
+        retry.sweep_issues.append(created)
+        retry.lookup_issues.append(created)
+        with conn:
+            result = open_issues(conn, retry, dry_run=False, issue_author="ci-bot")
+
+        self.assertEqual((result.created, result.adopted), ((), (7,)))
+        self.assertEqual(
+            conn.execute("SELECT issue_state, issue_number FROM issues").fetchone()[:],
+            ("open", 7),
+        )
+
 
 class _PagedResponse:
     def __init__(self, payload: List[Dict[str, Any]]) -> None:
