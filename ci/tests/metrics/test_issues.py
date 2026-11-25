@@ -20,6 +20,7 @@ from metrics.issues import (  # noqa: E402
     QUIET_CLOSE_REASON,
     GitHubIssueClient,
     IssueBridgeError,
+    _candidate_rows,
     _closer_sha,
     issue_marker,
     open_issues,
@@ -526,6 +527,33 @@ class IssueBridgeTest(unittest.TestCase):
         self.assertNotIn("substrate/multipass", client.created[0]["requested_labels"])
         self.assertIn("- Occurrences: 3", client.created[0]["body"])
         self.assertNotIn("multipass job", client.created[0]["body"])
+
+    def test_retry_that_passed_on_one_substrate_does_not_mark_another_flaky(
+        self,
+    ) -> None:
+        conn = _db()
+        _insert_candidate(conn, "dddddddddddddddd", "multipass", start_job=1)
+        _insert_candidate(conn, "dddddddddddddddd", "lxd", start_job=10)
+        # Multipass job 1 (run 100, config 1, test 1) passed on its retry.
+        conn.execute("""
+            INSERT INTO runs (
+                run_id, attempt, workflow_id, completed_at, conclusion, jobs_total,
+                jobs_success, jobs_failure, jobs_skipped, jobs_cancelled,
+                runner_minutes_total, runner_minutes_failed, ingest_version
+            ) VALUES (100, 2, 1, '2026-10-12T01:00:00Z', 'success', 1, 1, 0, 0, 0,
+                      1.0, 0.0, 1)
+            """)
+        conn.execute(
+            "INSERT INTO retry_outcomes (run_id, attempt, config_id, test_id, "
+            "conclusion) VALUES (100, 2, 1, 1, 'success')"
+        )
+
+        flaky = {
+            candidate.substrate: candidate.flaky
+            for candidate in _candidate_rows(conn, min_occurrences=1, min_runs=1)
+        }
+
+        self.assertEqual(flaky, {"multipass": True, "lxd": False})
 
 
 class _PagedResponse:

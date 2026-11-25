@@ -851,7 +851,9 @@ def _candidate_rows(
                json_group_array(DISTINCT source_path) AS source_paths,
                EXISTS (
                    SELECT 1 FROM v_flakes vf
+                   JOIN configs fcfg ON fcfg.config_id = vf.config_id
                    WHERE vf.signature_id = job_ctx.signature_id
+                     AND fcfg.substrate = job_ctx.substrate
                ) AS flaky
         FROM job_ctx
         GROUP BY signature_id, substrate, failure_class, exemplar_excerpt
