@@ -3,12 +3,12 @@ devices:
   eth1:
     name: eth1
     nictype: bridged
-    parent: dual-nic-br0
+    parent: LXD_TRIPLE_NIC_INTERNAL_NETWORK
     type: nic
   eth2:
     name: eth2
     nictype: bridged
-    parent: dualstack-br0
+    parent: LXD_TRIPLE_NIC_PUBLIC_NETWORK
     type: nic
 config:
   user.network-config: |

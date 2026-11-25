@@ -170,7 +170,7 @@ def _test_loadbalancer(instances: List[harness.Instance], k8s_net_type: K8sNetTy
 
 @pytest.mark.node_count(2)
 @pytest.mark.disable_k8s_bootstrapping()
-@pytest.mark.network_type("dualnic")
+@pytest.mark.network_type("triplenic")
 @pytest.mark.required_ports(80)
 @pytest.mark.tags(tags.LB_DATAPLANE)
 @pytest.mark.skipif(SUBSTRATE == "multipass", reason="Not implemented for multipass")

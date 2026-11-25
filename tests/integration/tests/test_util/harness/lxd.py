@@ -99,6 +99,19 @@ class LXDHarness(Harness):
             ),
         )
 
+        self._configure_network(
+            config.LXD_TRIPLE_NIC_NETWORK,
+            "ipv4.address=auto",
+            "ipv4.nat=true",
+        )
+        self.triple_nic_profile = config.LXD_TRIPLE_NIC_PROFILE_NAME
+        self._configure_profile(
+            self.triple_nic_profile,
+            config.LXD_TRIPLE_NIC_PROFILE.replace(
+                "LXD_TRIPLE_NIC_INTERNAL_NETWORK", config.LXD_DUAL_NIC_NETWORK
+            ).replace("LXD_TRIPLE_NIC_PUBLIC_NETWORK", config.LXD_TRIPLE_NIC_NETWORK),
+        )
+
         LOG.debug(
             "Configured LXD substrate (profile %s, image %s)", self.profile, self.image
         )
@@ -122,7 +135,15 @@ class LXDHarness(Harness):
             self.profile,
         ]
 
-        valid_types = ["ipv4", "dualstack", "ipv6", "jumbo", "dualnic", "fan"]
+        valid_types = [
+            "ipv4",
+            "dualstack",
+            "ipv6",
+            "jumbo",
+            "dualnic",
+            "triplenic",
+            "fan",
+        ]
         if network_type.lower() not in valid_types:
             raise HarnessError(
                 f"unknown network type {network_type}, need to be one of {', '.join(valid_types)}"
@@ -143,6 +164,9 @@ class LXDHarness(Harness):
 
         if network_type.lower() == "dualnic":
             launch_lxd_command.extend(["-p", self.dual_nic_profile])
+
+        if network_type.lower() == "triplenic":
+            launch_lxd_command.extend(["-p", self.triple_nic_profile])
 
         if network_type.lower() == "fan":
             launch_lxd_command.extend(["-p", self.fan_profile])

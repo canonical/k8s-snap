@@ -153,6 +153,21 @@ LXD_DUAL_NIC_PROFILE = (
     or (DIR / ".." / ".." / "lxd-dual-nic-profile.yaml").read_text()
 )
 
+# LXD_TRIPLE_NIC_NETWORK is an optional network for the public NIC of LXD
+# containers with triple NIC setup (the internal NIC reuses the dual NIC network).
+LXD_TRIPLE_NIC_NETWORK = os.getenv("TEST_LXD_TRIPLE_NIC_NETWORK") or "triple-nic-br0"
+
+# LXD_TRIPLE_NIC_PROFILE_NAME is the profile name for LXD containers with triple NIC setup.
+LXD_TRIPLE_NIC_PROFILE_NAME = (
+    os.getenv("TEST_LXD_TRIPLE_NIC_PROFILE_NAME") or "k8s-integration-triple-nic"
+)
+
+# LXD_TRIPLE_NIC_PROFILE is the profile to use for LXD containers with triple NIC setup.
+LXD_TRIPLE_NIC_PROFILE = (
+    os.getenv("TEST_LXD_TRIPLE_NIC_PROFILE")
+    or (DIR / ".." / ".." / "lxd-triple-nic-profile.yaml").read_text()
+)
+
 # LXD_IMAGE is the image to use for LXD containers.
 LXD_IMAGE = os.getenv("TEST_LXD_IMAGE") or "ubuntu:22.04"
 
