@@ -19,7 +19,7 @@ To follow this guide, you will need:
 - [clusterctl][clusterctl] installed
 - A CAPI management cluster initialized with the infrastructure, bootstrap and
   control plane providers of your choice. Please refer to the
-  [getting-started guide][getting-started] for instructions.
+  [provisioning guide][provision] for instructions.
 - Secured 3-node etcd deployment
 
 ## Create Kubernetes secrets
@@ -127,6 +127,6 @@ clusterctl describe cluster peaches
 ```
 
 <!-- LINKS -->
-[getting-started]: ../tutorial/getting-started.md
+[provision]: ./provision.md
 [CAPI-templates]: https://github.com/canonical/cluster-api-k8s/tree/main/templates
 [clusterctl]: https://cluster-api.sigs.k8s.io/clusterctl/overview

@@ -20,6 +20,7 @@ from metrics.issues import (  # noqa: E402
     QUIET_CLOSE_REASON,
     GitHubIssueClient,
     IssueBridgeError,
+    _candidate_rows,
     _closer_sha,
     issue_marker,
     open_issues,
@@ -281,12 +282,10 @@ class IssueBridgeTest(unittest.TestCase):
         with conn:
             result = open_issues(conn, client, dry_run=False, issue_author="ci-bot")
 
-        row = conn.execute(
-            """
+        row = conn.execute("""
             SELECT issue_number, issue_state FROM issues
             WHERE signature_id = 'aaaaaaaaaaaaaaaa' AND substrate = 'lxd'
-            """
-        ).fetchone()
+            """).fetchone()
         self.assertEqual(tuple(row), (42, "open"))
         self.assertEqual(result.created, ())
         self.assertEqual(client.created, [])
@@ -294,8 +293,7 @@ class IssueBridgeTest(unittest.TestCase):
     def test_unknown_freshness_never_reopens_closed_issue(self) -> None:
         conn = _db()
         _insert_candidate(conn, "bbbbbbbbbbbbbbbb", "lxd")
-        conn.execute(
-            """
+        conn.execute("""
             INSERT INTO issues (
                 signature_id, substrate, idempotency_key, issue_number, issue_state,
                 claimed_at, opened_at, closed_at, closed_reason, fixed_at_sha,
@@ -307,8 +305,7 @@ class IssueBridgeTest(unittest.TestCase):
                 '1111111111111111111111111111111111111111',
                 '2999-01-01T00:00:00+00:00'
             )
-            """
-        )
+            """)
         client = FakeIssueClient()
 
         with tempfile.TemporaryDirectory() as tmp, conn:
@@ -531,6 +528,64 @@ class IssueBridgeTest(unittest.TestCase):
         self.assertIn("- Occurrences: 3", client.created[0]["body"])
         self.assertNotIn("multipass job", client.created[0]["body"])
 
+    def test_retry_that_passed_on_one_substrate_does_not_mark_another_flaky(
+        self,
+    ) -> None:
+        conn = _db()
+        _insert_candidate(conn, "dddddddddddddddd", "multipass", start_job=1)
+        _insert_candidate(conn, "dddddddddddddddd", "lxd", start_job=10)
+        # Multipass job 1 (run 100, config 1, test 1) passed on its retry.
+        conn.execute("""
+            INSERT INTO runs (
+                run_id, attempt, workflow_id, completed_at, conclusion, jobs_total,
+                jobs_success, jobs_failure, jobs_skipped, jobs_cancelled,
+                runner_minutes_total, runner_minutes_failed, ingest_version
+            ) VALUES (100, 2, 1, '2026-10-12T01:00:00Z', 'success', 1, 1, 0, 0, 0,
+                      1.0, 0.0, 1)
+            """)
+        conn.execute(
+            "INSERT INTO retry_outcomes (run_id, attempt, config_id, test_id, "
+            "conclusion) VALUES (100, 2, 1, 1, 'success')"
+        )
+
+        flaky = {
+            candidate.substrate: candidate.flaky
+            for candidate in _candidate_rows(conn, min_occurrences=1, min_runs=1)
+        }
+
+        self.assertEqual(flaky, {"multipass": True, "lxd": False})
+
+    def test_failed_create_leaves_no_claim_and_the_retry_adopts(self) -> None:
+        # The CLI runs the bridge in one transaction, so a failure after the
+        # claim rolls the claim back; an issue GitHub created before the failure
+        # is then adopted by marker on the next run instead of being duplicated.
+        conn = _db()
+        _insert_candidate(conn, "eeeeeeeeeeeeeeee", "lxd")
+        conn.commit()
+        client = FakeIssueClient()
+        created = _issue(7, "eeeeeeeeeeeeeeee", "lxd")
+
+        def create_then_fail(*_: Any) -> Dict[str, Any]:
+            client.lookup_issues.append(created)
+            raise IssueBridgeError("GitHub 502 after creating the issue")
+
+        client.create_issue = create_then_fail
+        with self.assertRaises(IssueBridgeError), conn:
+            open_issues(conn, client, dry_run=False, issue_author="ci-bot")
+        self.assertEqual(conn.execute("SELECT COUNT(*) FROM issues").fetchone()[0], 0)
+
+        retry = FakeIssueClient()
+        retry.sweep_issues.append(created)
+        retry.lookup_issues.append(created)
+        with conn:
+            result = open_issues(conn, retry, dry_run=False, issue_author="ci-bot")
+
+        self.assertEqual((result.created, result.adopted), ((), (7,)))
+        self.assertEqual(
+            conn.execute("SELECT issue_state, issue_number FROM issues").fetchone()[:],
+            ("open", 7),
+        )
+
 
 class _PagedResponse:
     def __init__(self, payload: List[Dict[str, Any]]) -> None:
@@ -595,14 +650,12 @@ class IssueBridgeIdentityTest(unittest.TestCase):
         unlabelled = _issue(78, "eeeeeeeeeeeeeeee", "lxd")
         unlabelled["labels"] = []
         client.lookup_issues.append(unlabelled)
-        conn.execute(
-            """
+        conn.execute("""
             INSERT INTO signatures (
                 signature_id, normalised_pattern, exemplar_excerpt,
                 normaliser_version, extractor_version
             ) VALUES ('eeeeeeeeeeeeeeee', 'p', 'e', 1, 1)
-            """
-        )
+            """)
 
         with conn:
             result = open_issues(conn, client, dry_run=False, issue_author="ci-bot")
@@ -716,12 +769,10 @@ class IssueStateSyncTest(unittest.TestCase):
         client = FakeIssueClient()
         conn = self._tracked(client)
         _closed(client.lookup_issues[0], "completed", "2026-02-01T00:00:00Z")
-        conn.execute(
-            """
+        conn.execute("""
             UPDATE issues SET issue_state = 'closed',
                 closed_at = '2026-02-01T00:00:00Z', closed_reason = 'completed'
-            """
-        )
+            """)
         client.closers[42] = FIX_SHA
 
         with conn:
@@ -965,12 +1016,10 @@ class QuietCloseTest(unittest.TestCase):
         self.conn.execute(
             "INSERT INTO workflows (workflow_id, name, file) VALUES (2, 'pr', 'pr.yaml')"
         )
-        self.conn.execute(
-            """
+        self.conn.execute("""
             INSERT INTO configs (config_id, os, arch, channel, flavor, substrate)
             VALUES (50, 'jammy', 'arm64', '1.36-classic/edge', 'classic', 'lxd')
-            """
-        )
+            """)
         self._exercise_lxd(300, 301, 302, workflow_id=2)
         self._exercise_lxd(303, 304, 305, config_id=50)
 
@@ -1012,16 +1061,14 @@ class QuietCloseTest(unittest.TestCase):
         self._run(31)
         # The signature fails again in a later run (no provenance: freshness
         # would be unknown, which never reopens a human-closed issue).
-        self.conn.execute(
-            """
+        self.conn.execute("""
             INSERT INTO runs (
                 run_id, attempt, workflow_id, started_at, completed_at, conclusion,
                 jobs_total, jobs_success, jobs_failure, jobs_skipped,
                 jobs_cancelled, ingest_version
             ) VALUES (400, 1, 1, '2026-11-02T00:00:00Z', '2026-11-02T01:00:00Z',
                       'failure', 1, 0, 1, 0, 0, 1)
-            """
-        )
+            """)
         self.conn.execute(
             """
             INSERT INTO jobs (

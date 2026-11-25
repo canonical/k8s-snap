@@ -118,8 +118,9 @@ function collect_system_info {
   free -m > $INSPECT_DUMP/sys/memory_usage
 
   log_info "Copy swap information to the final report tarball"
-  swapon > $INSPECT_DUMP/sys/swap
-
+  if [ -r /proc/swaps ]; then
+    cp --no-preserve=mode,ownership /proc/swaps "$INSPECT_DUMP/sys/swap"
+  fi
   log_info "Copy node uptime to the final report tarball"
   uptime > $INSPECT_DUMP/sys/uptime
 

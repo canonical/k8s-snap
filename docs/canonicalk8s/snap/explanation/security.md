@@ -218,7 +218,12 @@ provide their own certificates instead.
 ### Encryption at rest
 
 {{product}} uses AES-256-GCM (Advanced Encryption Standard - Galois/Counter
-Mode) to encrypt cluster data at rest.
+Mode) to encrypt cluster data managed by k8sd at rest.
+
+This encryption applies to data stored by k8sd and does not include data stored
+in etcd. Encryption of Kubernetes resources stored in etcd, such as Secrets,
+must be configured separately using Kubernetes' encryption-at-rest
+configuration.
 
 ### Digital signatures
 
@@ -357,8 +362,8 @@ useful.
 
 <!-- LINKS -->
 [intermediate-ca]: /snap/howto/security/intermediate-ca.md
-[openssl]: https://packages.ubuntu.com/jammy/openssl
-[linux-generic]: https://packages.ubuntu.com/jammy/linux-generic
+[openssl]: https://launchpad.net/ubuntu/jammy/+package/openssl
+[linux-generic]: https://launchpad.net/ubuntu/jammy/+package/linux-generic
 [x509]: https://pkg.go.dev/crypto/x509
 [rsa]: https://pkg.go.dev/crypto/rsa
 [sha256]: https://pkg.go.dev/crypto/sha256

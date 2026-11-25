@@ -25,8 +25,7 @@ For more formal support, please see the support options available to you on the
 ## Found a bug?
 
 You can always track what is going on with development by watching our [GitHub
-repository]. This is also the best place to file a bug if you find
-one.
+repository]. This is also the best place to file a bug if you find one.
 
 ## Contribute to the code
 

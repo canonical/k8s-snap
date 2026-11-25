@@ -16,7 +16,7 @@ k8s status [flags]
   -h, --help                   help for status
       --output-format string   set the output format to one of plain, json or yaml (default "plain")
       --timeout duration       the max time to wait for the command to execute (default 1m30s)
-      --wait-ready             wait until at least one cluster node is ready
+      --wait-ready             wait until at least one cluster node is ready and until the CNI workloads are ready if the network feature is enabled
 ```
 
 ### SEE ALSO

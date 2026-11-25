@@ -1,0 +1,3 @@
+# Direct PyYAML dependency. Compile with:
+#   pip-compile --generate-hashes --strip-extras ci/requirements-pyyaml.in
+pyyaml>=6.0.3

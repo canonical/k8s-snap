@@ -261,7 +261,7 @@ jobs:
             exit 0
           fi
           python ci/k8s-ci.py metrics digest --repo "${GITHUB_REPOSITORY}" \
-            | python ci/k8s-ci.py mattermost post --file - --webhook "${MATTERMOST_WEBHOOK_URL}"
+            --webhook "${MATTERMOST_WEBHOOK_URL}"
 
       - name: Report rule precision
         # Flags rules that also fire on successful jobs (the elastic-recheck

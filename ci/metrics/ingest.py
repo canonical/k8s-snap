@@ -276,7 +276,7 @@ def _job_record(job: Dict[str, Any], parsed: ParsedJobName) -> JobRecord:
 
 
 def _summarise_jobs(
-    jobs: List[Dict[str, Any]]
+    jobs: List[Dict[str, Any]],
 ) -> Tuple[
     Dict[str, int], Dict[Tuple[str, str, str, str, str], int], List[ParsedJobName]
 ]:

@@ -15,6 +15,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
 
+from cmds.mattermost import post_webhook
 from metrics.gh import DEFAULT_REPO, GitHubClient, GitHubUnavailable
 from metrics.ingest import InFlightRunError, dump_records, ingest_run
 from metrics.issues import (
@@ -247,6 +248,12 @@ def add_metrics_cmds(parser: argparse.ArgumentParser) -> None:
         "--report-path",
         default="ci/metrics-data/reports/latest.md",
         help="Path to the full report within --report-ref.",
+    )
+    digest.add_argument(
+        "--webhook",
+        default=None,
+        help="Mattermost incoming webhook URL to post the digest to. Without it, "
+        "the payload is only printed.",
     )
     digest.set_defaults(func=cmd_digest)
 
@@ -623,7 +630,7 @@ def cmd_report(args: argparse.Namespace) -> int:
 
 
 def cmd_digest(args: argparse.Namespace) -> int:
-    """Print a Mattermost ``{"text": ...}`` payload for the daily digest."""
+    """Print the daily digest's Mattermost payload, and post it with --webhook."""
 
     conn = open_database(args.db)
     report_url = (
@@ -632,7 +639,10 @@ def cmd_digest(args: argparse.Namespace) -> int:
     text = render_digest_markdown(
         derive_rollups(conn), report_url, open_issue_backlog(conn)
     )
-    print(json.dumps({"text": text}))
+    payload = {"text": text}
+    print(json.dumps(payload))
+    if args.webhook:
+        post_webhook(args.webhook, payload)
     return 0
 
 
@@ -672,12 +682,10 @@ def _audit_database(db_path: Path) -> int:
         for job_id, excerpt in rows:
             findings += _audit_text(f"job_excerpts:{job_id}", excerpt)
     if "signatures" in tables:
-        rows = conn.execute(
-            """
+        rows = conn.execute("""
             SELECT signature_id, normalised_pattern, exemplar_excerpt
             FROM signatures ORDER BY signature_id
-            """
-        )
+            """)
         for signature_id, normalised_pattern, exemplar_excerpt in rows:
             findings += _audit_text(
                 f"signatures:{signature_id}:normalised", normalised_pattern

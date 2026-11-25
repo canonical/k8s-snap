@@ -1,128 +1,103 @@
 # CI failure report
 
-Data period: `2026-10` (through `2026-10-20T09:32:24Z`)
+Data period: `2026-11` (through `2026-11-25T04:33:57Z`)
 
 ## Attribution and delta
 
-- Observed failed jobs: 318/18222 = 1.7% (n=18222 jobs)
-- Failure pressure including blocked jobs: 1.7% (n=18222 jobs plus blocked)
-- Top attribution: `product.bug` owned by product team (51.9% (n=318 facts) of inspected failures).
+- Observed failed jobs: 408/11505 = 3.5% (n=11505 jobs) (+1.8 pp)
+- Failure pressure including blocked jobs: 3.5% (n=11505 jobs plus blocked) (+1.8 pp)
+- Top attribution: `product.bug` owned by product team (87.7% (n=408 facts) of inspected failures).
 
 ## Headline metrics
 
 | Period | Runs | Failed jobs | Failure rate | Scheduled green | PR first-pass | Unclassified | M12 fact coverage |
 |---|---:|---:|---|---|---|---|---|
 | 2026-10 | 8 | 318 | 1.7% (n=18222 jobs) | 0.0% (n=8 runs) | n/a | 5.0% (n=318 facts) | 100.0% (n=318 expected failed jobs) |
+| 2026-11 | 4 | 408 | 3.5% (n=11505 jobs) | 0.0% (n=4 runs) | n/a | 12.3% (n=408 facts) | 100.0% (n=408 expected failed jobs) |
 
 ## Failure attribution
 
 | Class | Count | Share | Owner |
 |---|---:|---|---|
-| `product.bug` | 165 | 51.9% (n=318 facts) | product team |
-| `ci.config` | 103 | 32.4% (n=318 facts) | CI owners |
-| `external.dependency` | 23 | 7.2% (n=318 facts) | external dependency |
-| `unknown` | 16 | 5.0% (n=318 facts) | unowned triage |
-| `infra.runner` | 7 | 2.2% (n=318 facts) | CI/infra |
-| `infra.provisioning` | 4 | 1.3% (n=318 facts) | CI/infra |
+| `product.bug` | 358 | 87.7% (n=408 facts) | product team |
+| `unknown` | 50 | 12.3% (n=408 facts) | unowned triage |
 
 ## Integrity metrics
 
 These are report metrics, not appendix material: they show whether apparent improvement came from running less.
 
-- M9 unclassified share: 5.0% (n=318 failed job facts)
+- M9 unclassified share: 12.3% (n=408 failed job facts) (+7.3 pp)
 - M11 jobs blocked by failed `Prepare Environment`: 0 across 0 prepare job(s).
-- M12 failed-job fact coverage: 100.0% (n=318 expected failed jobs).
-- M12 log availability among failed job facts: 94.7% (n=318 failed job facts).
+- M12 failed-job fact coverage: 100.0% (n=408 expected failed jobs).
+- M12 log availability among failed job facts: 100.0% (n=408 failed job facts).
 
 ### M10 tests collected per config
 
 | Config | Min | Median | Max |
 |---|---:|---:|---:|
-| `jammy/amd64/latest/edge/unknown-flavor/multipass` | 71 | 71 | 71 |
-| `noble/amd64/latest/edge/unknown-flavor/multipass` | 71 | 71 | 71 |
-| `ubuntu:22.04/amd64/1.32-classic/edge/unknown-flavor/lxd` | 42 | 42 | 42 |
-| `ubuntu:22.04/amd64/1.32-classic/stable/unknown-flavor/lxd` | 1 | 1 | 1 |
-| `ubuntu:22.04/amd64/1.33-classic/edge/unknown-flavor/lxd` | 48 | 48 | 48 |
-| `ubuntu:22.04/amd64/1.33-classic/stable/unknown-flavor/lxd` | 1 | 1 | 1 |
-| `ubuntu:22.04/amd64/1.34-classic/edge/unknown-flavor/lxd` | 53 | 53 | 53 |
-| `ubuntu:22.04/amd64/1.34-classic/stable/unknown-flavor/lxd` | 1 | 1 | 1 |
-| `ubuntu:22.04/amd64/1.35-classic/edge/unknown-flavor/lxd` | 63 | 63 | 63 |
-| `ubuntu:22.04/amd64/1.35-classic/stable/unknown-flavor/lxd` | 1 | 1 | 1 |
-| `ubuntu:22.04/amd64/1.36-classic/edge/unknown-flavor/lxd` | 68 | 68 | 68 |
-| `ubuntu:22.04/amd64/1.36-classic/stable/unknown-flavor/lxd` | 1 | 1 | 1 |
-| `ubuntu:22.04/amd64/1.37-classic/edge/unknown-flavor/lxd` | 68 | 68 | 68 |
-| `ubuntu:22.04/amd64/1.37-classic/stable/unknown-flavor/lxd` | 1 | 1 | 1 |
-| `ubuntu:22.04/amd64/latest/edge/unknown-flavor/lxd` | 1 | 68 | 68 |
-| `ubuntu:22.04/arm64/1.32-classic/edge/unknown-flavor/lxd` | 42 | 42 | 42 |
-| `ubuntu:22.04/arm64/1.33-classic/edge/unknown-flavor/lxd` | 48 | 48 | 48 |
-| `ubuntu:22.04/arm64/1.34-classic/edge/unknown-flavor/lxd` | 53 | 53 | 53 |
-| `ubuntu:22.04/arm64/1.35-classic/edge/unknown-flavor/lxd` | 63 | 63 | 63 |
-| `ubuntu:22.04/arm64/1.36-classic/edge/unknown-flavor/lxd` | 68 | 68 | 68 |
-| `ubuntu:22.04/arm64/1.37-classic/edge/unknown-flavor/lxd` | 68 | 68 | 68 |
-| `ubuntu:22.04/arm64/latest/edge/unknown-flavor/lxd` | 68 | 68 | 68 |
-| `ubuntu:24.04/amd64/1.32-classic/edge/unknown-flavor/lxd` | 42 | 42 | 42 |
-| `ubuntu:24.04/amd64/1.32-classic/stable/unknown-flavor/lxd` | 1 | 1 | 1 |
-| `ubuntu:24.04/amd64/1.33-classic/edge/unknown-flavor/lxd` | 48 | 48 | 48 |
-| `ubuntu:24.04/amd64/1.33-classic/stable/unknown-flavor/lxd` | 1 | 1 | 1 |
-| `ubuntu:24.04/amd64/1.34-classic/edge/unknown-flavor/lxd` | 53 | 53 | 53 |
-| `ubuntu:24.04/amd64/1.34-classic/stable/unknown-flavor/lxd` | 1 | 1 | 1 |
-| `ubuntu:24.04/amd64/1.35-classic/edge/unknown-flavor/lxd` | 63 | 63 | 63 |
-| `ubuntu:24.04/amd64/1.35-classic/stable/unknown-flavor/lxd` | 1 | 1 | 1 |
-| `ubuntu:24.04/amd64/1.36-classic/edge/unknown-flavor/lxd` | 68 | 68 | 68 |
-| `ubuntu:24.04/amd64/1.36-classic/stable/unknown-flavor/lxd` | 1 | 1 | 1 |
-| `ubuntu:24.04/amd64/1.37-classic/edge/unknown-flavor/lxd` | 68 | 68 | 68 |
-| `ubuntu:24.04/amd64/1.37-classic/stable/unknown-flavor/lxd` | 1 | 1 | 1 |
-| `ubuntu:24.04/amd64/latest/edge/unknown-flavor/lxd` | 1 | 68 | 68 |
-| `ubuntu:24.04/arm64/1.32-classic/edge/unknown-flavor/lxd` | 42 | 42 | 42 |
-| `ubuntu:24.04/arm64/1.33-classic/edge/unknown-flavor/lxd` | 48 | 48 | 48 |
-| `ubuntu:24.04/arm64/1.34-classic/edge/unknown-flavor/lxd` | 53 | 53 | 53 |
-| `ubuntu:24.04/arm64/1.35-classic/edge/unknown-flavor/lxd` | 63 | 63 | 63 |
-| `ubuntu:24.04/arm64/1.36-classic/edge/unknown-flavor/lxd` | 68 | 68 | 68 |
-| `ubuntu:24.04/arm64/1.37-classic/edge/unknown-flavor/lxd` | 68 | 68 | 68 |
-| `ubuntu:24.04/arm64/latest/edge/unknown-flavor/lxd` | 68 | 68 | 68 |
-| `ubuntu:26.04/amd64/1.32-classic/edge/unknown-flavor/lxd` | 42 | 42 | 42 |
-| `ubuntu:26.04/amd64/1.32-classic/stable/unknown-flavor/lxd` | 1 | 1 | 1 |
-| `ubuntu:26.04/amd64/1.33-classic/edge/unknown-flavor/lxd` | 48 | 48 | 48 |
-| `ubuntu:26.04/amd64/1.33-classic/stable/unknown-flavor/lxd` | 1 | 1 | 1 |
-| `ubuntu:26.04/amd64/1.34-classic/edge/unknown-flavor/lxd` | 53 | 53 | 53 |
-| `ubuntu:26.04/amd64/1.34-classic/stable/unknown-flavor/lxd` | 1 | 1 | 1 |
-| `ubuntu:26.04/amd64/1.35-classic/edge/unknown-flavor/lxd` | 63 | 63 | 63 |
-| `ubuntu:26.04/amd64/1.35-classic/stable/unknown-flavor/lxd` | 1 | 1 | 1 |
-| `ubuntu:26.04/amd64/1.36-classic/edge/unknown-flavor/lxd` | 68 | 68 | 68 |
-| `ubuntu:26.04/amd64/1.36-classic/stable/unknown-flavor/lxd` | 1 | 1 | 1 |
-| `ubuntu:26.04/amd64/1.37-classic/edge/unknown-flavor/lxd` | 68 | 68 | 68 |
-| `ubuntu:26.04/amd64/1.37-classic/stable/unknown-flavor/lxd` | 1 | 1 | 1 |
-| `ubuntu:26.04/amd64/latest/edge/unknown-flavor/lxd` | 1 | 68 | 68 |
-| `ubuntu:26.04/arm64/1.32-classic/edge/unknown-flavor/lxd` | 42 | 42 | 42 |
-| `ubuntu:26.04/arm64/1.33-classic/edge/unknown-flavor/lxd` | 48 | 48 | 48 |
-| `ubuntu:26.04/arm64/1.34-classic/edge/unknown-flavor/lxd` | 53 | 53 | 53 |
-| `ubuntu:26.04/arm64/1.35-classic/edge/unknown-flavor/lxd` | 63 | 63 | 63 |
-| `ubuntu:26.04/arm64/1.36-classic/edge/unknown-flavor/lxd` | 68 | 68 | 68 |
-| `ubuntu:26.04/arm64/1.37-classic/edge/unknown-flavor/lxd` | 68 | 68 | 68 |
-| `ubuntu:26.04/arm64/latest/edge/unknown-flavor/lxd` | 68 | 68 | 68 |
-| `unknown-os/amd64/latest/edge/unknown-flavor/lxd` | 68 | 68 | 68 |
-| `unknown-os/arm64/latest/edge/unknown-flavor/lxd` | 68 | 68 | 68 |
-| `unknown-os/unknown-arch/artifact/unknown-flavor/lxd` | 19 | 19 | 19 |
+| `ubuntu:22.04/amd64/1.32-classic/edge/unknown-flavor/lxd` | 42 | 42 | 66 |
+| `ubuntu:22.04/amd64/1.33-classic/edge/unknown-flavor/lxd` | 48 | 48 | 71 |
+| `ubuntu:22.04/amd64/1.34-classic/edge/unknown-flavor/lxd` | 53 | 53 | 81 |
+| `ubuntu:22.04/amd64/1.35-classic/edge/unknown-flavor/lxd` | 65 | 65 | 93 |
+| `ubuntu:22.04/amd64/1.36-classic/edge/unknown-flavor/lxd` | 68 | 68 | 91 |
+| `ubuntu:22.04/amd64/1.37-classic/edge/unknown-flavor/lxd` | 68 | 68 | 96 |
+| `ubuntu:22.04/amd64/latest/edge/unknown-flavor/lxd` | 71 | 73 | 102 |
+| `ubuntu:22.04/arm64/1.32-classic/edge/unknown-flavor/lxd` | 42 | 42 | 66 |
+| `ubuntu:22.04/arm64/1.33-classic/edge/unknown-flavor/lxd` | 48 | 48 | 71 |
+| `ubuntu:22.04/arm64/1.34-classic/edge/unknown-flavor/lxd` | 53 | 53 | 81 |
+| `ubuntu:22.04/arm64/1.35-classic/edge/unknown-flavor/lxd` | 65 | 65 | 93 |
+| `ubuntu:22.04/arm64/1.36-classic/edge/unknown-flavor/lxd` | 68 | 68 | 91 |
+| `ubuntu:22.04/arm64/1.37-classic/edge/unknown-flavor/lxd` | 68 | 68 | 96 |
+| `ubuntu:22.04/arm64/latest/edge/unknown-flavor/lxd` | 71 | 73 | 102 |
+| `ubuntu:24.04/amd64/1.32-classic/edge/unknown-flavor/lxd` | 42 | 42 | 66 |
+| `ubuntu:24.04/amd64/1.33-classic/edge/unknown-flavor/lxd` | 48 | 48 | 71 |
+| `ubuntu:24.04/amd64/1.34-classic/edge/unknown-flavor/lxd` | 53 | 53 | 81 |
+| `ubuntu:24.04/amd64/1.35-classic/edge/unknown-flavor/lxd` | 65 | 65 | 93 |
+| `ubuntu:24.04/amd64/1.36-classic/edge/unknown-flavor/lxd` | 68 | 68 | 91 |
+| `ubuntu:24.04/amd64/1.37-classic/edge/unknown-flavor/lxd` | 68 | 68 | 96 |
+| `ubuntu:24.04/amd64/latest/edge/unknown-flavor/lxd` | 71 | 73 | 102 |
+| `ubuntu:24.04/arm64/1.32-classic/edge/unknown-flavor/lxd` | 42 | 42 | 66 |
+| `ubuntu:24.04/arm64/1.33-classic/edge/unknown-flavor/lxd` | 48 | 48 | 71 |
+| `ubuntu:24.04/arm64/1.34-classic/edge/unknown-flavor/lxd` | 53 | 53 | 81 |
+| `ubuntu:24.04/arm64/1.35-classic/edge/unknown-flavor/lxd` | 65 | 65 | 93 |
+| `ubuntu:24.04/arm64/1.36-classic/edge/unknown-flavor/lxd` | 68 | 68 | 91 |
+| `ubuntu:24.04/arm64/1.37-classic/edge/unknown-flavor/lxd` | 68 | 68 | 96 |
+| `ubuntu:24.04/arm64/latest/edge/unknown-flavor/lxd` | 71 | 73 | 102 |
+| `ubuntu:26.04/amd64/1.32-classic/edge/unknown-flavor/lxd` | 42 | 42 | 66 |
+| `ubuntu:26.04/amd64/1.33-classic/edge/unknown-flavor/lxd` | 48 | 48 | 71 |
+| `ubuntu:26.04/amd64/1.34-classic/edge/unknown-flavor/lxd` | 53 | 53 | 81 |
+| `ubuntu:26.04/amd64/1.35-classic/edge/unknown-flavor/lxd` | 65 | 65 | 93 |
+| `ubuntu:26.04/amd64/1.36-classic/edge/unknown-flavor/lxd` | 68 | 68 | 91 |
+| `ubuntu:26.04/amd64/1.37-classic/edge/unknown-flavor/lxd` | 68 | 68 | 96 |
+| `ubuntu:26.04/amd64/latest/edge/unknown-flavor/lxd` | 71 | 73 | 102 |
+| `ubuntu:26.04/arm64/1.32-classic/edge/unknown-flavor/lxd` | 42 | 42 | 66 |
+| `ubuntu:26.04/arm64/1.33-classic/edge/unknown-flavor/lxd` | 48 | 48 | 71 |
+| `ubuntu:26.04/arm64/1.34-classic/edge/unknown-flavor/lxd` | 53 | 53 | 81 |
+| `ubuntu:26.04/arm64/1.35-classic/edge/unknown-flavor/lxd` | 65 | 65 | 93 |
+| `ubuntu:26.04/arm64/1.36-classic/edge/unknown-flavor/lxd` | 68 | 68 | 91 |
+| `ubuntu:26.04/arm64/1.37-classic/edge/unknown-flavor/lxd` | 68 | 68 | 96 |
+| `ubuntu:26.04/arm64/latest/edge/unknown-flavor/lxd` | 71 | 73 | 102 |
+| `unknown-os/unknown-arch/artifact/unknown-flavor/lxd` | 19 | 19 | 50 |
 
 ## Top signatures
 
 | Signature | Occurrences | Runs | Class | Rule | Tests | Configs | Example |
 |---|---:|---:|---|---|---:|---:|---|
-| `d87b7eabd6dd7094` | 103 | 5 | ci.config/apt_index_missing | ci-apt-index-missing | 2 | 24 | [job](https://github.com/canonical/k8s-snap/actions/runs/38724235406/job/116386376312) |
-| `da6ba7b982998d76` | 77 | 7 | product.bug/upgrade_failure | product-feature-upgrade-incomplete | 1 | 30 | [job](https://github.com/canonical/k8s-snap/actions/runs/38724235406/job/116386405521) |
-| `b2fdc843a67d0cf8` | 51 | 6 | product.bug/service_panic | product-service-panic | 1 | 12 | [job](https://github.com/canonical/k8s-snap/actions/runs/38657906287/job/116172684836) |
-| `7296136bc38d37ff` | 11 | 6 | product.bug/service_restart | product-service-restarts | 1 | 10 | [job](https://github.com/canonical/k8s-snap/actions/runs/38724235406/job/116386356369) |
-| `e0ac6b603e274f49` | 10 | 5 | product.bug/service_restart | product-service-restarts | 1 | 9 | [job](https://github.com/canonical/k8s-snap/actions/runs/38657906287/job/116172512657) |
-| `53e161f93a3b80b6` | 6 | 1 | external.dependency/docs_links | external-docs-linkcheck | 1 | 1 | [job](https://github.com/canonical/k8s-snap/actions/runs/38724191713/job/116385943967) |
-| `31bad0ec48a537c6` | 3 | 2 | product.bug/apiserver_unreachable | product-apiserver-unreachable | 1 | 3 | [job](https://github.com/canonical/k8s-snap/actions/runs/39081428042/job/117539067980) |
-| `73cf55cac38adedf` | 3 | 3 | unknown | _unowned_ | 2 | 3 | [job](https://github.com/canonical/k8s-snap/actions/runs/38724235406/job/116386267312) |
-| `cfdad54817091717` | 3 | 1 | external.dependency/pypi | external-pypi | 3 | 2 | [job](https://github.com/canonical/k8s-snap/actions/runs/38488046943/job/115606595549) |
-| `edd44007115ea059` | 3 | 1 | product.bug/conformance | product-cncf-conformance | 1 | 3 | [job](https://github.com/canonical/k8s-snap/actions/runs/38724191713/job/116386101876) |
-| `2968f86e61478acc` | 2 | 2 | product.bug/containerd | product-containerd-image-import | 1 | 2 | [job](https://github.com/canonical/k8s-snap/actions/runs/38488046943/job/115606486593) |
-| `35868fe40d79058d` | 2 | 2 | product.bug/service_not_active | product-service-not-active | 1 | 2 | [job](https://github.com/canonical/k8s-snap/actions/runs/39179160270/job/117828258388) |
-| `40a71c1cc7cfb11b` | 2 | 1 | external.dependency/snap_store | external-snap-store | 1 | 2 | [job](https://github.com/canonical/k8s-snap/actions/runs/38325492624/job/115063241749) |
-| `753ae9e6b747fa57` | 2 | 1 | unknown | _unowned_ | 2 | 2 | [job](https://github.com/canonical/k8s-snap/actions/runs/39081428042/job/117539051480) |
-| `baa0ed1c73cbdc79` | 2 | 2 | external.dependency/snap_store | external-snap-store | 1 | 2 | [job](https://github.com/canonical/k8s-snap/actions/runs/38724235406/job/116386405428) |
+| `b23345bfac804d7b` | 19 | 4 | unknown | _unowned_ | 1 | 2 | [job](https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138881993795) |
+| `bb40ddc3376ea7c1` | 12 | 1 | product.bug/node_not_ready | product-node-never-ready | 2 | 6 | [job](https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138873388968) |
+| `7a4b63232208221d` | 8 | 3 | product.bug/cluster_never_ready | product-cluster-never-ready | 1 | 7 | [job](https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138873384206) |
+| `00b444820009a354` | 6 | 1 | product.bug/node_not_ready | product-node-never-ready | 1 | 6 | [job](https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138873390577) |
+| `025f8f4cf9ef8622` | 6 | 1 | product.bug/wait_for_timeout | product-wait-for-timeout | 1 | 6 | [job](https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138873384044) |
+| `08c0bd527e13771e` | 6 | 1 | product.bug/node_not_ready | product-node-never-ready | 1 | 6 | [job](https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138873388501) |
+| `092cc8cd74024629` | 6 | 1 | product.bug/node_not_ready | product-node-never-ready | 1 | 6 | [job](https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138873379151) |
+| `0a66efd9a2002f65` | 6 | 1 | product.bug/node_not_ready | product-node-never-ready | 1 | 6 | [job](https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138873388047) |
+| `0fd8ad952ddf64bc` | 6 | 1 | product.bug/node_not_ready | product-node-never-ready | 1 | 6 | [job](https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138873379183) |
+| `170c68613040961c` | 6 | 1 | product.bug/join_failure | product-join-failure | 1 | 6 | [job](https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138873471686) |
+| `1b353994352e5e1c` | 6 | 1 | product.bug/node_not_ready | product-node-never-ready | 1 | 6 | [job](https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138873381530) |
+| `2ddc73e81db98d31` | 6 | 1 | product.bug/join_failure | product-join-failure | 1 | 6 | [job](https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138873383971) |
+| `35f73fbfa626fe68` | 6 | 1 | product.bug/wait_for_timeout | product-wait-for-timeout | 1 | 6 | [job](https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138873386402) |
+| `3a64943759434bc6` | 6 | 1 | unknown | _unowned_ | 1 | 6 | [job](https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138873382369) |
+| `3c977e4dae1d062b` | 6 | 1 | product.bug/node_not_ready | product-node-never-ready | 1 | 6 | [job](https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138873383629) |
 
 ## Open CI-filed issues
 

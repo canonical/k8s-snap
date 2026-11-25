@@ -17,7 +17,7 @@ echo "Patching ELF file: $BIN with LIEF"
 # Install Python deps for LIEF patcher
 # Due to LIEF only being available as binary wheels for
 # amd64 and arm64, only support these architectures.
-pip3 install -r $DIR/requirements.txt
+pip3 install --require-hashes -r "$DIR/requirements.txt"
 
 if [ "$ARCH_TRIPLET" = "x86_64-linux-gnu" ]; then
     python3 $DIR/patchelf.py "$BIN" \

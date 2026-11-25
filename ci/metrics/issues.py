@@ -664,15 +664,13 @@ def sync_issue_states(
     """
 
     conn.row_factory = sqlite3.Row
-    rows = conn.execute(
-        """
+    rows = conn.execute("""
         SELECT claim_id, issue_number, issue_state, closed_at, closed_reason,
                fixed_at_sha
         FROM issues
         WHERE issue_number IS NOT NULL AND issue_state IN ('open', 'closed')
         ORDER BY issue_number
-        """
-    ).fetchall()
+        """).fetchall()
     if not rows:
         return SyncResult()
 
@@ -853,7 +851,9 @@ def _candidate_rows(
                json_group_array(DISTINCT source_path) AS source_paths,
                EXISTS (
                    SELECT 1 FROM v_flakes vf
+                   JOIN configs fcfg ON fcfg.config_id = vf.config_id
                    WHERE vf.signature_id = job_ctx.signature_id
+                     AND fcfg.substrate = job_ctx.substrate
                ) AS flaky
         FROM job_ctx
         GROUP BY signature_id, substrate, failure_class, exemplar_excerpt
@@ -1024,15 +1024,13 @@ def close_quiet_issues(
     if quiet_days <= 0:
         return (), (), ()
     conn.row_factory = sqlite3.Row
-    rows = conn.execute(
-        """
+    rows = conn.execute("""
         SELECT claim_id, issue_number, signature_id, substrate, opened_at,
                last_comment_at
         FROM issues
         WHERE issue_state = 'open' AND issue_number IS NOT NULL
         ORDER BY issue_number
-        """
-    ).fetchall()
+        """).fetchall()
     closed: List[int] = []
     actions: List[str] = []
     skipped: List[str] = []

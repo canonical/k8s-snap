@@ -58,21 +58,6 @@ def get_k8s_tags() -> List[str]:
     return tag_names
 
 
-def get_latest_stable() -> str:
-    """Get the latest stable Kubernetes release tag.
-
-    Returns:
-        The latest stable release tag string (e.g., 'v1.30.1').
-
-    Raises:
-        ValueError: If no stable release is found.
-    """
-    for tag in get_k8s_tags():
-        if is_stable_release(tag):
-            return tag
-    raise ValueError("Couldn't find a stable release.")
-
-
 def get_latest_releases_by_minor() -> Dict[str, str]:
     """Map each minor Kubernetes version to its latest release tag.
 
@@ -137,7 +122,7 @@ def _exec(*args, **kwargs) -> tuple[str, str]:
     kwargs.setdefault("text", True)
     kwargs.setdefault("check", True)
     kwargs.setdefault("timeout", EXEC_TIMEOUT)
-    LOG.debug("Executing: %s, args: %s, kwargs: %s", cmd, args, kwargs)
+    LOG.debug("Executing args: %s, kwargs: %s", args, kwargs)
     proc = subprocess.run(*args, **kwargs)
     return proc.stdout, proc.stderr
 
@@ -356,7 +341,6 @@ if __name__ == "__main__":
 
     subparsers.add_parser("get_outstanding_prereleases")
     subparsers.add_parser("get_obsolete_prereleases")
-    subparsers.add_parser("remove_obsolete_prereleases")
 
     cmd = subparsers.add_parser("cut_release_branch")
     cmd.add_argument(

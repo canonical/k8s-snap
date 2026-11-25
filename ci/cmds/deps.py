@@ -11,7 +11,6 @@ pip hash-pinned lock files) up to date.
 
 import argparse
 import glob
-import json
 import os
 import re
 import subprocess
@@ -19,6 +18,8 @@ import sys
 import uuid
 from pathlib import Path
 from typing import Optional
+
+from cmds.github import gh_api
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -56,41 +57,18 @@ def add_deps_cmds(parser):
     p.set_defaults(func=cmd_update_pip_locks)
 
 
-# -- GitHub API helpers ------------------------------------------------------
-
-
-def _gh_api(endpoint: str) -> Optional[dict | list]:
-    """Call the GitHub REST API via ``gh api``.  Returns parsed JSON or None."""
-    try:
-        r = subprocess.run(
-            ["gh", "api", endpoint, "--paginate"],
-            capture_output=True,
-            text=True,
-            check=True,
-            timeout=30,
-        )
-        return json.loads(r.stdout)
-    except (
-        subprocess.CalledProcessError,
-        json.JSONDecodeError,
-        subprocess.TimeoutExpired,
-    ) as e:
-        print(f"  WARNING: gh api {endpoint}: {e}", file=sys.stderr)
-        return None
-
-
 def _resolve_sha(owner_repo: str, ref: str) -> Optional[str]:
     """Resolve a tag or branch to its commit SHA (dereferences annotated tags)."""
-    data = _gh_api(f"repos/{owner_repo}/git/ref/tags/{ref}")
+    data = gh_api(f"repos/{owner_repo}/git/ref/tags/{ref}")
     if data is None:
-        data = _gh_api(f"repos/{owner_repo}/git/ref/heads/{ref}")
+        data = gh_api(f"repos/{owner_repo}/git/ref/heads/{ref}")
     if not isinstance(data, dict):
         return None
 
     obj = data.get("object", {})
     sha, kind = obj.get("sha"), obj.get("type")
     if kind == "tag" and sha:
-        tag_obj = _gh_api(f"repos/{owner_repo}/git/tags/{sha}")
+        tag_obj = gh_api(f"repos/{owner_repo}/git/tags/{sha}")
         if isinstance(tag_obj, dict):
             sha = tag_obj.get("object", {}).get("sha", sha)
     return sha
@@ -118,7 +96,7 @@ def _find_latest(owner_repo: str, tag: str) -> Optional[tuple[str, str]]:
         return None
     major = cur[0]
 
-    data = _gh_api(f"repos/{owner_repo}/git/matching-refs/tags/v{major}")
+    data = gh_api(f"repos/{owner_repo}/git/matching-refs/tags/v{major}")
     if not isinstance(data, list):
         return None
 
@@ -274,20 +252,23 @@ def cmd_update_pip_locks(args: argparse.Namespace) -> int:
 
     changed_files = []
     for infile in in_files:
-        outfile = infile.removesuffix(".in") + ".txt"
-        print(f"Compiling {Path(infile).relative_to(root)} ...")
+        rel_in = str(Path(infile).relative_to(root))
+        rel_out = rel_in.removesuffix(".in") + ".txt"
+        print(f"Compiling {rel_in} ...")
         try:
             r = subprocess.run(
                 [
                     "pip-compile",
                     "--upgrade",
+                    "--allow-unsafe",
                     "--generate-hashes",
                     "--strip-extras",
                     "--no-header",
                     "--output-file",
-                    outfile,
-                    infile,
+                    rel_out,
+                    rel_in,
                 ],
+                cwd=root,
                 capture_output=True,
                 text=True,
             )
@@ -299,18 +280,19 @@ def cmd_update_pip_locks(args: argparse.Namespace) -> int:
             return 1
         if r.returncode != 0:
             print(
-                f"ERROR: pip-compile failed for {infile}:\n{r.stderr}", file=sys.stderr
+                f"ERROR: pip-compile failed for {rel_in}:\n{r.stderr}", file=sys.stderr
             )
             return 1
 
-        # Check for changes via git diff
-        diff = subprocess.run(
-            ["git", "diff", "--quiet", outfile],
+        # Check for modified or untracked lock files
+        status = subprocess.run(
+            ["git", "status", "--porcelain", "--", rel_out],
+            cwd=root,
             capture_output=True,
+            text=True,
         )
-        if diff.returncode != 0:
-            changed_files.append(Path(outfile).relative_to(root))
-
+        if status.stdout.strip():
+            changed_files.append(Path(rel_out))
     if not changed_files:
         print("All pip lock files are up to date.")
         _set_output("has-changes", "false")
@@ -323,10 +305,3 @@ def cmd_update_pip_locks(args: argparse.Namespace) -> int:
     _set_output("has-changes", "true")
     _set_output("summary", summary)
     return 0
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    add_deps_cmds(parser)
-    args_main = parser.parse_args()
-    sys.exit(args_main.func(args_main))

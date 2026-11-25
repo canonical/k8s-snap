@@ -1,0 +1,4 @@
+# Direct dependencies for ci/k8s-ci.py deps commands. Compile with:
+#   pip-compile --generate-hashes --strip-extras --no-header ci/requirements-pip-tools.in
+pip-tools>=7.7.0
+requests>=2.33.1
