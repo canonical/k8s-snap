@@ -91,11 +91,50 @@
                 "additionalProperties": {
                   "type": "string"
                 }
+              },
+              "bfdProfile": {
+                "type": "string"
               }
             },
             "required": [
               "peerAddress",
               "peerASN"
+            ]
+          }
+        },
+        "bfdProfiles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "receiveInterval": {
+                "type": "integer"
+              },
+              "transmitInterval": {
+                "type": "integer"
+              },
+              "detectMultiplier": {
+                "type": "integer"
+              },
+              "echoInterval": {
+                "type": "integer"
+              },
+              "echoMode": {
+                "type": "boolean"
+              },
+              "passiveMode": {
+                "type": "boolean"
+              },
+              "minimumTtl": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "name"
             ]
           }
         }
