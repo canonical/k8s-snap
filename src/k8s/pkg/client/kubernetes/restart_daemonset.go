@@ -21,7 +21,7 @@ func (c *Client) RestartDaemonset(ctx context.Context, name, namespace string) e
 	if daemonset.Spec.Template.ObjectMeta.Annotations == nil {
 		daemonset.Spec.Template.ObjectMeta.Annotations = make(map[string]string)
 	}
-	daemonset.Spec.Template.ObjectMeta.Annotations["kubectl.kubernetes.io/restartedAt"] = time.Now().Format(time.RFC3339)
+	daemonset.Spec.Template.ObjectMeta.Annotations[RestartedAtAnnotation] = time.Now().Format(time.RFC3339)
 
 	_, err = c.AppsV1().DaemonSets(namespace).Update(ctx, daemonset, metav1.UpdateOptions{})
 	if err != nil {
