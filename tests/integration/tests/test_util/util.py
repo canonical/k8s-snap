@@ -580,6 +580,19 @@ def setup_k8s_snap(
             delay_s=30,
             after=wait_for_snap_change_hook(instance, max_attempts=3),
         ).on(instance).exec(cmd, timeout=timeout)
+    # ponytail: snapd >= 2.66 inside LXD containers skips loading snap AppArmor
+    # profiles ("Inside container environment without internal policy"), which
+    # makes every k8s CLI call fail with "missing profile snap.k8s.k8s".
+    # Load it manually; no-op where snapd already loaded it (VMs, bare metal).
+    instance.exec(
+        [
+            "bash",
+            "-c",
+            "apparmor_parser -r /var/lib/snapd/apparmor/profiles/snap.k8s.k8s"
+            " 2>/dev/null || true",
+        ]
+    )
+
     if connect_interfaces:
         LOG.info("Ensure k8s interfaces and network requirements")
         instance.exec(["/snap/k8s/current/k8s/hack/init.sh"], stdout=subprocess.DEVNULL)

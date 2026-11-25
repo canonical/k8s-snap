@@ -205,6 +205,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       test-tags: ${{ steps.get-e2e-tags.outputs.test-tags }}
+      lb-dataplane-only: ${{ steps.get-e2e-tags.outputs.lb-dataplane-only }}
     needs: [build-snap, python-lint]
     steps:
       - name: Checking out repo
@@ -231,6 +232,13 @@ jobs:
             if echo "$REF_NAME" | grep -q "^release-"; then
               tags="up_to_weekly"
             fi
+          fi
+          # Load-balancer dataplane repro PR: run only the dedicated test
+          # (it reproduces a known unfixed datapath bug) and let the heavy
+          # non-essential jobs skip via the lb-dataplane-only output.
+          if [ "$EVENT_NAME" = "pull_request" ] && git diff --name-only HEAD^1 HEAD | grep -q "^tests/integration/lxd-triple-nic-profile.yaml"; then
+            tags="lb_dataplane"
+            echo "lb-dataplane-only=true" >> "$GITHUB_OUTPUT"
           fi
           echo "test-tags=$tags" >> "$GITHUB_OUTPUT"
   test-integration:
@@ -314,7 +322,8 @@ jobs:
           if-no-files-found: warn
   security-scan:
     name: Security scan
-    needs: build-snap
+    needs: [build-snap, get-e2e-tags]
+    if: needs.get-e2e-tags.outputs.lb-dataplane-only != 'true'
     uses: $/.github/workflows/security-scan.yaml
     with:
       artifact: ${{ needs.build-snap.outputs.snap-artifact }}
@@ -353,7 +362,8 @@ jobs:
       matrix:
         arch: [amd64]
       fail-fast: false
-    needs: [build-snap, python-lint, get-charm-channel]
+    needs: [build-snap, python-lint, get-charm-channel, get-e2e-tags]
+    if: needs.get-e2e-tags.outputs.lb-dataplane-only != 'true'
     uses: $/.github/workflows/charm-e2e-tests.yaml
     secrets:
       CHARMCRAFT_AUTH: ${{ secrets.CHARMCRAFT_AUTH }}

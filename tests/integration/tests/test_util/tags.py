@@ -11,6 +11,10 @@ CONFORMANCE = "conformance_tests"
 PERFORMANCE = "performance"
 PROMOTE_CANDIDATE = "beta_to_candidate"
 PROMOTE_STABLE = "candidate_to_stable"
+# Load-balancer dataplane repro (un-NATted local-backend reply leg). Runs only
+# when explicitly selected (see get-e2e-tags in lint_and_integration.yaml),
+# until the underlying datapath bug is fixed.
+LB_DATAPLANE = "lb_dataplane"
 
 # Each test needs to be tagged with at least one of the following tags.
 # This is enforced by conftest.
@@ -23,6 +27,7 @@ TEST_TAGS = [
     GPU,
     PROMOTE_CANDIDATE,
     PROMOTE_STABLE,
+    LB_DATAPLANE,
 ]
 
 # Those tags can be used for a convenient way to run multiple test levels.

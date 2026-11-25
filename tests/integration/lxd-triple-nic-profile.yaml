@@ -1,0 +1,28 @@
+description: "LXD profile for Canonical Kubernetes with triple NIC setup (OAM/internal/public)"
+devices:
+  eth1:
+    name: eth1
+    nictype: bridged
+    parent: dual-nic-br0
+    type: nic
+  eth2:
+    name: eth2
+    nictype: bridged
+    parent: dualstack-br0
+    type: nic
+config:
+  user.network-config: |
+    version: 2
+    ethernets:
+      eth0:
+        dhcp4: true
+        dhcp4-overrides:
+          route-metric: 100
+      eth1:
+        dhcp4: true
+        dhcp4-overrides:
+          route-metric: 500
+      eth2:
+        dhcp4: true
+        dhcp4-overrides:
+          route-metric: 600
