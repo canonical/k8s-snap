@@ -147,7 +147,7 @@ func (s *pebble) OnLXD(ctx context.Context) (bool, error) {
 }
 
 func (s *pebble) SnapctlGet(ctx context.Context, args ...string) ([]byte, error) {
-	return []byte(`{"meta": {"apiVersion": "1.30", "orb": "none"}`), nil
+	return []byte(`{"meta": {"api-version": "1.30", "orb": "none"}}`), nil
 }
 
 func (s *pebble) SnapctlSet(ctx context.Context, args ...string) error {
