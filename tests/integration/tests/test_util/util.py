@@ -415,7 +415,8 @@ def download_k8s_snaps(
             basename = f"k8s_{channel}"
         elif "@" in channel:
             chan, rev = channel.split("@", maxsplit=1)
-            channel_args = ["--channel", chan, "--revision", rev]
+            # snap download rejects --channel combined with --revision.
+            channel_args = ["--revision", rev]
             sanitized = re.sub(r"[^a-zA-Z0-9_.-]", "_", f"{chan}@{rev}")
             basename = f"k8s_{sanitized}"
         else:
