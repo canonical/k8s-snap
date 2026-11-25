@@ -13,7 +13,7 @@ type Meta struct {
 	// Orb is one of "", "k8sd", "snapd", "none".
 	Orb string `json:"orb"`
 	// APIVersion is one of "", "1.30".
-	APIVersion string `json:"apiVersion"`
+	APIVersion string `json:"api-version"`
 	// Error is an error message that is set if the config mode cannot be parsed.
 	Error string `json:"error,omitempty"`
 }
@@ -43,14 +43,14 @@ func ParseMeta(ctx context.Context, s snap.Snap) (Meta, bool, error) {
 		return Meta{}, false, fmt.Errorf("invalid meta.orb value %q", parse.Meta.Orb)
 	}
 
-	// default meta.version is 1.30
+	// default meta.api-version is 1.30
 	if parse.Meta.APIVersion == "" {
 		parse.Meta.APIVersion = "1.30"
 	}
 	switch parse.Meta.APIVersion {
 	case "1.30":
 	default:
-		return Meta{}, false, fmt.Errorf("invalid meta.apiVersion value %q", parse.Meta.APIVersion)
+		return Meta{}, false, fmt.Errorf("invalid meta.api-version value %q", parse.Meta.APIVersion)
 	}
 
 	return parse.Meta, true, nil
