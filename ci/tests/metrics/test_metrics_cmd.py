@@ -25,14 +25,16 @@ from metrics.store import initialise_database  # noqa: E402
 
 
 class MetricsCommandTest(unittest.TestCase):
-    def test_cli_loads_without_requests_installed(self) -> None:
-        # The e2e workflow runs `k8s-ci.py e2e ...` with a bare python3; loading
-        # the metrics commands must not require third-party packages.
+    def test_cli_loads_without_third_party_packages(self) -> None:
+        # Workflows run other commands (`e2e`, `security`) with a bare python3,
+        # and k8s-ci.py loads every command module at startup, so loading the
+        # metrics commands must not require requests or PyYAML.
         script = Path(__file__).resolve().parents[2] / "k8s-ci.py"
         code = "\n".join(
             [
                 "import runpy, sys",
                 "sys.modules['requests'] = None",
+                "sys.modules['yaml'] = None",
                 "sys.argv = ['k8s-ci.py', 'e2e', '--help']",
                 f"runpy.run_path({str(script)!r}, run_name='__main__')",
             ]
