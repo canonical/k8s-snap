@@ -61,8 +61,9 @@ def test_download_k8s_snaps_deduplication_and_formats(mock_run, tmp_path):
         assert kwargs.get("timeout") == 300
     flat_cmds = [" ".join(c) for c in executed_commands]
     assert any("--channel 1.36-classic/candidate" in c for c in flat_cmds)
+    assert not any("--channel" in c and "--revision" in c for c in flat_cmds)
     assert any(
-        "--channel 1.36-classic/candidate" in c and "--revision 5834" in c
+        "--basename=k8s_1.36-classic_candidate_5834" in c and "--revision 5834" in c
         for c in flat_cmds
     )
     assert any("--revision 5834" in c and "--channel" not in c for c in flat_cmds)
