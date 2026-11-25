@@ -10,11 +10,16 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from metrics.report import render_digest_markdown, render_latest_markdown  # noqa: E402
+from metrics.report import (  # noqa: E402
+    render_catalogue_markdown,
+    render_digest_markdown,
+    render_latest_markdown,
+)
 from metrics.rollup import (  # noqa: E402
     derive_rollup,
     derive_rollups,
     open_issue_backlog,
+    signature_catalogue,
 )
 from metrics.store import initialise_database  # noqa: E402
 
@@ -317,6 +322,70 @@ class RollupReportTest(unittest.TestCase):
         rows = open_issue_backlog(conn)
 
         self.assertEqual(rows[0]["failure_class"], "infra.provisioning")
+
+    def test_catalogue_resolves_substrate_specific_classifications(self) -> None:
+        conn = _db()
+        conn.execute("""
+            INSERT INTO configs (config_id, os, arch, channel, flavor, substrate)
+            VALUES (2, 'noble', 'amd64', '1.37-classic/edge', 'classic', 'multipass')
+            """)
+        _insert_run(conn, 100)
+        for signature_id, job_id in (("1111111111111111", 1), ("2222222222222222", 3)):
+            conn.execute(
+                """
+                INSERT INTO signatures (
+                    signature_id, normalised_pattern, exemplar_excerpt,
+                    exemplar_job_id, normaliser_version, extractor_version
+                ) VALUES (?, 'p', 'exemplar', ?, 1, 1)
+                """,
+                (signature_id, job_id),
+            )
+        # 1111: classified only for lxd, seen only on lxd.
+        # 2222: classified differently on lxd and multipass, seen on both.
+        for job_id, signature_id, config_id in (
+            (1, "1111111111111111", 1),
+            (3, "2222222222222222", 1),
+            (4, "2222222222222222", 2),
+        ):
+            conn.execute(
+                """
+                INSERT INTO jobs (
+                    job_id, run_id, attempt, config_id, test_id, job_name,
+                    html_url, signature_id
+                ) VALUES (?, 100, 1, ?, 1, 'job', 'https://example.invalid', ?)
+                """,
+                (job_id, config_id, signature_id),
+            )
+        for signature_id, substrate, klass in (
+            ("1111111111111111", "lxd", "product.bug"),
+            ("2222222222222222", "lxd", "product.bug"),
+            ("2222222222222222", "multipass", "infra.provisioning"),
+        ):
+            conn.execute(
+                """
+                INSERT INTO signature_classifications (
+                    signature_id, substrate, ruleset_version, failure_class,
+                    subclass, rule_id, confidence, classified_by, classified_at
+                ) VALUES (?, ?, 1, ?, NULL, ?, 1.0, 'rules', '')
+                """,
+                (signature_id, substrate, klass, f"rule-{substrate}"),
+            )
+
+        catalogue = {row["signature_id"]: row for row in signature_catalogue(conn)}
+        rendered = render_catalogue_markdown(list(catalogue.values()))
+
+        single = catalogue["1111111111111111"]
+        self.assertEqual(
+            (single["failure_class"], single["rule_id"]), ("product.bug", "rule-lxd")
+        )
+        split = catalogue["2222222222222222"]
+        self.assertEqual(split["failure_class"], "per substrate")
+        self.assertEqual(
+            [(ctx["substrate"], ctx["failure_class"]) for ctx in split["contexts"]],
+            [("lxd", "product.bug"), ("multipass", "infra.provisioning")],
+        )
+        self.assertIn("lxd:1 product.bug, multipass:1 infra.provisioning", rendered)
+        self.assertNotIn("unknown", rendered)
 
     def test_report_renders_open_issues_section(self) -> None:
         conn = _db()

@@ -18,6 +18,9 @@ from metrics.models import FailureClass
 
 ROLLUP_VERSION = 1
 SCHEDULED_WORKFLOW_FILES = ("nightly-test.yaml", "weekly-test.yaml")
+VERDICT_KEYS = ("failure_class", "subclass", "rule_id", "classified_by")
+# Catalogue class for a signature whose substrates were classified differently.
+PER_SUBSTRATE = "per substrate"
 
 
 def rate(numerator: float, denominator: float) -> Optional[float]:
@@ -188,6 +191,7 @@ def derive_rollup(
 def signature_catalogue(conn: sqlite3.Connection) -> List[Dict[str, Any]]:
     """Return the deterministic signature catalogue derived from current facts."""
 
+    _row_factory(conn)
     rows = []
     cursor = conn.execute("""
         SELECT s.signature_id,
@@ -214,8 +218,22 @@ def signature_catalogue(conn: sqlite3.Connection) -> List[Dict[str, Any]]:
     for row in cursor:
         payload = dict(row)
         payload["contexts"] = _signature_contexts(conn, row["signature_id"])
+        if payload["classified_by"] is None:
+            _adopt_context_verdicts(payload)
         rows.append(payload)
     return rows
+
+
+def _adopt_context_verdicts(payload: Dict[str, Any]) -> None:
+    """Summarise per-substrate verdicts for a signature with no global one."""
+
+    verdicts = {tuple(ctx[key] for key in VERDICT_KEYS) for ctx in payload["contexts"]}
+    if len(verdicts) == 1:
+        payload.update(zip(VERDICT_KEYS, verdicts.pop()))
+    elif len(verdicts) > 1:
+        payload.update(
+            failure_class=PER_SUBSTRATE, subclass=None, rule_id=None, classified_by=None
+        )
 
 
 def top_signatures(rollup: Dict[str, Any], limit: int = 15) -> List[Dict[str, Any]]:
@@ -562,18 +580,36 @@ def _rule_for_signature(conn: sqlite3.Connection, signature_id: str) -> Optional
 def _signature_contexts(
     conn: sqlite3.Connection, signature_id: str
 ) -> List[Dict[str, Any]]:
-    return [
-        dict(row)
+    """Return per-substrate stats, each with the verdict that applies to it."""
+
+    verdicts = {
+        row["substrate"]: dict(row)
         for row in conn.execute(
             """
-            SELECT substrate, occurrences, runs_seen, first_seen, last_seen
-            FROM v_signature_context_stats
+            SELECT substrate, failure_class, subclass, rule_id, classified_by
+            FROM v_signature_class
             WHERE signature_id = ?
-            ORDER BY substrate
             """,
             (signature_id,),
         )
-    ]
+    }
+    contexts = []
+    for row in conn.execute(
+        """
+        SELECT substrate, occurrences, runs_seen, first_seen, last_seen
+        FROM v_signature_context_stats
+        WHERE signature_id = ?
+        ORDER BY substrate
+        """,
+        (signature_id,),
+    ):
+        context = dict(row)
+        verdict = verdicts.get(context["substrate"]) or verdicts.get("*") or {}
+        for key in VERDICT_KEYS:
+            context[key] = verdict.get(key)
+        context["failure_class"] = context["failure_class"] or "unknown"
+        contexts.append(context)
+    return contexts
 
 
 def _run_key_values(run_keys: Sequence[Tuple[int, int]]) -> Tuple[str, Tuple[int, ...]]:

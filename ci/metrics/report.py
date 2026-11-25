@@ -8,7 +8,12 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
 
-from metrics.rollup import delta, signature_catalogue, top_signatures
+from metrics.rollup import (
+    PER_SUBSTRATE,
+    delta,
+    signature_catalogue,
+    top_signatures,
+)
 
 CLASS_OWNER_HINT = {
     "infra.runner": "CI/infra",
@@ -127,6 +132,11 @@ def render_catalogue_markdown(catalogue: Sequence[Dict[str, Any]]) -> str:
     for row in catalogue:
         contexts = ", ".join(
             f"{ctx['substrate']}:{ctx['occurrences']}"
+            + (
+                f" {_class_label(ctx)}"
+                if row.get("failure_class") == PER_SUBSTRATE
+                else ""
+            )
             for ctx in row.get("contexts", [])
         )
         lines.append(
