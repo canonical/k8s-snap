@@ -234,5 +234,5 @@ Thinking about using {{product}} for your next project? [Get in touch!]
 [How to contribute]: /snap/howto/contribute
 [releases]: /releases/index
 [Canonical Kubernetes Slack]: https://kubernetes.slack.com/archives/CG1V2CAMB
-[Canonical Kubernetes Discourse]: https://discourse.ubuntu.com/c/kubernetes/180
+[Canonical Kubernetes Discourse]: https://discourse.ubuntu.com/c/project/kubernetes/180
 [Get in touch!]: https://ubuntu.com/kubernetes/contact-us

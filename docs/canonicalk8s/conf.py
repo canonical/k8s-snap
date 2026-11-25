@@ -62,7 +62,7 @@ html_context = {
     # 'product_tag': '_static/tag.png',
     # Your Discourse instance URL
     # TODO: Change to your Discourse instance URL or leave empty.
-    "discourse": "https://discourse.ubuntu.com/c/kubernetes/180",
+    "discourse": "https://discourse.ubuntu.com/c/project/kubernetes/180",
     # Your Mattermost channel URL
     # TODO: Change to your Mattermost channel URL or leave empty.
     # "mattermost": "https://chat.canonical.com/canonical/channels/documentation",
