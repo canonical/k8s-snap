@@ -8,7 +8,6 @@ NIGHTLY = "nightly"
 WEEKLY = "weekly"
 GPU = "gpu"
 CONFORMANCE = "conformance_tests"
-PERFORMANCE = "performance"
 PROMOTE_CANDIDATE = "beta_to_candidate"
 PROMOTE_STABLE = "candidate_to_stable"
 
@@ -19,7 +18,6 @@ TEST_TAGS = [
     NIGHTLY,
     WEEKLY,
     CONFORMANCE,
-    PERFORMANCE,
     GPU,
     PROMOTE_CANDIDATE,
     PROMOTE_STABLE,

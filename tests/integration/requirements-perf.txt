@@ -1,3 +1,0 @@
-pytest==9.2.0
-pytest-benchmark==5.3.1
-pytest-benchmark[histogram]==5.3.1

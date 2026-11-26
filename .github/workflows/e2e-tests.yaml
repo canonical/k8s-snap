@@ -373,10 +373,6 @@ jobs:
             echo "ctx_source=${TEST_COLLECTION_REPO}@${TEST_COLLECTION_REF}"
             echo "ctx_run_url=${ctx_run_url}"
           } >> "$GITHUB_ENV"
-      - name: Performance flags
-        if: ${{ contains(inputs.test-tags, 'performance') }}
-        run: |
-          echo "PERFORMANCE_FLAGS=--benchmark-storage=baselines --benchmark-autosave" >> $GITHUB_ENV
       - name: Run ${{ inputs.parallel && env.short_test_name || 'all tests' }}
         env:
           TEST_SNAP: ${{ steps.download-snap.outputs.snap-path }}
@@ -409,7 +405,7 @@ jobs:
             done
           fi
 
-          cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- $PARALLEL_TEST $PERFORMANCE_FLAGS --tags $INPUT_TEST_TAGS $EXTRA_TEST_ARGS
+          cd tests/integration && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox -e integration -- $PARALLEL_TEST --tags $INPUT_TEST_TAGS $EXTRA_TEST_ARGS
       - name: Report failure context
         if: ${{ failure() || cancelled() }}
         run: |
@@ -445,18 +441,6 @@ jobs:
         with:
           name: subunit-${{ env.test_name }}.html
           path: tests/integration/subunit.html
-      - name: Prepare performance test results
-        if: contains(inputs.test-tags, 'performance')
-        run: |
-          mkdir -p performance-test-results
-          mv tests/integration/baselines/*/0001_*.json \
-            "performance-test-results/${test_name}.json"
-      - name: Upload performance test results
-        if: contains(inputs.test-tags, 'performance')
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
-        with:
-          name: performance-test-results-${{ env.test_name }}
-          path: performance-test-results
       - name: Upload test metadata
         if: ${{ inputs.upload-results && always() }}
         env:
