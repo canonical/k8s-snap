@@ -98,7 +98,7 @@ jobs:
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - name: Upload Trivy repo scan results to GitHub Security tab
         if: ${{ !cancelled() && inputs.upload-sarif == true && (steps.trivy-scan.outcome == 'success' || steps.trivy-scan.outcome == 'failure') && hashFiles('.trivy/repo-sarifs/*.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        uses: github/codeql-action/upload-sarif@915412ff23e8b7659517e607487dbeae018f2934 # v4.39.5
         with:
           sarif_file: ./.trivy/repo-sarifs
           # Attribute results to the branch that was actually scanned,
@@ -110,7 +110,7 @@ jobs:
           category: trivy-repo-scan${{ inputs.checkout-ref && format('/{0}', inputs.checkout-ref) || '' }}
       - name: Upload Trivy snap scan results to GitHub Security tab
         if: ${{ !cancelled() && inputs.upload-sarif == true && (steps.trivy-scan.outcome == 'success' || steps.trivy-scan.outcome == 'failure') && hashFiles('.trivy/snap-sarifs/*.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        uses: github/codeql-action/upload-sarif@915412ff23e8b7659517e607487dbeae018f2934 # v4.39.5
         with:
           sarif_file: ./.trivy/snap-sarifs
           # Attribute results to the branch that was actually scanned,
