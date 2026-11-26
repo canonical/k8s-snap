@@ -30,6 +30,13 @@ class LLMError(RuntimeError):
     """Raised when the model endpoint fails or returns something unusable."""
 
 
+class LLMReplyError(LLMError):
+    """The model answered, but the reply is cut off or not the requested JSON.
+
+    Unlike a transport failure, this is worth retrying with feedback.
+    """
+
+
 @dataclasses.dataclass(frozen=True)
 class Provider:
     name: str
@@ -109,7 +116,7 @@ class ChatClient:
         self.calls_made = 0
 
     def complete(
-        self, messages: List[Dict[str, str]], *, max_tokens: int = 2000
+        self, messages: List[Dict[str, str]], *, max_tokens: int = 8000
     ) -> str:
         """Return the reply to ``messages``, retrying rate limits and 5xx."""
 
@@ -143,14 +150,19 @@ class ChatClient:
                     f"HTTP {response.status_code} from {url}: {response.text[:300]}"
                 )
             try:
-                body = response.json()
-                return str(body["choices"][0]["message"]["content"] or "")
+                choice = response.json()["choices"][0]
+                content = str(choice["message"]["content"] or "")
             except (ValueError, KeyError, IndexError, TypeError):
                 content_type = response.headers.get("content-type", "")
                 raise LLMError(
                     f"{url} returned no chat completion ({content_type}): "
                     f"{response.text[:200]!r}"
                 ) from None
+            # Reasoning models spend part of max_tokens thinking; a reply cut
+            # off there is half a JSON object.
+            if choice.get("finish_reason") == "length":
+                raise LLMReplyError(f"reply was cut off at max_tokens={max_tokens}")
+            return content
         raise LLMError(f"{url}: giving up after {MAX_ATTEMPTS} attempts ({last_error})")
 
 
@@ -170,11 +182,11 @@ def parse_json_reply(text: str) -> Dict[str, Any]:
     cleaned = _FENCE.sub("", text.strip())
     start = cleaned.find("{")
     if start < 0:
-        raise LLMError(f"reply contains no JSON object: {text[:200]!r}")
+        raise LLMReplyError(f"reply contains no JSON object: {text[:200]!r}")
     try:
         value, _end = json.JSONDecoder().raw_decode(cleaned, start)
     except json.JSONDecodeError as exc:
-        raise LLMError(f"reply is not valid JSON: {exc}") from None
+        raise LLMReplyError(f"reply is not valid JSON: {exc}") from None
     if not isinstance(value, dict):
-        raise LLMError("reply JSON is not an object")
+        raise LLMReplyError("reply JSON is not an object")
     return value

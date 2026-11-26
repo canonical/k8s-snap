@@ -15,6 +15,7 @@ from metrics.llm import (  # noqa: E402
     PROVIDERS,
     ChatClient,
     LLMError,
+    LLMReplyError,
     parse_json_reply,
     resolve_provider,
 )
@@ -116,10 +117,32 @@ class ChatClientTest(unittest.TestCase):
             environ=env,
         )
 
+        truncated = ChatClient(
+            PROVIDERS["github"],
+            session=FakeSession(
+                [
+                    FakeResponse(
+                        200,
+                        {
+                            "choices": [
+                                {
+                                    "message": {"content": '{"decision": "ru'},
+                                    "finish_reason": "length",
+                                }
+                            ]
+                        },
+                    )
+                ]
+            ),
+            environ=env,
+        )
+
         with self.assertRaisesRegex(LLMError, "HTTP 400.*unknown model"):
             bad_request.complete([])
         with self.assertRaisesRegex(LLMError, "no chat completion.*text/plain"):
             plain_text.complete([])
+        with self.assertRaisesRegex(LLMReplyError, "cut off at max_tokens=8000"):
+            truncated.complete([])
 
 
 class ParseJsonReplyTest(unittest.TestCase):
