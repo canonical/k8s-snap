@@ -342,11 +342,17 @@ jobs:
           if [ -n "${PROPOSER_MODEL}" ]; then
             model_args=(--model "${PROPOSER_MODEL}")
           fi
+          status=0
           python ci/k8s-ci.py metrics propose-rules --provider github \
             --repo "${GITHUB_REPOSITORY}" --limit "${PROPOSE_LIMIT}" \
             "${model_args[@]}" --write --report "${RUNNER_TEMP}/rule-proposals.md" \
-            > /dev/null
-          cat "${RUNNER_TEMP}/rule-proposals.md" >> "${GITHUB_STEP_SUMMARY}"
+            > /dev/null || status=$?
+          if [ -f "${RUNNER_TEMP}/rule-proposals.md" ]; then
+            cat "${RUNNER_TEMP}/rule-proposals.md" >> "${GITHUB_STEP_SUMMARY}"
+          fi
+          if [ "${status}" -ne 0 ]; then
+            exit "${status}"
+          fi
           cp "${RUNNER_TEMP}/rule-proposals.md" ci/rule-proposals.md
           if git diff --quiet -- ci/failure_rules.yaml; then
             echo "changed=false" >> "${GITHUB_OUTPUT}"

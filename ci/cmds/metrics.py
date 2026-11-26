@@ -686,7 +686,11 @@ def cmd_propose_rules(args: argparse.Namespace) -> int:
     else:
         print(report, end="")
     if proposals and all(p.decision == "error" for p in proposals):
-        print("metrics propose-rules: every model call failed", file=sys.stderr)
+        reasons = sorted({p.reason for p in proposals})
+        print(
+            "metrics propose-rules: every model call failed: " + "; ".join(reasons),
+            file=sys.stderr,
+        )
         return 1
     return 0
 
