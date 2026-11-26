@@ -56,7 +56,9 @@ jobs:
           timeout_minutes: 5
           max_attempts: 5
           retry_wait_seconds: 5
-          command: sudo apt-get install -y tox
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y tox
       - name: Extract Kubernetes versions
         id: versions
         env:
@@ -103,7 +105,9 @@ jobs:
           timeout_minutes: 5
           max_attempts: 5
           retry_wait_seconds: 5
-          command: sudo apt-get install -y tox
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y tox
       - name: Lint and unit tests
         run: |
           cd tests/integration && tox -e lint
