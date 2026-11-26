@@ -24,6 +24,7 @@ from metrics.issues import (
     GitHubIssueClient,
     open_issues,
 )
+from metrics.llm import PROVIDERS, ChatClient, resolve_provider
 from metrics.logs import fetch_and_fingerprint, pending_jobs, stale_jobs
 from metrics.precision import (
     DEFAULT_MAX_SUCCESS_HIT_RATE,
@@ -31,6 +32,12 @@ from metrics.precision import (
     DEFAULT_SAMPLE,
     check_rules,
     render_markdown,
+)
+from metrics.propose import (
+    DEFAULT_ATTEMPTS,
+    DEFAULT_LIMIT,
+    propose_rules,
+    render_report,
 )
 from metrics.report import build_catalogue, render_digest_markdown, write_reports
 from metrics.rollup import derive_rollup, derive_rollups, open_issue_backlog
@@ -448,6 +455,57 @@ def add_metrics_cmds(parser: argparse.ArgumentParser) -> None:
     check.add_argument("--json", action="store_true", help="Print the report as JSON.")
     check.set_defaults(func=cmd_check_rules)
 
+    propose = metrics_sub.add_parser(
+        "propose-rules",
+        help="Ask a model to propose rules for unclassified signatures, and "
+        "keep only those that pass the deterministic checks.",
+    )
+    _add_common_args(propose)
+    propose.add_argument(
+        "--rules",
+        default=DEFAULT_RULES_PATH,
+        type=Path,
+        help=f"Rule pack to extend (default: {DEFAULT_RULES_PATH})",
+    )
+    propose.add_argument(
+        "--provider",
+        choices=("auto", *sorted(PROVIDERS)),
+        default="auto",
+        help="Model provider: github (GITHUB_TOKEN with models:read) or "
+        "openrouter (OPENROUTER_API_KEY). auto picks the first with a token.",
+    )
+    propose.add_argument("--model", help="Model name (default: the provider's).")
+    propose.add_argument(
+        "--limit",
+        type=int,
+        default=DEFAULT_LIMIT,
+        help=f"Unclassified signatures to try, most jobs first (default: {DEFAULT_LIMIT}).",
+    )
+    propose.add_argument(
+        "--attempts",
+        type=int,
+        default=DEFAULT_ATTEMPTS,
+        help="Model attempts per signature; a rejection is fed back "
+        f"(default: {DEFAULT_ATTEMPTS}).",
+    )
+    propose.add_argument(
+        "--offline",
+        action="store_true",
+        help="Fetch no job logs and skip the successful-job precision check.",
+    )
+    propose.add_argument(
+        "--write",
+        action="store_true",
+        help="Write accepted rules into --rules (default: report only).",
+    )
+    propose.add_argument(
+        "--report", type=Path, help="Also write the Markdown report to this file."
+    )
+    propose.add_argument(
+        "--json", action="store_true", help="Print the outcomes as JSON."
+    )
+    propose.set_defaults(func=cmd_propose_rules)
+
 
 def _add_common_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
@@ -600,6 +658,35 @@ def cmd_check_rules(args: argparse.Namespace) -> int:
     else:
         print(render_markdown(reports, args.max_success_hit_rate), end="")
     if args.fail_on_imprecise and any(r.verdict == "imprecise" for r in reports):
+        return 1
+    return 0
+
+
+def cmd_propose_rules(args: argparse.Namespace) -> int:
+    """Propose rules for unknown signatures; keep the ones that pass checks."""
+
+    provider = resolve_provider(args.provider)
+    chat = ChatClient(provider, model=args.model)
+    conn = open_database(args.db)
+    client = None if args.offline else GitHubClient(repo=args.repo, token=args.token)
+
+    def complete(messages: list) -> str:
+        return chat.complete(messages)
+
+    proposals, pack_text = propose_rules(
+        conn, args.rules, complete, client, limit=args.limit, attempts=args.attempts
+    )
+    report = render_report(proposals, model=f"{provider.name}:{chat.model}")
+    if args.report:
+        args.report.write_text(report, encoding="utf-8")
+    if args.write and pack_text != args.rules.read_text(encoding="utf-8"):
+        args.rules.write_text(pack_text, encoding="utf-8")
+    if args.json:
+        print(json.dumps([p.as_dict() for p in proposals], indent=2))
+    else:
+        print(report, end="")
+    if proposals and all(p.decision == "error" for p in proposals):
+        print("metrics propose-rules: every model call failed", file=sys.stderr)
         return 1
     return 0
 
