@@ -20,7 +20,7 @@
 ##   Stage A router in metrics/router.py, which runs before these rules.
 ##
 
-version: 3
+version: 4
 
 rules:
   # --- infra.runner: the runner machine itself was unhealthy ---------------
@@ -132,6 +132,18 @@ rules:
         Request timeout: /twirp/github.actions.results.api.v1.ArtifactService/CreateArtifact'
     notes: GitHub Actions ArtifactService timed out repeatedly during artifact upload;
       this is a transient external dependency failure.
+
+  - id: external-github
+    failure_class: external.dependency
+    subclass: github
+    excerpt_pattern: curl .*https://github\.com/.* returned non-zero exit status (?:28|35|56)
+    examples:
+      - 'subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-1-a391ac-registry'',
+        ''--'', ''bash'', ''-c'', ''curl -L https://github.com/distribution/distribution/releases/download/v2.8.3/registry_2.8.3_linux_amd64.tar.gz
+        -o /tmp/registry_v2.8.3_linux_amd64.tar.gz'']'' returned non-zero exit status
+        56.'
+    notes: 'Curl failed to download a release asset from github.com due to an external
+      network failure (exit status 56: CURLE_RECV_ERROR, connection died).'
 
   # --- ci.config: our workflow wiring was wrong ----------------------------
 
