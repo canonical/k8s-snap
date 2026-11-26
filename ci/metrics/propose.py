@@ -32,7 +32,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
 from metrics.gh import GitHubError
-from metrics.llm import LLMError, parse_json_reply
+from metrics.llm import LLMError, LLMReplyError, parse_json_reply
 from metrics.precision import (
     DEFAULT_MAX_SUCCESS_HIT_RATE,
     DEFAULT_RUNS,
@@ -599,9 +599,22 @@ def propose_rules(
         messages = build_messages(target, evidence, pack, skill)
         for attempt in range(1, attempts + 1):
             proposal.attempts = attempt
+            reply = ""
             try:
                 reply = complete(messages)
                 answer = parse_json_reply(reply)
+            except LLMReplyError as exc:
+                proposal.decision, proposal.reason = "error", str(exc)
+                messages = messages + [
+                    {"role": "assistant", "content": reply or "(cut off)"},
+                    {
+                        "role": "user",
+                        "content": f"Unusable reply: {exc}. Reply with only the "
+                        "JSON object, escape every backslash in a regex as two "
+                        "backslashes, and keep reason and notes to two sentences.",
+                    },
+                ]
+                continue
             except LLMError as exc:
                 proposal.decision, proposal.reason = "error", str(exc)
                 break

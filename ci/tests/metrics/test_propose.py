@@ -221,6 +221,26 @@ class ProposeRulesTest(unittest.TestCase):
         feedback = model.calls[1][-1]["content"]
         self.assertIn("Rejected: examples[0] is not copied from the evidence", feedback)
 
+    def test_unusable_reply_is_retried_with_feedback(self) -> None:
+        pack = _write_pack()
+        model = ScriptedModel(
+            {
+                "aaaaaaaaaaaaaaaa": [
+                    '{"decision": "rule", "rule": {"id": "test-',
+                    _rule(),
+                ]
+            }
+        )
+
+        proposals, _ = propose_rules(_db(pack), pack, model, None, limit=1)
+
+        self.assertEqual(
+            (proposals[0].decision, proposals[0].attempts), ("accepted", 2)
+        )
+        self.assertIn(
+            "Unusable reply: reply is not valid JSON", model.calls[1][-1]["content"]
+        )
+
     def test_rules_that_move_owned_signatures_or_miss_the_target_are_rejected(
         self,
     ) -> None:
@@ -284,7 +304,7 @@ class ProposeRulesTest(unittest.TestCase):
                 "aaaaaaaaaaaaaaaa": [
                     {"decision": "unknown", "reason": "no cause shown"}
                 ],
-                "cccccccccccccccc": ["this is not JSON"],
+                "cccccccccccccccc": ["this is not JSON", "still not JSON"],
             }
         )
 
@@ -294,7 +314,7 @@ class ProposeRulesTest(unittest.TestCase):
             [(p.decision, p.reason) for p in proposals],
             [
                 ("unknown", "no cause shown"),
-                ("error", "reply contains no JSON object: 'this is not JSON'"),
+                ("error", "reply contains no JSON object: 'still not JSON'"),
             ],
         )
         self.assertEqual(text, PACK)
