@@ -13,11 +13,16 @@ on:
     pull_request:
         paths:
             - .github/workflows/security-triage.yaml
-            - ci/security_triage.py
+            - ci/k8s-ci.py
+            - ci/cmds/**
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+    cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
-    contents: read
-    security-events: read
+    contents: read # for actions/checkout to fetch code
+    security-events: read # to read code scanning alerts via gh api
 
 jobs:
     triage:
@@ -26,21 +31,21 @@ jobs:
         # Only post to Mattermost on schedule or manual dispatch (not on PRs)
         steps:
             - name: Check out code
-              uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
               with:
                   persist-credentials: false
 
             - name: Setup Python
-              uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+              uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
               with:
                   python-version: "3.12"
 
             - name: Restore triage state
-              uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+              uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
               with:
                   path: /tmp/security-triage-state.json
-                  key: security-triage-state-${{ github.run_id }}-${{ github.run_attempt }}
-                  restore-keys: security-triage-state-
+                  key: security-triage-state-v2-${{ github.run_id }}-${{ github.run_attempt }}
+                  restore-keys: security-triage-state-v2-
 
             - name: Run security triage
               env:
@@ -53,9 +58,10 @@ jobs:
                   FULL_MODE: ${{ inputs.full || 'false' }}
               run: |
                   if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
-                    python3 ci/security_triage.py --dry-run --full
+                    flags=(--dry-run --full)
                   elif [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" && "$FULL_MODE" == "true" ]]; then
-                    python3 ci/security_triage.py --full
+                    flags=(--full)
                   else
-                    python3 ci/security_triage.py
+                    flags=()
                   fi
+                  python3 ci/k8s-ci.py security triage --state-file "$STATE_FILE" "${flags[@]}"

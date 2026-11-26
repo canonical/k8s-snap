@@ -26,7 +26,7 @@ runs:
         RETRY_WAIT_SECONDS: ${{ inputs.retry_wait_seconds }}
       run: |
         for attempt in $(seq 1 "${RETRY_MAX_ATTEMPTS}"); do
-          if timeout "${RETRY_TIMEOUT_MINUTES}m" bash -c "${RETRY_COMMAND}"; then
+          if timeout "${RETRY_TIMEOUT_MINUTES}m" bash -eo pipefail -c "${RETRY_COMMAND}"; then
             exit 0
           fi
           if [ "${attempt}" -eq "${RETRY_MAX_ATTEMPTS}" ]; then

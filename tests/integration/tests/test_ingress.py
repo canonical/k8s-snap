@@ -77,6 +77,7 @@ def test_ingress(instances: List[harness.Instance]):
     lb_cidr = util.find_suitable_cidr(
         parent_cidr=instance_default_cidr,
         excluded_ips=[instance_default_ip],
+        instance=instance,
     )
     instance.exec(
         ["k8s", "set", f"load-balancer.cidrs={lb_cidr}", "load-balancer.l2-mode=true"]

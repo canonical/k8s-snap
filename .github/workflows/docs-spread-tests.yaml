@@ -21,13 +21,13 @@ jobs:
       no_suites: ${{ steps.generate.outputs.no_suites }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
           persist-credentials: false
 
       - name: Checkout upstream spread script
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: canonical/operator-workflows
           ref: ${{ env.OPERATOR_WORKFLOWS_REF }}
@@ -38,12 +38,12 @@ jobs:
           persist-credentials: false
 
       - name: Set up Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
-          python-version: "3.x"
+          python-version: "3.12"
 
       - name: Install Python dependencies
-        run: pip install pyyaml==6.0.2
+        run: pip install --require-hashes -r ci/requirements-pyyaml.txt
 
       - id: generate
         name: Generate tasks.yaml for changed docs
@@ -82,7 +82,7 @@ jobs:
 
       - name: Upload generated spread tasks
         if: steps.generate.outputs.no_suites != 'true'
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: spread_generated
           path: tests/spread_generated
@@ -100,13 +100,13 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
           persist-credentials: false
 
       - name: Download generated spread tasks
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: spread_generated
           path: tests/spread_generated
@@ -118,15 +118,15 @@ jobs:
           mkdir -p tests/spread_generated/{snap_clean,snap_bootstrapped}
 
       - name: Set up Go
-        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7
         with:
-          go-version: "1.23"
+          go-version: "1.27"
 
       - name: Install spread
         shell: bash
         run: |
           set -euo pipefail
-          go install github.com/canonical/spread/cmd/spread@latest
+          go install github.com/canonical/spread/cmd/spread@32cad07bfd7fffb395f6c6134b68b1c24f9490c0
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
 
       - name: Skip empty suite

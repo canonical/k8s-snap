@@ -1,6 +1,9 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
+from __future__ import annotations
+
+import concurrent.futures
 import ipaddress
 import json
 import logging
@@ -11,14 +14,16 @@ import subprocess
 import time
 import urllib.error
 import urllib.request
+import uuid
 from datetime import datetime
 from functools import partial
 from pathlib import Path
-from typing import Any, Callable, List, Mapping, Optional, Union
+from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple, Union
 
 import pytest
 from tenacity import (
     RetryCallState,
+    RetryError,
     Retrying,
     retry,
     retry_if_exception,
@@ -30,6 +35,12 @@ from tenacity import (
 )
 from test_util import config, harness
 
+# Postponed annotation evaluation is required: `test_util.harness` imports
+# `bare_metal` first (isort order), which imports this module while the
+# `harness` package is still half-initialised, so annotations such as
+# `harness.Instance` can't be evaluated at definition time.
+
+
 LOG = logging.getLogger(__name__)
 RISKS = ["stable", "candidate", "beta", "edge"]
 TRACK_RE = re.compile(r"^v?(\d+)\.(\d+)(.\d+)?(\S*)$")
@@ -37,13 +48,14 @@ MAIN_BRANCH = "main"
 # kube-proxy was replaced by the Cilium kube-proxy replacement in 1.36. Snaps older
 # than this always run kube-proxy and ignore `network.kube-proxy-enabled`.
 KUBE_PROXY_REPLACEMENT_MIN_VERSION = (1, 36)
+MAX_LOGGED_OUTPUT_CHARS = 1000
 
 
 def _is_retryable_http_error(exc: BaseException) -> bool:
     """True for 429, 5xx, or network-level errors."""
     if isinstance(exc, urllib.error.HTTPError):
         return exc.code == 429 or 500 <= exc.code < 600
-    if isinstance(exc, urllib.error.URLError):
+    if isinstance(exc, (urllib.error.URLError, TimeoutError)):
         return True
     return False
 
@@ -54,6 +66,7 @@ def fetch_text(
     retries: int = 6,
     min_wait_s: float = 1.0,
     max_wait_s: float = 30.0,
+    timeout: float = 30.0,
 ) -> str:
     """GET url as text with exponential backoff on transient errors."""
     req = urllib.request.Request(url, headers=headers or {})
@@ -64,7 +77,7 @@ def fetch_text(
         reraise=True,
     ):
         with attempt:
-            with urllib.request.urlopen(req) as response:  # nosec
+            with urllib.request.urlopen(req, timeout=timeout) as response:  # nosec
                 return response.read().decode()
 
 
@@ -85,6 +98,37 @@ def run(command: list, **kwargs) -> subprocess.CompletedProcess:
 
     LOG.debug("Execute command %s (kwargs=%s)", logged_command, logged_kwargs)
     return subprocess.run(command, **kwargs)
+
+
+def _decode_output(stream: Union[bytes, str, None]) -> str:
+    if stream is None:
+        return ""
+    if isinstance(stream, bytes):
+        return stream.decode(errors="replace")
+    return stream
+
+
+def _truncate_output(text: str, max_chars: int = MAX_LOGGED_OUTPUT_CHARS) -> str:
+    """Keep head and tail of long command output so logs stay bounded."""
+    omitted = len(text) - max_chars
+    if omitted <= 0:
+        return text
+    head_len = max_chars // 2
+    tail_start = len(text) - (max_chars - head_len)
+    return f"{text[:head_len]}...[truncated {omitted} chars]...{text[tail_start:]}"
+
+
+class _ConditionNotMetError(AssertionError):
+    """Raised when a polled command's output fails Retriable.until()."""
+
+    def __init__(self, returncode: int, stdout: str, stderr: str) -> None:
+        self.returncode = returncode
+        self.stdout = _truncate_output(stdout)
+        self.stderr = _truncate_output(stderr)
+        super().__init__(
+            f"Failed to meet condition: rc={returncode} "
+            f"stdout={self.stdout!r} stderr={self.stderr!r}"
+        )
 
 
 class Retriable:
@@ -116,20 +160,30 @@ class Retriable:
 
         try:
             resp = self._run(command_args, **command_kwds)
+        except subprocess.TimeoutExpired as e:
+            stdout = _truncate_output(_decode_output(e.stdout))
+            stderr = _truncate_output(_decode_output(e.stderr))
+
+            LOG.warning(f"  timed out after {e.timeout}s")
+            if stdout:
+                LOG.warning(f"  stdout={stdout}")
+            if stderr:
+                LOG.warning(f"  stderr={stderr}")
+            raise
         except subprocess.CalledProcessError as e:
-            stdout = e.stdout or ""
-            stderr = e.stderr or ""
-            if not command_kwds.get("text"):
-                # The output will be in bytes if text is not set / is False.
-                stdout = e.stdout.decode() if e.stdout else ""
-                stderr = e.stderr.decode() if e.stderr else ""
+            stdout = _truncate_output(_decode_output(e.stdout))
+            stderr = _truncate_output(_decode_output(e.stderr))
 
             LOG.warning(f"  rc={e.returncode}")
             LOG.warning(f"  stdout={stdout}")
             LOG.warning(f"  stderr={stderr}")
             raise
-        if self._condition:
-            assert self._condition(resp), "Failed to meet condition"
+        if self._condition and not self._condition(resp):
+            raise _ConditionNotMetError(
+                resp.returncode,
+                _decode_output(resp.stdout),
+                _decode_output(resp.stderr),
+            )
         return resp
 
     def on(self, instance: harness.Instance) -> "Retriable":
@@ -179,10 +233,14 @@ def stubbornly(
     def _before_sleep(retry_state: RetryCallState):
         attempt = retry_state.attempt_number
         tries = f"/{retries}" if retries else ""
-        errstr = ""
-        if retry_state.outcome:
-            errstr = f" Error: {retry_state.outcome.exception()}"
-        LOG.info(f"Attempt {attempt}{tries} failed.{errstr}")
+        exc = retry_state.outcome.exception() if retry_state.outcome else None
+        if isinstance(exc, _ConditionNotMetError):
+            LOG.info(
+                f"Attempt {attempt}{tries} failed: condition not met (rc={exc.returncode})"
+            )
+        else:
+            errstr = f" Error: {exc}" if exc is not None else ""
+            LOG.info(f"Attempt {attempt}{tries} failed.{errstr}")
         LOG.info(f"Retrying in {delay_s} seconds...")
 
     waits = wait_fixed(delay_s) if delay_s else wait_fixed(0)
@@ -218,14 +276,16 @@ def download_preloaded_snaps():
 
     LOG.info(f"Downloading snaps for preloading: {config.PRELOADED_SNAPS}")
     for snap in config.PRELOADED_SNAPS:
-        run(
+        # Retry with backoff to survive transient network/Snap Store errors.
+        stubbornly(retries=5, delay_s=5).exec(
             [
                 "snap",
                 "download",
                 snap,
                 f"--basename={snap}",
                 "--target-directory=/tmp",
-            ]
+            ],
+            timeout=60 * 5,
         )
 
 
@@ -244,20 +304,15 @@ def preload_snaps(instance: harness.Instance):
         instance.send_file(source=ack.as_posix(), destination=remote.as_posix())
 
         LOG.info("Running snap ack for %s", remote.as_posix())
-        stubbornly(retries=3, delay_s=2).on(instance).exec(
-            ["snap", "ack", remote.as_posix()]
+        stubbornly(retries=5, delay_s=5).on(instance).exec(
+            ["snap", "ack", remote.as_posix()], timeout=60 * 5
         )
-
-        LOG.info("Wait for snap changes to finish...")
-        stubbornly(retries=40, delay_s=5).on(instance).until(
-            lambda p: "Doing" not in p.stdout.decode()
-        ).exec(["snap", "changes"])
 
         LOG.info("Install snap file %s.", preloaded_snap)
         remote = remote_dir / snap.name
         instance.send_file(source=snap.as_posix(), destination=remote.as_posix())
-        stubbornly(retries=3, delay_s=5).on(instance).exec(
-            ["snap", "install", remote.as_posix()]
+        stubbornly(retries=5, delay_s=10).on(instance).exec(
+            ["snap", "install", remote.as_posix()], timeout=60 * 5
         )
 
 
@@ -287,11 +342,188 @@ def configure_cpuset_controller(instance: harness.Instance):
     )
 
 
+SETTLED_SNAP_STATUSES = {"Done", "Undone", "Hold", "Error"}
+
+
+def _has_no_in_flight_snap_changes(res: subprocess.CompletedProcess) -> bool:
+    stdout = _decode_output(res.stdout)
+    for line in stdout.splitlines():
+        parts = line.strip().split()
+        if (
+            len(parts) >= 2
+            and parts[0].isdigit()
+            and parts[1] not in SETTLED_SNAP_STATUSES
+        ):
+            return False
+    return True
+
+
+def wait_for_snap_change(
+    instance: harness.Instance,
+    snap_name: str = config.SNAP_NAME,
+    retries: int = 120,
+    delay_s: Union[float, int] = 5,
+) -> None:
+    """Wait until all in-flight snapd changes for snap_name have settled."""
+    LOG.info("Waiting for in-flight %s snap changes on %s", snap_name, instance.id)
+    stubbornly(retries=retries, delay_s=delay_s).on(instance).until(
+        _has_no_in_flight_snap_changes
+    ).exec(["snap", "changes", snap_name])
+
+
+def wait_for_snap_change_hook(
+    instance: harness.Instance,
+    max_attempts: int,
+    snap_name: str = config.SNAP_NAME,
+    **wait_kwargs,
+) -> Callable[[RetryCallState], None]:
+    """Return a tenacity hook that waits for snap changes only between attempts."""
+
+    def _hook(retry_state: RetryCallState) -> None:
+        if retry_state.attempt_number < max_attempts:
+            wait_for_snap_change(instance, snap_name=snap_name, **wait_kwargs)
+
+    return _hook
+
+
+def download_k8s_snaps(
+    channels: Sequence[str],
+    cache_dir: Union[str, Path],
+    arch: Optional[str] = None,
+    retries: int = 5,
+    delay_s: int = 5,
+    timeout: int = 60 * 5,
+) -> Dict[str, Tuple[Path, Path]]:
+    """Download k8s snaps and assertions for channels to cache_dir on host."""
+    if not config.CACHE_SNAPS:
+        return {}
+
+    cache_path = Path(cache_dir)
+    cache_path.mkdir(parents=True, exist_ok=True)
+
+    unique_channels: List[str] = []
+    for ch in channels:
+        if ch.startswith("/"):
+            continue
+        if ch not in unique_channels:
+            unique_channels.append(ch)
+
+    if not unique_channels:
+        return {}
+
+    env = os.environ.copy()
+    if arch:
+        env["UBUNTU_STORE_ARCH"] = arch
+
+    def _download(channel: str) -> Tuple[str, Tuple[Path, Path]]:
+        if _as_int(channel):
+            channel_args = ["--revision", str(channel)]
+            basename = f"k8s_{channel}"
+        elif "@" in channel:
+            chan, rev = channel.split("@", maxsplit=1)
+            # snap download rejects --channel combined with --revision.
+            channel_args = ["--revision", rev]
+            sanitized = re.sub(r"[^a-zA-Z0-9_.-]", "_", f"{chan}@{rev}")
+            basename = f"k8s_{sanitized}"
+        else:
+            channel_args = ["--channel", channel]
+            sanitized = re.sub(r"[^a-zA-Z0-9_.-]", "_", channel)
+            basename = f"k8s_{sanitized}"
+
+        snap_file = cache_path / f"{basename}.snap"
+        assert_file = cache_path / f"{basename}.assert"
+
+        def _cleanup(state: Optional[RetryCallState] = None) -> None:
+            if (
+                state is not None
+                and state.outcome is not None
+                and not state.outcome.failed
+            ):
+                return
+            for ext in (".snap", ".assert", ".snap.partial", ".assert.partial"):
+                (cache_path / f"{basename}{ext}").unlink(missing_ok=True)
+
+        if not (snap_file.is_file() and assert_file.is_file()):
+            _cleanup()
+            cmd = [
+                "snap",
+                "download",
+                f"--target-directory={cache_path}",
+                f"--basename={basename}",
+                config.SNAP_NAME,
+                *channel_args,
+            ]
+            try:
+                stubbornly(
+                    retries=retries,
+                    delay_s=delay_s,
+                    reraise=True,
+                    after=_cleanup,
+                ).exec(
+                    cmd,
+                    env=env,
+                    sensitive_kwargs=True,
+                    timeout=timeout,
+                )
+            except Exception:
+                _cleanup()
+                raise
+        return channel, (snap_file, assert_file)
+
+    results: Dict[str, Tuple[Path, Path]] = {}
+    max_workers = min(4, len(unique_channels))
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_to_channel = {
+            executor.submit(_download, channel): channel for channel in unique_channels
+        }
+        for future in concurrent.futures.as_completed(future_to_channel):
+            ch, paths = future.result()
+            results[ch] = paths
+
+    return {ch: results[ch] for ch in unique_channels}
+
+
+def _install_cached_snap(
+    instance: harness.Instance,
+    snap_path: Union[str, Path],
+    assert_path: Union[str, Path],
+    extra_flags: Optional[List[str]] = None,
+    timeout: int = 60 * 5,
+    retries: int = 3,
+    delay_s: int = 30,
+) -> None:
+    token = uuid.uuid4().hex[:8]
+    assert_p = Path(assert_path)
+    snap_p = Path(snap_path)
+    remote_assert = f"/tmp/{token}_{assert_p.name}"
+    remote_snap = f"/tmp/{token}_{snap_p.name}"
+    cmd = ["snap", "install", "--classic"]
+    if extra_flags:
+        cmd.extend(extra_flags)
+    cmd.append(remote_snap)
+
+    try:
+        instance.send_file(str(assert_p), remote_assert)
+        instance.send_file(str(snap_p), remote_snap)
+        instance.exec(["snap", "ack", remote_assert], timeout=timeout)
+
+        stubbornly(
+            retries=retries,
+            delay_s=delay_s,
+            after=wait_for_snap_change_hook(instance, max_attempts=retries),
+        ).on(instance).exec(cmd, timeout=timeout)
+    finally:
+        instance.exec(["rm", "-f", remote_snap, remote_assert], timeout=60, check=False)
+
+
 def setup_k8s_snap(
     instance: harness.Instance,
     snap: Optional[str] = None,
     connect_interfaces=True,
     tmp_path: Optional[Path] = Path("/home/ubuntu"),
+    timeout: int = 60 * 5,
+    cached_snaps: Optional[Dict[str, Tuple[Union[str, Path], Union[str, Path]]]] = None,
+    delay_s: int = 30,
 ):
     """Installs and sets up the snap on the given instance and connects the interfaces.
 
@@ -304,6 +536,8 @@ def setup_k8s_snap(
             a snap channel@revision to install
             a path to the snap to install
         tmp_path:   path to store the snap on the instance (optional, defaults to /home/ubuntu)
+        timeout:    timeout in seconds for the snap install command (default: 300)
+        cached_snaps: optional pre-downloaded snaps on host
     """
     cmd = ["snap", "install", "--classic"]
     which_snap = snap or config.SNAP
@@ -316,22 +550,37 @@ def setup_k8s_snap(
 
     configure_cpuset_controller(instance)
 
-    if isinstance(which_snap, str) and which_snap.startswith("/"):
-        LOG.info("Install k8s snap by path")
-        snap_path = (tmp_path / "k8s.snap").as_posix()
-        instance.send_file(which_snap, snap_path)
-        cmd += ["--dangerous", snap_path]
-    elif _as_int(which_snap):
-        LOG.info("Install k8s snap by revision")
-        cmd += [config.SNAP_NAME, "--revision", which_snap]
-    elif "/" in which_snap or which_snap in RISKS:
-        LOG.info("Install k8s snap by specific channel: %s", which_snap)
-        cmd += [config.SNAP_NAME, *snap_channel_args(which_snap)]
-    elif channel := tracks_least_risk(which_snap, instance.arch):
-        LOG.info("Install k8s snap by least risky channel: %s", channel)
-        cmd += [config.SNAP_NAME, "--channel", channel]
+    if cached_snaps and which_snap in cached_snaps:
+        LOG.info("Install k8s snap from cache for %s", which_snap)
+        snap_file, assert_file = cached_snaps[which_snap]
+        _install_cached_snap(
+            instance,
+            snap_file,
+            assert_file,
+            timeout=timeout,
+            delay_s=delay_s,
+        )
+    else:
+        if isinstance(which_snap, str) and which_snap.startswith("/"):
+            LOG.info("Install k8s snap by path")
+            snap_path = (tmp_path / "k8s.snap").as_posix()
+            instance.send_file(which_snap, snap_path)
+            cmd += ["--dangerous", snap_path]
+        elif _as_int(which_snap):
+            LOG.info("Install k8s snap by revision")
+            cmd += [config.SNAP_NAME, "--revision", which_snap]
+        elif "/" in which_snap or which_snap in RISKS:
+            LOG.info("Install k8s snap by specific channel: %s", which_snap)
+            cmd += [config.SNAP_NAME, *snap_channel_args(which_snap)]
+        elif channel := tracks_least_risk(which_snap, instance.arch):
+            LOG.info("Install k8s snap by least risky channel: %s", channel)
+            cmd += [config.SNAP_NAME, "--channel", channel]
 
-    stubbornly(retries=3, delay_s=30).on(instance).exec(cmd)
+        stubbornly(
+            retries=3,
+            delay_s=30,
+            after=wait_for_snap_change_hook(instance, max_attempts=3),
+        ).on(instance).exec(cmd, timeout=timeout)
     if connect_interfaces:
         LOG.info("Ensure k8s interfaces and network requirements")
         instance.exec(["/snap/k8s/current/k8s/hack/init.sh"], stdout=subprocess.DEVNULL)
@@ -356,22 +605,32 @@ def snap_refresh(
     instance: harness.Instance,
     channel: str,
     *extra_args: str,
+    timeout: int = 60 * 5,
     retries: int = 3,
     delay_s: int = 30,
+    cached_snaps: Optional[Dict[str, Tuple[Union[str, Path], Union[str, Path]]]] = None,
 ):
-    """Refresh the k8s snap on an instance with retry logic.
+    """Refresh the k8s snap on an instance with retry logic."""
+    if cached_snaps and channel in cached_snaps:
+        LOG.info(
+            "Refreshing %s via cached snap for channel %s on %s",
+            config.SNAP_NAME,
+            channel,
+            instance.id,
+        )
+        snap_file, assert_file = cached_snaps[channel]
+        install_flags = [arg for arg in extra_args if arg != "--amend"]
+        _install_cached_snap(
+            instance,
+            snap_file,
+            assert_file,
+            extra_flags=install_flags,
+            timeout=timeout,
+            retries=retries,
+            delay_s=delay_s,
+        )
+        return
 
-    Snap refresh operations can fail transiently due to snap store issues,
-    network timeouts, or snapd being busy. This function wraps the refresh
-    command with retries to handle these cases.
-
-    Args:
-        instance:   instance on which to refresh the snap
-        channel:    snap channel to refresh to
-        *extra_args: additional arguments to pass to snap refresh (e.g. "--amend")
-        retries:    number of retry attempts (default: 3)
-        delay_s:    delay in seconds between retries (default: 30)
-    """
     cmd = [
         "snap",
         "refresh",
@@ -384,30 +643,98 @@ def snap_refresh(
     LOG.info(
         "Refreshing %s to channel %s on %s", config.SNAP_NAME, channel, instance.id
     )
-    stubbornly(retries=retries, delay_s=delay_s).on(instance).exec(cmd)
+    stubbornly(
+        retries=retries,
+        delay_s=delay_s,
+        after=wait_for_snap_change_hook(instance, max_attempts=retries),
+    ).on(instance).exec(cmd, timeout=timeout)
 
 
-def remove_k8s_snap(instance: harness.Instance):
+def snap_revert(
+    instance: harness.Instance,
+    snap_name: str = config.SNAP_NAME,
+    timeout: int = 60 * 5,
+    retries: int = 3,
+    delay_s: int = 30,
+) -> None:
+    """Revert a snap on an instance with retry logic."""
+    LOG.info("Reverting %s on %s", snap_name, instance.id)
+    stubbornly(
+        retries=retries,
+        delay_s=delay_s,
+        after=wait_for_snap_change_hook(
+            instance, max_attempts=retries, snap_name=snap_name
+        ),
+    ).on(instance).exec(["snap", "revert", snap_name], timeout=timeout)
+
+
+def remove_k8s_snap(instance: harness.Instance, retries: int = 40):
     LOG.info("Uninstall k8s...")
     stubbornly(retries=20, delay_s=5).on(instance).exec(
-        ["snap", "remove", config.SNAP_NAME, "--purge"]
+        ["snap", "remove", config.SNAP_NAME, "--purge"], timeout=60 * 5
     )
 
     LOG.info("Waiting for shims to go away...")
-    stubbornly(retries=40, delay_s=5).on(instance).until(
-        lambda p: all(
-            x not in p.stdout.decode()
-            for x in ["containerd-shim", "cilium", "coredns", "/pause"]
-        )
-    ).exec(["ps", "-fea"])
+    target_procs = ["containerd-shim", "cilium", "coredns", "/pause"]
+    last_lingering_procs: List[str] = []
+
+    def _no_lingering_procs(p: subprocess.CompletedProcess) -> bool:
+        nonlocal last_lingering_procs
+        stdout = p.stdout.decode() if isinstance(p.stdout, bytes) else (p.stdout or "")
+        last_lingering_procs = [
+            line.strip()
+            for line in stdout.splitlines()
+            if any(target in line for target in target_procs)
+        ]
+        if last_lingering_procs:
+            LOG.debug(
+                "Lingering processes on %s: %s", instance.id, last_lingering_procs
+            )
+            return False
+        return True
+
+    try:
+        stubbornly(retries=retries, delay_s=5).on(instance).until(
+            _no_lingering_procs
+        ).exec(["ps", "-fea"])
+    except RetryError:
+        if last_lingering_procs:
+            LOG.error(
+                "Timed out waiting for shims to go away on %s. Lingering processes: %s",
+                instance.id,
+                last_lingering_procs,
+            )
+        raise
 
     LOG.info("Waiting for kubelet and containerd mounts to go away...")
-    stubbornly(retries=40, delay_s=5).on(instance).until(
-        lambda p: all(
-            x not in p.stdout.decode()
-            for x in ["/var/lib/kubelet/pods", "/run/containerd/io.containerd"]
-        )
-    ).exec(["mount"])
+    target_mounts = ["/var/lib/kubelet/pods", "/run/containerd/io.containerd"]
+    last_lingering_mounts: List[str] = []
+
+    def _no_lingering_mounts(p: subprocess.CompletedProcess) -> bool:
+        nonlocal last_lingering_mounts
+        stdout = p.stdout.decode() if isinstance(p.stdout, bytes) else (p.stdout or "")
+        last_lingering_mounts = [
+            line.strip()
+            for line in stdout.splitlines()
+            if any(target in line for target in target_mounts)
+        ]
+        if last_lingering_mounts:
+            LOG.debug("Lingering mounts on %s: %s", instance.id, last_lingering_mounts)
+            return False
+        return True
+
+    try:
+        stubbornly(retries=retries, delay_s=5).on(instance).until(
+            _no_lingering_mounts
+        ).exec(["mount"])
+    except RetryError:
+        if last_lingering_mounts:
+            LOG.error(
+                "Timed out waiting for mounts to go away on %s. Lingering mounts: %s",
+                instance.id,
+                last_lingering_mounts,
+            )
+        raise
 
     # NOTE(neoaggelos): Temporarily disable this as it fails on strict.
     # For details, `snap changes` then `snap change $remove_k8s_snap_change`.
@@ -450,10 +777,12 @@ def wait_until_k8s_ready(
             node_name = hostname(instance)
 
         for attempt in Retrying(
-            stop=stop_after_attempt(retries), wait=wait_fixed(delay_s)
+            stop=stop_after_attempt(retries), wait=wait_fixed(delay_s), reraise=True
         ):
             with attempt:
-                assert is_node_ready(control_node, node_name)
+                assert is_node_ready(
+                    control_node, node_name
+                ), f"Node {node_name} did not reach Ready state (see log above for condition detail)"
                 check_snap_services_ready(instance, skip_services=skip_services)
 
     LOG.info("Successfully checked Kubelet registered on all harness instances.")
@@ -517,6 +846,7 @@ def wait_for_pods_ready(
     retries: int = config.DEFAULT_WAIT_RETRIES,
     delay_s: int = config.DEFAULT_WAIT_DELAY_S,
     expect_pods: bool = True,
+    label_selector: str = "",
 ):
     """
     Wait for all pods to be Running and Ready.
@@ -533,11 +863,14 @@ def wait_for_pods_ready(
         retries: number of retries
         delay_s: delay between retries in seconds
         expect_pods: if False, consider no pods as ready
+        label_selector: if set, only consider pods matching this label selector (kubectl -l syntax).
     """
     ns_args = ["-n", namespace] if namespace else ["--all-namespaces"]
+    selector_args = ["-l", label_selector] if label_selector else []
     LOG.info(
-        "Waiting for all pods to be ready%s",
+        "Waiting for all pods to be ready%s%s",
         f" in namespace {namespace}" if namespace else "",
+        f" matching {label_selector}" if label_selector else "",
     )
 
     def all_pods_ready(p: subprocess.CompletedProcess) -> bool:
@@ -615,7 +948,7 @@ def wait_for_pods_ready(
 
     stubbornly(retries=retries, delay_s=delay_s).on(instance).until(
         all_pods_ready
-    ).exec(["k8s", "kubectl", "get", "pods", *ns_args, "-o", "json"])
+    ).exec(["k8s", "kubectl", "get", "pods", *ns_args, *selector_args, "-o", "json"])
 
 
 def wait_for_dns(instance: harness.Instance):
@@ -645,6 +978,23 @@ def wait_for_load_balancer(instance: harness.Instance):
             "--timeout=20m",
         ]
     )
+
+
+def wait_for_json(
+    instance: harness.Instance,
+    command: List[str],
+    condition: Callable[[Any], bool],
+    retries: int = 30,
+    delay_s: int = 10,
+) -> Any:
+    """Re-run command until condition holds on its JSON output, and return it."""
+    p = (
+        stubbornly(retries=retries, delay_s=delay_s)
+        .on(instance)
+        .until(lambda p: condition(json.loads(p.stdout.decode())))
+        .exec(command)
+    )
+    return json.loads(p.stdout.decode())
 
 
 def hostname(instance: harness.Instance) -> str:
@@ -814,27 +1164,6 @@ def get_default_ip(instance: harness.Instance, ipv6=False):
         return p.stdout.decode().split(" ")[8]
 
 
-def get_global_unicast_ipv6(instance: harness.Instance, interface="eth0") -> str | None:
-    # ---
-    # 2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
-    #     link/ether 00:16:3e:0f:4d:1e brd ff:ff:ff:ff:ff:ff
-    #     inet
-    #     inet6 fe80::216:3eff:fe0f:4d1e/64 scope link
-    # ---
-    # Fetching the global unicast address for the specified interface, e.g. fe80::216:3eff:fe0f:4d1e
-    result = instance.exec(
-        ["ip", "-6", "addr", "show", "dev", interface, "scope", "global"],
-        capture_output=True,
-        text=True,
-    )
-    output = result.stdout
-    ipv6_regex = re.compile(r"inet6\s+([a-f0-9:]+)\/[0-9]*\s+scope global")
-    match = ipv6_regex.search(output)
-    if match:
-        return match.group(1)
-    return None
-
-
 # Checks if a datastring is a valid RFC3339 date.
 def is_valid_rfc3339(date_str):
     try:
@@ -976,16 +1305,74 @@ def _find_stable_track(major: int, minor: int, flavor: str) -> Optional[str]:
     return None
 
 
-def _previous_track_from_branch(branch: str) -> Optional[str]:
+def _get_local_snap_version(
+    snap_path: Optional[str] = None,
+) -> Optional[Tuple[int, int]]:
+    """Determine the major and minor version of a local snap file."""
+    path = snap_path or config.SNAP
+    if not path or not Path(path).is_file():
+        return None
+    try:
+        res = subprocess.run(
+            ["snap", "info", path],
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=10,
+        )
+        if res.returncode == 0 and res.stdout:
+            if m := re.search(r"^version:\s*v?(\d+\.\d+)", res.stdout, re.MULTILINE):
+                return major_minor(m.group(1))
+    except Exception as e:
+        LOG.debug("Failed to determine snap version from %s: %s", path, e)
+    return None
+
+
+def _get_repo_version() -> Optional[Tuple[int, int]]:
+    """Determine the Kubernetes version from the repository."""
+    repo_root = Path(__file__).resolve().parents[4]
+    version_file = repo_root / "build-scripts" / "components" / "kubernetes" / "version"
+    if version_file.is_file():
+        try:
+            content = version_file.read_text().strip().lstrip("v")
+            if maj_min := major_minor(content):
+                return maj_min
+        except OSError:
+            pass
+    try:
+        res = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=5,
+        )
+        if res.returncode == 0 and res.stdout.strip():
+            branch = res.stdout.strip().removeprefix("release-")
+            if maj_min := major_minor(branch):
+                return maj_min
+    except Exception:
+        pass
+    return None
+
+
+def _previous_track_from_branch(
+    branch: str, snap_path: Optional[str] = None
+) -> Optional[str]:
     """Determine the previous track from the branch.
 
     Args:
         branch: the branch to determine the previous track for
+        snap_path: optional local snap path for version fallback
 
     Returns:
         the previous track or None if fails to determine
     """
-    if branch == MAIN_BRANCH:
+    clean_branch = branch.removeprefix("refs/heads/") if branch else ""
+    maj_min = None
+
+    if clean_branch == MAIN_BRANCH:
         # NOTE(Hue): `latest/stable` is not populated at the moment.
         # When it is, we should return `latest` instead.
         LOG.info("Getting current version from upstream k8s")
@@ -997,21 +1384,31 @@ def _previous_track_from_branch(branch: str) -> Optional[str]:
             LOG.info("Failed to determine upstream version")
             return None
 
-    elif branch.startswith("release-"):
+    elif clean_branch.startswith("release-"):
         LOG.info("Getting current version from branch %s", branch)
-        maj_min = major_minor(branch.lstrip("release-"))
-        # Get the previous version from the branch, e.g. for branch `release-1.32` we want `1.31`
-        if maj_min:
-            _maj, _min = maj_min[0], maj_min[1]
-            if _min == 0:
-                maj_min = _major_minor_from_stable_upstream(_maj - 1)
-            else:
-                maj_min = (_maj, _min - 1)
+        maj_min = major_minor(clean_branch.removeprefix("release-"))
+    elif m := re.search(r"release-(\d+\.\d+)", clean_branch):
+        LOG.info("Getting current version from branch release substring %s", branch)
+        maj_min = major_minor(m.group(1))
+    elif m := re.search(r"(?:^|[/_-])(\d+\.\d+)(?:$|[/_-])", clean_branch):
+        LOG.info("Getting current version from branch version substring %s", branch)
+        maj_min = major_minor(m.group(1))
     else:
         LOG.info(
-            "Branch is neither `main` nor `release-X.Y`. Can't determine previous track."
+            "Branch %s is non-standard, falling back to local snap or repository version",
+            branch,
         )
+        maj_min = _get_local_snap_version(snap_path) or _get_repo_version()
+
+    if not maj_min:
         return None
+
+    if clean_branch != MAIN_BRANCH:
+        _maj, _min = maj_min[0], maj_min[1]
+        if _min == 0:
+            maj_min = _major_minor_from_stable_upstream(_maj - 1)
+        else:
+            maj_min = (_maj, _min - 1)
 
     if not maj_min:
         return None
@@ -1042,7 +1439,8 @@ def previous_track(snap_version: str) -> str:
 
     if snap_version.startswith("/") or _as_int(snap_version) is not None:
         branch = config.GH_BASE_REF or config.GH_REF or MAIN_BRANCH
-        prev = _previous_track_from_branch(branch)
+        snap_path = snap_version if snap_version.startswith("/") else None
+        prev = _previous_track_from_branch(branch, snap_path=snap_path)
         if prev:
             LOG.info(
                 "Previous track for %s from branch %s is %s", snap_version, branch, prev
@@ -1082,8 +1480,107 @@ def previous_track(snap_version: str) -> str:
     )
 
 
-def find_suitable_cidr(parent_cidr: str, excluded_ips: List[str]):
-    """Find a suitable CIDR for LoadBalancer services"""
+def get_in_use_ips(
+    parent_cidr: str, instance: Optional[harness.Instance] = None
+) -> List[str]:
+    """Return in-use IP addresses on the bridge network matching parent_cidr."""
+    is_lxd = False
+    if instance is not None:
+        if getattr(getattr(instance, "_h", None), "name", None) != "lxd":
+            return []
+        is_lxd = True
+
+    parent_net = ipaddress.ip_network(parent_cidr, strict=False)
+    in_use_ips = set()
+    try:
+        net_proc = run(
+            ["lxc", "network", "list", "--format", "json"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        networks = json.loads(net_proc.stdout)
+        target_bridges = []
+        for net in networks:
+            if net.get("type") != "bridge" or not net.get("managed"):
+                continue
+            cfg = net.get("config", {})
+            for key in ("ipv4.address", "ipv6.address"):
+                addr = cfg.get(key)
+                if addr and addr != "none":
+                    try:
+                        b_net = ipaddress.ip_network(addr, strict=False)
+                        if b_net.version == parent_net.version and (
+                            b_net == parent_net
+                            or parent_net.subnet_of(b_net)
+                            or b_net.subnet_of(parent_net)
+                        ):
+                            target_bridges.append(net["name"])
+                            break
+                    except ValueError:
+                        pass
+
+        if not target_bridges and is_lxd:
+            raise RuntimeError(
+                f"Could not find matching LXD bridge network for {parent_cidr}"
+            )
+
+        for br in target_bridges:
+            leases_proc = run(
+                ["lxc", "network", "list-leases", br, "--format", "json"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            for item in json.loads(leases_proc.stdout):
+                addr = item.get("address")
+                if addr:
+                    try:
+                        ip_obj = ipaddress.ip_address(addr)
+                        if (
+                            ip_obj.version == parent_net.version
+                            and ip_obj in parent_net
+                        ):
+                            in_use_ips.add(addr)
+                    except ValueError:
+                        pass
+
+        list_proc = run(
+            ["lxc", "list", "--format", "json"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        for inst in json.loads(list_proc.stdout):
+            state = inst.get("state") or {}
+            for iface in (state.get("network") or {}).values():
+                for addr_info in iface.get("addresses", []):
+                    addr = addr_info.get("address")
+                    if addr:
+                        try:
+                            ip_obj = ipaddress.ip_address(addr)
+                            if (
+                                ip_obj.version == parent_net.version
+                                and ip_obj in parent_net
+                            ):
+                                in_use_ips.add(addr)
+                        except ValueError:
+                            pass
+    except Exception as e:
+        if is_lxd:
+            raise RuntimeError(
+                f"Failed to query LXD bridge network for {parent_cidr}"
+            ) from e
+        LOG.debug("Could not inspect LXD bridge network for %s: %s", parent_cidr, e)
+    return sorted(in_use_ips)
+
+
+def find_suitable_cidr(
+    parent_cidr: str,
+    excluded_ips: Optional[List[str]] = None,
+    instance: Optional[harness.Instance] = None,
+) -> str:
+    """Find a suitable CIDR for LoadBalancer services."""
     net = ipaddress.ip_network(parent_cidr, False)
     ipv6 = isinstance(net, ipaddress.IPv6Network)
     if ipv6:
@@ -1091,17 +1588,21 @@ def find_suitable_cidr(parent_cidr: str, excluded_ips: List[str]):
     else:
         ip_range = 30
 
-    # Starting from the first IP address from the parent cidr,
-    # we search for a /30 cidr block(4 total ips, 2 available)
-    # that doesn't contain the excluded ips to avoid collisions
-    # /30 because this is the smallest CIDR cilium hands out IPs from.
-    # For ipv6, we use a /126 block that contains 4 total ips.
+    excluded_set = set(excluded_ips or [])
+    if instance is not None:
+        excluded_set.update(get_in_use_ips(parent_cidr, instance=instance))
+
+    # Search for an unallocated /30 block (or /126 for IPv6) starting at .4
     for i in range(4, 255, 4):
         lb_net = ipaddress.ip_network(f"{str(net[0]+i)}/{ip_range}", False)
 
         contains_excluded = False
-        for excluded in excluded_ips:
-            if ipaddress.ip_address(excluded) in lb_net:
+        for excluded in excluded_set:
+            try:
+                ip_obj = ipaddress.ip_address(excluded)
+            except ValueError:
+                continue
+            if ip_obj.version == lb_net.version and ip_obj in lb_net:
                 contains_excluded = True
                 break
 
@@ -1139,7 +1640,7 @@ def get_os_version_id_for_instance(instance: harness.Instance) -> str:
     for line in proc.stdout.split(b"\n"):
         line = line.decode()
         if line.startswith(var):
-            release = line.lstrip(f"{var}=")
+            release = line.lstrip(f"{var}=").strip('"')
             break
 
     if not release:
@@ -1166,22 +1667,30 @@ def wait_for_daemonset(
         # NOTE: we can't reliably use `rollout status` on Daemonsets unless
         # they have `RollingUpdate` strategy, so we must go by the number of
         # pods which are Ready.
-        proc = instance.exec(
-            [
-                "k8s",
-                "kubectl",
-                "-n",
-                namespace,
-                "get",
-                "daemonset",
-                name,
-                "-o",
-                "jsonpath={.status.numberReady}",
-            ],
-            check=True,
-            capture_output=True,
-        )
-        if int(proc.stdout.decode()) >= expected_pods_ready:
+        try:
+            proc = instance.exec(
+                [
+                    "k8s",
+                    "kubectl",
+                    "-n",
+                    namespace,
+                    "get",
+                    "daemonset",
+                    name,
+                    "-o",
+                    "jsonpath={.status.numberReady}",
+                ],
+                check=True,
+                capture_output=True,
+            )
+        except subprocess.CalledProcessError:
+            LOG.info(
+                f"Daemonset '{name}' not found yet. "
+                f"Waiting {retry_delay_s} seconds..."
+            )
+            time.sleep(retry_delay_s)
+            continue
+        if int(proc.stdout.decode() or "0") >= expected_pods_ready:
             LOG.info(
                 f"Successfully waited for daemonset '{name}' after "
                 f"{(i+1)*retry_delay_s} seconds"
@@ -1206,6 +1715,19 @@ def sonobuoy_tar_gz(architecture: str) -> str:
     return f"https://github.com/vmware-tanzu/sonobuoy/releases/download/{version}/sonobuoy_{version[1:]}_linux_{architecture}.tar.gz"  # noqa
 
 
+def _parse_snap_service_status(stdout: str) -> dict:
+    services_output = stdout.split("\n")[1:-1]  # Skip the header line
+
+    service_status = {}
+    for line in services_output:
+        parts = line.split()
+        if len(parts) >= 3:  # Ensure there are enough columns
+            service_name = parts[0].replace("k8s.", "", 1)
+            service_status[service_name] = parts[2]  # "active" or "inactive"
+
+    return service_status
+
+
 def get_snap_service_status(instance: harness.Instance) -> dict:
     """Get the status of all k8s snap services.
 
@@ -1216,16 +1738,7 @@ def get_snap_service_status(instance: harness.Instance) -> dict:
         A dictionary mapping service names to their status ("active" or "inactive")
     """
     result = instance.exec(["snap", "services", "k8s"], capture_output=True, text=True)
-    services_output = result.stdout.split("\n")[1:-1]  # Skip the header line
-
-    service_status = {}
-    for line in services_output:
-        parts = line.split()
-        if len(parts) >= 3:  # Ensure there are enough columns
-            service_name = parts[0].replace("k8s.", "", 1)
-            service_status[service_name] = parts[2]  # "active" or "inactive"
-
-    return service_status
+    return _parse_snap_service_status(result.stdout)
 
 
 def wait_for_services_stopped(
@@ -1244,15 +1757,22 @@ def wait_for_services_stopped(
     """
     exclude_services = exclude_services or []
 
-    def services_stopped():
-        service_status = get_snap_service_status(instance)
+    def services_stopped(result: subprocess.CompletedProcess) -> bool:
+        stdout = (
+            result.stdout.decode()
+            if isinstance(result.stdout, bytes)
+            else result.stdout
+        )
+        service_status = _parse_snap_service_status(stdout)
         for service_name, status in service_status.items():
             if service_name not in exclude_services and status == "active":
                 LOG.debug(f"Service {service_name} is still {status}")
                 return False
         return True
 
-    stubbornly(retries=retries, delay_s=delay_s).until(lambda: services_stopped())
+    stubbornly(retries=retries, delay_s=delay_s).on(instance).until(
+        services_stopped
+    ).exec(["snap", "services", "k8s"], text=True)
 
 
 def wait_for_ports_available(
@@ -1275,35 +1795,29 @@ def wait_for_ports_available(
 
     LOG.info(f"Waiting for ports {ports} to become available...")
 
-    def ports_available():
-        try:
-            # Check if any port is in use using ss command
-            result = instance.exec(
-                ["ss", "-tuln"],
-                capture_output=True,
-                text=True,
-            )
-            ports_in_use = []
-            for port in ports:
-                # Check for both IPv4 and IPv6 patterns
-                port_with_space = f":{port} "
-                port_with_newline = f":{port}\n"
-                if (
-                    port_with_space in result.stdout
-                    or port_with_newline in result.stdout
-                ):
-                    ports_in_use.append(port)
+    def ports_available(result: subprocess.CompletedProcess) -> bool:
+        stdout = (
+            result.stdout.decode()
+            if isinstance(result.stdout, bytes)
+            else result.stdout
+        )
+        ports_in_use = []
+        for port in ports:
+            # Check for both IPv4 and IPv6 patterns
+            port_with_space = f":{port} "
+            port_with_newline = f":{port}\n"
+            if port_with_space in stdout or port_with_newline in stdout:
+                ports_in_use.append(port)
 
-            if ports_in_use:
-                LOG.info(f"Ports still in use: {ports_in_use}")
-                return False
-            LOG.info("All ports are now available")
-            return True
-        except subprocess.CalledProcessError as e:
-            LOG.warning(f"Failed to check ports: {e}")
+        if ports_in_use:
+            LOG.info(f"Ports still in use: {ports_in_use}")
             return False
+        LOG.info("All ports are now available")
+        return True
 
-    stubbornly(retries=retries, delay_s=delay_s).until(lambda: ports_available())
+    stubbornly(retries=retries, delay_s=delay_s).on(instance).until(
+        ports_available
+    ).exec(["ss", "-tuln"], text=True)
 
 
 def check_snap_services_ready(
@@ -1445,35 +1959,79 @@ def _get_enabled_services(instance: harness.Instance) -> List[str]:
     return services
 
 
-def check_service_restarts(
+def _get_service_restart_counts(
     instance: harness.Instance,
     services: Optional[List[str]] = None,
-    max_restarts: int = 0,
-):
-    """
-    Check that k8s snap services have not restarted excessively.
-    Uses systemctl show to read the NRestarts counter for each service.
-    By default, fails if any service has restarted at all (max_restarts=0).
-    """
+) -> Dict[str, int]:
+    """Read systemd's NRestarts counter per service. Lifetime counter,
+    never resets between steps."""
     if services is None:
         services = _get_enabled_services(instance)
 
-    violations = []
+    counts = {}
     for service in services:
         result = instance.exec(
             ["systemctl", "show", f"snap.k8s.{service}", "-p", "NRestarts"],
             capture_output=True,
             text=True,
         )
-        n_restarts = int(result.stdout.strip().split("=")[1])
-        if n_restarts > max_restarts:
-            violations.append((service, n_restarts))
+        counts[service] = int(result.stdout.strip().split("=")[1])
+    return counts
+
+
+def check_service_restarts(
+    instance: harness.Instance,
+    services: Optional[List[str]] = None,
+    max_restarts: int = 0,
+):
+    """Fail if any service restarted more than max_restarts times. Only
+    correct for a zero-restarts baseline (e.g. fresh bootstrap). For
+    upgrade/downgrade steps use check_no_service_restarts_after_stabilization()
+    instead."""
+    if services is None:
+        services = _get_enabled_services(instance)
+
+    counts = _get_service_restart_counts(instance, services)
+    violations = [
+        (service, n_restarts)
+        for service, n_restarts in counts.items()
+        if n_restarts > max_restarts
+    ]
 
     assert (
         not violations
     ), f"Services have restarted more than {max_restarts} time(s): " + ", ".join(
         f"{s} ({n} restarts)" for s, n in violations
     )
+
+
+def check_no_service_restarts_after_stabilization(
+    instance: harness.Instance,
+    services: Optional[List[str]] = None,
+    retries: int = 3,
+    delay_s: int = config.DEFAULT_WAIT_DELAY_S,
+):
+    """Fail if a service keeps restarting after this point (crash loop).
+    Uses a sliding baseline so one expected refresh-triggered restart
+    doesn't fail the check - only ongoing restarts do."""
+    if services is None:
+        services = _get_enabled_services(instance)
+
+    previous = _get_service_restart_counts(instance, services)
+    for attempt in Retrying(stop=stop_after_attempt(retries), wait=wait_fixed(delay_s)):
+        with attempt:
+            current = _get_service_restart_counts(instance, services)
+            violations = [
+                (service, previous[service], current[service])
+                for service in services
+                if current[service] > previous[service]
+            ]
+            previous = current
+            assert (
+                not violations
+            ), "Services still restarting (crash-loop suspected): " + ", ".join(
+                f"{s} ({b} -> {n})" for s, b, n in violations
+            )
 
 
 def check_service_logs_for_panics(
@@ -1677,11 +2235,12 @@ def _installed_k8s_version(instance: harness.Instance) -> Optional[tuple]:
     if len(lines) < 2:
         return None
 
-    fields = lines[-1].split()
-    if len(fields) < 2:
-        return None
+    for line in lines[1:]:
+        fields = line.split()
+        if len(fields) >= 2 and fields[0] == config.SNAP_NAME:
+            return major_minor(fields[1])
 
-    return major_minor(fields[1])
+    return None
 
 
 def _is_kube_proxy_expected_active(instance: harness.Instance) -> Optional[bool]:

@@ -14,4 +14,4 @@ fi
 export GOFLAGS="-tags=linux,cgo,ms_tls13kdf"
 
 make build
-cp bin/* "${INSTALL}/"
+cp bin/etcd "${INSTALL}/etcd"

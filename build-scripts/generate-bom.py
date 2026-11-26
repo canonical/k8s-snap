@@ -9,7 +9,6 @@ import yaml
 
 DIR = Path(__file__).absolute().parent
 BUILD_DIRECTORY = DIR / ".build"
-INSTALL_DIRECTORY = DIR / ".install"
 
 
 def _get_component_path_regular(component: str):
@@ -26,12 +25,6 @@ SNAPCRAFT_PART_BUILD = os.getenv("SNAPCRAFT_PART_BUILD")
 if SNAPCRAFT_PART_BUILD and Path(SNAPCRAFT_PART_BUILD).exists():
     BUILD_DIRECTORY = Path(SNAPCRAFT_PART_BUILD)
     _get_component_path = _get_component_path_snap
-
-
-SNAPCRAFT_PART_INSTALL = os.getenv("SNAPCRAFT_PART_INSTALL")
-if SNAPCRAFT_PART_INSTALL and Path(SNAPCRAFT_PART_INSTALL).exists():
-    INSTALL_DIRECTORY = Path(SNAPCRAFT_PART_INSTALL)
-
 
 
 # List of tools used to build or bundled in the snap

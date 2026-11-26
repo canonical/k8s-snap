@@ -7,14 +7,14 @@ configuration templates. This directory is copied verbatim into the snap as `$SN
 
 ```
 lib.sh               shared bash function library, sourced by all wrappers
-wrappers/commands/   snap app entry points (k8s CLI, dqlite)
+wrappers/commands/   snap app entry points (k8s CLI)
 wrappers/services/   snap daemon entry points (containerd, kubelet, kube-apiserver, …)
 args/                default service argument files (overridden at runtime in SNAP_DATA)
 manifests/charts/    bundled Helm charts deployed by k8sd
 resources/
   configurations/    audit policies, pod security configs, DISA-STIG bootstrap templates
 scripts/             install/remove helper scripts (inspect.sh, etc.)
-hack/                low-level init helpers (connect-interfaces.sh, init.sh, …)
+hack/                low-level init helpers (init.sh, …)
 pebble/              pebble layer config for service supervision
 profiles/            containerd base profile
 systemd/             containerd systemd drop-in defaults
@@ -27,8 +27,8 @@ All functions are namespaced `k8s::<category>::<name>`. Never define bare functi
 | Namespace | Purpose |
 |-----------|---------|
 | `k8s::common::*` | env setup, FIPS check, env validation, snap confinement detection |
-| `k8s::cmd::*` | thin wrappers: `kubectl`, `ctr`, `k8s`, `hostname` |
-| `k8s::util::*` | system helpers: default interface, kernel module loading, wait loops |
+| `k8s::cmd::*` | thin wrappers: `kubectl`, `k8s` |
+| `k8s::util::*` | system helpers: kernel module loading, wait loops |
 | `k8s::remove::*` | cleanup hooks invoked during `snap remove` |
 | `k8s::init::*` | bootstrap helpers (k8sd single-node init) |
 | `k8s::kubelet::*` | kubelet-specific setup (shared root dir) |

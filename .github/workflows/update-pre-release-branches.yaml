@@ -18,22 +18,20 @@ jobs:
     permissions:
       contents: write  # for Git to git push
     runs-on: ubuntu-latest
-    outputs:
-      preRelease: ${{ steps.determine.outputs.preRelease }}
-      branch: ${{ steps.determine.outputs.branch }}
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        # zizmor: ignore[artipacked] BOT_SSH_KEY must remain configured for git push
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ssh-key: ${{ secrets.BOT_SSH_KEY }}
       - name: Setup Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
-          python-version: '3.10'
+          python-version: '3.12'
       - name: Install Python dependencies
-        run: pip3 install packaging requests
+        run: pip3 install --require-hashes -r ci/requirements-release.txt
       - name: Define git credentials
         run: |
           # Needed to create commits.

@@ -42,7 +42,7 @@ With {{product}} CAPI you can:
     nodes
     - Carry out in-place upgrades for non-HA control planes and worker nodes
 
-Please refer to the [getting started tutorial] for a concrete example of a CAPI
+Please refer to the [provisioning how-to guide] for a concrete example of a CAPI
 deployment.
 
 ## CAPI architecture
@@ -124,5 +124,5 @@ the control plane nodes.
 ```
 
 <!-- LINKS -->
-[getting started tutorial]: /capi/tutorial/getting-started.md
+[provisioning how-to guide]: /capi/howto/provision.md
 [upstream docs around pivoting]: https://cluster-api.sigs.k8s.io/clusterctl/commands/move#pivot

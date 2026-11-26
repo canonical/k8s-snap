@@ -16,7 +16,7 @@ both control plane and worker nodes in your {{product}} Cluster API cluster.
 - A target workload cluster managed by Cluster API.
 - `kubectl` installed and configured to access your management cluster.
 
-Please refer to the [getting-started guide][getting-started] for further
+Please refer to the [provisioning guide][provision] for further
 details on the required setup.
 This guide refers to the workload cluster as `c1`.
 
@@ -109,5 +109,5 @@ the machine resource:
 ```
 
 <!-- Links -->
-[getting-started]: ../tutorial/getting-started.md
+[provision]: ./provision.md
 [ParseDuration]: https://pkg.go.dev/time#ParseDuration

@@ -95,3 +95,5 @@
 "snap/tutorial/index" "snap/tutorial/getting-started"
 "snap/tutorial/kubectl" "snap/tutorial/getting-started"
 "snap/tutorial/add-remove-nodes" "snap/tutorial/getting-started"
+"capi/tutorial/getting-started" "capi/howto/provision"
+"capi/tutorial/index" "capi/howto/index"
