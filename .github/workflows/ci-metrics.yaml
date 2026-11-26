@@ -301,10 +301,12 @@ jobs:
       ((github.event_name == 'schedule' && github.event.schedule == '30 7 * * 1') ||
        (github.event_name == 'workflow_dispatch' && github.event.inputs.propose_rules == 'true'))
     runs-on: ubuntu-24.04
+    # The triage bot's environment holds the team's OpenRouter key; GitHub
+    # Models is not enabled for this organisation.
+    environment: triage-bot
     permissions:
       actions: read # job logs for evidence and the successful-job precision check
       contents: read
-      models: read # GitHub Models, authenticated with this job's GITHUB_TOKEN
     concurrency:
       group: ci-metrics-rule-proposals
       cancel-in-progress: false
@@ -334,6 +336,7 @@ jobs:
         id: propose
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          OPENROUTER_API_KEY: ${{ secrets.TRIAGE_OPENROUTER_API_KEY }}
           PROPOSE_LIMIT: ${{ github.event.inputs.propose_limit || '5' }}
           PROPOSER_MODEL: ${{ vars.CI_METRICS_PROPOSER_MODEL }}
         run: |
@@ -343,7 +346,7 @@ jobs:
             model_args=(--model "${PROPOSER_MODEL}")
           fi
           status=0
-          python ci/k8s-ci.py metrics propose-rules --provider github \
+          python ci/k8s-ci.py metrics propose-rules --provider openrouter \
             --repo "${GITHUB_REPOSITORY}" --limit "${PROPOSE_LIMIT}" \
             "${model_args[@]}" --write --report "${RUNNER_TEMP}/rule-proposals.md" \
             > /dev/null || status=$?

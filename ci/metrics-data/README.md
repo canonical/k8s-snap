@@ -91,9 +91,10 @@ threshold and daily budget described in the delivery plan.
   `metrics propose-rules`, and only drafts that pass deterministic checks are
   kept: real examples, no shadowing, they classify their target, they move
   nothing already classified, and they pass the precision check below. The
-  model runs in an unprivileged job (GitHub Models through the job's own
-  `GITHUB_TOKEN`); a separate job re-validates the pack and opens a pull
-  request with `BOT_TOKEN`. See `.agents/skills/ci-failure-rules/`.
+  model runs in an unprivileged job, through OpenRouter with the triage
+  bot's key (`TRIAGE_OPENROUTER_API_KEY` in the `triage-bot` environment); a
+  separate job re-validates the pack and opens a pull request with
+  `BOT_TOKEN`. See `.agents/skills/ci-failure-rules/`.
 - **Rule precision.** `metrics check-rules` reports, per rule in
   `ci/failure_rules.yaml`, how many signatures and jobs it classifies and how
   often its `excerpt_pattern` also hits the error lines of *successful* jobs
