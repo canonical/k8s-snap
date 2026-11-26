@@ -148,11 +148,12 @@ it like any rule change: the checks prove a rule is precise and harmless,
 not that its class is right.
 
 To run it locally against the real store (from `ci/`, after the steps in
-"Get the real data"), with GitHub Models or OpenRouter credentials:
+"Get the real data"), with an OpenRouter key:
 
 ```bash
-GITHUB_TOKEN=$(gh auth token) tox -e k8s-ci -- metrics propose-rules \
-  --db /tmp/metrics.db --provider github --limit 5 --report /tmp/proposals.md
+OPENROUTER_API_KEY=... GITHUB_TOKEN=$(gh auth token) tox -e k8s-ci -- \
+  metrics propose-rules --db /tmp/metrics.db --provider openrouter \
+  --limit 5 --report /tmp/proposals.md
 ```
 
 Add `--write` to update `ci/failure_rules.yaml` in place.
