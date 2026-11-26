@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/canonical/k8s/pkg/log"
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -40,7 +39,6 @@ func (c *Client) DeleteNode(ctx context.Context, nodeName string) error {
 }
 
 func (c *Client) WatchNode(ctx context.Context, name string, reconcile func(node *v1.Node) error) error {
-	log := log.FromContext(ctx).WithValues("name", name)
 	w, err := c.CoreV1().Nodes().Watch(ctx, metav1.SingleObject(metav1.ObjectMeta{Name: name}))
 	if err != nil {
 		return fmt.Errorf("failed to watch node name=%s: %w", name, err)
@@ -60,7 +58,7 @@ func (c *Client) WatchNode(ctx context.Context, name string, reconcile func(node
 			}
 
 			if err := reconcile(node); err != nil {
-				log.Error(err, "Reconcile Node failed")
+				return fmt.Errorf("failed to reconcile node: %w", err)
 			}
 		}
 	}

@@ -23,7 +23,8 @@ import (
 )
 
 func setupTestEnv(t *testing.T) (*mock.Snap, *watch.FakeWatcher, string, string, string) {
-	clientset := fake.NewSimpleClientset()
+	nodeName := "test-node-name"
+	clientset := fake.NewSimpleClientset(&corev1.Node{ObjectMeta: metav1.ObjectMeta{Name: nodeName}})
 	watcher := watch.NewFake()
 	clientset.PrependWatchReactor("nodes", k8stesting.DefaultWatchReactor(watcher, nil))
 
@@ -45,7 +46,6 @@ func setupTestEnv(t *testing.T) (*mock.Snap, *watch.FakeWatcher, string, string,
 	g.Expect(os.MkdirAll(k8sDqliteStateDir, 0o700)).To(Succeed())
 	g.Expect(os.MkdirAll(k8sdDbDir, 0o700)).To(Succeed())
 
-	nodeName := "test-node-name"
 	return s, watcher, k8sDqliteStateDir, k8sdDbDir, nodeName
 }
 
