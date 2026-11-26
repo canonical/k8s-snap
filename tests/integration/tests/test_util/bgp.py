@@ -227,4 +227,6 @@ def setup_frr_router(router: harness.Instance, router_ip: str, node_ip: str):
         "no bgp ebgp-requires-policy",
         f"neighbor {node_ip} remote-as {NODE_ASN}",
         f"neighbor {node_ip} bfd",
+        # Explicit neighbor timers work around the FRR 10.5 BFD hold-timer bug.
+        f"neighbor {node_ip} timers 30 90",
     )
