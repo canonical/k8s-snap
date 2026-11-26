@@ -26,6 +26,9 @@ on:
     # Daily digest: everything the hourly run does, plus one Mattermost post a
     # day, timed after the Nightly run has landed.
     - cron: "45 6 * * *"
+    # Weekly rule proposals: a model drafts rules for the biggest unclassified
+    # signatures and a pull request carries the ones that pass every check.
+    - cron: "30 7 * * 1"
   workflow_dispatch:
     inputs:
       post_issues:
@@ -48,6 +51,18 @@ on:
         description: "Issue threshold: minimum distinct runs of a signature/substrate"
         required: false
         default: "1"
+      propose_rules:
+        description: "Also propose rules for unclassified signatures (otherwise only the Monday cron does)"
+        required: false
+        default: "false"
+      propose_limit:
+        description: "Unclassified signatures to send to the model, most failed jobs first"
+        required: false
+        default: "5"
+      propose_open_pr:
+        description: "Open a pull request with the accepted rules (otherwise only report them)"
+        required: false
+        default: "false"
 
 permissions: {}
 
@@ -273,3 +288,136 @@ jobs:
         run: |
           python ci/k8s-ci.py metrics check-rules --repo "${GITHUB_REPOSITORY}" \
             >> "${GITHUB_STEP_SUMMARY}"
+
+  propose-rules:
+    # Unprivileged: this job sends scrubbed log evidence to a model and turns
+    # the reply into rules, so it handles untrusted text and holds no write
+    # token. It only uploads the candidate rule pack; publish-rule-proposals
+    # re-validates that file before a pull request is opened.
+    name: Propose CI failure rules
+    needs: open-issues
+    if: >-
+      always() &&
+      ((github.event_name == 'schedule' && github.event.schedule == '30 7 * * 1') ||
+       (github.event_name == 'workflow_dispatch' && github.event.inputs.propose_rules == 'true'))
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: read # job logs for evidence and the successful-job precision check
+      contents: read
+      models: read # GitHub Models, authenticated with this job's GITHUB_TOKEN
+    concurrency:
+      group: ci-metrics-rule-proposals
+      cancel-in-progress: false
+    outputs:
+      changed: ${{ steps.propose.outputs.changed }}
+    steps:
+      - name: Check out trusted code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Fetch latest metrics state
+        run: |
+          set -euo pipefail
+          git fetch --depth=1 origin ci-metrics
+          git checkout FETCH_HEAD -- ci/metrics-data/metrics.sql
+
+      - name: Install CI dependencies
+        working-directory: ci
+        run: python -m pip install --requirement requirements-ci.txt
+
+      - name: Rebuild metrics database from durable dump
+        run: python ci/k8s-ci.py metrics rebuild
+
+      - name: Propose and check rules
+        id: propose
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PROPOSE_LIMIT: ${{ github.event.inputs.propose_limit || '5' }}
+          PROPOSER_MODEL: ${{ vars.CI_METRICS_PROPOSER_MODEL }}
+        run: |
+          set -euo pipefail
+          model_args=()
+          if [ -n "${PROPOSER_MODEL}" ]; then
+            model_args=(--model "${PROPOSER_MODEL}")
+          fi
+          python ci/k8s-ci.py metrics propose-rules --provider github \
+            --repo "${GITHUB_REPOSITORY}" --limit "${PROPOSE_LIMIT}" \
+            "${model_args[@]}" --write --report "${RUNNER_TEMP}/rule-proposals.md" \
+            > /dev/null
+          cat "${RUNNER_TEMP}/rule-proposals.md" >> "${GITHUB_STEP_SUMMARY}"
+          cp "${RUNNER_TEMP}/rule-proposals.md" ci/rule-proposals.md
+          if git diff --quiet -- ci/failure_rules.yaml; then
+            echo "changed=false" >> "${GITHUB_OUTPUT}"
+          else
+            echo "changed=true" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Upload proposals
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: rule-proposals
+          path: |
+            ci/failure_rules.yaml
+            ci/rule-proposals.md
+          retention-days: 14
+
+  publish-rule-proposals:
+    name: Open rule proposal pull request
+    needs: propose-rules
+    if: needs.propose-rules.outputs.changed == 'true'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read # the pull request is opened with BOT_TOKEN
+    concurrency:
+      group: ci-metrics-rule-proposals-publish
+      cancel-in-progress: false
+    steps:
+      - name: Check out trusted code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Download proposals
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: rule-proposals
+          path: ${{ runner.temp }}/rule-proposals
+
+      - name: Install CI dependencies
+        working-directory: ci
+        run: python -m pip install --requirement requirements-ci.txt
+
+      - name: Re-validate the proposed rule pack
+        # The artifact came from a job that processed untrusted log text and a
+        # model reply. Only the rule pack is taken from it, and it must pass
+        # the same load-time checks and pack contract tests as a human edit.
+        run: |
+          set -euo pipefail
+          cp "${RUNNER_TEMP}/rule-proposals/failure_rules.yaml" ci/failure_rules.yaml
+          git diff --stat
+          cd ci
+          python k8s-ci.py metrics check-rules --offline > /dev/null
+          python -m unittest tests.metrics.test_rules
+
+      - name: Open pull request
+        if: >-
+          github.event_name == 'schedule' ||
+          github.event.inputs.propose_open_pr == 'true'
+        # zizmor: ignore[superfluous-actions] the repo's standard way to open bot
+        # PRs (update-components, update-ci-dependencies): it reuses one branch,
+        # updates an open PR in place and signs the commit off.
+        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8
+        with:
+          token: ${{ secrets.BOT_TOKEN }}
+          base: ${{ github.ref_name }}
+          branch: ci-metrics/rule-proposals
+          add-paths: ci/failure_rules.yaml
+          commit-message: "ci: propose CI failure classification rules"
+          title: "ci: propose CI failure classification rules"
+          body-path: ${{ runner.temp }}/rule-proposals/rule-proposals.md
+          author: "K8s builder bot <k8s-bot@canonical.com>"
+          signoff: true
+          delete-branch: true
