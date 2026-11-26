@@ -35,13 +35,16 @@ class FakeResponse:
 
 
 class FakeSession:
-    def __init__(self, responses: List[FakeResponse]) -> None:
+    def __init__(self, responses: List[Any]) -> None:
         self.responses = list(responses)
         self.calls: List[Dict[str, Any]] = []
 
     def post(self, url: str, **kwargs: Any) -> FakeResponse:
         self.calls.append({"url": url, **kwargs})
-        return self.responses.pop(0)
+        response = self.responses.pop(0)
+        if isinstance(response, Exception):
+            raise response
+        return response
 
 
 def _reply(content: str) -> FakeResponse:
@@ -103,6 +106,24 @@ class ChatClientTest(unittest.TestCase):
 
         self.assertEqual([c.args[0] for c in sleep.call_args_list], [3, 4])
         self.assertEqual(session.calls[0]["json"]["model"], "some/model")
+
+    def test_network_errors_are_retried_then_reported(self) -> None:
+        env = {"GITHUB_TOKEN": "t"}
+        recovers = ChatClient(
+            PROVIDERS["github"],
+            session=FakeSession([TimeoutError("read timed out"), _reply("{}")]),
+            environ=env,
+        )
+        never = ChatClient(
+            PROVIDERS["github"],
+            session=FakeSession([ConnectionError("reset")] * 4),
+            environ=env,
+        )
+
+        with mock.patch("metrics.llm.time.sleep"):
+            self.assertEqual(recovers.complete([]), "{}")
+            with self.assertRaisesRegex(LLMError, "ConnectionError: reset"):
+                never.complete([])
 
     def test_client_errors_and_non_completions_raise(self) -> None:
         env = {"GITHUB_TOKEN": "t"}

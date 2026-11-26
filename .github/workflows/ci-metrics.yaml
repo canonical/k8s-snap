@@ -301,6 +301,7 @@ jobs:
       ((github.event_name == 'schedule' && github.event.schedule == '30 7 * * 1') ||
        (github.event_name == 'workflow_dispatch' && github.event.inputs.propose_rules == 'true'))
     runs-on: ubuntu-24.04
+    timeout-minutes: 60
     # The triage bot's environment holds the team's OpenRouter key; GitHub
     # Models is not enabled for this organisation.
     environment: triage-bot
@@ -377,6 +378,7 @@ jobs:
     needs: propose-rules
     if: needs.propose-rules.outputs.changed == 'true'
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     permissions:
       contents: read # the pull request is opened with BOT_TOKEN
     concurrency:
@@ -401,14 +403,17 @@ jobs:
 
       - name: Re-validate the proposed rule pack
         # The artifact came from a job that processed untrusted log text and a
-        # model reply. Only the rule pack is taken from it, and it must pass
-        # the same load-time checks and pack contract tests as a human edit.
+        # model reply. Only the rule pack is taken from it: it may only add
+        # rules, and it must pass the same load-time checks and pack contract
+        # tests as a human edit.
         run: |
           set -euo pipefail
-          cp "${RUNNER_TEMP}/rule-proposals/failure_rules.yaml" ci/failure_rules.yaml
+          proposed="${RUNNER_TEMP}/rule-proposals/failure_rules.yaml"
+          python ci/k8s-ci.py metrics verify-proposal \
+            --base ci/failure_rules.yaml --proposed "${proposed}"
+          cp "${proposed}" ci/failure_rules.yaml
           git diff --stat
           cd ci
-          python k8s-ci.py metrics check-rules --offline > /dev/null
           python -m unittest tests.metrics.test_rules
 
       - name: Open pull request

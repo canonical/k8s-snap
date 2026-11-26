@@ -60,6 +60,20 @@ from metrics.signature import (
     diagnostic_lines,
 )
 
+try:  # Python 3.11+ moved the regex parser behind a private name.
+    from re import _constants as _C  # type: ignore[attr-defined]
+    from re import _parser as _regex_parser  # type: ignore[attr-defined]
+except ImportError:  # pragma: no cover - Python < 3.11
+    import sre_constants as _C  # type: ignore[no-redef]
+    import sre_parse as _regex_parser  # type: ignore[no-redef]
+
+_REPEATS = tuple(
+    getattr(_C, name)
+    for name in ("MAX_REPEAT", "MIN_REPEAT", "POSSESSIVE_REPEAT")
+    if hasattr(_C, name)
+)
+_ATOMIC_GROUP = getattr(_C, "ATOMIC_GROUP", None)
+
 LOG = logging.getLogger(__name__)
 
 DEFAULT_LIMIT = 5
@@ -98,8 +112,6 @@ RULE_KEYS = (
 )
 _RULE_ID = re.compile(r"^(?:infra|external|ci|product|test)-[a-z0-9]+(?:-[a-z0-9]+)*$")
 _SUBCLASS = re.compile(r"^[a-z][a-z0-9_]{1,40}$")
-# Nested quantifiers such as (a+)+ or (.*)* backtrack catastrophically.
-_NESTED_QUANTIFIER = re.compile(r"\((?:[^()\\]|\\.)*[*+}]\)\s*[*+{]")
 
 SYSTEM_PROMPT = """\
 You maintain the CI failure classification rules of the canonical/k8s-snap
@@ -309,20 +321,55 @@ def _check_regex(value: Any, where: str) -> str:
         raise ProposalRejected(f"{where} is longer than {MAX_PATTERN_CHARS} chars")
     if "\n" in value or "\\n" in value:
         raise ProposalRejected(f"{where} must be a single-line pattern")
-    if _NESTED_QUANTIFIER.search(value):
-        raise ProposalRejected(f"{where} has a nested quantifier")
     try:
         re.compile(value)
     except re.error as exc:
         raise ProposalRejected(f"{where} is not a valid regex: {exc}") from None
+    if _backtracks(_regex_parser.parse(value)):
+        raise ProposalRejected(
+            f"{where} repeats a group that itself repeats or alternates, "
+            "which can backtrack catastrophically"
+        )
     return value
+
+
+def _backtracks(items: Any, repeated: bool = False) -> bool:
+    """Return whether a parsed regex nests a repeat or an alternation in a repeat.
+
+    Those are the shapes that backtrack exponentially, e.g. (a+)+, (\\w+\\s?)+,
+    (a|a)+ or (.*a){12}. A model-written pattern runs over every rule example
+    and log line, so it is judged by its structure rather than by trying it.
+    """
+
+    for op, av in items:
+        if op in _REPEATS:
+            _low, high, sub = av
+            if repeated and high > 1:
+                return True
+            if _backtracks(sub, repeated or high > 1):
+                return True
+        elif op is _C.BRANCH:
+            if repeated or any(_backtracks(branch, False) for branch in av[1]):
+                return True
+        elif op is _C.SUBPATTERN:
+            if _backtracks(av[-1], repeated):
+                return True
+        elif op in (_C.ASSERT, _C.ASSERT_NOT):
+            if _backtracks(av[1], repeated):
+                return True
+        elif op is _C.GROUPREF_EXISTS:
+            if any(_backtracks(branch, repeated) for branch in av[1:] if branch):
+                return True
+        elif op is _ATOMIC_GROUP and _backtracks(av, repeated):
+            return True
+    return False
 
 
 def _flatten(text: str) -> str:
     return " ".join(text.split())
 
 
-def sanitise_rule(raw: Any, pack: RulePack, corpus: str) -> Dict[str, Any]:
+def sanitise_rule(raw: Any, pack: RulePack, excerpt: str) -> Dict[str, Any]:
     """Return a clean rule dict, or raise ``ProposalRejected`` with the reason."""
 
     if not isinstance(raw, dict):
@@ -374,25 +421,27 @@ def sanitise_rule(raw: Any, pack: RulePack, corpus: str) -> Dict[str, Any]:
     examples = raw.get("examples")
     if not isinstance(examples, list) or not examples:
         raise ProposalRejected("at least one example is required")
-    flat_corpus = _flatten(corpus)
+    # Examples are the pack's regression tests, so they must be whole lines of
+    # the text rules actually match, not fragments or words from the log.
+    excerpt_lines = {_flatten(line) for line in excerpt.splitlines() if line.strip()}
     clean_examples: List[Any] = []
     for index, example in enumerate(examples):
-        excerpt = example.get("excerpt") if isinstance(example, dict) else example
-        if not isinstance(excerpt, str) or not excerpt.strip():
+        text = example.get("excerpt") if isinstance(example, dict) else example
+        if not isinstance(text, str) or not text.strip():
             raise ProposalRejected(f"examples[{index}] has no excerpt text")
-        for line in excerpt.splitlines():
-            if line.strip() and _flatten(line) not in flat_corpus:
+        for line in text.splitlines():
+            if line.strip() and _flatten(line) not in excerpt_lines:
                 raise ProposalRejected(
-                    f"examples[{index}] is not copied from the evidence: "
+                    f"examples[{index}] is not a whole line of the target excerpt: "
                     f"{line.strip()[:120]!r}"
                 )
         if isinstance(example, dict):
             fields = example.get("job") or {}
             if not isinstance(fields, dict) or set(fields) - MATCHABLE_JOB_FIELDS:
                 raise ProposalRejected(f"examples[{index}].job has unknown fields")
-            clean_examples.append({"excerpt": excerpt, "job": dict(fields)})
+            clean_examples.append({"excerpt": text, "job": dict(fields)})
         else:
-            clean_examples.append(excerpt)
+            clean_examples.append(text)
     clean["examples"] = clean_examples
     clean["notes"] = _flatten(notes)[:MAX_NOTES_CHARS]
     return clean
@@ -548,6 +597,37 @@ def insert_rules(pack_text: str, rules: Sequence[Dict[str, Any]]) -> str:
     return pack_text
 
 
+def verify_additions(base_text: str, proposed_text: str) -> List[str]:
+    """Return the rule IDs ``proposed_text`` adds to ``base_text``.
+
+    Raises ``ValueError`` unless every existing rule is kept unchanged and in
+    order, and ``version`` is bumped when rules are added: a proposal may only
+    add rules. The publish job runs this on the artifact the unprivileged
+    proposer job uploaded, before anything is pushed.
+    """
+
+    import yaml
+
+    base, proposed = yaml.safe_load(base_text), yaml.safe_load(proposed_text)
+    base_rules, new_rules = base["rules"], proposed["rules"]
+    index = {rule.get("id"): pos for pos, rule in enumerate(new_rules)}
+    last = -1
+    for rule in base_rules:
+        pos = index.get(rule["id"])
+        if pos is None:
+            raise ValueError(f"existing rule {rule['id']!r} was removed")
+        if new_rules[pos] != rule:
+            raise ValueError(f"existing rule {rule['id']!r} was changed")
+        if pos < last:
+            raise ValueError(f"existing rule {rule['id']!r} was moved")
+        last = pos
+    base_ids = {rule["id"] for rule in base_rules}
+    added = [rule.get("id") for rule in new_rules if rule.get("id") not in base_ids]
+    if added and not proposed.get("version", 0) > base.get("version", 0):
+        raise ValueError("rules were added but version was not bumped")
+    return added
+
+
 Completer = Callable[[List[Dict[str, str]]], str]
 
 
@@ -595,7 +675,6 @@ def propose_rules(
         )
         proposals.append(proposal)
         evidence = _fetch_evidence(client, target)
-        corpus = target.excerpt + "\n" + evidence
         messages = build_messages(target, evidence, pack, skill)
         for attempt in range(1, attempts + 1):
             proposal.attempts = attempt
@@ -605,6 +684,7 @@ def propose_rules(
                 answer = parse_json_reply(reply)
             except LLMReplyError as exc:
                 proposal.decision, proposal.reason = "error", str(exc)
+                proposal.rule = None
                 messages = messages + [
                     {"role": "assistant", "content": reply or "(cut off)"},
                     {
@@ -620,10 +700,10 @@ def propose_rules(
                 break
             proposal.reason = _flatten(str(answer.get("reason", "")))[:MAX_NOTES_CHARS]
             if answer.get("decision") != "rule":
-                proposal.decision = "unknown"
+                proposal.decision, proposal.rule = "unknown", None
                 break
             try:
-                rule = sanitise_rule(answer.get("rule"), pack, corpus)
+                rule = sanitise_rule(answer.get("rule"), pack, target.excerpt)
                 new_pack = candidate_pack(pack_text, rule)
                 signatures, jobs = check_impact(
                     conn, contexts, pack, new_pack, rule["id"], target.signature_id

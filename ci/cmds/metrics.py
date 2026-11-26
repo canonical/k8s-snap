@@ -38,6 +38,7 @@ from metrics.propose import (
     DEFAULT_LIMIT,
     propose_rules,
     render_report,
+    verify_additions,
 )
 from metrics.report import build_catalogue, render_digest_markdown, write_reports
 from metrics.rollup import derive_rollup, derive_rollups, open_issue_backlog
@@ -506,6 +507,16 @@ def add_metrics_cmds(parser: argparse.ArgumentParser) -> None:
     )
     propose.set_defaults(func=cmd_propose_rules)
 
+    verify = metrics_sub.add_parser(
+        "verify-proposal",
+        help="Check that a proposed rule pack only adds rules and still loads.",
+    )
+    verify.add_argument("--base", type=Path, required=True, help="Current pack.")
+    verify.add_argument(
+        "--proposed", type=Path, required=True, help="Proposed pack to check."
+    )
+    verify.set_defaults(func=cmd_verify_proposal)
+
 
 def _add_common_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
@@ -692,6 +703,22 @@ def cmd_propose_rules(args: argparse.Namespace) -> int:
             file=sys.stderr,
         )
         return 1
+    return 0
+
+
+def cmd_verify_proposal(args: argparse.Namespace) -> int:
+    """Fail unless the proposed pack only adds rules and loads cleanly."""
+
+    try:
+        added = verify_additions(
+            args.base.read_text(encoding="utf-8"),
+            args.proposed.read_text(encoding="utf-8"),
+        )
+        load_rules(args.proposed)
+    except (ValueError, KeyError, TypeError) as exc:
+        print(f"metrics verify-proposal: {exc}", file=sys.stderr)
+        return 1
+    print("adds: " + (", ".join(added) or "nothing"))
     return 0
 
 

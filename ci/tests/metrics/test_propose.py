@@ -23,6 +23,7 @@ from metrics.propose import (  # noqa: E402
     render_report,
     sanitise_rule,
     unknown_targets,
+    verify_additions,
 )
 from metrics.rules import classify_signatures, load_rules  # noqa: E402
 
@@ -219,7 +220,9 @@ class ProposeRulesTest(unittest.TestCase):
             (proposals[0].decision, proposals[0].attempts), ("accepted", 2)
         )
         feedback = model.calls[1][-1]["content"]
-        self.assertIn("Rejected: examples[0] is not copied from the evidence", feedback)
+        self.assertIn(
+            "Rejected: examples[0] is not a whole line of the target excerpt", feedback
+        )
 
     def test_unusable_reply_is_retried_with_feedback(self) -> None:
         pack = _write_pack()
@@ -330,7 +333,7 @@ class SanitiseRuleTest(unittest.TestCase):
             "unsupported rule keys": {"signature_id": "aaaaaaaaaaaaaaaa"},
             "already exists": {"id": "external-snap-store"},
             "must start with 'test-'": {"id": "product-missing-subunit"},
-            "nested quantifier": {"excerpt_pattern": "(subunit+)+"},
+            "backtrack catastrophically": {"excerpt_pattern": "(subunit+)+"},
             "single-line": {"excerpt_pattern": "subunit\\nfoo"},
             "not a valid regex": {"excerpt_pattern": "subunit("},
             "not allowed": {"failure_class": "unknown"},
@@ -341,6 +344,50 @@ class SanitiseRuleTest(unittest.TestCase):
             with self.subTest(expected=expected):
                 with self.assertRaisesRegex(ProposalRejected, expected):
                     sanitise_rule({**GOOD_RULE, **change}, pack, SUBUNIT)
+
+    def test_patterns_that_can_backtrack_catastrophically_are_rejected(self) -> None:
+        pack = load_rules(_write_pack())
+        dangerous = [
+            r"(a+)+$",
+            r"((a+))+$",
+            r"(\w+\s?)+:",
+            r"(a|a)+$",
+            r"(?:a|ab|b)*c",
+            r"(.*a){12}x",
+            r"(?=(a+)+)subunit",
+        ]
+        safe = [
+            "No module named 'subunit'",
+            r"(ghcr\.io|docker\.io).{0,80}(timeout|denied)",
+            r"(?:subunit )+missing",
+            r"Services have restarted more than \d+ time\(s\)",
+        ]
+        for pattern in dangerous:
+            with self.subTest(pattern=pattern):
+                with self.assertRaisesRegex(ProposalRejected, "backtrack"):
+                    sanitise_rule(
+                        {**GOOD_RULE, "excerpt_pattern": pattern}, pack, SUBUNIT
+                    )
+        for pattern in safe:
+            with self.subTest(pattern=pattern):
+                rule = {**GOOD_RULE, "excerpt_pattern": pattern}
+                self.assertEqual(
+                    sanitise_rule(rule, pack, SUBUNIT)["excerpt_pattern"], pattern
+                )
+
+    def test_examples_must_be_whole_lines_of_the_target_excerpt(self) -> None:
+        pack = load_rules(_write_pack())
+        excerpt = "Traceback (most recent call last):\n" + SUBUNIT
+        for example in ("Error", "last): ModuleNotFoundError", "a line from the log"):
+            with self.subTest(example=example):
+                with self.assertRaisesRegex(ProposalRejected, "not a whole line"):
+                    sanitise_rule({**GOOD_RULE, "examples": [example]}, pack, excerpt)
+
+        rule = sanitise_rule(
+            {**GOOD_RULE, "examples": [f"  {SUBUNIT}  "]}, pack, excerpt
+        )
+
+        self.assertEqual(rule["examples"], [f"  {SUBUNIT}  "])
 
     def test_clean_rule_keeps_only_known_fields(self) -> None:
         pack = load_rules(_write_pack())
@@ -387,6 +434,38 @@ class InsertRulesTest(unittest.TestCase):
         self.assertIn("version: 5\n", text)
         # The new external rule sits above the next tier's banner comment.
         self.assertLess(text.index("external-pypi"), text.index("# --- product.bug"))
+
+
+def _reordered(text: str) -> str:
+    import yaml
+
+    payload = yaml.safe_load(text)
+    payload["rules"].reverse()
+    return yaml.safe_dump(payload, sort_keys=False)
+
+
+class VerifyAdditionsTest(unittest.TestCase):
+    def test_a_proposal_may_only_add_rules(self) -> None:
+        proposed = insert_rules(PACK, [GOOD_RULE])
+
+        self.assertEqual(verify_additions(PACK, proposed), ["test-missing-subunit"])
+        self.assertEqual(verify_additions(PACK, PACK), [])
+
+    def test_removed_changed_moved_or_unversioned_rules_are_refused(self) -> None:
+        proposed = insert_rules(PACK, [GOOD_RULE])
+        product = "product-node-never-ready"
+        cases = {
+            "was removed": proposed.replace(
+                f"  - id: {product}", "  - id: product-gone"
+            ),
+            "was changed": proposed.replace("The store was unreachable.", "Changed."),
+            "was moved": _reordered(PACK),
+            "version was not bumped": proposed.replace("version: 5", "version: 4"),
+        }
+        for expected, text in cases.items():
+            with self.subTest(expected=expected):
+                with self.assertRaisesRegex(ValueError, expected):
+                    verify_additions(PACK, text)
 
 
 class LogEvidenceTest(unittest.TestCase):
