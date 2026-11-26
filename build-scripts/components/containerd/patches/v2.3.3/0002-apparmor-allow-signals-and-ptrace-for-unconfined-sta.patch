@@ -1,0 +1,93 @@
+From 238150c2583c7854bc3d9cf4e9b628f40ac975f5 Mon Sep 17 00:00:00 2001
+From: jony montana <hy352144278@gmail.com>
+Date: Mon, 16 Nov 2026 03:30:15 +0000
+Subject: [PATCH] apparmor: allow signals and ptrace for unconfined stacked
+ peers
+
+With kernel.apparmor_restrict_unprivileged_unconfined=1, an unprivileged
+profile change is stacked as "{{.Name}}//&unconfined". The default profile
+only named the unstacked profile, so signals and ptrace inside the
+container were denied. Allow that exact stacked peer.
+
+Fixes #14485
+
+Signed-off-by: jony montana <hy352144278@gmail.com>
+---
+ contrib/apparmor/template.go      |  6 ++++++
+ contrib/apparmor/template_test.go | 29 +++++++++++++++++++++++++++++
+ 2 files changed, 35 insertions(+)
+
+diff --git a/contrib/apparmor/template.go b/contrib/apparmor/template.go
+index a88be95..0c83151 100644
+--- a/contrib/apparmor/template.go
++++ b/contrib/apparmor/template.go
+@@ -65,6 +65,10 @@ profile {{.Name}} flags=(attach_disconnected,mediate_deleted) {
+   signal (receive) peer={{.DaemonProfile}},
+   # Container processes may send signals amongst themselves.
+   signal (send,receive) peer={{.Name}},
++  # With kernel.apparmor_restrict_unprivileged_unconfined=1, an unprivileged
++  # profile change is converted to stacking, producing "{{.Name}}//&unconfined".
++  # Allow signals to peers with this stacked label as well.
++  signal (send,receive) peer={{.Name}}//&unconfined,
+ {{if .RootlessKit}}
+   # https://github.com/containerd/nerdctl/issues/2730
+   signal (receive) peer={{.RootlessKit}},
+@@ -92,6 +96,8 @@ profile {{.Name}} flags=(attach_disconnected,mediate_deleted) {
+   # allow processes within the container to trace each other,
+   # provided all other LSM and yama setting allow it.
+   ptrace (trace,tracedby,read,readby) peer={{.Name}},
++  # Same stacked-label peer as the signal rule above.
++  ptrace (trace,tracedby,read,readby) peer={{.Name}}//&unconfined,
+ }
+ `
+ 
+diff --git a/contrib/apparmor/template_test.go b/contrib/apparmor/template_test.go
+index 142dca9..203b131 100644
+--- a/contrib/apparmor/template_test.go
++++ b/contrib/apparmor/template_test.go
+@@ -1,13 +1,42 @@
+ //go:build linux
+ 
++/*
++   Copyright The containerd Authors.
++
++   Licensed under the Apache License, Version 2.0 (the "License");
++   you may not use this file except in compliance with the License.
++   You may obtain a copy of the License at
++
++       http://www.apache.org/licenses/LICENSE-2.0
++
++   Unless required by applicable law or agreed to in writing, software
++   distributed under the License is distributed on an "AS IS" BASIS,
++   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++   See the License for the specific language governing permissions and
++   limitations under the License.
++*/
++
+ package apparmor
+ 
+ import (
++	"bytes"
+ 	"testing"
+ 
+ 	"github.com/stretchr/testify/assert"
+ )
+ 
++func TestDefaultProfileAllowsUnconfinedStackedPeers(t *testing.T) {
++	var buf bytes.Buffer
++	err := generate(&data{Name: "cri-containerd.apparmor.d"}, &buf)
++	assert.NoError(t, err)
++	prof := buf.String()
++	assert.Contains(t, prof, "signal (send,receive) peer=cri-containerd.apparmor.d//&unconfined,")
++	assert.Contains(t, prof, "ptrace (trace,tracedby,read,readby) peer=cri-containerd.apparmor.d//&unconfined,")
++	assert.Contains(t, prof, "signal (send,receive) peer=cri-containerd.apparmor.d,")
++	assert.Contains(t, prof, "ptrace (trace,tracedby,read,readby) peer=cri-containerd.apparmor.d,")
++	assert.NotContains(t, prof, "//&*")
++}
++
+ func TestCleanProfileName(t *testing.T) {
+ 	assert.Equal(t, cleanProfileName(""), "unconfined")
+ 	assert.Equal(t, cleanProfileName("unconfined"), "unconfined")
+-- 
+2.43.0
+
