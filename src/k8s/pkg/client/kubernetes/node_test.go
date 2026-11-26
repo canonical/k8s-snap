@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -14,6 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	versionutil "k8s.io/apimachinery/pkg/util/version"
+	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes/fake"
 	k8stesting "k8s.io/client-go/testing"
 )
@@ -211,5 +213,65 @@ func TestNodeVersions(t *testing.T) {
 
 		_, err := client.NodeVersions(context.Background())
 		g.Expect(err).To(MatchError(ContainSubstring("failed to parse version")))
+	})
+}
+
+func TestWatchNode(t *testing.T) {
+	g := NewWithT(t)
+
+	t.Run("returns error when reconcile fails", func(t *testing.T) {
+		clientset := fake.NewSimpleClientset()
+		watcher := watch.NewFake()
+		clientset.PrependWatchReactor("nodes", k8stesting.DefaultWatchReactor(watcher, nil))
+
+		client := &Client{Interface: clientset}
+		node := &v1.Node{
+			ObjectMeta: metav1.ObjectMeta{Name: "test-node"},
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+		defer cancel()
+
+		reconcileErr := errors.New("reconcile error")
+		go func() {
+			watcher.Add(node)
+		}()
+
+		err := client.WatchNode(ctx, "test-node", func(n *v1.Node) error {
+			return reconcileErr
+		})
+		g.Expect(err).To(MatchError(ContainSubstring("failed to reconcile node")))
+		g.Expect(errors.Is(err, reconcileErr)).To(BeTrue())
+	})
+
+	t.Run("reconciles node successfully until context cancelled", func(t *testing.T) {
+		clientset := fake.NewSimpleClientset()
+		watcher := watch.NewFake()
+		clientset.PrependWatchReactor("nodes", k8stesting.DefaultWatchReactor(watcher, nil))
+
+		client := &Client{Interface: clientset}
+		node := &v1.Node{
+			ObjectMeta: metav1.ObjectMeta{Name: "test-node"},
+		}
+
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		reconciled := make(chan *v1.Node, 1)
+		go func() {
+			watcher.Add(node)
+		}()
+
+		watchDone := make(chan error, 1)
+		go func() {
+			watchDone <- client.WatchNode(ctx, "test-node", func(n *v1.Node) error {
+				reconciled <- n
+				cancel()
+				return nil
+			})
+		}()
+
+		g.Eventually(reconciled).Should(Receive(Equal(node)))
+		g.Eventually(watchDone).Should(Receive(BeNil()))
 	})
 }
