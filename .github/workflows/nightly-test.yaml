@@ -64,20 +64,6 @@ jobs:
       parallel: true
       # upload-results stays false so these don't enter the aggregated report.
 
-  test-performance:
-    name: Run performance tests for ${{ matrix.os }}-${{ matrix.arch }}
-    strategy:
-      matrix:
-        os: ["ubuntu:22.04", "ubuntu:24.04", "ubuntu:26.04"]
-        arch: ["amd64", "arm64"]
-      fail-fast: false
-    uses: $/.github/workflows/compare-performance.yaml
-    with:
-      arch: ${{ matrix.arch }}
-      os: ${{ matrix.os }}
-      channel-1: latest/edge
-      channel-2: 1.32-classic/stable
-
   collect-results:
     name: Collect integration test results
     if: ${{ always() }}
@@ -213,7 +199,7 @@ jobs:
     # Notify on success or failure but only if the event is a scheduled run.
     # We don't want to ping people of failed PRs.
     if: ${{ always() && github.event_name == 'schedule' }}
-    needs: [test-integration, test-performance, collect-results]
+    needs: [test-integration, collect-results]
     runs-on: ubuntu-latest
     steps:
       - name: Check out code

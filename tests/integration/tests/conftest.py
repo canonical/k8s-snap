@@ -13,7 +13,7 @@ from test_util.registry import Registry
 
 LOG = logging.getLogger(__name__)
 
-pytest_plugins = ("pytest_tagging", "pytest_benchmark")
+pytest_plugins = ("pytest_tagging",)
 
 
 _TEST_UTIL_DIR = Path(__file__).resolve().parent / "test_util"

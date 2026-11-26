@@ -52,7 +52,6 @@ def test_something(...): ...
 | `tags.NIGHTLY` | `nightly` | nightly CI |
 | `tags.WEEKLY` | `weekly` | weekly CI |
 | `tags.CONFORMANCE` | `conformance_tests` | CNCF conformance |
-| `tags.PERFORMANCE` | `performance` | benchmark runs |
 | `tags.GPU` | `gpu` | GPU operator tests |
 | `tags.PROMOTE_CANDIDATE` | `beta_to_candidate` | channel promotion gate |
 | `tags.PROMOTE_STABLE` | `candidate_to_stable` | channel promotion gate |
