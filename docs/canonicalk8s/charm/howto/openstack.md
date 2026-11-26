@@ -81,7 +81,8 @@ Deploy the {{product}} bundle on OpenStack using the modified overlay:
 juju deploy canonical-kubernetes --overlay ~/path/openstack-overlay.yaml --trust
 ```
 
-...and remember to fetch the configuration file!
+...and remember to fetch the kubeconfig file (see [how to access the
+cluster][access-cluster] for more details)!
 
 ```
 juju run k8s/leader get-kubeconfig | yq eval '.kubeconfig' > kubeconfig
@@ -106,3 +107,4 @@ It will not check any other health metrics, like status code or body contents.
 [proxy]: /charm/howto/proxy
 [bundle]: https://github.com/canonical/k8s-bundles/blob/main/main/bundle.yaml
 [openstack-overlay]: https://github.com/canonical/k8s-bundles/blob/main/overlays/openstack.yaml
+[access-cluster]: ./access-cluster.md

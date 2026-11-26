@@ -7,22 +7,16 @@ lxc exec k8s -- sudo snap install k8s --classic --channel=1.35-classic/stable
 <!-- offline start -->
 sudo snap download k8s --channel 1.35-classic/stable --basename k8s
 <!-- offline end -->
-<!-- juju control start -->
-juju deploy k8s --channel=1.35/stable --base="ubuntu@24.04"
-<!-- juju control end -->
 <!-- juju worker start -->
-juju deploy k8s-worker --channel=1.35/stable -n 2 --base="ubuntu@24.04"
+juju deploy k8s-worker --channel=1.35/stable -n 2 \
+    --base="ubuntu@24.04" \
+    --constraints='cores=2 mem=16G root-disk=40G'
 <!-- juju worker end -->
 <!-- juju control constraints start -->
 juju deploy k8s --channel=1.35/stable \
     --base="ubuntu@24.04" \
     --constraints='cores=2 mem=16G root-disk=40G'
 <!-- juju control constraints end -->
-<!-- juju worker constraints start -->
-juju deploy k8s-worker --channel=1.35/stable \
-    --base="ubuntu@24.04" \
-    --constraints='cores=2 mem=16G root-disk=40G'
-<!-- juju worker constraints end -->
 <!-- juju vm start -->
 juju deploy k8s --channel=latest/stable \
     --base="ubuntu@24.04" \

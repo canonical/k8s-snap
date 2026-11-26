@@ -47,7 +47,8 @@ Lite to function correctly. You can enable these features using the charm
 configuration [options][k8s-config].
 ```
 
-Once the cluster is in the `active/idle` state, export the kubeconfig file:
+Once the cluster is in the `active/idle` state, export the kubeconfig file (see
+[how to access the cluster][access-cluster] for more details):
 
 ```
 juju run k8s/leader get-kubeconfig | yq eval '.kubeconfig' > kubeconfig
@@ -158,4 +159,5 @@ you can head over to the [COS Lite documentation][cos-lite-docs].
 [juju-debug-log]: https://juju.is/docs/juju/juju-debug-log
 [cross-model-integration]: https://juju.is/docs/juju/relation#heading--cross-model
 [k8s-config]: https://charmhub.io/k8s/configurations
+[access-cluster]: ./access-cluster.md
 

@@ -58,15 +58,10 @@ another descriptive term.
 
 ### Test the API server health
 
-Fetch the kubeconfig file for a control-plane node in the cluster by running:
-
-```
-juju run k8s/leader get-kubeconfig | yq .kubeconfig > cluster-kubeconfig.yaml
-```
-
-```{warning}
-When running `juju run k8s/leader get-kubeconfig` you retrieve the kubeconfig file that uses one of the unit's public IP addresses in the Kubernetes endpoint. This endpoint IP can be overridden by providing a `server` argument if the API is exposed through a load balancer.
-```
+Fetch the kubeconfig file for a control-plane node in the cluster, as described
+in [how to access the cluster][access-cluster], and save it as
+`cluster-kubeconfig.yaml`. The endpoint in the file can be overridden with the
+`server` parameter if the API is exposed through a load balancer.
 
 Verify that the API server is healthy and reachable by running:
 
@@ -535,3 +530,4 @@ troubleshooting a Kubernetes cluster.
 [debug documentation]: https://kubernetes.io/docs/tasks/debug
 [inspection report reference page]: /snap/reference/inspection-reports.md
 [reported here]: https://github.com/cilium/cilium/issues/30889
+[access-cluster]: ./access-cluster.md

@@ -64,7 +64,7 @@ the help of the CAPI providers.
 [Multipass]: https://canonical.com/multipass
 [LXD]: https://canonical.com/lxd
 [Juju]: https://juju.is
-[Juju-CLI guide]: /charm/tutorial/getting-started.md
+[Juju-CLI guide]: /charm/howto/install/charm.md
 [control plane charm]: https://charmhub.io/k8s
 [worker charm]: https://charmhub.io/k8s-worker
 [getting-started guide]: /snap/tutorial/getting-started.md
