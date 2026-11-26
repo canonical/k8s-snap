@@ -20,7 +20,7 @@
 ##   Stage A router in metrics/router.py, which runs before these rules.
 ##
 
-version: 2
+version: 3
 
 rules:
   # --- infra.runner: the runner machine itself was unhealthy ---------------
@@ -122,6 +122,16 @@ rules:
       targets were external sites timing out or refusing the checker
       (canonical.com timeouts, Slack 403s), not links our docs broke. A link a
       PR really broke lands here too, hence confidence below 1.
+
+  - id: external-artifact-service
+    failure_class: external.dependency
+    subclass: artifact_service
+    excerpt_pattern: 'Failed to CreateArtifact: Failed to make request|ArtifactService/CreateArtifact'
+    examples:
+      - '##[error]Failed to CreateArtifact: Failed to make request after 5 attempts:
+        Request timeout: /twirp/github.actions.results.api.v1.ArtifactService/CreateArtifact'
+    notes: GitHub Actions ArtifactService timed out repeatedly during artifact upload;
+      this is a transient external dependency failure.
 
   # --- ci.config: our workflow wiring was wrong ----------------------------
 
@@ -387,3 +397,12 @@ rules:
     notes: >-
       Pytest or the harness timed out without surfacing a product assertion, so
       the actionable fix is in test timing or evidence capture.
+
+  - id: test-missing-subunit
+    failure_class: test.bug
+    subclass: harness_bug
+    excerpt_pattern: 'ModuleNotFoundError: No module named ''subunit'''
+    examples:
+      - 'ModuleNotFoundError: No module named ''subunit'''
+    notes: pytest-benchmark loads conftest.py which imports subunit, but the pytest-benchmark
+      tox environment does not include subunit in requirements-perf.txt.
