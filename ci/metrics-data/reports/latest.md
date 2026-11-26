@@ -85,6 +85,7 @@ These are report metrics, not appendix material: they show whether apparent impr
 |---|---:|---:|---|---|---:|---:|---|
 | `b23345bfac804d7b` | 24 | 5 | unknown | _unowned_ | 1 | 2 | [job](https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138881993795) |
 | `bb40ddc3376ea7c1` | 12 | 1 | product.bug/node_not_ready | product-node-never-ready | 2 | 6 | [job](https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138873388968) |
+| `eb8fa9ef8c5c6a46` | 12 | 3 | unknown | _unowned_ | 1 | 8 | [job](https://github.com/canonical/k8s-snap/actions/runs/45725848029/job/139595584529) |
 | `7a4b63232208221d` | 8 | 3 | product.bug/cluster_never_ready | product-cluster-never-ready | 1 | 7 | [job](https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138873384206) |
 | `00b444820009a354` | 6 | 1 | product.bug/node_not_ready | product-node-never-ready | 1 | 6 | [job](https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138873390577) |
 | `025f8f4cf9ef8622` | 6 | 1 | product.bug/wait_for_timeout | product-wait-for-timeout | 1 | 6 | [job](https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138873384044) |
@@ -97,7 +98,6 @@ These are report metrics, not appendix material: they show whether apparent impr
 | `2ddc73e81db98d31` | 6 | 1 | product.bug/join_failure | product-join-failure | 1 | 6 | [job](https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138873383971) |
 | `35f73fbfa626fe68` | 6 | 1 | product.bug/wait_for_timeout | product-wait-for-timeout | 1 | 6 | [job](https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138873386402) |
 | `3a64943759434bc6` | 6 | 1 | unknown | _unowned_ | 1 | 6 | [job](https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138873382369) |
-| `3c977e4dae1d062b` | 6 | 1 | product.bug/node_not_ready | product-node-never-ready | 1 | 6 | [job](https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138873383629) |
 
 ## Open CI-filed issues
 
