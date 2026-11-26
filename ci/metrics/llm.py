@@ -135,9 +135,16 @@ class ChatClient:
         }
         last_error = "no attempt made"
         for attempt in range(MAX_ATTEMPTS):
-            response = self.session.post(
-                url, headers=headers, json=payload, timeout=REQUEST_TIMEOUT_S
-            )
+            try:
+                response = self.session.post(
+                    url, headers=headers, json=payload, timeout=REQUEST_TIMEOUT_S
+                )
+            except OSError as exc:  # requests' errors subclass OSError
+                wait = min(2 ** (attempt + 1), MAX_RETRY_AFTER_S)
+                last_error = f"{type(exc).__name__}: {exc}"
+                LOG.warning("%s from %s; retrying in %ss", last_error, url, wait)
+                time.sleep(wait)
+                continue
             self.calls_made += 1
             if response.status_code == 429 or response.status_code >= 500:
                 wait = _retry_after(response, attempt)

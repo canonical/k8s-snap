@@ -5,7 +5,7 @@
 | `d87b7eabd6dd7094` | 103 | 5 | ci.config/apt_index_missing | ci-apt-index-missing | active | 2026-10-14T00:04:38Z | 2026-10-19T00:05:04Z | lxd:100, multipass:3 |
 | `da6ba7b982998d76` | 83 | 8 | product.bug/upgrade_failure | product-feature-upgrade-incomplete | active | 2026-10-13T00:05:23Z | 2026-11-25T00:02:45Z | lxd:83 |
 | `b2fdc843a67d0cf8` | 51 | 6 | product.bug/service_panic | product-service-panic | active | 2026-10-13T00:05:23Z | 2026-10-20T00:04:20Z | lxd:51 |
-| `b23345bfac804d7b` | 24 | 5 | unknown | _unowned_ | active | 2026-11-23T00:02:45Z | 2026-11-26T00:02:44Z | :24 |
+| `b23345bfac804d7b` | 24 | 5 | test.bug/harness_bug | test-missing-subunit | active | 2026-11-23T00:02:45Z | 2026-11-26T00:02:44Z | :24 |
 | `bb40ddc3376ea7c1` | 12 | 1 | product.bug/node_not_ready | product-node-never-ready | active | 2026-11-25T00:02:45Z | 2026-11-25T00:02:45Z | lxd:12 |
 | `eb8fa9ef8c5c6a46` | 12 | 3 | unknown | _unowned_ | active | 2026-11-24T13:26:37Z | 2026-11-26T00:02:44Z | lxd:12 |
 | `7296136bc38d37ff` | 11 | 6 | product.bug/service_restart | product-service-restarts | active | 2026-10-13T00:05:23Z | 2026-10-20T00:04:20Z | lxd:11 |
@@ -79,7 +79,7 @@
 | `35868fe40d79058d` | 2 | 2 | product.bug/service_not_active | product-service-not-active | active | 2026-10-18T00:04:44Z | 2026-10-19T00:05:04Z | lxd:2 |
 | `40a71c1cc7cfb11b` | 2 | 1 | external.dependency/snap_store | external-snap-store | active | 2026-10-13T00:05:23Z | 2026-10-13T00:05:23Z | lxd:2 |
 | `52128313cf55b073` | 2 | 2 | unknown | _unowned_ | active | 2026-11-23T00:02:45Z | 2026-11-26T00:02:44Z | lxd:2 |
-| `753ae9e6b747fa57` | 2 | 1 | unknown | _unowned_ | active | 2026-10-18T00:04:44Z | 2026-10-18T00:04:44Z | lxd:2 |
+| `753ae9e6b747fa57` | 2 | 1 | external.dependency/artifact_service | external-artifact-service | active | 2026-10-18T00:04:44Z | 2026-10-18T00:04:44Z | lxd:2 |
 | `a98b9f80e69b79d2` | 2 | 1 | unknown | _unowned_ | active | 2026-11-26T00:02:44Z | 2026-11-26T00:02:44Z | lxd:2 |
 | `baa0ed1c73cbdc79` | 2 | 2 | external.dependency/snap_store | external-snap-store | active | 2026-10-13T00:05:23Z | 2026-10-15T11:00:17Z | lxd:2 |
 | `062d20cf83048b49` | 1 | 1 | unknown | _unowned_ | active | 2026-11-25T00:02:45Z | 2026-11-25T00:02:45Z | lxd:1 |

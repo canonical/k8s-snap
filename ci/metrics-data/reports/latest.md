@@ -12,21 +12,22 @@ Data period: `2026-11` (through `2026-11-26T04:54:37Z`)
 
 | Period | Runs | Failed jobs | Failure rate | Scheduled green | PR first-pass | Unclassified | M12 fact coverage |
 |---|---:|---:|---|---|---|---|---|
-| 2026-10 | 8 | 318 | 1.7% (n=18222 jobs) | 0.0% (n=8 runs) | n/a | 5.0% (n=318 facts) | 100.0% (n=318 expected failed jobs) |
-| 2026-11 | 5 | 425 | 3.0% (n=14126 jobs) | 0.0% (n=5 runs) | n/a | 15.5% (n=425 facts) | 100.0% (n=425 expected failed jobs) |
+| 2026-10 | 8 | 318 | 1.7% (n=18222 jobs) | 0.0% (n=8 runs) | n/a | 4.4% (n=318 facts) | 100.0% (n=318 expected failed jobs) |
+| 2026-11 | 5 | 425 | 3.0% (n=14126 jobs) | 0.0% (n=5 runs) | n/a | 9.9% (n=425 facts) | 100.0% (n=425 expected failed jobs) |
 
 ## Failure attribution
 
 | Class | Count | Share | Owner |
 |---|---:|---|---|
 | `product.bug` | 359 | 84.5% (n=425 facts) | product team |
-| `unknown` | 66 | 15.5% (n=425 facts) | unowned triage |
+| `unknown` | 42 | 9.9% (n=425 facts) | unowned triage |
+| `test.bug` | 24 | 5.6% (n=425 facts) | test owners |
 
 ## Integrity metrics
 
 These are report metrics, not appendix material: they show whether apparent improvement came from running less.
 
-- M9 unclassified share: 15.5% (n=425 failed job facts) (+10.5 pp)
+- M9 unclassified share: 9.9% (n=425 failed job facts) (+5.5 pp)
 - M11 jobs blocked by failed `Prepare Environment`: 0 across 0 prepare job(s).
 - M12 failed-job fact coverage: 100.0% (n=425 expected failed jobs).
 - M12 log availability among failed job facts: 100.0% (n=425 failed job facts).
@@ -83,7 +84,7 @@ These are report metrics, not appendix material: they show whether apparent impr
 
 | Signature | Occurrences | Runs | Class | Rule | Tests | Configs | Example |
 |---|---:|---:|---|---|---:|---:|---|
-| `b23345bfac804d7b` | 24 | 5 | unknown | _unowned_ | 1 | 2 | [job](https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138881993795) |
+| `b23345bfac804d7b` | 24 | 5 | test.bug/harness_bug | test-missing-subunit | 1 | 2 | [job](https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138881993795) |
 | `bb40ddc3376ea7c1` | 12 | 1 | product.bug/node_not_ready | product-node-never-ready | 2 | 6 | [job](https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138873388968) |
 | `eb8fa9ef8c5c6a46` | 12 | 3 | unknown | _unowned_ | 1 | 8 | [job](https://github.com/canonical/k8s-snap/actions/runs/45725848029/job/139595584529) |
 | `7a4b63232208221d` | 8 | 3 | product.bug/cluster_never_ready | product-cluster-never-ready | 1 | 7 | [job](https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138873384206) |
