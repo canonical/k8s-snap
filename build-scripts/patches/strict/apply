@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+"""Apply the strict variant overlay to snap/snapcraft.yaml."""
+
+from pathlib import Path
+
+import yaml
+
+DIR = Path(__file__).resolve().parent
+SNAPCRAFT_YAML = DIR.parents[2] / "snap" / "snapcraft.yaml"
+
+
+def main() -> None:
+    doc = yaml.safe_load(SNAPCRAFT_YAML.read_text(encoding="utf-8"))
+    overlay = yaml.safe_load((DIR / "strict-overlay.yaml").read_text(encoding="utf-8"))
+
+    doc["confinement"] = "strict"
+    doc["assumes"] = overlay["assumes"]
+    for key in ("environment", "plugs", "layout", "hooks"):
+        doc.setdefault(key, {}).update(overlay[key])
+
+    # Classic builds point ELF interpreters and rpaths at the host's base snap, which strict snaps must not use.
+    for name, part in doc["parts"].items():
+        if "build-attributes" in part:
+            part["build-attributes"] = [
+                "no-patchelf" if attr == "enable-patchelf" else attr
+                for attr in part["build-attributes"]
+            ]
+        if name in ("etcd", "containerd"):
+            part.pop("override-prime", None)
+
+    apps = doc["apps"]
+    if set(overlay["apps"]) != set(apps):
+        raise ValueError(
+            f"strict overlay apps {sorted(overlay['apps'])} do not match {sorted(apps)}"
+        )
+    for name, app in overlay["apps"].items():
+        apps[name].update(app)
+
+    SNAPCRAFT_YAML.write_text(yaml.safe_dump(doc, sort_keys=False), encoding="utf-8")
+
+
+if __name__ == "__main__":
+    main()

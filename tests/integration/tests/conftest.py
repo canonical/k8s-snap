@@ -37,6 +37,13 @@ def pytest_itemcollected(item):
         )
 
 
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    rep = outcome.get_result()
+    setattr(item, f"rep_{rep.when}", rep)
+
+
 def _harness_clean(h: harness.Harness):
     "Clean up created instances within the test harness."
 
@@ -55,15 +62,26 @@ def _generate_inspection_report(h: harness.Harness, instance_id: str):
 
     try:
         inspection_path = Path(config.INSPECTION_REPORTS_DIR)
+        report_remote = "/inspection-report.tar.gz"
+        inspect_cmd = [
+            "/snap/k8s/current/k8s/scripts/inspect.sh",
+            "--all-namespaces",
+            "--core-dump-dir",
+            config.CORE_DUMP_DIR,
+        ]
+        if config.VARIANT == "strict":
+            # The confined k8s CLI can only write the report below a home directory.
+            report_remote = "/home/ubuntu/inspection-report.tar.gz"
+            inspect_cmd = [
+                "sh",
+                "-c",
+                f"cd /home/ubuntu && {' '.join(inspect_cmd)} {report_remote}",
+            ]
+        else:
+            inspect_cmd.append(report_remote)
         result = h.exec(
             instance_id,
-            [
-                "/snap/k8s/current/k8s/scripts/inspect.sh",
-                "--all-namespaces",
-                "--core-dump-dir",
-                config.CORE_DUMP_DIR,
-                "/inspection-report.tar.gz",
-            ],
+            inspect_cmd,
             capture_output=True,
             text=True,
             check=False,
@@ -79,7 +97,7 @@ def _generate_inspection_report(h: harness.Harness, instance_id: str):
 
         h.pull_file(
             instance_id,
-            "/inspection-report.tar.gz",
+            report_remote,
             (inspection_path / instance_id / "inspection_report.tar.gz").as_posix(),
         )
     except harness.HarnessError as e:
@@ -238,6 +256,8 @@ def network_type(request) -> Union[str, None]:
 def containerd_cfgdir(request) -> str:
     marker = request.node.get_closest_marker("containerd_cfgdir")
     if not marker:
+        if config.VARIANT == "strict":
+            return "/var/snap/k8s/common/etc/containerd"
         return "/etc/containerd"
     cfgdir, *_ = marker.args
     return cfgdir
@@ -265,6 +285,8 @@ def instances(
 
     LOG.info(f"Creating {node_count} instances")
     instances: List[harness.Instance] = []
+    strict = config.VARIANT == "strict"
+    denial_baseline = set(util.collect_host_apparmor_denials()) if strict else set()
     for _ in range(node_count):
         # Create <node_count> instances and setup the k8s snap in each.
         instance = h.new_instance(network_type=network_type)
@@ -301,6 +323,8 @@ def instances(
         LOG.warning("Skipping clean-up of instances, delete them on your own")
         return
 
+    denials: List[str] = []
+
     # Collect all the reports before initiating the cleanup so that we won't
     # affect the state of the observed cluster.
     if config.INSPECTION_REPORTS_DIR:
@@ -330,7 +354,20 @@ def instances(
                 exc_info=True,
             )
         finally:
+            if strict:
+                denials += util.collect_instance_apparmor_denials(instance)
             instance.delete()
+
+    # A failed test already reports its own error; only check denials of passing tests.
+    if (
+        strict
+        and getattr(request.node, "rep_call", None)
+        and request.node.rep_call.passed
+    ):
+        new_denials = sorted(
+            set(denials + util.collect_host_apparmor_denials()) - denial_baseline
+        )
+        assert not new_denials, "AppArmor denials detected:\n" + "\n".join(new_denials)
 
 
 @pytest.fixture(scope="function")

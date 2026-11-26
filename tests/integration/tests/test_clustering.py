@@ -160,15 +160,20 @@ def test_etcd_learner_promotion(instances: List[harness.Instance]):
     )
 
     # Verify that etcd members are all voting (no learners remain)
+    pki_dir = (
+        "/var/snap/k8s/common/etc/kubernetes/pki"
+        if config.VARIANT == "strict"
+        else "/etc/kubernetes/pki"
+    )
     proc = cluster_node.exec(
         [
             "curl",
             "--cacert",
-            "/etc/kubernetes/pki/etcd/ca.crt",
+            f"{pki_dir}/etcd/ca.crt",
             "--cert",
-            "/etc/kubernetes/pki/apiserver-etcd-client.crt",
+            f"{pki_dir}/apiserver-etcd-client.crt",
             "--key",
-            "/etc/kubernetes/pki/apiserver-etcd-client.key",
+            f"{pki_dir}/apiserver-etcd-client.key",
             "https://127.0.0.1:2379/v3/cluster/member/list",
             "-X",
             "POST",

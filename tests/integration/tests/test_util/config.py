@@ -39,8 +39,8 @@ REGISTRY_URL = (
 # REGISTRY_VERSION is the version of registry to use.
 REGISTRY_VERSION = os.getenv("REGISTRY_VERSION") or "v2.8.3"
 
-# FLAVOR is the flavor of the snap to use.
-FLAVOR = os.getenv("TEST_FLAVOR") or "classic"
+# VARIANT is the variant of the snap to use.
+VARIANT = os.getenv("TEST_VARIANT") or "classic"
 
 # SNAP is the absolute path to the snap against which we run the integration tests.
 SNAP = os.getenv("TEST_SNAP")
@@ -194,7 +194,7 @@ JUJU_MACHINES = os.getenv("TEST_JUJU_MACHINES") or ""
 
 # A list of space-separated channels for which the upgrade tests should be run in sequential order.
 # First entry is the bootstrap channel. Afterwards, upgrades are done in order.
-# Alternatively, use 'recent <num> <flavour>' to get the latest <num> channels for <flavour>.
+# Alternatively, use 'recent <num> <variant>' to get the latest <num> channels for <variant>.
 # If a channel includes an '@' symbol, the part after '@' is treated as the snap revision
 VERSION_UPGRADE_CHANNELS = (
     os.environ.get("TEST_VERSION_UPGRADE_CHANNELS", "").strip().split()

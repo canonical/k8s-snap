@@ -128,3 +128,78 @@ def test_smoke(instances: List[harness.Instance]):
     util.check_snap_services_ready(instance)
     util.check_service_restarts(instance)
     util.check_service_logs_for_panics(instance)
+
+    if config.VARIANT == "strict":
+        _verify_strict_pod_confinement(instance)
+
+
+def _verify_strict_pod_confinement(instance: harness.Instance) -> None:
+    """Verify privileged and NoNewPrivileges pods run under the expected AppArmor profiles."""
+    cilium_attr = instance.exec(
+        [
+            "k8s",
+            "kubectl",
+            "exec",
+            "-n",
+            "kube-system",
+            "ds/cilium",
+            "-c",
+            "cilium-agent",
+            "--",
+            "cat",
+            "/proc/1/attr/current",
+        ],
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    LOG.info("Strict privileged cilium-agent AppArmor label: %s", cilium_attr)
+    assert (
+        "snap.k8s.containerd" in cilium_attr
+    ), f"Expected privileged cilium-agent under snap.k8s.containerd, got {cilium_attr!r}"
+
+    pod_manifest = """apiVersion: v1
+kind: Pod
+metadata:
+  name: strict-apparmor-check
+  namespace: default
+spec:
+  containers:
+    - name: nginx
+      image: ghcr.io/containerd/nginx:1.27.0
+      securityContext:
+        allowPrivilegeEscalation: false
+"""
+    instance.exec(
+        ["k8s", "kubectl", "apply", "-f", "-"],
+        input=pod_manifest.encode(),
+    )
+    instance.exec(
+        [
+            "k8s",
+            "kubectl",
+            "wait",
+            "--for=condition=Ready",
+            "pod/strict-apparmor-check",
+            "--timeout=180s",
+        ]
+    )
+    pod_attr = instance.exec(
+        [
+            "k8s",
+            "kubectl",
+            "exec",
+            "strict-apparmor-check",
+            "--",
+            "cat",
+            "/proc/1/attr/current",
+        ],
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    LOG.info("Strict NoNewPrivileges pod AppArmor label: %s", pod_attr)
+    assert (
+        pod_attr == "cri-containerd.apparmor.d (enforce)"
+    ), f"Expected cri-containerd.apparmor.d (enforce), got {pod_attr!r}"
+    instance.exec(
+        ["k8s", "kubectl", "delete", "pod", "strict-apparmor-check", "--wait=true"]
+    )

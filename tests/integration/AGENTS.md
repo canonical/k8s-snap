@@ -23,7 +23,7 @@ All runtime config is via `TEST_*` environment variables. Key variables:
 | `TEST_SUBSTRATE` | `lxd` | Harness backend: `lxd`, `juju`, `multipass` |
 | `TEST_SNAP` | _(none)_ | Absolute path to a local `.snap` file to test |
 | `TEST_SNAP_NAME` | `k8s` | Snap name when installing from store |
-| `TEST_FLAVOR` | `classic` | Snap flavor: `classic` or `strict` |
+| `TEST_VARIANT` | `classic` | Snap variant: `classic` or `strict` |
 | `TEST_SKIP_CLEANUP` | `0` | Set to `1` to leave instances alive after tests |
 | `TEST_LXD_IMAGE` | `ubuntu:22.04` | LXD image for containers |
 | `TEST_VERSION_UPGRADE_CHANNELS` | _(none)_ | Space-separated channel list for upgrade tests |
@@ -113,7 +113,7 @@ never under `tests/test_util/` where `e2e-tests.yaml` would collect them into th
 Snap Store API and channel utilities. Reuse these instead of inline HTTP requests:
 
 - `get_snap_info(snap_name=SNAP_NAME)` — fetch snap metadata from the store
-- `get_channels(num, flavor, arch, risk_level)` — list matching channels
+- `get_channels(num, variant, arch, risk_level)` — list matching channels
 - `get_most_stable_channels(...)` — ascending list of channels by stability
 - Constants: `SNAPSTORE_INFO_API`, `SNAPSTORE_HEADERS`, `RISK_LEVELS`, `SNAP_NAME`
 

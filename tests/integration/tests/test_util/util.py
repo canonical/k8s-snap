@@ -707,7 +707,13 @@ def remove_k8s_snap(instance: harness.Instance, retries: int = 40):
         raise
 
     LOG.info("Waiting for kubelet and containerd mounts to go away...")
-    target_mounts = ["/var/lib/kubelet/pods", "/run/containerd/io.containerd"]
+    if config.VARIANT == "strict":
+        target_mounts = [
+            "/var/snap/k8s/common/var/lib/kubelet/pods",
+            "/var/snap/k8s/common/run/containerd",
+        ]
+    else:
+        target_mounts = ["/var/lib/kubelet/pods", "/run/containerd/io.containerd"]
     last_lingering_mounts: List[str] = []
 
     def _no_lingering_mounts(p: subprocess.CompletedProcess) -> bool:
@@ -788,6 +794,69 @@ def wait_until_k8s_ready(
     LOG.info("Successfully checked Kubelet registered on all harness instances.")
     result = control_node.exec(["k8s", "kubectl", "get", "node"], capture_output=True)
     LOG.info("%s", result.stdout.decode().strip())
+
+
+def _is_benign_glibc_hugepages_probe(line: str) -> bool:
+    """Ignore glibc's read-only startup opendir(/sys/kernel/mm/hugepages/)."""
+    return (
+        'operation="open"' in line
+        and 'name="/sys/kernel/mm/hugepages/"' in line
+        and 'requested_mask="r"' in line
+    )
+
+
+def _filter_k8s_apparmor_denials(raw_output: str) -> List[str]:
+    """Return AppArmor DENIED log lines involving the k8s snap or its containers."""
+    snap_token = f"snap.{config.SNAP_NAME}."
+    seen = set()
+    matched: List[str] = []
+    for raw_line in raw_output.splitlines():
+        line = raw_line.strip()
+        if 'apparmor="DENIED"' not in line or 'operation="not mount"' in line:
+            continue
+        if _is_benign_glibc_hugepages_probe(line):
+            continue
+        if snap_token not in line and "cri-containerd.apparmor.d" not in line:
+            continue
+        if line not in seen:
+            seen.add(line)
+            matched.append(line)
+    return matched
+
+
+def collect_instance_apparmor_denials(instance: harness.Instance) -> List[str]:
+    """Collect k8s AppArmor denials visible from inside an instance."""
+    out = instance.exec(
+        [
+            "sh",
+            "-c",
+            "journalctl -k --no-pager 2>/dev/null; dmesg 2>/dev/null || true",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return _filter_k8s_apparmor_denials(out.stdout or "")
+
+
+def collect_host_apparmor_denials() -> List[str]:
+    """Collect k8s AppArmor denials from the LXD host kernel and audit logs."""
+    if config.SUBSTRATE != "lxd":
+        return []
+    out = run(
+        [
+            "sudo",
+            "-n",
+            "sh",
+            "-c",
+            "journalctl -k --no-pager 2>/dev/null; dmesg 2>/dev/null; "
+            "grep -h 'apparmor=\"DENIED\"' /var/log/audit/audit.log 2>/dev/null || true",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return _filter_k8s_apparmor_denials(out.stdout or "")
 
 
 def is_node_ready(
@@ -1186,7 +1255,10 @@ def tracks_least_risk(track: str, arch: str) -> str:
     """
     LOG.debug("Determining least risk channel for track: %s on %s", track, arch)
     if track == "latest":
-        return f"latest/edge/{config.FLAVOR or 'classic'}"
+        return f"latest/edge/{config.VARIANT}"
+    if config.VARIANT == "strict":
+        # Strict builds are only published to the hidden edge/strict branch of the classic track.
+        return f"{track.removesuffix('-classic')}-classic/edge/strict"
 
     INFO_URL = f"https://api.snapcraft.io/v2/snaps/info/{config.SNAP_NAME}"
     HEADERS = {
@@ -1225,9 +1297,9 @@ def major_minor(version: str) -> Optional[tuple]:
     return None
 
 
-def _get_flavor() -> str:
-    """Determine the flavor of the snap."""
-    return {"": "classic", "strict": ""}.get(config.FLAVOR, config.FLAVOR)
+def _get_variant() -> str:
+    """Determine the variant of the snap."""
+    return config.VARIANT
 
 
 def _major_minor_from_stable_upstream(maj: Optional[int] = None) -> Optional[tuple]:
@@ -1247,7 +1319,7 @@ def _major_minor_from_stable_upstream(maj: Optional[int] = None) -> Optional[tup
     return major_minor(stable)
 
 
-def _find_stable_track(major: int, minor: int, flavor: str) -> Optional[str]:
+def _find_stable_track(major: int, minor: int, variant: str) -> Optional[str]:
     """Find the latest track with a stable snap, walking back from (major, minor).
 
     Queries the snap store once and checks each minor version starting from
@@ -1257,7 +1329,7 @@ def _find_stable_track(major: int, minor: int, flavor: str) -> Optional[str]:
     Args:
         major: the major Kubernetes version
         minor: the minor Kubernetes version to start from
-        flavor: the snap flavor (e.g. 'classic', '')
+        variant: the snap variant (e.g. 'classic', 'strict')
 
     Returns:
         the track string (e.g. '1.36-classic') or None if no stable track is found
@@ -1289,12 +1361,14 @@ def _find_stable_track(major: int, minor: int, flavor: str) -> Optional[str]:
         if ch["channel"]["risk"] == "stable" and ch["channel"]["architecture"] == arch
     }
 
+    # Strict builds are published to the hidden edge/strict branch of classic tracks.
+    suffix = "-classic" if variant == "strict" else (variant and f"-{variant}")
     _min = minor
     while _min >= 0:
-        track = f"{major}.{_min}" + (flavor and f"-{flavor}")
+        track = f"{major}.{_min}{suffix}"
         if track in stable_tracks:
             LOG.info("Found stable snap for track %s (arch=%s)", track, arch)
-            return track
+            return f"{track}/edge/strict" if variant == "strict" else track
         LOG.info(
             "No stable snap for track %s (arch=%s), trying previous minor",
             track,
@@ -1413,8 +1487,8 @@ def _previous_track_from_branch(
     if not maj_min:
         return None
 
-    flavor = _get_flavor()
-    return _find_stable_track(maj_min[0], maj_min[1], flavor)
+    variant = _get_variant()
+    return _find_stable_track(maj_min[0], maj_min[1], variant)
 
 
 def previous_track(snap_version: str) -> str:
@@ -1452,7 +1526,7 @@ def previous_track(snap_version: str) -> str:
                 snap_version,
                 branch,
             )
-            return f"latest/edge/{_get_flavor()}"
+            return f"latest/edge/{_get_variant()}"
 
     if maj_min := major_minor(snap_version):
         maj, min = maj_min
@@ -1469,8 +1543,8 @@ def previous_track(snap_version: str) -> str:
             f"current version: {snap_version}"
         )
 
-    flavor_track = _get_flavor()
-    track = _find_stable_track(maj_min[0], maj_min[1], flavor_track)
+    variant_track = _get_variant()
+    track = _find_stable_track(maj_min[0], maj_min[1], variant_track)
     if track:
         LOG.info("Previous track for %s is from track: %s", snap_version, track)
         return track
@@ -2319,15 +2393,20 @@ def diverged_cluster_memberships(
     # datastore membership
     datastore = status.get("datastore", {}).get("type")
     if datastore == "etcd":
+        pki_dir = (
+            "/var/snap/k8s/common/etc/kubernetes/pki"
+            if config.VARIANT == "strict"
+            else "/etc/kubernetes/pki"
+        )
         proc = control_node.exec(
             [
                 "curl",
                 "--cacert",
-                "/etc/kubernetes/pki/etcd/ca.crt",
+                f"{pki_dir}/etcd/ca.crt",
                 "--cert",
-                "/etc/kubernetes/pki/apiserver-etcd-client.crt",
+                f"{pki_dir}/apiserver-etcd-client.crt",
                 "--key",
-                "/etc/kubernetes/pki/apiserver-etcd-client.key",
+                f"{pki_dir}/apiserver-etcd-client.key",
                 "https://127.0.0.1:2379/v3/cluster/member/list",
                 "-X",
                 "POST",

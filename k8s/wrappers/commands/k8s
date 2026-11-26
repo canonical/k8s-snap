@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
 . "$SNAP/k8s/lib.sh"
+# Strip /usr/sbin from strict CLI PATH so kubectl plugin discovery does not trigger AppArmor denials.
+export K8S_STRICT_CLI=1
 
 k8s::common::execute k8s "${@}"

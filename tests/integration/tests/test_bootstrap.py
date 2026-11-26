@@ -4,11 +4,15 @@
 from typing import List
 
 import pytest
-from test_util import harness, tags, util
+from test_util import config, harness, tags, util
 
 
 @pytest.mark.node_count(1)
 @pytest.mark.disable_k8s_bootstrapping()
+@pytest.mark.skipif(
+    config.VARIANT == "strict",
+    reason="strict snap cannot query host snapd socket to detect microk8s",
+)
 @pytest.mark.tags(tags.NIGHTLY)
 def test_microk8s_installed(instances: List[harness.Instance]):
     instance = instances[0]

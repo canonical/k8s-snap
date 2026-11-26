@@ -69,6 +69,7 @@ Environment="NO_PROXY=10.1.0.0/16,10.152.183.0/24,192.168.0.0/16,127.0.0.1,172.1
         "tee /etc/systemd/system/snap.k8s.containerd.service.d/http-proxy.conf".split(),
         input=config.encode(),
     )
+    instance.exec("systemctl daemon-reload".split())
 
 
 @pytest.mark.node_count(2)
@@ -166,6 +167,15 @@ def test_airgapped_with_image_mirror(
     # Mirror images
     out = registry.exec(["k8s", "list-images"], capture_output=True, text=True)
     images = out.stdout.splitlines()
+    ctr_args = ["/snap/k8s/current/bin/ctr"]
+    if config.VARIANT == "strict":
+        ctr_args = [
+            "LD_LIBRARY_PATH=/snap/k8s/current/lib",
+            "/snap/k8s/current/bin/ctr",
+            "--address",
+            "/var/snap/k8s/common/run/containerd/containerd.sock",
+        ]
+    ctr_cmd = " ".join(ctr_args)
     for image in images:
         link = "/".join(image.split("/")[1:])
         tag = f"{registry_ip}:{REGISTRY_PORT}/{link}"
@@ -176,7 +186,7 @@ def test_airgapped_with_image_mirror(
                 "export",
                 "$(cat /etc/environment | xargs)",
                 "&&",
-                "/snap/k8s/current/bin/ctr",
+                *ctr_args,
                 "images",
                 "pull",
                 "--all-platforms",
@@ -190,7 +200,7 @@ def test_airgapped_with_image_mirror(
                 "export",
                 "$(cat /etc/environment | xargs)",
                 "&&",
-                "/snap/k8s/current/bin/ctr",
+                *ctr_args,
                 "images",
                 "tag",
                 image,
@@ -209,10 +219,9 @@ def test_airgapped_with_image_mirror(
                 "bash",
                 "-c",
                 f"export $(grep -v '^#' /etc/environment | xargs) && "
-                f"/snap/k8s/current/bin/ctr images push --plain-http {tag}",
+                f"{ctr_cmd} images push --plain-http {tag}",
             ]
         )
-
         registry.exec("iptables -D OUTPUT -p tcp --dport 443 -j ACCEPT".split())
         registry.exec("iptables -A OUTPUT -p tcp --dport 443 -j REJECT".split())
 

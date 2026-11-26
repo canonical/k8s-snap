@@ -169,7 +169,7 @@ jobs:
                   r.arch,
                   r.channel,
                   r.artifact,
-                  r.flavor,
+                  r.variant,
                   r.substrate,
                   r.test,
                 ].join('\0');

@@ -43,7 +43,7 @@ def _sh(*args, **kwargs):
         raise e
 
 
-def _branch_flavours(branch: str = None):
+def _branch_variants(branch: str = None):
     patch_dir = Path("build-scripts/patches")
     branch = "HEAD" if not branch else branch
     cmd = f"git ls-tree --full-tree -r --name-only origin/{branch} {patch_dir}"
@@ -73,7 +73,10 @@ def _confirm_all_branches_exist(leader):
         K8S_GH_REPO, leader
     ), f"GH Branch {leader} does not exist"
     branches = [leader]
-    branches += [f"autoupdate/{leader}-{fl}" for fl in _branch_flavours(leader)]
+    branches += [
+        f"autoupdate/{v}" if leader == "main" else f"autoupdate/{leader}-{v}"
+        for v in _branch_variants(leader)
+    ]
     if missing := [b for b in branches if not _confirm_branch_exists(K8S_GH_REPO, b)]:
         assert missing, f"GH Branches do not exist {missing}"
     if missing := [b for b in branches if not _confirm_branch_exists(K8S_LP_REPO, b)]:
@@ -87,8 +90,8 @@ def _confirm_all_branches_exist(leader):
     retry=retry_if_exception_type(requests.RequestException),
     reraise=True,
 )
-def _confirm_recipe_exist(track, flavour):
-    recipe = f"https://launchpad.net/~containers/k8s/+snap/k8s-snap-{track}-{flavour}"
+def _confirm_recipe_exist(track, variant):
+    recipe = f"https://launchpad.net/~containers/k8s/+snap/k8s-snap-{track}-{variant}"
     r = requests.get(recipe, timeout=30)
     if r.status_code in {429, 500, 502, 503, 504}:
         r.raise_for_status()
@@ -100,9 +103,9 @@ def _confirm_all_recipes_exist(track, branch):
     assert _confirm_branch_exists(
         K8S_GH_REPO, branch
     ), f"GH Branch {branch} does not exist"
-    flavours = ["classic"] + _branch_flavours(branch)
-    recipes = {flavour: _confirm_recipe_exist(track, flavour) for flavour in flavours}
-    if missing := [fl for fl, exists in recipes.items() if not exists]:
+    variants = ["classic"] + _branch_variants(branch)
+    recipes = {variant: _confirm_recipe_exist(track, variant) for variant in variants}
+    if missing := [v for v, exists in recipes.items() if not exists]:
         assert missing, f"LP Recipes do not exist for {track} {missing}"
 
 

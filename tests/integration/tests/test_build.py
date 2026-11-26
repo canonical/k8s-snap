@@ -86,9 +86,15 @@ def test_build(instances: List[harness.Instance]):
             "not a dynamic executable" not in result.stdout
         ), f"{component} should be dynamically built"
 
-        # Verify that the component fails if enabled on a non-FIPS system
+        # Verify that the component fails if enabled on a non-FIPS system.
+        # Strict snaps use no-patchelf, so include $SNAP/lib when invoking outside snap run.
         result = instance.exec(
-            ["GOFIPS=1", "/snap/k8s/current/bin/" + component, "version"],
+            [
+                "LD_LIBRARY_PATH=/snap/k8s/current/lib",
+                "GOFIPS=1",
+                "/snap/k8s/current/bin/" + component,
+                "version",
+            ],
             capture_output=True,
             check=False,
             text=True,
