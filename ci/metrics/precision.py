@@ -144,18 +144,24 @@ def check_rules(
     sample: int = DEFAULT_SAMPLE,
     runs: int = DEFAULT_RUNS,
     max_success_hit_rate: float = DEFAULT_MAX_SUCCESS_HIT_RATE,
+    only: Optional[Set[str]] = None,
+    healthy: Optional[Dict[str, List[int]]] = None,
+    log_cache: Optional[Dict[int, Optional[Tuple[str, ...]]]] = None,
 ) -> List[RuleReport]:
     """Report each rule's coverage and its hit rate on successful jobs.
 
     Without a ``client`` only coverage is reported. A rule that has matched
     nothing yet (a freshly proposed one) is checked against a general sample
-    of successful jobs instead of the tests it classifies.
+    of successful jobs instead of the tests it classifies. ``only`` limits the
+    report to those rule IDs; ``healthy`` and ``log_cache`` let a caller that
+    checks many packs reuse one successful-job sample and its downloaded logs.
     """
 
     coverage = rule_coverage(conn, pack)
-    healthy = successful_jobs(conn, client, runs) if client is not None else {}
+    if healthy is None:
+        healthy = successful_jobs(conn, client, runs) if client is not None else {}
     general = [job_id for job_ids in healthy.values() for job_id in job_ids]
-    logs: Dict[int, Optional[Tuple[str, ...]]] = {}
+    logs: Dict[int, Optional[Tuple[str, ...]]] = {} if log_cache is None else log_cache
 
     def lines_for(job_id: int) -> Optional[Tuple[str, ...]]:
         if client is None:
@@ -171,6 +177,8 @@ def check_rules(
 
     reports = []
     for rule in pack.rules:
+        if only is not None and rule.id not in only:
+            continue
         signatures, jobs, keys = coverage[rule.id]
         checked = hits = 0
         examples: List[str] = []

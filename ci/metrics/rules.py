@@ -13,8 +13,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Pattern, Sequence
 
-import yaml
-
 from metrics.models import ClassifiedBy, FailureClass
 
 LOG = logging.getLogger(__name__)
@@ -113,6 +111,10 @@ class RulePack:
 
 def load_rules(path: Optional[Path] = None) -> RulePack:
     """Load and validate the ordered rule pack."""
+
+    # Imported lazily: k8s-ci.py loads every command module at startup, and
+    # some workflows run other commands with a bare python3 without PyYAML.
+    import yaml
 
     rules_path = Path(path) if path is not None else DEFAULT_RULES_PATH
     try:

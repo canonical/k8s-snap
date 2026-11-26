@@ -308,6 +308,32 @@ FAILED tests/test_smoke.py::test_smoke - AssertionError: bad
             second.replace("exit code 2", "exit code <x>"),
         )
 
+    def test_normalise_folds_polled_command_output(self) -> None:
+        def poll(output: str) -> str:
+            return (
+                "test_util.util._ConditionNotMetError: Failed to meet condition: "
+                f"rc=0 stdout='{output}' stderr=''"
+            )
+
+        first = poll('{\\n  "status":"Down",\\n  "downtime":306\\n}\\n')
+        second = poll('[{"peer":"10.203.12.54","status":"down","id":1409148232}]\\n')
+        unterminated = 'Failed to meet condition: rc=1 stdout=\'{\\n  "items": ['
+
+        self.assertEqual(normalise(first), normalise(second))
+        self.assertEqual(
+            normalise(first),
+            "test_util.util._ConditionNotMetError: Failed to meet condition: "
+            "rc=0 stdout=<output> stderr=<output>",
+        )
+        self.assertNotEqual(normalise(first), normalise(first.replace("rc=0", "rc=1")))
+        self.assertEqual(
+            normalise(unterminated), "Failed to meet condition: rc=1 stdout=<output>"
+        )
+        self.assertEqual(
+            normalise("stderr: error: unable to contact snap store"),
+            "stderr: error: unable to contact snap store",
+        )
+
     def test_normalise_folds_generated_pod_names(self) -> None:
         first = "stderr: error: timed out waiting for the condition on pods/nginx-5d8f7c9b4-q2x7z"
         second = "stderr: error: timed out waiting for the condition on pods/nginx-6c7f8b5d9-k8m2p"

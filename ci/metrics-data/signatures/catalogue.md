@@ -5,7 +5,7 @@
 | `d87b7eabd6dd7094` | 103 | 5 | ci.config/apt_index_missing | ci-apt-index-missing | active | 2026-10-14T00:04:38Z | 2026-10-19T00:05:04Z | lxd:100, multipass:3 |
 | `da6ba7b982998d76` | 83 | 8 | product.bug/upgrade_failure | product-feature-upgrade-incomplete | active | 2026-10-13T00:05:23Z | 2026-11-25T00:02:45Z | lxd:83 |
 | `b2fdc843a67d0cf8` | 51 | 6 | product.bug/service_panic | product-service-panic | active | 2026-10-13T00:05:23Z | 2026-10-20T00:04:20Z | lxd:51 |
-| `b23345bfac804d7b` | 19 | 4 | unknown | _unowned_ | active | 2026-11-23T00:02:45Z | 2026-11-25T00:02:45Z | :19 |
+| `b23345bfac804d7b` | 24 | 5 | unknown | _unowned_ | active | 2026-11-23T00:02:45Z | 2026-11-26T00:02:44Z | :24 |
 | `bb40ddc3376ea7c1` | 12 | 1 | product.bug/node_not_ready | product-node-never-ready | active | 2026-11-25T00:02:45Z | 2026-11-25T00:02:45Z | lxd:12 |
 | `7296136bc38d37ff` | 11 | 6 | product.bug/service_restart | product-service-restarts | active | 2026-10-13T00:05:23Z | 2026-10-20T00:04:20Z | lxd:11 |
 | `e0ac6b603e274f49` | 10 | 5 | product.bug/service_restart | product-service-restarts | active | 2026-10-13T00:05:23Z | 2026-10-20T00:04:20Z | lxd:10 |
@@ -59,6 +59,7 @@
 | `dfeaf673308563b9` | 6 | 1 | product.bug/cluster_never_ready | product-cluster-never-ready | active | 2026-11-25T00:02:45Z | 2026-11-25T00:02:45Z | lxd:6 |
 | `e6a0fc63534194b6` | 6 | 1 | product.bug/wait_for_timeout | product-wait-for-timeout | active | 2026-11-25T00:02:45Z | 2026-11-25T00:02:45Z | lxd:6 |
 | `e73dde44dd15cd9e` | 6 | 1 | product.bug/node_not_ready | product-node-never-ready | active | 2026-11-25T00:02:45Z | 2026-11-25T00:02:45Z | lxd:6 |
+| `e76f676b00c7a5ca` | 6 | 3 | unknown | _unowned_ | active | 2026-11-23T00:02:45Z | 2026-11-26T00:02:44Z | :6 |
 | `f1f7aa514e976fc3` | 6 | 1 | product.bug/node_not_ready | product-node-never-ready | active | 2026-11-25T00:02:45Z | 2026-11-25T00:02:45Z | lxd:6 |
 | `f2771e93e9d86af2` | 6 | 1 | product.bug/node_not_ready | product-node-never-ready | active | 2026-11-25T00:02:45Z | 2026-11-25T00:02:45Z | lxd:6 |
 | `f290de8f9597cab0` | 6 | 1 | product.bug/join_failure | product-join-failure | active | 2026-11-25T00:02:45Z | 2026-11-25T00:02:45Z | lxd:6 |
@@ -67,7 +68,7 @@
 | `f73f0cc1acb27f79` | 6 | 1 | product.bug/wait_for_timeout | product-wait-for-timeout | active | 2026-11-25T00:02:45Z | 2026-11-25T00:02:45Z | lxd:6 |
 | `fcc5baae93435446` | 6 | 1 | product.bug/wait_for_timeout | product-wait-for-timeout | active | 2026-11-25T00:02:45Z | 2026-11-25T00:02:45Z | lxd:6 |
 | `fdb5b251e1d6cbc4` | 6 | 1 | product.bug/join_failure | product-join-failure | active | 2026-11-25T00:02:45Z | 2026-11-25T00:02:45Z | lxd:6 |
-| `e76f676b00c7a5ca` | 5 | 2 | unknown | _unowned_ | active | 2026-11-23T00:02:45Z | 2026-11-24T13:26:37Z | :5 |
+| `eb8fa9ef8c5c6a46` | 5 | 2 | unknown | _unowned_ | active | 2026-11-25T00:02:45Z | 2026-11-26T00:02:44Z | lxd:5 |
 | `31bad0ec48a537c6` | 4 | 3 | product.bug/apiserver_unreachable | product-apiserver-unreachable | active | 2026-10-15T00:04:42Z | 2026-11-23T00:02:45Z | lxd:4 |
 | `73cf55cac38adedf` | 3 | 3 | unknown | _unowned_ | active | 2026-10-15T11:00:17Z | 2026-10-19T00:05:04Z | lxd:3 |
 | `c91aba6f97aa36b1` | 3 | 1 | product.bug/node_not_ready | product-node-never-ready | active | 2026-11-25T00:02:45Z | 2026-11-25T00:02:45Z | lxd:3 |
@@ -78,21 +79,24 @@
 | `35868fe40d79058d` | 2 | 2 | product.bug/service_not_active | product-service-not-active | active | 2026-10-18T00:04:44Z | 2026-10-19T00:05:04Z | lxd:2 |
 | `40a71c1cc7cfb11b` | 2 | 1 | external.dependency/snap_store | external-snap-store | active | 2026-10-13T00:05:23Z | 2026-10-13T00:05:23Z | lxd:2 |
 | `753ae9e6b747fa57` | 2 | 1 | unknown | _unowned_ | active | 2026-10-18T00:04:44Z | 2026-10-18T00:04:44Z | lxd:2 |
+| `a98b9f80e69b79d2` | 2 | 1 | unknown | _unowned_ | active | 2026-11-26T00:02:44Z | 2026-11-26T00:02:44Z | lxd:2 |
 | `baa0ed1c73cbdc79` | 2 | 2 | external.dependency/snap_store | external-snap-store | active | 2026-10-13T00:05:23Z | 2026-10-15T11:00:17Z | lxd:2 |
 | `062d20cf83048b49` | 1 | 1 | unknown | _unowned_ | active | 2026-11-25T00:02:45Z | 2026-11-25T00:02:45Z | lxd:1 |
 | `080cc59d6f79599f` | 1 | 1 | unknown | _unowned_ | active | 2026-10-19T00:05:04Z | 2026-10-19T00:05:04Z | lxd:1 |
 | `0a3da64f34765623` | 1 | 1 | unknown | _unowned_ | active | 2026-10-19T00:05:04Z | 2026-10-19T00:05:04Z | lxd:1 |
-| `0bcfe822f34e357a` | 1 | 1 | unknown | _unowned_ | active | 2026-11-25T00:02:45Z | 2026-11-25T00:02:45Z | lxd:1 |
 | `0e90cd6fe44a85cb` | 1 | 1 | unknown | _unowned_ | active | 2026-10-15T00:04:42Z | 2026-10-15T00:04:42Z | lxd:1 |
 | `1324285982bc353d` | 1 | 1 | unknown | _unowned_ | active | 2026-11-24T13:26:37Z | 2026-11-24T13:26:37Z | lxd:1 |
 | `238e8243f76ddc60` | 1 | 1 | external.dependency/snap_store | external-snap-store | active | 2026-10-13T00:05:23Z | 2026-10-13T00:05:23Z | lxd:1 |
 | `246a336046ca2970` | 1 | 1 | unknown | _unowned_ | active | 2026-11-24T13:26:37Z | 2026-11-24T13:26:37Z | lxd:1 |
 | `2807cefe257bd4ca` | 1 | 1 | product.bug/join_failure | product-join-failure | active | 2026-10-18T00:04:44Z | 2026-10-18T00:04:44Z | lxd:1 |
+| `30310dd88ce5a86b` | 1 | 1 | unknown | _unowned_ | active | 2026-11-26T00:02:44Z | 2026-11-26T00:02:44Z | lxd:1 |
 | `338a064e4326070e` | 1 | 1 | product.bug/service_restart | product-service-restarts | active | 2026-10-19T00:05:04Z | 2026-10-19T00:05:04Z | lxd:1 |
 | `3ecb92cd08bfbfba` | 1 | 1 | unknown | _unowned_ | active | 2026-11-24T13:26:37Z | 2026-11-24T13:26:37Z | lxd:1 |
 | `3edf2fe7bc127e88` | 1 | 1 | product.bug/bootstrap_failure | product-bootstrap-failure | active | 2026-11-24T00:02:49Z | 2026-11-24T00:02:49Z | lxd:1 |
 | `462cdded92e7dfaf` | 1 | 1 | external.dependency/snap_store | external-snap-store | active | 2026-10-13T00:05:23Z | 2026-10-13T00:05:23Z | lxd:1 |
+| `52128313cf55b073` | 1 | 1 | unknown | _unowned_ | active | 2026-11-26T00:02:44Z | 2026-11-26T00:02:44Z | lxd:1 |
 | `5b5c2cbae0e47b04` | 1 | 1 | unknown | _unowned_ | active | 2026-11-24T13:26:37Z | 2026-11-24T13:26:37Z | lxd:1 |
+| `5e476d777c28673b` | 1 | 1 | unknown | _unowned_ | active | 2026-11-26T00:02:44Z | 2026-11-26T00:02:44Z | lxd:1 |
 | `67e65089337e0c18` | 1 | 1 | unknown | _unowned_ | active | 2026-11-25T00:02:45Z | 2026-11-25T00:02:45Z | lxd:1 |
 | `73918cee14d0ded0` | 1 | 1 | unknown | _unowned_ | active | 2026-11-23T00:02:45Z | 2026-11-23T00:02:45Z | lxd:1 |
 | `744894a2fd3c5e2c` | 1 | 1 | unknown | _unowned_ | active | 2026-10-15T10:59:57Z | 2026-10-15T10:59:57Z | multipass:1 |
@@ -101,6 +105,7 @@
 | `7d6a50cfd6936b87` | 1 | 1 | unknown | _unowned_ | active | 2026-10-14T00:04:38Z | 2026-10-14T00:04:38Z | lxd:1 |
 | `87a44a4fd47abd03` | 1 | 1 | unknown | _unowned_ | active | 2026-11-23T00:02:45Z | 2026-11-23T00:02:45Z | lxd:1 |
 | `8b9dd86abcd0a895` | 1 | 1 | external.dependency/snap_store | external-snap-store | active | 2026-10-15T11:00:17Z | 2026-10-15T11:00:17Z | lxd:1 |
+| `95e5d233b60456e1` | 1 | 1 | unknown | _unowned_ | active | 2026-11-26T00:02:44Z | 2026-11-26T00:02:44Z | lxd:1 |
 | `98c571d67e23aed8` | 1 | 1 | unknown | _unowned_ | active | 2026-11-25T00:02:45Z | 2026-11-25T00:02:45Z | lxd:1 |
 | `a934445a5476c39d` | 1 | 1 | product.bug/service_not_active | product-service-should-be-inactive | active | 2026-10-18T00:04:44Z | 2026-10-18T00:04:44Z | lxd:1 |
 | `a9849d4684ceb073` | 1 | 1 | external.dependency/snap_store | external-snap-store | active | 2026-10-13T00:05:23Z | 2026-10-13T00:05:23Z | lxd:1 |
@@ -113,3 +118,4 @@
 | `e6fbb54c7d6abe01` | 1 | 1 | unknown | _unowned_ | active | 2026-11-23T00:02:45Z | 2026-11-23T00:02:45Z | lxd:1 |
 | `f1ae9e093d594491` | 1 | 1 | unknown | _unowned_ | active | 2026-10-15T10:59:57Z | 2026-10-15T10:59:57Z | multipass:1 |
 | `f602fcf97c7a6eef` | 1 | 1 | unknown | _unowned_ | active | 2026-11-24T13:26:37Z | 2026-11-24T13:26:37Z | lxd:1 |
+| `fe86bfc3146f74a7` | 1 | 1 | product.bug/join_failure | product-join-failure | active | 2026-11-26T00:02:44Z | 2026-11-26T00:02:44Z | lxd:1 |

@@ -14,7 +14,7 @@ from metrics.scrub import scrub
 
 # Bumping either version changes signature IDs; `fetch-logs --reextract`
 # migrates stored jobs whose logs are still retained.
-NORMALISER_VERSION = 3
+NORMALISER_VERSION = 4
 EXTRACTOR_VERSION = 3
 MAX_EXCERPT_BYTES = 4096
 SIGNATURE_LENGTH = 16
@@ -71,6 +71,15 @@ _ERRORISH_LINE = re.compile(
 )
 
 _NORMALISERS: Tuple[Tuple[re.Pattern[str], str], ...] = (
+    # A failed poll reports the command's whole output, e.g. "Failed to meet
+    # condition: rc=0 stdout='{...json...}' stderr=''". Counters and timers in
+    # that output change every run, so it would split one failure into one
+    # signature per run. The excerpt keeps the output; only the hash drops it.
+    (
+        re.compile(r"""\b(stdout|stderr)=('(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*")"""),
+        r"\1=<output>",
+    ),
+    (re.compile(r"""\b(stdout|stderr)=['"][^\n]*"""), r"\1=<output>"),
     (re.compile(r"\bk8s-integration-\d+-[0-9a-f]{4,}(?:-[\w.-]+)?\b"), "<instance>"),
     (re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:[.,]\d+)?Z?"), "<ts>"),
     (

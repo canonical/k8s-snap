@@ -192,7 +192,7 @@ assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_storage.py", line 29, in test_storage
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873390577, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873390577, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('025f8f4cf9ef8622', 'File "<workspace>/tests/integration/tests/test_external_etcd.py", line <n>, in test_external_etcd
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in run
 return subprocess.run(command, **kwargs)
@@ -203,7 +203,7 @@ subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''<instance>'', ''
     return subprocess.run(command, **kwargs)
   File "/usr/lib/python3.12/subprocess.py", line 571, in run
     raise CalledProcessError(retcode, process.args,
-subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-2-0448d3'', ''--'', ''bash'', ''-c'', ''k8s x-wait-for dns --timeout 20m'']'' returned non-zero exit status 1.', 138873384044, 3, 3, 'active', NULL, NULL);
+subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-2-0448d3'', ''--'', ''bash'', ''-c'', ''k8s x-wait-for dns --timeout 20m'']'' returned non-zero exit status 1.', 138873384044, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('062d20cf83048b49', 'ERROR: No matching distribution found for coverage==7.2.5', 'ERROR: No matching distribution found for coverage==7.2.5', 138873114228, 3, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('07c6112aab64f685', 'File "<workspace>/tests/integration/tests/test_external_certificates.py", line <n>, in test_vault_certificates
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in run
@@ -233,14 +233,14 @@ assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_networking.py", line 195, in test_jumbo
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873388501, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873388501, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('092cc8cd74024629', 'File "<workspace>/tests/integration/tests/test_clustering.py", line <n>, in test_concurrent_worker_membership_operations
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in wait_until_k8s_ready
 assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_clustering.py", line 334, in test_concurrent_worker_membership_operations
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873379151, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873379151, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('0a3da64f34765623', 'File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in run
 return subprocess.run(command, **kwargs)
 File "/usr/lib/python3.<n>/subprocess.py", line <n>, in run
@@ -256,7 +256,7 @@ assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_metrics_server.py", line 17, in test_metrics_server
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873388047, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873388047, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('0bcfe822f34e357a', 'File "<workspace>/tests/integration/tests/test_loadbalancer_bgp.py", line <n>, in test_loadbalancer_bgp_bfd_session
 File "<workspace>/tests/integration/.tox/integration/lib/python3.<n>/site-packages/tenacity/__init__.py", line <n>, in __call__
 result = fn(*args, **kwargs)
@@ -285,7 +285,7 @@ assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_clustering.py", line 374, in test_mixed_concurrent_membership_operations
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873379183, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873379183, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('12b87410a67e88a1', '[command]/usr/bin/git version
 git version 2.55.0
 Temporarily overriding HOME=''<workspace>'' before making global git config changes
@@ -336,7 +336,7 @@ subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''<instance>'', ''
     return subprocess.run(command, **kwargs)
   File "/usr/lib/python3.12/subprocess.py", line 571, in run
     raise CalledProcessError(retcode, process.args,
-subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-3-85dab2'', ''--'', ''bash'', ''-c'', ''k8s join-cluster <redacted>'']'' returned non-zero exit status 1.', 138873471686, 3, 3, 'active', NULL, NULL);
+subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-3-85dab2'', ''--'', ''bash'', ''-c'', ''k8s join-cluster <redacted>'']'' returned non-zero exit status 1.', 138873471686, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('1876eb4438ae5539', 'File "<workspace>/tests/integration/tests/test_version_upgrades.py", line <n>, in test_version_downgrades_with_rollback
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in run
 return subprocess.run(command, **kwargs)
@@ -354,7 +354,7 @@ assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_clustering.py", line 590, in test_cert_refresh
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873381530, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873381530, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('238e8243f76ddc60', 'File "<workspace>/tests/integration/tests/test_version_upgrades.py", line <n>, in test_version_upgrades
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in run
 return subprocess.run(command, **kwargs)
@@ -441,7 +441,18 @@ subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''<instance>'', ''
     return subprocess.run(command, **kwargs)
   File "/usr/lib/python3.12/subprocess.py", line 571, in run
     raise CalledProcessError(retcode, process.args,
-subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-3-932988'', ''--'', ''bash'', ''-c'', ''k8s join-cluster <redacted> --file -'']'' returned non-zero exit status 1.', 138873383971, 3, 3, 'active', NULL, NULL);
+subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-3-932988'', ''--'', ''bash'', ''-c'', ''k8s join-cluster <redacted> --file -'']'' returned non-zero exit status 1.', 138873383971, 4, 3, 'active', NULL, NULL);
+INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('30310dd88ce5a86b', 'File "<workspace>/tests/integration/tests/test_loadbalancer_bgp.py", line <n>, in test_loadbalancer_bgp_frr_k8s_bfd_lifecycle
+File "<workspace>/tests/integration/.tox/integration/lib/python3.<n>/site-packages/tenacity/__init__.py", line <n>, in __call__
+result = fn(*args, **kwargs)
+File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in _exec
+assert self._condition(resp), "Failed to meet condition"
+AssertionError: Failed to meet condition', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_loadbalancer_bgp.py", line 423, in test_loadbalancer_bgp_frr_k8s_bfd_lifecycle
+  File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/.tox/integration/lib/python3.12/site-packages/tenacity/__init__.py", line 382, in __call__
+    result = fn(*args, **kwargs)
+  File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 150, in _exec
+    assert self._condition(resp), "Failed to meet condition"
+AssertionError: Failed to meet condition', 139595698123, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('30f9c0739d5c01a3', 'File "<workspace> line <n>, in __call__
 result = fn(*args, **kwargs)
 File "<workspace> line <n>, in _exec
@@ -492,7 +503,7 @@ subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''<instance>'', ''
     return subprocess.run(command, **kwargs)
   File "/usr/lib/python3.12/subprocess.py", line 571, in run
     raise CalledProcessError(retcode, process.args,
-subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-2-f10ffd'', ''--'', ''bash'', ''-c'', ''k8s x-wait-for network --timeout 20m'']'' returned non-zero exit status 1.', 138873386402, 3, 3, 'active', NULL, NULL);
+subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-2-f10ffd'', ''--'', ''bash'', ''-c'', ''k8s x-wait-for network --timeout 20m'']'' returned non-zero exit status 1.', 138873386402, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('36be75d243c93b39', 'File "<workspace> line <n>, in test_version_upgrades
 util.check_service_logs_for_panics(instance)
 File "<workspace> line <n>, in check_service_logs_for_panics
@@ -506,21 +517,21 @@ INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exem
 assert len(nodes) == 1, "Should have found one node in 30 sec"
 AssertionError: Should have found one node in 30 sec', '  File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_control_plane_taints.py", line 27, in test_control_plane_taints
     assert len(nodes) == 1, "Should have found one node in 30 sec"
-AssertionError: Should have found one node in 30 sec', 138873382369, 3, 3, 'active', NULL, NULL);
+AssertionError: Should have found one node in 30 sec', 138873382369, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('3c977e4dae1d062b', 'File "<workspace>/tests/integration/tests/test_dns.py", line <n>, in test_dns_cluster_dns_propagates_to_late_joiners
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in wait_until_k8s_ready
 assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_dns.py", line 182, in test_dns_cluster_dns_propagates_to_late_joiners
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873383629, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873383629, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('3d989ad5fdd1cd63', 'File "<workspace>/tests/integration/tests/test_dns.py", line <n>, in test_dns
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in wait_until_k8s_ready
 assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_dns.py", line 17, in test_dns
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873383645, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873383645, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('3ecb92cd08bfbfba', 'File "<workspace>/tests/integration/tests/test_loadbalancer_bgp.py", line <n>, in test_loadbalancer_bgp_bfd_session
 File "<workspace>/tests/integration/.tox/integration/lib/python3.<n>/site-packages/tenacity/__init__.py", line <n>, in __call__
 result = fn(*args, **kwargs)
@@ -596,14 +607,14 @@ subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''<instance>'', ''
     return subprocess.run(command, **kwargs)
   File "/usr/lib/python3.12/subprocess.py", line 571, in run
     raise CalledProcessError(retcode, process.args,
-subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-3-165890'', ''--'', ''bash'', ''-c'', ''k8s join-cluster <redacted> --containerd-base-dir /home/ubuntu'']'' returned non-zero exit status 1.', 138873379087, 3, 3, 'active', NULL, NULL);
+subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-3-165890'', ''--'', ''bash'', ''-c'', ''k8s join-cluster <redacted> --containerd-base-dir /home/ubuntu'']'' returned non-zero exit status 1.', 138873379087, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('4965adefc632d5ea', 'File "<workspace>/tests/integration/tests/test_dns.py", line <n>, in test_dns_ha_rebalancing
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in wait_until_k8s_ready
 assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_dns.py", line 91, in test_dns_ha_rebalancing
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873383812, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873383812, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('4bc5285287e6aeae', 'File "<workspace>/tests/integration/tests/test_loadbalancer.py", line <n>, in test_loadbalancer_ipv4
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in run
 return subprocess.run(command, **kwargs)
@@ -614,14 +625,14 @@ subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''<instance>'', ''
     return subprocess.run(command, **kwargs)
   File "/usr/lib/python3.12/subprocess.py", line 571, in run
     raise CalledProcessError(retcode, process.args,
-subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-2-88295e'', ''--'', ''bash'', ''-c'', ''k8s x-wait-for network --timeout 20m'']'' returned non-zero exit status 1.', 138873385855, 3, 3, 'active', NULL, NULL);
+subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-2-88295e'', ''--'', ''bash'', ''-c'', ''k8s x-wait-for network --timeout 20m'']'' returned non-zero exit status 1.', 138873385855, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('4db1fda263e61c48', 'File "<workspace>/tests/integration/tests/test_networking.py", line <n>, in test_with_fan_networking
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in wait_until_k8s_ready
 assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_networking.py", line 401, in test_with_fan_networking
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873388588, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873388588, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('4de0d2421d8a2163', 'File "<workspace>/tests/integration/tests/test_config_propagation.py", line <n>, in test_config_propagation
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in run
 return subprocess.run(command, **kwargs)
@@ -632,7 +643,18 @@ subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''<instance>'', ''
     return subprocess.run(command, **kwargs)
   File "/usr/lib/python3.12/subprocess.py", line 571, in run
     raise CalledProcessError(retcode, process.args,
-subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-3-883b12'', ''--'', ''bash'', ''-c'', ''k8s join-cluster <redacted>'']'' returned non-zero exit status 1.', 138873381828, 3, 3, 'active', NULL, NULL);
+subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-3-883b12'', ''--'', ''bash'', ''-c'', ''k8s join-cluster <redacted>'']'' returned non-zero exit status 1.', 138873381828, 4, 3, 'active', NULL, NULL);
+INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('52128313cf55b073', 'File "<workspace>/tests/integration/tests/test_version_upgrades.py", line <n>, in test_version_downgrades_with_rollback
+File "<workspace>/tests/integration/.tox/integration/lib/python3.<n>/site-packages/tenacity/__init__.py", line <n>, in __call__
+result = fn(*args, **kwargs)
+File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in _exec
+raise _ConditionNotMetError(
+test_util.util._ConditionNotMetError: Failed to meet condition: rc=0 stdout=<output> stderr=<output>', 'File "/home/ubuntu/actions-runner/_work/k8s-snap/k8s-snap/tests/integration/tests/test_version_upgrades.py", line 280, in test_version_downgrades_with_rollback
+  File "/home/ubuntu/actions-runner/_work/k8s-snap/k8s-snap/tests/integration/.tox/integration/lib/python3.12/site-packages/tenacity/__init__.py", line 382, in __call__
+    result = fn(*args, **kwargs)
+  File "/home/ubuntu/actions-runner/_work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 175, in _exec
+    raise _ConditionNotMetError(
+test_util.util._ConditionNotMetError: Failed to meet condition: rc=0 stdout=''{\n    "apiVersion": "v1",\n    "items": [\n        {\n            "apiVersion": "v1",\n            "kind": "Pod",\n            "metadata": {\n                "annotations": {\n                    "kubectl.kubernetes.io/default-container": "cilium-agent",\n                    "kubectl.kubernetes.io/restartedAt": "2026-11-26T03:38:27Z"\n                },\n                "creationTimestamp": "2026-11-26T03:41:07Z",\n                "generateName": "cilium-",\n                "generation": 1,\n                ...[truncated 344078 chars]...:fecd:ef4"\n                    }\n                ],\n                "observedGeneration": 1,\n                "phase": "Running",\n                "podIP": "10.1.0.52",\n                "podIPs": [\n                    {\n                        "ip": "10.1.0.52"\n                    }\n                ],\n                "qosClass": "Burstable",\n                "startTime": "2026-11-26T03:40:50Z"\n            }\n        }\n    ],\n    "kind": "List",\n    "metadata": {\n        "resourceVersion": ""\n    }\n}\n'' stderr=''''', 139595634409, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('52b477a901821adc', 'File "<workspace> line <n>, in test_version_upgrades
 util.check_service_restarts(instance)
 File "<workspace> line <n>, in check_service_restarts
@@ -658,7 +680,7 @@ assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_snap_services.py", line 27, in test_snap_services
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873390406, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873390406, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('5b5c2cbae0e47b04', 'File "<workspace>/tests/integration/tests/test_loadbalancer_bgp.py", line <n>, in test_loadbalancer_bgp_bfd_session
 File "<workspace>/tests/integration/.tox/integration/lib/python3.<n>/site-packages/tenacity/__init__.py", line <n>, in __call__
 result = fn(*args, **kwargs)
@@ -679,6 +701,17 @@ subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''<instance>'', ''
   File "/usr/lib/python3.12/subprocess.py", line 571, in run
     raise CalledProcessError(retcode, process.args,
 subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-2-3257a3'', ''--'', ''bash'', ''-c'', ''snap refresh k8s --channel 1.36-classic/candidate --classic --amend'']'' returned non-zero exit status 1.', 115063250347, 1, 1, 'active', NULL, NULL);
+INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('5e476d777c28673b', 'File "<workspace>/tests/integration/tests/test_node_availability_zone.py", line <n>, in test_node_availability_zone
+File "<workspace>/tests/integration/.tox/integration/lib/python3.<n>/site-packages/tenacity/__init__.py", line <n>, in __call__
+result = fn(*args, **kwargs)
+File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in _exec
+raise _ConditionNotMetError(
+test_util.util._ConditionNotMetError: Failed to meet condition: rc=0 stdout=<output> stderr=<output>', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_node_availability_zone.py", line 113, in test_node_availability_zone
+  File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/.tox/integration/lib/python3.12/site-packages/tenacity/__init__.py", line 382, in __call__
+    result = fn(*args, **kwargs)
+  File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 176, in _exec
+    raise _ConditionNotMetError(
+test_util.util._ConditionNotMetError: Failed to meet condition: rc=0 stdout=''0'' stderr=''''', 139595685391, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('611cf5b67506e5cf', 'File "<workspace> line <n>, in test_cncf_conformance
 assert failed_tests == 0, f"{failed_tests} tests failed"
 AssertionError: 4 tests failed', '  File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_cncf_conformance.py", line 47, in test_cncf_conformance
@@ -710,7 +743,7 @@ subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''<instance>'', ''
     return subprocess.run(command, **kwargs)
   File "/usr/lib/python3.12/subprocess.py", line 571, in run
     raise CalledProcessError(retcode, process.args,
-subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-3-873ed1'', ''--'', ''bash'', ''-c'', ''k8s join-cluster <redacted> --address ::/0'']'' returned non-zero exit status 1.', 138873387991, 3, 3, 'active', NULL, NULL);
+subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-3-873ed1'', ''--'', ''bash'', ''-c'', ''k8s join-cluster <redacted> --address ::/0'']'' returned non-zero exit status 1.', 138873387991, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('6499c2f11365ee64', 'File "<workspace> line <n>, in run
 return subprocess.run(command, **kwargs)
 File "/usr/lib/python3.12/subprocess.py", line <n>, in run
@@ -735,7 +768,7 @@ subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''<instance>'', ''
     return subprocess.run(command, **kwargs)
   File "/usr/lib/python3.12/subprocess.py", line 571, in run
     raise CalledProcessError(retcode, process.args,
-subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-2-de3d70'', ''--'', ''bash'', ''-c'', ''k8s x-wait-for network --timeout 20m'']'' returned non-zero exit status 1.', 138873386309, 3, 3, 'active', NULL, NULL);
+subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-2-de3d70'', ''--'', ''bash'', ''-c'', ''k8s x-wait-for network --timeout 20m'']'' returned non-zero exit status 1.', 138873386309, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('67e65089337e0c18', 'File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in run
 return subprocess.run(command, **kwargs)
 File "/usr/lib/python3.<n>/subprocess.py", line <n>, in run
@@ -744,21 +777,21 @@ subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''<instance>'', ''
     return subprocess.run(command, **kwargs)
   File "/usr/lib/python3.12/subprocess.py", line 571, in run
     raise CalledProcessError(retcode, process.args,
-subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-1-0a857e-registry'', ''--'', ''bash'', ''-c'', ''tar xzvf /tmp/registry_v2.8.3_linux_amd64.tar.gz -C /bin/ registry'']'' returned non-zero exit status 2.', 138873854138, 3, 3, 'active', NULL, NULL);
+subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-1-0a857e-registry'', ''--'', ''bash'', ''-c'', ''tar xzvf /tmp/registry_v2.8.3_linux_amd64.tar.gz -C /bin/ registry'']'' returned non-zero exit status 2.', 138873854138, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('6c38f6786d8e8c0e', 'File "<workspace>/tests/integration/tests/test_gateway.py", line <n>, in test_gateway
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in wait_until_k8s_ready
 assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_gateway.py", line 85, in test_gateway
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873385974, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873385974, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('6e8cb1c05407ad2f', 'File "<workspace>/tests/integration/tests/test_networking.py", line <n>, in test_dual_nic
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in wait_until_k8s_ready
 assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_networking.py", line 312, in test_dual_nic
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873388434, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873388434, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('7182be53fd6c8293', 'File "<workspace> line <n>, in run
 return subprocess.run(command, **kwargs)
 File "/usr/lib/python3.12/subprocess.py", line <n>, in run
@@ -820,7 +853,7 @@ subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''<instance>'', ''
     return subprocess.run(command, **kwargs)
   File "/usr/lib/python3.12/subprocess.py", line 571, in run
     raise CalledProcessError(retcode, process.args,
-subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-3-c46c8b'', ''--'', ''bash'', ''-c'', ''k8s join-cluster <redacted>'']'' returned non-zero exit status 1.', 138873383715, 3, 3, 'active', NULL, NULL);
+subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-3-c46c8b'', ''--'', ''bash'', ''-c'', ''k8s join-cluster <redacted>'']'' returned non-zero exit status 1.', 138873383715, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('753ae9e6b747fa57', '##[error]Failed to CreateArtifact: Failed to make request after 5 attempts: Request timeout: /twirp/github.actions.results.api.v1.ArtifactService/CreateArtifact', '##[error]Failed to CreateArtifact: Failed to make request after 5 attempts: Request timeout: /twirp/github.actions.results.api.v1.ArtifactService/CreateArtifact', 117539051480, 3, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('7a4b63232208221d', 'File "<workspace>/tests/integration/tests/test_feature_controller.py", line <n>, in test_feature_controller
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in run
@@ -834,7 +867,7 @@ stderr: Error: Failed to retrieve the cluster status.', 'File "/home/runner/work
   File "/usr/lib/python3.12/subprocess.py", line 571, in run
     raise CalledProcessError(retcode, process.args,
 subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-2-96a49b'', ''--'', ''bash'', ''-c'', ''k8s status --wait-ready'']'' returned non-zero exit status 1.
-stderr: Error: Failed to retrieve the cluster status.', 138873384206, 3, 3, 'active', NULL, NULL);
+stderr: Error: Failed to retrieve the cluster status.', 138873384206, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('7a7d07a706e36164', 'File "<workspace>/tests/integration/tests/test_bootstrap.py", line <n>, in test_microk8s_installed
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in run
 return subprocess.run(command, **kwargs)
@@ -867,7 +900,7 @@ subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''<instance>'', ''
     return subprocess.run(command, **kwargs)
   File "/usr/lib/python3.12/subprocess.py", line 571, in run
     raise CalledProcessError(retcode, process.args,
-subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-3-1b6032'', ''--'', ''bash'', ''-c'', ''k8s join-cluster <redacted> --file -'']'' returned non-zero exit status 1.', 138873383879, 3, 3, 'active', NULL, NULL);
+subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-3-1b6032'', ''--'', ''bash'', ''-c'', ''k8s join-cluster <redacted> --file -'']'' returned non-zero exit status 1.', 138873383879, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('7d6a50cfd6936b87', 'File "<workspace>/tests/integration/tests/test_version_upgrades.py", line <n>, in test_version_downgrades_with_rollback
 File "<workspace>/tests/integration/.tox/integration/lib/python3.<n>/site-packages/tenacity/__init__.py", line <n>, in __call__
 result = fn(*args, **kwargs)
@@ -885,14 +918,14 @@ assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_ingress.py", line 85, in test_ingress
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873385849, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873385849, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('85c475198318f337', 'File "<workspace>/tests/integration/tests/test_clustering.py", line <n>, in test_join_cp_with_duplicate_name_rejected
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in wait_until_k8s_ready
 assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_clustering.py", line 645, in test_join_cp_with_duplicate_name_rejected
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873381572, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873381572, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('86320dba2e89666c', 'File "<workspace> line <n>, in test_version_downgrades_with_rollback
 util.check_service_restarts(instance)
 File "<workspace> line <n>, in check_service_restarts
@@ -932,28 +965,29 @@ assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_node_taints.py", line 30, in test_node_taints
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873390265, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873390265, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('8f26075cf61e6819', 'File "<workspace>/tests/integration/tests/test_clustering.py", line <n>, in test_node_removal_during_concurrent_join
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in wait_until_k8s_ready
 assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_clustering.py", line 498, in test_node_removal_during_concurrent_join
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873381423, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873381423, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('8f9308537dc725f6', 'File "<workspace>/tests/integration/tests/test_clustering.py", line <n>, in test_join_worker_with_duplicate_name_rejected
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in wait_until_k8s_ready
 assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_clustering.py", line 698, in test_join_worker_with_duplicate_name_rejected
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873381663, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873381663, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('95a428acf20c068b', 'File "<workspace>/tests/integration/tests/test_fips_images.py", line <n>, in test_fips_images
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in wait_until_k8s_ready
 assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_fips_images.py", line 154, in test_fips_images
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873384425, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873384425, 4, 3, 'active', NULL, NULL);
+INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('95e5d233b60456e1', '##[error]The process ''/usr/bin/git'' failed with exit code 128', '##[error]The process ''/usr/bin/git'' failed with exit code 128', 139595652079, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('98c571d67e23aed8', 'File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in run
 return subprocess.run(command, **kwargs)
 File "/usr/lib/python3.<n>/subprocess.py", line <n>, in run
@@ -973,7 +1007,7 @@ subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''<instance>'', ''
     return subprocess.run(command, **kwargs)
   File "/usr/lib/python3.12/subprocess.py", line 571, in run
     raise CalledProcessError(retcode, process.args,
-subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-3-f5e262'', ''--'', ''bash'', ''-c'', ''k8s join-cluster <redacted> --file -'']'' returned non-zero exit status 1.', 138873379206, 3, 3, 'active', NULL, NULL);
+subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-3-f5e262'', ''--'', ''bash'', ''-c'', ''k8s join-cluster <redacted> --file -'']'' returned non-zero exit status 1.', 138873379206, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('a934445a5476c39d', 'File "<workspace>/tests/integration/tests/test_version_upgrades.py", line <n>, in test_version_downgrades_with_rollback
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in check_snap_services_ready
 raise last_error
@@ -998,13 +1032,24 @@ stderr: error: unable to contact snap store', 'File "/home/ubuntu/actions-runner
     raise CalledProcessError(retcode, process.args,
 subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-3-8214f2'', ''--'', ''bash'', ''-c'', ''snap refresh k8s --channel latest/edge/classic --classic --amend'']'' returned non-zero exit status 1.
 stderr: error: unable to contact snap store', 115063247952, 3, 3, 'active', NULL, NULL);
+INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('a98b9f80e69b79d2', 'File "<workspace>/tests/integration/tests/test_loadbalancer_bgp.py", line <n>, in test_loadbalancer_bgp_bfd_session
+File "<workspace>/tests/integration/.tox/integration/lib/python3.<n>/site-packages/tenacity/__init__.py", line <n>, in __call__
+result = fn(*args, **kwargs)
+File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in _exec
+assert self._condition(resp), "Failed to meet condition"
+AssertionError: Failed to meet condition', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_loadbalancer_bgp.py", line 624, in test_loadbalancer_bgp_bfd_session
+  File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/.tox/integration/lib/python3.12/site-packages/tenacity/__init__.py", line 382, in __call__
+    result = fn(*args, **kwargs)
+  File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 150, in _exec
+    assert self._condition(resp), "Failed to meet condition"
+AssertionError: Failed to meet condition', 139595647903, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('aa6626357ef2c8c7', 'File "<workspace>/tests/integration/tests/test_clustering.py", line <n>, in test_node_join_succeeds_when_original_control_plane_is_down
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in wait_until_k8s_ready
 assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_clustering.py", line 450, in test_node_join_succeeds_when_original_control_plane_is_down
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873379253, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873379253, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('ad1ccc585ab91dc4', 'File "<workspace>/tests/integration/tests/test_loadbalancer_bgp.py", line <n>, in test_loadbalancer_bgp_frr_k8s_bfd_lifecycle
 File "<workspace>/tests/integration/.tox/integration/lib/python3.<n>/site-packages/tenacity/__init__.py", line <n>, in __call__
 result = fn(*args, **kwargs)
@@ -1016,7 +1061,7 @@ test_util.util._ConditionNotMetError: Failed to meet condition: rc=0 stdout=''{\
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 182, in _exec
     raise _ConditionNotMetError(
 test_util.util._ConditionNotMetError: Failed to meet condition: rc=0 stdout=''{\n    "apiVersion": "v1",\n    "items": [],\n    "kind": "List",\n    "metadata": {\n        "resourceVersion": ""\n    }\n}\n'' stderr=''''', 138478546004, 3, 3, 'active', NULL, NULL);
-INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('b23345bfac804d7b', 'ModuleNotFoundError: No module named ''subunit''', 'ModuleNotFoundError: No module named ''subunit''', 138881993795, 3, 3, 'active', NULL, NULL);
+INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('b23345bfac804d7b', 'ModuleNotFoundError: No module named ''subunit''', 'ModuleNotFoundError: No module named ''subunit''', 138881993795, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('b2fdc843a67d0cf8', 'File "<workspace>/tests/integration/tests/test_version_upgrades.py", line <n>, in test_version_upgrades
 util.check_service_logs_for_panics(instance)
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in check_service_logs_for_panics
@@ -1074,14 +1119,14 @@ assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_annotations.py", line 136, in test_disable_separate_feature_upgrades
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873379130, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873379130, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('bb40ddc3376ea7c1', 'File "<workspace>/tests/integration/tests/test_node_availability_zone.py", line <n>, in test_node_availability_zone
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in wait_until_k8s_ready
 assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_node_availability_zone.py", line 48, in test_node_availability_zone
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873388968, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873388968, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('bd6eaa1c1177a033', 'File "<workspace>/tests/integration/tests/test_version_upgrades.py", line <n>, in test_version_upgrades
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in run
 return subprocess.run(command, **kwargs)
@@ -1099,21 +1144,21 @@ assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_kubectl.py", line 42, in test_kubectl
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873385815, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873385815, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('bdbeeb32b7f81078', 'File "<workspace>/tests/integration/tests/test_clustering.py", line <n>, in test_etcd_learner_promotion
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in wait_until_k8s_ready
 assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_clustering.py", line 87, in test_etcd_learner_promotion
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873379113, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873379113, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('c4dc8d585d42733f', 'File "<workspace>/tests/integration/tests/test_user_config.py", line <n>, in test_no_unnecessary_helm_revisions
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in wait_until_k8s_ready
 assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_user_config.py", line 85, in test_no_unnecessary_helm_revisions
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873390945, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873390945, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('c6b1e9b8ae19cfed', 'File "<workspace> line <n>, in run
 return subprocess.run(command, **kwargs)
 File "/usr/lib/python3.12/subprocess.py", line <n>, in run
@@ -1129,14 +1174,14 @@ assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/ubuntu/actions-runner/_work/k8s-snap/k8s-snap/tests/integration/tests/test_version_upgrades.py", line 132, in test_version_upgrades
   File "/home/ubuntu/actions-runner/_work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873480383, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873480383, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('cbb87f101d781266', 'File "<workspace>/tests/integration/tests/test_clustering.py", line <n>, in test_join_with_custom_token_name
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in wait_until_k8s_ready
 assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_clustering.py", line 568, in test_join_with_custom_token_name
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 436, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 115063209899, 3, 3, 'active', NULL, NULL);
+AssertionError', 115063209899, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('ce41aa9f5a1fbfa9', 'File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in run
 return subprocess.run(command, **kwargs)
 File "/usr/lib/python3.<n>/subprocess.py", line <n>, in run
@@ -1157,7 +1202,7 @@ AssertionError: Service kubelet should be active, but it is inactive', 'File "/h
     raise last_error
   File "/home/ubuntu/actions-runner/_work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 1831, in check_snap_services_ready
     service_status[service] == "active"
-AssertionError: Service kubelet should be active, but it is inactive', 138873390887, 3, 3, 'active', NULL, NULL);
+AssertionError: Service kubelet should be active, but it is inactive', 138873390887, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('d216e170608d6e51', 'File "<workspace>/tests/integration/tests/test_loadbalancer.py", line <n>, in test_loadbalancer_ipv6_only
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in run
 return subprocess.run(command, **kwargs)
@@ -1168,35 +1213,35 @@ subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''<instance>'', ''
     return subprocess.run(command, **kwargs)
   File "/usr/lib/python3.12/subprocess.py", line 571, in run
     raise CalledProcessError(retcode, process.args,
-subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-2-6138df'', ''--'', ''bash'', ''-c'', ''k8s x-wait-for network --timeout 20m'']'' returned non-zero exit status 1.', 138873386055, 3, 3, 'active', NULL, NULL);
+subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-2-6138df'', ''--'', ''bash'', ''-c'', ''k8s x-wait-for network --timeout 20m'']'' returned non-zero exit status 1.', 138873386055, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('d48a71239753bf2b', 'File "<workspace>/tests/integration/tests/test_clustering.py", line <n>, in test_concurrent_cp_membership_operations
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in wait_until_k8s_ready
 assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_clustering.py", line 296, in test_concurrent_cp_membership_operations
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873379310, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873379310, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('d49471bb9fa612d0', 'File "<workspace>/tests/integration/tests/test_clustering.py", line <n>, in test_control_plane_nodes
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in wait_until_k8s_ready
 assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_clustering.py", line 33, in test_control_plane_nodes
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873379162, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873379162, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('d4bce8fad06b9fd4', 'File "<workspace>/tests/integration/tests/test_clustering.py", line <n>, in test_disa_stig_clustering
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in wait_until_k8s_ready
 assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_clustering.py", line 249, in test_disa_stig_clustering
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873379218, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873379218, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('d5861ca66ee2d9b4', 'File "<workspace>/tests/integration/tests/test_airgapped.py", line <n>, in test_airgapped_with_image_mirror
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in wait_until_k8s_ready
 assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_airgapped.py", line 235, in test_airgapped_with_image_mirror
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873379092, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873379092, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('d722795db15ed246', 'File "<workspace>/tests/integration/tests/test_gateway.py", line <n>, in test_gateway
 assert gateway_ip, "No Gateway IP found."
 AssertionError: No Gateway IP found.', '  File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_gateway.py", line 130, in test_gateway
@@ -1224,7 +1269,7 @@ AssertionError: Failed to meet condition', 'File "/home/runner/work/k8s-snap/k8s
     result = fn(*args, **kwargs)
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 133, in _exec
     assert self._condition(resp), "Failed to meet condition"
-AssertionError: Failed to meet condition', 116386405521, 3, 3, 'active', NULL, NULL);
+AssertionError: Failed to meet condition', 116386405521, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('de9d743139d8133c', 'File "<workspace>/tests/integration/tests/test_version_upgrades.py", line <n>, in test_version_upgrades
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in run
 return subprocess.run(command, **kwargs)
@@ -1248,7 +1293,7 @@ stderr: Error: Failed to retrieve the cluster status.', 'File "/home/runner/work
   File "/usr/lib/python3.12/subprocess.py", line 571, in run
     raise CalledProcessError(retcode, process.args,
 subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-2-29e0d7'', ''--'', ''bash'', ''-c'', ''k8s status --wait-ready'']'' returned non-zero exit status 1.
-stderr: Error: Failed to retrieve the cluster status.', 138873390401, 3, 3, 'active', NULL, NULL);
+stderr: Error: Failed to retrieve the cluster status.', 138873390401, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('e0ac6b603e274f49', 'File "<workspace>/tests/integration/tests/test_version_upgrades.py", line <n>, in test_version_downgrades_with_rollback
 util.check_service_restarts(instance)
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in check_service_restarts
@@ -1273,7 +1318,7 @@ assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_clustering.py", line 420, in test_concurrent_membership_restart_operations
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 401, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 115606540841, 3, 3, 'active', NULL, NULL);
+AssertionError', 115606540841, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('e5c836d564d13b3e', 'File "<workspace>/tests/integration/tests/test_version_upgrades.py", line <n>, in test_version_downgrades_with_rollback
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in run
 return subprocess.run(command, **kwargs)
@@ -1295,7 +1340,7 @@ subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''<instance>'', ''
     return subprocess.run(command, **kwargs)
   File "/usr/lib/python3.12/subprocess.py", line 571, in run
     raise CalledProcessError(retcode, process.args,
-subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-2-3f1a9f'', ''--'', ''bash'', ''-c'', ''k8s x-wait-for dns --timeout 20m'']'' returned non-zero exit status 1.', 138873379189, 3, 3, 'active', NULL, NULL);
+subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-2-3f1a9f'', ''--'', ''bash'', ''-c'', ''k8s x-wait-for dns --timeout 20m'']'' returned non-zero exit status 1.', 138873379189, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('e6fbb54c7d6abe01', 'File "<workspace>/tests/integration/tests/test_dns.py", line <n>, in test_dns_ha_rebalancing
 File "<workspace>/tests/integration/.tox/integration/lib/python3.<n>/site-packages/tenacity/__init__.py", line <n>, in __call__
 result = fn(*args, **kwargs)
@@ -1313,7 +1358,7 @@ assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_containerd.py", line 16, in test_containerd
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873381870, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873381870, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('e76f676b00c7a5ca', 'File "<workspace>/tests/integration/tests/performance/test_perf_clustering.py", line <n>, in test_perf_clustering_bootstrap_cli
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in run
 return subprocess.run(command, **kwargs)
@@ -1326,7 +1371,18 @@ stderr: error: snap "k8s" has "service-control" change in progress', 'File "/hom
   File "/usr/lib/python3.12/subprocess.py", line 571, in run
     raise CalledProcessError(retcode, process.args,
 subprocess.CalledProcessError: Command ''[''lxc'', ''exec'', ''k8s-integration-2-53fd28'', ''--'', ''bash'', ''-c'', ''snap remove k8s --purge'']'' returned non-zero exit status 10.
-stderr: error: snap "k8s" has "service-control" change in progress', 138478285470, 3, 3, 'active', NULL, NULL);
+stderr: error: snap "k8s" has "service-control" change in progress', 138478285470, 4, 3, 'active', NULL, NULL);
+INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('eb8fa9ef8c5c6a46', 'File "<workspace>/tests/integration/tests/test_loadbalancer_bgp.py", line <n>, in test_loadbalancer_bgp_bfd_session
+File "<workspace>/tests/integration/.tox/integration/lib/python3.<n>/site-packages/tenacity/__init__.py", line <n>, in __call__
+result = fn(*args, **kwargs)
+File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in _exec
+raise _ConditionNotMetError(
+test_util.util._ConditionNotMetError: Failed to meet condition: rc=0 stdout=<output> stderr=<output>', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_loadbalancer_bgp.py", line 624, in test_loadbalancer_bgp_bfd_session
+  File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/.tox/integration/lib/python3.12/site-packages/tenacity/__init__.py", line 553, in __call__
+    result = fn(*args, **kwargs)
+  File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 182, in _exec
+    raise _ConditionNotMetError(
+test_util.util._ConditionNotMetError: Failed to meet condition: rc=0 stdout=''{\n  "10.185.226.128":{\n    "neighborAddr":"10.185.226.128",\n    "remoteAs":65000,\n    "localAs":65001,\n    "localAsReplaceAsDualAs":false,\n    "nbrExternalLink":true,\n    "localRole":"undefined",\n    "remoteRole":"undefined",\n    "hostname":"k8s-integration-2-011548",\n    "bgpVersion":4,\n    "remoteRouterId":"10.185.226.128",\n    "localRouterId":"10.185.226.95",\n    "bgpState":"Established",\n    "bgpTimerUpMsec":61000,\n    "bgpTimerUpString":"00:01:01",\n    "bgpTimerUpEstablishedEpoch":179566204...[truncated 3759 chars]...l":"fd42:1912:b27:f58d:216:3eff:fe05:e16d",\n    "nexthopLocal":"fe80::216:3eff:fe05:e16d",\n    "bgpConnection":"sharedNetwork",\n    "connectRetryTimer":30,\n    "estimatedRttInMsecs":3,\n    "bfdHoldTimerExpireInMsecs":10000,\n    "bfdHoldTimerExpired":false,\n    "readThread":"on",\n    "writeThread":"on",\n    "peerBfdInfo":{\n      "type":"single hop",\n      "detectMultiplier":3,\n      "rxMinInterval":300,\n      "txMinInterval":300,\n      "status":"Down",\n      "lastUpdate":"0:00:00:20"\n    }\n  }\n}\n'' stderr=''''', 139595584529, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('edd44007115ea059', 'File "<workspace>/tests/integration/tests/test_cncf_conformance.py", line <n>, in test_cncf_conformance
 assert failed_tests == 0, f"{failed_tests} tests failed"
 AssertionError: 4 tests failed', '  File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_cncf_conformance.py", line 47, in test_cncf_conformance
@@ -1349,7 +1405,7 @@ assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_airgapped.py", line 118, in test_airgapped_with_proxy
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873379109, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873379109, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('f2730b03db60b443', 'File "<workspace>/tests/integration/tests/test_version_upgrades.py", line <n>, in test_version_downgrades_with_rollback
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in run
 return subprocess.run(command, **kwargs)
@@ -1367,7 +1423,7 @@ assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_network.py", line 20, in test_network
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873387974, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873387974, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('f290de8f9597cab0', 'File "<workspace>/tests/integration/tests/test_annotations.py", line <n>, in test_no_remove
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in run
 return subprocess.run(command, **kwargs)
@@ -1378,7 +1434,7 @@ subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''<instance>'', ''
     return subprocess.run(command, **kwargs)
   File "/usr/lib/python3.12/subprocess.py", line 571, in run
     raise CalledProcessError(retcode, process.args,
-subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-3-786b6f'', ''--'', ''bash'', ''-c'', ''k8s join-cluster <redacted>'']'' returned non-zero exit status 1.', 138873379573, 3, 3, 'active', NULL, NULL);
+subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-3-786b6f'', ''--'', ''bash'', ''-c'', ''k8s join-cluster <redacted>'']'' returned non-zero exit status 1.', 138873379573, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('f3f4229ddd26290b', 'File "<workspace>/tests/integration/tests/test_loadbalancer.py", line <n>, in test_loadbalancer_bgp_annotation_peers_with_advertise_all_pools
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in run
 return subprocess.run(command, **kwargs)
@@ -1389,14 +1445,14 @@ subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''<instance>'', ''
     return subprocess.run(command, **kwargs)
   File "/usr/lib/python3.12/subprocess.py", line 571, in run
     raise CalledProcessError(retcode, process.args,
-subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-2-8933fd'', ''--'', ''bash'', ''-c'', ''k8s x-wait-for network --timeout 20m'']'' returned non-zero exit status 1.', 138873387931, 3, 3, 'active', NULL, NULL);
+subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-2-8933fd'', ''--'', ''bash'', ''-c'', ''k8s x-wait-for network --timeout 20m'']'' returned non-zero exit status 1.', 138873387931, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('f600814ee15ec650', 'File "<workspace>/tests/integration/tests/test_clustering.py", line <n>, in test_worker_nodes
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in wait_until_k8s_ready
 assert is_node_ready(control_node, node_name)
 AssertionError', 'File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_clustering.py", line 203, in test_worker_nodes
   File "/home/runner/work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 704, in wait_until_k8s_ready
     assert is_node_ready(control_node, node_name)
-AssertionError', 138873379472, 3, 3, 'active', NULL, NULL);
+AssertionError', 138873379472, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('f602fcf97c7a6eef', 'File "<workspace>/tests/integration/tests/test_loadbalancer_bgp.py", line <n>, in test_loadbalancer_bgp_bfd_session
 File "<workspace>/tests/integration/.tox/integration/lib/python3.<n>/site-packages/tenacity/__init__.py", line <n>, in __call__
 result = fn(*args, **kwargs)
@@ -1418,7 +1474,7 @@ subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''<instance>'', ''
     return subprocess.run(command, **kwargs)
   File "/usr/lib/python3.12/subprocess.py", line 571, in run
     raise CalledProcessError(retcode, process.args,
-subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-2-d81a14'', ''--'', ''bash'', ''-c'', ''k8s x-wait-for network --timeout 20m'']'' returned non-zero exit status 1.', 138873386361, 3, 3, 'active', NULL, NULL);
+subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-2-d81a14'', ''--'', ''bash'', ''-c'', ''k8s x-wait-for network --timeout 20m'']'' returned non-zero exit status 1.', 138873386361, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('f860f86f49a4fc22', 'File "<workspace>/tests/integration/tests/test_version_upgrades.py", line <n>, in test_version_downgrades_with_rollback
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in run
 return subprocess.run(command, **kwargs)
@@ -1440,7 +1496,7 @@ subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''<instance>'', ''
     return subprocess.run(command, **kwargs)
   File "/usr/lib/python3.12/subprocess.py", line 571, in run
     raise CalledProcessError(retcode, process.args,
-subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-2-8fedcb'', ''--'', ''bash'', ''-c'', ''k8s x-wait-for network --timeout 20m'']'' returned non-zero exit status 1.', 138873386166, 3, 3, 'active', NULL, NULL);
+subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-2-8fedcb'', ''--'', ''bash'', ''-c'', ''k8s x-wait-for network --timeout 20m'']'' returned non-zero exit status 1.', 138873386166, 4, 3, 'active', NULL, NULL);
 INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('fdb5b251e1d6cbc4', 'File "<workspace>/tests/integration/tests/test_annotations.py", line <n>, in test_skip_services_stop_on_remove
 File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in run
 return subprocess.run(command, **kwargs)
@@ -1451,7 +1507,18 @@ subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''<instance>'', ''
     return subprocess.run(command, **kwargs)
   File "/usr/lib/python3.12/subprocess.py", line 571, in run
     raise CalledProcessError(retcode, process.args,
-subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-3-a7f495'', ''--'', ''bash'', ''-c'', ''k8s join-cluster <redacted>'']'' returned non-zero exit status 1.', 138873379169, 3, 3, 'active', NULL, NULL);
+subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-3-a7f495'', ''--'', ''bash'', ''-c'', ''k8s join-cluster <redacted>'']'' returned non-zero exit status 1.', 138873379169, 4, 3, 'active', NULL, NULL);
+INSERT INTO signatures (signature_id, normalised_pattern, exemplar_excerpt, exemplar_job_id, normaliser_version, extractor_version, state, quarantined_at, quarantine_expires_at) VALUES ('fe86bfc3146f74a7', 'File "<workspace>/tests/integration/tests/test_version_upgrades.py", line <n>, in test_version_downgrades_with_rollback
+File "<workspace>/tests/integration/tests/test_util/util.py", line <n>, in run
+return subprocess.run(command, **kwargs)
+File "/usr/lib/python3.<n>/subprocess.py", line <n>, in run
+raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''<instance>'', ''--'', ''bash'', ''-c'', ''k8s join-cluster <redacted>'']'' returned non-zero exit status 1.', 'File "/home/ubuntu/actions-runner/_work/k8s-snap/k8s-snap/tests/integration/tests/test_version_upgrades.py", line 225, in test_version_downgrades_with_rollback
+  File "/home/ubuntu/actions-runner/_work/k8s-snap/k8s-snap/tests/integration/tests/test_util/util.py", line 92, in run
+    return subprocess.run(command, **kwargs)
+  File "/usr/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command ''[''lxc'', ''shell'', ''k8s-integration-4-b5cef7'', ''--'', ''bash'', ''-c'', ''k8s join-cluster <redacted>'']'' returned non-zero exit status 1.', 139595615828, 4, 3, 'active', NULL, NULL);
 INSERT INTO runs (run_id, attempt, workflow_id, event, head_branch, head_sha, pr_number, created_at, started_at, completed_at, conclusion, jobs_total, jobs_success, jobs_failure, jobs_skipped, jobs_cancelled, runner_minutes_total, runner_minutes_failed, ingest_version) VALUES (38325492624, 1, 6837901422638880802, 'schedule', 'main', '9abe9bc02b073066bdfcaa70cdf8ba5390abc3a8', NULL, '2026-10-13T00:05:23Z', '2026-10-13T00:05:23Z', '2026-10-13T03:14:04Z', 'failure', 2555, 2522, 33, 0, 0, 26680.42, 1091.18, 1);
 INSERT INTO runs (run_id, attempt, workflow_id, event, head_branch, head_sha, pr_number, created_at, started_at, completed_at, conclusion, jobs_total, jobs_success, jobs_failure, jobs_skipped, jobs_cancelled, runner_minutes_total, runner_minutes_failed, ingest_version) VALUES (38488046943, 1, 6837901422638880802, 'schedule', 'main', '9abe9bc02b073066bdfcaa70cdf8ba5390abc3a8', NULL, '2026-10-14T00:04:38Z', '2026-10-14T00:04:38Z', '2026-10-14T04:51:52Z', 'failure', 2555, 2506, 49, 0, 0, 25938.03, 720.7, 1);
 INSERT INTO runs (run_id, attempt, workflow_id, event, head_branch, head_sha, pr_number, created_at, started_at, completed_at, conclusion, jobs_total, jobs_success, jobs_failure, jobs_skipped, jobs_cancelled, runner_minutes_total, runner_minutes_failed, ingest_version) VALUES (38657906287, 1, 6837901422638880802, 'schedule', 'main', '9abe9bc02b073066bdfcaa70cdf8ba5390abc3a8', NULL, '2026-10-15T00:04:42Z', '2026-10-15T00:04:42Z', '2026-10-15T04:55:24Z', 'failure', 2555, 2498, 57, 0, 0, 25580.43, 761.75, 1);
@@ -1464,6 +1531,7 @@ INSERT INTO runs (run_id, attempt, workflow_id, event, head_branch, head_sha, pr
 INSERT INTO runs (run_id, attempt, workflow_id, event, head_branch, head_sha, pr_number, created_at, started_at, completed_at, conclusion, jobs_total, jobs_success, jobs_failure, jobs_skipped, jobs_cancelled, runner_minutes_total, runner_minutes_failed, ingest_version) VALUES (45293896009, 1, 6837901422638880802, 'schedule', 'main', '47c85115b1ce74a3587fac256daed33cedffe58b', NULL, '2026-11-24T00:02:49Z', '2026-11-24T00:02:49Z', '2026-11-24T04:07:04Z', 'failure', 2585, 2577, 8, 0, 0, 25307.15, 68.22, 1);
 INSERT INTO runs (run_id, attempt, workflow_id, event, head_branch, head_sha, pr_number, created_at, started_at, completed_at, conclusion, jobs_total, jobs_success, jobs_failure, jobs_skipped, jobs_cancelled, runner_minutes_total, runner_minutes_failed, ingest_version) VALUES (45403479776, 1, 6837901422638880802, 'workflow_dispatch', 'main', '8d9782449ff35729e5b5627e818e7ceb817f0087', NULL, '2026-11-24T13:26:37Z', '2026-11-24T13:26:37Z', '2026-11-24T18:17:13Z', 'failure', 2597, 2575, 19, 3, 0, 25912.47, 248.3, 1);
 INSERT INTO runs (run_id, attempt, workflow_id, event, head_branch, head_sha, pr_number, created_at, started_at, completed_at, conclusion, jobs_total, jobs_success, jobs_failure, jobs_skipped, jobs_cancelled, runner_minutes_total, runner_minutes_failed, ingest_version) VALUES (45514926115, 1, 6837901422638880802, 'schedule', 'main', '8d9782449ff35729e5b5627e818e7ceb817f0087', NULL, '2026-11-25T00:02:45Z', '2026-11-25T00:02:45Z', '2026-11-25T04:33:57Z', 'failure', 2597, 2226, 371, 0, 0, 28744.3, 6966.08, 1);
+INSERT INTO runs (run_id, attempt, workflow_id, event, head_branch, head_sha, pr_number, created_at, started_at, completed_at, conclusion, jobs_total, jobs_success, jobs_failure, jobs_skipped, jobs_cancelled, runner_minutes_total, runner_minutes_failed, ingest_version) VALUES (45725848029, 1, 6837901422638880802, 'schedule', 'main', '89ffddf9eeb7e1aea1070227122fdc63c92f9bdc', NULL, '2026-11-26T00:02:44Z', '2026-11-26T00:02:44Z', '2026-11-26T04:54:37Z', 'failure', 2621, 2603, 17, 1, 0, 25624.75, 194.38, 1);
 INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (38325492624, 1, 39463913079077356, 42);
 INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (38325492624, 1, 57491155393445239, 68);
 INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (38325492624, 1, 59183182177401916, 42);
@@ -1962,6 +2030,49 @@ INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (4551
 INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45514926115, 1, 8644005367960536592, 73);
 INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45514926115, 1, 8929005144597117276, 65);
 INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45514926115, 1, 9022218679442163638, 53);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 39463913079077356, 42);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 57491155393445239, 70);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 59183182177401916, 42);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 252907129527873164, 73);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 928970396406329016, 70);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 1091233360163381197, 48);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 1400677618049810108, 73);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 1847388962245827946, 65);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 1939769318328537906, 70);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 2229591086643684489, 48);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 2520285257889381072, 65);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 2629401735963515257, 42);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 3106246734259514331, 65);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 3343702969574093153, 42);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 3585026357146120001, 70);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 3745192708673609637, 48);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 3763721250379841717, 19);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 4297562881687072844, 70);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 4305126623212367549, 65);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 4861522181507758756, 70);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 5008331583213847611, 70);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 5021361477786912939, 48);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 5245692204659922052, 42);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 5272601827007986976, 70);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 5486988883917688915, 53);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 5556432238529917213, 48);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 5980816056462601041, 73);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 6587359407658800065, 48);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 7011107965064077919, 70);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 7030317622236259600, 53);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 7350911824152760869, 42);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 7424053804413737566, 53);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 7548057081016589128, 70);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 7591004629883704910, 53);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 7842329448642706937, 73);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 7941391798915017893, 53);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 7988720352579174466, 73);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 8021238233161230949, 70);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 8257338556929292758, 70);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 8422849808202953681, 65);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 8644005367960536592, 73);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 8929005144597117276, 65);
+INSERT INTO run_tests_collected (run_id, attempt, config_id, count) VALUES (45725848029, 1, 9022218679442163638, 53);
 INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (115063179902, 38325492624, 1, 3106246734259514331, 1287304177846722168, 4097868688512300027, 'Integration (ubuntu:24.04, amd64, 1.35-classic/edge) / tests/test_annotations.py::test_skip_services_stop_on_remove', 'Integration', 'https://github.com/canonical/k8s-snap/actions/runs/38325492624/job/115063179902', '2026-10-13T00:05:49Z', '2026-10-13T00:12:08Z', 379.0, 'Setup LXD', 7, NULL, '', '', '', '', NULL, 'infra.provisioning.lxd');
 INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (115063196868, 38325492624, 1, 3585026357146120001, 1502040164224341507, 8966257805102741743, 'Integration (ubuntu:26.04, amd64, 1.37-classic/edge) / tests/test_version_upgrades.py::test_version_upgrades', 'Integration', 'https://github.com/canonical/k8s-snap/actions/runs/38325492624/job/115063196868', '2026-10-13T01:13:56Z', '2026-10-13T01:51:21Z', 2245.0, 'Run test_version_upgrades', 14, 1, '', '', '', '', 'b2fdc843a67d0cf8', NULL);
 INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (115063196956, 38325492624, 1, 3585026357146120001, 5278883307534541841, 4097868688512300027, 'Integration (ubuntu:26.04, amd64, 1.37-classic/edge) / tests/test_version_upgrades.py::test_feature_upgrades_inplace', 'Integration', 'https://github.com/canonical/k8s-snap/actions/runs/38325492624/job/115063196956', '2026-10-13T01:46:54Z', '2026-10-13T02:06:44Z', 1190.0, 'Run test_feature_upgrades_inplace', 13, 1, '', '', '', '', 'da6ba7b982998d76', NULL);
@@ -2675,7 +2786,7 @@ INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_na
 INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (138874065084, 45514926115, 1, 5272601827007986976, 2511144541952828183, 5095741496078584704, 'Integration (ubuntu:24.04, arm64, 1.36-classic/edge) / tests/test_networking.py::test_with_fan_networking', 'Integration', 'https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138874065084', '2026-11-25T02:49:03Z', '2026-11-25T03:04:12Z', 909.0, 'Run test_with_fan_networking', 15, 1, '', '', '', '', '4db1fda263e61c48', NULL);
 INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (138874065438, 45514926115, 1, 5272601827007986976, 456567319283042404, 5095741496078584704, 'Integration (ubuntu:24.04, arm64, 1.36-classic/edge) / tests/test_node_taints.py::test_node_taints', 'Integration', 'https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138874065438', '2026-11-25T02:52:03Z', '2026-11-25T03:07:37Z', 934.0, 'Run test_node_taints', 15, 1, '', '', '', '', '8be1893d8323d48e', NULL);
 INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (138874065599, 45514926115, 1, 5272601827007986976, 7928141063688976800, 5095741496078584704, 'Integration (ubuntu:24.04, arm64, 1.36-classic/edge) / tests/test_smoke.py::test_smoke', 'Integration', 'https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138874065599', '2026-11-25T02:54:17Z', '2026-11-25T03:22:41Z', 1704.0, 'Run test_smoke', 15, 1, '', '', '', '', 'dfeaf673308563b9', NULL);
-INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (138874066501, 45514926115, 1, 252907129527873164, 7155530846453764700, 4097868688512300027, 'Integration (ubuntu:26.04, amd64, latest/edge) / tests/test_loadbalancer_bgp.py::test_loadbalancer_bgp_bfd_session', 'Integration', 'https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138874066501', '2026-11-25T02:19:45Z', '2026-11-25T02:29:02Z', 557.0, 'Run test_loadbalancer_bgp_bfd_session', 15, 1, '', '', '', '', '0bcfe822f34e357a', NULL);
+INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (138874066501, 45514926115, 1, 252907129527873164, 7155530846453764700, 4097868688512300027, 'Integration (ubuntu:26.04, amd64, latest/edge) / tests/test_loadbalancer_bgp.py::test_loadbalancer_bgp_bfd_session', 'Integration', 'https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138874066501', '2026-11-25T02:19:45Z', '2026-11-25T02:29:02Z', 557.0, 'Run test_loadbalancer_bgp_bfd_session', 15, 1, '', '', '', '', 'eb8fa9ef8c5c6a46', NULL);
 INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (138874066516, 45514926115, 1, 5272601827007986976, 4558994298515762570, 5095741496078584704, 'Integration (ubuntu:24.04, arm64, 1.36-classic/edge) / tests/test_node_availability_zone.py::test_node_availability_zone[False]', 'Integration', 'https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138874066516', '2026-11-25T02:49:55Z', '2026-11-25T03:05:12Z', 917.0, 'Run test_node_availability_zone[False]', 15, 1, '', '', '', '', 'bb40ddc3376ea7c1', NULL);
 INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (138874066626, 45514926115, 1, 5272601827007986976, 626283248852864754, 5095741496078584704, 'Integration (ubuntu:24.04, arm64, 1.36-classic/edge) / tests/test_snap_services.py::test_snap_services', 'Integration', 'https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138874066626', '2026-11-25T02:58:10Z', '2026-11-25T03:13:18Z', 908.0, 'Run test_snap_services', 15, 1, '', '', '', '', '57a5fae672fe669b', NULL);
 INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (138874066753, 45514926115, 1, 5272601827007986976, 3875043291561368943, 5095741496078584704, 'Integration (ubuntu:24.04, arm64, 1.36-classic/edge) / tests/test_storage.py::test_storage', 'Integration', 'https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138874066753', '2026-11-25T02:59:33Z', '2026-11-25T03:13:41Z', 848.0, 'Run test_storage', 15, 1, '', '', '', '', '00b444820009a354', NULL);
@@ -2688,99 +2799,117 @@ INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_na
 INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (138884076865, 45514926115, 1, 6285576038704721757, 0, 3238640022474933235, 'Run performance tests for ubuntu:22.04-amd64 / Compare Performance Results', 'Run performance tests for ubuntu:22.04-amd64', 'https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138884076865', '2026-11-25T00:41:36Z', '2026-11-25T00:41:52Z', 16.0, 'Compare performance test results', 8, 1, '', '', '', '', 'b23345bfac804d7b', NULL);
 INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (138890915311, 45514926115, 1, 6285576038704721757, 0, 3238640022474933235, 'Run performance tests for ubuntu:24.04-amd64 / Compare Performance Results', 'Run performance tests for ubuntu:24.04-amd64', 'https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138890915311', '2026-11-25T00:45:34Z', '2026-11-25T00:45:53Z', 19.0, 'Compare performance test results', 8, 1, '', '', '', '', 'b23345bfac804d7b', NULL);
 INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (138891002149, 45514926115, 1, 4695633580312792876, 0, 3238640022474933235, 'Run performance tests for ubuntu:24.04-arm64 / Compare Performance Results', 'Run performance tests for ubuntu:24.04-arm64', 'https://github.com/canonical/k8s-snap/actions/runs/45514926115/job/138891002149', '2026-11-25T00:45:46Z', '2026-11-25T00:46:08Z', 22.0, 'Compare performance test results', 8, 1, '', '', '', '', 'b23345bfac804d7b', NULL);
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('00b444820009a354', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('025f8f4cf9ef8622', '*', 2, 'product.bug', 'wait_for_timeout', 'product-wait-for-timeout', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('08c0bd527e13771e', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('092cc8cd74024629', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('0a66efd9a2002f65', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('0fd8ad952ddf64bc', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('170c68613040961c', '*', 2, 'product.bug', 'join_failure', 'product-join-failure', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
+INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (139595584529, 45725848029, 1, 252907129527873164, 7155530846453764700, 4097868688512300027, 'Integration (ubuntu:26.04, amd64, latest/edge) / tests/test_loadbalancer_bgp.py::test_loadbalancer_bgp_bfd_session', 'Integration', 'https://github.com/canonical/k8s-snap/actions/runs/45725848029/job/139595584529', '2026-11-26T02:54:26Z', '2026-11-26T03:03:08Z', 522.0, 'Run test_loadbalancer_bgp_bfd_session', 15, 1, '', '', '', '', 'eb8fa9ef8c5c6a46', NULL);
+INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (139595615828, 45725848029, 1, 1939769318328537906, 7313142146399926102, 8966257805102741743, 'Integration (ubuntu:24.04, amd64, 1.36-classic/edge) / tests/test_version_upgrades.py::test_version_downgrades_with_rollback', 'Integration', 'https://github.com/canonical/k8s-snap/actions/runs/45725848029/job/139595615828', '2026-11-26T03:11:44Z', '2026-11-26T03:48:29Z', 2205.0, 'Run test_version_downgrades_with_rollback', 16, 1, '', '', '', '', 'fe86bfc3146f74a7', NULL);
+INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (139595634409, 45725848029, 1, 928970396406329016, 7313142146399926102, 8966257805102741743, 'Integration (ubuntu:24.04, amd64, 1.37-classic/edge) / tests/test_version_upgrades.py::test_version_downgrades_with_rollback', 'Integration', 'https://github.com/canonical/k8s-snap/actions/runs/45725848029/job/139595634409', '2026-11-26T03:13:51Z', '2026-11-26T04:01:39Z', 2868.0, 'Run test_version_downgrades_with_rollback', 16, 1, '', '', '', '', '52128313cf55b073', NULL);
+INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (139595645854, 45725848029, 1, 4695633580312792876, 0, 5095741496078584704, 'Run performance tests for ubuntu:22.04-arm64 / Run performance test with first snap / e2e-tests', 'Run performance tests for ubuntu:22.04-arm64', 'https://github.com/canonical/k8s-snap/actions/runs/45725848029/job/139595645854', '2026-11-26T00:04:29Z', '2026-11-26T00:18:39Z', 850.0, 'Run all tests', 15, 1, '', '', '', '', 'e76f676b00c7a5ca', NULL);
+INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (139595647903, 45725848029, 1, 4297562881687072844, 7155530846453764700, 4097868688512300027, 'Integration (ubuntu:26.04, amd64, 1.36-classic/edge) / tests/test_loadbalancer_bgp.py::test_loadbalancer_bgp_bfd_session', 'Integration', 'https://github.com/canonical/k8s-snap/actions/runs/45725848029/job/139595647903', '2026-11-26T02:55:41Z', '2026-11-26T03:04:31Z', 530.0, 'Run test_loadbalancer_bgp_bfd_session', 15, 1, '', '', '', '', 'a98b9f80e69b79d2', NULL);
+INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (139595652079, 45725848029, 1, 4297562881687072844, 1502040164224341507, 8966257805102741743, 'Integration (ubuntu:26.04, amd64, 1.36-classic/edge) / tests/test_version_upgrades.py::test_version_upgrades', 'Integration', 'https://github.com/canonical/k8s-snap/actions/runs/45725848029/job/139595652079', '2026-11-26T03:12:06Z', '2026-11-26T03:14:00Z', 114.0, 'Check out code', 4, 1, '', '', '', '', '95e5d233b60456e1', NULL);
+INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (139595658356, 45725848029, 1, 3585026357146120001, 7155530846453764700, 4097868688512300027, 'Integration (ubuntu:26.04, amd64, 1.37-classic/edge) / tests/test_loadbalancer_bgp.py::test_loadbalancer_bgp_bfd_session', 'Integration', 'https://github.com/canonical/k8s-snap/actions/runs/45725848029/job/139595658356', '2026-11-26T02:57:33Z', '2026-11-26T03:06:38Z', 545.0, 'Run test_loadbalancer_bgp_bfd_session', 15, 1, '', '', '', '', 'eb8fa9ef8c5c6a46', NULL);
+INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (139595664050, 45725848029, 1, 7842329448642706937, 7155530846453764700, 5095741496078584704, 'Integration (ubuntu:26.04, arm64, latest/edge) / tests/test_loadbalancer_bgp.py::test_loadbalancer_bgp_bfd_session', 'Integration', 'https://github.com/canonical/k8s-snap/actions/runs/45725848029/job/139595664050', '2026-11-26T02:52:49Z', '2026-11-26T02:59:48Z', 419.0, 'Run test_loadbalancer_bgp_bfd_session', 15, 1, '', '', '', '', 'eb8fa9ef8c5c6a46', NULL);
+INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (139595682710, 45725848029, 1, 57491155393445239, 7155530846453764700, 5095741496078584704, 'Integration (ubuntu:26.04, arm64, 1.37-classic/edge) / tests/test_loadbalancer_bgp.py::test_loadbalancer_bgp_bfd_session', 'Integration', 'https://github.com/canonical/k8s-snap/actions/runs/45725848029/job/139595682710', '2026-11-26T02:53:13Z', '2026-11-26T03:01:26Z', 493.0, 'Run test_loadbalancer_bgp_bfd_session', 15, 1, '', '', '', '', 'eb8fa9ef8c5c6a46', NULL);
+INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (139595685391, 45725848029, 1, 2520285257889381072, 2422760538260937780, 4097868688512300027, 'Integration (ubuntu:22.04, amd64, 1.35-classic/edge) / tests/test_node_availability_zone.py::test_node_availability_zone[etcd-True]', 'Integration', 'https://github.com/canonical/k8s-snap/actions/runs/45725848029/job/139595685391', '2026-11-26T03:14:38Z', '2026-11-26T03:32:18Z', 1060.0, 'Run test_node_availability_zone[etcd-True]', 15, 1, '', '', '', '', '5e476d777c28673b', NULL);
+INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (139595698123, 45725848029, 1, 8257338556929292758, 6842633019881208620, 5095741496078584704, 'Integration (ubuntu:26.04, arm64, 1.36-classic/edge) / tests/test_loadbalancer_bgp.py::test_loadbalancer_bgp_frr_k8s_bfd_lifecycle', 'Integration', 'https://github.com/canonical/k8s-snap/actions/runs/45725848029/job/139595698123', '2026-11-26T02:52:14Z', '2026-11-26T03:08:19Z', 965.0, 'Run test_loadbalancer_bgp_frr_k8s_bfd_lifecycle', 15, 1, '', '', '', '', '30310dd88ce5a86b', NULL);
+INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (139595699449, 45725848029, 1, 8257338556929292758, 7155530846453764700, 5095741496078584704, 'Integration (ubuntu:26.04, arm64, 1.36-classic/edge) / tests/test_loadbalancer_bgp.py::test_loadbalancer_bgp_bfd_session', 'Integration', 'https://github.com/canonical/k8s-snap/actions/runs/45725848029/job/139595699449', '2026-11-26T02:59:10Z', '2026-11-26T03:15:49Z', 999.0, 'Run test_loadbalancer_bgp_bfd_session', 15, 1, '', '', '', '', 'a98b9f80e69b79d2', NULL);
+INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (139603183613, 45725848029, 1, 4695633580312792876, 0, 3238640022474933235, 'Run performance tests for ubuntu:26.04-arm64 / Compare Performance Results', 'Run performance tests for ubuntu:26.04-arm64', 'https://github.com/canonical/k8s-snap/actions/runs/45725848029/job/139603183613', '2026-11-26T00:23:32Z', '2026-11-26T00:23:56Z', 24.0, 'Compare performance test results', 8, 1, '', '', '', '', 'b23345bfac804d7b', NULL);
+INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (139603836496, 45725848029, 1, 6285576038704721757, 0, 3238640022474933235, 'Run performance tests for ubuntu:26.04-amd64 / Compare Performance Results', 'Run performance tests for ubuntu:26.04-amd64', 'https://github.com/canonical/k8s-snap/actions/runs/45725848029/job/139603836496', '2026-11-26T00:32:53Z', '2026-11-26T00:33:08Z', 15.0, 'Compare performance test results', 8, 1, '', '', '', '', 'b23345bfac804d7b', NULL);
+INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (139603891812, 45725848029, 1, 6285576038704721757, 0, 3238640022474933235, 'Run performance tests for ubuntu:22.04-amd64 / Compare Performance Results', 'Run performance tests for ubuntu:22.04-amd64', 'https://github.com/canonical/k8s-snap/actions/runs/45725848029/job/139603891812', '2026-11-26T00:34:58Z', '2026-11-26T00:35:19Z', 21.0, 'Compare performance test results', 8, 1, '', '', '', '', 'b23345bfac804d7b', NULL);
+INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (139605250933, 45725848029, 1, 6285576038704721757, 0, 3238640022474933235, 'Run performance tests for ubuntu:24.04-amd64 / Compare Performance Results', 'Run performance tests for ubuntu:24.04-amd64', 'https://github.com/canonical/k8s-snap/actions/runs/45725848029/job/139605250933', '2026-11-26T00:37:05Z', '2026-11-26T00:37:20Z', 15.0, 'Compare performance test results', 8, 1, '', '', '', '', 'b23345bfac804d7b', NULL);
+INSERT INTO jobs (job_id, run_id, attempt, config_id, test_id, runner_id, job_name, caller_job, html_url, started_at, completed_at, duration_s, failed_step_name, failed_step_number, log_available, tested_revision, tested_artifact, collection_ref, collection_sha, signature_id, router_rule_id) VALUES (139605788084, 45725848029, 1, 4695633580312792876, 0, 3238640022474933235, 'Run performance tests for ubuntu:24.04-arm64 / Compare Performance Results', 'Run performance tests for ubuntu:24.04-arm64', 'https://github.com/canonical/k8s-snap/actions/runs/45725848029/job/139605788084', '2026-11-26T00:40:12Z', '2026-11-26T00:40:30Z', 18.0, 'Compare performance test results', 8, 1, '', '', '', '', 'b23345bfac804d7b', NULL);
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('00b444820009a354', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('025f8f4cf9ef8622', '*', 2, 'product.bug', 'wait_for_timeout', 'product-wait-for-timeout', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('08c0bd527e13771e', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('092cc8cd74024629', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('0a66efd9a2002f65', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('0fd8ad952ddf64bc', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('170c68613040961c', '*', 2, 'product.bug', 'join_failure', 'product-join-failure', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
 INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('1876eb4438ae5539', '*', 1, 'product.bug', 'snap_install_failure', 'product-snap-install-failure', 1.0, 'rules', '2026-10-16T09:01:37.623141+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('1b353994352e5e1c', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('238e8243f76ddc60', '*', 2, 'external.dependency', 'snap_store', 'external-snap-store', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('2807cefe257bd4ca', '*', 2, 'product.bug', 'join_failure', 'product-join-failure', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('2968f86e61478acc', '*', 2, 'product.bug', 'containerd', 'product-containerd-image-import', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('1b353994352e5e1c', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('238e8243f76ddc60', '*', 2, 'external.dependency', 'snap_store', 'external-snap-store', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('2807cefe257bd4ca', '*', 2, 'product.bug', 'join_failure', 'product-join-failure', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('2968f86e61478acc', '*', 2, 'product.bug', 'containerd', 'product-containerd-image-import', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
 INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('2d7b7be43282962c', '*', 1, 'product.bug', 'snap_install_failure', 'product-snap-install-failure', 1.0, 'rules', '2026-10-16T09:01:37.623141+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('2ddc73e81db98d31', '*', 2, 'product.bug', 'join_failure', 'product-join-failure', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('31bad0ec48a537c6', '*', 2, 'product.bug', 'apiserver_unreachable', 'product-apiserver-unreachable', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('338a064e4326070e', '*', 2, 'product.bug', 'service_restart', 'product-service-restarts', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('35868fe40d79058d', '*', 2, 'product.bug', 'service_not_active', 'product-service-not-active', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('35f73fbfa626fe68', '*', 2, 'product.bug', 'wait_for_timeout', 'product-wait-for-timeout', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('3c977e4dae1d062b', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('3d989ad5fdd1cd63', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('3edf2fe7bc127e88', '*', 2, 'product.bug', 'bootstrap_failure', 'product-bootstrap-failure', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('2ddc73e81db98d31', '*', 2, 'product.bug', 'join_failure', 'product-join-failure', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('31bad0ec48a537c6', '*', 2, 'product.bug', 'apiserver_unreachable', 'product-apiserver-unreachable', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('338a064e4326070e', '*', 2, 'product.bug', 'service_restart', 'product-service-restarts', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('35868fe40d79058d', '*', 2, 'product.bug', 'service_not_active', 'product-service-not-active', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('35f73fbfa626fe68', '*', 2, 'product.bug', 'wait_for_timeout', 'product-wait-for-timeout', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('3c977e4dae1d062b', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('3d989ad5fdd1cd63', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('3edf2fe7bc127e88', '*', 2, 'product.bug', 'bootstrap_failure', 'product-bootstrap-failure', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
 INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('3f67d1d6ddf0b4c6', '*', 1, 'product.bug', 'snap_install_failure', 'product-snap-install-failure', 1.0, 'rules', '2026-10-15T19:37:47.768639+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('40a71c1cc7cfb11b', '*', 2, 'external.dependency', 'snap_store', 'external-snap-store', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('462cdded92e7dfaf', '*', 2, 'external.dependency', 'snap_store', 'external-snap-store', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('40a71c1cc7cfb11b', '*', 2, 'external.dependency', 'snap_store', 'external-snap-store', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('462cdded92e7dfaf', '*', 2, 'external.dependency', 'snap_store', 'external-snap-store', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
 INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('48953aa3948b65e4', '*', 1, 'product.bug', 'snap_install_failure', 'product-snap-install-failure', 1.0, 'rules', '2026-10-15T19:37:47.768639+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('493c2cab7d5d0deb', '*', 2, 'product.bug', 'join_failure', 'product-join-failure', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('4965adefc632d5ea', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('4bc5285287e6aeae', '*', 2, 'product.bug', 'wait_for_timeout', 'product-wait-for-timeout', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('4db1fda263e61c48', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('4de0d2421d8a2163', '*', 2, 'product.bug', 'join_failure', 'product-join-failure', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('53e161f93a3b80b6', '*', 2, 'external.dependency', 'docs_links', 'external-docs-linkcheck', 0.8, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('57a5fae672fe669b', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('493c2cab7d5d0deb', '*', 2, 'product.bug', 'join_failure', 'product-join-failure', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('4965adefc632d5ea', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('4bc5285287e6aeae', '*', 2, 'product.bug', 'wait_for_timeout', 'product-wait-for-timeout', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('4db1fda263e61c48', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('4de0d2421d8a2163', '*', 2, 'product.bug', 'join_failure', 'product-join-failure', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('53e161f93a3b80b6', '*', 2, 'external.dependency', 'docs_links', 'external-docs-linkcheck', 0.8, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('57a5fae672fe669b', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
 INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('5dbf53faff6a3521', '*', 1, 'product.bug', 'snap_install_failure', 'product-snap-install-failure', 1.0, 'rules', '2026-10-15T19:37:47.768639+00:00');
 INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('61f4723c5bc89911', '*', 1, 'product.bug', 'snap_install_failure', 'product-snap-install-failure', 1.0, 'rules', '2026-10-16T09:01:37.623141+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('62abb93c0ae8d7f7', '*', 2, 'product.bug', 'join_failure', 'product-join-failure', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('62abb93c0ae8d7f7', '*', 2, 'product.bug', 'join_failure', 'product-join-failure', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
 INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('6499c2f11365ee64', '*', 1, 'product.bug', 'snap_install_failure', 'product-snap-install-failure', 1.0, 'rules', '2026-10-15T19:37:47.768639+00:00');
 INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('66adee858b167618', '*', 1, 'product.bug', 'networking', 'product-gateway-ip-missing', 1.0, 'rules', '2026-10-15T19:37:47.768639+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('66c60ea44e81ccf8', '*', 2, 'product.bug', 'wait_for_timeout', 'product-wait-for-timeout', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('6c38f6786d8e8c0e', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('6e8cb1c05407ad2f', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('66c60ea44e81ccf8', '*', 2, 'product.bug', 'wait_for_timeout', 'product-wait-for-timeout', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('6c38f6786d8e8c0e', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('6e8cb1c05407ad2f', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
 INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('7182be53fd6c8293', '*', 1, 'product.bug', 'snap_install_failure', 'product-snap-install-failure', 1.0, 'rules', '2026-10-15T19:37:47.768639+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('7296136bc38d37ff', '*', 2, 'product.bug', 'service_restart', 'product-service-restarts', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('750c72b1432f00b1', '*', 2, 'product.bug', 'join_failure', 'product-join-failure', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('7a4b63232208221d', '*', 2, 'product.bug', 'cluster_never_ready', 'product-cluster-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('7ccb62d90e0b2937', '*', 2, 'product.bug', 'join_failure', 'product-join-failure', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('7e48f01ec3fcb24a', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('85c475198318f337', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('8b9dd86abcd0a895', '*', 2, 'external.dependency', 'snap_store', 'external-snap-store', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('8be1893d8323d48e', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('8f26075cf61e6819', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('8f9308537dc725f6', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('95a428acf20c068b', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('9cfe97983f3a5a69', '*', 2, 'product.bug', 'join_failure', 'product-join-failure', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('a934445a5476c39d', '*', 2, 'product.bug', 'service_not_active', 'product-service-should-be-inactive', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('a9849d4684ceb073', '*', 2, 'external.dependency', 'snap_store', 'external-snap-store', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('aa6626357ef2c8c7', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('b2fdc843a67d0cf8', '*', 2, 'product.bug', 'service_panic', 'product-service-panic', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('baa0ed1c73cbdc79', '*', 2, 'external.dependency', 'snap_store', 'external-snap-store', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('bacb2e3f1e53eb91', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('bb40ddc3376ea7c1', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('bd966e24408fb449', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('bdbeeb32b7f81078', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('c4dc8d585d42733f', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('7296136bc38d37ff', '*', 2, 'product.bug', 'service_restart', 'product-service-restarts', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('750c72b1432f00b1', '*', 2, 'product.bug', 'join_failure', 'product-join-failure', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('7a4b63232208221d', '*', 2, 'product.bug', 'cluster_never_ready', 'product-cluster-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('7ccb62d90e0b2937', '*', 2, 'product.bug', 'join_failure', 'product-join-failure', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('7e48f01ec3fcb24a', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('85c475198318f337', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('8b9dd86abcd0a895', '*', 2, 'external.dependency', 'snap_store', 'external-snap-store', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('8be1893d8323d48e', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('8f26075cf61e6819', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('8f9308537dc725f6', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('95a428acf20c068b', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('9cfe97983f3a5a69', '*', 2, 'product.bug', 'join_failure', 'product-join-failure', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('a934445a5476c39d', '*', 2, 'product.bug', 'service_not_active', 'product-service-should-be-inactive', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('a9849d4684ceb073', '*', 2, 'external.dependency', 'snap_store', 'external-snap-store', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('aa6626357ef2c8c7', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('b2fdc843a67d0cf8', '*', 2, 'product.bug', 'service_panic', 'product-service-panic', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('baa0ed1c73cbdc79', '*', 2, 'external.dependency', 'snap_store', 'external-snap-store', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('bacb2e3f1e53eb91', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('bb40ddc3376ea7c1', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('bd966e24408fb449', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('bdbeeb32b7f81078', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('c4dc8d585d42733f', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
 INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('c6b1e9b8ae19cfed', '*', 1, 'product.bug', 'snap_install_failure', 'product-snap-install-failure', 1.0, 'rules', '2026-10-15T19:37:47.768639+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('c91aba6f97aa36b1', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('cbb87f101d781266', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('cfdad54817091717', '*', 2, 'external.dependency', 'pypi', 'external-pypi', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('d0f909e833a5044a', '*', 2, 'product.bug', 'service_not_active', 'product-service-not-active', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('d216e170608d6e51', '*', 2, 'product.bug', 'wait_for_timeout', 'product-wait-for-timeout', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('d48a71239753bf2b', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('d49471bb9fa612d0', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('d4bce8fad06b9fd4', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('d5861ca66ee2d9b4', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('c91aba6f97aa36b1', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('cbb87f101d781266', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('cfdad54817091717', '*', 2, 'external.dependency', 'pypi', 'external-pypi', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('d0f909e833a5044a', '*', 2, 'product.bug', 'service_not_active', 'product-service-not-active', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('d216e170608d6e51', '*', 2, 'product.bug', 'wait_for_timeout', 'product-wait-for-timeout', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('d48a71239753bf2b', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('d49471bb9fa612d0', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('d4bce8fad06b9fd4', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('d5861ca66ee2d9b4', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
 INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('d722795db15ed246', '*', 1, 'product.bug', 'networking', 'product-gateway-ip-missing', 1.0, 'rules', '2026-10-16T09:01:37.623141+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('d722795db15ed246', '*', 2, 'product.bug', 'networking', 'product-gateway-ip-missing', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('d722795db15ed246', '*', 2, 'product.bug', 'networking', 'product-gateway-ip-missing', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
 INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('d87b7eabd6dd7094', '*', 1, 'external.dependency', 'apt', 'external-apt', 1.0, 'rules', '2026-10-16T09:01:37.623141+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('d87b7eabd6dd7094', '*', 2, 'ci.config', 'apt_index_missing', 'ci-apt-index-missing', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('da6ba7b982998d76', '*', 2, 'product.bug', 'upgrade_failure', 'product-feature-upgrade-incomplete', 0.7, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('dfeaf673308563b9', '*', 2, 'product.bug', 'cluster_never_ready', 'product-cluster-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('e0ac6b603e274f49', '*', 2, 'product.bug', 'service_restart', 'product-service-restarts', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('e444e8bbba287346', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('d87b7eabd6dd7094', '*', 2, 'ci.config', 'apt_index_missing', 'ci-apt-index-missing', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('da6ba7b982998d76', '*', 2, 'product.bug', 'upgrade_failure', 'product-feature-upgrade-incomplete', 0.7, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('dfeaf673308563b9', '*', 2, 'product.bug', 'cluster_never_ready', 'product-cluster-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('e0ac6b603e274f49', '*', 2, 'product.bug', 'service_restart', 'product-service-restarts', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('e444e8bbba287346', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
 INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('e5c836d564d13b3e', '*', 1, 'product.bug', 'snap_install_failure', 'product-snap-install-failure', 1.0, 'rules', '2026-10-16T09:01:37.623141+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('e6a0fc63534194b6', '*', 2, 'product.bug', 'wait_for_timeout', 'product-wait-for-timeout', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('e73dde44dd15cd9e', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('edd44007115ea059', '*', 2, 'product.bug', 'conformance', 'product-cncf-conformance', 0.7, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('f1f7aa514e976fc3', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('e6a0fc63534194b6', '*', 2, 'product.bug', 'wait_for_timeout', 'product-wait-for-timeout', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('e73dde44dd15cd9e', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('edd44007115ea059', '*', 2, 'product.bug', 'conformance', 'product-cncf-conformance', 0.7, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('f1f7aa514e976fc3', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
 INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('f2730b03db60b443', '*', 1, 'product.bug', 'snap_install_failure', 'product-snap-install-failure', 1.0, 'rules', '2026-10-16T09:01:37.623141+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('f2771e93e9d86af2', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('f290de8f9597cab0', '*', 2, 'product.bug', 'join_failure', 'product-join-failure', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('f3f4229ddd26290b', '*', 2, 'product.bug', 'wait_for_timeout', 'product-wait-for-timeout', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('f600814ee15ec650', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('f73f0cc1acb27f79', '*', 2, 'product.bug', 'wait_for_timeout', 'product-wait-for-timeout', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('f2771e93e9d86af2', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('f290de8f9597cab0', '*', 2, 'product.bug', 'join_failure', 'product-join-failure', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('f3f4229ddd26290b', '*', 2, 'product.bug', 'wait_for_timeout', 'product-wait-for-timeout', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('f600814ee15ec650', '*', 2, 'product.bug', 'node_not_ready', 'product-node-never-ready', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('f73f0cc1acb27f79', '*', 2, 'product.bug', 'wait_for_timeout', 'product-wait-for-timeout', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
 INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('f860f86f49a4fc22', '*', 1, 'product.bug', 'snap_install_failure', 'product-snap-install-failure', 1.0, 'rules', '2026-10-16T09:01:37.623141+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('fcc5baae93435446', '*', 2, 'product.bug', 'wait_for_timeout', 'product-wait-for-timeout', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
-INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('fdb5b251e1d6cbc4', '*', 2, 'product.bug', 'join_failure', 'product-join-failure', 1.0, 'rules', '2026-11-25T08:12:23.378484+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('fcc5baae93435446', '*', 2, 'product.bug', 'wait_for_timeout', 'product-wait-for-timeout', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('fdb5b251e1d6cbc4', '*', 2, 'product.bug', 'join_failure', 'product-join-failure', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
+INSERT INTO signature_classifications (signature_id, substrate, ruleset_version, failure_class, subclass, rule_id, confidence, classified_by, classified_at) VALUES ('fe86bfc3146f74a7', '*', 2, 'product.bug', 'join_failure', 'product-join-failure', 1.0, 'rules', '2026-11-26T10:18:06.387948+00:00');
 COMMIT;

@@ -86,6 +86,14 @@ threshold and daily budget described in the delivery plan.
   own stderr and printed nothing. Without this line an unreachable Snap Store
   and a broken refresh hook produce the same excerpt. Generated pod names
   are normalised so a timed-out `kubectl wait` stays one signature.
+- **Rule proposals.** Every Monday (or on dispatch with `propose_rules`), a
+  model drafts rules for the biggest unclassified signatures with
+  `metrics propose-rules`, and only drafts that pass deterministic checks are
+  kept: real examples, no shadowing, they classify their target, they move
+  nothing already classified, and they pass the precision check below. The
+  model runs in an unprivileged job (GitHub Models through the job's own
+  `GITHUB_TOKEN`); a separate job re-validates the pack and opens a pull
+  request with `BOT_TOKEN`. See `.agents/skills/ci-failure-rules/`.
 - **Rule precision.** `metrics check-rules` reports, per rule in
   `ci/failure_rules.yaml`, how many signatures and jobs it classifies and how
   often its `excerpt_pattern` also hits the error lines of *successful* jobs
