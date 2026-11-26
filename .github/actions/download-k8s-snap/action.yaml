@@ -33,31 +33,64 @@ runs:
         echo "Received snap artifact AND snap channel."
         exit 1
 
-    - name: Download snap artifact
+    - name: Validate artifact name
       if: inputs.artifact != ''
-      uses: $/.github/actions/retry-command
+      shell: bash
       env:
-        GH_TOKEN: ${{ github.token }}
-        GH_REPO: ${{ github.repository }}
-        RUN_ID: ${{ github.run_id }}
+        INPUT_ARTIFACT: ${{ inputs.artifact }}
+      run: |
+        if [[ -z "$INPUT_ARTIFACT" || "$INPUT_ARTIFACT" == "." || "$INPUT_ARTIFACT" == ".." || "$INPUT_ARTIFACT" == *[/$'\r\n']* ]]; then
+          echo "Invalid artifact name: $INPUT_ARTIFACT"
+          exit 1
+        fi
+
+    - name: Download snap artifact (attempt 1)
+      id: download-artifact-1
+      if: inputs.artifact != ''
+      continue-on-error: true
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+      with:
+        name: ${{ inputs.artifact }}
+        path: ${{ github.workspace }}
+
+    - name: Cleanup and backoff after attempt 1
+      if: inputs.artifact != '' && steps.download-artifact-1.outcome == 'failure'
+      shell: bash
+      env:
         INPUT_ARTIFACT: ${{ inputs.artifact }}
         WORKSPACE: ${{ github.workspace }}
+      run: |
+        echo "Attempt 1 failed. Cleaning up partial download for ${INPUT_ARTIFACT}..."
+        rm -rf "${WORKSPACE:?}/${INPUT_ARTIFACT}"
+        sleep $((10 + RANDOM % 15))
+
+    - name: Download snap artifact (attempt 2)
+      id: download-artifact-2
+      if: inputs.artifact != '' && steps.download-artifact-1.outcome == 'failure'
+      continue-on-error: true
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
       with:
-        max_attempts: 5
-        timeout_minutes: 3
-        retry_wait_seconds: 10
-        command: |
-          CLEAN_ARTIFACT=$(printf '%s' "$INPUT_ARTIFACT" | tr -d '\r\n')
-          artifact=$(basename -- "$CLEAN_ARTIFACT")
-          if [[ -z "$artifact" || "$artifact" == "." || "$artifact" == ".." || "$artifact" == *"/"* || "$artifact" != "$CLEAN_ARTIFACT" ]]; then
-            echo "Invalid artifact name: $INPUT_ARTIFACT"
-            exit 1
-          fi
-          rm -rf "${WORKSPACE:?}/${artifact}"
-          gh run download "$RUN_ID" --repo "$GH_REPO" --name "$artifact" --dir "$WORKSPACE"
-          full_path=$(realpath "${WORKSPACE}/${artifact}")
-          echo "Downloaded snap artifact: $full_path"
-          ls -lh "$full_path"
+        name: ${{ inputs.artifact }}
+        path: ${{ github.workspace }}
+
+    - name: Cleanup and backoff after attempt 2
+      if: inputs.artifact != '' && steps.download-artifact-2.outcome == 'failure'
+      shell: bash
+      env:
+        INPUT_ARTIFACT: ${{ inputs.artifact }}
+        WORKSPACE: ${{ github.workspace }}
+      run: |
+        echo "Attempt 2 failed. Cleaning up partial download for ${INPUT_ARTIFACT}..."
+        rm -rf "${WORKSPACE:?}/${INPUT_ARTIFACT}"
+        sleep $((25 + RANDOM % 20))
+
+    - name: Download snap artifact (attempt 3)
+      id: download-artifact-3
+      if: inputs.artifact != '' && steps.download-artifact-2.outcome == 'failure'
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+      with:
+        name: ${{ inputs.artifact }}
+        path: ${{ github.workspace }}
     - name: Download snap channel
       if: inputs.channel != ''
       uses: $/.github/actions/retry-command
@@ -90,10 +123,9 @@ runs:
         INPUT_ARTIFACT: ${{ inputs.artifact }}
         WORKSPACE: ${{ github.workspace }}
       run: |
-        CLEAN_ARTIFACT=$(printf '%s' "$INPUT_ARTIFACT" | tr -d '\r\n')
-        ARTIFACT=$(basename -- "$CLEAN_ARTIFACT")
-        if [[ -n "$ARTIFACT" && "$ARTIFACT" != "." && "$ARTIFACT" != ".." && "$ARTIFACT" != *"/"* && "$ARTIFACT" == "$CLEAN_ARTIFACT" ]]; then
-          snap_path="${WORKSPACE}/${ARTIFACT}"
+        # The artifact name was validated before download.
+        if [[ -n "$INPUT_ARTIFACT" ]]; then
+          snap_path="${WORKSPACE}/${INPUT_ARTIFACT}"
         else
           snap_path="${WORKSPACE}/k8s.snap"
         fi
