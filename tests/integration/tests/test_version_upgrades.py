@@ -3,6 +3,7 @@
 #
 import json
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from typing import List
 
 import pytest
@@ -39,8 +40,13 @@ def test_version_upgrades(
     if config.SNAP:
         # Copy the current snap into the instances.
         snap_path = (tmp_path / "k8s.snap").as_posix()
-        for instance in instances:
-            instance.send_file(config.SNAP, snap_path)
+        with ThreadPoolExecutor(max_workers=len(instances)) as executor:
+            futures = [
+                executor.submit(instance.send_file, config.SNAP, snap_path)
+                for instance in instances
+            ]
+            for f in futures:
+                f.result()
 
         # Figure out the locally built snap version before resolving channels
         out = cp.exec(["snap", "info", snap_path], capture_output=True)
@@ -81,10 +87,15 @@ def test_version_upgrades(
     )
 
     # Setup the k8s snap from the bootstrap channel and setup basic configuration.
-    for instance in instances:
+    def _setup_node(instance: harness.Instance):
         util.setup_k8s_snap(instance, current_channel, cached_snaps=cached_snaps)
         if config.USE_LOCAL_MIRROR:
             registry.apply_configuration(instance, containerd_cfgdir)
+
+    with ThreadPoolExecutor(max_workers=len(instances)) as executor:
+        futures = [executor.submit(_setup_node, instance) for instance in instances]
+        for f in futures:
+            f.result()
 
     cp.exec(["k8s", "bootstrap"])
     # Avoid racing the bootstrap node's kubelet Node registration (join can
@@ -95,9 +106,13 @@ def test_version_upgrades(
     join_token_cp2 = util.get_join_token(cp, cp2)
     join_token_w0 = util.get_join_token(cp, w0, "--worker")
 
-    util.join_cluster(cp1, join_token_cp1)
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        f_cp1 = executor.submit(util.join_cluster, cp1, join_token_cp1)
+        f_w0 = executor.submit(util.join_cluster, w0, join_token_w0)
+        f_cp1.result()
+        f_w0.result()
+
     util.join_cluster(cp2, join_token_cp2)
-    util.join_cluster(w0, join_token_w0)
 
     util.wait_until_k8s_ready(cp, instances)
 
@@ -208,10 +223,15 @@ def test_version_downgrades_with_rollback(
     )
 
     # Setup the k8s snap from the bootstrap channel and setup basic configuration.
-    for instance in instances:
+    def _setup_node(instance: harness.Instance):
         util.setup_k8s_snap(instance, current_channel, cached_snaps=cached_snaps)
         if config.USE_LOCAL_MIRROR:
             registry.apply_configuration(instance, containerd_cfgdir)
+
+    with ThreadPoolExecutor(max_workers=len(instances)) as executor:
+        futures = [executor.submit(_setup_node, instance) for instance in instances]
+        for f in futures:
+            f.result()
     cp.exec(["k8s", "bootstrap"])
     # Avoid racing the bootstrap node's kubelet Node registration (join can
     # fail with "the cluster has no nodes" otherwise).
@@ -315,29 +335,38 @@ def test_feature_upgrades_inplace(
 
     start_branch = util.previous_track(config.SNAP)
     bootstrap_cp = instances[0]
-    worker = instances[-1]
+    cp1 = instances[1]
+    cp2 = instances[2]
+    worker = instances[3]
 
     cached_snaps = util.download_k8s_snaps(
         [start_branch], tmp_path / "snap_cache", arch=bootstrap_cp.arch
     )
 
-    for instance in instances:
+    def _setup_node(instance: harness.Instance):
         util.setup_k8s_snap(instance, start_branch, cached_snaps=cached_snaps)
         if config.USE_LOCAL_MIRROR and registry:
             registry.apply_configuration(instance, containerd_cfgdir)
 
-    bootstrap_cp.exec(["k8s", "bootstrap"])
-    # Avoid racing the bootstrap node's kubelet Node registration (join can
-    # fail with "the cluster has no nodes" otherwise).
-    util.wait_until_k8s_ready(bootstrap_cp, [bootstrap_cp])
-    for instance in instances:
-        if instance.id in [bootstrap_cp.id, worker.id]:
-            continue
-        token = util.get_join_token(bootstrap_cp, instance)
-        instance.exec(["k8s", "join-cluster", token])
+    with ThreadPoolExecutor(max_workers=len(instances)) as executor:
+        futures = [executor.submit(_setup_node, instance) for instance in instances]
+        for f in futures:
+            f.result()
 
-    token = util.get_join_token(bootstrap_cp, worker, "--worker")
-    worker.exec(["k8s", "join-cluster", token])
+    bootstrap_cp.exec(["k8s", "bootstrap"])
+    util.wait_until_k8s_ready(bootstrap_cp, [bootstrap_cp])
+
+    token_cp1 = util.get_join_token(bootstrap_cp, cp1)
+    cp1.exec(["k8s", "join-cluster", token_cp1])
+
+    token_cp2 = util.get_join_token(bootstrap_cp, cp2)
+    token_worker = util.get_join_token(bootstrap_cp, worker, "--worker")
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        f_cp2 = executor.submit(cp2.exec, ["k8s", "join-cluster", token_cp2])
+        f_worker = executor.submit(worker.exec, ["k8s", "join-cluster", token_worker])
+        f_cp2.result()
+        f_worker.result()
 
     util.wait_until_k8s_ready(bootstrap_cp, instances)
     util.wait_for_pods_ready(bootstrap_cp)

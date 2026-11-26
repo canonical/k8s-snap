@@ -2,6 +2,8 @@
 # Copyright 2026 Canonical, Ltd.
 #
 import logging
+import os
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Generator, List, Optional, Union
 
@@ -264,37 +266,85 @@ def instances(
         pytest.xfail("Test requested 0 or fewer instances, skip this test.")
 
     LOG.info(f"Creating {node_count} instances")
+    if hasattr(h, "_lock"):
+        with h._lock:
+            initial_instance_ids = set(h.instances)
+    else:
+        initial_instance_ids = set(h.instances)
     instances: List[harness.Instance] = []
-    for _ in range(node_count):
-        # Create <node_count> instances and setup the k8s snap in each.
+
+    def _setup_node(index: int) -> harness.Instance:
         instance = h.new_instance(network_type=network_type)
-        instances.append(instance)
-
         util.preload_snaps(instance)
-
-        h.open_ports(
-            instance.id,
-            required_ports,
-        )
-
+        h.open_ports(instance.id, required_ports)
         if not no_setup:
             util.setup_core_dumps(instance)
             util.setup_k8s_snap(instance)
-
             if config.USE_LOCAL_MIRROR:
                 registry.apply_configuration(instance, containerd_cfgdir)
+        return instance
 
-    if not disable_k8s_bootstrapping and not no_setup:
-        first_node, *_ = instances
-
-        if bootstrap_config:
-            first_node.exec(
-                ["k8s", "bootstrap", "--file", "-"],
-                input=str.encode(bootstrap_config),
-            )
+    try:
+        if h.name == "bare_metal" or node_count == 1:
+            for i in range(node_count):
+                instances.append(_setup_node(i))
         else:
-            first_node.exec(["k8s", "bootstrap"])
+            max_workers = min(node_count, max(1, (os.cpu_count() or 2) // 2))
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                futures = [executor.submit(_setup_node, i) for i in range(node_count)]
+                for f in futures:
+                    instances.append(f.result())
 
+        if not disable_k8s_bootstrapping and not no_setup:
+            first_node, *_ = instances
+            if bootstrap_config:
+                first_node.exec(
+                    ["k8s", "bootstrap", "--file", "-"],
+                    input=str.encode(bootstrap_config),
+                )
+            else:
+                first_node.exec(["k8s", "bootstrap"])
+    except Exception:
+        for inst in instances:
+            if not no_setup:
+                try:
+                    util.remove_k8s_snap(inst, retries=10)
+                except Exception:
+                    LOG.exception(
+                        "Failed to remove k8s snap on %s during error cleanup", inst.id
+                    )
+            try:
+                inst.delete()
+            except Exception:
+                LOG.exception(
+                    "Failed to delete instance %s during error cleanup", inst.id
+                )
+
+        if hasattr(h, "_lock"):
+            with h._lock:
+                current_ids = set(h.instances)
+        else:
+            current_ids = set(h.instances)
+        attempted_snap_removal = {inst.id for inst in instances}
+        leftover_ids = current_ids - initial_instance_ids
+        for leftover_id in leftover_ids:
+            leftover_inst = harness.Instance(h, leftover_id)
+            if not no_setup and leftover_id not in attempted_snap_removal:
+                try:
+                    util.remove_k8s_snap(leftover_inst, retries=10)
+                except Exception:
+                    LOG.exception(
+                        "Failed to remove k8s snap on %s during error cleanup",
+                        leftover_id,
+                    )
+            try:
+                h.delete_instance(leftover_id)
+            except Exception:
+                LOG.exception(
+                    "Failed to delete leftover instance %s during error cleanup",
+                    leftover_id,
+                )
+        raise
     yield instances
 
     if config.SKIP_CLEANUP:
