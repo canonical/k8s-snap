@@ -124,6 +124,39 @@ matching a symptom; narrow it or drop it. To see what the issue bridge would
 file without posting anything, run
 `metrics open-issues --db /tmp/metrics.db --dry-run --no-dump`.
 
+## Automated proposals
+
+Every Monday the `ci-metrics` workflow runs `metrics propose-rules`: a model
+gets the biggest unclassified signatures, one at a time, with their excerpt,
+job metadata, a scrubbed slice of the failed step's log, the current pack
+and this guide, and replies with one rule or `"decision": "unknown"`. The
+model never edits the pack. `ci/metrics/propose.py` accepts a rule only if:
+
+- it is well formed: tier-prefixed id, no `signature_id`, a single-line regex
+  of at most 200 characters without nested quantifiers;
+- its examples are copied from the real evidence;
+- the pack still loads with it in its tier, so no example anywhere is
+  shadowed;
+- it classifies the signature it was proposed for;
+- it changes the class of nothing another rule already classifies;
+- it hits at most 10% of successful runs of the same tests.
+
+A rejection goes back to the model with the reason, once. Accepted rules are
+inserted at the end of their tier, `version` is bumped, and a pull request
+from `ci-metrics/rule-proposals` lists each rule with its evidence. Review
+it like any rule change: the checks prove a rule is precise and harmless,
+not that its class is right.
+
+To run it locally against the real store (from `ci/`, after the steps in
+"Get the real data"), with GitHub Models or OpenRouter credentials:
+
+```bash
+GITHUB_TOKEN=$(gh auth token) tox -e k8s-ci -- metrics propose-rules \
+  --db /tmp/metrics.db --provider github --limit 5 --report /tmp/proposals.md
+```
+
+Add `--write` to update `ci/failure_rules.yaml` in place.
+
 ## Ship it
 
 One pull request per coherent change. In the description, give for each rule
