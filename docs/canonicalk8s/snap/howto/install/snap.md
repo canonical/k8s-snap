@@ -16,7 +16,7 @@ snap store for all supported platforms.
 
 This guide assumes the following:
 
-- You are installing on Ubuntu 22.04 or later, **or** another OS which supports
+- You are installing on Ubuntu 22.04 LTS or later, **or** another OS which supports
   snap packages (see [snapd support])
 - You have root or sudo access to the machine
 - You have an internet connection

@@ -5,7 +5,7 @@
 # Requires some manual intervention, but makes identifying updates and differences easier.
 #
 # For debugging, please run this script with DEBUGGING=1
-# e.g. user@device:~/git/Canonical/sphinx-stack/docs$ DEBUGGING=1 python .sphinx/update_sp.py
+# e.g. user@device:~/git/Canonical/sphinx-stack/docs$ DEBUGGING=1 python _dev/update_sp.py
 
 
 import glob
@@ -268,3 +268,4 @@ def download_file(url, output_path):
 
 if __name__ == "__main__":
     sys.exit(main())  # Keep return code
+    

@@ -10,7 +10,7 @@ SPHINX_OPTS      ?= -c . -d $(DEV_DIR)/.doctrees -j auto
 SPHINX_BUILD     ?= $(DOCS_VENVDIR)/bin/sphinx-build
 SPHINX_HOST      ?= 127.0.0.1
 SPHINX_PORT      ?= 8000
-SPHINX_AUTOBUILD_OPTS ?= -D=llms_txt_enabled=0
+SPHINX_AUTOBUILD_OPTS ?= -D llms_txt_enabled=0
 DOCS_VENVDIR     ?= .venv
 DOCS_VENV        ?= $(DOCS_VENVDIR)/bin/activate
 DOCS_SOURCEDIR   ?= .
@@ -21,7 +21,7 @@ VALE_DIR         ?= $(DOCS_VENVDIR)/lib/python*/site-packages/vale
 VALE_CONFIG      ?= $(DEV_DIR)/vale.ini
 PA11Y_CMD        ?= $(DEV_DIR)/node_modules/pa11y/bin/pa11y.js --config $(DEV_DIR)/pa11y.json
 CONFIRM_SUDO     ?= N
-CHECK_PATH       ?= $(filter-out $(DOCS_VENVDIR),$(wildcard *))
+CHECK_PATH       ?= $(filter-out $(DOCS_VENVDIR) $(DOCS_BUILDDIR) $(DEV_DIR),$(wildcard *))
 
 # Put it first so that "make" without argument is like "make help".
 help:
@@ -67,7 +67,7 @@ $(DOCS_VENVDIR):
 	@touch $(DOCS_VENVDIR)
 
 pa11y-install:
-	@command -v $(PA11Y_CMD) >/dev/null || { \
+	@test -x $(firstword $(PA11Y_CMD)) >/dev/null || { \
 			echo "Installing \"pa11y\" from npm..."; echo; \
 			mkdir -p $(DEV_DIR)/node_modules/ ; \
 			npm install --prefix $(DEV_DIR) pa11y; \
@@ -116,12 +116,7 @@ lint-md: pymarkdownlnt-install
 	@. $(DOCS_VENV); pymarkdownlnt \
 		--config $(DEV_DIR)/.pymarkdown.json \
 		--return-code-scheme explicit \
-		scan \
-			--recurse \
-			--exclude=$(DEV_DIR)/** \
-			--exclude=$(DOCS_VENVDIR)/** \
-			--exclude="_parts/**" \
-			$(DOCS_SOURCEDIR); \
+		scan --recurse $(filter-out _parts,$(CHECK_PATH)); \
 	status=$$?; \
 	if [ $$status -eq 1 ]; then \
 		echo "No Markdown files selected for linting"; \
@@ -170,7 +165,6 @@ pdf-prep: install
 
 pdf-prep-force:
 	apt-get update
-	apt-get upgrade -y
 	apt-get install --no-install-recommends -y $(DOCS_PDFPACKAGES) \
 
 pdf: pdf-prep
@@ -191,3 +185,4 @@ update: install
 %:
 	$(MAKE) --no-print-directory install
 	. $(DOCS_VENV); $(SPHINX_BUILD) -M $@ "$(DOCS_SOURCEDIR)" "$(DOCS_BUILDDIR)" $(SPHINX_OPTS) $(O)
+	

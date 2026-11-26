@@ -17,7 +17,6 @@ Anbox
 Anbox Cloud
 api
 API's
-APIs
 apiserver
 apparmor
 args
@@ -106,9 +105,7 @@ codebase
 Commenter
 CommonName
 conf
-config
-configMap
-ConfigMap
+[Cc]onfigMap
 ConfigMaps
 ConnectError
 containerd
@@ -284,7 +281,6 @@ Kafka
 KCP
 keyfile
 Keyspace
-keystore
 [Kk]eystore
 KMS
 Kratos
@@ -340,8 +336,7 @@ macOS
 marshalled
 Maskable
 mateoflorido
-mattermost
-Mattermost
+[Mm]attermost
 MCE
 MetalLB
 Microbot
@@ -365,7 +360,6 @@ Multipass
 Multus
 myregistry
 nameservers
-namespace
 NamespaceLifecycle
 namespaces
 nav
@@ -468,7 +462,6 @@ _Read
 README
 readOnlyPort
 ReadtheDocs
-rebalancing
 regctl
 regsync
 remediations
@@ -487,8 +480,7 @@ RPC
 rsa
 ru
 runc
-runtime
-Runtime
+[Rr]untime
 runtimes
 rw
 S3
@@ -514,7 +506,6 @@ ServiceArgsController
 sha
 sideloading
 Snapcraft
-snapd
 snapshotter
 sourcename
 Spark
