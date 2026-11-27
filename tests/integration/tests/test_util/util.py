@@ -1081,8 +1081,11 @@ def join_cluster(
     join_token: str,
     cfg: Optional[str] = None,
     name: Optional[str] = None,
+    timeout: Optional[str] = "5m",
 ):
     cmd = ["k8s", "join-cluster", join_token]
+    if timeout:
+        cmd.extend(["--timeout", timeout])
     if name:
         cmd.extend(["--name", name])
     if cfg:
