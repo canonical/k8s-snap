@@ -3,6 +3,7 @@
 #
 from __future__ import annotations
 
+import base64
 import concurrent.futures
 import ipaddress
 import json
@@ -851,11 +852,7 @@ def is_daemonset_ready(
     namespace: str = "kube-system",
     daemonset_name: Optional[str] = None,
 ) -> bool:
-    """Check if DaemonSets in the specified namespace are ready.
-
-    If node_name is provided, also verifies that the DaemonSet has a Running and
-    Ready pod scheduled on that specific node.
-    """
+    """Check if kube-system DaemonSets and the node's Cilium pod are ready."""
     try:
         if daemonset_name:
             cmd = [
@@ -877,26 +874,27 @@ def is_daemonset_ready(
         data = json.loads(raw)
         items = [data] if daemonset_name else data.get("items", [])
 
-        if not items:
-            LOG.info("No daemonsets found in namespace %s yet", namespace)
-            return False
-
         has_cilium = False
         for ds in items:
             name = ds.get("metadata", {}).get("name", "")
             if name == "cilium":
                 has_cilium = True
+
             status = ds.get("status", {})
             desired = status.get("desiredNumberScheduled", 0)
-            ready = status.get("numberReady", 0)
-
             if desired == 0:
-                LOG.info("Daemonset %s has 0 desired scheduled pods", name)
-                return False
+                continue
 
-            if ready < desired:
+            ready = status.get("numberReady", 0)
+            updated = status.get("updatedNumberScheduled", 0)
+            if ready != desired or updated != desired:
                 LOG.info(
-                    "Daemonset %s not fully ready: %d/%d ready", name, ready, desired
+                    "Daemonset %s not fully ready: %d/%d ready, %d/%d updated",
+                    name,
+                    ready,
+                    desired,
+                    updated,
+                    desired,
                 )
                 return False
 
@@ -926,26 +924,15 @@ def is_daemonset_ready(
                     if isinstance(pods_proc.stdout, bytes)
                     else pods_proc.stdout
                 )
-                pods_data = json.loads(pods_raw)
-                pods = pods_data.get("items", [])
+                pods = json.loads(pods_raw).get("items", [])
 
                 if not pods:
                     LOG.info("Daemonset %s has no pod on node %s yet", name, node_name)
                     return False
 
                 for pod in pods:
-                    pod_name = pod.get("metadata", {}).get("name", "")
                     if pod.get("metadata", {}).get("deletionTimestamp"):
-                        LOG.info("Pod %s on %s is terminating", pod_name, node_name)
                         return False
-
-                    phase = pod.get("status", {}).get("phase", "Unknown")
-                    if phase != "Running":
-                        LOG.info(
-                            "Pod %s on %s is in phase %s", pod_name, node_name, phase
-                        )
-                        return False
-
                     conditions = pod.get("status", {}).get("conditions", [])
                     ready_cond = next(
                         (c for c in conditions if c.get("type") == "Ready"), None
@@ -956,17 +943,10 @@ def is_daemonset_ready(
                     ):
                         LOG.info(
                             "Pod %s on %s Ready condition is not True",
-                            pod_name,
+                            pod.get("metadata", {}).get("name"),
                             node_name,
                         )
                         return False
-
-                    for container in pod.get("status", {}).get("containerStatuses", []):
-                        if str(container.get("ready")).lower() != "true":
-                            LOG.info(
-                                f"Pod {pod_name} container {container.get('name')} on {node_name} is not ready"
-                            )
-                            return False
 
         if not daemonset_name and namespace == "kube-system" and not has_cilium:
             LOG.info("Cilium daemonset not found in kube-system yet")
@@ -978,7 +958,7 @@ def is_daemonset_ready(
         )
         return True
 
-    except Exception as ex:
+    except (subprocess.CalledProcessError, json.JSONDecodeError, KeyError) as ex:
         LOG.info("Daemonsets in %s not ready yet: %s", namespace, ex)
         return False
 
@@ -1224,11 +1204,10 @@ def join_cluster(
     join_token: str,
     cfg: Optional[str] = None,
     name: Optional[str] = None,
-    *args,
     wait_ready: bool = True,
     control_node: Optional[harness.Instance] = None,
 ):
-    cmd = ["k8s", "join-cluster", join_token, *args]
+    cmd = ["k8s", "join-cluster", join_token]
     if name:
         cmd.extend(["--name", name])
     if cfg:
@@ -1237,25 +1216,24 @@ def join_cluster(
     else:
         instance.exec(cmd)
 
-    if wait_ready:
-        status = (
-            stubbornly(retries=5, delay_s=1)
-            .on(instance)
-            .exec(["k8s", "local-node-status"], capture_output=True)
-            .stdout.decode()
-            .strip()
+    # Avoid racing subsequent joins while networking is still initializing.
+    if wait_ready and not _is_worker_join_token(join_token):
+        ctrl = control_node or instance
+        node_name = name or hostname(instance)
+        wait_until_k8s_ready(
+            ctrl,
+            [instance],
+            node_names={instance.id: node_name},
+            wait_for_daemonsets=True,
         )
 
-        # Avoid racing subsequent joins while networking is still initializing.
-        if "control-plane" in status:
-            ctrl = control_node or instance
-            node_name = name or hostname(instance)
-            wait_until_k8s_ready(
-                ctrl,
-                [instance],
-                node_names={instance.id: node_name},
-                wait_for_daemonsets=True,
-            )
+
+def _is_worker_join_token(join_token: str) -> bool:
+    # k8sd marks worker tokens with this magic field; control-plane tokens lack it.
+    try:
+        return json.loads(base64.b64decode(join_token)).get("_") == "m!!"
+    except (ValueError, AttributeError):
+        return False
 
 
 def remove_node_with_retry(
