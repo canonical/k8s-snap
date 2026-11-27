@@ -283,6 +283,8 @@ func TestEnabled(t *testing.T) {
 	t.Run("WebhookEndpointsTimeout", func(t *testing.T) {
 		g := NewWithT(t)
 
+		t.Cleanup(metallb.SetWebhookEndpointsTimeoutForTest(1500 * time.Millisecond))
+
 		helmM := &helmmock.Mock{}
 		clientset := fake.NewSimpleClientset()
 		fd, ok := clientset.Discovery().(*fakediscovery.FakeDiscovery)
@@ -312,13 +314,25 @@ func TestEnabled(t *testing.T) {
 			CIDRs:        ptr.To([]string{"192.0.2.0/24"}),
 		}
 
-		ctx, cancel := context.WithTimeout(context.Background(), 2500*time.Millisecond)
+		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		status, err := metallb.ApplyLoadBalancer(ctx, snapM, lbCfg, types.Network{}, nil)
-		g.Expect(err).To(HaveOccurred())
-		g.Expect(err).To(MatchError(ContainSubstring("failed to wait for MetalLB webhook service endpoints")))
-		g.Expect(status.Enabled).To(BeFalse())
+		type applyResult struct {
+			status types.FeatureStatus
+			err    error
+		}
+		resCh := make(chan applyResult, 1)
+		go func() {
+			status, err := metallb.ApplyLoadBalancer(ctx, snapM, lbCfg, types.Network{}, nil)
+			resCh <- applyResult{status: status, err: err}
+		}()
+
+		var res applyResult
+		g.Eventually(resCh, 30*time.Second, 50*time.Millisecond).Should(Receive(&res))
+		g.Expect(errors.Is(res.err, context.DeadlineExceeded)).To(BeTrue())
+		g.Expect(res.err).To(MatchError(ContainSubstring("failed to wait for MetalLB webhook service endpoints")))
+		g.Expect(res.status.Message).To(ContainSubstring("failed to wait for MetalLB webhook service endpoints"))
+		g.Expect(res.status.Enabled).To(BeFalse())
 
 		calls := helmM.Calls()
 		g.Expect(calls).To(HaveLen(1))
