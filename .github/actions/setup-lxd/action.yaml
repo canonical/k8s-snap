@@ -39,12 +39,16 @@ runs:
             cmd=(sudo snap install lxd --channel="${CHANNEL}")
           fi
 
-          if timeout --kill-after=10s 5m "${cmd[@]}"; then
+          if timeout --kill-after=10s 4m "${cmd[@]}"; then
             installed=true
             break
           fi
 
           echo "Attempt ${attempt}/3 failed."
+          if [ "${attempt}" -eq 3 ]; then
+            break
+          fi
+
           # Abort in-flight changes so the retry does not race an unhandled change.
           for id in $(snap changes 2>/dev/null | awk '/^[0-9]+/ {if ($2 ~ /^(Do|Doing|Undo|Undoing|Abort|Wait)$/) print $1}'); do
             echo "Aborting in-flight snap change ${id}..."
@@ -52,20 +56,27 @@ runs:
           done
 
           echo "Waiting for in-flight snap changes to settle..."
-          for i in $(seq 1 36); do
+          settled=false
+          for i in $(seq 1 24); do
             changes=$(snap changes 2>/dev/null | awk '/^[0-9]+/ {if ($2 ~ /^(Do|Doing|Undo|Undoing|Abort|Wait)$/) print $1, $2}')
             if [ -z "${changes}" ]; then
               echo "All snap changes settled."
+              settled=true
               break
             fi
-            echo "Still in progress (${i}/36): ${changes}"
+            echo "Still in progress (${i}/24): ${changes}"
             sleep 5
           done
           snap changes || true
+
+          if [ "${settled}" != "true" ]; then
+            echo "Snap changes failed to settle within timeout."
+            break
+          fi
         done
 
         if [ "${installed}" != "true" ]; then
-          echo "Failed to install LXD after 3 attempts."
+          echo "Failed to install LXD after attempts."
           exit 1
         fi
 
