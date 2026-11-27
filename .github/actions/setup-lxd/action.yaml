@@ -1,0 +1,116 @@
+name: 'Setup LXD'
+description: 'Install and configure LXD on the runner'
+inputs:
+  channel:
+    default: 'latest/candidate'
+    description: 'Snap channel to install LXD from'
+    required: false
+    type: string
+  group:
+    default: 'adm'
+    description: 'Name of the group that will have access to LXD'
+    required: false
+    type: string
+  preseed:
+    default: ''
+    description: 'Preseed to use when initialising LXD'
+    required: false
+    type: string
+  bridges:
+    default: 'lxdbr0'
+    description: 'Comma-separated list of LXD bridges to allow through the firewall'
+    required: false
+    type: string
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install/refresh LXD snap
+      shell: bash
+      env:
+        CHANNEL: ${{ inputs.channel }}
+      run: |
+        installed=false
+        for attempt in 1 2 3; do
+          echo "Attempt ${attempt}/3: installing or refreshing LXD..."
+          if snap list lxd >/dev/null 2>&1; then
+            cmd=(sudo snap refresh lxd --channel="${CHANNEL}")
+          else
+            cmd=(sudo snap install lxd --channel="${CHANNEL}")
+          fi
+
+          if timeout --kill-after=10s 5m "${cmd[@]}"; then
+            installed=true
+            break
+          fi
+
+          echo "Attempt ${attempt}/3 failed."
+          # Abort in-flight changes so the retry does not race an unhandled change.
+          for id in $(snap changes 2>/dev/null | awk '/^[0-9]+/ {if ($2 ~ /^(Do|Doing|Undo|Undoing|Abort|Wait)$/) print $1}'); do
+            echo "Aborting in-flight snap change ${id}..."
+            sudo snap abort "${id}" || true
+          done
+
+          echo "Waiting for in-flight snap changes to settle..."
+          for i in $(seq 1 36); do
+            changes=$(snap changes 2>/dev/null | awk '/^[0-9]+/ {if ($2 ~ /^(Do|Doing|Undo|Undoing|Abort|Wait)$/) print $1, $2}')
+            if [ -z "${changes}" ]; then
+              echo "All snap changes settled."
+              break
+            fi
+            echo "Still in progress (${i}/36): ${changes}"
+            sleep 5
+          done
+          snap changes || true
+        done
+
+        if [ "${installed}" != "true" ]; then
+          echo "Failed to install LXD after 3 attempts."
+          exit 1
+        fi
+
+    - name: Set up permissions for socket
+      shell: bash
+      env:
+        GROUP: ${{ inputs.group }}
+      run: |
+        for i in $(seq 1 60); do
+          if [ -z "$(snap changes lxd 2>/dev/null | awk '/^[0-9]+/ {if ($2 ~ /^(Do|Doing|Undo|Undoing|Abort|Wait)$/) print $1}')" ]; then
+            break
+          fi
+          echo "Waiting for snap changes on LXD to finish (${i}/60)..."
+          sleep 1
+        done
+        sudo snap set lxd daemon.group="${GROUP}"
+
+    - name: Initialise LXD
+      shell: bash
+      env:
+        INPUT_PRESEED: ${{ inputs.preseed }}
+      run: |
+        sudo lxd waitready
+        if [[ "${INPUT_PRESEED}" == "" ]]; then
+          sudo lxd init --auto
+          sudo lxc config set images.compression_algorithm none
+        else
+          sudo lxd init --preseed <<< "${INPUT_PRESEED}"
+        fi
+
+    - name: Configure firewall
+      shell: bash
+      env:
+        BRIDGES: ${{ inputs.bridges }}
+      run: |
+        set -x
+        IFS=',' read -ra bridges <<< "${BRIDGES}"
+        for i in "${bridges[@]}"; do
+          bridge=$(echo "$i" | xargs)
+          if sudo iptables -nL DOCKER-USER; then
+            sudo iptables  -I DOCKER-USER -i "$bridge" -j ACCEPT
+            sudo iptables  -I DOCKER-USER -o "$bridge" -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+          fi
+          if sudo ip6tables -nL DOCKER-USER; then
+            sudo ip6tables -I DOCKER-USER -i "$bridge" -j ACCEPT
+            sudo ip6tables -I DOCKER-USER -o "$bridge" -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+          fi
+        done
