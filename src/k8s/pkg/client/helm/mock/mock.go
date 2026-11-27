@@ -32,7 +32,7 @@ func (m *Mock) Apply(ctx context.Context, c helm.InstallableChart, desired helm.
 	return m.ApplyChanged, m.ApplyErr
 }
 
-// Calls returns a snapshot of recorded Apply invocations safe for concurrent inspection.
+// Calls returns a shallow copy of the recorded Apply invocations slice.
 func (m *Mock) Calls() []MockApplyArguments {
 	m.mu.Lock()
 	defer m.mu.Unlock()

@@ -245,21 +245,31 @@ func TestEnabled(t *testing.T) {
 			CIDRs:        ptr.To([]string{"192.0.2.0/24"}),
 		}
 
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
 		errCh := make(chan error, 1)
 		go func() {
-			_, err := metallb.ApplyLoadBalancer(context.Background(), snapM, lbCfg, types.Network{}, nil)
+			_, err := metallb.ApplyLoadBalancer(ctx, snapM, lbCfg, types.Network{}, nil)
 			errCh <- err
 		}()
 
 		g.Eventually(listCalls.Load, "5s", "50ms").Should(BeNumerically(">=", 1))
-		g.Expect(helmM.Calls()).To(HaveLen(1))
+		g.Eventually(helmM.Calls, "5s", "50ms").Should(HaveLen(1))
 		g.Expect(helmM.Calls()[0].Chart).To(Equal(metallb.ChartMetalLB))
 
 		g.Consistently(helmM.Calls, "300ms", "50ms").Should(HaveLen(1))
 
-		readySlice := fakeWebhookEndpointSlice()
-		_, err := clientset.DiscoveryV1().EndpointSlices(metallb.ChartMetalLB.Namespace).Update(
-			context.Background(),
+		existingSlice, err := clientset.DiscoveryV1().EndpointSlices(metallb.ChartMetalLB.Namespace).Get(
+			ctx,
+			"metallb-webhook-service",
+			metav1.GetOptions{},
+		)
+		g.Expect(err).ToNot(HaveOccurred())
+		readySlice := existingSlice.DeepCopy()
+		readySlice.Endpoints[0].Conditions.Ready = ptr.To(true)
+		_, err = clientset.DiscoveryV1().EndpointSlices(metallb.ChartMetalLB.Namespace).Update(
+			ctx,
 			readySlice,
 			metav1.UpdateOptions{},
 		)
