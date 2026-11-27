@@ -15,6 +15,8 @@ const (
 	DisabledMsg         = "disabled"
 	deleteFailedMsgTmpl = "Failed to delete MetalLB, the error was: %v"
 	deployFailedMsgTmpl = "Failed to deploy MetalLB, the error was: %v"
+
+	webhookServiceName = "metallb-webhook-service"
 )
 
 // ApplyLoadBalancer will always return a FeatureStatus indicating the current status of the
@@ -118,6 +120,10 @@ func enableLoadBalancer(ctx context.Context, snap snap.Snap, loadbalancer types.
 		return fmt.Errorf("failed to wait for required MetalLB CRDs: %w", err)
 	}
 
+	if err := waitForWebhookEndpoints(ctx, snap); err != nil {
+		return fmt.Errorf("failed to wait for MetalLB webhook service endpoints: %w", err)
+	}
+
 	cidrs := []map[string]any{}
 	for _, cidr := range loadbalancer.GetCIDRs() {
 		cidrs = append(cidrs, map[string]any{"cidr": cidr})
@@ -197,5 +203,17 @@ func waitForRequiredLoadBalancerCRDs(ctx context.Context, snap snap.Snap, bgpMod
 		}
 
 		return requiredCount == 0, nil
+	})
+}
+
+// waitForWebhookEndpoints blocks until the MetalLB webhook service has at least one ready endpoint.
+func waitForWebhookEndpoints(ctx context.Context, snap snap.Snap) error {
+	client, err := snap.KubernetesClient("")
+	if err != nil {
+		return fmt.Errorf("failed to create Kubernetes client: %w", err)
+	}
+
+	return control.WaitUntilReady(ctx, func() (bool, error) {
+		return client.HasReadyEndpoints(ctx, ChartMetalLB.Namespace, webhookServiceName)
 	})
 }
