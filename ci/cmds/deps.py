@@ -9,15 +9,18 @@ Provides tooling to keep CI dependency pins (GitHub Actions SHA pins and
 pip hash-pinned lock files) up to date.
 """
 
+from __future__ import annotations
+
 import argparse
 import glob
 import os
 import re
 import subprocess
 import sys
+import tempfile
 import uuid
 from pathlib import Path
-from typing import Optional
+from typing import Dict, List, NamedTuple, Optional
 
 from cmds.github import gh_api
 
@@ -34,6 +37,14 @@ _USES_RE = re.compile(
 _SEMVER_RE = re.compile(r"^v?(\d+)(?:\.(\d+)(?:\.(\d+))?)?$")
 
 _FLOATING = {"main", "master", "latest"}
+
+_STANZA_START_RE = re.compile(r"^([a-zA-Z0-9_.-]+)(?:\[[^\]]+\])?==([^\s\\;#]+)")
+
+
+class _RequirementStanza(NamedTuple):
+    name: str
+    version: object
+    lines: List[str]
 
 
 # -- CLI registration -------------------------------------------------------
@@ -54,6 +65,13 @@ def add_deps_cmds(parser):
         "update-pip-locks", help="Recompile pip lock files with latest versions."
     )
     p.add_argument("--root", default=str(_REPO_ROOT), help="Repository root directory.")
+    p.add_argument(
+        "--file",
+        dest="files",
+        action="append",
+        default=[],
+        help="Specific requirements .in file(s) to compile (default: all ci/requirements-*.in).",
+    )
     p.set_defaults(func=cmd_update_pip_locks)
 
 
@@ -233,6 +251,62 @@ def cmd_update_actions(args: argparse.Namespace) -> int:
     return 0
 
 
+def _parse_requirement_stanzas(content: str) -> Dict[str, _RequirementStanza]:
+    """Parse requirement stanzas from locked content."""
+    from packaging.utils import canonicalize_name
+    from packaging.version import Version
+
+    stanzas: Dict[str, _RequirementStanza] = {}
+    curr_name: Optional[str] = None
+    curr_version: Optional[Version] = None
+    curr_lines: List[str] = []
+
+    for line in content.splitlines():
+        if not line.strip() or line.startswith("#"):
+            continue
+        m = _STANZA_START_RE.match(line)
+        if m:
+            if curr_name is not None and curr_version is not None:
+                canonical = canonicalize_name(curr_name)
+                stanzas[canonical] = _RequirementStanza(
+                    curr_name, curr_version, curr_lines
+                )
+            curr_name = m.group(1)
+            curr_version = Version(m.group(2))
+            curr_lines = [line]
+        elif curr_name is not None:
+            curr_lines.append(line)
+
+    if curr_name is not None and curr_version is not None:
+        canonical = canonicalize_name(curr_name)
+        stanzas[canonical] = _RequirementStanza(curr_name, curr_version, curr_lines)
+
+    return stanzas
+
+
+def _merge_requirement_stanzas(base_content: str, overrides_content: str) -> str:
+    """Merge compiled overrides into base requirements without downgrading."""
+    from packaging.utils import canonicalize_name
+
+    base_stanzas = _parse_requirement_stanzas(base_content)
+    override_stanzas = _parse_requirement_stanzas(overrides_content)
+
+    for canonical, override in override_stanzas.items():
+        if canonical not in base_stanzas:
+            base_stanzas[canonical] = override
+        elif override.version > base_stanzas[canonical].version:
+            base_stanzas[canonical] = override
+
+    sorted_stanzas = sorted(
+        base_stanzas.values(), key=lambda s: canonicalize_name(s.name)
+    )
+    out_lines: List[str] = []
+    for stanza in sorted_stanzas:
+        out_lines.extend(stanza.lines)
+
+    return "\n".join(out_lines) + "\n"
+
+
 def cmd_update_pip_locks(args: argparse.Namespace) -> int:
     """Recompile pip lock files and report changes.
 
@@ -243,8 +317,18 @@ def cmd_update_pip_locks(args: argparse.Namespace) -> int:
         0 on success, 1 on compile failure.
     """
     root = Path(args.root).resolve()
-    in_files = sorted(glob.glob(str(root / "ci" / "requirements-*.in")))
-
+    if getattr(args, "files", None):
+        in_files = []
+        for f in args.files:
+            p = Path(f)
+            p = (p if p.is_absolute() else root / p).resolve()
+            if not p.is_relative_to(root) or p.suffix != ".in" or not p.is_file():
+                print(f"ERROR: Invalid requirements file: {f}", file=sys.stderr)
+                return 1
+            in_files.append(str(p))
+        in_files.sort()
+    else:
+        in_files = sorted(glob.glob(str(root / "ci" / "requirements-*.in")))
     if not in_files:
         print("No ci/requirements-*.in files found.")
         _set_output("has-changes", "false")
@@ -254,36 +338,82 @@ def cmd_update_pip_locks(args: argparse.Namespace) -> int:
     for infile in in_files:
         rel_in = str(Path(infile).relative_to(root))
         rel_out = rel_in.removesuffix(".in") + ".txt"
-        print(f"Compiling {rel_in} ...")
-        try:
-            r = subprocess.run(
-                [
-                    "pip-compile",
-                    "--upgrade",
-                    "--allow-unsafe",
-                    "--generate-hashes",
-                    "--strip-extras",
-                    "--no-header",
-                    "--output-file",
-                    rel_out,
-                    rel_in,
-                ],
-                cwd=root,
-                capture_output=True,
-                text=True,
-            )
-        except FileNotFoundError:
-            print(
-                "ERROR: pip-compile not found. Install it with: pip install pip-tools",
-                file=sys.stderr,
-            )
-            return 1
-        if r.returncode != 0:
-            print(
-                f"ERROR: pip-compile failed for {rel_in}:\n{r.stderr}", file=sys.stderr
-            )
-            return 1
+        overrides_file = Path(infile).with_suffix(".overrides")
+        has_overrides = overrides_file.is_file()
 
+        print(f"Compiling {rel_in} ...")
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            base_out = str(Path(tmp_dir) / "base.txt") if has_overrides else rel_out
+            try:
+                r = subprocess.run(
+                    [
+                        "pip-compile",
+                        "--upgrade",
+                        "--allow-unsafe",
+                        "--generate-hashes",
+                        "--strip-extras",
+                        "--no-header",
+                        "--output-file",
+                        base_out,
+                        rel_in,
+                    ],
+                    cwd=root,
+                    capture_output=True,
+                    text=True,
+                )
+            except FileNotFoundError:
+                print(
+                    "ERROR: pip-compile not found. Install it with: pip install pip-tools",
+                    file=sys.stderr,
+                )
+                return 1
+            if r.returncode != 0:
+                print(
+                    f"ERROR: pip-compile failed for {rel_in}:\n{r.stderr}",
+                    file=sys.stderr,
+                )
+                return 1
+
+            if has_overrides:
+                rel_overrides = str(overrides_file.relative_to(root))
+                print(f"Applying overrides from {rel_overrides} ...")
+                overrides_out = Path(tmp_dir) / "overrides.txt"
+                try:
+                    r_overrides = subprocess.run(
+                        [
+                            "pip-compile",
+                            "--upgrade",
+                            "--allow-unsafe",
+                            "--generate-hashes",
+                            "--strip-extras",
+                            "--no-header",
+                            "--output-file",
+                            str(overrides_out),
+                            rel_overrides,
+                        ],
+                        cwd=root,
+                        capture_output=True,
+                        text=True,
+                    )
+                except FileNotFoundError:
+                    print(
+                        "ERROR: pip-compile not found. Install it with: pip install pip-tools",
+                        file=sys.stderr,
+                    )
+                    return 1
+                if r_overrides.returncode != 0:
+                    print(
+                        f"ERROR: pip-compile failed for {rel_overrides}:\n{r_overrides.stderr}",
+                        file=sys.stderr,
+                    )
+                    return 1
+
+                locked_file = root / rel_out
+                merged = _merge_requirement_stanzas(
+                    Path(base_out).read_text(),
+                    overrides_out.read_text(),
+                )
+                locked_file.write_text(merged)
         # Check for modified or untracked lock files
         status = subprocess.run(
             ["git", "status", "--porcelain", "--", rel_out],
