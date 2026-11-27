@@ -877,13 +877,12 @@ def is_daemonset_ready(
         has_cilium = False
         for ds in items:
             name = ds.get("metadata", {}).get("name", "")
-            if name == "cilium":
-                has_cilium = True
-
             status = ds.get("status", {})
             desired = status.get("desiredNumberScheduled", 0)
             if desired == 0:
                 continue
+            if name == "cilium":
+                has_cilium = True
 
             ready = status.get("numberReady", 0)
             updated = status.get("updatedNumberScheduled", 0)

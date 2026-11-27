@@ -590,6 +590,29 @@ def test_is_daemonset_ready_returns_false_when_cilium_missing_in_kube_system():
     assert not util.is_daemonset_ready(control_node)
 
 
+def test_is_daemonset_ready_returns_false_when_cilium_has_nothing_scheduled():
+    control_node = MagicMock()
+    ds_cilium_idle = json.dumps(
+        {
+            "items": [
+                {
+                    "metadata": {"name": "cilium"},
+                    "status": {
+                        "desiredNumberScheduled": 0,
+                        "numberReady": 0,
+                        "updatedNumberScheduled": 0,
+                    },
+                    "spec": {"selector": {"matchLabels": {"k8s-app": "cilium"}}},
+                }
+            ]
+        }
+    )
+    control_node.exec.return_value = subprocess.CompletedProcess(
+        args=[], returncode=0, stdout=ds_cilium_idle
+    )
+    assert not util.is_daemonset_ready(control_node, node_name="cp1")
+
+
 def _join_token(**fields) -> str:
     return base64.b64encode(json.dumps(fields).encode()).decode()
 
