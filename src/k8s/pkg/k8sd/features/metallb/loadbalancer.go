@@ -3,6 +3,7 @@ package metallb
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/canonical/k8s/pkg/client/helm"
 	"github.com/canonical/k8s/pkg/k8sd/types"
@@ -18,6 +19,9 @@ const (
 
 	webhookServiceName = "metallb-webhook-service"
 )
+
+// webhookEndpointsTimeout bounds one reconcile attempt; on expiry the feature controller retries with backoff.
+var webhookEndpointsTimeout = 2 * time.Minute
 
 // ApplyLoadBalancer will always return a FeatureStatus indicating the current status of the
 // deployment.
@@ -212,6 +216,9 @@ func waitForWebhookEndpoints(ctx context.Context, snap snap.Snap) error {
 	if err != nil {
 		return fmt.Errorf("failed to create Kubernetes client: %w", err)
 	}
+
+	ctx, cancel := context.WithTimeout(ctx, webhookEndpointsTimeout)
+	defer cancel()
 
 	return control.WaitUntilReady(ctx, func() (bool, error) {
 		return client.HasReadyEndpoints(ctx, ChartMetalLB.Namespace, webhookServiceName)
