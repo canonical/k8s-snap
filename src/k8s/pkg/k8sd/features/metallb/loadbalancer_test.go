@@ -3,7 +3,9 @@ package metallb_test
 import (
 	"context"
 	"errors"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/canonical/k8s/pkg/client/helm"
 	helmmock "github.com/canonical/k8s/pkg/client/helm/mock"
@@ -12,11 +14,35 @@ import (
 	"github.com/canonical/k8s/pkg/k8sd/types"
 	snapmock "github.com/canonical/k8s/pkg/snap/mock"
 	. "github.com/onsi/gomega"
+	discoveryv1 "k8s.io/api/discovery/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	fakediscovery "k8s.io/client-go/discovery/fake"
 	"k8s.io/client-go/kubernetes/fake"
+	k8stesting "k8s.io/client-go/testing"
 	"k8s.io/utils/ptr"
 )
+
+func fakeWebhookEndpointSlice() *discoveryv1.EndpointSlice {
+	return &discoveryv1.EndpointSlice{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "metallb-webhook-service",
+			Namespace: metallb.ChartMetalLB.Namespace,
+			Labels: map[string]string{
+				discoveryv1.LabelServiceName: "metallb-webhook-service",
+			},
+		},
+		AddressType: discoveryv1.AddressTypeIPv4,
+		Endpoints: []discoveryv1.Endpoint{
+			{
+				Addresses: []string{"10.1.0.5"},
+				Conditions: discoveryv1.EndpointConditions{
+					Ready: ptr.To(true),
+				},
+			},
+		},
+	}
+}
 
 func TestDisabled(t *testing.T) {
 	t.Run("HelmApplyFails", func(t *testing.T) {
@@ -117,7 +143,7 @@ func TestEnabled(t *testing.T) {
 		g := NewWithT(t)
 
 		helmM := &helmmock.Mock{}
-		clientset := fake.NewSimpleClientset()
+		clientset := fake.NewSimpleClientset(fakeWebhookEndpointSlice())
 		fd, ok := clientset.Discovery().(*fakediscovery.FakeDiscovery)
 		g.Expect(ok).To(BeTrue())
 		fd.Resources = []*metav1.APIResourceList{
@@ -178,6 +204,115 @@ func TestEnabled(t *testing.T) {
 		g.Expect(secondCallArgs.Chart).To(Equal(metallb.ChartMetalLBLoadBalancer))
 		g.Expect(secondCallArgs.State).To(Equal(helm.StatePresent))
 		validateLoadBalancerValues(g, secondCallArgs.Values, lbCfg)
+	})
+	t.Run("WebhookEndpointsWait", func(t *testing.T) {
+		g := NewWithT(t)
+
+		helmM := &helmmock.Mock{}
+		unreadySlice := fakeWebhookEndpointSlice()
+		unreadySlice.Endpoints[0].Conditions.Ready = ptr.To(false)
+
+		var listCalls atomic.Int32
+		clientset := fake.NewSimpleClientset(unreadySlice)
+		clientset.PrependReactor("list", "endpointslices", func(k8stesting.Action) (bool, runtime.Object, error) {
+			listCalls.Add(1)
+			return false, nil, nil
+		})
+		fd, ok := clientset.Discovery().(*fakediscovery.FakeDiscovery)
+		g.Expect(ok).To(BeTrue())
+		fd.Resources = []*metav1.APIResourceList{
+			{
+				GroupVersion: "metallb.io/v1beta1",
+				APIResources: []metav1.APIResource{
+					{Name: "ipaddresspools"},
+					{Name: "l2advertisements"},
+				},
+			},
+			{GroupVersion: "metallb.io/v1beta2"},
+		}
+		snapM := &snapmock.Snap{
+			Mock: snapmock.Mock{
+				HelmClient: helmM,
+				KubernetesClient: &kubernetes.Client{
+					Interface: clientset,
+				},
+			},
+		}
+		lbCfg := types.LoadBalancer{
+			Enabled:      ptr.To(true),
+			L2Mode:       ptr.To(true),
+			L2Interfaces: ptr.To([]string{"eth0"}),
+			CIDRs:        ptr.To([]string{"192.0.2.0/24"}),
+		}
+
+		errCh := make(chan error, 1)
+		go func() {
+			_, err := metallb.ApplyLoadBalancer(context.Background(), snapM, lbCfg, types.Network{}, nil)
+			errCh <- err
+		}()
+
+		g.Eventually(listCalls.Load, "5s", "50ms").Should(BeNumerically(">=", 1))
+		g.Expect(helmM.Calls()).To(HaveLen(1))
+		g.Expect(helmM.Calls()[0].Chart).To(Equal(metallb.ChartMetalLB))
+
+		g.Consistently(helmM.Calls, "300ms", "50ms").Should(HaveLen(1))
+
+		readySlice := fakeWebhookEndpointSlice()
+		_, err := clientset.DiscoveryV1().EndpointSlices(metallb.ChartMetalLB.Namespace).Update(
+			context.Background(),
+			readySlice,
+			metav1.UpdateOptions{},
+		)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Eventually(errCh, "5s", "50ms").Should(Receive(BeNil()))
+		calls := helmM.Calls()
+		g.Expect(calls).To(HaveLen(2))
+		g.Expect(calls[1].Chart).To(Equal(metallb.ChartMetalLBLoadBalancer))
+	})
+	t.Run("WebhookEndpointsTimeout", func(t *testing.T) {
+		g := NewWithT(t)
+
+		helmM := &helmmock.Mock{}
+		clientset := fake.NewSimpleClientset()
+		fd, ok := clientset.Discovery().(*fakediscovery.FakeDiscovery)
+		g.Expect(ok).To(BeTrue())
+		fd.Resources = []*metav1.APIResourceList{
+			{
+				GroupVersion: "metallb.io/v1beta1",
+				APIResources: []metav1.APIResource{
+					{Name: "ipaddresspools"},
+					{Name: "l2advertisements"},
+				},
+			},
+			{GroupVersion: "metallb.io/v1beta2"},
+		}
+		snapM := &snapmock.Snap{
+			Mock: snapmock.Mock{
+				HelmClient: helmM,
+				KubernetesClient: &kubernetes.Client{
+					Interface: clientset,
+				},
+			},
+		}
+		lbCfg := types.LoadBalancer{
+			Enabled:      ptr.To(true),
+			L2Mode:       ptr.To(true),
+			L2Interfaces: ptr.To([]string{"eth0"}),
+			CIDRs:        ptr.To([]string{"192.0.2.0/24"}),
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), 2500*time.Millisecond)
+		defer cancel()
+
+		status, err := metallb.ApplyLoadBalancer(ctx, snapM, lbCfg, types.Network{}, nil)
+		g.Expect(err).To(HaveOccurred())
+		g.Expect(err).To(MatchError(ContainSubstring("failed to wait for MetalLB webhook service endpoints")))
+		g.Expect(status.Enabled).To(BeFalse())
+
+		calls := helmM.Calls()
+		g.Expect(calls).To(HaveLen(1))
+		g.Expect(calls[0].Chart).To(Equal(metallb.ChartMetalLB))
 	})
 }
 
