@@ -1,6 +1,8 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
+import base64
+import json
 import logging
 import subprocess
 from unittest.mock import MagicMock
@@ -379,3 +381,265 @@ def test_snap_revert_uses_bounded_timeout_and_retries_after_timeout():
     ]
     assert instance.exec.call_args_list[0][1].get("timeout") == 300
     assert instance.exec.call_args_list[2][1].get("timeout") == 300
+
+
+def test_is_daemonset_ready_polls_until_scheduled_and_ready():
+    control_node = MagicMock()
+    ds_ready_lagging = json.dumps(
+        {
+            "items": [
+                {
+                    "metadata": {"name": "cilium"},
+                    "status": {
+                        "desiredNumberScheduled": 2,
+                        "numberReady": 1,
+                        "updatedNumberScheduled": 2,
+                    },
+                    "spec": {"selector": {"matchLabels": {"k8s-app": "cilium"}}},
+                }
+            ]
+        }
+    )
+    ds_updated_lagging = json.dumps(
+        {
+            "items": [
+                {
+                    "metadata": {"name": "cilium"},
+                    "status": {
+                        "desiredNumberScheduled": 2,
+                        "numberReady": 2,
+                        "updatedNumberScheduled": 1,
+                    },
+                    "spec": {"selector": {"matchLabels": {"k8s-app": "cilium"}}},
+                }
+            ]
+        }
+    )
+    ds_ready = json.dumps(
+        {
+            "items": [
+                {
+                    "metadata": {"name": "cilium"},
+                    "status": {
+                        "desiredNumberScheduled": 2,
+                        "numberReady": 2,
+                        "updatedNumberScheduled": 2,
+                    },
+                    "spec": {"selector": {"matchLabels": {"k8s-app": "cilium"}}},
+                }
+            ]
+        }
+    )
+    pod_unready = json.dumps(
+        {
+            "items": [
+                {
+                    "metadata": {"name": "cilium-cp1"},
+                    "status": {"conditions": [{"type": "Ready", "status": "False"}]},
+                }
+            ]
+        }
+    )
+    pod_ready = json.dumps(
+        {
+            "items": [
+                {
+                    "metadata": {"name": "cilium-cp1"},
+                    "status": {"conditions": [{"type": "Ready", "status": "True"}]},
+                }
+            ]
+        }
+    )
+
+    control_node.exec.side_effect = [
+        subprocess.CompletedProcess(args=[], returncode=0, stdout=ds_ready_lagging),
+        subprocess.CompletedProcess(args=[], returncode=0, stdout=ds_updated_lagging),
+        subprocess.CompletedProcess(args=[], returncode=0, stdout=ds_ready),
+        subprocess.CompletedProcess(args=[], returncode=0, stdout=pod_unready),
+        subprocess.CompletedProcess(args=[], returncode=0, stdout=ds_ready),
+        subprocess.CompletedProcess(args=[], returncode=0, stdout=pod_ready),
+    ]
+
+    assert not util.is_daemonset_ready(control_node, node_name="cp1")
+    assert not util.is_daemonset_ready(control_node, node_name="cp1")
+    assert not util.is_daemonset_ready(control_node, node_name="cp1")
+    assert util.is_daemonset_ready(control_node, node_name="cp1")
+
+
+def test_is_daemonset_ready_skips_zero_desired_daemonset():
+    control_node = MagicMock()
+    ds_data = json.dumps(
+        {
+            "items": [
+                {
+                    "metadata": {"name": "gpu-operator"},
+                    "status": {
+                        "desiredNumberScheduled": 0,
+                        "numberReady": 0,
+                        "updatedNumberScheduled": 0,
+                    },
+                    "spec": {"selector": {"matchLabels": {"app": "gpu-operator"}}},
+                },
+                {
+                    "metadata": {"name": "cilium"},
+                    "status": {
+                        "desiredNumberScheduled": 1,
+                        "numberReady": 1,
+                        "updatedNumberScheduled": 1,
+                    },
+                    "spec": {"selector": {"matchLabels": {"k8s-app": "cilium"}}},
+                },
+            ]
+        }
+    )
+    pod_ready = json.dumps(
+        {
+            "items": [
+                {
+                    "metadata": {"name": "cilium-cp1"},
+                    "status": {"conditions": [{"type": "Ready", "status": "True"}]},
+                }
+            ]
+        }
+    )
+    control_node.exec.side_effect = [
+        subprocess.CompletedProcess(args=[], returncode=0, stdout=ds_data),
+        subprocess.CompletedProcess(args=[], returncode=0, stdout=pod_ready),
+    ]
+    assert util.is_daemonset_ready(control_node, node_name="cp1")
+
+
+def test_is_daemonset_ready_blocks_when_updated_less_than_desired():
+    control_node = MagicMock()
+    ds_lagging = json.dumps(
+        {
+            "items": [
+                {
+                    "metadata": {"name": "cilium"},
+                    "status": {
+                        "desiredNumberScheduled": 2,
+                        "numberReady": 2,
+                        "updatedNumberScheduled": 1,
+                    },
+                    "spec": {"selector": {"matchLabels": {"k8s-app": "cilium"}}},
+                }
+            ]
+        }
+    )
+    control_node.exec.return_value = subprocess.CompletedProcess(
+        args=[], returncode=0, stdout=ds_lagging
+    )
+    assert not util.is_daemonset_ready(control_node, node_name="cp1")
+
+
+def test_is_daemonset_ready_returns_false_when_pod_missing():
+    control_node = MagicMock()
+    ds_ready = json.dumps(
+        {
+            "items": [
+                {
+                    "metadata": {"name": "cilium"},
+                    "status": {
+                        "desiredNumberScheduled": 2,
+                        "numberReady": 2,
+                        "updatedNumberScheduled": 2,
+                    },
+                    "spec": {"selector": {"matchLabels": {"k8s-app": "cilium"}}},
+                }
+            ]
+        }
+    )
+    pods_empty = json.dumps({"items": []})
+
+    control_node.exec.side_effect = [
+        subprocess.CompletedProcess(args=[], returncode=0, stdout=ds_ready),
+        subprocess.CompletedProcess(args=[], returncode=0, stdout=pods_empty),
+    ]
+
+    assert not util.is_daemonset_ready(control_node, node_name="cp1")
+
+
+def test_is_daemonset_ready_returns_false_when_no_daemonsets_found():
+    control_node = MagicMock()
+    control_node.exec.return_value = subprocess.CompletedProcess(
+        args=[], returncode=0, stdout='{"items": []}'
+    )
+    assert not util.is_daemonset_ready(control_node)
+
+
+def test_is_daemonset_ready_returns_false_when_cilium_missing_in_kube_system():
+    control_node = MagicMock()
+    ds_other = json.dumps(
+        {
+            "items": [
+                {
+                    "metadata": {"name": "other"},
+                    "status": {
+                        "desiredNumberScheduled": 1,
+                        "numberReady": 1,
+                        "updatedNumberScheduled": 1,
+                    },
+                    "spec": {"selector": {"matchLabels": {"k8s-app": "other"}}},
+                }
+            ]
+        }
+    )
+    control_node.exec.return_value = subprocess.CompletedProcess(
+        args=[], returncode=0, stdout=ds_other
+    )
+    assert not util.is_daemonset_ready(control_node)
+
+
+def test_is_daemonset_ready_returns_false_when_cilium_has_nothing_scheduled():
+    control_node = MagicMock()
+    ds_cilium_idle = json.dumps(
+        {
+            "items": [
+                {
+                    "metadata": {"name": "cilium"},
+                    "status": {
+                        "desiredNumberScheduled": 0,
+                        "numberReady": 0,
+                        "updatedNumberScheduled": 0,
+                    },
+                    "spec": {"selector": {"matchLabels": {"k8s-app": "cilium"}}},
+                }
+            ]
+        }
+    )
+    control_node.exec.return_value = subprocess.CompletedProcess(
+        args=[], returncode=0, stdout=ds_cilium_idle
+    )
+    assert not util.is_daemonset_ready(control_node, node_name="cp1")
+
+
+def _join_token(**fields) -> str:
+    return base64.b64encode(json.dumps(fields).encode()).decode()
+
+
+def test_join_cluster_waits_for_control_plane_node(monkeypatch):
+    instance = MagicMock()
+    instance.id = "cp1"
+    wait_mock = MagicMock()
+    monkeypatch.setattr(util, "wait_until_k8s_ready", wait_mock)
+    monkeypatch.setattr(util, "hostname", lambda _: "cp1")
+
+    util.join_cluster(instance, _join_token(secret="s", fingerprint="f"))
+
+    wait_mock.assert_called_once_with(
+        instance,
+        [instance],
+        node_names={"cp1": "cp1"},
+        wait_for_daemonsets=True,
+    )
+
+
+def test_join_cluster_skips_wait_for_worker_or_when_disabled(monkeypatch):
+    instance = MagicMock()
+    wait_mock = MagicMock()
+    monkeypatch.setattr(util, "wait_until_k8s_ready", wait_mock)
+
+    util.join_cluster(instance, _join_token(secret="s", fingerprint="f", _="m!!"))
+    util.join_cluster(instance, _join_token(secret="s"), wait_ready=False)
+
+    wait_mock.assert_not_called()

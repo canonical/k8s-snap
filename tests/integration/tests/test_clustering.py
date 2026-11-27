@@ -542,11 +542,7 @@ def test_join_with_custom_token_name(instances: List[harness.Instance]):
 extra-sans:
 - my-token
 """
-    joining_cp.exec(
-        ["k8s", "join-cluster", join_token, "--name", "my-node", "--file", "-"],
-        input=join_config,
-        text=True,
-    )
+    util.join_cluster(joining_cp, join_token, cfg=join_config, name="my-node")
 
     out = cluster_node.exec(
         ["k8s", "get-join-token", "my-token-2"],
@@ -559,11 +555,7 @@ extra-sans:
 extra-sans:
 - my-token-2
 """
-    joining_cp_with_hostname.exec(
-        ["k8s", "join-cluster", join_token_2, "--file", "-"],
-        input=join_config_2,
-        text=True,
-    )
+    util.join_cluster(joining_cp_with_hostname, join_token_2, cfg=join_config_2)
 
     util.wait_until_k8s_ready(
         cluster_node, instances, node_names={joining_cp.id: "my-node"}
@@ -805,7 +797,8 @@ def join_node_with_retry(
                 join_token = util.get_join_token(cluster_node, joining_node, "--worker")
             else:
                 join_token = util.get_join_token(cluster_node, joining_node)
-            util.join_cluster(joining_node, join_token)
+            # Skip post-join wait so concurrent membership tests run in parallel.
+            util.join_cluster(joining_node, join_token, wait_ready=False)
             break
         except Exception as e:
             if attempt == retries - 1:  # Last attempt
