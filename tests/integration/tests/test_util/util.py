@@ -24,6 +24,7 @@ import pytest
 import yaml
 from tenacity import (
     RetryCallState,
+    RetryError,
     Retrying,
     retry,
     retry_if_exception,
@@ -662,27 +663,73 @@ def snap_revert(
     ).on(instance).exec(["snap", "revert", snap_name], timeout=timeout)
 
 
-def remove_k8s_snap(instance: harness.Instance):
+def remove_k8s_snap(instance: harness.Instance, retries: int = 40):
     LOG.info("Uninstall k8s...")
     stubbornly(retries=20, delay_s=5).on(instance).exec(
         ["snap", "remove", config.SNAP_NAME, "--purge"], timeout=60 * 5
     )
 
     LOG.info("Waiting for shims to go away...")
-    stubbornly(retries=40, delay_s=5).on(instance).until(
-        lambda p: all(
-            x not in p.stdout.decode()
-            for x in ["containerd-shim", "cilium", "coredns", "/pause"]
-        )
-    ).exec(["ps", "-fea"])
+    target_procs = ["containerd-shim", "cilium", "coredns", "/pause"]
+    last_lingering_procs: List[str] = []
+
+    def _no_lingering_procs(p: subprocess.CompletedProcess) -> bool:
+        nonlocal last_lingering_procs
+        stdout = p.stdout.decode() if isinstance(p.stdout, bytes) else (p.stdout or "")
+        last_lingering_procs = [
+            line.strip()
+            for line in stdout.splitlines()
+            if any(target in line for target in target_procs)
+        ]
+        if last_lingering_procs:
+            LOG.debug(
+                "Lingering processes on %s: %s", instance.id, last_lingering_procs
+            )
+            return False
+        return True
+
+    try:
+        stubbornly(retries=retries, delay_s=5).on(instance).until(
+            _no_lingering_procs
+        ).exec(["ps", "-fea"])
+    except RetryError:
+        if last_lingering_procs:
+            LOG.error(
+                "Timed out waiting for shims to go away on %s. Lingering processes: %s",
+                instance.id,
+                last_lingering_procs,
+            )
+        raise
 
     LOG.info("Waiting for kubelet and containerd mounts to go away...")
-    stubbornly(retries=40, delay_s=5).on(instance).until(
-        lambda p: all(
-            x not in p.stdout.decode()
-            for x in ["/var/lib/kubelet/pods", "/run/containerd/io.containerd"]
-        )
-    ).exec(["mount"])
+    target_mounts = ["/var/lib/kubelet/pods", "/run/containerd/io.containerd"]
+    last_lingering_mounts: List[str] = []
+
+    def _no_lingering_mounts(p: subprocess.CompletedProcess) -> bool:
+        nonlocal last_lingering_mounts
+        stdout = p.stdout.decode() if isinstance(p.stdout, bytes) else (p.stdout or "")
+        last_lingering_mounts = [
+            line.strip()
+            for line in stdout.splitlines()
+            if any(target in line for target in target_mounts)
+        ]
+        if last_lingering_mounts:
+            LOG.debug("Lingering mounts on %s: %s", instance.id, last_lingering_mounts)
+            return False
+        return True
+
+    try:
+        stubbornly(retries=retries, delay_s=5).on(instance).until(
+            _no_lingering_mounts
+        ).exec(["mount"])
+    except RetryError:
+        if last_lingering_mounts:
+            LOG.error(
+                "Timed out waiting for mounts to go away on %s. Lingering mounts: %s",
+                instance.id,
+                last_lingering_mounts,
+            )
+        raise
 
     # NOTE(neoaggelos): Temporarily disable this as it fails on strict.
     # For details, `snap changes` then `snap change $remove_k8s_snap_change`.
