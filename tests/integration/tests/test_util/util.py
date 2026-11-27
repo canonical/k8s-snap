@@ -763,6 +763,7 @@ def wait_until_k8s_ready(
     delay_s: int = config.DEFAULT_WAIT_DELAY_S,
     node_names: Mapping[str, str] = {},
     skip_services: Optional[List[str]] = None,
+    wait_for_daemonsets: bool = False,
 ):
     """
     Validates that the K8s node is in Ready state.
@@ -784,6 +785,10 @@ def wait_until_k8s_ready(
                     control_node, node_name
                 ), f"Node {node_name} did not reach Ready state (see log above for condition detail)"
                 check_snap_services_ready(instance, skip_services=skip_services)
+                if wait_for_daemonsets:
+                    assert is_daemonset_ready(
+                        control_node, node_name=node_name
+                    ), f"Daemonsets on node {node_name} did not reach Ready state"
 
     LOG.info("Successfully checked Kubelet registered on all harness instances.")
     result = control_node.exec(["k8s", "kubectl", "get", "node"], capture_output=True)
@@ -838,6 +843,144 @@ def is_node_ready(
 
     LOG.info(f"Node ready: {node_name}")
     return True
+
+
+def is_daemonset_ready(
+    control_node: harness.Instance,
+    node_name: Optional[str] = None,
+    namespace: str = "kube-system",
+    daemonset_name: Optional[str] = None,
+) -> bool:
+    """Check if DaemonSets in the specified namespace are ready.
+
+    If node_name is provided, also verifies that the DaemonSet has a Running and
+    Ready pod scheduled on that specific node.
+    """
+    try:
+        if daemonset_name:
+            cmd = [
+                "k8s",
+                "kubectl",
+                "get",
+                "daemonset",
+                daemonset_name,
+                "-n",
+                namespace,
+                "-o",
+                "json",
+            ]
+        else:
+            cmd = ["k8s", "kubectl", "get", "daemonsets", "-n", namespace, "-o", "json"]
+
+        proc = control_node.exec(cmd, capture_output=True)
+        raw = proc.stdout.decode() if isinstance(proc.stdout, bytes) else proc.stdout
+        data = json.loads(raw)
+        items = [data] if daemonset_name else data.get("items", [])
+
+        if not items:
+            LOG.info("No daemonsets found in namespace %s yet", namespace)
+            return False
+
+        has_cilium = False
+        for ds in items:
+            name = ds.get("metadata", {}).get("name", "")
+            if name == "cilium":
+                has_cilium = True
+            status = ds.get("status", {})
+            desired = status.get("desiredNumberScheduled", 0)
+            ready = status.get("numberReady", 0)
+
+            if desired == 0:
+                LOG.info("Daemonset %s has 0 desired scheduled pods", name)
+                return False
+
+            if ready < desired:
+                LOG.info(
+                    "Daemonset %s not fully ready: %d/%d ready", name, ready, desired
+                )
+                return False
+
+            if node_name and (name == "cilium" or daemonset_name):
+                selector_map = (
+                    ds.get("spec", {}).get("selector", {}).get("matchLabels", {})
+                )
+                selector = ",".join(f"{k}={v}" for k, v in selector_map.items())
+                pods_cmd = [
+                    "k8s",
+                    "kubectl",
+                    "get",
+                    "pods",
+                    "-n",
+                    namespace,
+                    "--field-selector",
+                    f"spec.nodeName={node_name}",
+                    "-o",
+                    "json",
+                ]
+                if selector:
+                    pods_cmd.extend(["-l", selector])
+
+                pods_proc = control_node.exec(pods_cmd, capture_output=True)
+                pods_raw = (
+                    pods_proc.stdout.decode()
+                    if isinstance(pods_proc.stdout, bytes)
+                    else pods_proc.stdout
+                )
+                pods_data = json.loads(pods_raw)
+                pods = pods_data.get("items", [])
+
+                if not pods:
+                    LOG.info("Daemonset %s has no pod on node %s yet", name, node_name)
+                    return False
+
+                for pod in pods:
+                    pod_name = pod.get("metadata", {}).get("name", "")
+                    if pod.get("metadata", {}).get("deletionTimestamp"):
+                        LOG.info("Pod %s on %s is terminating", pod_name, node_name)
+                        return False
+
+                    phase = pod.get("status", {}).get("phase", "Unknown")
+                    if phase != "Running":
+                        LOG.info(
+                            "Pod %s on %s is in phase %s", pod_name, node_name, phase
+                        )
+                        return False
+
+                    conditions = pod.get("status", {}).get("conditions", [])
+                    ready_cond = next(
+                        (c for c in conditions if c.get("type") == "Ready"), None
+                    )
+                    if (
+                        not ready_cond
+                        or str(ready_cond.get("status")).lower() != "true"
+                    ):
+                        LOG.info(
+                            "Pod %s on %s Ready condition is not True",
+                            pod_name,
+                            node_name,
+                        )
+                        return False
+
+                    for container in pod.get("status", {}).get("containerStatuses", []):
+                        if str(container.get("ready")).lower() != "true":
+                            LOG.info(
+                                f"Pod {pod_name} container {container.get('name')} on {node_name} is not ready"
+                            )
+                            return False
+
+        if not daemonset_name and namespace == "kube-system" and not has_cilium:
+            LOG.info("Cilium daemonset not found in kube-system yet")
+            return False
+
+        LOG.info(
+            f"Daemonsets in {namespace} are ready"
+            + (f" on node {node_name}" if node_name else "")
+        )
+        return True
+
+    except Exception as ex:
+        LOG.info("Daemonsets in %s not ready yet: %s", namespace, ex)
+        return False
 
 
 def wait_for_pods_ready(
@@ -1081,8 +1224,11 @@ def join_cluster(
     join_token: str,
     cfg: Optional[str] = None,
     name: Optional[str] = None,
+    *args,
+    wait_ready: bool = True,
+    control_node: Optional[harness.Instance] = None,
 ):
-    cmd = ["k8s", "join-cluster", join_token]
+    cmd = ["k8s", "join-cluster", join_token, *args]
     if name:
         cmd.extend(["--name", name])
     if cfg:
@@ -1090,6 +1236,26 @@ def join_cluster(
         instance.exec(cmd, input=str.encode(cfg))
     else:
         instance.exec(cmd)
+
+    if wait_ready:
+        status = (
+            stubbornly(retries=5, delay_s=1)
+            .on(instance)
+            .exec(["k8s", "local-node-status"], capture_output=True)
+            .stdout.decode()
+            .strip()
+        )
+
+        # Avoid racing subsequent joins while networking is still initializing.
+        if "control-plane" in status:
+            ctrl = control_node or instance
+            node_name = name or hostname(instance)
+            wait_until_k8s_ready(
+                ctrl,
+                [instance],
+                node_names={instance.id: node_name},
+                wait_for_daemonsets=True,
+            )
 
 
 def remove_node_with_retry(

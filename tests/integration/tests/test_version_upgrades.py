@@ -334,10 +334,10 @@ def test_feature_upgrades_inplace(
         if instance.id in [bootstrap_cp.id, worker.id]:
             continue
         token = util.get_join_token(bootstrap_cp, instance)
-        instance.exec(["k8s", "join-cluster", token])
+        util.join_cluster(instance, token)
 
     token = util.get_join_token(bootstrap_cp, worker, "--worker")
-    worker.exec(["k8s", "join-cluster", token])
+    util.join_cluster(worker, token)
 
     util.wait_until_k8s_ready(bootstrap_cp, instances)
     util.wait_for_pods_ready(bootstrap_cp)
@@ -531,7 +531,7 @@ def test_feature_upgrades_rollout_upgrade(
     util.wait_until_k8s_ready(main_old, [main_old])
     for instance in instances[1:3]:
         token = util.get_join_token(main_old, instance)
-        instance.exec(["k8s", "join-cluster", token])
+        util.join_cluster(instance, token)
 
     util.wait_until_k8s_ready(main_old, instances[:3])
     # Get initial helm releases to track if they are updated correctly.

@@ -1,6 +1,7 @@
 #
 # Copyright 2026 Canonical, Ltd.
 #
+import json
 import logging
 import subprocess
 from unittest.mock import MagicMock
@@ -379,3 +380,189 @@ def test_snap_revert_uses_bounded_timeout_and_retries_after_timeout():
     ]
     assert instance.exec.call_args_list[0][1].get("timeout") == 300
     assert instance.exec.call_args_list[2][1].get("timeout") == 300
+
+
+def test_is_daemonset_ready_polls_until_scheduled_and_ready():
+    control_node = MagicMock()
+    ds_not_ready = json.dumps(
+        {
+            "items": [
+                {
+                    "metadata": {"name": "cilium"},
+                    "status": {"desiredNumberScheduled": 2, "numberReady": 1},
+                    "spec": {"selector": {"matchLabels": {"k8s-app": "cilium"}}},
+                }
+            ]
+        }
+    )
+    ds_ready = json.dumps(
+        {
+            "items": [
+                {
+                    "metadata": {"name": "cilium"},
+                    "status": {"desiredNumberScheduled": 2, "numberReady": 2},
+                    "spec": {"selector": {"matchLabels": {"k8s-app": "cilium"}}},
+                }
+            ]
+        }
+    )
+    pod_pending = json.dumps(
+        {
+            "items": [
+                {
+                    "metadata": {"name": "cilium-cp1"},
+                    "status": {
+                        "phase": "Pending",
+                        "conditions": [{"type": "Ready", "status": "False"}],
+                        "containerStatuses": [{"name": "cilium-agent", "ready": False}],
+                    },
+                }
+            ]
+        }
+    )
+    pod_ready = json.dumps(
+        {
+            "items": [
+                {
+                    "metadata": {"name": "cilium-cp1"},
+                    "status": {
+                        "phase": "Running",
+                        "conditions": [{"type": "Ready", "status": "True"}],
+                        "containerStatuses": [{"name": "cilium-agent", "ready": True}],
+                    },
+                }
+            ]
+        }
+    )
+
+    control_node.exec.side_effect = [
+        subprocess.CompletedProcess(args=[], returncode=0, stdout=ds_not_ready),
+        subprocess.CompletedProcess(args=[], returncode=0, stdout=ds_ready),
+        subprocess.CompletedProcess(args=[], returncode=0, stdout=pod_pending),
+        subprocess.CompletedProcess(args=[], returncode=0, stdout=ds_ready),
+        subprocess.CompletedProcess(args=[], returncode=0, stdout=pod_ready),
+    ]
+
+    assert not util.is_daemonset_ready(control_node, node_name="cp1")
+    assert not util.is_daemonset_ready(control_node, node_name="cp1")
+    assert util.is_daemonset_ready(control_node, node_name="cp1")
+
+
+def test_is_daemonset_ready_returns_false_when_pod_missing():
+    control_node = MagicMock()
+    ds_ready = json.dumps(
+        {
+            "items": [
+                {
+                    "metadata": {"name": "cilium"},
+                    "status": {"desiredNumberScheduled": 2, "numberReady": 2},
+                    "spec": {"selector": {"matchLabels": {"k8s-app": "cilium"}}},
+                }
+            ]
+        }
+    )
+    pods_empty = json.dumps({"items": []})
+
+    control_node.exec.side_effect = [
+        subprocess.CompletedProcess(args=[], returncode=0, stdout=ds_ready),
+        subprocess.CompletedProcess(args=[], returncode=0, stdout=pods_empty),
+    ]
+
+    assert not util.is_daemonset_ready(control_node, node_name="cp1")
+
+
+def test_is_daemonset_ready_returns_false_when_no_daemonsets_found():
+    control_node = MagicMock()
+    control_node.exec.return_value = subprocess.CompletedProcess(
+        args=[], returncode=0, stdout='{"items": []}'
+    )
+    assert not util.is_daemonset_ready(control_node)
+
+
+def test_is_daemonset_ready_returns_false_when_cilium_missing_in_kube_system():
+    control_node = MagicMock()
+    ds_other = json.dumps(
+        {
+            "items": [
+                {
+                    "metadata": {"name": "other"},
+                    "status": {"desiredNumberScheduled": 1, "numberReady": 1},
+                    "spec": {"selector": {"matchLabels": {"k8s-app": "other"}}},
+                }
+            ]
+        }
+    )
+    control_node.exec.return_value = subprocess.CompletedProcess(
+        args=[], returncode=0, stdout=ds_other
+    )
+    assert not util.is_daemonset_ready(control_node)
+
+
+def test_join_cluster_waits_for_control_plane_node(monkeypatch):
+    instance = MagicMock()
+    instance.id = "cp1"
+    wait_mock = MagicMock()
+    monkeypatch.setattr(util, "wait_until_k8s_ready", wait_mock)
+
+    instance.exec.side_effect = [
+        subprocess.CompletedProcess(
+            args=["k8s", "join-cluster", "tok"], returncode=0, stdout=""
+        ),
+        subprocess.CompletedProcess(
+            args=["k8s", "local-node-status"], returncode=0, stdout=b"control-plane\n"
+        ),
+        subprocess.CompletedProcess(args=["hostname"], returncode=0, stdout=b"cp1\n"),
+    ]
+
+    util.join_cluster(instance, "tok")
+
+    wait_mock.assert_called_once_with(
+        instance,
+        [instance],
+        node_names={"cp1": "cp1"},
+        wait_for_daemonsets=True,
+    )
+
+
+def test_join_cluster_skips_wait_when_worker_or_disabled(monkeypatch):
+    instance = MagicMock()
+    instance.id = "worker1"
+    wait_mock = MagicMock()
+    monkeypatch.setattr(util, "wait_until_k8s_ready", wait_mock)
+
+    instance.exec.return_value = subprocess.CompletedProcess(
+        args=["k8s", "join-cluster", "tok"], returncode=0, stdout=""
+    )
+
+    util.join_cluster(instance, "tok", wait_ready=False)
+    wait_mock.assert_not_called()
+
+    instance.exec.side_effect = [
+        subprocess.CompletedProcess(
+            args=["k8s", "join-cluster", "tok"], returncode=0, stdout=""
+        ),
+        subprocess.CompletedProcess(
+            args=["k8s", "local-node-status"], returncode=0, stdout=b"worker\n"
+        ),
+    ]
+    util.join_cluster(instance, "tok", wait_ready=True)
+    wait_mock.assert_not_called()
+
+
+def test_join_cluster_propagates_status_error():
+    instance = MagicMock()
+    instance.id = "cp1"
+    instance.exec.side_effect = [
+        subprocess.CompletedProcess(
+            args=["k8s", "join-cluster", "tok"], returncode=0, stdout=""
+        ),
+        subprocess.CalledProcessError(
+            returncode=1,
+            cmd=["k8s", "local-node-status"],
+            output=b"",
+            stderr=b"daemon error",
+        ),
+    ]
+
+    with pytest.raises(RetryError):
+        util.join_cluster(instance, "tok")
