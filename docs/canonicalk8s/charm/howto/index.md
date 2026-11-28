@@ -53,12 +53,14 @@ Configure proxy settings <proxy>
 
 ## Upgrade
 
-Perform major and minor upgrades of your {{product}} cluster.
+Perform major and minor upgrades of your {{product}} cluster, and move its
+machines to a new Ubuntu release.
 
 ```{toctree}
 :glob:
 :titlesonly:
 Upgrade <upgrade>
+Upgrade the Ubuntu base <upgrade-base>
 ```
 
 ## Image registry
