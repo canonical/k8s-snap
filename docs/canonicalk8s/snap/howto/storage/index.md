@@ -4,6 +4,8 @@ myst:
     description: "Storage how-to guide index for Canonical Kubernetes, covering local storage, Ceph, and cloud storage configuration."
 ---
 
+(snap-storage)=
+
 # Storage
 
 Most Kubernetes clusters will need some type of persistent storage for running
