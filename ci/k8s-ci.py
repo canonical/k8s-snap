@@ -9,6 +9,7 @@ from cmds.deps import add_deps_cmds
 from cmds.docs import add_docs_cmds
 from cmds.e2e import add_e2e_cmds
 from cmds.mattermost import add_mattermost_cmds
+from cmds.metrics import add_metrics_cmds
 from cmds.security import add_security_cmds
 
 
@@ -22,6 +23,7 @@ def main(argv: list[str]) -> int:
     add_docs_cmds(subparsers)
     add_e2e_cmds(subparsers)
     add_mattermost_cmds(subparsers)
+    add_metrics_cmds(subparsers)
     add_security_cmds(subparsers)
 
     args = parser.parse_args(argv)
